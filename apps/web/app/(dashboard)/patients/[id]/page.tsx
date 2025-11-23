@@ -3,7 +3,6 @@
 import { useMemo, useCallback, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { ConsultationModal } from "@/components/consultation/consultation-modal"
 import { PatientTagManager } from "@/components/patients/patient-tag-manager"
 import { WhatsAppButton } from "@/components/common/whatsapp-button"
 import { usePatientData } from "@/hooks/use-patient-data"
@@ -252,17 +251,13 @@ export default function PatientDetailPage() {
                               <Stethoscope className="h-3 w-3" /> Dr. {apt.doctor?.name}
                             </p>
                           </div>
-                          <ConsultationModal 
-                            appointmentId={apt.id!}
-                            patientId={patient.id!}
-                            doctorId={apt.doctorId}
-                            patientName={`${patient.firstName} ${patient.lastName}`}
-                            trigger={
-                              <Button size="sm" variant={apt.status === "completed" ? "outline" : "default"}>
-                                {apt.status === "completed" ? "View Details" : "Start Consultation"}
-                              </Button>
-                            }
-                          />
+                          <Button 
+                            size="sm" 
+                            variant={apt.status === "completed" ? "outline" : "default"}
+                            onClick={() => router.push(`/consultation/${apt.id}?from=patient`)}
+                          >
+                            {apt.status === "completed" ? "View Details" : "Start Consultation"}
+                          </Button>
                         </div>
 
                         {apt.notes && (

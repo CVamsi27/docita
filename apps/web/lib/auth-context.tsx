@@ -58,7 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(user)
       localStorage.setItem("docita_token", access_token)
       localStorage.setItem("docita_user", JSON.stringify(user))
-      router.push("/dashboard")
+      
+      // Redirect to originally requested page or dashboard
+      const redirectUrl = sessionStorage.getItem("redirectAfterLogin") || "/dashboard"
+      sessionStorage.removeItem("redirectAfterLogin")
+      router.push(redirectUrl)
     } catch (error) {
       console.error("Login error:", error)
       throw error

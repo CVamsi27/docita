@@ -4,6 +4,9 @@ import { WhatsAppAutomationSettings } from "@/components/settings/whatsapp-autom
 import { TemplatesSettings } from "@/components/settings/templates-settings"
 import { CustomFieldsSettings } from "@/components/settings/custom-fields-settings"
 import { ReminderSettings } from "@/components/settings/reminder-settings"
+import { ClinicGeneralSettings } from "@/components/settings/clinic-general-settings"
+import { DoctorManagementSettings } from "@/components/settings/doctor-management-settings"
+import { PrescriptionDefaultsSettings } from "@/components/settings/prescription-defaults-settings"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
@@ -29,25 +32,26 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="doctors">Doctors</TabsTrigger>
+          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="custom-fields">Custom Fields</TabsTrigger>
           <TabsTrigger value="reminders">Reminders</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Clinic Profile</CardTitle>
-              <CardDescription>Update your clinic details and contact information.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">General settings form coming soon...</p>
-            </CardContent>
-          </Card>
+          <ClinicGeneralSettings />
+        </TabsContent>
+
+        <TabsContent value="doctors" className="space-y-6">
+          <DoctorManagementSettings />
+        </TabsContent>
+
+        <TabsContent value="prescriptions" className="space-y-6">
+          <PrescriptionDefaultsSettings />
         </TabsContent>
 
         <TabsContent value="templates">
@@ -64,19 +68,6 @@ export default function SettingsPage() {
 
         <TabsContent value="whatsapp">
           <WhatsAppAutomationSettings />
-        </TabsContent>
-
-        {/* Add content for billing tab if needed */}
-        <TabsContent value="billing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing Information</CardTitle>
-              <CardDescription>Manage your subscription and payment methods.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Billing settings coming soon...</p>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

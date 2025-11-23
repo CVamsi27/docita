@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { patientsAPI } from "@/lib/api"
 import { Patient } from "@workspace/types"
 import { Button } from "@workspace/ui/components/button"
@@ -34,18 +34,12 @@ function PatientsContent() {
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const searchParams = useSearchParams()
   const router = useRouter()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
-  useEffect(() => {
-    loadPatients()
-    if (searchParams.get("action") === "new") {
-      setIsAddDialogOpen(true)
-    }
-  }, [searchParams])
-
-  const loadPatients = async () => {
+  const loadPatients = useCallback(async () => {
     try {
       setLoading(true)
       const data = await patientsAPI.getAll()
@@ -56,9 +50,16 @@ function PatientsContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleDialogChange = (open: boolean) => {
+  useEffect(() => {
+    loadPatients()
+    if (searchParams.get("action") === "new") {
+      setIsAddDialogOpen(true)
+    }
+  }, [searchParams, loadPatients])
+
+  const handleDialogChange = useCallback((open: boolean) => {
     setIsAddDialogOpen(open)
     if (!open) {
       // Remove the query param when dialog closes
@@ -66,7 +67,22 @@ function PatientsContent() {
       newParams.delete("action")
       router.replace(`/patients?${newParams.toString()}`)
     }
-  }
+  }, [searchParams, router])
+
+  // Filter patients based on search query
+  const filteredPatients = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return patients
+    }
+
+    const query = searchQuery.toLowerCase().trim()
+    return patients.filter((patient) => {
+      const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase()
+      const phoneNumber = patient.phoneNumber.toLowerCase()
+      
+      return fullName.includes(query) || phoneNumber.includes(query)
+    })
+  }, [patients, searchQuery])
 
   return (
     <div className="flex flex-col gap-6">
@@ -88,10 +104,21 @@ function PatientsContent() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search patients..."
+            placeholder="Search by name or phone..."
             className="pl-9 bg-background"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        {searchQuery && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setSearchQuery("")}
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -120,14 +147,14 @@ function PatientsContent() {
                   Loading patients...
                 </TableCell>
               </TableRow>
-            ) : patients.length === 0 ? (
+            ) : filteredPatients.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  No patients found.
+                  {searchQuery ? `No patients found matching "${searchQuery}"` : "No patients found."}
                 </TableCell>
               </TableRow>
             ) : (
-              patients.map((patient) => (
+              filteredPatients.map((patient) => (
                 <TableRow 
                   key={patient.id} 
                   className="hover:bg-muted/50 cursor-pointer"

@@ -1,0 +1,294 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Button } from "@workspace/ui/components/button"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
+import { API_URL } from "@/lib/api"
+import { Plus, Edit, Trash2, UserCog, Mail, Phone } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
+import { Badge } from "@workspace/ui/components/badge"
+
+export function DoctorManagementSettings() {
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingDoctor, setEditingDoctor] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    specialization: "",
+    qualification: "",
+    registrationNumber: "",
+  })
+
+  useEffect(() => {
+    loadDoctors()
+  }, [])
+
+  const loadDoctors = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem("docita_token")
+      const response = await fetch(`${API_URL}/doctors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setDoctors(data)
+      }
+    } catch (error) {
+      console.error("Failed to load doctors:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    try {
+      const token = localStorage.getItem("docita_token")
+      const url = editingDoctor 
+        ? `${API_URL}/doctors/${editingDoctor.id}`
+        : `${API_URL}/doctors`
+      
+      const response = await fetch(url, {
+        method: editingDoctor ? "PUT" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+      
+      if (response.ok) {
+        alert(`Doctor has been ${editingDoctor ? "updated" : "added"} successfully.`)
+        setIsDialogOpen(false)
+        resetForm()
+        loadDoctors()
+      } else {
+        throw new Error("Failed to save doctor")
+      }
+    } catch (error) {
+      alert("Failed to save doctor. Please try again.")
+    }
+  }
+
+  const handleEdit = (doctor: any) => {
+    setEditingDoctor(doctor)
+    setFormData({
+      name: doctor.name || "",
+      email: doctor.email || "",
+      phoneNumber: doctor.phoneNumber || "",
+      specialization: doctor.specialization || "",
+      qualification: doctor.qualification || "",
+      registrationNumber: doctor.registrationNumber || "",
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleDelete = async (doctorId: string) => {
+    if (!confirm("Are you sure you want to remove this doctor?")) return
+    
+    try {
+      const token = localStorage.getItem("docita_token")
+      const response = await fetch(`${API_URL}/doctors/${doctorId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      if (response.ok) {
+        alert("Doctor has been removed successfully.")
+        loadDoctors()
+      }
+    } catch (error) {
+      alert("Failed to remove doctor.")
+    }
+  }
+
+  const resetForm = () => {
+    setEditingDoctor(null)
+    setFormData({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      specialization: "",
+      qualification: "",
+      registrationNumber: "",
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <UserCog className="h-5 w-5 text-primary" />
+              <CardTitle>Doctor Management</CardTitle>
+            </div>
+            <CardDescription>Manage doctors in your clinic</CardDescription>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) resetForm()
+          }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Doctor
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingDoctor ? "Edit Doctor" : "Add New Doctor"}</DialogTitle>
+                <DialogDescription>
+                  {editingDoctor ? "Update doctor information" : "Add a new doctor to your clinic"}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Dr. John Doe"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="doctor@example.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number *</Label>
+                    <Input
+                      id="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      placeholder="+91 1234567890"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization">Specialization</Label>
+                    <Input
+                      id="specialization"
+                      value={formData.specialization}
+                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                      placeholder="Cardiology, Pediatrics, etc."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="qualification">Qualification</Label>
+                    <Input
+                      id="qualification"
+                      value={formData.qualification}
+                      onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                      placeholder="MBBS, MD, etc."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="registrationNumber">Registration Number</Label>
+                    <Input
+                      id="registrationNumber"
+                      value={formData.registrationNumber}
+                      onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+                      placeholder="Medical Council Registration"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingDoctor ? "Update Doctor" : "Add Doctor"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading doctors...</div>
+        ) : doctors.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+            <p>No doctors added yet. Click "Add Doctor" to get started.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {doctors.map((doctor) => (
+              <div key={doctor.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold">{doctor.name}</h3>
+                    {doctor.specialization && (
+                      <Badge variant="secondary">{doctor.specialization}</Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
+                    {doctor.email && (
+                      <div className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {doctor.email}
+                      </div>
+                    )}
+                    {doctor.phoneNumber && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {doctor.phoneNumber}
+                      </div>
+                    )}
+                    {doctor.qualification && (
+                      <div className="text-xs">
+                        Qualification: {doctor.qualification}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(doctor)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(doctor.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

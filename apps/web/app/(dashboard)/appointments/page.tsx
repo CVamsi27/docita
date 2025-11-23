@@ -9,7 +9,6 @@ import { format, isSameDay } from "date-fns"
 import { appointmentsAPI } from "@/lib/api"
 import { Appointment, Patient } from "@workspace/types"
 import { AddAppointmentDialog } from "@/components/appointments/add-appointment-dialog"
-import { ConsultationModal } from "@/components/consultation/consultation-modal"
 import { Clock, User, Stethoscope } from "lucide-react"
 
 interface AppointmentWithPatient extends Appointment {
@@ -69,6 +68,10 @@ function AppointmentsContent() {
     searchParams.get("patientId") || undefined,
     [searchParams]
   )
+
+  const handleStartConsultation = useCallback((appointmentId: string) => {
+    router.push(`/consultation/${appointmentId}`)
+  }, [router])
 
   return (
     <div className="flex flex-col gap-6">
@@ -141,18 +144,14 @@ function AppointmentsContent() {
                         <Badge variant={apt.status === 'confirmed' ? 'default' : 'secondary'}>
                           {apt.status}
                         </Badge>
-                        <ConsultationModal
-                          appointmentId={apt.id!}
-                          patientId={apt.patientId}
-                          doctorId={apt.doctorId}
-                          patientName={apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : `Patient ${apt.patientId}`}
-                          trigger={
-                            <Button size="sm" variant={apt.status === "completed" ? "outline" : "default"}>
-                              <Stethoscope className="mr-2 h-4 w-4" />
-                              {apt.status === "completed" ? "View" : "Start"}
-                            </Button>
-                          }
-                        />
+                        <Button 
+                          size="sm" 
+                          variant={apt.status === "completed" ? "outline" : "default"}
+                          onClick={() => handleStartConsultation(apt.id!)}
+                        >
+                          <Stethoscope className="mr-2 h-4 w-4" />
+                          {apt.status === "completed" ? "View" : "Start"}
+                        </Button>
                       </div>
                     </div>
                   ))}
