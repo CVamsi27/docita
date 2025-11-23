@@ -1,0 +1,3 @@
+First Name,Last Name,Phone Number,Gender,Date of Birth,Email,Address,Blood Group,Allergies,Medical History
+Import,One,9999999991,MALE,1990-01-01,import1@example.com,123 Import St,O+,None,None
+Import,Two,9999999992,FEMALE,1992-02-02,import2@example.com,456 Import Rd,A+,Peanuts,Asthma

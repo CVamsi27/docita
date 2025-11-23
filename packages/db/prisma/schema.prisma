@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DOCTOR
+  RECEPTIONIST
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(DOCTOR)
+  clinicId  String?  // Optional - super admins may not belong to a clinic
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic            Clinic?              @relation(fields: [clinicId], references: [id])
+  appointments      Appointment[]
+  prescriptions     Prescription[]
+  prescriptionTemplates PrescriptionTemplate[]
+  doctorClinics     DoctorClinic[]
+
+  @@index([clinicId])
+}
+
+model Patient {
+  id             String   @id @default(cuid())
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime
+  gender         Gender
+  bloodGroup     String?
+  allergies      String?
+  phoneNumber    String
+  email          String?
+  address        String?
+  medicalHistory String[]
+  customData     Json?    @default("{}")
+  clinicId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  clinic        Clinic        @relation(fields: [clinicId], references: [id])
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  invoices      Invoice[]
+  documents     Document[]
+  tags          PatientTag[]
+
+  @@index([phoneNumber])
+  @@index([clinicId])
+}
+
+model PatientTag {
+  id        String   @id @default(cuid())
+  patientId String
+  tag       String
+  color     String   @default("blue") // blue, red, green, yellow, etc.
+  patient   Patient  @relation(fields: [patientId], references: [id])
+
+  @@index([patientId])
+}
+
+model UploadSession {
+  id        String   @id @default(cuid())
+  status    String   @default("pending") // pending, uploaded
+  fileUrl   String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    User     @relation(fields: [doctorId], references: [id])
+  clinicId  String
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  startTime DateTime
+  endTime   DateTime
+  status    String   @default("scheduled") // scheduled, confirmed, cancelled, completed, no-show
+  type      String   // consultation, follow-up, check-up
+  notes        String?
+  observations String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prescription Prescription?
+  vitalSign    VitalSign?
+  invoice      Invoice?
+
+  @@index([clinicId])
+}
+
+model VitalSign {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  height        Float?      // in cm
+  weight        Float?      // in kg
+  bloodPressure String?     // e.g. "120/80"
+  pulse         Int?        // bpm
+  temperature   Float?      // in Celsius
+  spo2          Int?        // percentage
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  doctorId      String
+  doctor        User        @relation(fields: [doctorId], references: [id])
+  instructions  String?
+  date          DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  medications Medication[]
+}
+
+model Medication {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  name           String
+  dosage         String
+  frequency      String
+  duration       String
+}
+
+model Invoice {
+  id            String      @id @default(cuid())
+  appointmentId String?     @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  total         Float
+  status        String      @default("pending") // pending, paid, cancelled
+  items         Json        // Array of { description, quantity, price }
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  name      String
+  type      String   // e.g., "LAB_REPORT", "XRAY", "OLD_RECORD"
+  url         String
+  fileSize    Int      @default(0)
+  mimeType    String   @default("application/octet-stream")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PrescriptionTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  medications  Json     // Array of { name, dosage, frequency, duration }
+  instructions String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ClinicalTemplate {
+  id                  String   @id @default(cuid())
+  name                String
+  speciality          String   // e.g., "Dental", "Cardiology", "General"
+  fields              Json     // Array of { id, label, type, options? }
+  defaultObservations String?  @db.Text
+  clinicId            String?  // Optional - null means global template
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  clinic              Clinic?  @relation(fields: [clinicId], references: [id])
+
+  @@index([speciality])
+  @@index([clinicId])
+}
+
+model CustomField {
+  id        String   @id @default(cuid())
+  name      String
+  fieldType String   // text, number, select, date, checkbox
+  options   String?  // For select fields, comma-separated values
+  required  Boolean  @default(false)
+  order     Int      @default(0)
+  clinicId  String?  // Optional - null means global field
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic    Clinic?  @relation(fields: [clinicId], references: [id])
+
+  @@index([clinicId])
+}
+
+model ReminderSettings {
+  id                String   @id @default(cuid())
+  enabled           Boolean  @default(true)
+  smsEnabled        Boolean  @default(false)
+  emailEnabled      Boolean  @default(true)
+  hoursBeforeAppt   Int      @default(24) // Send reminder X hours before appointment
+  smsTemplate       String?  @db.Text
+  emailTemplate     String?  @db.Text
+  emailSubject      String   @default("Appointment Reminder")
+  clinicId          String?  // Optional - null means global settings
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  clinic            Clinic?  @relation(fields: [clinicId], references: [id])
+
+  @@unique([clinicId])
+}
+
+model AppointmentReminder {
+  id            String      @id @default(cuid())
+  appointmentId String
+  type          String      // sms, email
+  status        String      @default("pending") // pending, sent, failed
+  sentAt        DateTime?
+  error         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([appointmentId])
+  @@index([status])
+}
+
+enum ClinicTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+model Clinic {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  phone       String
+  email       String
+  website     String?
+  logo        String?
+  active      Boolean  @default(true)
+  tier        ClinicTier @default(FREE)
+  settings    Json?    // Store clinic-specific settings (timezone, currency, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  users             User[]
+  patients          Patient[]
+  appointments      Appointment[]
+  doctorClinics     DoctorClinic[]
+  customFields      CustomField[]
+  reminderSettings  ReminderSettings?
+  clinicalTemplates ClinicalTemplate[]
+}
+
+model DoctorClinic {
+  id        String   @id @default(cuid())
+  doctorId  String
+  clinicId  String
+  role      String   @default("doctor") // doctor, admin, receptionist
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  
+  doctor    User     @relation(fields: [doctorId], references: [id])
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  
+  @@unique([doctorId, clinicId])
+  @@index([clinicId])
+  @@index([doctorId])
+}
+
