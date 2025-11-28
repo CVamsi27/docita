@@ -1,19 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { apiHooks } from "@/lib/api-hooks"
-import { Save, Building2, Clock } from "lucide-react"
-import { toast } from "sonner"
+import { useState, useRef } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { apiHooks } from "@/lib/api-hooks";
+import { Save, Building2, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { useFormOptions, useDefaultValue } from "@/lib/app-config-context";
 
 export function ClinicGeneralSettings() {
-  const { data: clinicData, isLoading: loading } = apiHooks.useClinicSettings()
-  const updateSettings = apiHooks.useUpdateClinicSettings()
-  
+  const { data: clinicData, isLoading: loading } = apiHooks.useClinicSettings();
+  const updateSettings = apiHooks.useUpdateClinicSettings();
+
+  // Get weekday options from config
+  const weekdayOptions = useFormOptions("weekday");
+  const defaultDuration = useDefaultValue("appointmentDuration");
+
+  const lastClinicDataRef = useRef<typeof clinicData>(undefined);
   const [clinic, setClinic] = useState({
     name: "",
     address: "",
@@ -23,42 +35,61 @@ export function ClinicGeneralSettings() {
     description: "",
     openingTime: "09:00",
     closingTime: "18:00",
-    workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    consultationDuration: 30,
-  })
+    workingDays: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ],
+    consultationDuration: defaultDuration,
+  });
 
-  useEffect(() => {
-    if (clinicData) {
-      console.log('Loaded clinic settings:', clinicData)
-      console.log('Merging with defaults:', { ...clinic, ...clinicData })
-      setClinic(prev => ({ ...prev, ...clinicData }))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clinicData])
+  // Sync clinic state when clinicData changes (without useEffect)
+  if (clinicData && clinicData !== lastClinicDataRef.current) {
+    lastClinicDataRef.current = clinicData;
+    // Ensure null values are converted to empty strings for controlled inputs
+    setClinic((prev) => ({
+      ...prev,
+      name: clinicData.name ?? prev.name,
+      address: clinicData.address ?? prev.address,
+      phoneNumber: clinicData.phoneNumber ?? prev.phoneNumber,
+      email: clinicData.email ?? prev.email,
+      website: clinicData.website ?? prev.website,
+      description: clinicData.description ?? prev.description,
+      openingTime: clinicData.openingTime ?? prev.openingTime,
+      closingTime: clinicData.closingTime ?? prev.closingTime,
+      workingDays: clinicData.workingDays ?? prev.workingDays,
+      consultationDuration:
+        clinicData.consultationDuration ?? prev.consultationDuration,
+    }));
+  }
 
   const handleSave = async () => {
     try {
-      await updateSettings.mutateAsync(clinic)
-      toast.success("Clinic settings have been updated successfully.")
+      await updateSettings.mutateAsync(clinic);
+      toast.success("Clinic settings have been updated successfully.");
     } catch (error) {
-      console.error('Failed to save clinic settings:', error)
-      toast.error("Failed to save clinic settings. Please try again.")
+      console.error("Failed to save clinic settings:", error);
+      toast.error("Failed to save clinic settings. Please try again.");
     }
-  }
+  };
 
   const toggleWorkingDay = (day: string) => {
-    setClinic(prev => ({
+    setClinic((prev) => ({
       ...prev,
       workingDays: prev.workingDays.includes(day)
-        ? prev.workingDays.filter(d => d !== day)
-        : [...prev.workingDays, day]
-    }))
-  }
+        ? prev.workingDays.filter((d) => d !== day)
+        : [...prev.workingDays, day],
+    }));
+  };
 
-  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+  // Use weekday labels from config
+  const weekDays = weekdayOptions.map((opt) => opt.label);
 
   if (loading) {
-    return <div className="text-center py-8">Loading clinic settings...</div>
+    return <div className="text-center py-8">Loading clinic settings...</div>;
   }
 
   return (
@@ -88,7 +119,9 @@ export function ClinicGeneralSettings() {
               <Input
                 id="phoneNumber"
                 value={clinic.phoneNumber}
-                onChange={(e) => setClinic({ ...clinic, phoneNumber: e.target.value })}
+                onChange={(e) =>
+                  setClinic({ ...clinic, phoneNumber: e.target.value })
+                }
                 placeholder="+91 1234567890"
               />
             </div>
@@ -101,7 +134,9 @@ export function ClinicGeneralSettings() {
                 id="email"
                 type="email"
                 value={clinic.email}
-                onChange={(e) => setClinic({ ...clinic, email: e.target.value })}
+                onChange={(e) =>
+                  setClinic({ ...clinic, email: e.target.value })
+                }
                 placeholder="clinic@example.com"
               />
             </div>
@@ -110,7 +145,9 @@ export function ClinicGeneralSettings() {
               <Input
                 id="website"
                 value={clinic.website}
-                onChange={(e) => setClinic({ ...clinic, website: e.target.value })}
+                onChange={(e) =>
+                  setClinic({ ...clinic, website: e.target.value })
+                }
                 placeholder="https://example.com"
               />
             </div>
@@ -121,7 +158,9 @@ export function ClinicGeneralSettings() {
             <Textarea
               id="address"
               value={clinic.address}
-              onChange={(e) => setClinic({ ...clinic, address: e.target.value })}
+              onChange={(e) =>
+                setClinic({ ...clinic, address: e.target.value })
+              }
               placeholder="Enter clinic address"
               rows={2}
             />
@@ -132,7 +171,9 @@ export function ClinicGeneralSettings() {
             <Textarea
               id="description"
               value={clinic.description}
-              onChange={(e) => setClinic({ ...clinic, description: e.target.value })}
+              onChange={(e) =>
+                setClinic({ ...clinic, description: e.target.value })
+              }
               placeholder="Brief description about your clinic"
               rows={3}
             />
@@ -147,7 +188,9 @@ export function ClinicGeneralSettings() {
             <Clock className="h-5 w-5 text-primary" />
             <CardTitle>Working Hours</CardTitle>
           </div>
-          <CardDescription>Set your clinic&apos;s operating hours</CardDescription>
+          <CardDescription>
+            Set your clinic&apos;s operating hours
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -157,7 +200,9 @@ export function ClinicGeneralSettings() {
                 id="openingTime"
                 type="time"
                 value={clinic.openingTime}
-                onChange={(e) => setClinic({ ...clinic, openingTime: e.target.value })}
+                onChange={(e) =>
+                  setClinic({ ...clinic, openingTime: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -166,18 +211,27 @@ export function ClinicGeneralSettings() {
                 id="closingTime"
                 type="time"
                 value={clinic.closingTime}
-                onChange={(e) => setClinic({ ...clinic, closingTime: e.target.value })}
+                onChange={(e) =>
+                  setClinic({ ...clinic, closingTime: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="consultationDuration">Consultation Duration (mins)</Label>
+              <Label htmlFor="consultationDuration">
+                Consultation Duration (mins)
+              </Label>
               <Input
                 id="consultationDuration"
                 type="number"
                 min="15"
                 step="15"
                 value={clinic.consultationDuration}
-                onChange={(e) => setClinic({ ...clinic, consultationDuration: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setClinic({
+                    ...clinic,
+                    consultationDuration: parseInt(e.target.value),
+                  })
+                }
               />
             </div>
           </div>
@@ -185,11 +239,13 @@ export function ClinicGeneralSettings() {
           <div className="space-y-2">
             <Label>Working Days</Label>
             <div className="flex flex-wrap gap-2">
-              {weekDays.map(day => (
+              {weekDays.map((day) => (
                 <Button
                   key={day}
                   type="button"
-                  variant={clinic.workingDays.includes(day) ? "default" : "outline"}
+                  variant={
+                    clinic.workingDays.includes(day) ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => toggleWorkingDay(day)}
                 >
@@ -203,11 +259,15 @@ export function ClinicGeneralSettings() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={updateSettings.isPending} className="gap-2">
+        <Button
+          onClick={handleSave}
+          disabled={updateSettings.isPending}
+          className="gap-2"
+        >
           <Save className="h-4 w-4" />
           {updateSettings.isPending ? "Saving..." : "Save Settings"}
         </Button>
       </div>
     </div>
-  )
+  );
 }

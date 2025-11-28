@@ -52,9 +52,6 @@ export class UploadsController {
     // For now, we'll simulate a URL or serve it statically if we enabled static serving.
     // We'll just return the path for now.
 
-    // Hack for demo: We aren't serving static files from ./uploads/temp easily without config.
-    // But for the OCR simulation, we just need a "success" signal and maybe a data URL if we were fancy.
-    // Let's just store the path.
     return this.uploadsService.updateSession(id, file.path);
   }
 }

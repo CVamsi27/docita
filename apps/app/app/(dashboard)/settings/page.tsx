@@ -1,18 +1,33 @@
-"use client"
+"use client";
 
-import { WhatsAppAutomationSettings } from "@/components/settings/whatsapp-automation-settings"
-import { TemplatesSettings } from "@/components/settings/templates-settings"
-import { CustomFieldsSettings } from "@/components/settings/custom-fields-settings"
-import { ReminderSettings } from "@/components/settings/reminder-settings"
-import { ClinicGeneralSettings } from "@/components/settings/clinic-general-settings"
-import { DoctorManagementSettings } from "@/components/settings/doctor-management-settings"
-import { PrescriptionDefaultsSettings } from "@/components/settings/prescription-defaults-settings"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Button } from "@workspace/ui/components/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { WhatsAppAutomationSettings } from "@/components/settings/whatsapp-automation-settings";
+import { CustomFieldsSettings } from "@/components/settings/custom-fields-settings";
+import { ReminderSettings } from "@/components/settings/reminder-settings";
+import { ClinicGeneralSettings } from "@/components/settings/clinic-general-settings";
+import { DoctorManagementSettings } from "@/components/settings/doctor-management-settings";
+import { PrescriptionDefaultsSettings } from "@/components/settings/prescription-defaults-settings";
+import { QueueSettings } from "@/components/settings/queue-settings";
+import {
+  SubscriptionSettingsDynamic,
+  DoctorAvailabilitySettingsDynamic,
+  TemplatesSettingsDynamic,
+} from "@/lib/dynamic-imports";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
+import { Button } from "@workspace/ui/components/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
-export default function SettingsPage() {
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "general";
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div>
@@ -30,10 +45,13 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
+          <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="queue">Queue</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="custom-fields">Custom Fields</TabsTrigger>
@@ -45,8 +63,20 @@ export default function SettingsPage() {
           <ClinicGeneralSettings />
         </TabsContent>
 
+        <TabsContent value="subscription" className="space-y-6">
+          <SubscriptionSettingsDynamic />
+        </TabsContent>
+
         <TabsContent value="doctors" className="space-y-6">
           <DoctorManagementSettings />
+        </TabsContent>
+
+        <TabsContent value="availability" className="space-y-6">
+          <DoctorAvailabilitySettingsDynamic />
+        </TabsContent>
+
+        <TabsContent value="queue" className="space-y-6">
+          <QueueSettings />
         </TabsContent>
 
         <TabsContent value="prescriptions" className="space-y-6">
@@ -54,7 +84,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="templates">
-          <TemplatesSettings />
+          <TemplatesSettingsDynamic />
         </TabsContent>
 
         <TabsContent value="custom-fields">
@@ -70,5 +100,17 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto py-6">Loading settings...</div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
+  );
 }

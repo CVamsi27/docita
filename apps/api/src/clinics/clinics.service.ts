@@ -1,11 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ClinicTier, Prisma } from '@workspace/db';
+
+interface CreateClinicData {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  logo?: string;
+  tier?: ClinicTier;
+  settings?: Prisma.InputJsonValue;
+}
+
+interface UpdateClinicData {
+  name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  logo?: string;
+  tier?: ClinicTier;
+  settings?: Prisma.InputJsonValue;
+}
+
+interface ClinicSettingsData {
+  name?: string;
+  address?: string;
+  phone?: string;
+  phoneNumber?: string;
+  email?: string;
+  website?: string;
+  description?: string;
+  openingTime?: string;
+  closingTime?: string;
+  workingDays?: string[];
+  consultationDuration?: number;
+}
 
 @Injectable()
 export class ClinicsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: any) {
+  async create(data: CreateClinicData) {
     return this.prisma.clinic.create({
       data: {
         name: data.name,
@@ -13,8 +48,8 @@ export class ClinicsService {
         phone: data.phone,
         email: data.email,
         logo: data.logo,
-        tier: data.tier || 'FREE',
-        settings: data.settings || {},
+        tier: data.tier || ClinicTier.CAPTURE,
+        settings: data.settings ?? Prisma.JsonNull,
         active: true,
       },
     });
@@ -37,7 +72,7 @@ export class ClinicsService {
   }
 
   async findOne(id: string) {
-    return this.prisma.clinic.findUnique({
+    const clinic = await this.prisma.clinic.findUnique({
       where: { id },
       include: {
         users: {
@@ -56,9 +91,25 @@ export class ClinicsService {
         },
       },
     });
+
+    if (!clinic) return null;
+
+    // Flatten settings for frontend convenience
+    const settings = clinic.settings as Record<string, unknown> | null;
+    return {
+      ...clinic,
+      phoneNumber: clinic.phone, // Map phone to phoneNumber for frontend
+      description: settings?.description as string | undefined,
+      openingTime: settings?.openingTime as string | undefined,
+      closingTime: settings?.closingTime as string | undefined,
+      workingDays: settings?.workingDays as string[] | undefined,
+      consultationDuration: settings?.consultationDuration as
+        | number
+        | undefined,
+    };
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: UpdateClinicData) {
     return this.prisma.clinic.update({
       where: { id },
       data: {
@@ -73,8 +124,27 @@ export class ClinicsService {
     });
   }
 
+  async updateSettings(id: string, data: ClinicSettingsData) {
+    return this.prisma.clinic.update({
+      where: { id },
+      data: {
+        name: data.name,
+        address: data.address,
+        phone: data.phoneNumber || data.phone,
+        email: data.email,
+        website: data.website,
+        settings: {
+          description: data.description,
+          openingTime: data.openingTime,
+          closingTime: data.closingTime,
+          workingDays: data.workingDays,
+          consultationDuration: data.consultationDuration,
+        },
+      },
+    });
+  }
+
   async delete(id: string) {
-    // Soft delete
     return this.prisma.clinic.update({
       where: { id },
       data: { active: false },
@@ -82,18 +152,46 @@ export class ClinicsService {
   }
 
   async getUserClinics(userId: string) {
-    // Get clinics where user is assigned
     const doctorClinics = await this.prisma.doctorClinic.findMany({
       where: {
         doctorId: userId,
         active: true,
       },
-      include: {
-        clinic: true,
+      select: {
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            phone: true,
+            email: true,
+            website: true,
+            tier: true,
+            logo: true,
+            active: true,
+            settings: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
-    return doctorClinics.map((dc) => dc.clinic);
+    return doctorClinics.map((dc) => {
+      const clinic = dc.clinic;
+      const settings = clinic.settings as Record<string, unknown> | null;
+      return {
+        ...clinic,
+        phoneNumber: clinic.phone, // Map phone to phoneNumber for frontend
+        description: settings?.description as string | undefined,
+        openingTime: settings?.openingTime as string | undefined,
+        closingTime: settings?.closingTime as string | undefined,
+        workingDays: settings?.workingDays as string[] | undefined,
+        consultationDuration: settings?.consultationDuration as
+          | number
+          | undefined,
+      };
+    });
   }
 
   async getClinicStats(clinicId: string) {

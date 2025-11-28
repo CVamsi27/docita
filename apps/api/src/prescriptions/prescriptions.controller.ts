@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Controller,
   Get,
@@ -11,14 +10,34 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TierGuard } from '../auth/tier.guard';
+import { RequireFeature, Feature } from '../auth/tier.decorator';
+import type { Medication } from '@workspace/types';
+
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
+interface CreatePrescriptionDto {
+  appointmentId: string;
+  patientId: string;
+  doctorId: string;
+  instructions?: string;
+  medications: Medication[];
+}
 
 @Controller('prescriptions')
+@UseGuards(JwtAuthGuard, TierGuard)
+@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 export class PrescriptionsController {
-  constructor(private readonly prescriptionsService: PrescriptionsService) { }
+  constructor(private readonly prescriptionsService: PrescriptionsService) {}
 
   @Get()
-  findAll() {
-    return this.prescriptionsService.findAll();
+  findAll(@Request() req: AuthRequest) {
+    return this.prescriptionsService.findAll(req.user.clinicId);
   }
 
   @Get(':id')
@@ -27,7 +46,7 @@ export class PrescriptionsController {
   }
 
   @Post()
-  create(@Body() createPrescriptionDto: any) {
+  create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionsService.create(createPrescriptionDto);
   }
 

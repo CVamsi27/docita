@@ -15,4 +15,5 @@ export const RequireTier = (tier: Tier) => SetMetadata(TIER_KEY, tier);
 /**
  * Decorator to require a specific feature for an endpoint
  */
-export const RequireFeature = (feature: Feature) => SetMetadata(FEATURE_KEY, feature);
+export const RequireFeature = (feature: Feature) =>
+  SetMetadata(FEATURE_KEY, feature);

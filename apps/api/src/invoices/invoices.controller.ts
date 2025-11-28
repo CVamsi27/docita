@@ -1,15 +1,56 @@
-/* eslint-disable */
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Res,
+} from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import type { Response } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TierGuard } from '../auth/tier.guard';
+import { RequireFeature, Feature } from '../auth/tier.decorator';
+
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
+interface InvoiceItem {
+  description: string;
+  quantity: number;
+  price: number;
+}
+
+interface CreateInvoiceDto {
+  appointmentId?: string;
+  patientId: string;
+  total: number;
+  status: string;
+  items: InvoiceItem[];
+}
+
+interface UpdateInvoiceDto {
+  status?: string;
+  total?: number;
+  items?: InvoiceItem[];
+}
 
 @Controller('invoices')
+@UseGuards(JwtAuthGuard, TierGuard)
+@RequireFeature(Feature.INVOICING)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) { }
+  constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  findAll() {
-    return this.invoicesService.findAll();
+  findAll(@Request() req: AuthRequest) {
+    return this.invoicesService.findAll(req.user.clinicId);
   }
 
   @Get(':id')
@@ -18,12 +59,12 @@ export class InvoicesController {
   }
 
   @Post()
-  create(@Body() createInvoiceDto: any) {
+  create(@Body() createInvoiceDto: CreateInvoiceDto) {
     return this.invoicesService.create(createInvoiceDto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvoiceDto: any) {
+  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, updateInvoiceDto);
   }
 

@@ -1,24 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Label } from "@workspace/ui/components/label"
-import { Input } from "@workspace/ui/components/input"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
-import { MessageSquare, Bell, CheckCircle } from "lucide-react"
-import { API_URL } from "@/lib/api"
+import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/input";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { MessageSquare, Bell, CheckCircle } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface AutomationSettings {
-  appointmentReminders: boolean
-  reminderHoursBefore: number
-  followUpMessages: boolean
-  followUpDaysAfter: number
-  noShowPrevention: boolean
-  confirmationRequired: boolean
-  reminderTemplate: string
-  followUpTemplate: string
+  appointmentReminders: boolean;
+  reminderHoursBefore: number;
+  followUpMessages: boolean;
+  followUpDaysAfter: number;
+  noShowPrevention: boolean;
+  confirmationRequired: boolean;
+  reminderTemplate: string;
+  followUpTemplate: string;
 }
 
 export function WhatsAppAutomationSettings() {
@@ -29,53 +35,75 @@ export function WhatsAppAutomationSettings() {
     followUpDaysAfter: 3,
     noShowPrevention: true,
     confirmationRequired: true,
-    reminderTemplate: "Hi {patientName}, this is a reminder for your appointment tomorrow at {time} with Dr. {doctorName}. Please reply CONFIRM or CANCEL.",
-    followUpTemplate: "Hi {patientName}, this is a follow-up message regarding your recent visit. How are you feeling? Please let us know if you need any assistance.",
-  })
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+    reminderTemplate:
+      "Hi {patientName}, this is a reminder for your appointment tomorrow at {time} with Dr. {doctorName}. Please reply CONFIRM or CANCEL.",
+    followUpTemplate:
+      "Hi {patientName}, this is a follow-up message regarding your recent visit. How are you feeling? Please let us know if you need any assistance.",
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const hasFetchedRef = useRef(false);
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/settings/whatsapp-automation`)
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data)
-      }
+      const data = await apiFetch<AutomationSettings>(
+        `/settings/whatsapp-automation`,
+        { showErrorToast: false },
+      );
+      setSettings((prev) => ({
+        appointmentReminders:
+          data.appointmentReminders ?? prev.appointmentReminders,
+        reminderHoursBefore:
+          data.reminderHoursBefore ?? prev.reminderHoursBefore,
+        followUpMessages: data.followUpMessages ?? prev.followUpMessages,
+        followUpDaysAfter: data.followUpDaysAfter ?? prev.followUpDaysAfter,
+        noShowPrevention: data.noShowPrevention ?? prev.noShowPrevention,
+        confirmationRequired:
+          data.confirmationRequired ?? prev.confirmationRequired,
+        reminderTemplate: data.reminderTemplate ?? prev.reminderTemplate,
+        followUpTemplate: data.followUpTemplate ?? prev.followUpTemplate,
+      }));
     } catch (error) {
-      console.error("Failed to load settings:", error)
+      console.error("Failed to load settings:", error);
     }
-  }
+  }, []);
+
+  // Use useSyncExternalStore to trigger initial fetch
+  useSyncExternalStore(
+    useCallback(() => {
+      if (!hasFetchedRef.current) {
+        hasFetchedRef.current = true;
+        loadSettings();
+      }
+      return () => {};
+    }, [loadSettings]),
+    () => settings,
+    () => settings,
+  );
 
   const saveSettings = async () => {
-    setSaving(true)
-    setSaved(false)
+    setSaving(true);
+    setSaved(false);
     try {
-      const response = await fetch(`${API_URL}/settings/whatsapp-automation`, {
+      await apiFetch(`/settings/whatsapp-automation`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
-      })
-
-      if (response.ok) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-      }
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      console.error("Failed to save settings:", error)
+      console.error("Failed to save settings:", error);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">WhatsApp Automation</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          WhatsApp Automation
+        </h2>
         <p className="text-muted-foreground">
           Configure automated messages and reminders for patients.
         </p>
@@ -94,7 +122,10 @@ export function WhatsAppAutomationSettings() {
                 type="checkbox"
                 checked={settings.appointmentReminders}
                 onChange={(e) =>
-                  setSettings({ ...settings, appointmentReminders: e.target.checked })
+                  setSettings({
+                    ...settings,
+                    appointmentReminders: e.target.checked,
+                  })
                 }
                 className="h-4 w-4"
               />
@@ -106,7 +137,9 @@ export function WhatsAppAutomationSettings() {
           {settings.appointmentReminders && (
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reminder-hours">Send reminder (hours before)</Label>
+                <Label htmlFor="reminder-hours">
+                  Send reminder (hours before)
+                </Label>
                 <Input
                   id="reminder-hours"
                   type="number"
@@ -127,7 +160,10 @@ export function WhatsAppAutomationSettings() {
                   id="reminder-template"
                   value={settings.reminderTemplate}
                   onChange={(e) =>
-                    setSettings({ ...settings, reminderTemplate: e.target.value })
+                    setSettings({
+                      ...settings,
+                      reminderTemplate: e.target.value,
+                    })
                   }
                   rows={3}
                   className="font-mono text-sm"
@@ -152,7 +188,10 @@ export function WhatsAppAutomationSettings() {
                 type="checkbox"
                 checked={settings.noShowPrevention}
                 onChange={(e) =>
-                  setSettings({ ...settings, noShowPrevention: e.target.checked })
+                  setSettings({
+                    ...settings,
+                    noShowPrevention: e.target.checked,
+                  })
                 }
                 className="h-4 w-4"
               />
@@ -169,7 +208,10 @@ export function WhatsAppAutomationSettings() {
                   id="confirmation-required"
                   checked={settings.confirmationRequired}
                   onChange={(e) =>
-                    setSettings({ ...settings, confirmationRequired: e.target.checked })
+                    setSettings({
+                      ...settings,
+                      confirmationRequired: e.target.checked,
+                    })
                   }
                   className="h-4 w-4"
                 />
@@ -196,7 +238,10 @@ export function WhatsAppAutomationSettings() {
                 type="checkbox"
                 checked={settings.followUpMessages}
                 onChange={(e) =>
-                  setSettings({ ...settings, followUpMessages: e.target.checked })
+                  setSettings({
+                    ...settings,
+                    followUpMessages: e.target.checked,
+                  })
                 }
                 className="h-4 w-4"
               />
@@ -208,7 +253,9 @@ export function WhatsAppAutomationSettings() {
           {settings.followUpMessages && (
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="followup-days">Send follow-up (days after)</Label>
+                <Label htmlFor="followup-days">
+                  Send follow-up (days after)
+                </Label>
                 <Input
                   id="followup-days"
                   type="number"
@@ -229,7 +276,10 @@ export function WhatsAppAutomationSettings() {
                   id="followup-template"
                   value={settings.followUpTemplate}
                   onChange={(e) =>
-                    setSettings({ ...settings, followUpTemplate: e.target.value })
+                    setSettings({
+                      ...settings,
+                      followUpTemplate: e.target.value,
+                    })
                   }
                   rows={3}
                   className="font-mono text-sm"
@@ -256,5 +306,5 @@ export function WhatsAppAutomationSettings() {
         )}
       </div>
     </div>
-  )
+  );
 }

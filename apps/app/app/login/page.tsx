@@ -1,40 +1,48 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useAuth } from "@/lib/auth-context"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      await login(email, password)
+      await login(email, password);
     } catch {
-      setError("Invalid email or password")
+      setError("Invalid email or password");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Docita Login</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Docita Login
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access the clinic dashboard
           </CardDescription>
@@ -81,7 +89,9 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-            {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            {error && (
+              <p className="text-sm text-destructive text-center">{error}</p>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
@@ -96,5 +106,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@workspace/ui/components/button"
+import { useState } from "react";
+import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -9,29 +9,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/dialog"
-import { Stethoscope, Maximize2 } from "lucide-react"
-import Link from "next/link"
-import { ConsultationContent } from "./consultation-content"
+} from "@workspace/ui/components/dialog";
+import { Stethoscope, Maximize2 } from "lucide-react";
+import Link from "next/link";
+import { ConsultationContent } from "./consultation-content";
 
 interface ConsultationModalProps {
-  appointmentId: string
-  patientId: string
-  doctorId: string
-  patientName: string
-  trigger?: React.ReactNode
-  defaultTab?: "observations" | "vitals" | "prescription" | "invoice"
+  appointmentId: string;
+  patientId: string;
+  doctorId: string;
+  patientName: string;
+  trigger?: React.ReactNode;
+  defaultTab?: "observations" | "vitals" | "prescription" | "invoice";
 }
 
-export function ConsultationModal({ 
-  appointmentId, 
-  patientId, 
-  doctorId, 
+export function ConsultationModal({
+  appointmentId,
+  patientId,
+  doctorId,
   patientName,
   trigger,
-  defaultTab = "observations"
+  defaultTab = "observations",
 }: ConsultationModalProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -46,9 +46,12 @@ export function ConsultationModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         <div className="p-6 border-b border-border bg-muted/10 flex justify-between items-start">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Consultation: {patientName}</DialogTitle>
+            <DialogTitle className="text-2xl">
+              Consultation: {patientName}
+            </DialogTitle>
             <DialogDescription>
-              Manage clinical notes, vitals, prescriptions, and billing for this visit.
+              Manage clinical notes, vitals, prescriptions, and billing for this
+              visit.
             </DialogDescription>
           </DialogHeader>
           <Button variant="outline" size="sm" asChild>
@@ -59,7 +62,7 @@ export function ConsultationModal({
           </Button>
         </div>
 
-        <ConsultationContent 
+        <ConsultationContent
           appointmentId={appointmentId}
           patientId={patientId}
           doctorId={doctorId}
@@ -67,5 +70,5 @@ export function ConsultationModal({
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,17 +1,42 @@
-/* eslint-disable */
-
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ReminderSettings } from '@workspace/db';
+
+interface AppointmentForReminder {
+  id: string;
+  startTime: Date;
+  type: string;
+  patient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    email: string | null;
+  };
+  doctor: {
+    id: string;
+    name: string;
+  };
+}
+
+interface ReminderSettingsData {
+  enabled?: boolean;
+  smsEnabled?: boolean;
+  emailEnabled?: boolean;
+  hoursBeforeAppt?: number;
+  emailSubject?: string;
+  emailTemplate?: string;
+  smsTemplate?: string;
+}
 
 @Injectable()
 export class RemindersService {
   private readonly logger = new Logger(RemindersService.name);
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getSettings() {
-    // Get the first (and only) settings record, or create default
     let settings = await this.prisma.reminderSettings.findFirst();
 
     if (!settings) {
@@ -43,7 +68,7 @@ Thank you,
     return settings;
   }
 
-  async updateSettings(data: any) {
+  async updateSettings(data: ReminderSettingsData) {
     const existing = await this.getSettings();
     return this.prisma.reminderSettings.update({
       where: { id: existing.id },
@@ -51,7 +76,6 @@ Thank you,
     });
   }
 
-  // Cron job to check and send reminders every hour
   @Cron(CronExpression.EVERY_HOUR)
   async checkAndSendReminders() {
     const settings = await this.getSettings();
@@ -66,7 +90,6 @@ Thank you,
       now.getTime() + settings.hoursBeforeAppt * 60 * 60 * 1000,
     );
 
-    // Find appointments that need reminders
     const appointments = await this.prisma.appointment.findMany({
       where: {
         startTime: {
@@ -78,8 +101,21 @@ Thank you,
         },
       },
       include: {
-        patient: true,
-        doctor: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -88,7 +124,6 @@ Thank you,
     );
 
     for (const appointment of appointments) {
-      // Check if reminder already sent
       const existingReminder = await this.prisma.appointmentReminder.findFirst({
         where: {
           appointmentId: appointment.id,
@@ -97,39 +132,43 @@ Thank you,
       });
 
       if (existingReminder) {
-        continue; // Already sent
+        continue;
       }
 
-      // Send email reminder
       if (settings.emailEnabled && appointment.patient.email) {
-        await this.sendEmailReminder(appointment, settings);
+        await this.sendEmailReminder(
+          appointment as AppointmentForReminder,
+          settings,
+        );
       }
 
-      // Send SMS reminder
       if (settings.smsEnabled && appointment.patient.phoneNumber) {
-        await this.sendSmsReminder(appointment, settings);
+        await this.sendSmsReminder(
+          appointment as AppointmentForReminder,
+          settings,
+        );
       }
     }
   }
 
-  private async sendEmailReminder(appointment: any, settings: any) {
+  private async sendEmailReminder(
+    appointment: AppointmentForReminder,
+    settings: ReminderSettings,
+  ) {
     try {
-      // Replace placeholders in template
       const message = this.replacePlaceholders(
-        settings.emailTemplate,
+        settings.emailTemplate || '',
         appointment,
       );
       const subject = this.replacePlaceholders(
-        settings.emailSubject,
+        settings.emailSubject || 'Appointment Reminder',
         appointment,
       );
 
-      // TODO: Integrate with actual email service (SendGrid, AWS SES, etc.)
       this.logger.log(`[EMAIL] To: ${appointment.patient.email}`);
       this.logger.log(`[EMAIL] Subject: ${subject}`);
       this.logger.log(`[EMAIL] Message: ${message}`);
 
-      // Log the reminder
       await this.prisma.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
@@ -153,18 +192,19 @@ Thank you,
     }
   }
 
-  private async sendSmsReminder(appointment: any, settings: any) {
+  private async sendSmsReminder(
+    appointment: AppointmentForReminder,
+    settings: ReminderSettings,
+  ) {
     try {
       const message = this.replacePlaceholders(
-        settings.smsTemplate,
+        settings.smsTemplate || '',
         appointment,
       );
 
-      // TODO: Integrate with Twilio or other SMS service
       this.logger.log(`[SMS] To: ${appointment.patient.phoneNumber}`);
       this.logger.log(`[SMS] Message: ${message}`);
 
-      // Log the reminder
       await this.prisma.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
@@ -188,7 +228,10 @@ Thank you,
     }
   }
 
-  private replacePlaceholders(template: string, appointment: any): string {
+  private replacePlaceholders(
+    template: string,
+    appointment: AppointmentForReminder,
+  ): string {
     const date = new Date(appointment.startTime);
 
     return template
@@ -203,7 +246,7 @@ Thank you,
         date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       )
       .replace(/{appointmentType}/g, appointment.type)
-      .replace(/{clinicName}/g, 'Your Clinic'); // TODO: Get from settings
+      .replace(/{clinicName}/g, 'Your Clinic');
   }
 
   async getReminderHistory(limit: number = 50) {
@@ -217,8 +260,21 @@ Thank you,
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        patient: true,
-        doctor: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

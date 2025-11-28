@@ -11,17 +11,17 @@ import { z } from "zod";
 // =====================================================
 
 export enum PaymentMode {
-  ONLINE = 'ONLINE',
-  CASH = 'CASH',
+  ONLINE = "ONLINE",
+  CASH = "CASH",
 }
 
 export enum PaymentMethod {
-  CASH = 'cash',
-  CARD = 'card',
-  UPI = 'upi',
-  ONLINE = 'online',
-  NET_BANKING = 'netbanking',
-  WALLET = 'wallet',
+  CASH = "cash",
+  CARD = "card",
+  UPI = "upi",
+  ONLINE = "online",
+  NET_BANKING = "netbanking",
+  WALLET = "wallet",
 }
 
 // Zod schemas for validation
@@ -35,7 +35,7 @@ export const paymentMethodSchema = z.nativeEnum(PaymentMethod);
 export const createPaymentLinkSchema = z.object({
   invoiceId: z.string(),
   amount: z.number().positive(), // in rupees (will convert to paise)
-  currency: z.string().default('INR'),
+  currency: z.string().default("INR"),
   paymentMode: paymentModeSchema.default(PaymentMode.ONLINE),
   patientId: z.string(),
   clinicId: z.string(),
@@ -55,7 +55,14 @@ export const paymentSessionSchema = z.object({
   clinicId: z.string(),
   amount: z.number(),
   currency: z.string(),
-  status: z.enum(['created', 'pending', 'paid', 'failed', 'expired', 'cancelled']),
+  status: z.enum([
+    "created",
+    "pending",
+    "paid",
+    "failed",
+    "expired",
+    "cancelled",
+  ]),
   paymentMode: paymentModeSchema,
   razorpayOrderId: z.string().optional(),
   razorpayPaymentId: z.string().optional(),
@@ -86,24 +93,28 @@ export type PaymentLinkResponse = z.infer<typeof paymentLinkResponseSchema>;
 export const paymentWebhookPayloadSchema = z.object({
   event: z.string(),
   payload: z.object({
-    payment: z.object({
-      entity: z.object({
-        id: z.string(),
-        amount: z.number(),
-        currency: z.string(),
-        status: z.string(),
-        order_id: z.string(),
-        notes: z.record(z.string(), z.unknown()).optional(),
-      }),
-    }).optional(),
-    payment_link: z.object({
-      entity: z.object({
-        id: z.string(),
-        amount: z.number(),
-        status: z.string(),
-        reference_id: z.string().optional(),
-      }),
-    }).optional(),
+    payment: z
+      .object({
+        entity: z.object({
+          id: z.string(),
+          amount: z.number(),
+          currency: z.string(),
+          status: z.string(),
+          order_id: z.string(),
+          notes: z.record(z.string(), z.unknown()).optional(),
+        }),
+      })
+      .optional(),
+    payment_link: z
+      .object({
+        entity: z.object({
+          id: z.string(),
+          amount: z.number(),
+          status: z.string(),
+          reference_id: z.string().optional(),
+        }),
+      })
+      .optional(),
   }),
 });
 export type PaymentWebhookPayload = z.infer<typeof paymentWebhookPayloadSchema>;

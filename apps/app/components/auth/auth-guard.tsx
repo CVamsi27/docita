@@ -1,21 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
+import { useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
-  const router = useRouter()
-  const pathname = usePathname()
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Store the attempted URL to redirect back after login
-      sessionStorage.setItem("redirectAfterLogin", pathname)
-      router.push("/login")
-    }
-  }, [isAuthenticated, isLoading, router, pathname])
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const hasRedirectedRef = useRef(false);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -26,13 +19,25 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
+  }
+
+  // Handle redirect synchronously during render
+  if (!isAuthenticated && !hasRedirectedRef.current) {
+    hasRedirectedRef.current = true;
+    // Store the attempted URL to redirect back after login
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("redirectAfterLogin", pathname);
+      // Use setTimeout to avoid updating state during render - only on client
+      setTimeout(() => router.push("/login"), 0);
+    }
+    return null;
   }
 
   // Don't render children if not authenticated
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

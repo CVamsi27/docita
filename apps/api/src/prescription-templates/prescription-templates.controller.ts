@@ -1,52 +1,80 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Body,
-    Param,
-    UseGuards,
-    Request,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
-import { RequireTier, Tier } from '../auth/tier.decorator';
+import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
+
+interface AuthRequest {
+  user: {
+    userId: string;
+  };
+}
+
+interface MedicationData {
+  name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+}
+
+interface CreatePrescriptionTemplateDto {
+  name: string;
+  medications: MedicationData[];
+  instructions?: string;
+}
+
+interface UpdatePrescriptionTemplateDto {
+  name?: string;
+  medications?: MedicationData[];
+  instructions?: string;
+}
 
 @Controller('prescription-templates')
 @UseGuards(JwtAuthGuard, TierGuard)
-@RequireTier(Tier.STARTER) // Prescription templates require Starter tier
+@RequireFeature(Feature.PRESCRIPTION_TEMPLATES)
 export class PrescriptionTemplatesController {
-    constructor(
-        private readonly prescriptionTemplatesService: PrescriptionTemplatesService,
-    ) { }
+  constructor(
+    private readonly prescriptionTemplatesService: PrescriptionTemplatesService,
+  ) {}
 
-    @Get()
-    async findAll(@Request() req) {
-        return this.prescriptionTemplatesService.findAll(req.user.userId);
-    }
+  @Get()
+  async findAll(@Request() req: AuthRequest) {
+    return this.prescriptionTemplatesService.findAll(req.user.userId);
+  }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return this.prescriptionTemplatesService.findOne(id);
-    }
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.prescriptionTemplatesService.findOne(id);
+  }
 
-    @Post()
-    async create(@Request() req, @Body() createDto: any) {
-        return this.prescriptionTemplatesService.create(
-            req.user.userId,
-            createDto,
-        );
-    }
+  @Post()
+  async create(
+    @Request() req: AuthRequest,
+    @Body() createDto: CreatePrescriptionTemplateDto,
+  ) {
+    return this.prescriptionTemplatesService.create(req.user.userId, createDto);
+  }
 
-    @Put(':id')
-    async update(@Param('id') id: string, @Body() updateDto: any) {
-        return this.prescriptionTemplatesService.update(id, updateDto);
-    }
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdatePrescriptionTemplateDto,
+  ) {
+    return this.prescriptionTemplatesService.update(id, updateDto);
+  }
 
-    @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return this.prescriptionTemplatesService.remove(id);
-    }
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return this.prescriptionTemplatesService.remove(id);
+  }
 }

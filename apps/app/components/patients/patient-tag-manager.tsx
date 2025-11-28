@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Button } from "@workspace/ui/components/button"
+import { useState, useCallback, useRef } from "react";
+import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -10,22 +10,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Badge } from "@workspace/ui/components/badge"
-import { Tag, X } from "lucide-react"
-import { API_URL } from "@/lib/api"
+} from "@workspace/ui/components/dialog";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Badge } from "@workspace/ui/components/badge";
+import { Tag, X } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 interface PatientTagManagerProps {
-  patientId: string
-  onTagsUpdated?: () => void
+  patientId: string;
+  onTagsUpdated?: () => void;
 }
 
 interface PatientTag {
-  id: string
-  tag: string
-  color: string
+  id: string;
+  tag: string;
+  color: string;
 }
 
 const PRESET_TAGS = [
@@ -36,71 +36,73 @@ const PRESET_TAGS = [
   { tag: "Pregnant", color: "#ec4899" },
   { tag: "Elderly", color: "#64748b" },
   { tag: "Pediatric", color: "#10b981" },
-]
+];
 
-export function PatientTagManager({ patientId, onTagsUpdated }: PatientTagManagerProps) {
-  const [open, setOpen] = useState(false)
-  const [tags, setTags] = useState<PatientTag[]>([])
-  const [newTag, setNewTag] = useState("")
-  const [newColor, setNewColor] = useState("#3b82f6")
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      loadTags()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, patientId])
+export function PatientTagManager({
+  patientId,
+  onTagsUpdated,
+}: PatientTagManagerProps) {
+  const [open, setOpen] = useState(false);
+  const [tags, setTags] = useState<PatientTag[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [newColor, setNewColor] = useState("#3b82f6");
+  const [loading, setLoading] = useState(false);
 
   const loadTags = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/patients/${patientId}/tags`)
-      if (response.ok) {
-        const data = await response.json()
-        setTags(data)
-      }
+      const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`, {
+        showErrorToast: false,
+      });
+      setTags(data);
     } catch (error) {
-      console.error("Failed to load tags:", error)
+      console.error("Failed to load tags:", error);
     }
-  }, [patientId])
+  }, [patientId]);
+
+  // Ref-based sync for loading tags when dialog opens or patientId changes
+  const lastStateRef = useRef({ open: false, patientId: "" });
+  if (
+    open &&
+    (lastStateRef.current.open !== open ||
+      lastStateRef.current.patientId !== patientId)
+  ) {
+    loadTags();
+  }
+  lastStateRef.current = { open, patientId };
 
   const addTag = async (tag: string, color: string) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/patients/${patientId}/tags`, {
+      await apiFetch(`/patients/${patientId}/tags`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tag, color }),
-      })
-
-      if (response.ok) {
-        await loadTags()
-        setNewTag("")
-        setNewColor("#3b82f6")
-        onTagsUpdated?.()
-      }
+      });
+      await loadTags();
+      setNewTag("");
+      setNewColor("#3b82f6");
+      onTagsUpdated?.();
     } catch (error) {
-      console.error("Failed to add tag:", error)
+      console.error("Failed to add tag:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const removeTag = async (tagId: string) => {
     try {
-      await fetch(`${API_URL}/patients/${patientId}/tags/${tagId}`, {
+      await apiFetch(`/patients/${patientId}/tags/${tagId}`, {
         method: "DELETE",
-      })
-      await loadTags()
-      onTagsUpdated?.()
+      });
+      await loadTags();
+      onTagsUpdated?.();
     } catch (error) {
-      console.error("Failed to remove tag:", error)
+      console.error("Failed to remove tag:", error);
     }
-  }
+  };
 
   const hasTag = (tagName: string) => {
-    return tags.some((t) => t.tag.toLowerCase() === tagName.toLowerCase())
-  }
+    return tags.some((t) => t.tag.toLowerCase() === tagName.toLowerCase());
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -153,9 +155,13 @@ export function PatientTagManager({ patientId, onTagsUpdated }: PatientTagManage
                   variant="outline"
                   style={{ borderColor: preset.color, color: preset.color }}
                   className={`cursor-pointer transition-all ${
-                    hasTag(preset.tag) ? "opacity-50 cursor-not-allowed" : "hover:bg-accent"
+                    hasTag(preset.tag)
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-accent"
                   }`}
-                  onClick={() => !hasTag(preset.tag) && addTag(preset.tag, preset.color)}
+                  onClick={() =>
+                    !hasTag(preset.tag) && addTag(preset.tag, preset.color)
+                  }
                 >
                   {preset.tag}
                 </Badge>
@@ -196,5 +202,5 @@ export function PatientTagManager({ patientId, onTagsUpdated }: PatientTagManage
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

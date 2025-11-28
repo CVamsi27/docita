@@ -7,69 +7,75 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../auth/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { SubscriptionService } from './subscription.service';
+import { SubscriptionBillingService } from './subscription-billing.service';
+
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
+interface CreateCheckoutDto {
+  tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
+  billingCycle: 'MONTHLY' | 'YEARLY';
+  referralCode?: string;
+}
+
+interface ActivateSubscriptionDto {
+  razorpayPaymentId: string;
+  razorpayOrderId: string;
+  razorpaySignature: string;
+  tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
+  billingCycle: 'MONTHLY' | 'YEARLY';
+}
 
 @Controller('subscription')
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(
+    private readonly subscriptionService: SubscriptionService,
+    private readonly billingService: SubscriptionBillingService,
+  ) {}
 
-  /**
-   * Get complete tier configuration - PUBLIC endpoint
-   * This is the single source of truth for all tier-related data
-   */
   @Get('config')
   getTierConfig() {
     return this.subscriptionService.getTierConfig();
   }
 
-  /**
-   * Get current clinic's subscription details
-   */
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async getSubscription(@Request() req: any) {
+  async getSubscription(@Request() req: AuthRequest) {
     return this.subscriptionService.getSubscription(req.user.clinicId);
   }
 
-  /**
-   * Get all available tiers
-   */
   @Get('tiers')
   getAllTiers() {
     return this.subscriptionService.getAllTiers();
   }
 
-  /**
-   * Get intelligence addon info
-   */
   @Get('intelligence')
   getIntelligenceInfo() {
     return this.subscriptionService.getIntelligenceAddonInfo();
   }
 
-  /**
-   * Upgrade tier (admin only)
-   */
   @Post('upgrade')
   @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_DOCTOR')
   async upgradeTier(
-    @Request() req: any,
+    @Request() req: AuthRequest,
     @Body() body: { tier: string },
   ) {
     return this.subscriptionService.upgradeTier(req.user.clinicId, body.tier);
   }
 
-  /**
-   * Enable/disable intelligence addon (admin only)
-   */
   @Put('intelligence')
   @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_DOCTOR')
   async setIntelligence(
-    @Request() req: any,
+    @Request() req: AuthRequest,
     @Body() body: { enabled: boolean },
   ) {
     return this.subscriptionService.setIntelligenceAddon(
@@ -78,9 +84,6 @@ export class SubscriptionController {
     );
   }
 
-  /**
-   * Start a trial (super admin only)
-   */
   @Post(':clinicId/trial')
   @Roles('SUPER_ADMIN')
   async startTrial(
@@ -94,9 +97,6 @@ export class SubscriptionController {
     );
   }
 
-  /**
-   * Set feature overrides (super admin only)
-   */
   @Put(':clinicId/features')
   @Roles('SUPER_ADMIN')
   async setFeatureOverrides(
@@ -107,5 +107,102 @@ export class SubscriptionController {
       clinicId,
       body.features,
     );
+  }
+
+  // =========================================================================
+  // Billing Endpoints
+  // =========================================================================
+
+  /**
+   * Get billing details for current clinic
+   */
+  @Get('billing')
+  @UseGuards(JwtAuthGuard)
+  async getBillingDetails(@Request() req: AuthRequest) {
+    return this.billingService.getClinicBillingDetails(req.user.clinicId);
+  }
+
+  /**
+   * Preview upgrade/change proration
+   */
+  @Get('billing/preview')
+  @UseGuards(JwtAuthGuard)
+  async previewUpgrade(
+    @Request() req: AuthRequest,
+    @Query('tier') tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE',
+    @Query('cycle') cycle: 'MONTHLY' | 'YEARLY',
+  ) {
+    return this.billingService.previewUpgrade(req.user.clinicId, tier, cycle);
+  }
+
+  /**
+   * Create checkout session for new subscription or upgrade
+   */
+  @Post('billing/checkout')
+  @UseGuards(JwtAuthGuard)
+  async createCheckout(
+    @Request() req: AuthRequest,
+    @Body() dto: CreateCheckoutDto,
+  ) {
+    return this.billingService.createCheckout(
+      req.user.clinicId,
+      dto.tier,
+      dto.billingCycle,
+      dto.referralCode,
+    );
+  }
+
+  /**
+   * Activate subscription after payment
+   */
+  @Post('billing/activate')
+  @UseGuards(JwtAuthGuard)
+  async activateSubscription(
+    @Request() req: AuthRequest,
+    @Body() dto: ActivateSubscriptionDto,
+  ) {
+    return this.billingService.activateSubscription(
+      req.user.clinicId,
+      dto.razorpayPaymentId,
+      dto.razorpayOrderId,
+      dto.razorpaySignature,
+      dto.tier,
+      dto.billingCycle,
+    );
+  }
+
+  /**
+   * Cancel subscription (end of current period)
+   */
+  @Post('billing/cancel')
+  @UseGuards(JwtAuthGuard)
+  async cancelSubscription(
+    @Request() req: AuthRequest,
+    @Body() body: { immediate?: boolean },
+  ) {
+    // Cancel at period end by default (immediate = false means cancel at period end)
+    const cancelAtPeriodEnd = !body.immediate;
+    return this.billingService.cancelSubscription(
+      req.user.clinicId,
+      cancelAtPeriodEnd,
+    );
+  }
+
+  /**
+   * Get payment history
+   */
+  @Get('billing/payments')
+  @UseGuards(JwtAuthGuard)
+  async getPaymentHistory(@Request() req: AuthRequest) {
+    return this.billingService.getPaymentHistory(req.user.clinicId);
+  }
+
+  /**
+   * Get upcoming invoice preview
+   */
+  @Get('billing/upcoming')
+  @UseGuards(JwtAuthGuard)
+  async getUpcomingInvoice(@Request() req: AuthRequest) {
+    return this.billingService.getUpcomingInvoice(req.user.clinicId);
   }
 }

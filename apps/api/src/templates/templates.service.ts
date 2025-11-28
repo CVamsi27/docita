@@ -1,13 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
+
+interface TemplateField {
+  id: string;
+  label: string;
+  type: string;
+  options?: string[];
+}
+
+interface CreateTemplateData {
+  name: string;
+  speciality: string;
+  fields: TemplateField[];
+  defaultObservations?: string;
+  clinicId?: string;
+}
+
+interface UpdateTemplateData {
+  name?: string;
+  speciality?: string;
+  fields?: TemplateField[];
+  defaultObservations?: string;
+}
 
 @Injectable()
 export class TemplatesService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
+  create(data: CreateTemplateData) {
     return this.prisma.clinicalTemplate.create({
-      data,
+      data: {
+        name: data.name,
+        speciality: data.speciality,
+        fields: data.fields as unknown as Prisma.InputJsonValue,
+        defaultObservations: data.defaultObservations,
+        clinicId: data.clinicId,
+      },
     });
   }
 
@@ -23,10 +52,17 @@ export class TemplatesService {
     });
   }
 
-  update(id: string, data: any) {
+  update(id: string, data: UpdateTemplateData) {
     return this.prisma.clinicalTemplate.update({
       where: { id },
-      data,
+      data: {
+        name: data.name,
+        speciality: data.speciality,
+        fields: data.fields
+          ? (data.fields as unknown as Prisma.InputJsonValue)
+          : undefined,
+        defaultObservations: data.defaultObservations,
+      },
     });
   }
 

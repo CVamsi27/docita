@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { useState } from "react";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 
 interface MedicineAutocompleteProps {
-  value: string
-  onChange: (value: string) => void
-  onSelect?: (medicine: Medicine) => void
-  placeholder?: string
-  label?: string
-  id?: string
+  value: string;
+  onChange: (value: string) => void;
+  onSelect?: (medicine: Medicine) => void;
+  placeholder?: string;
+  label?: string;
+  id?: string;
 }
 
 interface Medicine {
-  name: string
-  commonDosage?: string
-  category?: string
+  name: string;
+  commonDosage?: string;
+  category?: string;
 }
 
 // Common medicines database
@@ -36,7 +36,17 @@ const COMMON_MEDICINES: Medicine[] = [
   { name: "Levothyroxine", commonDosage: "50mcg", category: "Thyroid" },
   { name: "Pantoprazole", commonDosage: "40mg", category: "PPI" },
   { name: "Clopidogrel", commonDosage: "75mg", category: "Antiplatelet" },
-]
+];
+
+function getInitialRecentMedicines(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const recent = localStorage.getItem("recentMedicines");
+    return recent ? JSON.parse(recent) : [];
+  } catch {
+    return [];
+  }
+}
 
 export function MedicineAutocomplete({
   value,
@@ -46,38 +56,35 @@ export function MedicineAutocomplete({
   label,
   id = "medicine-autocomplete",
 }: MedicineAutocompleteProps) {
-  const [recentMedicines, setRecentMedicines] = useState<string[]>([])
-
-  useEffect(() => {
-    // Load recent medicines from localStorage
-    const recent = localStorage.getItem("recentMedicines")
-    if (recent) {
-      setRecentMedicines(JSON.parse(recent))
-    }
-  }, [])
+  // Lazy initialization from localStorage
+  const [recentMedicines, setRecentMedicines] = useState<string[]>(
+    getInitialRecentMedicines,
+  );
 
   const handleChange = (newValue: string) => {
-    onChange(newValue)
-    
+    onChange(newValue);
+
     // Check if selected from list
-    const medicine = COMMON_MEDICINES.find(m => m.name === newValue)
+    const medicine = COMMON_MEDICINES.find((m) => m.name === newValue);
     if (medicine) {
-      onSelect?.(medicine)
-      
+      onSelect?.(medicine);
+
       // Add to recent medicines
       const updated = [
         medicine.name,
         ...recentMedicines.filter((m) => m !== medicine.name),
-      ].slice(0, 5)
-      setRecentMedicines(updated)
-      localStorage.setItem("recentMedicines", JSON.stringify(updated))
+      ].slice(0, 5);
+      setRecentMedicines(updated);
+      localStorage.setItem("recentMedicines", JSON.stringify(updated));
     }
-  }
+  };
 
   const allMedicines = [
-    ...recentMedicines.map(name => COMMON_MEDICINES.find(m => m.name === name)).filter(Boolean),
-    ...COMMON_MEDICINES.filter(m => !recentMedicines.includes(m.name))
-  ] as Medicine[]
+    ...recentMedicines
+      .map((name) => COMMON_MEDICINES.find((m) => m.name === name))
+      .filter(Boolean),
+    ...COMMON_MEDICINES.filter((m) => !recentMedicines.includes(m.name)),
+  ] as Medicine[];
 
   return (
     <div className="space-y-2">
@@ -92,10 +99,12 @@ export function MedicineAutocomplete({
       <datalist id={`${id}-list`}>
         {allMedicines.map((med) => (
           <option key={med.name} value={med.name}>
-            {med.commonDosage && med.category && `${med.commonDosage} - ${med.category}`}
+            {med.commonDosage &&
+              med.category &&
+              `${med.commonDosage} - ${med.category}`}
           </option>
         ))}
       </datalist>
     </div>
-  )
+  );
 }

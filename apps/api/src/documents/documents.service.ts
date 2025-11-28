@@ -6,10 +6,30 @@ import { unlink } from 'fs/promises';
 export class DocumentsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(clinicId: string) {
+    if (!clinicId) {
+      return [];
+    }
     return this.prisma.document.findMany({
-      include: {
-        patient: true,
+      where: { patient: { clinicId } },
+      select: {
+        id: true,
+        patientId: true,
+        name: true,
+        type: true,
+        url: true,
+        fileSize: true,
+        mimeType: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -18,8 +38,25 @@ export class DocumentsService {
   async findOne(id: string) {
     const document = await this.prisma.document.findUnique({
       where: { id },
-      include: {
-        patient: true,
+      select: {
+        id: true,
+        patientId: true,
+        name: true,
+        type: true,
+        url: true,
+        fileSize: true,
+        mimeType: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
       },
     });
 
@@ -49,8 +86,24 @@ export class DocumentsService {
         mimeType: data.mimeType,
         description: data.description,
       },
-      include: {
-        patient: true,
+      select: {
+        id: true,
+        patientId: true,
+        name: true,
+        type: true,
+        url: true,
+        fileSize: true,
+        mimeType: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
   }
@@ -58,14 +111,12 @@ export class DocumentsService {
   async remove(id: string) {
     const document = await this.findOne(id);
 
-    // Delete file from filesystem
     try {
       await unlink(document.url);
     } catch (error) {
       console.error('Failed to delete file:', error);
     }
 
-    // Delete from database
     await this.prisma.document.delete({
       where: { id },
     });

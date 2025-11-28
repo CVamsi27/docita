@@ -1,9 +1,12 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import * as React from "react";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-import { SocketProvider } from "@/lib/socket-context"
+import { SocketProvider } from "@/lib/socket-context";
+import { TierConfigProvider } from "@/lib/tier-config-context";
+import { AppConfigProvider } from "@/lib/app-config-context";
+import { ConfirmProvider } from "@/hooks/use-confirm";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -15,8 +18,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
         enableColorScheme
       >
-        {children}
+        <TierConfigProvider>
+          <AppConfigProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </AppConfigProvider>
+        </TierConfigProvider>
       </NextThemesProvider>
     </SocketProvider>
-  )
+  );
 }

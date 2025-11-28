@@ -5,6 +5,45 @@ import { PaymentGateway } from '../../gateways/payment.gateway';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
 
+interface PaymentSessionWithRelations {
+  id: string;
+  clinicId: string;
+  invoiceId: string | null;
+  patientId: string;
+  provider: string;
+  amount: number;
+  shortUrl: string | null;
+  patient: {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    email: string | null;
+  } | null;
+  invoice: {
+    id: string;
+  } | null;
+  clinic: {
+    phone: string | null;
+  } | null;
+}
+
+interface RazorpayPaymentLinkEntity {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  short_url: string;
+}
+
+interface RazorpayWebhookPayload {
+  event: string;
+  payload: {
+    payment_link: {
+      entity: RazorpayPaymentLinkEntity;
+    };
+  };
+}
+
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
@@ -30,7 +69,6 @@ export class PaymentsService {
     description?: string;
     paymentMode?: 'ONLINE' | 'CASH';
   }) {
-    // Get patient and invoice details
     const patient = await this.prisma.patient.findUnique({
       where: { id: dto.patientId },
     });
@@ -43,7 +81,6 @@ export class PaymentsService {
       throw new BadRequestException('Patient or invoice not found');
     }
 
-    // Calculate expiry (24 hours from now)
     const expiresAt = new Date();
     expiresAt.setMinutes(
       expiresAt.getMinutes() +
@@ -71,8 +108,7 @@ export class PaymentsService {
       return session;
     }
 
-    // Create Razorpay payment link
-    let paymentLink;
+    let paymentLink: { id: string; short_url: string };
     try {
       paymentLink = await this.razorpay.paymentLink.create({
         amount: amountInPaise,
@@ -84,7 +120,7 @@ export class PaymentsService {
           contact: patient.phoneNumber,
         },
         notify: {
-          sms: false, // We'll send via WhatsApp
+          sms: false,
           email: false,
         },
         reminder_enable: false,
@@ -96,7 +132,6 @@ export class PaymentsService {
       throw new BadRequestException('Failed to create payment link');
     }
 
-    // Save to database
     const session = await this.prisma.paymentSession.create({
       data: {
         clinicId: dto.clinicId,
@@ -126,10 +161,32 @@ export class PaymentsService {
   async sendPaymentLinkWhatsApp(sessionId: string) {
     const session = await this.prisma.paymentSession.findUnique({
       where: { id: sessionId },
-      include: {
-        patient: true,
-        invoice: true,
-        clinic: true,
+      select: {
+        id: true,
+        clinicId: true,
+        patientId: true,
+        invoiceId: true,
+        provider: true,
+        amount: true,
+        shortUrl: true,
+        patient: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+          },
+        },
+        invoice: {
+          select: {
+            id: true,
+          },
+        },
+        clinic: {
+          select: {
+            phone: true,
+          },
+        },
       },
     });
 
@@ -137,21 +194,15 @@ export class PaymentsService {
       throw new BadRequestException('Payment session or patient not found');
     }
 
-    // Check WhatsApp consent (optional for now, can be enforced later)
-    // if (!session.patient.whatsappConsent) {
-    //   throw new BadRequestException('Patient has not consented to WhatsApp messages');
-    // }
+    const message = this.composePaymentMessage(
+      session as PaymentSessionWithRelations,
+    );
 
-    // Compose message
-    const message = this.composePaymentMessage(session);
-
-    // Send via Twilio WhatsApp
     const result = await this.whatsapp.sendMessage({
       to: session.patient.phoneNumber,
       message,
     });
 
-    // Update session
     await this.prisma.paymentSession.update({
       where: { id: sessionId },
       data: {
@@ -161,7 +212,6 @@ export class PaymentsService {
       },
     });
 
-    // Log WhatsApp message
     await this.prisma.whatsappLog.create({
       data: {
         clinicId: session.clinicId,
@@ -173,7 +223,7 @@ export class PaymentsService {
         phoneNumber: session.patient.phoneNumber,
         message,
         status: 'sent',
-        responseBody: result as any,
+        responseBody: result as object,
       },
     });
 
@@ -182,8 +232,8 @@ export class PaymentsService {
     return { success: true, messageId: result.messageId };
   }
 
-  private composePaymentMessage(session: any): string {
-    const patientName = `${session.patient.firstName} ${session.patient.lastName}`;
+  private composePaymentMessage(session: PaymentSessionWithRelations): string {
+    const patientName = `${session.patient?.firstName} ${session.patient?.lastName}`;
     const amount = (session.amount / 100).toFixed(2);
     const invoiceNo = session.invoice?.id?.slice(0, 8) || 'N/A';
 
@@ -194,8 +244,10 @@ export class PaymentsService {
     return `Hi ${patientName},\n\nYour invoice #${invoiceNo} for ₹${amount} is ready.\n\nPay securely: ${session.shortUrl}\n\nIf you've already paid, please reply DONE.\n\nFor help, call ${session.clinic?.phone || 'clinic'}.\n\nThank you!`;
   }
 
-  async handleRazorpayWebhook(payload: any, signature: string) {
-    // Verify signature
+  async handleRazorpayWebhook(
+    payload: RazorpayWebhookPayload,
+    signature: string,
+  ) {
     const isValid = this.verifyRazorpaySignature(payload, signature);
     if (!isValid) {
       this.logger.error('Invalid Razorpay webhook signature');
@@ -207,10 +259,14 @@ export class PaymentsService {
 
     this.logger.log(`Received Razorpay webhook: ${event}`);
 
-    // Find payment session
     const session = await this.prisma.paymentSession.findFirst({
       where: { providerSessionId: paymentLinkData.id },
-      include: { invoice: true },
+      select: {
+        id: true,
+        clinicId: true,
+        invoiceId: true,
+        status: true,
+      },
     });
 
     if (!session) {
@@ -220,8 +276,12 @@ export class PaymentsService {
       return;
     }
 
-    // Update session based on event
-    const updateData: any = {
+    const updateData: {
+      webhookPayload: object;
+      updatedAt: Date;
+      status?: string;
+      paidAt?: Date;
+    } = {
       webhookPayload: payload,
       updatedAt: new Date(),
     };
@@ -231,7 +291,6 @@ export class PaymentsService {
         updateData.status = 'paid';
         updateData.paidAt = new Date();
 
-        // Update invoice status
         if (session.invoiceId) {
           await this.prisma.invoice.update({
             where: { id: session.invoiceId },
@@ -257,11 +316,10 @@ export class PaymentsService {
       data: updateData,
     });
 
-    // Emit real-time update via Socket.IO
     this.paymentGateway.emitPaymentUpdate(session.clinicId, session.id, {
       sessionId: session.id,
       invoiceId: session.invoiceId,
-      status: updateData.status,
+      status: updateData.status || session.status,
       paidAt: updateData.paidAt,
     });
 
@@ -270,9 +328,12 @@ export class PaymentsService {
     );
   }
 
-  private verifyRazorpaySignature(payload: any, signature: string): boolean {
+  private verifyRazorpaySignature(
+    payload: RazorpayWebhookPayload,
+    signature: string,
+  ): boolean {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    if (!webhookSecret) return true; // Skip verification if secret not set (dev mode)
+    if (!webhookSecret) return true;
 
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
@@ -285,9 +346,38 @@ export class PaymentsService {
   async getPaymentSession(id: string) {
     return this.prisma.paymentSession.findUnique({
       where: { id },
-      include: {
-        patient: true,
-        invoice: true,
+      select: {
+        id: true,
+        clinicId: true,
+        invoiceId: true,
+        patientId: true,
+        provider: true,
+        providerSessionId: true,
+        paymentLink: true,
+        shortUrl: true,
+        amount: true,
+        currency: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        paidAt: true,
+        expiresAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+          },
+        },
+        invoice: {
+          select: {
+            id: true,
+            total: true,
+            status: true,
+          },
+        },
       },
     });
   }

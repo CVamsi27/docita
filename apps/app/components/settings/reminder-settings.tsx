@@ -1,80 +1,105 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Save, Loader2, Bell, Mail, MessageSquare } from "lucide-react"
-import { API_URL } from "@/lib/api"
+import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Save, Loader2, Bell, Mail, MessageSquare } from "lucide-react";
+import { API_URL } from "@/lib/api";
 
 interface ReminderSettings {
-  id: string
-  enabled: boolean
-  smsEnabled: boolean
-  emailEnabled: boolean
-  hoursBeforeAppt: number
-  smsTemplate: string
-  emailTemplate: string
-  emailSubject: string
+  id: string;
+  enabled: boolean;
+  smsEnabled: boolean;
+  emailEnabled: boolean;
+  hoursBeforeAppt: number;
+  smsTemplate: string;
+  emailTemplate: string;
+  emailSubject: string;
 }
 
 export function ReminderSettings() {
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [settings, setSettings] = useState<ReminderSettings | null>(null)
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<ReminderSettings | null>(null);
+  const hasFetchedRef = useRef(false);
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/reminders/settings`)
+      const res = await fetch(`${API_URL}/reminders/settings`);
       if (res.ok) {
-        const data = await res.json()
-        setSettings(data)
+        const data = await res.json();
+        setSettings({
+          id: data.id ?? "",
+          enabled: data.enabled ?? false,
+          smsEnabled: data.smsEnabled ?? false,
+          emailEnabled: data.emailEnabled ?? false,
+          hoursBeforeAppt: data.hoursBeforeAppt ?? 24,
+          smsTemplate: data.smsTemplate ?? "",
+          emailTemplate: data.emailTemplate ?? "",
+          emailSubject: data.emailSubject ?? "",
+        });
       }
     } catch (error) {
-      console.error("Failed to load reminder settings", error)
+      console.error("Failed to load reminder settings", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, []);
+
+  // Use useSyncExternalStore to trigger initial fetch
+  useSyncExternalStore(
+    useCallback(() => {
+      if (!hasFetchedRef.current) {
+        hasFetchedRef.current = true;
+        loadSettings();
+      }
+      return () => {};
+    }, [loadSettings]),
+    () => settings,
+    () => null,
+  );
 
   const handleSave = async () => {
-    if (!settings) return
+    if (!settings) return;
 
-    setSaving(true)
+    setSaving(true);
     try {
       const res = await fetch(`${API_URL}/reminders/settings`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
-      })
+      });
 
       if (res.ok) {
-        alert("Settings saved successfully!")
+        alert("Settings saved successfully!");
       }
     } catch (error) {
-      console.error("Failed to save settings", error)
-      alert("Failed to save settings")
+      console.error("Failed to save settings", error);
+      alert("Failed to save settings");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
-  if (!settings) return null
+  if (!settings) return null;
 
   return (
     <div className="space-y-6">
@@ -92,7 +117,9 @@ export function ReminderSettings() {
             <Bell className="h-5 w-5" />
             General Settings
           </CardTitle>
-          <CardDescription>Enable or disable appointment reminders</CardDescription>
+          <CardDescription>
+            Enable or disable appointment reminders
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -105,22 +132,32 @@ export function ReminderSettings() {
             <Checkbox
               id="enabled"
               checked={settings.enabled}
-              onCheckedChange={(checked: boolean) => setSettings({ ...settings, enabled: checked })}
+              onCheckedChange={(checked: boolean) =>
+                setSettings({ ...settings, enabled: checked })
+              }
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hours">Send Reminder (Hours Before Appointment)</Label>
+            <Label htmlFor="hours">
+              Send Reminder (Hours Before Appointment)
+            </Label>
             <Input
               id="hours"
               type="number"
               min="1"
               max="168"
               value={settings.hoursBeforeAppt}
-              onChange={(e) => setSettings({ ...settings, hoursBeforeAppt: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  hoursBeforeAppt: parseInt(e.target.value),
+                })
+              }
             />
             <p className="text-xs text-muted-foreground">
-              Reminders will be sent {settings.hoursBeforeAppt} hours before the appointment
+              Reminders will be sent {settings.hoursBeforeAppt} hours before the
+              appointment
             </p>
           </div>
         </CardContent>
@@ -146,7 +183,9 @@ export function ReminderSettings() {
             <Checkbox
               id="emailEnabled"
               checked={settings.emailEnabled}
-              onCheckedChange={(checked: boolean) => setSettings({ ...settings, emailEnabled: checked })}
+              onCheckedChange={(checked: boolean) =>
+                setSettings({ ...settings, emailEnabled: checked })
+              }
             />
           </div>
 
@@ -157,7 +196,9 @@ export function ReminderSettings() {
                 <Input
                   id="emailSubject"
                   value={settings.emailSubject}
-                  onChange={(e) => setSettings({ ...settings, emailSubject: e.target.value })}
+                  onChange={(e) =>
+                    setSettings({ ...settings, emailSubject: e.target.value })
+                  }
                   placeholder="Appointment Reminder - {clinicName}"
                 />
               </div>
@@ -168,11 +209,15 @@ export function ReminderSettings() {
                   id="emailTemplate"
                   rows={10}
                   value={settings.emailTemplate || ""}
-                  onChange={(e) => setSettings({ ...settings, emailTemplate: e.target.value })}
+                  onChange={(e) =>
+                    setSettings({ ...settings, emailTemplate: e.target.value })
+                  }
                   placeholder="Email message template..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  Available placeholders: {"{patientName}"}, {"{doctorName}"}, {"{appointmentDate}"}, {"{appointmentTime}"}, {"{appointmentType}"}, {"{clinicName}"}
+                  Available placeholders: {"{patientName}"}, {"{doctorName}"},{" "}
+                  {"{appointmentDate}"}, {"{appointmentTime}"},{" "}
+                  {"{appointmentType}"}, {"{clinicName}"}
                 </p>
               </div>
             </>
@@ -200,7 +245,9 @@ export function ReminderSettings() {
             <Checkbox
               id="smsEnabled"
               checked={settings.smsEnabled}
-              onCheckedChange={(checked: boolean) => setSettings({ ...settings, smsEnabled: checked })}
+              onCheckedChange={(checked: boolean) =>
+                setSettings({ ...settings, smsEnabled: checked })
+              }
             />
           </div>
 
@@ -211,12 +258,16 @@ export function ReminderSettings() {
                 id="smsTemplate"
                 rows={4}
                 value={settings.smsTemplate || ""}
-                onChange={(e) => setSettings({ ...settings, smsTemplate: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, smsTemplate: e.target.value })
+                }
                 placeholder="SMS message template (keep it short)..."
                 maxLength={160}
               />
               <p className="text-xs text-muted-foreground">
-                SMS messages should be under 160 characters. Available placeholders: {"{patientName}"}, {"{doctorName}"}, {"{appointmentDate}"}, {"{appointmentTime}"}, {"{clinicName}"}
+                SMS messages should be under 160 characters. Available
+                placeholders: {"{patientName}"}, {"{doctorName}"},{" "}
+                {"{appointmentDate}"}, {"{appointmentTime}"}, {"{clinicName}"}
               </p>
             </div>
           )}
@@ -240,5 +291,5 @@ export function ReminderSettings() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

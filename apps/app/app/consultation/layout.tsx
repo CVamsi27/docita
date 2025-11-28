@@ -1,16 +1,14 @@
-import { ClinicProvider } from "@/lib/clinic-context"
-import { AuthGuard } from "@/components/auth/auth-guard"
+import { ClinicProvider } from "@/lib/clinic-context";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 export default function ConsultationLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <AuthGuard>
-      <ClinicProvider>
-        {children}
-      </ClinicProvider>
+      <ClinicProvider>{children}</ClinicProvider>
     </AuthGuard>
-  )
+  );
 }

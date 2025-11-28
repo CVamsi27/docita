@@ -1,53 +1,77 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@workspace/ui/components/button"
-import { ArrowLeft, User } from "lucide-react"
-import { ConsultationContent } from "@/components/consultation/consultation-content"
-import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar"
-import { useEffect } from "react"
-import { useNavigationStore } from "@/lib/stores/navigation-store"
-import { apiHooks } from "@/lib/api-hooks"
-import { useQueryClient } from "@tanstack/react-query"
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@workspace/ui/components/button";
+import { ArrowLeft, User, PanelLeft } from "lucide-react";
+import { ClinicalDocumentationDynamic } from "@/lib/dynamic-imports";
+import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
+import { useEffect, useState } from "react";
+import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { cn } from "@workspace/ui/lib/utils";
+import { apiHooks } from "@/lib/api-hooks";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@workspace/ui/components/sheet";
+
+// Map old tab names to new ones
+const TAB_MAPPING: Record<string, string> = {
+  observations: "chief-complaint",
+  vitals: "vitals",
+  prescription: "prescription",
+  invoice: "invoice",
+  diagnosis: "diagnosis",
+};
 
 export default function ConsultationPage() {
-  const params = useParams()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const appointmentId = params.id as string
-  const { popRoute, pushRoute } = useNavigationStore()
-  const queryClient = useQueryClient()
-  
-  const { data: appointmentData, isLoading: loading } = apiHooks.useAppointment(appointmentId)
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const appointmentId = params.id as string;
+  const { popRoute, pushRoute } = useNavigationStore();
+  const queryClient = useQueryClient();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  const { data: appointmentData, isLoading: loading } =
+    apiHooks.useAppointment(appointmentId);
+
+  // Track this page in navigation history
   useEffect(() => {
-    // Track this page in navigation history
-    pushRoute(`/consultation/${appointmentId}`)
-  }, [appointmentId, pushRoute])
+    if (appointmentId) {
+      pushRoute(`/consultation/${appointmentId}`);
+    }
+  }, [appointmentId, pushRoute]);
 
   const handleBack = () => {
-    const from = searchParams.get("from")
-    const previousRoute = popRoute()
-    
+    const from = searchParams.get("from");
+    const previousRoute = popRoute();
+
+    // If coming from coding queue, go back to coding queue
+    if (from === "coding-queue") {
+      router.push("/coding-queue");
+    }
     // If coming from patient page, go back to patient
-    if (from === "patient" && appointmentData?.patientId) {
-      router.push(`/patients/${appointmentData.patientId}`)
-    } 
+    else if (from === "patient" && appointmentData?.patientId) {
+      router.push(`/patients/${appointmentData.patientId}`);
+    }
     // If we have a previous route in history that's not this page, use it
-    else if (previousRoute && !previousRoute.includes('/consultation/')) {
-      router.push(previousRoute)
-    } 
+    else if (previousRoute && !previousRoute.includes("/consultation/")) {
+      router.push(previousRoute);
+    }
     // Default to appointments
     else {
-      router.push("/appointments")
+      router.push("/appointments");
     }
-  }
+  };
 
   const handleSave = () => {
     // Refetch appointment data after save
-    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] })
-  }
+    queryClient.invalidateQueries({
+      queryKey: ["appointments", appointmentId],
+    });
+  };
 
   if (loading) {
     return (
@@ -57,68 +81,118 @@ export default function ConsultationPage() {
           <p className="text-muted-foreground">Loading consultation...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!appointmentData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
         <p className="text-muted-foreground">Appointment not found</p>
-        <Button onClick={() => router.push("/appointments")}>Back to Appointments</Button>
+        <Button onClick={() => router.push("/appointments")}>
+          Back to Appointments
+        </Button>
       </div>
-    )
+    );
   }
 
-  const patientName = appointmentData.patient 
+  const patientName = appointmentData.patient
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
-    : "Patient"
+    : "Patient";
 
-  // Get default tab from query params
-  const defaultTab = (searchParams.get("tab") as "observations" | "vitals" | "prescription" | "invoice") || "observations"
+  // Get default tab from query params and map to new tab names
+  const rawTab = searchParams.get("tab") || "chief-complaint";
+  const defaultTab = (TAB_MAPPING[rawTab] || rawTab) as
+    | "chief-complaint"
+    | "history"
+    | "examination"
+    | "diagnosis"
+    | "treatment"
+    | "vitals"
+    | "prescription"
+    | "invoice";
 
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
+
+          {/* Mobile sidebar toggle */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <PanelLeft className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-0">
+              <ConsultationSidebar appointment={appointmentData} />
+            </SheetContent>
+          </Sheet>
+
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
+            <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
+              <User className="h-5 w-5 text-primary hidden sm:block" />
               {patientName}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Consultation - {new Date(appointmentData.startTime).toLocaleDateString()}
+            <p className="text-xs md:text-sm text-muted-foreground">
+              Consultation -{" "}
+              {new Date(appointmentData.startTime).toLocaleDateString()}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleBack}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="hidden sm:flex"
+          >
             Close
           </Button>
         </div>
       </header>
 
       {/* Main Content with Sidebar */}
-      <div className="flex-1 overflow-hidden flex">
-        {/* Sidebar */}
-        <aside className="hidden lg:block w-80 border-r overflow-y-auto">
+      <div className="flex-1 overflow-hidden flex overflow-x-hidden">
+        {/* Sidebar - Desktop only */}
+        <aside
+          className={cn(
+            "hidden md:block border-r overflow-y-auto flex-shrink-0 transition-all duration-300 ease-in-out",
+            isSidebarOpen ? "w-80 opacity-100" : "w-0 opacity-0 border-none",
+          )}
+        >
           <ConsultationSidebar appointment={appointmentData} />
         </aside>
 
-        {/* Consultation Content */}
-        <div className="flex-1 overflow-hidden">
-          <ConsultationContent
+        {/* Clinical Documentation */}
+        <div className="flex-1 overflow-hidden overflow-x-hidden flex flex-col">
+          {/* Focus Mode Toggle (Floating if sidebar is closed, or in header) */}
+          {!isSidebarOpen && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute left-4 top-[72px] z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
+              title="Show Sidebar"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+          )}
+
+          <ClinicalDocumentationDynamic
             appointmentId={appointmentId}
             patientId={appointmentData.patientId}
             doctorId={appointmentData.doctorId}
             defaultTab={defaultTab}
             onSave={handleSave}
+            isFocusMode={!isSidebarOpen}
+            onToggleFocus={() => setIsSidebarOpen(!isSidebarOpen)}
           />
         </div>
       </div>
     </div>
-  )
+  );
 }

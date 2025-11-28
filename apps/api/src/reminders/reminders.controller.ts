@@ -1,6 +1,16 @@
 import { Controller, Get, Put, Post, Body, Param, Query } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
 
+interface ReminderSettingsData {
+  enabled?: boolean;
+  smsEnabled?: boolean;
+  emailEnabled?: boolean;
+  hoursBeforeAppt?: number;
+  emailSubject?: string;
+  emailTemplate?: string;
+  smsTemplate?: string;
+}
+
 @Controller('reminders')
 export class RemindersController {
   constructor(private readonly remindersService: RemindersService) {}
@@ -11,7 +21,7 @@ export class RemindersController {
   }
 
   @Put('settings')
-  updateSettings(@Body() data: any) {
+  updateSettings(@Body() data: ReminderSettingsData) {
     return this.remindersService.updateSettings(data);
   }
 

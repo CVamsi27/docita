@@ -1,4 +1,8 @@
-version: '3.8'
+version: "3.8"
+
+# NOTE: This docker-compose.yml is for LOCAL DEVELOPMENT ONLY
+# For production deployment, see docs/DEPLOYMENT_GUIDE.md
+# Production uses: Neon DB + AWS EC2 + Vercel
 
 services:
   web:
@@ -28,6 +32,8 @@ services:
   #   ports:
   #     - "3001:3001"
 
+  # Local PostgreSQL for development
+  # Production uses Neon Serverless PostgreSQL
   db:
     image: postgres:15-alpine
     ports:

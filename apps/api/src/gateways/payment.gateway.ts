@@ -8,9 +8,30 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
+interface PaymentUpdateData {
+  sessionId: string;
+  invoiceId: string | null;
+  status: string;
+  paidAt?: Date;
+}
+
+interface ClinicUpdateData {
+  clinicId: string;
+  tier?: string;
+  intelligenceAddon?: string;
+  subscriptionStatus?: string;
+}
+
 @WebSocketGateway({
   cors: {
-    origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    origin: [
+      'https://landing.docita.work',
+      'https://app.docita.work',
+      'https://admin.docita.work',
+      'http://localhost:3003',
+      'http://localhost:3000',
+      'http://localhost:3002',
+    ],
     credentials: true,
   },
 })
@@ -44,11 +65,23 @@ export class PaymentGateway
     return { event: 'subscribed', data: { invoiceId } };
   }
 
-  emitPaymentUpdate(clinicId: string, sessionId: string, data: any) {
+  emitPaymentUpdate(
+    clinicId: string,
+    sessionId: string,
+    data: PaymentUpdateData,
+  ) {
     this.server.to(`clinic:${clinicId}`).emit('payment:update', data);
     if (data.invoiceId) {
       this.server.to(`invoice:${data.invoiceId}`).emit('payment:update', data);
     }
     this.logger.log(`Emitted payment update for session ${sessionId}`);
+  }
+
+  // Emit clinic updates (tier changes, subscription status, etc.)
+  emitClinicUpdate(clinicId: string, data: ClinicUpdateData) {
+    this.server.to(`clinic:${clinicId}`).emit('clinic:update', data);
+    this.logger.log(
+      `Emitted clinic update for clinic ${clinicId}: ${JSON.stringify(data)}`,
+    );
   }
 }

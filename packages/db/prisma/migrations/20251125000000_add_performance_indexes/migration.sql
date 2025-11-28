@@ -15,18 +15,15 @@ CREATE INDEX IF NOT EXISTS "Appointment_status_startTime_idx" ON "Appointment"("
 
 -- Invoice table: Improve invoice listing and revenue analytics
 CREATE INDEX IF NOT EXISTS "Invoice_createdAt_idx" ON "Invoice"("createdAt" DESC);
-CREATE INDEX IF NOT EXISTS "Invoice_clinicId_createdAt_idx" ON "Invoice"("clinicId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "Invoice_patientId_createdAt_idx" ON "Invoice"("patientId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "Invoice_status_createdAt_idx" ON "Invoice"("status", "createdAt" DESC);
 
 -- Prescription table: Improve prescription listing
 CREATE INDEX IF NOT EXISTS "Prescription_createdAt_idx" ON "Prescription"("createdAt" DESC);
-CREATE INDEX IF NOT EXISTS "Prescription_clinicId_createdAt_idx" ON "Prescription"("clinicId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "Prescription_patientId_createdAt_idx" ON "Prescription"("patientId", "createdAt" DESC);
 
 -- Document table: Improve document listing
 CREATE INDEX IF NOT EXISTS "Document_createdAt_idx" ON "Document"("createdAt" DESC);
-CREATE INDEX IF NOT EXISTS "Document_clinicId_createdAt_idx" ON "Document"("clinicId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "Document_patientId_createdAt_idx" ON "Document"("patientId", "createdAt" DESC);
 
 -- WhatsappLog table: Improve message history queries
@@ -44,4 +41,3 @@ CREATE INDEX IF NOT EXISTS "Procedure_appointmentId_idx" ON "Procedure"("appoint
 
 -- Composite indexes for common queries
 CREATE INDEX IF NOT EXISTS "Appointment_clinic_status_date_idx" ON "Appointment"("clinicId", "status", "startTime" DESC);
-CREATE INDEX IF NOT EXISTS "Invoice_clinic_status_date_idx" ON "Invoice"("clinicId", "status", "createdAt" DESC);

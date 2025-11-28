@@ -5,42 +5,87 @@ import { PrismaService } from '../prisma/prisma.service';
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getStats() {
+  async getStats(clinicId: string) {
+    if (!clinicId) {
+      return {
+        totalPatients: 0,
+        todayAppointments: 0,
+        totalAppointments: 0,
+        activePrescriptions: 0,
+        recentActivity: [],
+        upcomingAppointments: [],
+      };
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    // Calculate 30 days ago for new patients this month
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const clinicFilter = { clinicId };
+    const patientClinicFilter = { patient: { clinicId } };
+
     const [
       totalPatients,
+      totalDoctors,
+      newPatientsThisMonth,
       todayAppointments,
       totalAppointments,
       activePrescriptions,
       recentActivity,
     ] = await Promise.all([
-      this.prisma.patient.count(),
+      this.prisma.patient.count({ where: clinicFilter }),
+      this.prisma.user.count({
+        where: {
+          clinicId,
+          role: { in: ['DOCTOR', 'ADMIN'] },
+        },
+      }),
+      this.prisma.patient.count({
+        where: {
+          ...clinicFilter,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+      }),
       this.prisma.appointment.count({
         where: {
+          ...clinicFilter,
           startTime: {
             gte: today,
             lt: tomorrow,
           },
         },
       }),
-      this.prisma.appointment.count(),
-      this.prisma.prescription.count(), // Approximation for active prescriptions
+      this.prisma.appointment.count({ where: clinicFilter }),
+      this.prisma.prescription.count({ where: patientClinicFilter }),
       this.prisma.appointment.findMany({
+        where: clinicFilter,
         take: 5,
         orderBy: { createdAt: 'desc' },
-        include: {
-          patient: true,
+        select: {
+          id: true,
+          startTime: true,
+          status: true,
+          type: true,
+          createdAt: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
         },
       }),
     ]);
 
-    // Get upcoming appointments for the card
     const upcomingAppointments = await this.prisma.appointment.findMany({
       where: {
+        ...clinicFilter,
         startTime: {
           gte: today,
         },
@@ -50,37 +95,29 @@ export class DashboardService {
       },
       take: 4,
       orderBy: { startTime: 'asc' },
-      include: {
-        patient: true,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        type: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
     return {
-      stats: {
-        totalPatients,
-        todayAppointments,
-        activePrescriptions,
-        pendingReports: 0, // Placeholder
-      },
-      upcomingAppointments: upcomingAppointments.map((apt) => ({
-        id: apt.id,
-        time: new Date(apt.startTime).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        patient: `${apt.patient.firstName} ${apt.patient.lastName}`,
-        type: apt.type,
-        status: apt.status,
-      })),
-      recentActivity: recentActivity.map((apt) => ({
-        id: apt.id,
-        patient: `${apt.patient.firstName} ${apt.patient.lastName}`,
-        action: `Appointment ${apt.status}`,
-        time: this.formatTimeAgo(apt.createdAt),
-        initials: `${apt.patient.firstName[0]}${apt.patient.lastName[0]}`,
-        className:
-          'bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400', // Dynamic classes could be added
-      })),
+      totalPatients,
+      totalDoctors,
+      newPatientsThisMonth,
+      todayAppointments,
+      activePrescriptions,
+      pendingReports: 0, // Placeholder
     };
   }
 

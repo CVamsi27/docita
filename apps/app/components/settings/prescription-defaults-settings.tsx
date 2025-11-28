@@ -1,52 +1,77 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { API_URL } from "@/lib/api"
-import { Save, FileText } from "lucide-react"
-import { Checkbox } from "@workspace/ui/components/checkbox"
+import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { API_URL } from "@/lib/api";
+import { Save, FileText } from "lucide-react";
+import { Checkbox } from "@workspace/ui/components/checkbox";
 
 export function PrescriptionDefaultsSettings() {
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     defaultInstructions: "",
     defaultFooterText: "",
     includeClinicHeader: true,
     includeDoctorSignature: true,
     includeQRCode: false,
-  })
+  });
+  const hasFetchedRef = useRef(false);
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
-      setLoading(true)
-      const token = localStorage.getItem("docita_token")
+      const token = localStorage.getItem("docita_token");
       const response = await fetch(`${API_URL}/clinic/prescription-defaults`, {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      
+      });
+
       if (response.ok) {
-        const data = await response.json()
-        setSettings(prev => ({ ...prev, ...data }))
+        const data = await response.json();
+        setSettings((prev) => ({
+          ...prev,
+          defaultInstructions:
+            data.defaultInstructions ?? prev.defaultInstructions,
+          defaultFooterText: data.defaultFooterText ?? prev.defaultFooterText,
+          includeClinicHeader:
+            data.includeClinicHeader ?? prev.includeClinicHeader,
+          includeDoctorSignature:
+            data.includeDoctorSignature ?? prev.includeDoctorSignature,
+          includeQRCode: data.includeQRCode ?? prev.includeQRCode,
+        }));
       }
     } catch (error) {
-      console.error("Failed to load prescription defaults:", error)
+      console.error("Failed to load prescription defaults:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, []);
+
+  // Use useSyncExternalStore to trigger initial fetch
+  useSyncExternalStore(
+    useCallback(() => {
+      if (!hasFetchedRef.current) {
+        hasFetchedRef.current = true;
+        loadSettings();
+      }
+      return () => {};
+    }, [loadSettings]),
+    () => settings,
+    () => settings,
+  );
 
   const handleSave = async () => {
     try {
-      setSaving(true)
-      const token = localStorage.getItem("docita_token")
+      setSaving(true);
+      const token = localStorage.getItem("docita_token");
       const response = await fetch(`${API_URL}/clinic/prescription-defaults`, {
         method: "PUT",
         headers: {
@@ -54,22 +79,24 @@ export function PrescriptionDefaultsSettings() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(settings),
-      })
-      
+      });
+
       if (response.ok) {
-        alert("Prescription defaults have been updated successfully.")
+        alert("Prescription defaults have been updated successfully.");
       } else {
-        throw new Error("Failed to save settings")
+        throw new Error("Failed to save settings");
       }
     } catch {
-      alert("Failed to save prescription defaults. Please try again.")
+      alert("Failed to save prescription defaults. Please try again.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
-    return <div className="text-center py-8">Loading prescription defaults...</div>
+    return (
+      <div className="text-center py-8">Loading prescription defaults...</div>
+    );
   }
 
   return (
@@ -79,7 +106,9 @@ export function PrescriptionDefaultsSettings() {
           <FileText className="h-5 w-5 text-primary" />
           <CardTitle>Prescription Defaults</CardTitle>
         </div>
-        <CardDescription>Set default values for all prescriptions</CardDescription>
+        <CardDescription>
+          Set default values for all prescriptions
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
@@ -87,7 +116,9 @@ export function PrescriptionDefaultsSettings() {
           <Textarea
             id="defaultInstructions"
             value={settings.defaultInstructions}
-            onChange={(e) => setSettings({ ...settings, defaultInstructions: e.target.value })}
+            onChange={(e) =>
+              setSettings({ ...settings, defaultInstructions: e.target.value })
+            }
             placeholder="e.g., Take medicines after food, Drink plenty of water, etc."
             rows={4}
           />
@@ -101,7 +132,9 @@ export function PrescriptionDefaultsSettings() {
           <Textarea
             id="defaultFooterText"
             value={settings.defaultFooterText}
-            onChange={(e) => setSettings({ ...settings, defaultFooterText: e.target.value })}
+            onChange={(e) =>
+              setSettings({ ...settings, defaultFooterText: e.target.value })
+            }
             placeholder="e.g., For any queries, please contact us at..."
             rows={3}
           />
@@ -112,13 +145,16 @@ export function PrescriptionDefaultsSettings() {
 
         <div className="space-y-4">
           <Label>Prescription Options</Label>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox
               id="includeClinicHeader"
               checked={settings.includeClinicHeader}
-              onCheckedChange={(checked) => 
-                setSettings({ ...settings, includeClinicHeader: checked as boolean })
+              onCheckedChange={(checked) =>
+                setSettings({
+                  ...settings,
+                  includeClinicHeader: checked as boolean,
+                })
               }
             />
             <label
@@ -133,8 +169,11 @@ export function PrescriptionDefaultsSettings() {
             <Checkbox
               id="includeDoctorSignature"
               checked={settings.includeDoctorSignature}
-              onCheckedChange={(checked) => 
-                setSettings({ ...settings, includeDoctorSignature: checked as boolean })
+              onCheckedChange={(checked) =>
+                setSettings({
+                  ...settings,
+                  includeDoctorSignature: checked as boolean,
+                })
               }
             />
             <label
@@ -149,7 +188,7 @@ export function PrescriptionDefaultsSettings() {
             <Checkbox
               id="includeQRCode"
               checked={settings.includeQRCode}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setSettings({ ...settings, includeQRCode: checked as boolean })
               }
             />
@@ -170,5 +209,5 @@ export function PrescriptionDefaultsSettings() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

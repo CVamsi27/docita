@@ -1,82 +1,95 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { useParams } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { Upload, CheckCircle2, Camera, Loader2, X, ImageIcon, FileText, RotateCcw, Smartphone } from "lucide-react"
+import { useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import Image from "next/image";
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import {
+  Upload,
+  CheckCircle2,
+  Camera,
+  Loader2,
+  X,
+  ImageIcon,
+  FileText,
+  RotateCcw,
+  Smartphone,
+} from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export default function MobileUploadPage() {
-  const params = useParams()
-  const sessionId = params.id as string
-  const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
+  const params = useParams();
+  const sessionId = params.id as string;
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      setFile(selectedFile)
-      setPreviewUrl(URL.createObjectURL(selectedFile))
-    }
-  }, [])
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+      }
+    },
+    [],
+  );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }, [])
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0]
-      setFile(droppedFile)
-      setPreviewUrl(URL.createObjectURL(droppedFile))
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      setPreviewUrl(URL.createObjectURL(droppedFile));
     }
-  }, [])
+  }, []);
 
   const clearFile = useCallback(() => {
-    setFile(null)
-    setPreviewUrl(null)
-  }, [])
+    setFile(null);
+    setPreviewUrl(null);
+  }, []);
 
   const handleUpload = async () => {
-    if (!file || !sessionId) return
+    if (!file || !sessionId) return;
 
-    setUploading(true)
-    const formData = new FormData()
-    formData.append("file", file)
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
 
     try {
       const response = await fetch(`${API_URL}/uploads/session/${sessionId}`, {
         method: "POST",
         body: formData,
-      })
+      });
 
       if (response.ok) {
-        setSuccess(true)
+        setSuccess(true);
       } else {
-        alert("Upload failed. Please try again.")
+        alert("Upload failed. Please try again.");
       }
     } catch (error) {
-      console.error("Upload error:", error)
-      alert("Upload failed. Please check your connection.")
+      console.error("Upload error:", error);
+      alert("Upload failed. Please check your connection.");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   // Success State
   if (success) {
@@ -91,14 +104,15 @@ export default function MobileUploadPage() {
                 <CheckCircle2 className="h-12 w-12 text-white" />
               </div>
             </div>
-            
+
             {/* Success Message */}
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-green-800 dark:text-green-300">
                 Upload Complete!
               </h1>
               <p className="text-green-700/80 dark:text-green-400/80 text-sm leading-relaxed">
-                Your document has been sent to the desktop successfully. You can safely close this page.
+                Your document has been sent to the desktop successfully. You can
+                safely close this page.
               </p>
             </div>
 
@@ -111,7 +125,7 @@ export default function MobileUploadPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -149,19 +163,19 @@ export default function MobileUploadPage() {
               onDragOver={handleDrag}
               onDrop={handleDrop}
               className={`relative transition-all duration-200 ${
-                dragActive 
-                  ? 'bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500 ring-inset' 
-                  : 'bg-slate-50 dark:bg-slate-900/50'
+                dragActive
+                  ? "bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500 ring-inset"
+                  : "bg-slate-50 dark:bg-slate-900/50"
               }`}
             >
               {previewUrl ? (
                 /* Preview Mode */
                 <div className="relative aspect-[4/3]">
-                  <Image 
-                    src={previewUrl} 
-                    alt="Preview" 
-                    fill 
-                    className="object-contain bg-black/5 dark:bg-white/5" 
+                  <Image
+                    src={previewUrl}
+                    alt="Preview"
+                    fill
+                    className="object-contain bg-black/5 dark:bg-white/5"
                   />
                   {/* Clear Button */}
                   <button
@@ -183,20 +197,24 @@ export default function MobileUploadPage() {
                 /* Upload Mode */
                 <label className="block cursor-pointer">
                   <div className="aspect-[4/3] flex flex-col items-center justify-center p-6 space-y-4">
-                    <div className={`p-4 rounded-2xl transition-colors ${
-                      dragActive 
-                        ? 'bg-blue-100 dark:bg-blue-900/50' 
-                        : 'bg-slate-100 dark:bg-slate-800'
-                    }`}>
-                      <Camera className={`h-10 w-10 transition-colors ${
-                        dragActive 
-                          ? 'text-blue-600 dark:text-blue-400' 
-                          : 'text-slate-400 dark:text-slate-500'
-                      }`} />
+                    <div
+                      className={`p-4 rounded-2xl transition-colors ${
+                        dragActive
+                          ? "bg-blue-100 dark:bg-blue-900/50"
+                          : "bg-slate-100 dark:bg-slate-800"
+                      }`}
+                    >
+                      <Camera
+                        className={`h-10 w-10 transition-colors ${
+                          dragActive
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-slate-400 dark:text-slate-500"
+                        }`}
+                      />
                     </div>
                     <div className="text-center space-y-1">
                       <p className="font-medium text-foreground">
-                        {dragActive ? 'Drop your image here' : 'Tap to capture'}
+                        {dragActive ? "Drop your image here" : "Tap to capture"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         or select from gallery
@@ -237,13 +255,13 @@ export default function MobileUploadPage() {
         )}
 
         {/* Upload Button */}
-        <Button 
+        <Button
           className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${
             file && !uploading
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/25'
-              : ''
+              ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/25"
+              : ""
           }`}
-          onClick={handleUpload} 
+          onClick={handleUpload}
           disabled={!file || uploading}
           size="lg"
         >
@@ -266,5 +284,5 @@ export default function MobileUploadPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

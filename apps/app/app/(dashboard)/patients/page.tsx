@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react";
 
-import { apiHooks } from "@/lib/api-hooks"
-import { Patient } from "@workspace/types"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import { apiHooks } from "@/lib/api-hooks";
+import { Patient } from "@workspace/types";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
 import {
   Table,
   TableBody,
@@ -13,106 +13,137 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table"
-import { Search, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+} from "@workspace/ui/components/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
-import { format } from "date-fns"
+  Search,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Pencil,
+  Calendar,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { format } from "date-fns";
 
-import { AddPatientDialog } from "@/components/patients/add-patient-dialog"
+import { AddPatientDialog } from "@/components/patients/add-patient-dialog";
+import { EditPatientDialog } from "@/components/patients/edit-patient-dialog";
 
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation";
 
-import { Suspense } from "react"
+import { Suspense } from "react";
 
 function PatientsContent() {
-  const { data: patients = [], isLoading: loading, error: queryError, refetch } = apiHooks.usePatients()
-  const error = queryError ? (queryError as Error).message : null
-  const [searchQuery, setSearchQuery] = useState("")
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Patient | 'fullName'; direction: 'asc' | 'desc' } | null>(null)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const {
+    data: patients = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = apiHooks.usePatients();
+  const error = queryError ? (queryError as Error).message : null;
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Patient | "fullName";
+    direction: "asc" | "desc";
+  } | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
+  // Open dialog from URL params
+  const currentAction = searchParams.get("action");
   useEffect(() => {
-    if (searchParams.get("action") === "new") {
-      setIsAddDialogOpen(true)
+    if (currentAction === "new") {
+      setIsAddDialogOpen(true);
     }
-  }, [searchParams])
+  }, [currentAction]);
 
-  const handleDialogChange = useCallback((open: boolean) => {
-    setIsAddDialogOpen(open)
-    if (!open) {
-      // Remove the query param when dialog closes
-      const newParams = new URLSearchParams(searchParams.toString())
-      newParams.delete("action")
-      router.replace(`/patients?${newParams.toString()}`)
-    }
-  }, [searchParams, router])
+  const handleDialogChange = useCallback(
+    (open: boolean) => {
+      setIsAddDialogOpen(open);
+      if (!open) {
+        // Remove the query param when dialog closes
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.delete("action");
+        router.replace(`/patients?${newParams.toString()}`);
+      }
+    },
+    [searchParams, router],
+  );
 
-  const handleSort = (key: keyof Patient | 'fullName') => {
-    let direction: 'asc' | 'desc' = 'asc'
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
+  const handleSort = (key: keyof Patient | "fullName") => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
     }
-    setSortConfig({ key, direction })
-  }
+    setSortConfig({ key, direction });
+  };
 
   // Filter and sort patients
   const filteredPatients = useMemo(() => {
-    let result = [...patients]
+    let result = [...patients];
 
     // Filter
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
+      const query = searchQuery.toLowerCase().trim();
       result = result.filter((patient) => {
-        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase()
-        const phoneNumber = patient.phoneNumber.toLowerCase()
-        return fullName.includes(query) || phoneNumber.includes(query)
-      })
+        const fullName =
+          `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        const phoneNumber = patient.phoneNumber.toLowerCase();
+        return fullName.includes(query) || phoneNumber.includes(query);
+      });
     }
 
     // Sort
     if (sortConfig) {
       result.sort((a, b) => {
-        let aValue: any
-        let bValue: any
+        let aValue: string | number | Date | undefined;
+        let bValue: string | number | Date | undefined;
 
-        if (sortConfig.key === 'fullName') {
-          aValue = `${a.firstName} ${a.lastName}`.toLowerCase()
-          bValue = `${b.firstName} ${b.lastName}`.toLowerCase()
+        if (sortConfig.key === "fullName") {
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
         } else {
-          aValue = a[sortConfig.key]
-          bValue = b[sortConfig.key]
+          aValue = a[sortConfig.key as keyof Patient] as
+            | string
+            | number
+            | Date
+            | undefined;
+          bValue = b[sortConfig.key as keyof Patient] as
+            | string
+            | number
+            | Date
+            | undefined;
         }
 
+        if (aValue === undefined || bValue === undefined) return 0;
         if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1
+          return sortConfig.direction === "asc" ? -1 : 1;
         }
         if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1
+          return sortConfig.direction === "asc" ? 1 : -1;
         }
-        return 0
-      })
+        return 0;
+      });
     }
 
-    return result
-  }, [patients, searchQuery, sortConfig])
+    return result;
+  }, [patients, searchQuery, sortConfig]);
 
-  const SortIcon = ({ column }: { column: keyof Patient | 'fullName' }) => {
+  const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {
-      return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+      return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
     }
-    return sortConfig.direction === 'asc' ? 
-      <ArrowUp className="ml-2 h-4 w-4" /> : 
+    return sortConfig.direction === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
       <ArrowDown className="ml-2 h-4 w-4" />
-  }
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,10 +154,16 @@ function PatientsContent() {
             Manage your patient records and history.
           </p>
         </div>
-        <AddPatientDialog 
-          open={isAddDialogOpen} 
+        <AddPatientDialog
+          open={isAddDialogOpen}
           onOpenChange={handleDialogChange}
-          onPatientAdded={() => refetch()} 
+          onPatientAdded={() => refetch()}
+        />
+        <EditPatientDialog
+          patient={editingPatient}
+          open={!!editingPatient}
+          onOpenChange={(open) => !open && setEditingPatient(null)}
+          onPatientUpdated={() => refetch()}
         />
       </div>
 
@@ -141,11 +178,7 @@ function PatientsContent() {
           />
         </div>
         {searchQuery && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setSearchQuery("")}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")}>
             Clear
           </Button>
         )}
@@ -162,9 +195,9 @@ function PatientsContent() {
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
               <TableHead className="w-[50px]"></TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort('fullName')}
+                onClick={() => handleSort("fullName")}
               >
                 <div className="flex items-center">
                   Name
@@ -173,18 +206,18 @@ function PatientsContent() {
               </TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Main Symptom</TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort('gender')}
+                onClick={() => handleSort("gender")}
               >
                 <div className="flex items-center">
                   Gender
                   <SortIcon column="gender" />
                 </div>
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort('updatedAt')}
+                onClick={() => handleSort("updatedAt")}
               >
                 <div className="flex items-center">
                   Last Updated
@@ -197,71 +230,95 @@ function PatientsContent() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   Loading patients...
                 </TableCell>
               </TableRow>
             ) : filteredPatients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  {searchQuery ? `No patients found matching "${searchQuery}"` : "No patients found."}
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  {searchQuery
+                    ? `No patients found matching "${searchQuery}"`
+                    : "No patients found."}
                 </TableCell>
               </TableRow>
             ) : (
               filteredPatients.map((patient) => (
-                <TableRow 
-                  key={patient.id} 
+                <TableRow
+                  key={patient.id}
                   className="hover:bg-muted/50 cursor-pointer"
-                  onClick={() => window.location.href = `/patients/${patient.id}`}
+                  onClick={() =>
+                    (window.location.href = `/patients/${patient.id}`)
+                  }
                 >
                   <TableCell>
                     <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                      <AvatarFallback className="bg-primary/10 text-primary">{patient.firstName.charAt(0)}{patient.lastName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {patient.firstName.charAt(0)}
+                        {patient.lastName.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                   </TableCell>
-                  <TableCell className="font-medium">{patient.firstName} {patient.lastName}</TableCell>
+                  <TableCell className="font-medium">
+                    {patient.firstName} {patient.lastName}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col text-sm">
                       <span>{patient.phoneNumber}</span>
-                      <span className="text-muted-foreground">{patient.email}</span>
+                      <span className="text-muted-foreground">
+                        {patient.email}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground italic">
-                      {patient.medicalHistory && patient.medicalHistory.length > 0 
-                        ? patient.medicalHistory[0] 
-                        : patient.allergies || '-'}
+                      {patient.medicalHistory &&
+                      patient.medicalHistory.length > 0
+                        ? patient.medicalHistory[0]
+                        : patient.allergies || "-"}
                     </span>
                   </TableCell>
                   <TableCell className="capitalize">{patient.gender}</TableCell>
                   <TableCell>
-                    {patient.updatedAt ? format(new Date(patient.updatedAt), 'MMM d, yyyy') : '-'}
+                    {patient.updatedAt
+                      ? format(new Date(patient.updatedAt), "MMM d, yyyy")
+                      : "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className="h-8 w-8 p-0 hover:bg-muted"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          window.location.href = `/patients/${patient.id}`
-                        }}>View details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>Edit patient</DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive"
-                          onClick={(e) => e.stopPropagation()}
-                        >Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/appointments?action=new&patientId=${patient.id}`,
+                          );
+                        }}
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Schedule
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPatient(patient);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -270,7 +327,7 @@ function PatientsContent() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
 
 export default function PatientsPage() {
@@ -278,5 +335,5 @@ export default function PatientsPage() {
     <Suspense fallback={<div>Loading...</div>}>
       <PatientsContent />
     </Suspense>
-  )
+  );
 }

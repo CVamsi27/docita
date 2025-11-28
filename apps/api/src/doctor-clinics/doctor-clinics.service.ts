@@ -21,7 +21,6 @@ export class DoctorClinicsService {
     });
 
     if (existing) {
-      // Reactivate if inactive
       return this.prisma.doctorClinic.update({
         where: { id: existing.id },
         data: { active: true, role },
@@ -68,7 +67,6 @@ export class DoctorClinicsService {
       throw new Error('Assignment not found');
     }
 
-    // Soft delete
     return this.prisma.doctorClinic.update({
       where: { id: assignment.id },
       data: { active: false },
@@ -81,8 +79,22 @@ export class DoctorClinicsService {
         doctorId,
         active: true,
       },
-      include: {
-        clinic: true,
+      select: {
+        id: true,
+        role: true,
+        active: true,
+        createdAt: true,
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            phone: true,
+            email: true,
+            tier: true,
+            logo: true,
+          },
+        },
       },
     });
   }

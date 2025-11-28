@@ -1,9 +1,9 @@
-import { cn } from "@/lib/design-system"
+import { cn } from "@/lib/design-system";
 
 interface SkeletonProps {
-  className?: string
-  variant?: "text" | "circular" | "rectangular"
-  animation?: "pulse" | "wave"
+  className?: string;
+  variant?: "text" | "circular" | "rectangular";
+  animation?: "pulse" | "wave";
 }
 
 export function Skeleton({
@@ -15,12 +15,12 @@ export function Skeleton({
     text: "h-4 w-full rounded",
     circular: "rounded-full",
     rectangular: "rounded-md",
-  }
+  };
 
   const animationClasses = {
     pulse: "animate-pulse",
     wave: "animate-shimmer bg-gradient-to-r from-muted via-muted-foreground/10 to-muted bg-[length:200%_100%]",
-  }
+  };
 
   return (
     <div
@@ -28,10 +28,10 @@ export function Skeleton({
         "bg-muted",
         variantClasses[variant],
         animationClasses[animation],
-        className
+        className,
       )}
     />
-  )
+  );
 }
 
 export function StatCardSkeleton() {
@@ -44,7 +44,7 @@ export function StatCardSkeleton() {
       </div>
       <Skeleton variant="circular" className="h-12 w-12 ml-auto" />
     </div>
-  )
+  );
 }
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
@@ -60,5 +60,5 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
         </div>
       ))}
     </div>
-  )
+  );
 }

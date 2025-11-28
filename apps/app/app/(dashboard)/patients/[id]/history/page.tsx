@@ -1,78 +1,68 @@
-"use client"
+"use client";
 
-import { use, useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
-import { 
-  Calendar, 
-  FileText, 
-  Pill, 
-  Receipt, 
+import { use } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Calendar,
+  FileText,
+  Pill,
+  Receipt,
   Activity,
   ArrowLeft,
-  Clock
-} from "lucide-react"
-import Link from "next/link"
-import { API_URL } from "@/lib/api"
-import { Appointment } from "@workspace/types"
-import { getStatusColor } from "@/lib/design-system"
+  Clock,
+} from "lucide-react";
+import Link from "next/link";
+import { apiHooks } from "@/lib/api-hooks";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 interface PatientHistoryPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
-export default function PatientHistoryPage({ params }: PatientHistoryPageProps) {
-  const resolvedParams = use(params)
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [patientName, setPatientName] = useState("")
+export default function PatientHistoryPage({
+  params,
+}: PatientHistoryPageProps) {
+  const resolvedParams = use(params);
+  const patientId = resolvedParams.id;
 
-  useEffect(() => {
-    loadHistory()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedParams.id])
+  const { data: patient, isLoading: patientLoading } =
+    apiHooks.usePatient(patientId);
+  const { data: appointments = [], isLoading: appointmentsLoading } =
+    apiHooks.usePatientAppointments(patientId);
 
-  const loadHistory = async () => {
-    try {
-      const [patientRes, appointmentsRes] = await Promise.all([
-        fetch(`${API_URL}/patients/${resolvedParams.id}`),
-        fetch(`${API_URL}/patients/${resolvedParams.id}/appointments`)
-      ])
+  const loading = patientLoading || appointmentsLoading;
+  const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "";
 
-      const patient = await patientRes.json()
-      const appointmentsData = await appointmentsRes.json()
-
-      setPatientName(`${patient.firstName} ${patient.lastName}`)
-      setAppointments(appointmentsData.sort((a: Appointment, b: Appointment) => 
-        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-      ))
-    } catch (error) {
-      console.error("Failed to load history:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const sortedAppointments = [...appointments].sort(
+    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+  );
 
   if (loading) {
     return (
-      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <div className="flex-1 space-y-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-64 bg-muted rounded" />
           <div className="h-64 bg-muted rounded" />
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-      {/* Header */}
+    <div className="flex-1 space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
-              <Link href={`/patients/${resolvedParams.id}`}>
+              <Link href={`/patients/${patientId}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Patient
               </Link>
@@ -83,9 +73,8 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
         </div>
       </div>
 
-      {/* Timeline */}
       <div className="space-y-6">
-        {appointments.length === 0 ? (
+        {sortedAppointments.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
@@ -96,10 +85,10 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
             </CardContent>
           </Card>
         ) : (
-          appointments.map((appointment, index) => (
+          sortedAppointments.map((appointment, index) => (
             <Card key={appointment.id} className="relative overflow-hidden">
               {/* Timeline connector */}
-              {index !== appointments.length - 1 && (
+              {index !== sortedAppointments.length - 1 && (
                 <div className="absolute left-8 top-24 bottom-0 w-0.5 bg-border -mb-6" />
               )}
 
@@ -110,33 +99,37 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
                     <div className="relative flex-shrink-0">
                       <div className="h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
                     </div>
-                    
+
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-xl">
-                          {new Date(appointment.startTime).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {new Date(appointment.startTime).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )}
                         </CardTitle>
-                        <Badge variant={getStatusColor(appointment.status) === 'success' ? 'default' : 'secondary'}>
-                          {appointment.status}
-                        </Badge>
+                        <StatusBadge status={appointment.status} />
                       </div>
                       <CardDescription className="flex items-center gap-2">
                         <Clock className="h-3 w-3" />
-                        {new Date(appointment.startTime).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(appointment.startTime).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                         <span className="mx-1">•</span>
                         <span className="capitalize">{appointment.type}</span>
                         {appointment.doctor && (
                           <>
                             <span className="mx-1">•</span>
-                            <span>Dr. {appointment.doctor.name}</span>
+                            <span>{appointment.doctor.name}</span>
                           </>
                         )}
                       </CardDescription>
@@ -171,38 +164,54 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                       {appointment.vitalSign.height && (
                         <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground">Height</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.height} cm</p>
+                          <p className="text-xs text-muted-foreground">
+                            Height
+                          </p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.height} cm
+                          </p>
                         </div>
                       )}
                       {appointment.vitalSign.weight && (
                         <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground">Weight</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.weight} kg</p>
+                          <p className="text-xs text-muted-foreground">
+                            Weight
+                          </p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.weight} kg
+                          </p>
                         </div>
                       )}
                       {appointment.vitalSign.bloodPressure && (
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground">BP</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.bloodPressure}</p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.bloodPressure}
+                          </p>
                         </div>
                       )}
                       {appointment.vitalSign.pulse && (
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground">Pulse</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.pulse} bpm</p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.pulse} bpm
+                          </p>
                         </div>
                       )}
                       {appointment.vitalSign.temperature && (
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground">Temp</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.temperature}°F</p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.temperature}°F
+                          </p>
                         </div>
                       )}
                       {appointment.vitalSign.spo2 && (
                         <div className="bg-muted/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground">SpO2</p>
-                          <p className="text-sm font-medium">{appointment.vitalSign.spo2}%</p>
+                          <p className="text-sm font-medium">
+                            {appointment.vitalSign.spo2}%
+                          </p>
                         </div>
                       )}
                     </div>
@@ -230,8 +239,12 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
                       ))}
                       {appointment.prescription.instructions && (
                         <div className="pt-2 border-t">
-                          <p className="text-xs text-muted-foreground mb-1">Instructions:</p>
-                          <p className="text-sm">{appointment.prescription.instructions}</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Instructions:
+                          </p>
+                          <p className="text-sm">
+                            {appointment.prescription.instructions}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -254,8 +267,16 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold">₹{appointment.invoice.total?.toFixed(2)}</p>
-                          <Badge variant={appointment.invoice.status === 'paid' ? 'default' : 'secondary'}>
+                          <p className="text-lg font-bold">
+                            ₹{appointment.invoice.total?.toFixed(2)}
+                          </p>
+                          <Badge
+                            variant={
+                              appointment.invoice.status === "paid"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {appointment.invoice.status}
                           </Badge>
                         </div>
@@ -271,7 +292,9 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
                       <FileText className="h-4 w-4" />
                       Appointment Notes
                     </div>
-                    <p className="text-sm text-muted-foreground">{appointment.notes}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {appointment.notes}
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -280,5 +303,5 @@ export default function PatientHistoryPage({ params }: PatientHistoryPageProps) 
         )}
       </div>
     </div>
-  )
+  );
 }

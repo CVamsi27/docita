@@ -1,29 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Sidebar } from "@/components/layout/sidebar"
-import { MobileNav } from "@/components/layout/mobile-nav"
-import { FloatingStartConsultation } from "@/components/layout/floating-start-consultation"
-import { ClinicProvider } from "@/lib/clinic-context"
-import { AuthGuard } from "@/components/auth/auth-guard"
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import { useState } from "react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNav } from "@/components/layout/mobile-nav";
+import { FloatingStartConsultation } from "@/components/layout/floating-start-consultation";
+import { FloatingFeedbackButton } from "@/components/layout/floating-feedback-button";
+import { CommandPalette } from "@/components/common/command-palette";
+import { ClinicProvider } from "@/lib/clinic-context";
+import { AuthGuard } from "@/components/auth/auth-guard";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <AuthGuard>
       <ClinicProvider>
         <div className="flex h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel 
-              defaultSize={18} 
-              minSize={15} 
-              maxSize={25} 
+            <ResizablePanel
+              defaultSize={18}
+              minSize={15}
+              maxSize={25}
               className="hidden md:block"
               collapsible={true}
               collapsedSize={4}
@@ -47,7 +53,9 @@ export default function DashboardLayout({
           </ResizablePanelGroup>
         </div>
         <FloatingStartConsultation />
+        <FloatingFeedbackButton />
+        <CommandPalette />
       </ClinicProvider>
     </AuthGuard>
-  )
+  );
 }

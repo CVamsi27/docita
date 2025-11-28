@@ -1,66 +1,106 @@
-import { useState } from "react"
-import { toast } from "sonner"
-import { apiHooks } from "@/lib/api-hooks"
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { apiHooks } from "@/lib/api-hooks";
 
 interface UseVitalsFormProps {
-    appointmentId: string
-    onVitalsSaved?: () => void
+  appointmentId: string;
+  onVitalsSaved?: () => void;
+}
+
+interface VitalsFormData {
+  height: string;
+  weight: string;
+  bloodPressure: string;
+  pulse: string;
+  respiratoryRate: string;
+  temperature: string;
+  spo2: string;
+  painScore: string;
+  bloodGlucose: string;
+  notes: string;
 }
 
 export function useVitalsForm({
-    appointmentId,
-    onVitalsSaved,
+  appointmentId,
+  onVitalsSaved,
 }: UseVitalsFormProps) {
-    const saveVitals = apiHooks.useSaveVitals(appointmentId)
+  const saveVitals = apiHooks.useSaveVitals(appointmentId);
+  const { data: appointment } = apiHooks.useAppointment(appointmentId);
 
-    const [formData, setFormData] = useState({
-        height: "",
-        weight: "",
-        bloodPressure: "",
-        pulse: "",
-        temperature: "",
-        spo2: "",
-    })
+  const [formData, setFormData] = useState<VitalsFormData>({
+    height: "",
+    weight: "",
+    bloodPressure: "",
+    pulse: "",
+    respiratoryRate: "",
+    temperature: "",
+    spo2: "",
+    painScore: "",
+    bloodGlucose: "",
+    notes: "",
+  });
 
-    const updateField = (field: string, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }))
+  // Populate form with existing vital signs if available
+  useEffect(() => {
+    if (appointment?.vitalSign) {
+      const vitals = appointment.vitalSign;
+      setFormData({
+        height: vitals.height?.toString() || "",
+        weight: vitals.weight?.toString() || "",
+        bloodPressure: vitals.bloodPressure || "",
+        pulse: vitals.pulse?.toString() || "",
+        respiratoryRate: vitals.respiratoryRate?.toString() || "",
+        temperature: vitals.temperature?.toString() || "",
+        spo2: vitals.spo2?.toString() || "",
+        painScore: vitals.painScore?.toString() || "",
+        bloodGlucose: vitals.bloodGlucose?.toString() || "",
+        notes: vitals.notes || "",
+      });
     }
+  }, [appointment]);
 
-    const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {
-        e.preventDefault()
+  const updateField = (field: keyof VitalsFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
-        try {
-            await saveVitals.mutateAsync({
-                height: formData.height ? parseFloat(formData.height) : undefined,
-                weight: formData.weight ? parseFloat(formData.weight) : undefined,
-                bloodPressure: formData.bloodPressure || undefined,
-                pulse: formData.pulse ? parseInt(formData.pulse) : undefined,
-                temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
-                spo2: formData.spo2 ? parseFloat(formData.spo2) : undefined,
-            })
+  const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {
+    e.preventDefault();
 
-            // Reset form
-            setFormData({
-                height: "",
-                weight: "",
-                bloodPressure: "",
-                pulse: "",
-                temperature: "",
-                spo2: "",
-            })
-            onVitalsSaved?.()
-            onSuccess?.()
-            toast.success("Vitals saved successfully")
-        } catch (error) {
-            console.error("Failed to save vitals:", error)
-            toast.error("Failed to save vitals")
-        }
+    try {
+      await saveVitals.mutateAsync({
+        height: formData.height ? parseFloat(formData.height) : undefined,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        bloodPressure: formData.bloodPressure || undefined,
+        pulse: formData.pulse ? parseInt(formData.pulse) : undefined,
+        respiratoryRate: formData.respiratoryRate
+          ? parseInt(formData.respiratoryRate)
+          : undefined,
+        temperature: formData.temperature
+          ? parseFloat(formData.temperature)
+          : undefined,
+        spo2: formData.spo2 ? parseFloat(formData.spo2) : undefined,
+        painScore: formData.painScore
+          ? parseInt(formData.painScore)
+          : undefined,
+        bloodGlucose: formData.bloodGlucose
+          ? parseFloat(formData.bloodGlucose)
+          : undefined,
+        notes: formData.notes || undefined,
+      });
+
+      onVitalsSaved?.();
+      onSuccess?.();
+      toast.success("Vitals saved successfully");
+    } catch (error) {
+      console.error("Failed to save vitals:", error);
+      toast.error("Failed to save vitals");
     }
+  };
 
-    return {
-        loading: saveVitals.isPending,
-        formData,
-        updateField,
-        handleSubmit,
-    }
+  return {
+    loading: saveVitals.isPending,
+    formData,
+    updateField,
+    handleSubmit,
+  };
 }

@@ -1,36 +1,36 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 interface NavigationState {
-    history: string[]
-    pushRoute: (route: string) => void
-    popRoute: () => string | null
-    clearHistory: () => void
+  history: string[];
+  pushRoute: (route: string) => void;
+  popRoute: () => string | null;
+  clearHistory: () => void;
 }
 
 export const useNavigationStore = create<NavigationState>((set, get) => ({
-    history: [],
+  history: [],
 
-    pushRoute: (route: string) => {
-        set((state) => ({
-            history: [...state.history, route]
-        }))
-    },
+  pushRoute: (route: string) => {
+    set((state) => ({
+      history: [...state.history, route],
+    }));
+  },
 
-    popRoute: (): string | null => {
-        const { history } = get()
-        if (history.length === 0) return null
+  popRoute: (): string | null => {
+    const { history } = get();
+    if (history.length === 0) return null;
 
-        const previousRoute = history[history.length - 1]
-        if (!previousRoute) return null
+    const previousRoute = history[history.length - 1];
+    if (!previousRoute) return null;
 
-        set((state) => ({
-            history: state.history.slice(0, -1)
-        }))
+    set((state) => ({
+      history: state.history.slice(0, -1),
+    }));
 
-        return previousRoute
-    },
+    return previousRoute;
+  },
 
-    clearHistory: () => {
-        set({ history: [] })
-    }
-}))
+  clearHistory: () => {
+    set({ history: [] });
+  },
+}));

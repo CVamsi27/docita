@@ -124,15 +124,19 @@ export class ConfigService {
       });
 
       if (clinic) {
-        const clinicSettings = (clinic.settings as Record<string, unknown>) || {};
-        
+        const clinicSettings =
+          (clinic.settings as Record<string, unknown>) || {};
+
         return {
           ...baseConfig,
           clinicSettings: {
-            consultationFee: clinicSettings.consultationFee ?? DEFAULT_CONSULTATION_FEE,
+            consultationFee:
+              clinicSettings.consultationFee ?? DEFAULT_CONSULTATION_FEE,
             currency: clinicSettings.currency ?? DEFAULT_CURRENCY,
             timezone: clinicSettings.timezone ?? DEFAULT_TIMEZONE,
-            appointmentDuration: clinicSettings.appointmentDuration ?? DEFAULT_APPOINTMENT_DURATION,
+            appointmentDuration:
+              clinicSettings.appointmentDuration ??
+              DEFAULT_APPOINTMENT_DURATION,
           },
         };
       }
@@ -144,7 +148,10 @@ export class ConfigService {
   /**
    * Validate a value against allowed options
    */
-  validateOption(optionType: keyof ReturnType<typeof this.getFormOptions>, value: string): boolean {
+  validateOption(
+    optionType: keyof ReturnType<typeof this.getFormOptions>,
+    value: string,
+  ): boolean {
     const options = this.getFormOptions()[optionType];
     return options.some((opt) => opt.value === value);
   }

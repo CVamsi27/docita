@@ -1,41 +1,46 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 
-import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
-import { apiHooks } from "@/lib/api-hooks"
+import { useParams, useRouter } from "next/navigation";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
+import { apiHooks } from "@/lib/api-hooks";
 
 interface InvoiceItem {
-  id?: string
-  description: string
-  quantity: number
-  price: number
+  id?: string;
+  description: string;
+  quantity: number;
+  price: number;
 }
 
 export default function InvoiceEditPage() {
-  const params = useParams()
-  const router = useRouter()
-  const invoiceId = params.id as string
-  
-  const { data: invoice, isLoading: loading } = apiHooks.useInvoice(invoiceId)
-  const updateInvoice = apiHooks.useUpdateInvoice(invoiceId)
-  
-  const [items, setItems] = useState<InvoiceItem[]>([])
-  const [notes, setNotes] = useState("")
+  const params = useParams();
+  const router = useRouter();
+  const invoiceId = params.id as string;
 
-  useEffect(() => {
-    if (invoice) {
-      setItems(invoice.items || [])
-      setNotes(invoice.notes || "")
-    }
-  }, [invoice])
+  const { data: invoice, isLoading: loading } = apiHooks.useInvoice(invoiceId);
+  const updateInvoice = apiHooks.useUpdateInvoice(invoiceId);
+
+  const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [notes, setNotes] = useState("");
+
+  // Ref-based sync for syncing state when invoice changes
+  const lastInvoiceIdRef = useRef<string | null>(null);
+  if (invoice && invoice.id !== lastInvoiceIdRef.current) {
+    lastInvoiceIdRef.current = invoice.id ?? null;
+    setItems(invoice.items || []);
+    setNotes(invoice.notes || "");
+  }
 
   const handleSave = async () => {
     try {
@@ -43,32 +48,36 @@ export default function InvoiceEditPage() {
         items,
         notes,
         totalAmount: calculateTotal(),
-      })
-      toast.success("Invoice updated successfully")
-      router.push(`/invoices/${invoiceId}`)
+      });
+      toast.success("Invoice updated successfully");
+      router.push(`/invoices/${invoiceId}`);
     } catch (error) {
-      console.error("Save invoice error:", error)
-      toast.error("Failed to save invoice. Please try again.")
+      console.error("Save invoice error:", error);
+      toast.error("Failed to save invoice. Please try again.");
     }
-  }
+  };
 
   const addItem = () => {
-    setItems([...items, { description: "", quantity: 1, price: 0 }])
-  }
+    setItems([...items, { description: "", quantity: 1, price: 0 }]);
+  };
 
   const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index))
-  }
+    setItems(items.filter((_, i) => i !== index));
+  };
 
-  const updateItem = (index: number, field: keyof InvoiceItem, value: string | number) => {
-    const newItems = [...items]
-    newItems[index] = { ...newItems[index], [field]: value } as InvoiceItem
-    setItems(newItems)
-  }
+  const updateItem = (
+    index: number,
+    field: keyof InvoiceItem,
+    value: string | number,
+  ) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value } as InvoiceItem;
+    setItems(newItems);
+  };
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + (item.quantity * item.price), 0)
-  }
+    return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  };
 
   if (loading) {
     return (
@@ -78,24 +87,26 @@ export default function InvoiceEditPage() {
           <p className="text-muted-foreground">Loading invoice...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!invoice) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
         <p className="text-muted-foreground">Invoice not found</p>
-        <Button onClick={() => router.push("/invoices")}>Back to Invoices</Button>
+        <Button onClick={() => router.push("/invoices")}>
+          Back to Invoices
+        </Button>
       </div>
-    )
+    );
   }
 
-  const patientName = invoice.patient 
+  const patientName = invoice.patient
     ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
-    : "Patient"
+    : "Patient";
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto p-6">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -104,9 +115,7 @@ export default function InvoiceEditPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Edit Invoice</h1>
-            <p className="text-sm text-muted-foreground">
-              {patientName}
-            </p>
+            <p className="text-sm text-muted-foreground">{patientName}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -138,13 +147,18 @@ export default function InvoiceEditPage() {
             </p>
           ) : (
             items.map((item, index) => (
-              <div key={index} className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg">
+              <div
+                key={index}
+                className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg"
+              >
                 <div className="col-span-5">
                   <Label htmlFor={`description-${index}`}>Description</Label>
                   <Input
                     id={`description-${index}`}
                     value={item.description}
-                    onChange={(e) => updateItem(index, "description", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(index, "description", e.target.value)
+                    }
                     placeholder="Item description"
                   />
                 </div>
@@ -155,7 +169,13 @@ export default function InvoiceEditPage() {
                     type="number"
                     min="1"
                     value={item.quantity}
-                    onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateItem(
+                        index,
+                        "quantity",
+                        parseInt(e.target.value) || 1,
+                      )
+                    }
                   />
                 </div>
                 <div className="col-span-2">
@@ -166,7 +186,13 @@ export default function InvoiceEditPage() {
                     min="0"
                     step="0.01"
                     value={item.price}
-                    onChange={(e) => updateItem(index, "price", parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateItem(
+                        index,
+                        "price",
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                   />
                 </div>
                 <div className="col-span-2">
@@ -193,7 +219,9 @@ export default function InvoiceEditPage() {
             <div className="flex justify-end pt-4 border-t">
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-2xl font-bold">₹{calculateTotal().toFixed(2)}</p>
+                <p className="text-2xl font-bold">
+                  ₹{calculateTotal().toFixed(2)}
+                </p>
               </div>
             </div>
           )}
@@ -215,5 +243,5 @@ export default function InvoiceEditPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

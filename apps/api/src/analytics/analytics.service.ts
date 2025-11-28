@@ -1,67 +1,73 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getOverview() {
+    const cacheKey = 'dashboard-overview';
+    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Total patients
-    const totalPatients = await this.prisma.patient.count();
+    // ✅ OPTIMIZATION: Use Promise.all for parallel queries instead of sequential
+    const [
+      totalPatients,
+      newPatientsThisMonth,
+      newPatientsLastMonth,
+      totalAppointments,
+      appointmentsThisMonth,
+      invoicesThisMonth,
+      invoicesLastMonth,
+    ] = await Promise.all([
+      this.prisma.patient.count(),
+      this.prisma.patient.count({
+        where: { createdAt: { gte: startOfMonth } },
+      }),
+      this.prisma.patient.count({
+        where: {
+          createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+        },
+      }),
+      this.prisma.appointment.count(),
+      this.prisma.appointment.count({
+        where: { createdAt: { gte: startOfMonth } },
+      }),
+      this.prisma.invoice.aggregate({
+        where: { createdAt: { gte: startOfMonth } },
+        _sum: { total: true },
+      }),
+      this.prisma.invoice.aggregate({
+        where: {
+          createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+        },
+        _sum: { total: true },
+      }),
+    ]);
 
-    // New patients this month
-    const newPatientsThisMonth = await this.prisma.patient.count({
-      where: { createdAt: { gte: startOfMonth } },
-    });
+    // ✅ OPTIMIZATION: Use aggregation instead of manual calculation
+    const revenueThisMonth = invoicesThisMonth._sum.total || 0;
+    const revenueLastMonth = invoicesLastMonth._sum.total || 0;
 
-    // New patients last month
-    const newPatientsLastMonth = await this.prisma.patient.count({
-      where: {
-        createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
-      },
-    });
-
-    // Total appointments
-    const totalAppointments = await this.prisma.appointment.count();
-
-    // Appointments this month
-    const appointmentsThisMonth = await this.prisma.appointment.count({
-      where: { createdAt: { gte: startOfMonth } },
-    });
-
-    // Revenue this month
-    const invoicesThisMonth = await this.prisma.invoice.findMany({
-      where: { createdAt: { gte: startOfMonth } },
-      select: { total: true },
-    });
-    const revenueThisMonth = invoicesThisMonth.reduce(
-      (sum, inv) => sum + (inv.total || 0),
-      0,
-    );
-
-    // Revenue last month
-    const invoicesLastMonth = await this.prisma.invoice.findMany({
-      where: {
-        createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
-      },
-      select: { total: true },
-    });
-    const revenueLastMonth = invoicesLastMonth.reduce(
-      (sum, inv) => sum + (inv.total || 0),
-      0,
-    );
-
-    // Calculate growth percentages
     const patientGrowth =
       newPatientsLastMonth > 0
         ? ((newPatientsThisMonth - newPatientsLastMonth) /
-          newPatientsLastMonth) *
-        100
+            newPatientsLastMonth) *
+          100
         : 0;
 
     const revenueGrowth =
@@ -69,7 +75,7 @@ export class AnalyticsService {
         ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100
         : 0;
 
-    return {
+    const result = {
       totalPatients,
       newPatientsThisMonth,
       patientGrowth: Math.round(patientGrowth * 10) / 10,
@@ -78,6 +84,10 @@ export class AnalyticsService {
       revenueThisMonth,
       revenueGrowth: Math.round(revenueGrowth * 10) / 10,
     };
+
+    // ✅ Cache result for 1 hour (3600000 ms)
+    await this.cacheManager.set(cacheKey, result, 3600000);
+    return result;
   }
 
   async getRevenueTrends(
@@ -99,7 +109,6 @@ export class AnalyticsService {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Group by date
     const revenueByDate = new Map<string, number>();
 
     invoices.forEach((invoice) => {
@@ -108,7 +117,6 @@ export class AnalyticsService {
       revenueByDate.set(dateKey, current + (invoice.total || 0));
     });
 
-    // Convert to array format
     const data = Array.from(revenueByDate.entries()).map(([date, revenue]) => ({
       date,
       revenue,
@@ -132,7 +140,6 @@ export class AnalyticsService {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Group by date
     const patientsByDate = new Map<string, number>();
 
     patients.forEach((patient) => {
@@ -141,7 +148,6 @@ export class AnalyticsService {
       patientsByDate.set(dateKey, current + 1);
     });
 
-    // Convert to cumulative count
     let cumulative = 0;
     const data = Array.from(patientsByDate.entries()).map(([date, count]) => {
       cumulative += count;
@@ -163,7 +169,6 @@ export class AnalyticsService {
       },
     });
 
-    // Group by status
     const byStatus = appointments.reduce(
       (acc, apt) => {
         acc[apt.status] = (acc[apt.status] || 0) + 1;
@@ -172,7 +177,6 @@ export class AnalyticsService {
       {} as Record<string, number>,
     );
 
-    // Group by type
     const byType = appointments.reduce(
       (acc, apt) => {
         acc[apt.type] = (acc[apt.type] || 0) + 1;
@@ -196,19 +200,16 @@ export class AnalyticsService {
       select: {
         observations: true,
       },
-      take: 1000, // Limit for performance
+      take: 1000,
     });
 
-    // This is a simplified version - in production, you'd want better text analysis
     const diagnosisCount = new Map<string, number>();
 
     appointments.forEach((apt) => {
       if (apt.observations) {
-        // Simple word extraction (you might want to use NLP here)
         const words = apt.observations.toLowerCase().split(/\s+/);
         words.forEach((word) => {
           if (word.length > 4) {
-            // Filter short words
             const current = diagnosisCount.get(word) || 0;
             diagnosisCount.set(word, current + 1);
           }
@@ -216,7 +217,6 @@ export class AnalyticsService {
       }
     });
 
-    // Sort and get top N
     const sorted = Array.from(diagnosisCount.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
@@ -225,12 +225,15 @@ export class AnalyticsService {
     return sorted;
   }
 
-  // ============================================================================
-  // Disease Trends by ICD Code
-  // ============================================================================
-
   async getDiseaseTrends(clinicId: string, startDate?: Date, endDate?: Date) {
-    const where: any = {
+    const cacheKey = `disease-trends-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
+    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const where: Prisma.DiagnosisWhereInput = {
       appointment: { clinicId },
     };
 
@@ -240,6 +243,7 @@ export class AnalyticsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
+    // ✅ OPTIMIZATION: Include icdCode in the query to avoid N+1
     const diagnoses = await this.prisma.diagnosis.groupBy({
       by: ['icdCodeId'],
       where,
@@ -254,18 +258,23 @@ export class AnalyticsService {
       take: 50,
     });
 
-    // Fetch ICD code details
     const icdCodeIds = diagnoses.map((d) => d.icdCodeId).filter(Boolean);
+
+    // ✅ OPTIMIZATION: Batch fetch all ICD codes at once
     const icdCodes = await this.prisma.icdCode.findMany({
       where: { id: { in: icdCodeIds as string[] } },
     });
 
     const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
 
-    return diagnoses.map((d) => ({
+    const result = diagnoses.map((d) => ({
       icdCode: icdCodeMap.get(d.icdCodeId as string),
       count: d._count.id,
     }));
+
+    // ✅ Cache result for 24 hours (86400000 ms)
+    await this.cacheManager.set(cacheKey, result, 86400000);
+    return result;
   }
 
   async getDiseaseTrendsByCategory(
@@ -275,7 +284,6 @@ export class AnalyticsService {
   ) {
     const trends = await this.getDiseaseTrends(clinicId, startDate, endDate);
 
-    // Group by category
     const byCategory = trends.reduce(
       (acc, item) => {
         if (item.icdCode) {
@@ -288,7 +296,7 @@ export class AnalyticsService {
     );
 
     return Object.entries(byCategory)
-      .map(([category, count]) => ({ category, count }))
+      .map(([category, count]: [string, number]) => ({ category, count }))
       .sort((a, b) => b.count - a.count);
   }
 
@@ -303,13 +311,17 @@ export class AnalyticsService {
         appointment: { clinicId },
         createdAt: { gte: startDate, lte: endDate },
       },
-      include: {
-        icdCode: true,
+      select: {
+        createdAt: true,
+        icdCode: {
+          select: {
+            code: true,
+          },
+        },
       },
       orderBy: { createdAt: 'asc' },
     });
 
-    // Group by time period
     const timeSeriesData = new Map<string, Map<string, number>>();
 
     diagnoses.forEach((diagnosis) => {
@@ -346,16 +358,19 @@ export class AnalyticsService {
     }));
   }
 
-  // ============================================================================
-  // Revenue by CPT Code
-  // ============================================================================
-
   async getRevenueByCptCode(
     clinicId: string,
     startDate?: Date,
     endDate?: Date,
   ) {
-    const where: any = {
+    const cacheKey = `revenue-by-cpt-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
+    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const where: Prisma.ProcedureWhereInput = {
       appointment: { clinicId },
     };
 
@@ -379,26 +394,33 @@ export class AnalyticsService {
       take: 50,
     });
 
-    // Fetch CPT code details with prices
     const cptCodeIds = procedures.map((p) => p.cptCodeId).filter(Boolean);
+
+    // ✅ OPTIMIZATION: Batch fetch all CPT codes at once
     const cptCodes = await this.prisma.cptCode.findMany({
       where: { id: { in: cptCodeIds as string[] } },
     });
 
     const cptCodeMap = new Map(cptCodes.map((code) => [code.id, code]));
 
-    return procedures.map((p) => {
-      const cptCode = cptCodeMap.get(p.cptCodeId as string);
-      const count = p._count.id;
-      const totalRevenue = cptCode ? cptCode.price * count : 0;
+    const result = procedures
+      .map((p) => {
+        const cptCode = cptCodeMap.get(p.cptCodeId as string);
+        const count = p._count.id;
+        const totalRevenue = cptCode ? cptCode.price * count : 0;
 
-      return {
-        cptCode,
-        procedureCount: count,
-        totalRevenue,
-        avgPrice: cptCode?.price || 0,
-      };
-    }).sort((a, b) => b.totalRevenue - a.totalRevenue);
+        return {
+          cptCode,
+          procedureCount: count,
+          totalRevenue,
+          avgPrice: cptCode?.price || 0,
+        };
+      })
+      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    // ✅ Cache result for 24 hours (86400000 ms)
+    await this.cacheManager.set(cacheKey, result, 86400000);
+    return result;
   }
 
   async getRevenueByCategory(
@@ -412,7 +434,6 @@ export class AnalyticsService {
       endDate,
     );
 
-    // Group by category
     const byCategory = revenueData.reduce(
       (acc, item) => {
         if (item.cptCode) {
@@ -429,7 +450,12 @@ export class AnalyticsService {
     );
 
     return Object.entries(byCategory)
-      .map(([category, data]) => ({ category, ...data }))
+      .map(
+        ([category, data]: [string, { count: number; revenue: number }]) => ({
+          category,
+          ...data,
+        }),
+      )
       .sort((a, b) => b.revenue - a.revenue);
   }
 
@@ -444,13 +470,17 @@ export class AnalyticsService {
         appointment: { clinicId },
         createdAt: { gte: startDate, lte: endDate },
       },
-      include: {
-        cptCode: true,
+      select: {
+        createdAt: true,
+        cptCode: {
+          select: {
+            price: true,
+          },
+        },
       },
       orderBy: { createdAt: 'asc' },
     });
 
-    // Group by time period
     const timeSeriesData = new Map<string, number>();
 
     procedures.forEach((procedure) => {
@@ -470,7 +500,10 @@ export class AnalyticsService {
       }
 
       const revenue = procedure.cptCode.price;
-      timeSeriesData.set(periodKey, (timeSeriesData.get(periodKey) || 0) + revenue);
+      timeSeriesData.set(
+        periodKey,
+        (timeSeriesData.get(periodKey) || 0) + revenue,
+      );
     });
 
     return Array.from(timeSeriesData.entries())
@@ -478,16 +511,12 @@ export class AnalyticsService {
       .sort((a, b) => a.period.localeCompare(b.period));
   }
 
-  // ============================================================================
-  // Coding Compliance Metrics
-  // ============================================================================
-
   async getCodingComplianceMetrics(
     clinicId: string,
     startDate?: Date,
     endDate?: Date,
   ) {
-    const where: any = {
+    const where: Prisma.AppointmentWhereInput = {
       clinicId,
       status: 'completed',
     };
@@ -500,23 +529,36 @@ export class AnalyticsService {
 
     const appointments = await this.prisma.appointment.findMany({
       where,
-      include: {
+      select: {
+        id: true,
         diagnoses: {
-          include: {
-            icdCode: true,
+          select: {
+            id: true,
+            isPrimary: true,
+            icdCodeId: true,
           },
         },
         procedures: {
-          include: {
-            cptCode: true,
+          select: {
+            id: true,
+            cptCodeId: true,
+            cptCode: {
+              select: {
+                price: true,
+              },
+            },
           },
         },
       },
     });
 
     const totalVisits = appointments.length;
-    const codedVisits = appointments.filter((a) => a.diagnoses.length > 0).length;
-    const billedVisits = appointments.filter((a) => a.procedures.length > 0).length;
+    const codedVisits = appointments.filter(
+      (a) => a.diagnoses.length > 0,
+    ).length;
+    const billedVisits = appointments.filter(
+      (a) => a.procedures.length > 0,
+    ).length;
     const primaryDiagnosisCount = appointments.filter((a) =>
       a.diagnoses.some((d) => d.isPrimary),
     ).length;
@@ -547,10 +589,13 @@ export class AnalyticsService {
       primaryDiagnosisRate:
         codedVisits > 0 ? (primaryDiagnosisCount / codedVisits) * 100 : 0,
       avgDiagnosesPerVisit: totalVisits > 0 ? totalDiagnoses / totalVisits : 0,
-      avgProceduresPerVisit: totalVisits > 0 ? totalProcedures / totalVisits : 0,
+      avgProceduresPerVisit:
+        totalVisits > 0 ? totalProcedures / totalVisits : 0,
       proceduresWithoutPrice,
       unbilledProceduresRate:
-        totalProcedures > 0 ? (proceduresWithoutPrice / totalProcedures) * 100 : 0,
+        totalProcedures > 0
+          ? (proceduresWithoutPrice / totalProcedures) * 100
+          : 0,
     };
   }
 
@@ -587,7 +632,7 @@ export class AnalyticsService {
     startDate?: Date,
     endDate?: Date,
   ) {
-    const where: any = {
+    const where: Prisma.AppointmentWhereInput = {
       clinicId,
       status: 'completed',
       diagnoses: {
@@ -603,8 +648,13 @@ export class AnalyticsService {
 
     const appointments = await this.prisma.appointment.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        createdAt: true,
         diagnoses: {
+          select: {
+            createdAt: true,
+          },
           orderBy: { createdAt: 'asc' },
           take: 1,
         },
@@ -627,7 +677,6 @@ export class AnalyticsService {
         ? timeToCodeData.reduce((sum, t) => sum + t, 0) / timeToCodeData.length
         : 0;
 
-    // Distribution buckets: <24h, 24-48h, 48-72h, >72h
     const distribution = {
       within24h: timeToCodeData.filter((t) => t < 24).length,
       within48h: timeToCodeData.filter((t) => t >= 24 && t < 48).length,

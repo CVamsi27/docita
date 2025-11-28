@@ -1,27 +1,33 @@
-"use client"
+"use client";
 
-import { X, DollarSign, Plus } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { X, DollarSign, Plus } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
 
-import { Card } from "@workspace/ui/components/card"
-import type { Procedure } from "@/types"
+import { Card } from "@workspace/ui/components/card";
+import type { Procedure } from "@/types";
 
 interface ProcedureListProps {
-  procedures: Procedure[]
-  onRemove: (index: number) => void
-  onAddToInvoice?: (procedure: Procedure) => void
+  procedures: Procedure[];
+  onRemove: (index: number) => void;
+  onAddToInvoice?: (procedure: Procedure) => void;
 }
 
-export function ProcedureList({ procedures, onRemove, onAddToInvoice }: ProcedureListProps) {
+export function ProcedureList({
+  procedures,
+  onRemove,
+  onAddToInvoice,
+}: ProcedureListProps) {
   if (procedures.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
         <p className="text-sm">No procedures added yet.</p>
-        <p className="text-xs">Search and select procedures to add them to this visit.</p>
+        <p className="text-xs">
+          Search and select procedures to add them to this visit.
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -44,7 +50,7 @@ export function ProcedureList({ procedures, onRemove, onAddToInvoice }: Procedur
                 </p>
                 <div className="flex items-center gap-1 text-sm font-medium">
                   <DollarSign className="h-3 w-3 text-muted-foreground" />
-                  <span>{procedure.cptCode.price.toFixed(2)}</span>
+                  <span>{(procedure.cptCode.price ?? 0).toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
@@ -73,5 +79,5 @@ export function ProcedureList({ procedures, onRemove, onAddToInvoice }: Procedur
         ))}
       </div>
     </ScrollArea>
-  )
+  );
 }

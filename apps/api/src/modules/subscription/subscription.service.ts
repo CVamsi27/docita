@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Tier, Feature, FEATURE_TIER_MAP } from '../../auth/tier.decorator';
+import { ClinicTier } from '@workspace/db';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -13,13 +18,13 @@ import {
 } from '@workspace/types';
 
 // Re-export for backward compatibility
-export { 
-  TIER_PRICING, 
-  TIER_LIMITS, 
-  TIER_INFO, 
-  FEATURE_DISPLAY, 
-  INTELLIGENCE_ADDONS, 
-  INTELLIGENCE_BUNDLE_DISCOUNT 
+export {
+  TIER_PRICING,
+  TIER_LIMITS,
+  TIER_INFO,
+  FEATURE_DISPLAY,
+  INTELLIGENCE_ADDONS,
+  INTELLIGENCE_BUNDLE_DISCOUNT,
 };
 
 export const ANNUAL_DISCOUNT_PERCENT = 10;
@@ -45,9 +50,9 @@ export class SubscriptionService {
    */
   getTierConfig() {
     const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
-    
+
     return {
-      tiers: tiers.map(tier => ({
+      tiers: tiers.map((tier) => ({
         id: tier,
         tier: Tier[tier as keyof typeof Tier],
         ...TIER_INFO[tier],
@@ -90,15 +95,22 @@ export class SubscriptionService {
 
     const tierInfo = TIER_INFO[clinic.tier] || TIER_INFO['CAPTURE'];
     const tierFeatures = TIER_FEATURES[clinic.tier] || [];
-    
+
     return {
       ...clinic,
       tierName: tierInfo.name,
       tierFeatures,
-      intelligenceFeatures: clinic.intelligenceAddon === 'ACTIVE' ? INTELLIGENCE_FEATURES : [],
+      intelligenceFeatures:
+        clinic.intelligenceAddon === 'ACTIVE' ? INTELLIGENCE_FEATURES : [],
       isTrialing: clinic.subscriptionStatus === 'trial',
-      trialDaysRemaining: clinic.trialEndsAt 
-        ? Math.max(0, Math.ceil((new Date(clinic.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      trialDaysRemaining: clinic.trialEndsAt
+        ? Math.max(
+            0,
+            Math.ceil(
+              (new Date(clinic.trialEndsAt).getTime() - Date.now()) /
+                (1000 * 60 * 60 * 24),
+            ),
+          )
         : null,
     };
   }
@@ -122,7 +134,10 @@ export class SubscriptionService {
     }
 
     // Check subscription status
-    if (clinic.subscriptionStatus !== 'active' && clinic.subscriptionStatus !== 'trial') {
+    if (
+      clinic.subscriptionStatus !== 'active' &&
+      clinic.subscriptionStatus !== 'trial'
+    ) {
       return false;
     }
 
@@ -157,7 +172,7 @@ export class SubscriptionService {
    */
   async upgradeTier(clinicId: string, newTier: string) {
     const validTiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
-    
+
     if (!validTiers.includes(newTier)) {
       throw new BadRequestException(`Invalid tier: ${newTier}`);
     }
@@ -165,7 +180,7 @@ export class SubscriptionService {
     return this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
-        tier: newTier as any,
+        tier: newTier as ClinicTier,
         subscriptionStatus: 'active',
       },
     });
@@ -193,7 +208,7 @@ export class SubscriptionService {
     return this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
-        tier: tier as any,
+        tier: tier as ClinicTier,
         subscriptionStatus: 'trial',
         trialEndsAt,
       },
@@ -203,13 +218,17 @@ export class SubscriptionService {
   /**
    * Override specific features for a clinic
    */
-  async setFeatureOverrides(clinicId: string, overrides: Record<string, boolean>) {
+  async setFeatureOverrides(
+    clinicId: string,
+    overrides: Record<string, boolean>,
+  ) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: { features: true },
     });
 
-    const existingFeatures = (clinic?.features as Record<string, boolean>) || {};
+    const existingFeatures =
+      (clinic?.features as Record<string, boolean>) || {};
     const mergedFeatures = { ...existingFeatures, ...overrides };
 
     return this.prisma.clinic.update({

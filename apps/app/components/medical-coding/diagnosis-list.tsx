@@ -1,9 +1,8 @@
-"use client"
+"use client";
 
-
-import { Trash2, Star, StarOff, AlertCircle } from "lucide-react"
-import { Button } from "@workspace/ui/components/button"
-import { Textarea } from "@workspace/ui/components/textarea"
+import { Trash2, Star, StarOff, AlertCircle } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Textarea } from "@workspace/ui/components/textarea";
 
 import {
   Card,
@@ -11,27 +10,27 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
+} from "@workspace/ui/components/card";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip"
-import type { Diagnosis } from "@/types"
+} from "@workspace/ui/components/tooltip";
+import type { Diagnosis } from "@/types";
 
 interface DiagnosisListProps {
-  diagnoses: Diagnosis[]
-  onRemove: (index: number) => void
-  onUpdateNotes: (index: number, notes: string) => void
-  onTogglePrimary: (index: number) => void
+  diagnoses: Diagnosis[];
+  onRemove: (index: number) => void;
+  onUpdateNotes: (index: number, notes: string) => void;
+  onTogglePrimary: (index: number) => void;
 }
 
-export function DiagnosisList({ 
-  diagnoses, 
-  onRemove, 
+export function DiagnosisList({
+  diagnoses,
+  onRemove,
   onUpdateNotes,
-  onTogglePrimary 
+  onTogglePrimary,
 }: DiagnosisListProps) {
   if (diagnoses.length === 0) {
     return (
@@ -40,7 +39,7 @@ export function DiagnosisList({
         <p>No diagnoses added yet.</p>
         <p className="text-sm">Search and select ICD-10 codes to add them.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -75,7 +74,7 @@ export function DiagnosisList({
                 onChange={(e) => onUpdateNotes(index, e.target.value)}
                 className="min-h-[60px] text-sm"
               />
-              
+
               <div className="flex justify-end gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -84,7 +83,11 @@ export function DiagnosisList({
                         variant="ghost"
                         size="sm"
                         onClick={() => onTogglePrimary(index)}
-                        className={diagnosis.isPrimary ? "text-primary" : "text-muted-foreground"}
+                        className={
+                          diagnosis.isPrimary
+                            ? "text-primary"
+                            : "text-muted-foreground"
+                        }
                       >
                         {diagnosis.isPrimary ? (
                           <>
@@ -120,5 +123,5 @@ export function DiagnosisList({
         </Card>
       ))}
     </div>
-  )
+  );
 }

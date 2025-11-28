@@ -1,254 +1,155 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { Upload, Check, Loader2, AlertCircle } from "lucide-react"
-import Image from "next/image"
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
-import { FeatureGuard } from "@/components/auth/feature-guard"
-import { Feature } from "@/lib/stores/permission-store"
-import { apiHooks } from "@/lib/api-hooks"
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { FileSpreadsheet, ScanLine, Upload, ArrowRight } from "lucide-react";
+import {
+  FeatureGate,
+  TierBadge,
+  FeatureTierBadge,
+} from "@/components/common/feature-gate";
+import { Feature, Tier } from "@/lib/stores/permission-store";
 
 export default function ImportPage() {
-  const router = useRouter()
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [extractedData, setExtractedData] = useState<any>(null)
-  const [step, setStep] = useState<"upload" | "verify">("upload")
-
-  const processOCRMutation = apiHooks.useProcessOCR()
-  const createPatientMutation = apiHooks.useCreatePatient()
-  const createAppointmentMutation = apiHooks.useCreateAppointment()
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      setFile(selectedFile)
-      
-      // Create preview URL
-      const objectUrl = URL.createObjectURL(selectedFile)
-      setPreview(objectUrl)
-    }
-  }
-
-  const handleProcess = async () => {
-    if (!file) return
-
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      
-      const result = await processOCRMutation.mutateAsync(formData as any)
-      
-      setExtractedData(result)
-      setStep("verify")
-      toast.success("Data extracted successfully")
-    } catch (error) {
-      toast.error("Failed to process document")
-    }
-  }
-
-  const handleSave = async () => {
-    try {
-      // Create patient
-      const patient = await createPatientMutation.mutateAsync({
-        firstName: extractedData.patientName?.split(' ')[0] || extractedData.firstName || "Unknown",
-        lastName: extractedData.patientName?.split(' ').slice(1).join(' ') || extractedData.lastName || "",
-        phoneNumber: extractedData.phoneNumber || "0000000000",
-        gender: extractedData.gender || "MALE",
-        dateOfBirth: extractedData.dateOfBirth || new Date(new Date().getFullYear() - (parseInt(extractedData.age) || 30)).toISOString(),
-        medicalHistory: extractedData.diagnosis ? [extractedData.diagnosis] : []
-      })
-
-      // Create appointment
-      await createAppointmentMutation.mutateAsync({
-        patientId: patient.id!,
-        clinicId: "default-clinic-id", // Should come from auth context
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 30 * 60000).toISOString(),
-        type: "consultation",
-        status: "confirmed",
-        observations: extractedData.diagnosis,
-        vitalSign: extractedData.vitals ? {
-          bloodPressure: extractedData.vitals.bp,
-          temperature: parseFloat(extractedData.vitals.temp),
-          pulse: parseInt(extractedData.vitals.pulse)
-        } : undefined
-      })
-      
-      toast.success("Record saved successfully")
-      router.push("/documents")
-    } catch (error) {
-      console.error(error)
-      toast.error("Failed to save record")
-    }
-  }
-
   return (
-    <FeatureGuard feature={Feature.EXCEL_IMPORT}>
-      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Import Data</h1>
-          <p className="text-muted-foreground">
-            Upload handwritten prescriptions or reports to extract data automatically.
-          </p>
-        </div>
-
-        {step === "upload" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Document</CardTitle>
-              <CardDescription>Select an image or PDF file to process.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="document">Document</Label>
-                <Input id="document" type="file" accept="image/*,.pdf" onChange={handleFileChange} />
-              </div>
-
-              {preview && (
-                <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border bg-muted">
-                  <Image
-                    src={preview}
-                    alt="Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
-
-              <Button onClick={handleProcess} disabled={!file || processOCRMutation.isPending}>
-                {processOCRMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Extract Data
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "verify" && extractedData && (
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Original Document</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {preview && (
-                  <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted">
-                    <Image
-                      src={preview}
-                      alt="Original"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Verify & Edit Data</CardTitle>
-                <CardDescription>Please review the extracted information.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>AI Extraction</AlertTitle>
-                  <AlertDescription>
-                    Please verify all fields carefully against the original document.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Patient Name</Label>
-                  <Input 
-                    id="patientName" 
-                    value={extractedData.patientName} 
-                    onChange={(e) => setExtractedData({...extractedData, patientName: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
-                  <Input 
-                    id="date" 
-                    type="date"
-                    value={extractedData.date} 
-                    onChange={(e) => setExtractedData({...extractedData, date: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="diagnosis">Diagnosis</Label>
-                  <Input 
-                    id="diagnosis" 
-                    value={extractedData.diagnosis} 
-                    onChange={(e) => setExtractedData({...extractedData, diagnosis: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="medications">Medications</Label>
-                  <Textarea 
-                    id="medications" 
-                    value={extractedData.medications} 
-                    onChange={(e) => setExtractedData({...extractedData, medications: e.target.value})}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea 
-                    id="notes" 
-                    value={extractedData.notes} 
-                    onChange={(e) => setExtractedData({...extractedData, notes: e.target.value})}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    onClick={handleSave} 
-                    className="flex-1"
-                    disabled={createPatientMutation.isPending || createAppointmentMutation.isPending}
-                  >
-                    {(createPatientMutation.isPending || createAppointmentMutation.isPending) ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Save Record
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" onClick={() => setStep("upload")}>
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+    <div className="flex-1 space-y-6 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Import Data</h1>
+        <p className="text-muted-foreground">
+          Digitize your clinic records by importing from Excel or scanning
+          documents.
+        </p>
       </div>
-    </FeatureGuard>
-  )
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Excel Import - Tier 0 */}
+        <Card className="relative overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
+                <FileSpreadsheet className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+              </div>
+              <TierBadge tier={Tier.CAPTURE} />
+            </div>
+            <CardTitle className="mt-4">Excel Import</CardTitle>
+            <CardDescription>
+              Import patient data from Excel or CSV files with smart column
+              mapping and duplicate detection.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Auto-detect column mappings
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Clean phone numbers & names
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Duplicate detection by phone & name
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Preview before importing
+              </li>
+            </ul>
+            <Link href="/import/excel">
+              <Button className="w-full">
+                <Upload className="mr-2 h-4 w-4" />
+                Import Excel File
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* OCR Scanner - Uses feature tier from permission store */}
+        <Card className="relative overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
+                <ScanLine className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+              </div>
+              <FeatureTierBadge feature={Feature.OCR_BASIC} />
+            </div>
+            <CardTitle className="mt-4">OCR Scanner</CardTitle>
+            <CardDescription>
+              Scan handwritten prescriptions and documents to extract patient
+              data using AI-powered OCR.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                AI handwriting recognition
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                Extract medications & dosages
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                Auto-enhance scanned images
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                Review & correct extracted data
+              </li>
+            </ul>
+            <FeatureGate
+              feature={Feature.OCR_BASIC}
+              fallback={
+                <Button className="w-full" variant="secondary" disabled>
+                  <ScanLine className="mr-2 h-4 w-4" />
+                  Upgrade to Plus for OCR
+                </Button>
+              }
+            >
+              <Link href="/import/ocr">
+                <Button className="w-full" variant="secondary">
+                  <ScanLine className="mr-2 h-4 w-4" />
+                  Scan Documents
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </FeatureGate>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tips Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Import Tips</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            <strong>Excel Import:</strong> Make sure your file has headers in
+            the first row. Common column names like &quot;First Name&quot;,
+            &quot;Phone Number&quot;, etc. will be automatically detected.
+          </p>
+          <p>
+            <strong>Phone Numbers:</strong> We automatically clean and normalize
+            phone numbers, removing country codes and formatting.
+          </p>
+          <p>
+            <strong>Duplicates:</strong> Patients with matching phone numbers or
+            matching name + date of birth will be flagged as duplicates and
+            skipped.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

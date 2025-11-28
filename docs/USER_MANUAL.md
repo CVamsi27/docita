@@ -30,6 +30,7 @@ Version 1.0
 3. Click "Sign In"
 
 **Default Credentials** (for initial setup):
+
 - Email: `doctor@docita.com`
 - Password: `password123`
 
@@ -48,18 +49,21 @@ Version 1.0
 The dashboard provides a quick overview of your clinic's activities:
 
 ### Key Metrics
+
 - **Total Patients**: Number of registered patients
 - **Today's Appointments**: Scheduled appointments for today
 - **Pending Invoices**: Unpaid invoices requiring attention
 - **Revenue This Month**: Total revenue for the current month
 
 ### Quick Actions
+
 - Add new patient
 - Schedule appointment
 - View today's schedule
 - Access analytics
 
 ### Recent Activity
+
 - Latest patient registrations
 - Recent appointments
 - Pending tasks
@@ -88,6 +92,7 @@ The dashboard provides a quick overview of your clinic's activities:
 ### Patient Profile
 
 Each patient profile includes:
+
 - **Personal Information**: Demographics and contact details
 - **Medical History**: Past conditions, allergies, medications
 - **Appointments**: Upcoming and past appointments
@@ -120,6 +125,7 @@ Each patient profile includes:
 ### Managing Appointments
 
 **Appointment Statuses**:
+
 - **Scheduled**: Confirmed appointment
 - **Confirmed**: Patient confirmed attendance
 - **Completed**: Consultation finished
@@ -127,6 +133,7 @@ Each patient profile includes:
 - **No-show**: Patient didn't attend
 
 **Actions**:
+
 - **Reschedule**: Change date/time
 - **Cancel**: Cancel the appointment
 - **Mark as Complete**: After consultation
@@ -151,29 +158,35 @@ Each patient profile includes:
 ### During Consultation
 
 #### 1. Record Vital Signs
+
 - Height, Weight, BMI
 - Blood Pressure
 - Temperature, Heart Rate
 - Oxygen Saturation
 
 #### 2. Chief Complaint
+
 - Document patient's primary concern
 - Add detailed notes
 
 #### 3. Examination Findings
+
 - Record physical examination results
 - Add observations
 
 #### 4. Diagnosis
+
 - Enter diagnosis codes (ICD-10)
 - Add multiple diagnoses if needed
 
 #### 5. Treatment Plan
+
 - Prescribe medications
 - Recommend tests
 - Schedule follow-up
 
 #### 6. Clinical Notes
+
 - Use templates for common conditions
 - Add custom notes
 - Attach documents
@@ -205,6 +218,7 @@ Each patient profile includes:
 ### Prescription Templates
 
 Create templates for commonly prescribed combinations:
+
 1. Go to **Settings** → **Templates**
 2. Click **"Add Template"**
 3. Name the template
@@ -244,12 +258,14 @@ Create templates for commonly prescribed combinations:
 ### Invoice Management
 
 **Statuses**:
+
 - **Pending**: Awaiting payment
 - **Paid**: Payment received
 - **Partially Paid**: Partial payment made
 - **Cancelled**: Invoice cancelled
 
 **Actions**:
+
 - **Record Payment**: Mark as paid
 - **Send Reminder**: Email reminder to patient
 - **Print**: Print invoice
@@ -282,6 +298,7 @@ Create templates for commonly prescribed combinations:
 ### OCR Document Import
 
 For bulk patient import:
+
 1. Go to **Import** → **OCR**
 2. Upload scanned patient records
 3. Review extracted data
@@ -294,6 +311,7 @@ For bulk patient import:
 ### Dashboard Analytics
 
 View key metrics:
+
 - **Revenue Trends**: Monthly revenue graph
 - **Patient Growth**: New patient registrations
 - **Appointment Statistics**: Completion rates
@@ -302,6 +320,7 @@ View key metrics:
 ### Custom Reports
 
 Generate reports for:
+
 - **Date Range**: Specific time period
 - **Doctor**: Individual doctor performance
 - **Department**: Clinic-wide statistics
@@ -321,6 +340,7 @@ Generate reports for:
 ### Profile Settings
 
 Update your personal information:
+
 - Name and contact details
 - Password change
 - Notification preferences
@@ -328,6 +348,7 @@ Update your personal information:
 ### Clinic Settings
 
 Configure clinic-wide settings:
+
 - **Working Hours**: Set clinic timings
 - **Appointment Duration**: Default slot length
 - **Currency**: Billing currency
@@ -336,6 +357,7 @@ Configure clinic-wide settings:
 ### Custom Fields
 
 Add clinic-specific patient fields:
+
 1. Go to **Settings** → **Custom Fields**
 2. Click **"Add Field"**
 3. Define field properties:
@@ -347,6 +369,7 @@ Add clinic-specific patient fields:
 ### Clinical Templates
 
 Create templates for:
+
 - **Prescriptions**: Common medication combinations
 - **Clinical Notes**: Standard examination templates
 - **Diagnoses**: Frequently used diagnosis codes
@@ -354,6 +377,7 @@ Create templates for:
 ### Appointment Reminders
 
 Configure automated reminders:
+
 - **Email Reminders**: Enable/disable
 - **SMS Reminders**: Enable/disable
 - **Timing**: Hours before appointment
@@ -366,6 +390,7 @@ Configure automated reminders:
 ### Clinic Selection
 
 If you have access to multiple clinics:
+
 1. Click the clinic selector in the navbar
 2. Choose the clinic you want to work with
 3. All data will be filtered for that clinic
@@ -394,6 +419,7 @@ If you have access to multiple clinics:
 ### Data Isolation
 
 Each clinic's data is completely isolated:
+
 - Patients belong to specific clinics
 - Appointments are clinic-specific
 - Invoices and documents are separated
@@ -406,21 +432,25 @@ Each clinic's data is completely isolated:
 ### Common Issues
 
 **Can't log in**
+
 - Verify email and password
 - Check caps lock is off
 - Contact admin for password reset
 
 **Appointment not showing**
+
 - Refresh the page
 - Check selected date range
 - Verify clinic selection (if multi-clinic)
 
 **Patient search not working**
+
 - Try different search terms
 - Check spelling
 - Use phone number or patient ID
 
 **Invoice not generating**
+
 - Ensure all required fields are filled
 - Check payment method is selected
 - Verify patient has active record
@@ -446,24 +476,28 @@ Each clinic's data is completely isolated:
 ## Best Practices
 
 ### Data Entry
+
 - Always verify patient information before saving
 - Use consistent naming conventions
 - Add detailed notes during consultations
 - Attach relevant documents to patient records
 
 ### Appointment Management
+
 - Confirm appointments 24 hours in advance
 - Mark no-shows appropriately
 - Keep appointment notes updated
 - Schedule follow-ups during consultation
 
 ### Billing
+
 - Generate invoices immediately after consultation
 - Record payments promptly
 - Send reminders for pending invoices
 - Maintain accurate payment records
 
 ### Security
+
 - Change password regularly
 - Log out when leaving workstation
 - Don't share login credentials
@@ -474,6 +508,7 @@ Each clinic's data is completely isolated:
 ## Updates & Changelog
 
 ### Version 1.0 (Current)
+
 - Initial release
 - Patient management
 - Appointment scheduling

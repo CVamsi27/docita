@@ -11,46 +11,84 @@ import {
   PatientFieldKey,
 } from '@workspace/types';
 
-// Re-export for backward compatibility
-export { PATIENT_FIELD_MAPPINGS, type ColumnMapping, type ImportPreview, type ImportResult };
+export {
+  PATIENT_FIELD_MAPPINGS,
+  type ColumnMapping,
+  type ImportPreview,
+  type ImportResult,
+};
+
+interface ExcelRow {
+  [key: string]: string | number | undefined;
+}
+
+interface MappedPatientData {
+  firstName?: string;
+  lastName?: string;
+  'First Name'?: string;
+  'Last Name'?: string;
+  name?: string;
+  phoneNumber?: string;
+  'Phone Number'?: string;
+  phone?: string;
+  gender?: string;
+  Gender?: string;
+  dateOfBirth?: string | number;
+  'Date of Birth'?: string | number;
+  dob?: string | number;
+  email?: string;
+  Email?: string;
+  'email address'?: string;
+  address?: string;
+  Address?: string;
+  bloodGroup?: string;
+  'Blood Group'?: string;
+  allergies?: string;
+  Allergies?: string;
+  medicalHistory?: string;
+  'Medical History'?: string;
+}
 
 @Injectable()
 export class ImportsService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Preview an import file and suggest column mappings
-   */
   async previewImport(filePath: string): Promise<ImportPreview> {
     try {
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as (
+        | string
+        | number
+      )[][];
 
       if (data.length < 2) {
-        throw new BadRequestException('File must have at least a header row and one data row');
+        throw new BadRequestException(
+          'File must have at least a header row and one data row',
+        );
       }
 
       const headers = data[0] as string[];
-      const dataRows = data.slice(1, 6); // Get first 5 data rows for preview
+      const dataRows = data.slice(1, 6);
 
       const columns: ColumnMapping[] = headers.map((header, index) => ({
         excelColumn: header,
         dbField: this.suggestFieldMapping(header),
-        sampleValues: dataRows.map(row => String(row[index] || '')).filter(v => v),
+        sampleValues: dataRows
+          .map((row) => String(row[index] || ''))
+          .filter((v) => v),
       }));
 
       const suggestedMappings: Record<string, string> = {};
-      columns.forEach(col => {
+      columns.forEach((col) => {
         if (col.dbField) {
           suggestedMappings[col.excelColumn] = col.dbField;
         }
       });
 
-      // Convert sample data to object format
-      const sampleData = dataRows.map(row => {
-        const obj: Record<string, any> = {};
+      const sampleData = dataRows.map((row) => {
+        const obj: Record<string, string | number> = {};
         headers.forEach((header, index) => {
           obj[header] = row[index];
         });
@@ -60,18 +98,17 @@ export class ImportsService {
       return {
         columns,
         suggestedMappings,
-        totalRows: data.length - 1, // Exclude header
+        totalRows: data.length - 1,
         sampleData,
       };
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException(`Failed to read file: ${(error as Error).message}`);
+      throw new BadRequestException(
+        `Failed to read file: ${(error as Error).message}`,
+      );
     }
   }
 
-  /**
-   * Process patient import with custom column mapping
-   */
   async processPatientImport(
     filePath: string,
     clinicId?: string,
@@ -81,7 +118,7 @@ export class ImportsService {
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+      const data = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
 
       const results: ImportResult = {
         total: data.length,
@@ -94,16 +131,19 @@ export class ImportsService {
 
       for (const [index, row] of data.entries()) {
         try {
-          const mapped = columnMapping 
+          const mapped = columnMapping
             ? this.applyColumnMapping(row, columnMapping)
             : row;
-          
-          const duplicateCheck = await this.checkForDuplicates(mapped, clinicId);
-          
+
+          const duplicateCheck = await this.checkForDuplicates(
+            mapped,
+            clinicId,
+          );
+
           if (duplicateCheck.isDuplicate) {
             results.duplicates++;
             results.duplicateDetails.push({
-              row: index + 2, // Excel row number (1-indexed + header)
+              row: index + 2,
               reason: duplicateCheck.reason,
               existingPatient: duplicateCheck.existingPatient,
             });
@@ -120,68 +160,78 @@ export class ImportsService {
 
       return results;
     } finally {
-      // Clean up temp file
       try {
         await unlink(filePath);
-      } catch (e) {
-        console.error('Failed to delete temp import file', e);
+      } catch {
+        // Ignore cleanup errors
       }
     }
   }
 
-  /**
-   * Suggest a database field mapping based on Excel column header
-   */
-  private suggestFieldMapping(header: string): keyof typeof PATIENT_FIELD_MAPPINGS | null {
+  private suggestFieldMapping(
+    header: string,
+  ): keyof typeof PATIENT_FIELD_MAPPINGS | null {
     const normalized = header.toLowerCase().trim();
-    
+
     for (const [field, aliases] of Object.entries(PATIENT_FIELD_MAPPINGS)) {
-      if (aliases.some(alias => normalized.includes(alias) || alias.includes(normalized))) {
+      if (
+        aliases.some(
+          (alias) => normalized.includes(alias) || alias.includes(normalized),
+        )
+      ) {
         return field as keyof typeof PATIENT_FIELD_MAPPINGS;
       }
     }
-    
+
     return null;
   }
 
-  /**
-   * Apply column mapping to transform Excel data to database fields
-   */
-  private applyColumnMapping(row: any, mapping: Record<string, string>): any {
-    const result: any = {};
-    
+  private applyColumnMapping(
+    row: ExcelRow,
+    mapping: Record<string, string>,
+  ): MappedPatientData {
+    const result: MappedPatientData = {};
+
     for (const [excelCol, dbField] of Object.entries(mapping)) {
       if (row[excelCol] !== undefined && dbField) {
-        result[dbField] = row[excelCol];
+        (result as Record<string, string | number | undefined>)[dbField] =
+          row[excelCol];
       }
     }
-    
+
     return result;
   }
 
-  /**
-   * Check for duplicate patients
-   */
   private async checkForDuplicates(
-    data: any,
+    data: MappedPatientData,
     clinicId?: string,
   ): Promise<{
     isDuplicate: boolean;
     reason: string;
     existingPatient?: { id: string; name: string; phone: string };
   }> {
-    const phone = this.normalizePhoneNumber(data['phoneNumber'] || data['Phone Number'] || data['phone']);
-    const firstName = this.cleanName(data['firstName'] || data['First Name'] || data['name'] || '');
-    const lastName = this.cleanName(data['lastName'] || data['Last Name'] || '');
-    
-    // Check by phone number (exact match)
+    const phone = this.normalizePhoneNumber(
+      data['phoneNumber'] || data['Phone Number'] || data['phone'],
+    );
+    const firstName = this.cleanName(
+      data['firstName'] || data['First Name'] || data['name'] || '',
+    );
+    const lastName = this.cleanName(
+      data['lastName'] || data['Last Name'] || '',
+    );
+
     if (phone) {
       const existingByPhone = await this.prisma.patient.findFirst({
-        where: { 
+        where: {
           phoneNumber: phone,
           ...(clinicId && { clinicId }),
         },
-        select: { id: true, firstName: true, lastName: true, phoneNumber: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
+        },
       });
 
       if (existingByPhone) {
@@ -197,7 +247,6 @@ export class ImportsService {
       }
     }
 
-    // Check by name + DOB (fuzzy match) - V2 feature
     const dobStr = data['dateOfBirth'] || data['Date of Birth'] || data['dob'];
     if (firstName && dobStr) {
       const dob = this.parseDate(dobStr);
@@ -205,11 +254,18 @@ export class ImportsService {
         const existingByNameDob = await this.prisma.patient.findFirst({
           where: {
             firstName: { equals: firstName, mode: 'insensitive' },
-            ...(lastName && { lastName: { equals: lastName, mode: 'insensitive' } }),
+            ...(lastName && {
+              lastName: { equals: lastName, mode: 'insensitive' },
+            }),
             dateOfBirth: dob,
             ...(clinicId && { clinicId }),
           },
-          select: { id: true, firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         });
 
         if (existingByNameDob) {
@@ -229,15 +285,17 @@ export class ImportsService {
     return { isDuplicate: false, reason: '' };
   }
 
-  /**
-   * Import a single patient record
-   */
-  private async importSinglePatient(row: any, clinicId?: string) {
-    // Extract and clean fields
-    const firstName = this.cleanName(row['firstName'] || row['First Name'] || row['name']);
+  private async importSinglePatient(row: MappedPatientData, clinicId?: string) {
+    const firstName = this.cleanName(
+      row['firstName'] || row['First Name'] || row['name'],
+    );
     const lastName = this.cleanName(row['lastName'] || row['Last Name'] || '');
-    const phone = this.normalizePhoneNumber(row['phoneNumber'] || row['Phone Number'] || row['phone']);
-    const genderStr = (row['gender'] || row['Gender'] || '').toString().toUpperCase();
+    const phone = this.normalizePhoneNumber(
+      row['phoneNumber'] || row['Phone Number'] || row['phone'],
+    );
+    const genderStr = (row['gender'] || row['Gender'] || '')
+      .toString()
+      .toUpperCase();
 
     if (!firstName) {
       throw new Error('Missing required field: First Name');
@@ -246,23 +304,22 @@ export class ImportsService {
       throw new Error('Missing required field: Phone Number');
     }
 
-    // Parse gender
     let gender: Gender = Gender.OTHER;
     if (genderStr === 'MALE' || genderStr === 'M') gender = Gender.MALE;
-    else if (genderStr === 'FEMALE' || genderStr === 'F') gender = Gender.FEMALE;
+    else if (genderStr === 'FEMALE' || genderStr === 'F')
+      gender = Gender.FEMALE;
 
-    // Parse date of birth
     const dobStr = row['dateOfBirth'] || row['Date of Birth'] || row['dob'];
     const dob = dobStr ? this.parseDate(dobStr) : new Date();
 
-    // Clean email
-    const email = this.cleanEmail(row['email'] || row['Email'] || row['email address']);
+    const email = this.cleanEmail(
+      row['email'] || row['Email'] || row['email address'],
+    );
 
-    // Create patient
     if (!clinicId) {
       throw new Error('Clinic ID is required for patient import');
     }
-    
+
     await this.prisma.patient.create({
       data: {
         firstName,
@@ -272,101 +329,78 @@ export class ImportsService {
         dateOfBirth: dob || new Date(),
         email,
         address: (row['address'] || row['Address'] || '').toString().trim(),
-        bloodGroup: (row['bloodGroup'] || row['Blood Group'] || '').toString().trim().toUpperCase(),
-        allergies: (row['allergies'] || row['Allergies'] || '').toString().trim(),
-        medicalHistory: row['medicalHistory'] || row['Medical History'] 
-          ? [(row['medicalHistory'] || row['Medical History']).toString()]
-          : [],
+        bloodGroup: (row['bloodGroup'] || row['Blood Group'] || '')
+          .toString()
+          .trim()
+          .toUpperCase(),
+        allergies: (row['allergies'] || row['Allergies'] || '')
+          .toString()
+          .trim(),
+        medicalHistory:
+          row['medicalHistory'] || row['Medical History']
+            ? [(row['medicalHistory'] ?? row['Medical History'])!.toString()]
+            : [],
         clinicId,
       },
     });
   }
 
-  /**
-   * Normalize phone number
-   */
-  private normalizePhoneNumber(phone: any): string {
+  private normalizePhoneNumber(phone: string | number | undefined): string {
     if (!phone) return '';
-    
-    // Remove all non-digit characters
+
     let normalized = phone.toString().replace(/\D/g, '');
-    
-    // Handle common formats
+
     if (normalized.length === 10) {
-      // US format without country code
       return normalized;
     }
     if (normalized.length === 11 && normalized.startsWith('1')) {
-      // US format with country code
       return normalized.substring(1);
     }
     if (normalized.length === 12 && normalized.startsWith('91')) {
-      // Indian format with country code
       return normalized.substring(2);
     }
-    
+
     return normalized;
   }
 
-  /**
-   * Clean and normalize a name
-   */
-  private cleanName(name: any): string {
+  private cleanName(name: string | number | undefined): string {
     if (!name) return '';
     return name
       .toString()
       .trim()
-      .replace(/\s+/g, ' ') // Normalize multiple spaces
+      .replace(/\s+/g, ' ')
       .split(' ')
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map(
+        (word: string) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+      )
       .join(' ');
   }
 
-  /**
-   * Clean and validate email
-   */
-  private cleanEmail(email: any): string | undefined {
+  private cleanEmail(email: string | number | undefined): string | undefined {
     if (!email) return undefined;
-    
+
     const cleaned = email.toString().trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     return emailRegex.test(cleaned) ? cleaned : undefined;
   }
 
-  /**
-   * Parse various date formats
-   */
-  private parseDate(dateStr: any): Date | null {
+  private parseDate(dateStr: string | number | undefined): Date | null {
     if (!dateStr) return null;
-    
-    // Handle Excel serial date number
+
     if (typeof dateStr === 'number') {
       const excelEpoch = new Date(1899, 11, 30);
       return new Date(excelEpoch.getTime() + dateStr * 86400000);
     }
 
     const str = dateStr.toString().trim();
-    
-    // Try various formats
-    const formats = [
-      // DD/MM/YYYY
-      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
-      // MM/DD/YYYY
-      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
-      // YYYY-MM-DD
-      /^(\d{4})-(\d{2})-(\d{2})$/,
-      // DD-MM-YYYY
-      /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
-    ];
 
-    // Try ISO format first
     const isoDate = new Date(str);
     if (!isNaN(isoDate.getTime())) {
       return isoDate;
     }
 
-    // Try DD/MM/YYYY format (common in India)
     const ddmmyyyy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (ddmmyyyy) {
       const [, day, month, year] = ddmmyyyy;
@@ -378,5 +412,4 @@ export class ImportsService {
 
     return null;
   }
-
 }

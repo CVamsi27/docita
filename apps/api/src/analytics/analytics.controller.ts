@@ -1,9 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TierGuard } from '../auth/tier.guard';
+import { RequireFeature, Feature } from '../auth/tier.decorator';
 
 @Controller('analytics')
+@UseGuards(JwtAuthGuard, TierGuard)
+@RequireFeature(Feature.BASIC_ANALYTICS)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
   getOverview() {
@@ -33,7 +38,6 @@ export class AnalyticsController {
     return this.analyticsService.getTopDiagnoses(parseInt(limit));
   }
 
-  // Disease Trends Endpoints
   @Get('disease-trends')
   getDiseaseTrends(
     @Query('clinicId') clinicId: string,
@@ -75,7 +79,6 @@ export class AnalyticsController {
     );
   }
 
-  // Revenue by CPT Code Endpoints
   @Get('revenue/by-cpt')
   getRevenueByCptCode(
     @Query('clinicId') clinicId: string,
@@ -117,7 +120,6 @@ export class AnalyticsController {
     );
   }
 
-  // Coding Compliance Endpoints
   @Get('compliance/metrics')
   getCodingComplianceMetrics(
     @Query('clinicId') clinicId: string,

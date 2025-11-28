@@ -8,19 +8,23 @@ import {
   UploadedFile,
   Body,
   BadRequestException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('documents')
+@UseGuards(JwtAuthGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
-  findAll() {
-    return this.documentsService.findAll();
+  findAll(@Request() req) {
+    return this.documentsService.findAll(req.user.clinicId);
   }
 
   @Get(':id')

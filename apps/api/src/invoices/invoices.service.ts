@@ -1,19 +1,42 @@
-/* eslint-disable */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 import PDFDocument from 'pdfkit';
+
+interface InvoiceItem {
+  description: string;
+  quantity: number;
+  price: number;
+}
 
 @Injectable()
 export class InvoicesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(clinicId: string) {
+    if (!clinicId) {
+      return [];
+    }
     return this.prisma.invoice.findMany({
+      where: { patient: { clinicId } },
       include: {
-        patient: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
         appointment: {
-          include: {
-            doctor: true,
+          select: {
+            id: true,
+            doctor: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -25,10 +48,39 @@ export class InvoicesService {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id },
       include: {
-        patient: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+            address: true,
+            clinic: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                phone: true,
+                email: true,
+                logo: true,
+              },
+            },
+          },
+        },
         appointment: {
-          include: {
-            doctor: true,
+          select: {
+            id: true,
+            doctor: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                qualification: true,
+                registrationNumber: true,
+                signatureUrl: true,
+              },
+            },
           },
         },
       },
@@ -46,7 +98,7 @@ export class InvoicesService {
     patientId: string;
     total: number;
     status: string;
-    items: Array<{ description: string; quantity: number; price: number }>;
+    items: InvoiceItem[];
   }) {
     return this.prisma.invoice.create({
       data: {
@@ -54,23 +106,58 @@ export class InvoicesService {
         patientId: data.patientId,
         total: data.total,
         status: data.status,
-        items: data.items,
+        items: data.items as unknown as Prisma.InputJsonValue,
       },
-      include: {
-        patient: true,
+      select: {
+        id: true,
+        appointmentId: true,
+        patientId: true,
+        total: true,
+        status: true,
+        items: true,
+        createdAt: true,
+        updatedAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
       },
     });
   }
 
   async update(
     id: string,
-    data: { status?: string; total?: number; items?: any },
+    data: { status?: string; total?: number; items?: InvoiceItem[] },
   ) {
     return this.prisma.invoice.update({
       where: { id },
-      data,
-      include: {
-        patient: true,
+      data: {
+        ...data,
+        items: data.items
+          ? (data.items as unknown as Prisma.InputJsonValue)
+          : undefined,
+      },
+      select: {
+        id: true,
+        appointmentId: true,
+        patientId: true,
+        total: true,
+        status: true,
+        items: true,
+        createdAt: true,
+        updatedAt: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
       },
     });
   }
@@ -86,7 +173,6 @@ export class InvoicesService {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // Hospital Header
       doc
         .fontSize(24)
         .font('Helvetica-Bold')
@@ -107,7 +193,6 @@ export class InvoicesService {
       );
       doc.moveDown(2);
 
-      // Invoice Title and Details
       doc
         .fontSize(18)
         .font('Helvetica-Bold')
@@ -125,10 +210,8 @@ export class InvoicesService {
       doc.text(`Status: ${invoice.status.toUpperCase()}`, { align: 'right' });
       doc.moveDown();
 
-      // Doctor and Patient Info Grid
       const startY = doc.y;
 
-      // Patient Info (Left)
       doc.fontSize(12).font('Helvetica-Bold').text('Bill To:', 50, startY);
       doc
         .fontSize(10)
@@ -139,19 +222,17 @@ export class InvoicesService {
       if (invoice.patient.address)
         doc.text(`Address: ${invoice.patient.address}`);
 
-      // Doctor Info (Right)
       if (invoice.appointment?.doctor) {
         doc.fontSize(12).font('Helvetica-Bold').text('Doctor:', 350, startY);
         doc
           .fontSize(10)
           .font('Helvetica')
-          .text(`Dr. ${invoice.appointment.doctor.name}`);
+          .text(invoice.appointment.doctor.name);
         doc.text(`Email: ${invoice.appointment.doctor.email}`);
       }
 
       doc.moveDown(4);
 
-      // Items Table Header
       const tableTop = doc.y + 20;
       doc.font('Helvetica-Bold');
       doc.text('Description', 50, tableTop, { width: 250 });
@@ -166,7 +247,6 @@ export class InvoicesService {
       doc.font('Helvetica');
       doc.moveDown();
 
-      // Items
       let yPosition = tableTop + 25;
       const items = invoice.items as Array<{
         description: string;

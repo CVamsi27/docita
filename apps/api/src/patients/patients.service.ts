@@ -1,15 +1,86 @@
-/* eslint-disable */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Patient } from '@workspace/types';
+import { Gender } from '@workspace/db';
+
+interface PatientTag {
+  tag: string;
+  color: string;
+}
+
+interface CreatePatientData {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email?: string;
+  address?: string;
+  gender: string;
+  dateOfBirth: Date | string;
+  bloodGroup?: string;
+  allergies?: string;
+  medicalHistory?: string[];
+  clinicId: string;
+  tags?: PatientTag[];
+}
 
 @Injectable()
 export class PatientsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<Patient[]> {
+  async findAll(
+    clinicId: string,
+    options?: {
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<Patient[]> {
+    if (!clinicId) {
+      return [];
+    }
+
+    const where: {
+      clinicId: string;
+      OR?: Array<{
+        firstName?: { contains: string; mode: 'insensitive' };
+        lastName?: { contains: string; mode: 'insensitive' };
+        phoneNumber?: { contains: string };
+        email?: { contains: string; mode: 'insensitive' };
+      }>;
+    } = { clinicId };
+
+    // Add search filter if provided
+    if (options?.search) {
+      where.OR = [
+        { firstName: { contains: options.search, mode: 'insensitive' } },
+        { lastName: { contains: options.search, mode: 'insensitive' } },
+        { phoneNumber: { contains: options.search } },
+        { email: { contains: options.search, mode: 'insensitive' } },
+      ];
+    }
+
     const patients = await this.prisma.patient.findMany({
+      where,
       orderBy: { updatedAt: 'desc' },
+      ...(options?.limit && { take: options.limit }),
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        email: true,
+        gender: true,
+        dateOfBirth: true,
+        bloodGroup: true,
+        createdAt: true,
+        updatedAt: true,
+        tags: {
+          select: {
+            id: true,
+            tag: true,
+            color: true,
+          },
+        },
+      },
     });
     return patients as unknown as Patient[];
   }
@@ -26,7 +97,13 @@ export class PatientsService {
     return patient as unknown as Patient;
   }
 
-  async create(createPatientDto: any) {
+  async create(createPatientDto: CreatePatientData) {
+    // Convert dateOfBirth to proper Date object if it's a string
+    const dateOfBirth =
+      typeof createPatientDto.dateOfBirth === 'string'
+        ? new Date(createPatientDto.dateOfBirth)
+        : createPatientDto.dateOfBirth;
+
     return this.prisma.patient.create({
       data: {
         firstName: createPatientDto.firstName,
@@ -34,19 +111,19 @@ export class PatientsService {
         phoneNumber: createPatientDto.phoneNumber,
         email: createPatientDto.email,
         address: createPatientDto.address,
-        gender: createPatientDto.gender,
-        dateOfBirth: createPatientDto.dateOfBirth,
+        gender: createPatientDto.gender as Gender,
+        dateOfBirth,
         bloodGroup: createPatientDto.bloodGroup,
         allergies: createPatientDto.allergies,
         medicalHistory: createPatientDto.medicalHistory || [],
-        clinicId: createPatientDto.clinicId, // Required for multi-clinic support
+        clinicId: createPatientDto.clinicId,
         tags: createPatientDto.tags
           ? {
-            create: createPatientDto.tags.map((tag: any) => ({
-              tag: tag.tag,
-              color: tag.color,
-            })),
-          }
+              create: createPatientDto.tags.map((tag: PatientTag) => ({
+                tag: tag.tag,
+                color: tag.color,
+              })),
+            }
           : undefined,
       },
       include: {
@@ -64,10 +141,8 @@ export class PatientsService {
       where: { id },
       data: {
         ...rest,
-        ...(rest.gender && { gender: rest.gender.toUpperCase() as any }),
+        ...(rest.gender && { gender: rest.gender.toUpperCase() as Gender }),
         ...(rest.dateOfBirth && { dateOfBirth: new Date(rest.dateOfBirth) }),
-        // For update, we'll just create new tags if provided, or ignore for now to avoid complex diffing
-        // In a real app, we'd likely have a separate endpoint for managing tags
       },
     });
     return patient as unknown as Patient;
@@ -82,21 +157,43 @@ export class PatientsService {
   async getAppointments(patientId: string) {
     const appointments = await this.prisma.appointment.findMany({
       where: { patientId },
-      include: {
+      select: {
+        id: true,
+        patientId: true,
+        doctorId: true,
+        clinicId: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        type: true,
+        notes: true,
+        observations: true,
+        createdAt: true,
+        updatedAt: true,
         doctor: {
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         vitalSign: true,
         prescription: {
-          include: {
+          select: {
+            id: true,
+            instructions: true,
+            createdAt: true,
             medications: true,
           },
         },
-        invoice: true,
+        invoice: {
+          select: {
+            id: true,
+            total: true,
+            status: true,
+            items: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { startTime: 'desc' },
     });
@@ -106,6 +203,16 @@ export class PatientsService {
   async getDocuments(patientId: string) {
     const documents = await this.prisma.document.findMany({
       where: { patientId },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        url: true,
+        fileSize: true,
+        mimeType: true,
+        description: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
     return documents;

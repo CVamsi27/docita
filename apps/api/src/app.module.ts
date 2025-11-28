@@ -19,14 +19,25 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { RemindersModule } from './reminders/reminders.module';
 import { ClinicsModule } from './clinics/clinics.module';
 import { DoctorClinicsModule } from './doctor-clinics/doctor-clinics.module';
+import { DoctorsModule } from './doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { PrescriptionTemplatesModule } from './prescription-templates/prescription-templates.module';
 import { MedicalCodingModule } from './medical-coding/medical-coding.module';
+import { ConfigModule as AppConfigModule } from './modules/config/config.module';
+import { PaymentGateway } from './gateways/payment.gateway';
+import { QueueModule } from './queue/queue.module';
+import { LabTestsModule } from './lab-tests/lab-tests.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { CacheConfigModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -34,12 +45,14 @@ import { MedicalCodingModule } from './medical-coding/medical-coding.module';
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
+    CacheConfigModule,
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
     }),
     PrismaModule,
+    MonitoringModule,
     AuthModule,
     PatientsModule,
     AppointmentsModule,
@@ -54,15 +67,22 @@ import { MedicalCodingModule } from './medical-coding/medical-coding.module';
     AnalyticsModule,
     RemindersModule,
     ClinicsModule,
-    ClinicsModule,
     DoctorClinicsModule,
+    DoctorsModule,
     PaymentsModule,
     WhatsappModule,
     SuperAdminModule,
+    SubscriptionModule,
+    BillingModule,
     PrescriptionTemplatesModule,
     MedicalCodingModule,
+    AppConfigModule,
+    QueueModule,
+    LabTestsModule,
+    InventoryModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PaymentGateway],
 })
-export class AppModule { }
+export class AppModule {}

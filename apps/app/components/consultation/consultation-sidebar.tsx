@@ -1,37 +1,88 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
-import { Calendar, Clock, User, Phone, Mail, MapPin, Activity } from "lucide-react"
-import { format, differenceInYears } from "date-fns"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import {
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Activity,
+} from "lucide-react";
+import { format, differenceInYears } from "date-fns";
+
+interface PatientInfo {
+  firstName?: string;
+  lastName?: string;
+  gender?: string;
+  dateOfBirth?: string | Date;
+  phoneNumber?: string;
+  email?: string;
+  address?: string;
+  medicalHistory?: string | string[];
+  allergies?: string | string[];
+}
+
+interface DoctorInfo {
+  name: string;
+}
+
+interface AppointmentData {
+  patient?: PatientInfo;
+  doctor?: DoctorInfo;
+  startTime: string | Date;
+  endTime: string | Date;
+  type: string;
+}
 
 interface ConsultationSidebarProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  appointment: any
+  appointment: AppointmentData;
 }
 
 const calculateAge = (dateOfBirth: string | Date): number => {
-  return differenceInYears(new Date(), new Date(dateOfBirth))
-}
+  return differenceInYears(new Date(), new Date(dateOfBirth));
+};
 
 export function ConsultationSidebar({ appointment }: ConsultationSidebarProps) {
-  const patient = appointment?.patient
-  const doctor = appointment?.doctor
+  const patient = appointment?.patient;
+  const doctor = appointment?.doctor;
 
   if (!patient) {
-    return null
+    return null;
   }
 
-  const initials = `${patient.firstName?.[0] || ""}${patient.lastName?.[0] || ""}`.toUpperCase()
-  const age = patient.dateOfBirth ? calculateAge(patient.dateOfBirth) : "N/A"
+  const initials =
+    `${patient.firstName?.[0] || ""}${patient.lastName?.[0] || ""}`.toUpperCase();
+  const age = patient.dateOfBirth ? calculateAge(patient.dateOfBirth) : "N/A";
+
+  // Normalize medicalHistory and allergies to arrays
+  const medicalHistoryArray = patient.medicalHistory
+    ? Array.isArray(patient.medicalHistory)
+      ? patient.medicalHistory
+      : [patient.medicalHistory]
+    : [];
+  const allergiesArray = patient.allergies
+    ? Array.isArray(patient.allergies)
+      ? patient.allergies
+      : [patient.allergies]
+    : [];
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-4 bg-muted/30">
       {/* Patient Info Card */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Patient Information</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Patient Information
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
@@ -78,7 +129,9 @@ export function ConsultationSidebar({ appointment }: ConsultationSidebarProps) {
             <div className="pt-2 border-t">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>DOB: {format(new Date(patient.dateOfBirth), "MMM d, yyyy")}</span>
+                <span>
+                  DOB: {format(new Date(patient.dateOfBirth), "MMM d, yyyy")}
+                </span>
               </div>
             </div>
           )}
@@ -88,17 +141,22 @@ export function ConsultationSidebar({ appointment }: ConsultationSidebarProps) {
       {/* Appointment Details Card */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Appointment Details</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Appointment Details
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>{format(new Date(appointment.startTime), "EEEE, MMM d, yyyy")}</span>
+            <span>
+              {format(new Date(appointment.startTime), "EEEE, MMM d, yyyy")}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span>
-              {format(new Date(appointment.startTime), "h:mm a")} - {format(new Date(appointment.endTime), "h:mm a")}
+              {format(new Date(appointment.startTime), "h:mm a")} -{" "}
+              {format(new Date(appointment.endTime), "h:mm a")}
             </span>
           </div>
           {doctor && (
@@ -117,33 +175,39 @@ export function ConsultationSidebar({ appointment }: ConsultationSidebarProps) {
       </Card>
 
       {/* Medical History Card */}
-      {patient.medicalHistory && patient.medicalHistory.length > 0 && (
+      {medicalHistoryArray.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Medical History</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Medical History
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1 text-sm text-muted-foreground">
-              {patient.medicalHistory.slice(0, 5).map((item: string, index: number) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>{item}</span>
-                </li>
-              ))}
+              {medicalHistoryArray
+                .slice(0, 5)
+                .map((item: string, index: number) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
             </ul>
           </CardContent>
         </Card>
       )}
 
       {/* Allergies Card */}
-      {patient.allergies && patient.allergies.length > 0 && (
+      {allergiesArray.length > 0 && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-destructive">Allergies</CardTitle>
+            <CardTitle className="text-sm font-medium text-destructive">
+              Allergies
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1 text-sm">
-              {patient.allergies.map((allergy: string, index: number) => (
+              {allergiesArray.map((allergy: string, index: number) => (
                 <li key={index} className="flex items-start gap-2">
                   <span className="text-destructive mt-1">⚠</span>
                   <span>{allergy}</span>
@@ -154,5 +218,5 @@ export function ConsultationSidebar({ appointment }: ConsultationSidebarProps) {
         </Card>
       )}
     </div>
-  )
+  );
 }

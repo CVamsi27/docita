@@ -30,6 +30,7 @@ POST /auth/login
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "doctor@docita.com",
@@ -38,6 +39,7 @@ POST /auth/login
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -69,11 +71,13 @@ GET /patients
 ```
 
 **Query Parameters:**
+
 - `search` (optional): Search by name or phone
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 10)
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -105,6 +109,7 @@ GET /patients/:id
 ```
 
 **Response:**
+
 ```json
 {
   "id": "patient_123",
@@ -134,6 +139,7 @@ POST /patients
 ```
 
 **Request Body:**
+
 ```json
 {
   "firstName": "Priya",
@@ -147,13 +153,12 @@ POST /patients
   "allergies": null,
   "medicalHistory": ["Asthma"],
   "clinicId": "default-clinic-id",
-  "tags": [
-    { "tag": "Regular", "color": "blue" }
-  ]
+  "tags": [{ "tag": "Regular", "color": "blue" }]
 }
 ```
 
 **Response:**
+
 ```json
 {
   "id": "patient_124",
@@ -188,6 +193,7 @@ GET /appointments
 ```
 
 **Query Parameters:**
+
 - `date` (optional): Filter by date (YYYY-MM-DD)
 - `doctorId` (optional): Filter by doctor
 - `patientId` (optional): Filter by patient
@@ -195,6 +201,7 @@ GET /appointments
 - `clinicId` (optional): Filter by clinic
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -227,6 +234,7 @@ POST /appointments
 ```
 
 **Request Body:**
+
 ```json
 {
   "patientId": "patient_123",
@@ -262,10 +270,12 @@ GET /prescriptions
 ```
 
 **Query Parameters:**
+
 - `patientId` (optional): Filter by patient
 - `appointmentId` (optional): Filter by appointment
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -296,6 +306,7 @@ POST /prescriptions
 ```
 
 **Request Body:**
+
 ```json
 {
   "appointmentId": "apt_123",
@@ -324,12 +335,14 @@ GET /invoices
 ```
 
 **Query Parameters:**
+
 - `patientId` (optional): Filter by patient
 - `status` (optional): Filter by status (pending, paid, cancelled)
 - `startDate` (optional): Start date range
 - `endDate` (optional): End date range
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -364,6 +377,7 @@ POST /invoices
 ```
 
 **Request Body:**
+
 ```json
 {
   "appointmentId": "apt_123",
@@ -392,6 +406,7 @@ PUT /invoices/:id/status
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "paid",
@@ -410,12 +425,14 @@ POST /documents/upload
 ```
 
 **Request:** Multipart form data
+
 - `file`: File to upload
 - `patientId`: Patient ID
 - `type`: Document type (lab_report, xray, prescription, etc.)
 - `description`: Optional description
 
 **Response:**
+
 ```json
 {
   "id": "doc_123",
@@ -437,6 +454,7 @@ GET /documents
 ```
 
 **Query Parameters:**
+
 - `patientId` (required): Patient ID
 - `type` (optional): Document type
 
@@ -457,6 +475,7 @@ GET /analytics/overview
 ```
 
 **Response:**
+
 ```json
 {
   "totalPatients": 150,
@@ -478,9 +497,11 @@ GET /analytics/revenue-trends
 ```
 
 **Query Parameters:**
+
 - `period` (optional): "week", "month", "year" (default: "month")
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -520,6 +541,7 @@ GET /clinics
 ```
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -546,6 +568,7 @@ POST /clinics
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "New Clinic",
@@ -582,6 +605,7 @@ GET /reminders/settings
 ```
 
 **Response:**
+
 ```json
 {
   "enabled": true,
@@ -600,6 +624,7 @@ PUT /reminders/settings
 ```
 
 **Request Body:**
+
 ```json
 {
   "enabled": true,
@@ -616,6 +641,7 @@ GET /reminders/history
 ```
 
 **Query Parameters:**
+
 - `appointmentId` (optional): Filter by appointment
 - `status` (optional): Filter by status (sent, failed)
 
@@ -665,10 +691,12 @@ GET /reminders/history
 ## Pagination
 
 For list endpoints, use these query parameters:
+
 - `page`: Page number (default: 1)
 - `limit`: Items per page (default: 10, max: 100)
 
 Response includes:
+
 ```json
 {
   "data": [...],
@@ -687,23 +715,23 @@ Response includes:
 
 ```typescript
 // Login
-const response = await fetch('http://localhost:3001/api/auth/login', {
-  method: 'POST',
+const response = await fetch("http://localhost:3001/api/auth/login", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    email: 'doctor@docita.com',
-    password: 'password123',
+    email: "doctor@docita.com",
+    password: "password123",
   }),
 });
 
 const { access_token } = await response.json();
 
 // Get patients
-const patients = await fetch('http://localhost:3001/api/patients', {
+const patients = await fetch("http://localhost:3001/api/patients", {
   headers: {
-    'Authorization': `Bearer ${access_token}`,
+    Authorization: `Bearer ${access_token}`,
   },
 });
 

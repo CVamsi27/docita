@@ -1,206 +1,332 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { 
+import { useState, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Badge } from "@workspace/ui/components/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table"
-import { 
+} from "@workspace/ui/components/table";
+import {
   Search,
   Eye,
-  Calendar,
+  Pill,
+  Download,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
-} from "lucide-react"
-import Link from "next/link"
-import { apiHooks } from "@/lib/api-hooks"
+  ArrowDown,
+} from "lucide-react";
+import Link from "next/link";
+import { apiHooks } from "@/lib/api-hooks";
+import { FeatureGate } from "@/components/common/feature-gate";
+import { Feature } from "@/lib/stores/permission-store";
+import { WhatsAppButton } from "@/components/common/whatsapp-button";
+import { format } from "date-fns";
 
-interface Prescription {
-  id: string
-  patient: { name: string }
-  createdAt: string
-  diagnosis: string
-}
+type SortKey = "date" | "patient" | "diagnosis" | "medications";
+type SortDirection = "asc" | "desc";
 
 export default function PrescriptionsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const { data: prescriptions = [], isLoading: loading } = apiHooks.usePrescriptions()
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: prescriptions = [], isLoading: loading } =
+    apiHooks.usePrescriptions();
+  const [sortConfig, setSortConfig] = useState<{
+    key: SortKey;
+    direction: SortDirection;
+  }>({
+    key: "date",
+    direction: "desc",
+  });
 
-  const handleSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc'
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
+  const downloadPDF = async (prescriptionId: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/prescriptions/${prescriptionId}/pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("docita_token")}`,
+          },
+        },
+      );
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `prescription-${prescriptionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to download PDF:", error);
     }
-    setSortConfig({ key, direction })
-  }
+  };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sortItems = <T extends any>(items: T[], keyMap: Record<string, string>) => {
-    if (!sortConfig) return items
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return [...items].sort((a: any, b: any) => {
-      const key = keyMap[sortConfig.key] || sortConfig.key
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const getValue = (obj: any, path: string) => {
-        return path.split('.').reduce((o, i) => o?.[i], obj)
+  const handleSort = (key: SortKey) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const filteredAndSortedPrescriptions = useMemo(() => {
+    let result = [...prescriptions];
+
+    // Filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((item) => {
+        const patientName = item.patient?.firstName
+          ? `${item.patient.firstName} ${item.patient.lastName}`.toLowerCase()
+          : "";
+        const diagnosis = (item.diagnosis || "").toLowerCase();
+        const phone = (item.patient?.phoneNumber || "").toLowerCase();
+        return (
+          patientName.includes(query) ||
+          diagnosis.includes(query) ||
+          phone.includes(query)
+        );
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let aValue: string | number = "";
+      let bValue: string | number = "";
+
+      switch (sortConfig.key) {
+        case "date":
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        case "patient":
+          aValue =
+            `${a.patient?.firstName || ""} ${a.patient?.lastName || ""}`.toLowerCase();
+          bValue =
+            `${b.patient?.firstName || ""} ${b.patient?.lastName || ""}`.toLowerCase();
+          break;
+        case "diagnosis":
+          aValue = (a.diagnosis || "").toLowerCase();
+          bValue = (b.diagnosis || "").toLowerCase();
+          break;
+        case "medications":
+          aValue = a.medications?.length || 0;
+          bValue = b.medications?.length || 0;
+          break;
       }
 
-      const aValue = getValue(a, key)
-      const bValue = getValue(b, key)
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
 
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
-      return 0
-    })
-  }
+    return result;
+  }, [prescriptions, searchQuery, sortConfig]);
 
-  const filterBySearch = (items: Prescription[]) => {
-    if (!searchQuery) return items
-    
-    const query = searchQuery.toLowerCase()
-    return items.filter(item => {
-      const patientName = item.patient.name.toLowerCase()
-      const date = new Date(item.createdAt).toLocaleDateString()
-      return patientName.includes(query) || date.includes(query)
-    })
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  const filteredPrescriptions = sortItems(filterBySearch(prescriptions), {
-    'date': 'createdAt',
-    'patient': 'patient.name',
-    'diagnosis': 'diagnosis'
-  })
-
-  const SortIcon = ({ column }: { column: string }) => {
-    if (sortConfig?.key !== column) {
-      return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
-    }
-    return sortConfig.direction === 'asc' ? 
-      <ArrowUp className="ml-2 h-4 w-4" /> : 
-      <ArrowDown className="ml-2 h-4 w-4" />
-  }
+  const SortableHeader = ({
+    column,
+    label,
+  }: {
+    column: SortKey;
+    label: string;
+  }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => handleSort(column)}
+      className="gap-1 h-8 px-0 font-medium hover:bg-transparent"
+    >
+      {label}
+      {sortConfig.key === column ? (
+        sortConfig.direction === "asc" ? (
+          <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowDown className="h-3 w-3" />
+        )
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-50" />
+      )}
+    </Button>
+  );
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Prescriptions</h1>
-          <p className="text-muted-foreground">
-            View and manage all patient prescriptions
+    <FeatureGate
+      feature={Feature.DIGITAL_PRESCRIPTIONS}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+          <Pill className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Digital Prescriptions</h2>
+          <p className="text-muted-foreground mb-4 max-w-md">
+            Create and manage digital prescriptions for your patients. Upgrade
+            to Core tier to unlock this feature.
+          </p>
+          <Button asChild>
+            <Link href="/settings?tab=subscription">Upgrade to Core</Link>
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Prescriptions</h1>
+            <p className="text-muted-foreground">
+              View and manage all patient prescriptions.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by patient, diagnosis, or phone..."
+              className="pl-9 bg-background"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <Card className="border-border shadow-sm">
+          <CardHeader>
+            <CardTitle>All Prescriptions</CardTitle>
+            <CardDescription>
+              A list of all prescriptions generated for patients
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-muted/50">
+                  <TableHead>Prescription ID</TableHead>
+                  <TableHead>
+                    <SortableHeader column="patient" label="Patient" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="diagnosis" label="Diagnosis" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="medications" label="Medications" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="date" label="Date" />
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      Loading prescriptions...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredAndSortedPrescriptions.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      No prescriptions found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAndSortedPrescriptions.map((prescription) => (
+                    <TableRow
+                      key={prescription.id}
+                      className="hover:bg-muted/50"
+                    >
+                      <TableCell className="font-mono text-sm">
+                        {(prescription.id || "").slice(0, 8).toUpperCase()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {prescription.patient?.firstName}{" "}
+                            {prescription.patient?.lastName}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {prescription.patient?.phoneNumber}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {prescription.diagnosis || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          <Pill className="h-3 w-3 mr-1" />
+                          {prescription.medications?.length || 0} meds
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {format(
+                          new Date(prescription.createdAt),
+                          "MMM d, yyyy",
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="gap-2"
+                        >
+                          <Link href={`/prescriptions/${prescription.id}`}>
+                            <Eye className="h-4 w-4" />
+                            View
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadPDF(prescription.id || "")}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          PDF
+                        </Button>
+                        {prescription.patient?.phoneNumber && (
+                          <WhatsAppButton
+                            phoneNumber={prescription.patient.phoneNumber}
+                            message={`Hello ${prescription.patient.firstName}, here is your prescription from ${process.env.NEXT_PUBLIC_CLINIC_NAME || "Docita Clinic"}.`}
+                            variant="ghost"
+                            label=""
+                            className="h-8 w-8 p-0"
+                          />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredAndSortedPrescriptions.length} of{" "}
+            {prescriptions.length} prescriptions
           </p>
         </div>
       </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by patient name or date..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Prescriptions</CardTitle>
-          <CardDescription>A list of all prescriptions issued by the clinic.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleSort('date')}
-                >
-                  <div className="flex items-center">
-                    Date
-                    <SortIcon column="date" />
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleSort('patient')}
-                >
-                  <div className="flex items-center">
-                    Patient
-                    <SortIcon column="patient" />
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleSort('diagnosis')}
-                >
-                  <div className="flex items-center">
-                    Diagnosis
-                    <SortIcon column="diagnosis" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPrescriptions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    No prescriptions found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPrescriptions.map((prescription) => (
-                  <TableRow key={prescription.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {formatDate(prescription.createdAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell>{prescription.patient.name}</TableCell>
-                    <TableCell>{prescription.diagnosis || "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/prescriptions/${prescription.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  )
+    </FeatureGate>
+  );
 }

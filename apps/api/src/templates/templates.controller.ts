@@ -9,12 +9,34 @@ import {
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 
+interface TemplateField {
+  id: string;
+  label: string;
+  type: string;
+  options?: string[];
+}
+
+interface CreateTemplateDto {
+  name: string;
+  speciality: string;
+  fields: TemplateField[];
+  defaultObservations?: string;
+  clinicId?: string;
+}
+
+interface UpdateTemplateDto {
+  name?: string;
+  speciality?: string;
+  fields?: TemplateField[];
+  defaultObservations?: string;
+}
+
 @Controller('templates')
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
   @Post()
-  create(@Body() createTemplateDto: any) {
+  create(@Body() createTemplateDto: CreateTemplateDto) {
     return this.templatesService.create(createTemplateDto);
   }
 
@@ -29,7 +51,10 @@ export class TemplatesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTemplateDto: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTemplateDto: UpdateTemplateDto,
+  ) {
     return this.templatesService.update(id, updateTemplateDto);
   }
 

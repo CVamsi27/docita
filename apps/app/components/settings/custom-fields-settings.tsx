@@ -1,114 +1,142 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Plus, Trash2, Save, Loader2, GripVertical } from "lucide-react"
-import { API_URL } from "@/lib/api"
+import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Plus, Trash2, Save, Loader2, GripVertical } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
+import { useFormOptions } from "@/lib/app-config-context";
 
 interface CustomField {
-  id: string
-  name: string
-  fieldType: string
-  options?: string
-  required: boolean
-  order: number
+  id: string;
+  name: string;
+  fieldType: string;
+  options?: string;
+  required: boolean;
+  order: number;
 }
 
 export function CustomFieldsSettings() {
-  const [fields, setFields] = useState<CustomField[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [fields, setFields] = useState<CustomField[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
+
+  // Get field type options from config
+  const customFieldTypeOptions = useFormOptions("customFieldType");
+
   const [formData, setFormData] = useState({
     name: "",
     fieldType: "text",
     options: "",
     required: false,
-    order: 0
-  })
+    order: 0,
+  });
 
-  useEffect(() => {
-    loadFields()
-  }, [])
-
-  const loadFields = async () => {
+  const loadFields = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/custom-fields`)
-      if (res.ok) {
-        const data = await res.json()
-        setFields(data)
-      }
+      const data = await apiFetch<CustomField[]>(`/custom-fields`, {
+        showErrorToast: false,
+      });
+      setFields(data);
     } catch (error) {
-      console.error("Failed to load custom fields", error)
+      console.error("Failed to load custom fields", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, []);
+
+  // Use useSyncExternalStore to trigger initial fetch
+  useSyncExternalStore(
+    useCallback(() => {
+      if (!hasFetchedRef.current) {
+        hasFetchedRef.current = true;
+        loadFields();
+      }
+      return () => {};
+    }, [loadFields]),
+    () => fields,
+    () => [],
+  );
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true);
     try {
-      const url = editingId && editingId !== "new" 
-        ? `${API_URL}/custom-fields/${editingId}` 
-        : `${API_URL}/custom-fields`
-      
-      const method = editingId && editingId !== "new" ? "PUT" : "POST"
-      
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
+      const url =
+        editingId && editingId !== "new"
+          ? `/custom-fields/${editingId}`
+          : `/custom-fields`;
 
-      if (res.ok) {
-        await loadFields()
-        setEditingId(null)
-        setFormData({ name: "", fieldType: "text", options: "", required: false, order: 0 })
-      }
+      const method = editingId && editingId !== "new" ? "PUT" : "POST";
+
+      await apiFetch(url, {
+        method,
+        body: JSON.stringify(formData),
+      });
+
+      await loadFields();
+      setEditingId(null);
+      setFormData({
+        name: "",
+        fieldType: "text",
+        options: "",
+        required: false,
+        order: 0,
+      });
     } catch (error) {
-      console.error("Failed to save custom field", error)
+      console.error("Failed to save custom field", error);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleEdit = (field: CustomField) => {
-    setEditingId(field.id)
+    setEditingId(field.id);
     setFormData({
       name: field.name,
       fieldType: field.fieldType,
       options: field.options || "",
       required: field.required,
-      order: field.order
-    })
-  }
+      order: field.order,
+    });
+  };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this custom field?")) return
-    
+    if (!confirm("Are you sure you want to delete this custom field?")) return;
+
     try {
-      const res = await fetch(`${API_URL}/custom-fields/${id}`, {
-        method: "DELETE"
-      })
-      if (res.ok) {
-        await loadFields()
-      }
+      await apiFetch(`/custom-fields/${id}`, {
+        method: "DELETE",
+      });
+      await loadFields();
     } catch (error) {
-      console.error("Failed to delete custom field", error)
+      console.error("Failed to delete custom field", error);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
   return (
@@ -123,7 +151,9 @@ export function CustomFieldsSettings() {
       {editingId ? (
         <Card>
           <CardHeader>
-            <CardTitle>{editingId === "new" ? "New Custom Field" : "Edit Custom Field"}</CardTitle>
+            <CardTitle>
+              {editingId === "new" ? "New Custom Field" : "Edit Custom Field"}
+            </CardTitle>
             <CardDescription>Configure the field properties</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -133,22 +163,29 @@ export function CustomFieldsSettings() {
                 id="field-name"
                 placeholder="e.g., Insurance Provider"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="field-type">Field Type</Label>
-              <Select value={formData.fieldType} onValueChange={(val) => setFormData({ ...formData, fieldType: val })}>
+              <Select
+                value={formData.fieldType}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, fieldType: val })
+                }
+              >
                 <SelectTrigger id="field-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="text">Text</SelectItem>
-                  <SelectItem value="number">Number</SelectItem>
-                  <SelectItem value="select">Select (Dropdown)</SelectItem>
-                  <SelectItem value="date">Date</SelectItem>
-                  <SelectItem value="checkbox">Checkbox</SelectItem>
+                  {customFieldTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -160,7 +197,9 @@ export function CustomFieldsSettings() {
                   id="field-options"
                   placeholder="e.g., Gold, Silver, Bronze"
                   value={formData.options}
-                  onChange={(e) => setFormData({ ...formData, options: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, options: e.target.value })
+                  }
                 />
               </div>
             )}
@@ -169,9 +208,14 @@ export function CustomFieldsSettings() {
               <Checkbox
                 id="field-required"
                 checked={formData.required}
-                onCheckedChange={(checked: boolean) => setFormData({ ...formData, required: checked })}
+                onCheckedChange={(checked: boolean) =>
+                  setFormData({ ...formData, required: checked })
+                }
               />
-              <Label htmlFor="field-required" className="text-sm font-normal cursor-pointer">
+              <Label
+                htmlFor="field-required"
+                className="text-sm font-normal cursor-pointer"
+              >
                 Required field
               </Label>
             </div>
@@ -181,7 +225,11 @@ export function CustomFieldsSettings() {
                 Cancel
               </Button>
               <Button onClick={handleSave} disabled={saving || !formData.name}>
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {saving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Save Field
               </Button>
             </div>
@@ -204,15 +252,24 @@ export function CustomFieldsSettings() {
                       <div>
                         <p className="font-medium">{field.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          Type: {field.fieldType} {field.required && "• Required"}
+                          Type: {field.fieldType}{" "}
+                          {field.required && "• Required"}
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(field)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(field)}
+                      >
                         Edit
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(field.id)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(field.id)}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -223,9 +280,12 @@ export function CustomFieldsSettings() {
           ) : (
             <Card>
               <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                <p className="text-muted-foreground">No custom fields defined yet.</p>
+                <p className="text-muted-foreground">
+                  No custom fields defined yet.
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Click &quot;Add Custom Field&quot; to create your first custom patient field.
+                  Click &quot;Add Custom Field&quot; to create your first custom
+                  patient field.
                 </p>
               </CardContent>
             </Card>
@@ -233,5 +293,5 @@ export function CustomFieldsSettings() {
         </>
       )}
     </div>
-  )
+  );
 }

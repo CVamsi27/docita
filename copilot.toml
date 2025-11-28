@@ -1,0 +1,56 @@
+[tools.copilot]
+style = "strict"
+
+[tools.copilot.rules]
+# LANGUAGE + GENERAL STYLE
+language = "prefer TypeScript everywhere unless explicitly required otherwise"
+noComments = "do not generate comments or console logs unless explicitly instructed"
+noDeadCode = "avoid unused imports, variables, or unreachable branches"
+cleanBuild = "produce code that does not create build errors or warnings"
+
+# ARCHITECTURE: CONSTANTS + TYPES
+constantsLocation = "place all constants in dedicated lib/const files with clear grouping"
+sharedTypes = "interfaces, types, schemas should live in a shared location for use across frontend and backend"
+zodValidation = "all shared types should use Zod schemas for validation and inference to keep backend and frontend synchronized"
+
+# FRONTEND: NEXT.JS + REACT
+frameworkChoice = "use Next.js App Router with server components by default, client components only when needed"
+uiStyle = "produce modern, minimal UI using TailwindCSS and shadcn/ui with consistent spacing, typography, and rounded corners"
+designPatterns = "follow React design patterns such as container/presenter components, hooks for reusable logic, and controlled components"
+routing = "use Next.js conventions for routes, layouts, loading, and error boundaries"
+apiCalls = "use React Query for all data fetching, mutations, caching, revalidation, and optimistic updates"
+forms = "use React Hook Form with Zod for schema-based validation"
+
+# BACKEND: NEST.JS
+backendPattern = "follow NestJS modular architecture: controllers, services, modules, DTOs, providers"
+dtoRules = "DTOs should integrate seamlessly with Zod schemas or generated types"
+exceptionHandling = "use NestJS filters, pipes, and interceptors; avoid ad-hoc error handling"
+dependencyInjection = "ensure modules and providers follow NestJS DI patterns"
+routingBackend = "use REST conventions or GraphQL resolvers according to the module’s structure"
+
+# DATABASE: PRISMA
+ormUsage = "use Prisma Client with typed queries; avoid raw SQL unless required"
+prismaPatterns = "schema should remain clean, normalized, and consistent; generate reusable database utilities when useful"
+migrations = "use Prisma migration workflow to avoid schema drift"
+
+# DOCKER + DEPLOYMENT
+dockerStyle = "use multi-stage Docker builds optimized for production with minimal image size"
+envHandling = "never hardcode environment variables; ensure all configs come from .env with schema validation"
+productionBuild = "generate optimized Next.js and NestJS builds according to environment"
+
+# AWS + DEVOPS
+awsPatterns = "use AWS services with clean configurations: ECS/Fargate or EC2 for apps, S3 for static assets, RDS for databases, CloudWatch for logs, Parameter Store or Secrets Manager for secrets"
+ciCd = "ensure generated code aligns with CI/CD pipelines and container workflows"
+scalability = "prefer stateless services compatible with horizontal scaling"
+
+# TAILWIND + SHADCN/UI
+cssRules = "use Tailwind utility classes; avoid inline styles unless necessary"
+componentStyle = "use shadcn/ui components with proper variants, accessibility props, and responsive patterns"
+themeConsistency = "follow consistent design tokens; avoid arbitrary colors"
+
+# TESTING
+testing = "use Jest or Vitest for unit tests and Playwright or Cypress for integration tests"
+
+# PROJECT ORGANIZATION
+folderStructure = "use clean architecture; maintain clear separation of ui, hooks, lib, services, prisma, and modules"
+monorepoBehavior = "keep structure compatible with turborepo-style expansion if needed"
