@@ -22,6 +22,11 @@ import { DoctorClinicsModule } from './doctor-clinics/doctor-clinics.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
+import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { PrescriptionTemplatesModule } from './prescription-templates/prescription-templates.module';
+import { MedicalCodingModule } from './medical-coding/medical-coding.module';
 
 @Module({
   imports: [
@@ -49,7 +54,13 @@ import { join } from 'path';
     AnalyticsModule,
     RemindersModule,
     ClinicsModule,
+    ClinicsModule,
     DoctorClinicsModule,
+    PaymentsModule,
+    WhatsappModule,
+    SuperAdminModule,
+    PrescriptionTemplatesModule,
+    MedicalCodingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

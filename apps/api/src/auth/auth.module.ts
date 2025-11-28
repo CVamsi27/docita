@@ -6,15 +6,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
-    imports: [
-        PrismaModule,
-        JwtModule.register({
-            secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-prod',
-            signOptions: { expiresIn: (process.env.JWT_EXPIRATION || '7d') as any },
-        }),
-    ],
-    providers: [AuthService, JwtStrategy],
-    controllers: [AuthController],
-    exports: [AuthService],
+  imports: [
+    PrismaModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-prod',
+      signOptions: { expiresIn: (process.env.JWT_EXPIRATION || '7d') as any },
+    }),
+  ],
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController],
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

@@ -4,7 +4,14 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --filter=web --filter=api",
+    "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=api",
+    "dev:landing": "turbo dev --filter=@docita/landing",
+    "dev:app": "turbo dev --filter=@docita/app --filter=api",
+    "dev:admin": "turbo dev --filter=@docita/admin --filter=api",
+    "build:landing": "turbo build --filter=@docita/landing",
+    "build:app": "turbo build --filter=@docita/app",
+    "build:admin": "turbo build --filter=@docita/admin",
+    "build:api": "turbo build --filter=api",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

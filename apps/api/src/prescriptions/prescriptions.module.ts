@@ -4,8 +4,8 @@ import { PrescriptionsService } from './prescriptions.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [PrescriptionsController],
-    providers: [PrescriptionsService],
+  imports: [PrismaModule],
+  controllers: [PrescriptionsController],
+  providers: [PrescriptionsService],
 })
-export class PrescriptionsModule { }
+export class PrescriptionsModule {}

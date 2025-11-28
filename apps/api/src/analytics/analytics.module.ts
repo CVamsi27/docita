@@ -4,9 +4,9 @@ import { AnalyticsService } from './analytics.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [AnalyticsController],
-    providers: [AnalyticsService],
-    exports: [AnalyticsService],
+  imports: [PrismaModule],
+  controllers: [AnalyticsController],
+  providers: [AnalyticsService],
+  exports: [AnalyticsService],
 })
-export class AnalyticsModule { }
+export class AnalyticsModule {}
