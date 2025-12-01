@@ -5,17 +5,29 @@ import { MonitoringService } from './monitoring.service';
 @Injectable()
 export class MetricsScheduler {
   private readonly logger = new Logger(MetricsScheduler.name);
+  private isRecordingMetrics = false;
 
   constructor(private monitoringService: MonitoringService) {}
 
-  // Record system metrics every 5 minutes
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  // Record system metrics every 10 minutes (reduced from 5 to prevent connection pool exhaustion)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async recordSystemMetrics() {
+    // Prevent overlapping executions
+    if (this.isRecordingMetrics) {
+      this.logger.debug(
+        'Skipping metrics recording - previous job still running',
+      );
+      return;
+    }
+
+    this.isRecordingMetrics = true;
     try {
       await this.monitoringService.recordSystemMetrics();
       this.logger.debug('System metrics recorded');
     } catch (error) {
       this.logger.error('Failed to record system metrics', error);
+    } finally {
+      this.isRecordingMetrics = false;
     }
   }
 

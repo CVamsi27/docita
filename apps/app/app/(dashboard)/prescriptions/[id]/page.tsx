@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import { ArrowLeft, Printer, Share2, Edit, Loader2, Lock } from "lucide-react";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export default function PrescriptionViewPage() {
   const { canAccess } = usePermissionStore();
   const { clinic: contextClinic } = useClinic();
   const hasWhatsAppAccess = canAccess(Feature.ONE_WAY_WHATSAPP);
+  const goBack = useSmartBack("/patients");
 
   const {
     data: prescription,
@@ -146,7 +148,7 @@ export default function PrescriptionViewPage() {
       {/* Header - Hidden on Print */}
       <div className="flex items-center justify-between print:hidden">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

@@ -75,7 +75,12 @@ export default function WhatsAppPage() {
                 Send health tips, clinic updates, or holiday notices to your
                 patient list.
               </p>
-              <Button className="w-full">Create Campaign</Button>
+              <Button className="w-full" disabled>
+                Create Campaign
+                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                  Coming Soon
+                </span>
+              </Button>
             </CardContent>
           </Card>
 
@@ -100,8 +105,11 @@ export default function WhatsAppPage() {
                 <span>Birthday Wishes</span>
                 <span className="text-muted-foreground">Off</span>
               </div>
-              <Button variant="outline" className="w-full mt-2">
+              <Button variant="outline" className="w-full mt-2" disabled>
                 Manage Settings
+                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                  Coming Soon
+                </span>
               </Button>
             </CardContent>
           </Card>

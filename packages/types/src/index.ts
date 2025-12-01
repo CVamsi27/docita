@@ -17,6 +17,15 @@ export * from "./imports.js";
 // Payment Types
 export * from "./payments.js";
 
+// Date/Time Utilities
+export * from "./date-utils.js";
+
+// Medical Validation
+export * from "./medical-validation.js";
+
+// Contraindication Checking
+export * from "./contraindication-checker.js";
+
 // ============================================================================
 // User & Auth Schemas
 // ============================================================================
@@ -322,8 +331,266 @@ export type User = z.infer<typeof userSchema>;
 // Patient Schemas
 // ============================================================================
 
-export const genderSchema = z.enum(["MALE", "FEMALE", "OTHER"]);
+export const genderSchema = z.enum([
+  "MALE",
+  "FEMALE",
+  "OTHER",
+  "INTERSEX",
+  "NON_BINARY",
+  "PREFER_NOT_TO_SAY",
+]);
 export type Gender = z.infer<typeof genderSchema>;
+
+export const GENDER_LABELS: Record<Gender, string> = {
+  MALE: "Male",
+  FEMALE: "Female",
+  OTHER: "Other",
+  INTERSEX: "Intersex",
+  NON_BINARY: "Non-Binary",
+  PREFER_NOT_TO_SAY: "Prefer Not to Say",
+};
+
+// ============================================================================
+// Hospital-Grade Medical Enums
+// ============================================================================
+
+// Code Status - Critical patient safety information (DNR/Full Code)
+export const codeStatusSchema = z.enum([
+  "FULL_CODE",
+  "DNR",
+  "DNI",
+  "DNR_DNI",
+  "COMFORT_CARE",
+]);
+export type CodeStatus = z.infer<typeof codeStatusSchema>;
+
+export const CODE_STATUS_LABELS: Record<CodeStatus, string> = {
+  FULL_CODE: "Full Code",
+  DNR: "DNR (Do Not Resuscitate)",
+  DNI: "DNI (Do Not Intubate)",
+  DNR_DNI: "DNR/DNI",
+  COMFORT_CARE: "Comfort Care Only",
+};
+
+// Blood Pressure Position - Clinical context for BP readings
+export const bpPositionSchema = z.enum([
+  "SITTING",
+  "STANDING",
+  "LYING",
+  "UNKNOWN",
+]);
+export type BpPosition = z.infer<typeof bpPositionSchema>;
+
+export const BP_POSITION_LABELS: Record<BpPosition, string> = {
+  SITTING: "Sitting",
+  STANDING: "Standing",
+  LYING: "Lying/Supine",
+  UNKNOWN: "Unknown",
+};
+
+// Oxygen Delivery Method
+export const oxygenDeliverySchema = z.enum([
+  "ROOM_AIR",
+  "NASAL_CANNULA",
+  "SIMPLE_MASK",
+  "NON_REBREATHER",
+  "VENTURI_MASK",
+  "HIGH_FLOW",
+  "CPAP",
+  "BIPAP",
+  "VENTILATOR",
+  "OTHER",
+]);
+export type OxygenDelivery = z.infer<typeof oxygenDeliverySchema>;
+
+export const OXYGEN_DELIVERY_LABELS: Record<OxygenDelivery, string> = {
+  ROOM_AIR: "Room Air",
+  NASAL_CANNULA: "Nasal Cannula",
+  SIMPLE_MASK: "Simple Mask",
+  NON_REBREATHER: "Non-Rebreather Mask",
+  VENTURI_MASK: "Venturi Mask",
+  HIGH_FLOW: "High-Flow Nasal Cannula",
+  CPAP: "CPAP",
+  BIPAP: "BiPAP",
+  VENTILATOR: "Mechanical Ventilator",
+  OTHER: "Other",
+};
+
+// Dosage Form - Pharmaceutical dosage forms
+export const dosageFormSchema = z.enum([
+  "TABLET",
+  "CAPSULE",
+  "SOLUTION",
+  "SUSPENSION",
+  "INJECTION",
+  "CREAM",
+  "OINTMENT",
+  "GEL",
+  "PATCH",
+  "INHALER",
+  "NEBULIZER",
+  "SUPPOSITORY",
+  "DROPS",
+  "SPRAY",
+  "POWDER",
+  "LOZENGE",
+  "FILM",
+  "OTHER",
+]);
+export type DosageForm = z.infer<typeof dosageFormSchema>;
+
+export const DOSAGE_FORM_LABELS: Record<DosageForm, string> = {
+  TABLET: "Tablet",
+  CAPSULE: "Capsule",
+  SOLUTION: "Solution",
+  SUSPENSION: "Suspension",
+  INJECTION: "Injection",
+  CREAM: "Cream",
+  OINTMENT: "Ointment",
+  GEL: "Gel",
+  PATCH: "Patch",
+  INHALER: "Inhaler",
+  NEBULIZER: "Nebulizer Solution",
+  SUPPOSITORY: "Suppository",
+  DROPS: "Drops",
+  SPRAY: "Spray",
+  POWDER: "Powder",
+  LOZENGE: "Lozenge",
+  FILM: "Film",
+  OTHER: "Other",
+};
+
+// Standardized Frequency Codes (SIG codes)
+export const sigCodeSchema = z.enum([
+  "QD",
+  "BID",
+  "TID",
+  "QID",
+  "Q4H",
+  "Q6H",
+  "Q8H",
+  "Q12H",
+  "QHS",
+  "QAM",
+  "QPM",
+  "QOD",
+  "QWK",
+  "PRN",
+  "STAT",
+  "AC",
+  "PC",
+  "OTHER",
+]);
+export type SigCode = z.infer<typeof sigCodeSchema>;
+
+export const SIG_CODE_LABELS: Record<SigCode, string> = {
+  QD: "Once Daily",
+  BID: "Twice Daily",
+  TID: "Three Times Daily",
+  QID: "Four Times Daily",
+  Q4H: "Every 4 Hours",
+  Q6H: "Every 6 Hours",
+  Q8H: "Every 8 Hours",
+  Q12H: "Every 12 Hours",
+  QHS: "At Bedtime",
+  QAM: "Every Morning",
+  QPM: "Every Evening",
+  QOD: "Every Other Day",
+  QWK: "Once Weekly",
+  PRN: "As Needed",
+  STAT: "Immediately",
+  AC: "Before Meals",
+  PC: "After Meals",
+  OTHER: "Other",
+};
+
+// Consent Types
+export const consentTypeSchema = z.enum([
+  "TREATMENT",
+  "PROCEDURE",
+  "SURGERY",
+  "ANESTHESIA",
+  "HIPAA_RELEASE",
+  "RESEARCH",
+  "PHOTO_VIDEO",
+  "TELEHEALTH",
+  "MINOR_GUARDIAN",
+  "BLOOD_TRANSFUSION",
+  "VACCINATION",
+]);
+export type ConsentType = z.infer<typeof consentTypeSchema>;
+
+export const CONSENT_TYPE_LABELS: Record<ConsentType, string> = {
+  TREATMENT: "General Treatment",
+  PROCEDURE: "Procedure Consent",
+  SURGERY: "Surgical Consent",
+  ANESTHESIA: "Anesthesia Consent",
+  HIPAA_RELEASE: "HIPAA Information Release",
+  RESEARCH: "Research Participation",
+  PHOTO_VIDEO: "Photo/Video Consent",
+  TELEHEALTH: "Telemedicine Consent",
+  MINOR_GUARDIAN: "Guardian Consent for Minor",
+  BLOOD_TRANSFUSION: "Blood Transfusion Consent",
+  VACCINATION: "Vaccination Consent",
+};
+
+// Consent Status
+export const consentStatusSchema = z.enum([
+  "ACTIVE",
+  "REVOKED",
+  "EXPIRED",
+  "PENDING",
+]);
+export type ConsentStatus = z.infer<typeof consentStatusSchema>;
+
+export const CONSENT_STATUS_LABELS: Record<ConsentStatus, string> = {
+  ACTIVE: "Active",
+  REVOKED: "Revoked",
+  EXPIRED: "Expired",
+  PENDING: "Pending Signature",
+};
+
+// Immunization Route
+export const immunizationRouteSchema = z.enum([
+  "IM",
+  "SC",
+  "ID",
+  "PO",
+  "IN",
+  "OTHER",
+]);
+export type ImmunizationRoute = z.infer<typeof immunizationRouteSchema>;
+
+export const IMMUNIZATION_ROUTE_LABELS: Record<ImmunizationRoute, string> = {
+  IM: "Intramuscular",
+  SC: "Subcutaneous",
+  ID: "Intradermal",
+  PO: "Oral",
+  IN: "Intranasal",
+  OTHER: "Other",
+};
+
+// Immunization Site
+export const immunizationSiteSchema = z.enum([
+  "LEFT_ARM",
+  "RIGHT_ARM",
+  "LEFT_THIGH",
+  "RIGHT_THIGH",
+  "LEFT_DELTOID",
+  "RIGHT_DELTOID",
+  "OTHER",
+]);
+export type ImmunizationSite = z.infer<typeof immunizationSiteSchema>;
+
+export const IMMUNIZATION_SITE_LABELS: Record<ImmunizationSite, string> = {
+  LEFT_ARM: "Left Arm",
+  RIGHT_ARM: "Right Arm",
+  LEFT_THIGH: "Left Thigh",
+  RIGHT_THIGH: "Right Thigh",
+  LEFT_DELTOID: "Left Deltoid",
+  RIGHT_DELTOID: "Right Deltoid",
+  OTHER: "Other",
+};
 
 export const patientTagSchema = z.object({
   id: z.string(),
@@ -334,8 +601,11 @@ export type PatientTag = z.infer<typeof patientTagSchema>;
 
 export const patientSchema = z.object({
   id: z.string().optional(),
+  mrn: z.string().optional(), // Medical Record Number
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  preferredName: z.string().optional(),
+  pronouns: z.string().optional(),
   dateOfBirth: z.string().or(z.date()),
   gender: genderSchema,
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -344,6 +614,25 @@ export const patientSchema = z.object({
   medicalHistory: z.array(z.string()).optional(),
   bloodGroup: z.string().optional(),
   allergies: z.string().optional(),
+  clinicId: z.string().optional(),
+
+  // Hospital-Grade Demographics
+  race: z.string().optional(),
+  ethnicity: z.string().optional(),
+  preferredLanguage: z.string().optional(),
+  maritalStatus: z.string().optional(),
+
+  // Emergency Contact
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  emergencyContactRelation: z.string().optional(),
+
+  // Patient Safety - Code Status (DNR/Full Code)
+  codeStatus: codeStatusSchema.optional(),
+  codeStatusUpdatedAt: z.string().or(z.date()).optional(),
+  codeStatusUpdatedBy: z.string().optional(),
+  advanceDirectiveUrl: z.string().optional(),
+
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
   tags: z.array(patientTagSchema).optional(),
@@ -367,6 +656,270 @@ export const updatePatientSchema = patientSchema.partial();
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
 // ============================================================================
+// Structured Medical History Schemas
+// ============================================================================
+
+// Medical Condition Types
+export const medicalConditionTypeSchema = z.enum([
+  "CHRONIC",
+  "ACUTE",
+  "CONGENITAL",
+  "INFECTIOUS",
+  "AUTOIMMUNE",
+  "PSYCHIATRIC",
+  "OTHER",
+]);
+export type MedicalConditionType = z.infer<typeof medicalConditionTypeSchema>;
+
+export const MEDICAL_CONDITION_TYPE_LABELS: Record<
+  MedicalConditionType,
+  string
+> = {
+  CHRONIC: "Chronic Condition",
+  ACUTE: "Acute Condition",
+  CONGENITAL: "Congenital",
+  INFECTIOUS: "Infectious Disease",
+  AUTOIMMUNE: "Autoimmune",
+  PSYCHIATRIC: "Psychiatric/Mental Health",
+  OTHER: "Other",
+};
+
+// Condition Status
+export const conditionStatusSchema = z.enum([
+  "ACTIVE",
+  "MANAGED",
+  "RESOLVED",
+  "IN_REMISSION",
+]);
+export type ConditionStatus = z.infer<typeof conditionStatusSchema>;
+
+export const CONDITION_STATUS_LABELS: Record<ConditionStatus, string> = {
+  ACTIVE: "Active",
+  MANAGED: "Managed",
+  RESOLVED: "Resolved",
+  IN_REMISSION: "In Remission",
+};
+
+export const CONDITION_STATUS_COLORS: Record<ConditionStatus, string> = {
+  ACTIVE: "destructive",
+  MANAGED: "secondary",
+  RESOLVED: "outline",
+  IN_REMISSION: "default",
+};
+
+// Condition Severity
+export const conditionSeveritySchema = z.enum([
+  "MILD",
+  "MODERATE",
+  "SEVERE",
+  "CRITICAL",
+]);
+export type ConditionSeverity = z.infer<typeof conditionSeveritySchema>;
+
+export const CONDITION_SEVERITY_LABELS: Record<ConditionSeverity, string> = {
+  MILD: "Mild",
+  MODERATE: "Moderate",
+  SEVERE: "Severe",
+  CRITICAL: "Critical",
+};
+
+export const CONDITION_SEVERITY_COLORS: Record<ConditionSeverity, string> = {
+  MILD: "bg-green-100 text-green-800 border-green-300",
+  MODERATE: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  SEVERE: "bg-orange-100 text-orange-800 border-orange-300",
+  CRITICAL: "bg-red-100 text-red-800 border-red-300",
+};
+
+// Source type for tracking how conditions were added
+export const conditionSourceTypeSchema = z.enum([
+  "MANUAL",
+  "AUTO_SUGGESTED",
+  "IMPORTED",
+]);
+export type ConditionSourceType = z.infer<typeof conditionSourceTypeSchema>;
+
+// Patient Medical Condition Schema
+export const patientMedicalConditionSchema = z.object({
+  id: z.string().optional(),
+  patientId: z.string(),
+  conditionName: z.string().min(1, "Condition name is required"),
+  icdCode: z.string().optional(),
+  conditionType: medicalConditionTypeSchema.default("CHRONIC"),
+  status: conditionStatusSchema.default("ACTIVE"),
+  severity: conditionSeveritySchema.optional(),
+  diagnosedDate: z.string().or(z.date()).optional(),
+  resolvedDate: z.string().or(z.date()).optional(),
+  diagnosedBy: z.string().optional(),
+  notes: z.string().optional(),
+  sourceType: conditionSourceTypeSchema.default("MANUAL"),
+  sourceAppointmentId: z.string().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type PatientMedicalCondition = z.infer<
+  typeof patientMedicalConditionSchema
+>;
+
+// Allergy Types
+export const allergyTypeSchema = z.enum([
+  "DRUG",
+  "FOOD",
+  "ENVIRONMENTAL",
+  "LATEX",
+  "INSECT",
+  "CONTRAST",
+  "OTHER",
+]);
+export type AllergyType = z.infer<typeof allergyTypeSchema>;
+
+export const ALLERGY_TYPE_LABELS: Record<AllergyType, string> = {
+  DRUG: "Drug/Medication",
+  FOOD: "Food",
+  ENVIRONMENTAL: "Environmental",
+  LATEX: "Latex",
+  INSECT: "Insect Sting/Bite",
+  CONTRAST: "Contrast Dye",
+  OTHER: "Other",
+};
+
+// Allergy Severity
+export const allergySeveritySchema = z.enum([
+  "MILD",
+  "MODERATE",
+  "SEVERE",
+  "LIFE_THREATENING",
+]);
+export type AllergySeverity = z.infer<typeof allergySeveritySchema>;
+
+export const ALLERGY_SEVERITY_LABELS: Record<AllergySeverity, string> = {
+  MILD: "Mild",
+  MODERATE: "Moderate",
+  SEVERE: "Severe",
+  LIFE_THREATENING: "Life-Threatening",
+};
+
+export const ALLERGY_SEVERITY_COLORS: Record<AllergySeverity, string> = {
+  MILD: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  MODERATE: "bg-orange-100 text-orange-800 border-orange-300",
+  SEVERE: "bg-red-100 text-red-800 border-red-300",
+  LIFE_THREATENING: "bg-red-200 text-red-900 border-red-500 animate-pulse",
+};
+
+// Patient Allergy Schema
+export const patientAllergySchema = z.object({
+  id: z.string().optional(),
+  patientId: z.string(),
+  allergen: z.string().min(1, "Allergen is required"),
+  allergyType: allergyTypeSchema.default("DRUG"),
+  severity: allergySeveritySchema.default("MODERATE"),
+  reaction: z.string().optional(),
+  onsetDate: z.string().or(z.date()).optional(),
+  verifiedBy: z.string().optional(),
+  verifiedAt: z.string().or(z.date()).optional(),
+  isVerified: z.boolean().default(false),
+  notes: z.string().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type PatientAllergy = z.infer<typeof patientAllergySchema>;
+
+// Family History Schema
+export const patientFamilyHistorySchema = z.object({
+  id: z.string().optional(),
+  patientId: z.string(),
+  condition: z.string().min(1, "Condition is required"),
+  relationship: z.string().min(1, "Relationship is required"),
+  ageAtOnset: z.number().optional(),
+  notes: z.string().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type PatientFamilyHistory = z.infer<typeof patientFamilyHistorySchema>;
+
+// Smoking Status
+export const smokingStatusSchema = z.enum([
+  "NEVER",
+  "FORMER",
+  "CURRENT",
+  "UNKNOWN",
+]);
+export type SmokingStatus = z.infer<typeof smokingStatusSchema>;
+
+export const SMOKING_STATUS_LABELS: Record<SmokingStatus, string> = {
+  NEVER: "Never Smoked",
+  FORMER: "Former Smoker",
+  CURRENT: "Current Smoker",
+  UNKNOWN: "Unknown",
+};
+
+// Alcohol Use Status
+export const alcoholUseStatusSchema = z.enum([
+  "NONE",
+  "OCCASIONAL",
+  "MODERATE",
+  "HEAVY",
+  "UNKNOWN",
+]);
+export type AlcoholUseStatus = z.infer<typeof alcoholUseStatusSchema>;
+
+export const ALCOHOL_USE_STATUS_LABELS: Record<AlcoholUseStatus, string> = {
+  NONE: "None",
+  OCCASIONAL: "Occasional",
+  MODERATE: "Moderate",
+  HEAVY: "Heavy",
+  UNKNOWN: "Unknown",
+};
+
+// Social History Schema
+export const patientSocialHistorySchema = z.object({
+  id: z.string().optional(),
+  patientId: z.string(),
+  smokingStatus: smokingStatusSchema.optional(),
+  smokingPackYears: z.number().optional(),
+  smokingQuitDate: z.string().or(z.date()).optional(),
+  alcoholUse: alcoholUseStatusSchema.optional(),
+  alcoholFrequency: z.string().optional(),
+  substanceUse: z.string().optional(),
+  occupation: z.string().optional(),
+  occupationalHazards: z.string().optional(),
+  exerciseFrequency: z.string().optional(),
+  dietaryRestrictions: z.string().optional(),
+  notes: z.string().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type PatientSocialHistory = z.infer<typeof patientSocialHistorySchema>;
+
+// Surgical History Schema
+export const patientSurgicalHistorySchema = z.object({
+  id: z.string().optional(),
+  patientId: z.string(),
+  procedureName: z.string().min(1, "Procedure name is required"),
+  procedureDate: z.string().or(z.date()).optional(),
+  hospital: z.string().optional(),
+  surgeon: z.string().optional(),
+  complications: z.string().optional(),
+  notes: z.string().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type PatientSurgicalHistory = z.infer<
+  typeof patientSurgicalHistorySchema
+>;
+
+// Extended Patient Schema with structured medical history
+export const patientWithMedicalHistorySchema = patientSchema.extend({
+  medicalConditions: z.array(patientMedicalConditionSchema).optional(),
+  patientAllergies: z.array(patientAllergySchema).optional(),
+  familyHistory: z.array(patientFamilyHistorySchema).optional(),
+  socialHistory: patientSocialHistorySchema.optional(),
+  surgicalHistory: z.array(patientSurgicalHistorySchema).optional(),
+});
+export type PatientWithMedicalHistory = z.infer<
+  typeof patientWithMedicalHistorySchema
+>;
+
+// ============================================================================
 // Vital Signs Schemas
 // ============================================================================
 
@@ -376,11 +929,30 @@ export const vitalSignSchema = z.object({
   height: z.number().optional(), // in cm
   weight: z.number().optional(), // in kg
   bmi: z.number().optional(), // calculated BMI
-  bloodPressure: z.string().optional(), // e.g. "120/80"
+
+  // Structured Blood Pressure (hospital-grade)
+  systolicBP: z
+    .number()
+    .min(60, "Systolic BP must be at least 60 mmHg")
+    .max(300, "Systolic BP cannot exceed 300 mmHg")
+    .optional(),
+  diastolicBP: z
+    .number()
+    .min(30, "Diastolic BP must be at least 30 mmHg")
+    .max(200, "Diastolic BP cannot exceed 200 mmHg")
+    .optional(),
+  bpPosition: bpPositionSchema.optional(), // Position during measurement
+  bloodPressure: z.string().optional(), // Legacy field: "120/80" format
+
   pulse: z.number().optional(), // bpm
   respiratoryRate: z.number().optional(), // breaths per minute
   temperature: z.number().optional(), // in Celsius
+
+  // SpO2 with delivery method
   spo2: z.number().optional(), // percentage
+  oxygenDelivery: oxygenDeliverySchema.optional(), // How O2 is delivered
+  oxygenFlowRate: z.number().optional(), // L/min if on supplemental O2
+
   painScore: z.number().min(0).max(10).optional(), // 0-10 scale
   bloodGlucose: z.number().optional(), // mg/dL
   notes: z.string().optional(),
@@ -388,6 +960,20 @@ export const vitalSignSchema = z.object({
   updatedAt: z.string().or(z.date()).optional(),
 });
 export type VitalSign = z.infer<typeof vitalSignSchema>;
+
+// Vital Signs validation refinement for BP consistency
+export const vitalSignSchemaRefined = vitalSignSchema.refine(
+  (data) => {
+    if (data.systolicBP && data.diastolicBP) {
+      return data.systolicBP > data.diastolicBP;
+    }
+    return true;
+  },
+  {
+    message: "Systolic BP must be greater than diastolic BP",
+    path: ["systolicBP"],
+  },
+);
 
 // ============================================================================
 // Clinical Examination Schemas (SOAP Format)
@@ -625,6 +1211,27 @@ export const medicationSchema = z.object({
   frequency: z.string(),
   duration: z.string(),
   route: z.string().default("PO"),
+
+  // Hospital-Grade Drug Identification
+  ndcCode: z.string().optional(), // National Drug Code
+  rxNormCui: z.string().optional(), // RxNorm Concept Unique Identifier
+  dosageForm: dosageFormSchema.optional(),
+  strengthValue: z.number().optional(),
+  strengthUnit: z.string().optional(), // e.g., "mg", "mL"
+
+  // Prescription details
+  quantity: z.number().optional(),
+  refillsAllowed: z.number().min(0).max(11).optional(), // 0-11 refills
+  dispenseAsWritten: z.boolean().optional(), // DAW flag
+  sigCode: sigCodeSchema.optional(), // Standard sig code
+
+  // Date tracking
+  startDate: z.string().or(z.date()).optional(),
+  endDate: z.string().or(z.date()).optional(),
+
+  // PRN (as needed) medications
+  isPRN: z.boolean().optional(),
+  prnInstructions: z.string().optional(), // e.g., "Take for pain"
 });
 export type Medication = z.infer<typeof medicationSchema>;
 
@@ -818,7 +1425,6 @@ export const createAppointmentSchema = appointmentSchema
     id: true,
     createdAt: true,
     updatedAt: true,
-    doctorId: true,
     patient: true,
     doctor: true,
     vitalSign: true,

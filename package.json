@@ -4,14 +4,17 @@
   "private": true,
   "scripts": {
     "build": "pnpm exec prettier . --write && turbo build",
-    "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=api",
+    "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --filter=@docita/landing",
-    "dev:app": "turbo dev --filter=@docita/app --filter=api",
-    "dev:admin": "turbo dev --filter=@docita/admin --filter=api",
+    "dev:app": "turbo dev --filter=@docita/app --filter=@docita/api",
+    "dev:admin": "turbo dev --filter=@docita/admin --filter=@docita/api",
     "build:landing": "turbo build --filter=@docita/landing",
     "build:app": "turbo build --filter=@docita/app",
     "build:admin": "turbo build --filter=@docita/admin",
-    "build:api": "turbo build --filter=api",
+    "build:api": "turbo build --filter=@docita/api",
+    "test": "turbo test",
+    "test:api": "turbo test --filter=@docita/api",
+    "test:e2e": "turbo test --filter=@docita/app",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
@@ -19,6 +22,7 @@
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
     "turbo": "^2.5.5",
     "typescript": "5.7.3"
   },
@@ -39,6 +43,7 @@
     "bull": "^4.16.5",
     "cache-manager": "^7.2.5",
     "cache-manager-redis-store": "^3.0.1",
+    "react-hook-form": "^7.66.1",
     "redis": "^5.10.0",
     "web-vitals": "^5.1.0"
   }

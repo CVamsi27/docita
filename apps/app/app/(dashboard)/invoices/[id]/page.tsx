@@ -13,6 +13,7 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { Badge } from "@workspace/ui/components/badge";
 import { apiHooks } from "@/lib/api-hooks";
@@ -50,6 +51,7 @@ export default function InvoiceViewPage() {
   const { canAccess } = usePermissionStore();
   const { clinic: contextClinic } = useClinic();
   const hasWhatsAppAccess = canAccess(Feature.ONE_WAY_WHATSAPP);
+  const goBack = useSmartBack("/invoices");
 
   const { data: invoice, isLoading, error } = apiHooks.useInvoice(invoiceId);
 
@@ -145,7 +147,7 @@ export default function InvoiceViewPage() {
       {/* Header - Hidden on Print */}
       <div className="flex items-center justify-between print:hidden">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

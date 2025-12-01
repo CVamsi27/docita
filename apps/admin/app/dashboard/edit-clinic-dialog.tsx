@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -84,15 +84,15 @@ export function EditClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const lastClinicIdRef = useRef<string | null>(null);
   const [formData, setFormData] = useState(() => getInitialFormData(clinic));
 
-  // Sync form data when clinic changes (without useEffect)
-  if (clinic?.id !== lastClinicIdRef.current) {
-    lastClinicIdRef.current = clinic?.id ?? null;
-    const newFormData = getInitialFormData(clinic);
-    setFormData(newFormData);
-  }
+  // Reset form data when dialog opens to ensure latest clinic data is used
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setFormData(getInitialFormData(clinic));
+    }
+    setOpen(newOpen);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +125,7 @@ export function EditClinicDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Pencil className="h-4 w-4" />

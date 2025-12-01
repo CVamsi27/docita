@@ -196,10 +196,14 @@ const DEFAULT_CONFIG: TierConfigData = {
 // Currency conversion multipliers (INR is base)
 const CURRENCY_MULTIPLIERS: Record<string, number> = {
   INR: 1,
-  USD: 0.012,
-  GBP: 0.0095,
-  EUR: 0.011,
-  AUD: 0.018,
+  USD: 0.04,
+  GBP: 0.028,
+  EUR: 0.03,
+  AUD: 0.05,
+  CAD: 0.048,
+  SGD: 0.045,
+  AED: 0.13,
+  ZAR: 0.6,
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -208,6 +212,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   GBP: "£",
   EUR: "€",
   AUD: "A$",
+  CAD: "C$",
+  SGD: "S$",
+  AED: "AED",
+  ZAR: "R",
 };
 
 // Fetch function for tier config

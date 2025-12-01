@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useCallback, useEffect, useState } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { PatientTagManager } from "@/components/patients/patient-tag-manager";
 import { WhatsAppButton } from "@/components/common/whatsapp-button";
+import { FhirExportDialog } from "@/components/patients/fhir-export-dialog";
 import { usePatientData } from "@/hooks/use-patient-data";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -14,7 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
 import { useClinic } from "@/lib/clinic-context";
 import { PatientProfileHeader } from "@/components/patients/patient-profile-header";
@@ -24,6 +25,7 @@ import {
   ArrowLeft,
   Calendar,
   FileText,
+  FileJson,
   Pill,
   Activity,
   Stethoscope,
@@ -39,17 +41,10 @@ export default function PatientDetailPage() {
   const { patient, appointments, documents, loading, refetch } = usePatientData(
     params.id as string,
   );
-  const { popRoute, pushRoute } = useNavigationStore();
+  const goBack = useSmartBack("/");
   const { clinic } = useClinic();
   const { canAccess } = usePermissionStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  // Track this page in navigation history using useEffect to avoid setState during render
-  useEffect(() => {
-    if (params.id) {
-      pushRoute(`/patients/${params.id}`);
-    }
-  }, [params.id, pushRoute]);
 
   const age = useMemo(
     () =>
@@ -94,17 +89,8 @@ export default function PatientDetailPage() {
   }, [router, patient?.id]);
 
   const handleBackToPatients = useCallback(() => {
-    const previousRoute = popRoute();
-    if (
-      previousRoute &&
-      patient?.id &&
-      previousRoute !== `/patients/${patient.id}`
-    ) {
-      router.push(previousRoute);
-    } else {
-      router.push("/patients");
-    }
-  }, [router, patient?.id, popRoute]);
+    goBack();
+  }, [goBack]);
 
   const { repeatPrescription } = useRepeatPrescription();
 
@@ -171,6 +157,15 @@ export default function PatientDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
+          <FhirExportDialog
+            patientId={patient.id!}
+            patientName={`${patient.firstName} ${patient.lastName}`}
+          >
+            <Button variant="outline" className="rounded-full">
+              <FileJson className="mr-2 h-4 w-4" />
+              Export FHIR
+            </Button>
+          </FhirExportDialog>
           <WhatsAppButton
             phoneNumber={patient.phoneNumber}
             message={`Hello ${patient.firstName}, this is a message from ${clinic?.name || "Docita Clinic"}.`}

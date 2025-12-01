@@ -28,7 +28,11 @@ import { format, differenceInYears } from "date-fns";
 // Import new enhanced components
 import { ConsultationTimer } from "@/components/consultation/consultation-timer";
 import { QuickFollowUp } from "@/components/appointments/follow-up-scheduler";
-import { AllergyAlert } from "@/components/consultation/patient-summary-card";
+import {
+  AllergyAlert,
+  CodeStatusAlert,
+  type CodeStatus,
+} from "@/components/consultation/patient-summary-card";
 import { VoiceRecorder } from "@/components/common/voice-recorder";
 import { DrugInteractionCheckerDynamic } from "@/lib/dynamic-imports";
 
@@ -44,6 +48,10 @@ interface PatientInfo {
   medicalHistory?: string | string[];
   allergies?: string | string[];
   bloodGroup?: string;
+  // Hospital-grade patient safety fields
+  codeStatus?: CodeStatus;
+  codeStatusUpdatedAt?: string | Date;
+  codeStatusUpdatedBy?: string;
 }
 
 interface DoctorInfo {
@@ -112,6 +120,15 @@ export function EnhancedConsultationSidebar({
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-4 bg-muted/30">
+      {/* Code Status Alert Banner - CRITICAL patient safety info - Always on top */}
+      {patient.codeStatus && patient.codeStatus !== "FULL_CODE" && (
+        <CodeStatusAlert
+          codeStatus={patient.codeStatus}
+          updatedAt={patient.codeStatusUpdatedAt}
+          updatedBy={patient.codeStatusUpdatedBy}
+        />
+      )}
+
       {/* Allergy Alert Banner - Always on top if present */}
       {allergiesArray.length > 0 && (
         <AllergyAlert allergies={formattedAllergies} />

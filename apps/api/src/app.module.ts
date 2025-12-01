@@ -38,6 +38,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
+import { FhirModule } from './fhir/fhir.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { CacheConfigModule } from './cache/cache.module';
     LabTestsModule,
     InventoryModule,
     FeedbackModule,
+    FhirModule,
   ],
   controllers: [AppController],
   providers: [AppService, PaymentGateway],

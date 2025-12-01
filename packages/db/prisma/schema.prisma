@@ -145,38 +145,249 @@ model DoctorTimeOff {
 }
 
 model Patient {
-  id                String           @id @default(cuid())
-  firstName         String
-  lastName          String
-  dateOfBirth       DateTime
-  phoneNumber       String
-  email             String?
-  address           String?
-  medicalHistory    String[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  allergies         String?
-  bloodGroup        String?
-  clinicId          String
-  customData        Json?            @default("{}")
-  gender            Gender
-  whatsappConsent   Boolean          @default(false)
-  whatsappConsentAt DateTime?
-  appointments      Appointment[]
-  documents         Document[]
-  invoices          Invoice[]
-  clinic            Clinic           @relation(fields: [clinicId], references: [id])
-  tags              PatientTag[]
-  paymentSessions   PaymentSession[]
-  prescriptions     Prescription[]
-  queueTokens       QueueToken[]
-  whatsappLogs      WhatsappLog[]
+  id                       String           @id @default(cuid())
+  // Medical Record Number - Clinic-prefixed sequential (e.g., "DOC-00001")
+  mrn                      String?          @unique
+  firstName                String
+  lastName                 String
+  preferredName            String?          // Name patient prefers to be called
+  pronouns                 String?          // e.g., "he/him", "she/her", "they/them"
+  dateOfBirth              DateTime
+  phoneNumber              String
+  email                    String?
+  address                  String?
+  medicalHistory           String[]         // Legacy field - kept for backward compatibility
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  allergies                String?          // Legacy field - kept for backward compatibility
+  bloodGroup               String?
+  clinicId                 String
+  customData               Json?            @default("{}")
+  gender                   Gender
+  
+  // Hospital-Grade Demographics (Compliance: HL7, USCDI, Meaningful Use)
+  race                     String?          // e.g., "White", "Black", "Asian", "Native American", etc.
+  ethnicity                String?          // e.g., "Hispanic or Latino", "Not Hispanic or Latino"
+  preferredLanguage        String?          @default("en") // ISO 639-1 language code
+  maritalStatus            String?          // e.g., "Single", "Married", "Divorced", "Widowed"
+  
+  // Emergency Contact (Critical for hospital settings)
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?          // e.g., "Spouse", "Parent", "Sibling"
+  
+  // Patient Safety - Code Status (DNR/Full Code) - CRITICAL
+  codeStatus               CodeStatus       @default(FULL_CODE)
+  codeStatusUpdatedAt      DateTime?
+  codeStatusUpdatedBy      String?          // Doctor ID who updated
+  advanceDirectiveUrl      String?          // Link to advance directive document
+  
+  // Consent tracking
+  whatsappConsent          Boolean          @default(false)
+  whatsappConsentAt        DateTime?
+  
+  // Legacy relations
+  appointments             Appointment[]
+  documents                Document[]
+  invoices                 Invoice[]
+  clinic                   Clinic           @relation(fields: [clinicId], references: [id])
+  tags                     PatientTag[]
+  paymentSessions          PaymentSession[]
+  prescriptions            Prescription[]
+  queueTokens              QueueToken[]
+  whatsappLogs             WhatsappLog[]
+  
+  // Structured medical data relations
+  medicalConditions        PatientMedicalCondition[]
+  patientAllergies         PatientAllergy[]
+  familyHistory            PatientFamilyHistory[]
+  socialHistory            PatientSocialHistory?
+  surgicalHistory          PatientSurgicalHistory[]
+  immunizations            Immunization[]
+  consents                 Consent[]
 
+  @@index([mrn])
   @@index([phoneNumber])
   @@index([clinicId])
   @@index([createdAt])
   @@index([clinicId, phoneNumber])
   @@index([email])
+  @@index([codeStatus])
+}
+
+// ============================================================================
+// Structured Medical History Models
+// ============================================================================
+
+// Chronic conditions, past illnesses, and ongoing medical conditions
+model PatientMedicalCondition {
+  id              String                @id @default(cuid())
+  patientId       String
+  conditionName   String                // e.g., "Type 2 Diabetes Mellitus"
+  icdCode         String?               // Optional ICD-10 code reference
+  conditionType   MedicalConditionType  @default(CHRONIC)
+  status          ConditionStatus       @default(ACTIVE)
+  severity        ConditionSeverity?
+  diagnosedDate   DateTime?
+  resolvedDate    DateTime?
+  diagnosedBy     String?               // Doctor who diagnosed
+  notes           String?
+  // For tracking if this was auto-suggested from appointments
+  sourceType      ConditionSourceType   @default(MANUAL)
+  sourceAppointmentId String?           // If auto-suggested from an appointment diagnosis
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  patient         Patient               @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+  @@index([conditionType])
+  @@index([status])
+  @@index([icdCode])
+}
+
+// Detailed allergy tracking with severity and reactions
+model PatientAllergy {
+  id              String            @id @default(cuid())
+  patientId       String
+  allergen        String            // e.g., "Penicillin", "Peanuts"
+  allergyType     AllergyType       @default(DRUG)
+  severity        AllergySeverity   @default(MODERATE)
+  reaction        String?           // e.g., "Anaphylaxis", "Rash", "Hives"
+  onsetDate       DateTime?
+  verifiedBy      String?           // Doctor who verified
+  verifiedAt      DateTime?
+  isVerified      Boolean           @default(false)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+  @@index([allergyType])
+  @@index([severity])
+}
+
+// Family medical history
+model PatientFamilyHistory {
+  id              String    @id @default(cuid())
+  patientId       String
+  condition       String    // e.g., "Diabetes", "Heart Disease"
+  relationship    String    // e.g., "Father", "Mother", "Sibling"
+  ageAtOnset      Int?      // Age when the relative was diagnosed
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+}
+
+// Social history (smoking, alcohol, occupation, etc.)
+model PatientSocialHistory {
+  id                String    @id @default(cuid())
+  patientId         String    @unique
+  smokingStatus     SmokingStatus?
+  smokingPackYears  Float?    // Pack-years for smokers
+  smokingQuitDate   DateTime?
+  alcoholUse        AlcoholUseStatus?
+  alcoholFrequency  String?   // e.g., "2-3 drinks per week"
+  substanceUse      String?
+  occupation        String?
+  occupationalHazards String?
+  exerciseFrequency String?
+  dietaryRestrictions String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// Surgical history
+model PatientSurgicalHistory {
+  id              String    @id @default(cuid())
+  patientId       String
+  procedureName   String    // e.g., "Appendectomy", "CABG"
+  procedureDate   DateTime?
+  hospital        String?
+  surgeon         String?
+  complications   String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+}
+
+// ============================================================================
+// Medical History Enums
+// ============================================================================
+
+enum MedicalConditionType {
+  CHRONIC           // Ongoing conditions like Diabetes, Hypertension
+  ACUTE             // Short-term conditions
+  CONGENITAL        // Present from birth
+  INFECTIOUS        // Infectious diseases
+  AUTOIMMUNE        // Autoimmune conditions
+  PSYCHIATRIC       // Mental health conditions
+  OTHER
+}
+
+enum ConditionStatus {
+  ACTIVE            // Currently ongoing
+  MANAGED           // Under control with treatment
+  RESOLVED          // No longer present
+  IN_REMISSION      // For conditions like cancer
+}
+
+enum ConditionSeverity {
+  MILD
+  MODERATE
+  SEVERE
+  CRITICAL
+}
+
+enum ConditionSourceType {
+  MANUAL            // Manually entered by staff
+  AUTO_SUGGESTED    // Auto-suggested from recurring diagnoses
+  IMPORTED          // Imported from external records
+}
+
+enum AllergyType {
+  DRUG              // Medication allergies
+  FOOD              // Food allergies
+  ENVIRONMENTAL     // Pollen, dust, etc.
+  LATEX             // Latex allergy
+  INSECT            // Insect stings/bites
+  CONTRAST          // Contrast dye
+  OTHER
+}
+
+enum AllergySeverity {
+  MILD              // Minor symptoms
+  MODERATE          // Significant symptoms
+  SEVERE            // Serious reactions
+  LIFE_THREATENING  // Anaphylaxis risk
+}
+
+enum SmokingStatus {
+  NEVER
+  FORMER
+  CURRENT
+  UNKNOWN
+}
+
+enum AlcoholUseStatus {
+  NONE
+  OCCASIONAL
+  MODERATE
+  HEAVY
+  UNKNOWN
 }
 
 model PatientTag {
@@ -244,22 +455,43 @@ model Appointment {
 }
 
 model VitalSign {
-  id              String      @id @default(cuid())
-  appointmentId   String      @unique
-  height          Float?
-  weight          Float?
-  bloodPressure   String?
-  pulse           Int?
-  temperature     Float?
-  spo2            Int?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  bloodGlucose    Float?
-  bmi             Float?
+  id              String            @id @default(cuid())
+  appointmentId   String            @unique
+  height          Float?            // in cm
+  weight          Float?            // in kg
+  
+  // Legacy blood pressure field - kept for backward compatibility
+  bloodPressure   String?           // Legacy format "120/80"
+  
+  // Structured blood pressure fields (Hospital-Grade)
+  systolicBP      Int?              // Systolic blood pressure (mmHg) - normal range 90-120
+  diastolicBP     Int?              // Diastolic blood pressure (mmHg) - normal range 60-80
+  bpPosition      BpPosition?       // Patient position when BP was taken
+  bpMigrationStatus BpMigrationStatus? // Status of legacy BP migration
+  
+  pulse           Int?              // Heart rate (bpm)
+  temperature     Float?            // Body temperature (Celsius)
+  
+  // Oxygen saturation with delivery context
+  spo2            Int?              // SpO2 percentage (%)
+  oxygenDelivery  OxygenDelivery?   // How oxygen is being delivered
+  oxygenFlowRate  Float?            // Flow rate in L/min (if applicable)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  bloodGlucose    Float?            // Blood glucose (mg/dL)
+  bmi             Float?            // Calculated BMI
   notes           String?
-  painScore       Int?
-  respiratoryRate Int?
-  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  painScore       Int?              // Pain score 0-10
+  respiratoryRate Int?              // Breaths per minute
+  
+  // Additional pediatric/specialty vitals
+  headCircumference Float?          // For pediatrics (cm)
+  waistCircumference Float?         // For metabolic assessments (cm)
+  
+  appointment     Appointment       @relation(fields: [appointmentId], references: [id])
+  
+  @@index([bpMigrationStatus])
 }
 
 model Prescription {
@@ -285,12 +517,44 @@ model Prescription {
 model Medication {
   id             String       @id @default(cuid())
   prescriptionId String
-  name           String
-  dosage         String
-  frequency      String
-  duration       String
+  name           String       // Drug name (generic or brand)
+  
+  // Legacy fields - kept for backward compatibility
+  dosage         String       // Legacy: combined strength like "500mg"
+  frequency      String       // Legacy: free text like "twice daily"
+  duration       String       // Legacy: free text like "7 days"
   route          String       @default("PO")
+  
+  // Structured pharmacy fields (Hospital-Grade)
+  ndcCode        String?      // National Drug Code - precise drug identification
+  rxNormCui      String?      // RxNorm Concept Unique Identifier
+  dosageForm     DosageForm?  // Tablet, Capsule, Injection, etc.
+  strengthValue  Float?       // Numeric strength value (e.g., 500)
+  strengthUnit   String?      // Unit of strength (e.g., "mg", "mcg", "mL")
+  
+  // Dispensing information
+  quantity       Int?         // Number of units to dispense
+  refillsAllowed Int?         @default(0) // Number of refills allowed
+  dispenseAsWritten Boolean   @default(false) // DAW - no generic substitution
+  
+  // Timing
+  sigCode        SigCode?     // Standardized frequency code
+  startDate      DateTime?    // When to start medication
+  endDate        DateTime?    // When to stop medication
+  
+  // PRN (as needed) medications
+  isPRN          Boolean      @default(false)
+  prnInstructions String?     // When to take PRN medication
+  prnMaxDose     String?      // Maximum dose for PRN
+  
+  // Special instructions
+  specialInstructions String? // Additional instructions
+  indication     String?      // Why this medication is prescribed
+  
   prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  
+  @@index([ndcCode])
+  @@index([rxNormCui])
 }
 
 model Invoice {
@@ -410,6 +674,9 @@ model Clinic {
   active                  Boolean                  @default(true)
   tier                    ClinicTier               @default(CAPTURE)
   settings                Json?
+  timezone                String                   @default("Asia/Kolkata")
+  locale                  String                   @default("en-IN")
+  currency                String                   @default("INR")
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   subscriptionStatus      String                   @default("active")
@@ -421,6 +688,10 @@ model Clinic {
   lateArrivalGraceMinutes Int                      @default(30)
   queueBufferMinutes      Int                      @default(10)
   useDoctorQueues         Boolean                  @default(false)
+  
+  // MRN Configuration
+  mrnPrefix               String?                  // Prefix for MRN (e.g., "DOC", "CLI")
+  
   // Billing-related fields
   razorpayCustomerId      String?                  // Razorpay customer ID for subscriptions
   referralCode            String?                  @unique // Unique referral code for this clinic
@@ -448,6 +719,7 @@ model Clinic {
   referralsGiven          Referral[]               @relation("ReferrerClinic")
   referralsReceived       Referral[]               @relation("ReferredClinic")
   referralCredits         ReferralCredit[]
+  mrnSequence             MrnSequence?
 }
 
 model DoctorClinic {
@@ -763,17 +1035,31 @@ model LabTest {
   id          String         @id @default(cuid())
   clinicId    String
   name        String
-  code        String?
+  code        String?        // Internal lab code
+  loincCode   String?        // LOINC code for interoperability
   category    String
   price       Float?
   description String?
+  
+  // Reference ranges for result interpretation
+  referenceRangeLow   Float?
+  referenceRangeHigh  Float?
+  referenceRangeUnit  String?
+  referenceRangeText  String? // For non-numeric ranges like "Negative"
+  
+  // Specimen and collection requirements
+  specimenType        String? // Blood, Urine, Tissue, etc.
+  collectionRequirements String? // Fasting, timing, etc.
+  
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   orders      LabTestOrder[]
+  loincRef    LoincCode?     @relation(fields: [loincCode], references: [code])
 
   @@index([clinicId])
   @@index([category])
+  @@index([loincCode])
 }
 
 model LabTestOrder {
@@ -856,6 +1142,140 @@ enum Role {
 enum Gender {
   MALE
   FEMALE
+  OTHER
+  INTERSEX
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+}
+
+// ============================================================================
+// Hospital-Grade Medical Enums
+// ============================================================================
+
+// Code Status - Critical patient safety information (DNR/Full Code)
+enum CodeStatus {
+  FULL_CODE           // Full resuscitation efforts
+  DNR                 // Do Not Resuscitate
+  DNI                 // Do Not Intubate
+  DNR_DNI             // Do Not Resuscitate or Intubate
+  COMFORT_CARE        // Comfort measures only
+}
+
+// Blood Pressure Position - Clinical context for BP readings
+enum BpPosition {
+  SITTING
+  STANDING
+  LYING
+  UNKNOWN
+}
+
+// Oxygen Delivery Method - Required when recording SpO2
+enum OxygenDelivery {
+  ROOM_AIR            // No supplemental oxygen
+  NASAL_CANNULA       // Low-flow nasal oxygen
+  SIMPLE_MASK         // Simple face mask
+  NON_REBREATHER      // Non-rebreather mask
+  VENTURI_MASK        // Venturi mask for precise FiO2
+  HIGH_FLOW           // High-flow nasal cannula
+  CPAP                // Continuous positive airway pressure
+  BIPAP               // Bilevel positive airway pressure
+  VENTILATOR          // Mechanical ventilation
+  OTHER
+}
+
+// Blood Pressure Migration Status - For legacy data migration
+enum BpMigrationStatus {
+  PENDING             // Not yet migrated
+  MIGRATED            // Successfully parsed and migrated
+  FLAGGED             // Non-standard format, needs manual review
+  MANUAL              // Manually corrected
+}
+
+// Dosage Form - Pharmaceutical dosage forms
+enum DosageForm {
+  TABLET
+  CAPSULE
+  SOLUTION
+  SUSPENSION
+  INJECTION
+  CREAM
+  OINTMENT
+  GEL
+  PATCH
+  INHALER
+  NEBULIZER
+  SUPPOSITORY
+  DROPS
+  SPRAY
+  POWDER
+  LOZENGE
+  FILM
+  OTHER
+}
+
+// Standardized Frequency Codes (SIG codes)
+enum SigCode {
+  QD                  // Once daily
+  BID                 // Twice daily
+  TID                 // Three times daily
+  QID                 // Four times daily
+  Q4H                 // Every 4 hours
+  Q6H                 // Every 6 hours
+  Q8H                 // Every 8 hours
+  Q12H                // Every 12 hours
+  QHS                 // At bedtime
+  QAM                 // Every morning
+  QPM                 // Every evening
+  QOD                 // Every other day
+  QWK                 // Once weekly
+  PRN                 // As needed
+  STAT                // Immediately
+  AC                  // Before meals
+  PC                  // After meals
+  OTHER
+}
+
+// Consent Types - For legal and compliance tracking
+enum ConsentType {
+  TREATMENT           // General treatment consent
+  PROCEDURE           // Procedure-specific consent
+  SURGERY             // Surgical consent
+  ANESTHESIA          // Anesthesia consent
+  HIPAA_RELEASE       // HIPAA information release
+  RESEARCH            // Research participation
+  PHOTO_VIDEO         // Photo/video consent
+  TELEHEALTH          // Telemedicine consent
+  MINOR_GUARDIAN      // Guardian consent for minor
+  BLOOD_TRANSFUSION   // Blood transfusion consent
+  VACCINATION         // Vaccination consent
+}
+
+// Consent Status
+enum ConsentStatus {
+  ACTIVE              // Currently valid
+  REVOKED             // Patient revoked consent
+  EXPIRED             // Consent period ended
+  PENDING             // Awaiting signature
+}
+
+// Immunization Route
+enum ImmunizationRoute {
+  IM                  // Intramuscular
+  SC                  // Subcutaneous
+  ID                  // Intradermal
+  PO                  // Oral
+  IN                  // Intranasal
+  OTHER
+}
+
+// Immunization Site
+enum ImmunizationSite {
+  LEFT_ARM
+  RIGHT_ARM
+  LEFT_THIGH
+  RIGHT_THIGH
+  LEFT_DELTOID
+  RIGHT_DELTOID
   OTHER
 }
 
@@ -940,6 +1360,150 @@ enum ImportJobStatus {
   COMPLETED
   FAILED
   PARTIALLY_COMPLETED
+}
+
+// ============================================================================
+// LOINC Codes - Laboratory & Clinical Observation Standards
+// ============================================================================
+
+model LoincCode {
+  id          String    @id @default(cuid())
+  code        String    @unique  // LOINC code (e.g., "2345-7")
+  longName    String              // Full descriptive name
+  shortName   String?             // Abbreviated name
+  component   String?             // What is being measured
+  property    String?             // Type of property (e.g., "Mass concentration")
+  timeAspect  String?             // Point in time vs. over time
+  system      String?             // System/specimen type
+  scale       String?             // Quantitative, Ordinal, Nominal
+  method      String?             // Method of measurement
+  classType   String?             // Class/category
+  status      String?             @default("ACTIVE") // Active, Deprecated, etc.
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  labTests    LabTest[]
+
+  @@index([code])
+  @@index([component])
+  @@index([classType])
+}
+
+// ============================================================================
+// Immunization/Vaccination Records
+// ============================================================================
+
+model Immunization {
+  id                String            @id @default(cuid())
+  patientId         String
+  
+  // Vaccine identification
+  vaccineName       String            // Common name (e.g., "COVID-19 Vaccine")
+  cvxCode           String?           // CDC CVX code
+  mvxCode           String?           // Manufacturer MVX code
+  ndcCode           String?           // National Drug Code
+  
+  // Vaccine details
+  manufacturer      String?
+  lotNumber         String?
+  expirationDate    DateTime?
+  
+  // Administration details
+  administeredDate  DateTime
+  administeredBy    String?           // Provider who administered
+  administeredAt    String?           // Location/facility
+  site              ImmunizationSite?
+  route             ImmunizationRoute?
+  doseNumber        Int?              // e.g., 1st dose, 2nd dose
+  seriesComplete    Boolean?          // Is series complete?
+  
+  // Documentation
+  informationSource String?           // e.g., "Historical", "Administered"
+  notes             String?
+  documentUrl       String?           // Link to immunization record
+  
+  // Reactions (if any)
+  hadReaction       Boolean           @default(false)
+  reactionDetails   String?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  patient           Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+  @@index([cvxCode])
+  @@index([administeredDate])
+}
+
+// ============================================================================
+// Consent Management - Legal & Compliance Tracking
+// ============================================================================
+
+model Consent {
+  id                String        @id @default(cuid())
+  patientId         String
+  clinicId          String
+  
+  // Consent details
+  consentType       ConsentType
+  status            ConsentStatus @default(PENDING)
+  
+  // Who gave consent
+  givenBy           String?       // Name of person giving consent
+  givenByRelation   String?       // If not patient (e.g., "Parent", "Guardian")
+  givenAt           DateTime?
+  
+  // Witness information
+  witnessedBy       String?       // Name of witness
+  witnessedAt       DateTime?
+  
+  // Validity period
+  validFrom         DateTime?
+  validUntil        DateTime?
+  
+  // Revocation tracking
+  revokedAt         DateTime?
+  revokedBy         String?
+  revokedReason     String?
+  
+  // Associated procedure (for procedure-specific consent)
+  procedureId       String?       // Link to Procedure if applicable
+  procedureName     String?       // Description of procedure
+  
+  // Documentation
+  documentUrl       String?       // Signed consent form
+  templateVersion   String?       // Version of consent template used
+  notes             String?
+  
+  // Audit trail
+  createdBy         String?       // Staff who created record
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  patient           Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  @@index([patientId])
+  @@index([clinicId])
+  @@index([consentType])
+  @@index([status])
+  @@index([validUntil])
+}
+
+// ============================================================================
+// MRN Sequence Tracking (for clinic-prefixed sequential MRN generation)
+// ============================================================================
+
+model MrnSequence {
+  id          String   @id @default(cuid())
+  clinicId    String   @unique
+  prefix      String   // e.g., "DOC", "CLI"
+  lastNumber  Int      @default(0) // Last used sequence number
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  clinic      Clinic   @relation(fields: [clinicId], references: [id])
+  
+  @@index([clinicId])
 }
 
 // ============================================================================

@@ -7,6 +7,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ClinicTier } from '@workspace/db';
 import { PaymentGateway } from '../../gateways/payment.gateway';
 import * as bcrypt from 'bcrypt';
+import {
+  getMonthRange,
+  getDayRange,
+  getLastNDaysRange,
+  formatDate,
+  DATE_FORMATS,
+  DEFAULT_TIMEZONE,
+} from '@workspace/types';
 
 @Injectable()
 export class SuperAdminService {
@@ -116,7 +124,7 @@ export class SuperAdminService {
         email: data.email,
         phone: data.phone,
         address: data.address,
-        tier: data.tier || ('CAPTURE' as ClinicTier),
+        tier: data.tier || ('CORE' as ClinicTier), // Default to CORE tier for basic functionality
         users: {
           create: {
             email: data.adminEmail,
@@ -183,20 +191,30 @@ export class SuperAdminService {
       active?: boolean;
     },
   ) {
+    // Build update data object with only defined fields
+    const updateData: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      tier?: ClinicTier;
+      active?: boolean;
+    } = {};
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.tier !== undefined) updateData.tier = data.tier;
+    if (data.active !== undefined) updateData.active = data.active;
+
     const clinic = await this.prisma.clinic.update({
       where: { id },
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        tier: data.tier,
-        active: data.active,
-      },
+      data: updateData,
     });
 
     // Emit real-time update if tier or status changed
-    if (data.tier || data.active !== undefined) {
+    if (data.tier !== undefined || data.active !== undefined) {
       this.paymentGateway.emitClinicUpdate(id, {
         clinicId: id,
         tier: data.tier,
@@ -207,24 +225,13 @@ export class SuperAdminService {
     return clinic;
   }
 
-  async getGlobalStats() {
+  async getGlobalStats(timezone: string = DEFAULT_TIMEZONE) {
     try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfLastMonth = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        1,
-      );
-      const endOfLastMonth = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        0,
-        23,
-        59,
-        59,
-        999,
-      );
+      // Use timezone-aware date ranges
+      const thisMonthRange = getMonthRange(new Date(), { timezone });
+      const lastMonthDate = new Date();
+      lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+      const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
       // Current totals
       const [clinics, users, patients, invoices, prescriptions] =
@@ -245,17 +252,19 @@ export class SuperAdminService {
         prescriptionsThisMonth,
       ] = await Promise.all([
         this.prisma.clinic.count({
-          where: { createdAt: { gte: startOfMonth } },
+          where: { createdAt: { gte: thisMonthRange.start } },
         }),
-        this.prisma.user.count({ where: { createdAt: { gte: startOfMonth } } }),
+        this.prisma.user.count({
+          where: { createdAt: { gte: thisMonthRange.start } },
+        }),
         this.prisma.patient.count({
-          where: { createdAt: { gte: startOfMonth } },
+          where: { createdAt: { gte: thisMonthRange.start } },
         }),
         this.prisma.invoice.count({
-          where: { createdAt: { gte: startOfMonth } },
+          where: { createdAt: { gte: thisMonthRange.start } },
         }),
         this.prisma.prescription.count({
-          where: { createdAt: { gte: startOfMonth } },
+          where: { createdAt: { gte: thisMonthRange.start } },
         }),
       ]);
 
@@ -263,12 +272,12 @@ export class SuperAdminService {
       const [invoicesLastMonth, prescriptionsLastMonth] = await Promise.all([
         this.prisma.invoice.count({
           where: {
-            createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
           },
         }),
         this.prisma.prescription.count({
           where: {
-            createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+            createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
           },
         }),
       ]);
@@ -314,32 +323,30 @@ export class SuperAdminService {
     }
   }
 
-  async getAnalytics(period: 'week' | 'month' | 'year' = 'month') {
-    const now = new Date();
+  async getAnalytics(
+    period: 'week' | 'month' | 'year' = 'month',
+    timezone: string = DEFAULT_TIMEZONE,
+  ) {
     const labels: string[] = [];
     const data: number[] = [];
 
     try {
       if (period === 'week') {
         // Get daily active users for last 7 days
+        const weekRange = getLastNDaysRange(6, { timezone });
         for (let i = 6; i >= 0; i--) {
-          const startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - i);
-          startDate.setHours(0, 0, 0, 0);
-
-          const endDate = new Date(startDate);
-          endDate.setHours(23, 59, 59, 999);
-
-          labels.push(
-            startDate.toLocaleDateString('en-US', { weekday: 'short' }),
+          const dayRange = getDayRange(
+            new Date(weekRange.end.getTime() - i * 24 * 60 * 60 * 1000),
+            { timezone },
           );
 
-          // Count appointments as a proxy for active users/activity
+          labels.push(formatDate(dayRange.start, 'EEE', { timezone }));
+
           const count = await this.prisma.appointment.count({
             where: {
               createdAt: {
-                gte: startDate,
-                lte: endDate,
+                gte: dayRange.start,
+                lte: dayRange.end,
               },
             },
           });
@@ -347,21 +354,20 @@ export class SuperAdminService {
         }
       } else if (period === 'month') {
         // Get daily activity for last 30 days
+        const monthRange = getLastNDaysRange(29, { timezone });
         for (let i = 29; i >= 0; i--) {
-          const startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - i);
-          startDate.setHours(0, 0, 0, 0);
+          const dayRange = getDayRange(
+            new Date(monthRange.end.getTime() - i * 24 * 60 * 60 * 1000),
+            { timezone },
+          );
 
-          const endDate = new Date(startDate);
-          endDate.setHours(23, 59, 59, 999);
-
-          labels.push(startDate.getDate().toString());
+          labels.push(formatDate(dayRange.start, 'd', { timezone }));
 
           const count = await this.prisma.appointment.count({
             where: {
               createdAt: {
-                gte: startDate,
-                lte: endDate,
+                gte: dayRange.start,
+                lte: dayRange.end,
               },
             },
           });
@@ -370,25 +376,17 @@ export class SuperAdminService {
       } else {
         // Get monthly activity for last 12 months
         for (let i = 11; i >= 0; i--) {
-          const startDate = new Date(now);
-          startDate.setMonth(startDate.getMonth() - i);
-          startDate.setDate(1);
-          startDate.setHours(0, 0, 0, 0);
+          const monthDate = new Date();
+          monthDate.setMonth(monthDate.getMonth() - i);
+          const monthRange = getMonthRange(monthDate, { timezone });
 
-          const endDate = new Date(startDate);
-          endDate.setMonth(endDate.getMonth() + 1);
-          endDate.setDate(0);
-          endDate.setHours(23, 59, 59, 999);
-
-          labels.push(
-            startDate.toLocaleDateString('en-US', { month: 'short' }),
-          );
+          labels.push(formatDate(monthRange.start, 'MMM', { timezone }));
 
           const count = await this.prisma.appointment.count({
             where: {
               createdAt: {
-                gte: startDate,
-                lte: endDate,
+                gte: monthRange.start,
+                lte: monthRange.end,
               },
             },
           });
@@ -682,6 +680,787 @@ export class SuperAdminService {
     return {
       data: logs.slice(0, limit),
       total: logs.length,
+    };
+  }
+
+  // Admin Management Methods
+  async getClinicAdmins(clinicId: string) {
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: {
+          clinicId,
+          role: {
+            in: ['ADMIN', 'ADMIN_DOCTOR'],
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return admins;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch clinic admins');
+    }
+  }
+
+  async createAdmin(
+    clinicId: string,
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      phoneNumber?: string;
+      adminType: 'admin' | 'admin_doctor';
+    },
+  ) {
+    try {
+      // Check if clinic exists
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Check if admin email already exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: data.email },
+      });
+
+      if (existingUser) {
+        throw new BadRequestException('Email already in use');
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      // Determine role
+      const role = data.adminType === 'admin_doctor' ? 'ADMIN_DOCTOR' : 'ADMIN';
+
+      // Create admin user
+      const admin = await this.prisma.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          password: hashedPassword,
+          phoneNumber: data.phoneNumber,
+          role,
+          clinicId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return admin;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create admin');
+    }
+  }
+
+  async getAdminDetails(adminId: string) {
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+          clinicId: true,
+          createdAt: true,
+          updatedAt: true,
+          clinic: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      return admin;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch admin details');
+    }
+  }
+
+  async updateAdmin(
+    adminId: string,
+    data: {
+      name?: string;
+      email?: string;
+      phoneNumber?: string;
+      adminType?: 'admin' | 'admin_doctor';
+    },
+  ) {
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      // Check if email is being changed and if it's already in use
+      if (data.email && data.email !== admin.email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email: data.email },
+        });
+
+        if (existingUser) {
+          throw new BadRequestException('Email already in use');
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (data.name) updateData.name = data.name;
+      if (data.email) updateData.email = data.email;
+      if (data.phoneNumber !== undefined)
+        updateData.phoneNumber = data.phoneNumber;
+      if (data.adminType) {
+        updateData.role =
+          data.adminType === 'admin_doctor' ? 'ADMIN_DOCTOR' : 'ADMIN';
+      }
+
+      const updatedAdmin = await this.prisma.user.update({
+        where: { id: adminId },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return updatedAdmin;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update admin');
+    }
+  }
+
+  async deactivateAdmin(adminId: string) {
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      // We can mark as deactivated by setting a flag or removing from clinic
+      // For now, we'll just return a message indicating deactivation
+      // In production, you might want to add an 'active' or 'status' field to User model
+      return {
+        id: admin.id,
+        message:
+          'Admin deactivation requires additional setup (active/status field on User model)',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to deactivate admin');
+    }
+  }
+
+  async activateAdmin(adminId: string) {
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+
+      if (!admin) {
+        throw new BadRequestException('Admin not found');
+      }
+
+      // Similar to deactivate, this requires the active/status field
+      return {
+        id: admin.id,
+        message:
+          'Admin activation requires additional setup (active/status field on User model)',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to activate admin');
+    }
+  }
+
+  // AI Features Management Methods
+  async getClinicAIFeatures(clinicId: string) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      return {
+        clinicId: clinic.id,
+        clinicName: clinic.name,
+        tier: clinic.tier,
+        aiEnabled: clinic.intelligenceAddon === 'ACTIVE',
+        features: clinic.features || {
+          predictiveAnalytics: false,
+          automatedDiagnosis: false,
+          patientInsights: false,
+          appointmentOptimization: false,
+          prescriptionAssistant: false,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Failed to fetch AI features for clinic',
+      );
+    }
+  }
+
+  async updateClinicAIFeatures(
+    clinicId: string,
+    data: {
+      enabled: boolean;
+      features?: Record<string, boolean>;
+    },
+  ) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Update intelligence addon and features
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: {
+          intelligenceAddon: data.enabled ? 'ACTIVE' : 'NONE',
+          features: (data.features as any) || (clinic.features as any),
+        },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        clinic: updatedClinic,
+        message: `AI features ${data.enabled ? 'enabled' : 'disabled'} for clinic ${clinic.name}`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update AI features');
+    }
+  }
+
+  async enableAIFeatures(clinicId: string) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Only allow AI features for PRO and ENTERPRISE tiers
+      const allowedTiers = ['PRO', 'ENTERPRISE'];
+      if (!allowedTiers.includes(clinic.tier)) {
+        throw new BadRequestException(
+          `AI features are only available for ${allowedTiers.join(', ')} tier clinics. Current tier: ${clinic.tier}`,
+        );
+      }
+
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: {
+          intelligenceAddon: 'ACTIVE',
+          features: {
+            predictiveAnalytics: true,
+            automatedDiagnosis: true,
+            patientInsights: true,
+            appointmentOptimization: true,
+            prescriptionAssistant: true,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+
+      return {
+        success: true,
+        clinic: updatedClinic,
+        message: `All AI features enabled for ${clinic.name}`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to enable AI features');
+    }
+  }
+
+  async disableAIFeatures(clinicId: string) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: {
+          intelligenceAddon: 'NONE',
+          features: {
+            predictiveAnalytics: false,
+            automatedDiagnosis: false,
+            patientInsights: false,
+            appointmentOptimization: false,
+            prescriptionAssistant: false,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+
+      return {
+        success: true,
+        clinic: updatedClinic,
+        message: `All AI features disabled for ${clinic.name}`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to disable AI features');
+    }
+  }
+
+  // Payment & Tier Management Methods
+  async processPaymentAndUpdateTier(
+    clinicId: string,
+    data: {
+      paymentId: string;
+      amount: number;
+      currency: string;
+      newTier: ClinicTier;
+      paymentMethod: string;
+    },
+  ) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Validate tier
+      const validTiers: ClinicTier[] = [
+        'CAPTURE',
+        'CORE',
+        'PLUS',
+        'PRO',
+        'ENTERPRISE',
+      ];
+      if (!validTiers.includes(data.newTier)) {
+        throw new BadRequestException('Invalid tier specified');
+      }
+
+      // Process payment (integration point with payment gateway)
+      const paymentResult = {
+        paymentId: data.paymentId,
+        status: 'completed', // In production, verify with payment gateway
+        amount: data.amount,
+        currency: data.currency,
+        timestamp: new Date(),
+      };
+
+      // If payment is successful, update clinic tier
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: {
+          tier: data.newTier,
+          subscriptionStatus: 'active',
+        },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          subscriptionStatus: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        payment: paymentResult,
+        clinic: updatedClinic,
+        message: `Clinic upgraded to ${data.newTier} tier after successful payment`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Failed to process payment and update tier',
+      );
+    }
+  }
+
+  async getClinicTierInfo(clinicId: string) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          subscriptionStatus: true,
+          intelligenceAddon: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Get tier details with features
+      const tierInfo = this.getTierDetails(clinic.tier);
+
+      return {
+        clinic,
+        tierInfo,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Failed to fetch tier information',
+      );
+    }
+  }
+
+  async upgradeTier(clinicId: string, newTier: ClinicTier) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Define tier hierarchy
+      const tierHierarchy: { [key in ClinicTier]: number } = {
+        CAPTURE: 1,
+        CORE: 2,
+        PLUS: 3,
+        PRO: 4,
+        ENTERPRISE: 5,
+      };
+
+      if (tierHierarchy[newTier] <= tierHierarchy[clinic.tier]) {
+        throw new BadRequestException(
+          'Can only upgrade to a higher tier. Use downgrade for lower tiers.',
+        );
+      }
+
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: { tier: newTier },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        clinic: updatedClinic,
+        message: `Clinic upgraded from ${clinic.tier} to ${newTier}`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to upgrade tier');
+    }
+  }
+
+  async downgradeTier(clinicId: string, newTier: ClinicTier) {
+    try {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+      });
+
+      if (!clinic) {
+        throw new BadRequestException('Clinic not found');
+      }
+
+      // Define tier hierarchy
+      const tierHierarchy: { [key in ClinicTier]: number } = {
+        CAPTURE: 1,
+        CORE: 2,
+        PLUS: 3,
+        PRO: 4,
+        ENTERPRISE: 5,
+      };
+
+      if (tierHierarchy[newTier] >= tierHierarchy[clinic.tier]) {
+        throw new BadRequestException(
+          'Can only downgrade to a lower tier. Use upgrade for higher tiers.',
+        );
+      }
+
+      const updatedClinic = await this.prisma.clinic.update({
+        where: { id: clinicId },
+        data: { tier: newTier },
+        select: {
+          id: true,
+          name: true,
+          tier: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        clinic: updatedClinic,
+        message: `Clinic downgraded from ${clinic.tier} to ${newTier}`,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to downgrade tier');
+    }
+  }
+
+  private getTierDetails(tier: ClinicTier) {
+    const tierDetails: { [key in ClinicTier]: any } = {
+      CAPTURE: {
+        name: 'Capture',
+        price: 0,
+        currency: 'INR',
+        billingCycle: 'monthly',
+        features: [
+          'Basic patient management',
+          'Simple appointment scheduling',
+          'Limited doctor accounts (1)',
+          'Community support',
+        ],
+        maxDoctors: 1,
+        maxPatients: 100,
+        aiEnabled: false,
+      },
+      CORE: {
+        name: 'Core',
+        price: 4999,
+        currency: 'INR',
+        billingCycle: 'monthly',
+        features: [
+          'All Capture features',
+          'Up to 5 doctor accounts',
+          'Advanced reporting',
+          'Email support',
+          'Custom branding',
+        ],
+        maxDoctors: 5,
+        maxPatients: 1000,
+        aiEnabled: false,
+      },
+      PLUS: {
+        name: 'Plus',
+        price: 9999,
+        currency: 'INR',
+        billingCycle: 'monthly',
+        features: [
+          'All Core features',
+          'Up to 20 doctor accounts',
+          'Advanced analytics',
+          'Priority email support',
+          'API access',
+          'Custom workflows',
+        ],
+        maxDoctors: 20,
+        maxPatients: 5000,
+        aiEnabled: false,
+      },
+      PRO: {
+        name: 'Pro',
+        price: 24999,
+        currency: 'INR',
+        billingCycle: 'monthly',
+        features: [
+          'All Plus features',
+          'Unlimited doctor accounts',
+          'AI-powered features',
+          'Phone support',
+          'Dedicated account manager',
+          'Custom integrations',
+        ],
+        maxDoctors: -1, // Unlimited
+        maxPatients: -1, // Unlimited
+        aiEnabled: true,
+      },
+      ENTERPRISE: {
+        name: 'Enterprise',
+        price: null, // Custom pricing
+        currency: 'INR',
+        billingCycle: 'annual',
+        features: [
+          'All Pro features',
+          'White-label solution',
+          '24/7 phone support',
+          'Dedicated support team',
+          'Custom development',
+          'SLA guarantee',
+          'Advanced security',
+        ],
+        maxDoctors: -1, // Unlimited
+        maxPatients: -1, // Unlimited
+        aiEnabled: true,
+      },
+    };
+
+    return tierDetails[tier] || null;
+  }
+
+  async getTierPricingInfo() {
+    const tiers: ClinicTier[] = [
+      'CAPTURE',
+      'CORE',
+      'PLUS',
+      'PRO',
+      'ENTERPRISE',
+    ];
+    return tiers.map((tier) => ({
+      tier,
+      ...this.getTierDetails(tier),
+    }));
+  }
+
+  async getAIFeaturesCatalog() {
+    return {
+      aiFeatures: [
+        {
+          id: 'predictiveAnalytics',
+          name: 'Predictive Analytics',
+          description:
+            'Analyze patient patterns and predict health trends using machine learning',
+          availableIn: ['PRO', 'ENTERPRISE'],
+          icon: 'activity',
+        },
+        {
+          id: 'automatedDiagnosis',
+          name: 'Automated Diagnosis Assistant',
+          description:
+            'AI-powered suggestions for diagnosis based on symptoms and medical history',
+          availableIn: ['PRO', 'ENTERPRISE'],
+          icon: 'microscope',
+        },
+        {
+          id: 'patientInsights',
+          name: 'Patient Health Insights',
+          description:
+            'Deep insights into patient health metrics and personalized recommendations',
+          availableIn: ['PRO', 'ENTERPRISE'],
+          icon: 'pie-chart',
+        },
+        {
+          id: 'appointmentOptimization',
+          name: 'Appointment Optimization',
+          description:
+            'AI-optimized scheduling to reduce no-shows and maximize doctor efficiency',
+          availableIn: ['PLUS', 'PRO', 'ENTERPRISE'],
+          icon: 'calendar',
+        },
+        {
+          id: 'prescriptionAssistant',
+          name: 'Smart Prescription Assistant',
+          description:
+            'AI-assisted prescription generation with drug interaction checks',
+          availableIn: ['PRO', 'ENTERPRISE'],
+          icon: 'pill',
+        },
+      ],
+      tierComparison: this.getTierPricingInfo(),
     };
   }
 }

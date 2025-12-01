@@ -87,6 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       const { access_token, user } = data;
 
+      // Validate that user object exists
+      if (!user) {
+        throw new Error("Invalid login response: user data missing");
+      }
+
       // Super admins should use the admin console instead
       if (user.role === "SUPER_ADMIN") {
         throw new Error(

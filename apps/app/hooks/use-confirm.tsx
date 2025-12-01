@@ -285,11 +285,9 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
               {confirmState.options?.icon}
               {confirmState.options?.title}
             </DialogTitle>
-            {confirmState.options?.description && (
-              <DialogDescription>
-                {confirmState.options.description}
-              </DialogDescription>
-            )}
+            <DialogDescription>
+              {confirmState.options?.description || ""}
+            </DialogDescription>
           </DialogHeader>
 
           {requiresTypedConfirmation && (
@@ -332,11 +330,9 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
               {promptState.options?.icon}
               {promptState.options?.title}
             </DialogTitle>
-            {promptState.options?.description && (
-              <DialogDescription>
-                {promptState.options.description}
-              </DialogDescription>
-            )}
+            <DialogDescription>
+              {promptState.options?.description || ""}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
@@ -385,11 +381,9 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
               {alertState.options?.icon}
               {alertState.options?.title}
             </DialogTitle>
-            {alertState.options?.description && (
-              <DialogDescription>
-                {alertState.options.description}
-              </DialogDescription>
-            )}
+            <DialogDescription>
+              {alertState.options?.description || ""}
+            </DialogDescription>
           </DialogHeader>
 
           <DialogFooter>

@@ -78,6 +78,7 @@ export class AuthService {
         updatedAt: true,
       },
     });
-    return user;
+    // Return login response to automatically log the user in after registration
+    return this.login(user);
   }
 }

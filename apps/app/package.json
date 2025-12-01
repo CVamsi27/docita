@@ -11,13 +11,16 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test",
+    "test": "pnpm test:e2e:api",
+    "test:e2e": "SKIP_SERVER=true playwright test e2e/",
+    "test:e2e:api": "SKIP_SERVER=true playwright test e2e/health.spec.ts e2e/analytics.spec.ts e2e/prescriptions.spec.ts e2e/invoices.spec.ts e2e/documents.spec.ts e2e/clinics.spec.ts e2e/queue.spec.ts e2e/medical-coding.spec.ts e2e/lab-tests.spec.ts e2e/inventory.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@docita/api": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.90.10",
     "@workspace/db": "workspace:*",
@@ -47,6 +50,7 @@
     "@types/react-dom": "^19.1.7",
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "^9.32.0",
     "typescript": "^5.9.2",
     "webpack-bundle-analyzer": "^5.0.1"

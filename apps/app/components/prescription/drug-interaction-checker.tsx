@@ -17,228 +17,17 @@ import {
   ChevronUp,
   Shield,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { checkDrugDrugContraindications } from "@workspace/types";
 
-// Common drug interaction database (simplified for demo)
-// In production, this would be fetched from a medical API like DrugBank, RxNorm, etc.
 interface DrugInteraction {
   drug1: string;
   drug2: string;
   severity: "major" | "moderate" | "minor";
   description: string;
   recommendation: string;
-}
-
-// Sample drug interactions database
-const DRUG_INTERACTIONS: DrugInteraction[] = [
-  // Major interactions
-  {
-    drug1: "warfarin",
-    drug2: "aspirin",
-    severity: "major",
-    description:
-      "Increased risk of bleeding when combining warfarin with aspirin.",
-    recommendation:
-      "Avoid combination or use with extreme caution. Monitor closely for signs of bleeding.",
-  },
-  {
-    drug1: "metformin",
-    drug2: "contrast dye",
-    severity: "major",
-    description:
-      "Risk of lactic acidosis when metformin is combined with iodinated contrast agents.",
-    recommendation:
-      "Hold metformin 48 hours before and after contrast procedures.",
-  },
-  {
-    drug1: "ssri",
-    drug2: "maoi",
-    severity: "major",
-    description: "Serotonin syndrome risk - potentially fatal.",
-    recommendation:
-      "Contraindicated. Allow 14-day washout between MAOIs and SSRIs.",
-  },
-  {
-    drug1: "fluoxetine",
-    drug2: "tramadol",
-    severity: "major",
-    description: "Risk of serotonin syndrome and seizures.",
-    recommendation: "Use alternative pain management if possible.",
-  },
-  {
-    drug1: "ciprofloxacin",
-    drug2: "tizanidine",
-    severity: "major",
-    description: "Ciprofloxacin significantly increases tizanidine levels.",
-    recommendation: "Combination is contraindicated.",
-  },
-
-  // Moderate interactions
-  {
-    drug1: "amlodipine",
-    drug2: "simvastatin",
-    severity: "moderate",
-    description: "Increased risk of myopathy/rhabdomyolysis.",
-    recommendation: "Limit simvastatin dose to 20mg when used with amlodipine.",
-  },
-  {
-    drug1: "omeprazole",
-    drug2: "clopidogrel",
-    severity: "moderate",
-    description: "Omeprazole may reduce the effectiveness of clopidogrel.",
-    recommendation: "Consider using pantoprazole instead of omeprazole.",
-  },
-  {
-    drug1: "nsaid",
-    drug2: "ace inhibitor",
-    severity: "moderate",
-    description:
-      "NSAIDs may reduce the antihypertensive effect and increase renal risk.",
-    recommendation: "Monitor blood pressure and kidney function.",
-  },
-  {
-    drug1: "metformin",
-    drug2: "alcohol",
-    severity: "moderate",
-    description: "Increased risk of lactic acidosis and hypoglycemia.",
-    recommendation: "Advise patient to limit alcohol consumption.",
-  },
-  {
-    drug1: "levothyroxine",
-    drug2: "calcium",
-    severity: "moderate",
-    description: "Calcium can reduce levothyroxine absorption.",
-    recommendation: "Separate administration by at least 4 hours.",
-  },
-
-  // Minor interactions
-  {
-    drug1: "ibuprofen",
-    drug2: "antacid",
-    severity: "minor",
-    description: "Antacids may slightly reduce ibuprofen absorption.",
-    recommendation: "Take ibuprofen 2 hours before or after antacid.",
-  },
-  {
-    drug1: "metformin",
-    drug2: "vitamin b12",
-    severity: "minor",
-    description: "Long-term metformin use may reduce B12 absorption.",
-    recommendation: "Monitor B12 levels in long-term users.",
-  },
-];
-
-// Drug class mappings for broader matching
-const DRUG_CLASSES: Record<string, string[]> = {
-  ssri: [
-    "fluoxetine",
-    "sertraline",
-    "paroxetine",
-    "escitalopram",
-    "citalopram",
-    "fluvoxamine",
-  ],
-  maoi: ["phenelzine", "tranylcypromine", "isocarboxazid", "selegiline"],
-  nsaid: [
-    "ibuprofen",
-    "naproxen",
-    "diclofenac",
-    "celecoxib",
-    "meloxicam",
-    "indomethacin",
-    "aspirin",
-  ],
-  "ace inhibitor": [
-    "lisinopril",
-    "enalapril",
-    "ramipril",
-    "captopril",
-    "benazepril",
-    "perindopril",
-  ],
-  statin: [
-    "atorvastatin",
-    "simvastatin",
-    "rosuvastatin",
-    "pravastatin",
-    "lovastatin",
-  ],
-  ppi: [
-    "omeprazole",
-    "pantoprazole",
-    "esomeprazole",
-    "lansoprazole",
-    "rabeprazole",
-  ],
-  anticoagulant: [
-    "warfarin",
-    "rivaroxaban",
-    "apixaban",
-    "dabigatran",
-    "edoxaban",
-  ],
-  fluoroquinolone: [
-    "ciprofloxacin",
-    "levofloxacin",
-    "moxifloxacin",
-    "ofloxacin",
-  ],
-};
-
-function normalizeDrugName(name: string): string {
-  return name.toLowerCase().trim().replace(/\s+/g, " ");
-}
-
-function getDrugClass(drug: string): string | null {
-  const normalized = normalizeDrugName(drug);
-  for (const [className, drugs] of Object.entries(DRUG_CLASSES)) {
-    if (drugs.some((d) => normalized.includes(d))) {
-      return className;
-    }
-  }
-  return null;
-}
-
-function checkInteraction(
-  drug1: string,
-  drug2: string,
-): DrugInteraction | null {
-  const norm1 = normalizeDrugName(drug1);
-  const norm2 = normalizeDrugName(drug2);
-
-  // Get drug classes
-  const class1 = getDrugClass(drug1);
-  const class2 = getDrugClass(drug2);
-
-  for (const interaction of DRUG_INTERACTIONS) {
-    const interDrug1 = interaction.drug1.toLowerCase();
-    const interDrug2 = interaction.drug2.toLowerCase();
-
-    // Direct match
-    if (
-      (norm1.includes(interDrug1) && norm2.includes(interDrug2)) ||
-      (norm1.includes(interDrug2) && norm2.includes(interDrug1))
-    ) {
-      return interaction;
-    }
-
-    // Class-based match
-    if (
-      (class1 === interDrug1 &&
-        (norm2.includes(interDrug2) || class2 === interDrug2)) ||
-      (class2 === interDrug1 &&
-        (norm1.includes(interDrug2) || class1 === interDrug2)) ||
-      (class1 === interDrug2 &&
-        (norm2.includes(interDrug1) || class2 === interDrug1)) ||
-      (class2 === interDrug2 &&
-        (norm1.includes(interDrug1) || class1 === interDrug1))
-    ) {
-      return interaction;
-    }
-  }
-
-  return null;
 }
 
 interface Medication {
@@ -269,48 +58,77 @@ export function DrugInteractionChecker({
     [],
   );
   const [allergyWarnings, setAllergyWarnings] = React.useState<string[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    const detected: DetectedInteraction[] = [];
-    const validMeds = medications.filter(
-      (m) => m.name && m.name.trim().length > 0,
-    );
+    const checkInteractions = async () => {
+      try {
+        setIsLoading(true);
+        const validMeds = medications.filter(
+          (m) => m.name && m.name.trim().length > 0,
+        );
 
-    // Check drug-drug interactions
-    for (let i = 0; i < validMeds.length; i++) {
-      for (let j = i + 1; j < validMeds.length; j++) {
-        const med1 = validMeds[i];
-        const med2 = validMeds[j];
-        if (med1 && med2) {
-          const interaction = checkInteraction(med1.name, med2.name);
-          if (interaction) {
-            detected.push({
-              ...interaction,
-              medication1: med1.name,
-              medication2: med2.name,
-            });
+        if (validMeds.length < 2) {
+          setInteractions([]);
+          setAllergyWarnings([]);
+          return;
+        }
+
+        // Check drug-drug interactions using backend validation function
+        const detected: DetectedInteraction[] = [];
+        for (let i = 0; i < validMeds.length; i++) {
+          for (let j = i + 1; j < validMeds.length; j++) {
+            const med1 = validMeds[i];
+            const med2 = validMeds[j];
+            if (med1 && med2) {
+              const result = checkDrugDrugContraindications(med1.name, [
+                med2.name,
+              ]);
+              if (result && result.isContraindicated) {
+                detected.push({
+                  drug1: med1.name,
+                  drug2: med2.name,
+                  severity: (result.severity?.toLowerCase() === "critical"
+                    ? "major"
+                    : result.severity?.toLowerCase() || "minor") as
+                    | "major"
+                    | "moderate"
+                    | "minor",
+                  description: result.message || "Interaction detected",
+                  recommendation: result.recommendation || "Use with caution",
+                  medication1: med1.name,
+                  medication2: med2.name,
+                });
+              }
+            }
           }
         }
-      }
-    }
 
-    setInteractions(detected);
+        setInteractions(detected);
 
-    // Check for allergy warnings
-    const warnings: string[] = [];
-    for (const med of validMeds) {
-      for (const allergy of patientAllergies) {
-        if (
-          med.name.toLowerCase().includes(allergy.toLowerCase()) ||
-          allergy.toLowerCase().includes(med.name.toLowerCase())
-        ) {
-          warnings.push(
-            `${med.name} may be related to patient's ${allergy} allergy`,
-          );
+        // Check for allergy warnings
+        const warnings: string[] = [];
+        for (const med of validMeds) {
+          for (const allergy of patientAllergies) {
+            if (
+              med.name.toLowerCase().includes(allergy.toLowerCase()) ||
+              allergy.toLowerCase().includes(med.name.toLowerCase())
+            ) {
+              warnings.push(
+                `${med.name} may be related to patient's ${allergy} allergy`,
+              );
+            }
+          }
         }
+        setAllergyWarnings(warnings);
+      } catch (error) {
+        console.error("Failed to check interactions:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setAllergyWarnings(warnings);
+    };
+
+    checkInteractions();
   }, [medications, patientAllergies]);
 
   const majorInteractions = interactions.filter((i) => i.severity === "major");
@@ -320,6 +138,20 @@ export function DrugInteractionChecker({
   const minorInteractions = interactions.filter((i) => i.severity === "minor");
 
   const hasWarnings = interactions.length > 0 || allergyWarnings.length > 0;
+
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-2 text-sm text-muted-foreground",
+          className,
+        )}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Checking for interactions...</span>
+      </div>
+    );
+  }
 
   if (!hasWarnings) {
     return (

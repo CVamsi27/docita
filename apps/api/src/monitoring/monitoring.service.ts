@@ -139,29 +139,41 @@ export class MonitoringService {
     const cpuUsage = process.cpuUsage();
     const uptime = process.uptime();
 
-    await Promise.all([
-      this.recordMetric(
-        MetricType.MEMORY_USAGE,
-        memoryUsage.rss / 1024 / 1024,
-        'MB',
-      ),
-      this.recordMetric(
-        MetricType.HEAP_USED,
-        memoryUsage.heapUsed / 1024 / 1024,
-        'MB',
-      ),
-      this.recordMetric(
-        MetricType.HEAP_TOTAL,
-        memoryUsage.heapTotal / 1024 / 1024,
-        'MB',
-      ),
-      this.recordMetric(
-        MetricType.CPU_USAGE,
-        (cpuUsage.user + cpuUsage.system) / 1000000,
-        'seconds',
-      ),
-      this.recordMetric(MetricType.UPTIME, uptime, 'seconds'),
-    ]);
+    // Use createMany with a single database call instead of multiple parallel calls
+    // This prevents connection pool exhaustion
+    try {
+      await this.prisma.systemMetric.createMany({
+        data: [
+          {
+            metricType: MetricType.MEMORY_USAGE,
+            value: memoryUsage.rss / 1024 / 1024,
+            unit: 'MB',
+          },
+          {
+            metricType: MetricType.HEAP_USED,
+            value: memoryUsage.heapUsed / 1024 / 1024,
+            unit: 'MB',
+          },
+          {
+            metricType: MetricType.HEAP_TOTAL,
+            value: memoryUsage.heapTotal / 1024 / 1024,
+            unit: 'MB',
+          },
+          {
+            metricType: MetricType.CPU_USAGE,
+            value: (cpuUsage.user + cpuUsage.system) / 1000000,
+            unit: 'seconds',
+          },
+          {
+            metricType: MetricType.UPTIME,
+            value: uptime,
+            unit: 'seconds',
+          },
+        ],
+      });
+    } catch (error) {
+      this.logger.error('Failed to record system metrics', error);
+    }
   }
 
   // =============================================

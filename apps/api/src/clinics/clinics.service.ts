@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClinicTier, Prisma } from '@workspace/db';
+import * as bcrypt from 'bcrypt';
 
 interface CreateClinicData {
   name: string;
@@ -48,7 +49,7 @@ export class ClinicsService {
         phone: data.phone,
         email: data.email,
         logo: data.logo,
-        tier: data.tier || ClinicTier.CAPTURE,
+        tier: data.tier || ClinicTier.CORE, // Default to CORE for basic functionality
         settings: data.settings ?? Prisma.JsonNull,
         active: true,
       },
@@ -214,5 +215,139 @@ export class ClinicsService {
       totalAppointments: appointments,
       todayAppointments,
     };
+  }
+
+  async createDoctor(
+    clinicId: string,
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      phoneNumber?: string;
+      specialization?: string;
+      qualification?: string;
+      registrationNumber?: string;
+    },
+  ) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Build user data, only including specialization if provided and valid
+    const userData: any = {
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      role: 'DOCTOR',
+      clinicId,
+      phoneNumber: data.phoneNumber,
+      qualification: data.qualification,
+      registrationNumber: data.registrationNumber,
+    };
+
+    // Only add specialization if provided
+    if (data.specialization) {
+      userData.specialization = data.specialization;
+    }
+
+    const user = await this.prisma.user.create({
+      data: userData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        createdAt: true,
+      },
+    });
+
+    // Create DoctorClinic association
+    await this.prisma.doctorClinic.create({
+      data: {
+        doctorId: user.id,
+        clinicId,
+      },
+    });
+
+    return user;
+  }
+
+  async getDoctors(clinicId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        clinicId,
+        role: 'DOCTOR',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async createReceptionist(
+    clinicId: string,
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      phoneNumber?: string;
+    },
+  ) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: 'RECEPTIONIST',
+        clinicId,
+        phoneNumber: data.phoneNumber,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        createdAt: true,
+      },
+    });
+
+    return user;
+  }
+
+  async getReceptionists(clinicId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        clinicId,
+        role: 'RECEPTIONIST',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 }

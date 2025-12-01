@@ -66,7 +66,7 @@ export function TimeSlotPicker({
           isSameDay(booked, slotTime),
       );
 
-      // Check if in past
+      // Check if in past (only for today)
       const isPast =
         disablePastSlots && isSameDay(date, now) && isBefore(slotTime, now);
 
@@ -198,6 +198,7 @@ export function CompactTimePicker({
       const isBooked = bookedSlots.some(
         (booked) => format(booked, "HH:mm") === format(slotTime, "HH:mm"),
       );
+      // Only show times in future (today) or any time for future dates
       const isPast = isSameDay(date, now) && isBefore(slotTime, now);
 
       result.push({

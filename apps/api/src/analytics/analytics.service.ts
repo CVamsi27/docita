@@ -3,6 +3,12 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import {
+  getMonthRange,
+  getLastNDaysRange,
+  toISODateString,
+  DEFAULT_TIMEZONE,
+} from '@workspace/types';
 
 @Injectable()
 export class AnalyticsService {
@@ -11,18 +17,19 @@ export class AnalyticsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getOverview() {
-    const cacheKey = 'dashboard-overview';
+  async getOverview(timezone: string = DEFAULT_TIMEZONE) {
+    const cacheKey = `dashboard-overview-${timezone}`;
     const cachedResult = await this.cacheManager.get<any>(cacheKey);
 
     if (cachedResult) {
       return cachedResult;
     }
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    // Use timezone-aware date ranges
+    const thisMonthRange = getMonthRange(new Date(), { timezone });
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
     // ✅ OPTIMIZATION: Use Promise.all for parallel queries instead of sequential
     const [
@@ -36,24 +43,24 @@ export class AnalyticsService {
     ] = await Promise.all([
       this.prisma.patient.count(),
       this.prisma.patient.count({
-        where: { createdAt: { gte: startOfMonth } },
+        where: { createdAt: { gte: thisMonthRange.start } },
       }),
       this.prisma.patient.count({
         where: {
-          createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+          createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
       }),
       this.prisma.appointment.count(),
       this.prisma.appointment.count({
-        where: { createdAt: { gte: startOfMonth } },
+        where: { createdAt: { gte: thisMonthRange.start } },
       }),
       this.prisma.invoice.aggregate({
-        where: { createdAt: { gte: startOfMonth } },
+        where: { createdAt: { gte: thisMonthRange.start } },
         _sum: { total: true },
       }),
       this.prisma.invoice.aggregate({
         where: {
-          createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+          createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
         _sum: { total: true },
       }),
@@ -93,14 +100,13 @@ export class AnalyticsService {
   async getRevenueTrends(
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
     days: number = 30,
+    timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - days);
+    const dateRange = getLastNDaysRange(days, { timezone });
 
     const invoices = await this.prisma.invoice.findMany({
       where: {
-        createdAt: { gte: startDate },
+        createdAt: { gte: dateRange.start },
       },
       select: {
         total: true,
@@ -112,7 +118,7 @@ export class AnalyticsService {
     const revenueByDate = new Map<string, number>();
 
     invoices.forEach((invoice) => {
-      const dateKey = invoice.createdAt.toISOString().split('T')[0];
+      const dateKey = toISODateString(invoice.createdAt, { timezone });
       const current = revenueByDate.get(dateKey) || 0;
       revenueByDate.set(dateKey, current + (invoice.total || 0));
     });
@@ -125,14 +131,15 @@ export class AnalyticsService {
     return data;
   }
 
-  async getPatientGrowth(days: number = 30) {
-    const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - days);
+  async getPatientGrowth(
+    days: number = 30,
+    timezone: string = DEFAULT_TIMEZONE,
+  ) {
+    const dateRange = getLastNDaysRange(days, { timezone });
 
     const patients = await this.prisma.patient.findMany({
       where: {
-        createdAt: { gte: startDate },
+        createdAt: { gte: dateRange.start },
       },
       select: {
         createdAt: true,
@@ -143,7 +150,7 @@ export class AnalyticsService {
     const patientsByDate = new Map<string, number>();
 
     patients.forEach((patient) => {
-      const dateKey = patient.createdAt.toISOString().split('T')[0];
+      const dateKey = toISODateString(patient.createdAt, { timezone });
       const current = patientsByDate.get(dateKey) || 0;
       patientsByDate.set(dateKey, current + 1);
     });
@@ -157,12 +164,11 @@ export class AnalyticsService {
     return data;
   }
 
-  async getAppointmentStats() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  async getAppointmentStats(timezone: string = DEFAULT_TIMEZONE) {
+    const monthRange = getMonthRange(new Date(), { timezone });
 
     const appointments = await this.prisma.appointment.findMany({
-      where: { createdAt: { gte: startOfMonth } },
+      where: { createdAt: { gte: monthRange.start } },
       select: {
         status: true,
         type: true,
@@ -405,7 +411,7 @@ export class AnalyticsService {
 
     const result = procedures
       .map((p) => {
-        const cptCode = cptCodeMap.get(p.cptCodeId as string);
+        const cptCode = cptCodeMap.get(p.cptCodeId as string) as any;
         const count = p._count.id;
         const totalRevenue = cptCode ? cptCode.price * count : 0;
 

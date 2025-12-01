@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -28,6 +28,7 @@ import {
   X,
   Save,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
 import { useObservationsForm } from "@/hooks/use-observations-form";
@@ -40,6 +41,7 @@ import { DiagnosisList } from "@/components/medical-coding/diagnosis-list";
 import { CptCodeSearch } from "@/components/medical-coding/cpt-code-search";
 import { ProcedureList } from "@/components/medical-coding/procedure-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
+import { VitalSignsValidationPanel } from "@/components/vital-signs/vital-signs-validator";
 import type {
   PrescriptionTemplate,
   Medication,
@@ -84,6 +86,11 @@ export function ConsultationContent({
 
   // Procedure State
   const [procedures, setProcedures] = useState<Procedure[]>([]);
+
+  // Vital Signs Validation State
+  const [vitalSignsValidations, setVitalSignsValidations] = useState<
+    Record<string, any>
+  >({});
 
   // Template State
   const { data: templates = [], refetch: loadTemplates } =
@@ -326,6 +333,7 @@ export function ConsultationContent({
     instructions: rxInstructions,
     setInstructions: setRxInstructions,
     medications,
+    validations: medicationValidations,
     addMedication,
     removeMedication,
     updateMedication,
@@ -349,6 +357,26 @@ export function ConsultationContent({
     calculateTotal: calculateInvTotal,
     handleSubmit: handleInvSubmit,
   } = useInvoiceForm({ appointmentId, patientId });
+
+  // Trigger vital signs validation when vitals data changes
+  useEffect(() => {
+    if (
+      vitalsData.bloodPressure ||
+      vitalsData.pulse ||
+      vitalsData.temperature ||
+      vitalsData.spo2
+    ) {
+      // Trigger validation by updating state - validator component will pick it up
+      setVitalSignsValidations({
+        updated: new Date().getTime(),
+      });
+    }
+  }, [
+    vitalsData.bloodPressure,
+    vitalsData.pulse,
+    vitalsData.temperature,
+    vitalsData.spo2,
+  ]);
 
   // Load templates on mount using ref-based pattern
   const hasLoadedTemplatesRef = useRef(false);
@@ -625,6 +653,35 @@ export function ConsultationContent({
                 </div>
               </div>
             </div>
+
+            {/* Vital Signs Validation Display */}
+            {Object.keys(vitalSignsValidations).length > 0 && (
+              <div className="mt-6">
+                <VitalSignsValidationPanel
+                  vitals={{
+                    bpSystolic: vitalsData.bloodPressure
+                      ? parseInt(vitalsData.bloodPressure.split("/")[0] || "0")
+                      : null,
+                    bpDiastolic: vitalsData.bloodPressure
+                      ? parseInt(vitalsData.bloodPressure.split("/")[1] || "0")
+                      : null,
+                    heartRate: vitalsData.pulse
+                      ? parseInt(vitalsData.pulse)
+                      : null,
+                    temperature: vitalsData.temperature
+                      ? parseFloat(vitalsData.temperature)
+                      : null,
+                    spO2: vitalsData.spo2 ? parseFloat(vitalsData.spo2) : null,
+                    respiratoryRate: null, // Not in current form
+                    glucose: null, // Not in current form
+                  }}
+                  onValidationChange={(results) =>
+                    setVitalSignsValidations(results)
+                  }
+                />
+              </div>
+            )}
+
             <div className="flex justify-end pt-6 mt-auto">
               <Button type="submit" disabled={vitalsLoading} className="gap-2">
                 {vitalsLoading ? (
@@ -710,77 +767,97 @@ export function ConsultationContent({
               </div>
 
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                {medications.map((med, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border rounded-lg bg-card space-y-4 relative group"
-                  >
-                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMedication(index)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                {medications.map((med, index) => {
+                  const validation = medicationValidations.find(
+                    (v) => v.medicationIndex === index,
+                  );
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="p-4 border rounded-lg bg-card space-y-4 relative group">
+                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeMedication(index)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Medicine Name</Label>
-                        <MedicineAutocomplete
-                          value={med.name}
-                          onChange={(val) =>
-                            updateMedication(index, "name", val)
-                          }
-                          placeholder="Search medicine..."
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Medicine Name</Label>
+                            <MedicineAutocomplete
+                              value={med.name}
+                              onChange={(val) =>
+                                updateMedication(index, "name", val)
+                              }
+                              placeholder="Search medicine..."
+                            />
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-2">
+                              <Label>Dosage</Label>
+                              <Input
+                                placeholder="500mg"
+                                value={med.dosage}
+                                onChange={(e) =>
+                                  updateMedication(
+                                    index,
+                                    "dosage",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Freq</Label>
+                              <Input
+                                placeholder="2x daily"
+                                value={med.frequency}
+                                onChange={(e) =>
+                                  updateMedication(
+                                    index,
+                                    "frequency",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Duration</Label>
+                              <Input
+                                placeholder="7 days"
+                                value={med.duration}
+                                onChange={(e) =>
+                                  updateMedication(
+                                    index,
+                                    "duration",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-2">
-                          <Label>Dosage</Label>
-                          <Input
-                            placeholder="500mg"
-                            value={med.dosage}
-                            onChange={(e) =>
-                              updateMedication(index, "dosage", e.target.value)
-                            }
-                          />
+                      {validation && (
+                        <div className="text-xs p-3 rounded border flex items-start gap-2 mt-2 border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400">
+                          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <ul className="space-y-1">
+                              {validation.warnings.map((warning, widx) => (
+                                <li key={widx}>• {warning}</li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Freq</Label>
-                          <Input
-                            placeholder="2x daily"
-                            value={med.frequency}
-                            onChange={(e) =>
-                              updateMedication(
-                                index,
-                                "frequency",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Duration</Label>
-                          <Input
-                            placeholder="7 days"
-                            value={med.duration}
-                            onChange={(e) =>
-                              updateMedication(
-                                index,
-                                "duration",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {medications.length === 0 && (
                   <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
                     No medications added. Click &quot;Add Medication&quot; to

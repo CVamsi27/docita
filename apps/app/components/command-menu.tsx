@@ -22,11 +22,13 @@ import {
   CommandSeparator,
 } from "@workspace/ui/components/command";
 import { apiHooks } from "@/lib/api-hooks";
+import { useAuth } from "@/lib/auth-context";
 
 export function CommandMenu() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
-  const { data: patients } = apiHooks.usePatients({ limit: 100 }); // Fetch some patients for search
+  const { isAuthenticated } = useAuth();
+  const { data: patients } = apiHooks.usePatients(isAuthenticated ? {} : null); // Only fetch when authenticated
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {

@@ -1,19 +1,38 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Medication } from "@workspace/types";
+import { Medication, type DosageValidation } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
+import {
+  validateDosage,
+  checkMedicationContraindications,
+} from "@workspace/types";
 
 interface UsePrescriptionFormProps {
   appointmentId: string;
   patientId: string;
   doctorId: string;
+  patientAllergies?: string[];
+  patientConditions?: string[];
+  currentMedications?: string[];
+  isPregnant?: boolean;
   onPrescriptionSaved?: () => void;
+}
+
+interface MedicationValidation {
+  medicationIndex: number;
+  dosageValidation?: DosageValidation;
+  contraindications?: any[];
+  warnings: string[];
 }
 
 export function usePrescriptionForm({
   appointmentId,
   patientId,
   doctorId,
+  patientAllergies = [],
+  patientConditions = [],
+  currentMedications = [],
+  isPregnant = false,
   onPrescriptionSaved,
 }: UsePrescriptionFormProps) {
   const createPrescription = apiHooks.useCreatePrescription();
@@ -21,6 +40,7 @@ export function usePrescriptionForm({
   const [medications, setMedications] = useState<Medication[]>([
     { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
   ]);
+  const [validations, setValidations] = useState<MedicationValidation[]>([]);
 
   const addMedication = () => {
     setMedications([
@@ -42,7 +62,69 @@ export function usePrescriptionForm({
     if (updated[index]) {
       updated[index] = { ...updated[index], [field]: value };
       setMedications(updated);
+
+      // Validate if medication name or dosage changed
+      if (field === "name" || field === "dosage") {
+        validateMedicationAtIndex(index, updated[index]);
+      }
     }
+  };
+
+  const validateMedicationAtIndex = (index: number, med: Medication) => {
+    const warnings: string[] = [];
+
+    // Validate dosage
+    let dosageValidation: DosageValidation | undefined;
+    if (med.name && med.dosage) {
+      dosageValidation = validateDosage(med.name, med.dosage);
+      if (!dosageValidation.isValid) {
+        warnings.push(`${med.name}: ${dosageValidation.message}`);
+      }
+    }
+
+    // Check contraindications
+    let contraindications: any[] = [];
+    if (med.name) {
+      contraindications = checkMedicationContraindications(med.name, {
+        allergies: patientAllergies.map((name) => ({
+          name,
+          severity: "moderate",
+        })),
+        conditions: patientConditions.map((name) => ({ icdCode: "", name })),
+        currentMedications: [
+          ...currentMedications,
+          ...medications
+            .filter((_, i) => i !== index && _.name)
+            .map((m) => m.name),
+        ],
+        isPregnant,
+      });
+
+      const criticalIssues = contraindications.filter(
+        (c: any) => c.severity === "critical",
+      );
+      if (criticalIssues.length > 0) {
+        warnings.push(`${med.name}: ${criticalIssues[0].message}`);
+      }
+    }
+
+    // Update validations
+    setValidations((prev) => {
+      const filtered = prev.filter((v) => v.medicationIndex !== index);
+      if (
+        warnings.length > 0 ||
+        dosageValidation ||
+        contraindications.length > 0
+      ) {
+        filtered.push({
+          medicationIndex: index,
+          dosageValidation,
+          contraindications,
+          warnings,
+        });
+      }
+      return filtered;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {
@@ -53,6 +135,33 @@ export function usePrescriptionForm({
       const validMedications = medications.filter(
         (med) => med.name.trim() !== "",
       );
+
+      // Check for critical validation errors
+      const criticalErrors = validations.filter((v) => {
+        const med = medications[v.medicationIndex];
+        const hasDosageError =
+          v.dosageValidation && !v.dosageValidation.isValid;
+        const hasCriticalContraindication = v.contraindications?.some(
+          (c: any) => c.severity === "critical",
+        );
+        return hasDosageError || hasCriticalContraindication;
+      });
+
+      if (criticalErrors.length > 0) {
+        const firstError = criticalErrors[0]!;
+        const errorMsg =
+          firstError.warnings.length > 0
+            ? firstError.warnings[0]
+            : "Validation errors found";
+        toast.error(`Cannot save prescription: ${errorMsg}`);
+        return;
+      }
+
+      // Show warning if there are minor issues
+      const warnings = validations.flatMap((v) => v.warnings);
+      if (warnings.length > 0) {
+        toast.warning(`Prescription has warnings: ${warnings.join(", ")}`);
+      }
 
       await createPrescription.mutateAsync({
         appointmentId,
@@ -67,6 +176,7 @@ export function usePrescriptionForm({
         { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
       ]);
       setInstructions("");
+      setValidations([]);
       onPrescriptionSaved?.();
       onSuccess?.();
       toast.success("Prescription saved successfully");
@@ -81,6 +191,7 @@ export function usePrescriptionForm({
     instructions,
     setInstructions,
     medications,
+    validations,
     addMedication,
     removeMedication,
     updateMedication,

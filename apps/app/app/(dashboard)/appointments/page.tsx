@@ -291,7 +291,6 @@ const AppointmentCard = memo<{
               {apt.patient
                 ? `${apt.patient.firstName} ${apt.patient.lastName}`
                 : `Patient ID: ${apt.patientId}`}
-              \n{" "}
             </h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <Clock className="h-3 w-3" />

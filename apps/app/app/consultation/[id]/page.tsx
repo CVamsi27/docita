@@ -5,7 +5,8 @@ import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft, User, PanelLeft } from "lucide-react";
 import { ClinicalDocumentationDynamic } from "@/lib/dynamic-imports";
 import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
-import { useEffect, useState } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
 import { cn } from "@workspace/ui/lib/utils";
 import { apiHooks } from "@/lib/api-hooks";
@@ -30,41 +31,37 @@ export default function ConsultationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const appointmentId = params.id as string;
-  const { popRoute, pushRoute } = useNavigationStore();
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { canGoBack } = useNavigationStore();
 
   const { data: appointmentData, isLoading: loading } =
     apiHooks.useAppointment(appointmentId);
 
-  // Track this page in navigation history
-  useEffect(() => {
-    if (appointmentId) {
-      pushRoute(`/consultation/${appointmentId}`);
+  // Compute fallback route based on 'from' query parameter
+  const fromPage = searchParams.get("from");
+  const fallbackRoute = useMemo(() => {
+    if (fromPage === "patient" && appointmentData?.patientId) {
+      return `/patients/${appointmentData.patientId}`;
     }
-  }, [appointmentId, pushRoute]);
+    if (fromPage === "patient") {
+      return "/patients";
+    }
+    // Default to queue for 'from=queue' or when 'from' is not specified
+    return "/queue";
+  }, [fromPage, appointmentData?.patientId]);
 
-  const handleBack = () => {
-    const from = searchParams.get("from");
-    const previousRoute = popRoute();
+  const goBack = useSmartBack(fallbackRoute);
 
-    // If coming from coding queue, go back to coding queue
-    if (from === "coding-queue") {
-      router.push("/coding-queue");
+  // Hybrid back navigation: use history if available, otherwise use computed fallback
+  const handleBack = useCallback(() => {
+    if (canGoBack()) {
+      goBack();
+    } else {
+      // No history available, use the fallback route based on 'from' parameter
+      router.push(fallbackRoute);
     }
-    // If coming from patient page, go back to patient
-    else if (from === "patient" && appointmentData?.patientId) {
-      router.push(`/patients/${appointmentData.patientId}`);
-    }
-    // If we have a previous route in history that's not this page, use it
-    else if (previousRoute && !previousRoute.includes("/consultation/")) {
-      router.push(previousRoute);
-    }
-    // Default to appointments
-    else {
-      router.push("/appointments");
-    }
-  };
+  }, [canGoBack, goBack, router, fallbackRoute]);
 
   const handleSave = () => {
     // Refetch appointment data after save

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
@@ -14,6 +13,14 @@ import {
 } from "@workspace/ui/components/popover";
 import { Label } from "@workspace/ui/components/label";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import {
+  formatDate,
+  toLocalISOString,
+  fromLocalISOString,
+  formatScheduleTime,
+  DATE_FORMATS,
+  DEFAULT_TIMEZONE,
+} from "@workspace/types";
 
 interface DateTimePickerProps {
   value?: string; // ISO datetime-local format: "2024-01-15T09:30"
@@ -22,12 +29,15 @@ interface DateTimePickerProps {
   disabled?: boolean;
   minDate?: Date;
   className?: string;
+  startHour?: number; // Clinic opening hour (0-23)
+  endHour?: number; // Clinic closing hour (0-23)
+  timezone?: string; // Clinic timezone
 }
 
 // Generate time slots in 15-minute intervals
-const generateTimeSlots = () => {
+const generateTimeSlots = (startHour = 0, endHour = 23) => {
   const slots: { value: string; label: string }[] = [];
-  for (let hour = 0; hour < 24; hour++) {
+  for (let hour = startHour; hour <= endHour; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const h = hour.toString().padStart(2, "0");
       const m = minute.toString().padStart(2, "0");
@@ -41,8 +51,6 @@ const generateTimeSlots = () => {
   return slots;
 };
 
-const TIME_SLOTS = generateTimeSlots();
-
 export function DateTimePicker({
   value,
   onChange,
@@ -50,17 +58,34 @@ export function DateTimePicker({
   disabled = false,
   minDate,
   className,
+  startHour = 9,
+  endHour = 18,
+  timezone = DEFAULT_TIMEZONE,
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false);
   const timeListRef = React.useRef<HTMLDivElement>(null);
 
+  // Generate clinic-specific time slots
+  const clinicTimeSlots = React.useMemo(
+    () => generateTimeSlots(startHour, endHour),
+    [startHour, endHour],
+  );
+
   // Parse the datetime-local string into date and time parts
   const { dateValue, timeValue } = React.useMemo(() => {
-    if (!value) return { dateValue: undefined, timeValue: "09:00" };
+    if (!value)
+      return {
+        dateValue: undefined,
+        timeValue: `${startHour.toString().padStart(2, "0")}:00`,
+      };
 
-    const date = new Date(value);
-    if (isNaN(date.getTime()))
-      return { dateValue: undefined, timeValue: "09:00" };
+    // Parse the local ISO string using the clinic timezone
+    const date = fromLocalISOString(value, { timezone });
+    if (!date)
+      return {
+        dateValue: undefined,
+        timeValue: `${startHour.toString().padStart(2, "0")}:00`,
+      };
 
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = Math.floor(date.getMinutes() / 15) * 15;
@@ -70,7 +95,31 @@ export function DateTimePicker({
       dateValue: date,
       timeValue: `${hours}:${mins}`,
     };
-  }, [value]);
+  }, [value, startHour, timezone]);
+
+  // Filter available time slots based on selected date
+  const availableTimeSlots = React.useMemo(() => {
+    const now = new Date();
+    return clinicTimeSlots.filter((slot) => {
+      // Parse slot time
+      const timeParts = slot.value.split(":").map(Number);
+      const slotHours = timeParts[0] ?? 0;
+      const slotMinutes = timeParts[1] ?? 0;
+
+      // Check if slot is in past (only for today)
+      if (dateValue && dateValue.toDateString() === now.toDateString()) {
+        const slotDate = new Date(dateValue);
+        slotDate.setHours(slotHours, slotMinutes, 0, 0);
+
+        // Disable if time is in past
+        if (slotDate < now) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [clinicTimeSlots, dateValue]);
 
   // Scroll to selected time when popover opens
   React.useEffect(() => {
@@ -88,13 +137,10 @@ export function DateTimePicker({
     if (!date) return;
 
     const [hours, minutes] = timeValue.split(":").map(Number);
-    date.setHours(hours ?? 9, minutes ?? 0, 0, 0);
+    date.setHours(hours ?? startHour, minutes ?? 0, 0, 0);
 
-    // Convert to datetime-local format
-    const offset = date.getTimezoneOffset() * 60000;
-    const localISOTime = new Date(date.getTime() - offset)
-      .toISOString()
-      .slice(0, 16);
+    // Convert to datetime-local format using timezone-aware utility
+    const localISOTime = toLocalISOString(date, { timezone });
 
     onChange?.(localISOTime);
   };
@@ -102,22 +148,19 @@ export function DateTimePicker({
   const handleTimeChange = (time: string) => {
     const date = dateValue ? new Date(dateValue) : new Date();
     const [hours, minutes] = time.split(":").map(Number);
-    date.setHours(hours ?? 9, minutes ?? 0, 0, 0);
+    date.setHours(hours ?? startHour, minutes ?? 0, 0, 0);
 
-    // Convert to datetime-local format
-    const offset = date.getTimezoneOffset() * 60000;
-    const localISOTime = new Date(date.getTime() - offset)
-      .toISOString()
-      .slice(0, 16);
+    // Convert to datetime-local format using timezone-aware utility
+    const localISOTime = toLocalISOString(date, { timezone });
 
     onChange?.(localISOTime);
   };
 
   const displayValue = React.useMemo(() => {
     if (!dateValue) return null;
-    const timeSlot = TIME_SLOTS.find((s) => s.value === timeValue);
-    return `${format(dateValue, "MMM d, yyyy")} at ${timeSlot?.label || timeValue}`;
-  }, [dateValue, timeValue]);
+    const timeSlot = clinicTimeSlots.find((s) => s.value === timeValue);
+    return `${formatDate(dateValue, DATE_FORMATS.DATE_MEDIUM, { timezone })} at ${timeSlot?.label || formatScheduleTime(timeValue)}`;
+  }, [dateValue, timeValue, clinicTimeSlots, timezone]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -156,7 +199,7 @@ export function DateTimePicker({
             </div>
             <ScrollArea className="h-[200px] w-[120px] rounded-md border">
               <div className="p-2 space-y-1" ref={timeListRef}>
-                {TIME_SLOTS.map((slot) => (
+                {availableTimeSlots.map((slot) => (
                   <Button
                     key={slot.value}
                     data-time={slot.value}

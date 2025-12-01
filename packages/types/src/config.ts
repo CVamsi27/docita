@@ -1,4 +1,36 @@
 import { z } from "zod";
+import {
+  DEFAULT_TIMEZONE,
+  DEFAULT_LOCALE,
+  LOCALE_OPTIONS,
+  TIMEZONE_OPTIONS,
+  CURRENCY_SYMBOLS,
+  SUPPORTED_CURRENCIES,
+  type TimezoneValue,
+  type CurrencyCode,
+  type LocaleValue,
+  getTimezonesForCurrency,
+  getDefaultTimezoneForCurrency,
+  getLocalesForCurrency,
+  getDefaultLocaleForCurrency,
+} from "./date-utils.js";
+
+// Re-export for backward compatibility
+export {
+  DEFAULT_TIMEZONE,
+  DEFAULT_LOCALE,
+  LOCALE_OPTIONS,
+  TIMEZONE_OPTIONS,
+  CURRENCY_SYMBOLS,
+  SUPPORTED_CURRENCIES,
+  type TimezoneValue,
+  type CurrencyCode,
+  type LocaleValue,
+  getTimezonesForCurrency,
+  getDefaultTimezoneForCurrency,
+  getLocalesForCurrency,
+  getDefaultLocaleForCurrency,
+};
 
 /**
  * =====================================================
@@ -347,35 +379,39 @@ export type WhatsappMessageTypeValue = z.infer<
 >;
 
 // =====================================================
-// CURRENCY & TIMEZONE OPTIONS
+// CURRENCY OPTIONS (uses CURRENCY_SYMBOLS from date-utils.ts)
 // =====================================================
 
 export const CURRENCY_OPTIONS = [
   { value: "INR", label: "Indian Rupee", symbol: "₹" },
   { value: "USD", label: "US Dollar", symbol: "$" },
-  { value: "EUR", label: "Euro", symbol: "€" },
   { value: "GBP", label: "British Pound", symbol: "£" },
+  { value: "EUR", label: "Euro", symbol: "€" },
+  { value: "AUD", label: "Australian Dollar", symbol: "A$" },
+  { value: "CAD", label: "Canadian Dollar", symbol: "C$" },
+  { value: "SGD", label: "Singapore Dollar", symbol: "S$" },
+  { value: "AED", label: "UAE Dirham", symbol: "AED" },
+  { value: "ZAR", label: "South African Rand", symbol: "R" },
 ] as const;
 
-export const currencyValueSchema = z.enum(["INR", "USD", "EUR", "GBP"]);
+export const currencyValueSchema = z.enum([
+  "INR",
+  "USD",
+  "GBP",
+  "EUR",
+  "AUD",
+  "CAD",
+  "SGD",
+  "AED",
+  "ZAR",
+]);
 export type CurrencyValue = z.infer<typeof currencyValueSchema>;
 
-export const TIMEZONE_OPTIONS = [
-  { value: "Asia/Kolkata", label: "India Standard Time (IST)" },
-  { value: "Asia/Dubai", label: "Gulf Standard Time (GST)" },
-  { value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
-  { value: "America/New_York", label: "Eastern Time (ET)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
-] as const;
+// Note: TIMEZONE_OPTIONS is imported and re-exported from date-utils.ts
+// which provides comprehensive timezone support for all supported currencies
 
-export const timezoneValueSchema = z.enum([
-  "Asia/Kolkata",
-  "Asia/Dubai",
-  "Europe/London",
-  "America/New_York",
-  "America/Los_Angeles",
-]);
-export type TimezoneValue = z.infer<typeof timezoneValueSchema>;
+export const timezoneValueSchema = z.string();
+// TimezoneValue type is imported from date-utils.ts
 
 // =====================================================
 // DEFAULT VALUES
@@ -384,7 +420,7 @@ export type TimezoneValue = z.infer<typeof timezoneValueSchema>;
 export const DEFAULT_APPOINTMENT_DURATION = 30;
 export const DEFAULT_CONSULTATION_FEE = 800;
 export const DEFAULT_CURRENCY = "INR";
-export const DEFAULT_TIMEZONE = "Asia/Kolkata";
+// Note: DEFAULT_TIMEZONE is now imported from date-utils.js and re-exported above
 
 export const DEFAULT_INVOICE_ITEMS = [
   { description: "Consultation Fee", quantity: 1, price: 800 },

@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import PDFDocument from 'pdfkit';
+import {
+  formatDate,
+  calculateAge,
+  DATE_FORMATS,
+  DEFAULT_TIMEZONE,
+  DEFAULT_LOCALE,
+} from '@workspace/types';
 
 @Injectable()
 export class PrescriptionsService {
@@ -117,7 +124,11 @@ export class PrescriptionsService {
 
     return prescription;
   }
-  async generatePDF(id: string): Promise<Buffer> {
+  async generatePDF(
+    id: string,
+    timezone: string = DEFAULT_TIMEZONE,
+    locale: string = DEFAULT_LOCALE,
+  ): Promise<Buffer> {
     const prescription = await this.findOne(id);
 
     return new Promise((resolve, reject) => {
@@ -156,7 +167,7 @@ export class PrescriptionsService {
         .fontSize(10)
         .font('Helvetica')
         .text(
-          `Date: ${new Date(prescription.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+          `Date: ${formatDate(prescription.createdAt, DATE_FORMATS.DATE_LONG, { timezone })}`,
           { align: 'right' },
         );
       doc.moveDown();
@@ -174,9 +185,10 @@ export class PrescriptionsService {
         .text(
           `${prescription.patient.firstName} ${prescription.patient.lastName}`,
         );
-      doc.text(
-        `Age: ${prescription.patient.dateOfBirth ? new Date().getFullYear() - new Date(prescription.patient.dateOfBirth).getFullYear() : 'N/A'} Years`,
-      );
+
+      // Use timezone-aware age calculation
+      const patientAge = calculateAge(prescription.patient.dateOfBirth);
+      doc.text(`Age: ${patientAge ?? 'N/A'} Years`);
       doc.text(`Gender: ${prescription.patient.gender}`);
 
       doc.moveDown(4);

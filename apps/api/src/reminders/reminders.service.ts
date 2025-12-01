@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReminderSettings } from '@workspace/db';
+import {
+  formatDate,
+  formatTime,
+  DATE_FORMATS,
+  DEFAULT_TIMEZONE,
+} from '@workspace/types';
 
 interface AppointmentForReminder {
   id: string;
@@ -231,19 +237,25 @@ Thank you,
   private replacePlaceholders(
     template: string,
     appointment: AppointmentForReminder,
+    timezone: string = DEFAULT_TIMEZONE,
   ): string {
-    const date = new Date(appointment.startTime);
-
     return template
       .replace(
         /{patientName}/g,
         `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       )
       .replace(/{doctorName}/g, appointment.doctor.name)
-      .replace(/{appointmentDate}/g, date.toLocaleDateString())
+      .replace(
+        /{appointmentDate}/g,
+        formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
+          timezone,
+        }),
+      )
       .replace(
         /{appointmentTime}/g,
-        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM, {
+          timezone,
+        }),
       )
       .replace(/{appointmentType}/g, appointment.type)
       .replace(/{clinicName}/g, 'Your Clinic');

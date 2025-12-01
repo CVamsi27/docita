@@ -27,11 +27,7 @@ async function main() {
         phone: '+91 80 1234 5678',
         email: 'contact@docita.health',
         active: true,
-        tier: 'PRO', // Updated to use valid tier enum
-        settings: {
-          timezone: 'Asia/Kolkata',
-          currency: 'INR',
-        },
+        tier: 'PRO',
       },
     });
 
@@ -308,7 +304,36 @@ async function main() {
       ],
     });
 
+    // Create DoctorClinic entries to properly associate doctors with the default clinic
+    await prisma.doctorClinic.deleteMany({
+      where: { doctorId: { in: [doctor1.id, doctor2.id, doctor3.id] } },
+    });
+
+    await prisma.doctorClinic.createMany({
+      data: [
+        {
+          doctorId: doctor1.id,
+          clinicId: defaultClinic.id,
+          role: 'doctor',
+          active: true,
+        },
+        {
+          doctorId: doctor2.id,
+          clinicId: defaultClinic.id,
+          role: 'doctor',
+          active: true,
+        },
+        {
+          doctorId: doctor3.id,
+          clinicId: defaultClinic.id,
+          role: 'doctor',
+          active: true,
+        },
+      ],
+    });
+
     console.log('✅ Doctor profiles with education and certifications created');
+    console.log('✅ DoctorClinic associations created');
 
     await prisma.user.upsert({
       where: { email: 'reception@docita.com' },

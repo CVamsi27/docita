@@ -24,6 +24,8 @@ interface Clinic {
   features?: Record<string, boolean>;
   trialEndsAt?: string;
   subscriptionStatus?: string;
+  openingTime?: string; // HH:mm format
+  closingTime?: string; // HH:mm format
 }
 
 interface ClinicContextType {

@@ -257,6 +257,31 @@ export class AppointmentsService {
       ...rest
     } = dataRecord;
 
+    // Check if clinical documentation fields are being saved
+    const clinicalDocFields = [
+      'chiefComplaint',
+      'historyOfPresentIllness',
+      'provisionalDiagnosis',
+      'finalDiagnosis',
+      'treatmentPlan',
+      'clinicalImpression',
+    ];
+    const hasClinicalDoc = clinicalDocFields.some(
+      (field) => dataRecord[field] !== undefined && dataRecord[field] !== '',
+    );
+
+    // If clinical documentation is being saved, check if we should auto-complete
+    let shouldAutoComplete = false;
+    if (hasClinicalDoc) {
+      const currentAppointment = await this.prisma.appointment.findUnique({
+        where: { id },
+        select: { status: true },
+      });
+      if (currentAppointment?.status === 'in-progress') {
+        shouldAutoComplete = true;
+      }
+    }
+
     const updateData: Prisma.AppointmentUpdateInput = {
       ...(rest as object),
       ...(startTime ? { startTime: new Date(startTime as string | Date) } : {}),
@@ -271,6 +296,8 @@ export class AppointmentsService {
       ...(investigations !== undefined && {
         investigations: investigations as Prisma.InputJsonValue,
       }),
+      // Auto-complete if saving clinical documentation for in-progress appointment
+      ...(shouldAutoComplete && { status: 'completed' }),
     };
 
     const appointment = await this.prisma.appointment.update({
@@ -335,6 +362,21 @@ export class AppointmentsService {
         },
       },
     });
+
+    // Also update queue token status if exists
+    if (shouldAutoComplete) {
+      await this.prisma.queueToken.updateMany({
+        where: {
+          appointmentId: id,
+          status: 'in-progress',
+        },
+        data: {
+          status: 'completed',
+          completedAt: new Date(),
+        },
+      });
+    }
+
     return appointment as unknown as Appointment;
   }
 

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import {
   Card,
   CardContent,
@@ -30,6 +31,7 @@ export default function InvoiceEditPage() {
 
   const { data: invoice, isLoading: loading } = apiHooks.useInvoice(invoiceId);
   const updateInvoice = apiHooks.useUpdateInvoice(invoiceId);
+  const goBack = useSmartBack(`/invoices/${invoiceId}`);
 
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [notes, setNotes] = useState("");
@@ -110,7 +112,7 @@ export default function InvoiceEditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -119,7 +121,7 @@ export default function InvoiceEditPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" onClick={goBack}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={updateInvoice.isPending}>

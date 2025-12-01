@@ -14,6 +14,8 @@ import {
   MessageSquare,
   CreditCard,
   HeartPulse,
+  Shield,
+  Zap,
 } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
 import { useAuth } from "@/lib/auth";
@@ -29,6 +31,21 @@ const sidebarItems = [
     title: "Doctors",
     href: "/dashboard/doctors",
     icon: Stethoscope,
+  },
+  {
+    title: "Admins",
+    href: "/dashboard/admins",
+    icon: Shield,
+  },
+  {
+    title: "AI Features",
+    href: "/dashboard/ai-features",
+    icon: Zap,
+  },
+  {
+    title: "Payment Processing",
+    href: "/dashboard/payment-processing",
+    icon: CreditCard,
   },
   {
     title: "Billing",

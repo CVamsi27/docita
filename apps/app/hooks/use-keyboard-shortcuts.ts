@@ -50,7 +50,13 @@ export function useKeyboardShortcuts({
         // For shortcuts without modifiers, skip if in input
         if (modifiers.length === 0 && isInput) continue;
 
-        const keyMatch = event.key.toLowerCase() === shortcut.key.toLowerCase();
+        // Safely handle undefined key values
+        const eventKey = event.key?.toLowerCase();
+        const shortcutKey = shortcut.key?.toLowerCase();
+
+        if (!eventKey || !shortcutKey) continue;
+
+        const keyMatch = eventKey === shortcutKey;
         const modifiersMatch =
           (modifiers.length === 0 || (metaOrCtrl ? needsMeta : true)) &&
           needsAlt &&

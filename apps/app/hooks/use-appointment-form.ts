@@ -6,6 +6,8 @@ import { apiHooks } from "@/lib/api-hooks";
 import {
   createAppointmentSchema,
   CreateAppointmentInput,
+  toLocalISOString,
+  DEFAULT_TIMEZONE,
 } from "@workspace/types";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
@@ -56,13 +58,15 @@ export function useAppointmentForm({
   const defaultValues = useMemo(
     () => ({
       patientId: preselectedPatientId || "",
+      doctorId: user?.id || "",
+      clinicId: user?.clinicId || "",
       startTime: selectedDate ? selectedDate.toISOString().slice(0, 16) : "",
       endTime: "",
       status: "scheduled" as const,
       type: "consultation" as const,
       notes: "",
     }),
-    [preselectedPatientId, selectedDate],
+    [preselectedPatientId, selectedDate, user?.id, user?.clinicId],
   );
 
   const form = useForm<CreateAppointmentInput>({
@@ -80,10 +84,10 @@ export function useAppointmentForm({
     if (selectedDate) {
       const start = new Date(selectedDate);
       start.setHours(9, 0, 0, 0);
-      const offset = start.getTimezoneOffset() * 60000;
-      const localISOTime = new Date(start.getTime() - offset)
-        .toISOString()
-        .slice(0, 16);
+      // Use timezone-aware conversion
+      const localISOTime = toLocalISOString(start, {
+        timezone: DEFAULT_TIMEZONE,
+      });
       form.setValue("startTime", localISOTime);
     }
   }
@@ -99,19 +103,16 @@ export function useAppointmentForm({
   const onSubmit = useCallback(
     async (data: CreateAppointmentInput, onSuccess?: () => void) => {
       try {
-        // Use logged in user's ID as doctorId, or fallback to first doctor
-        const doctorId = user?.id || "1";
         const durationMs = defaultDuration * 60000;
 
         await createAppointment({
           ...data,
-          doctorId,
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
             data.endTime ||
               new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
-        } as CreateAppointmentInput & { doctorId: string });
+        });
         form.reset();
         onAppointmentAdded();
         onSuccess?.();
@@ -121,7 +122,7 @@ export function useAppointmentForm({
         toast.error("Failed to schedule appointment. Please try again.");
       }
     },
-    [form, onAppointmentAdded, createAppointment, user?.id, defaultDuration],
+    [form, onAppointmentAdded, createAppointment, defaultDuration],
   );
 
   return {

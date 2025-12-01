@@ -38,6 +38,20 @@ function getAuthToken(): string | null {
   return localStorage.getItem("docita_token");
 }
 
+function handleAuthError() {
+  // Clear invalid token
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("docita_token");
+    localStorage.removeItem("docita_user");
+    // Redirect to login
+    const currentPath = window.location.pathname;
+    if (currentPath !== "/login") {
+      sessionStorage.setItem("redirectAfterLogin", currentPath);
+      window.location.href = "/login";
+    }
+  }
+}
+
 async function fetchAPI<T>(
   endpoint: string,
   options?: RequestInit,
@@ -52,19 +66,36 @@ async function fetchAPI<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ message: "An error occurred" }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      // Handle 401 Unauthorized - token is invalid or expired
+      if (response.status === 401) {
+        handleAuthError();
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      // Handle other errors
+      const error = await response
+        .json()
+        .catch(() => ({ message: "An error occurred" }));
+      throw new Error(
+        error.message || `HTTP error! status: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    // Re-throw with better error messaging
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Failed to fetch from API");
   }
-
-  return response.json();
 }
 
 export function useAPIQuery<T>(
@@ -75,6 +106,7 @@ export function useAPIQuery<T>(
   return useQuery<T>({
     queryKey: key,
     queryFn: () => fetchAPI<T>(endpoint),
+    enabled: true, // Default to enabled, can be overridden in options
     ...options,
   });
 }
@@ -93,6 +125,7 @@ export function useAPIMutation<TData, TVariables>(
         body: JSON.stringify(variables),
       }),
     onSuccess: () => {
+      // Invalidate all queries but wait for refetch to complete
       void queryClient.invalidateQueries({});
     },
     ...options,
@@ -105,7 +138,7 @@ export const apiHooks = {
     useAPIQuery<DashboardStats>(["dashboard-stats"], "/dashboard/stats"),
 
   // Patients
-  usePatients: (options?: { limit?: number; search?: string }) => {
+  usePatients: (options?: { limit?: number; search?: string } | null) => {
     const params = new URLSearchParams();
     if (options?.limit) params.append("limit", options.limit.toString());
     if (options?.search) params.append("search", options.search);
@@ -115,6 +148,7 @@ export const apiHooks = {
     return useAPIQuery<Patient[]>(
       ["patients", options?.limit?.toString() ?? "", options?.search ?? ""],
       url,
+      { enabled: options !== null }, // Disable only if explicitly passed null
     );
   },
   useRecentPatients: (limit: number = 5) => {
@@ -124,7 +158,9 @@ export const apiHooks = {
     );
   },
   usePatient: (id: string) =>
-    useAPIQuery<Patient>(["patients", id], `/patients/${id}`),
+    useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
+      enabled: !!id,
+    }),
   useCreatePatient: () =>
     useAPIMutation<Patient, CreatePatientInput>("/patients", "POST"),
   useUpdatePatient: (id: string) =>
@@ -496,6 +532,50 @@ export const apiHooks = {
         appointment?: { id: string; doctor: { id: string; name: string } };
       }[]
     >(["queue"], "/queue"),
+
+  // Unified Today's Patients (combines appointments + walk-ins)
+  useTodaysPatients: (doctorId?: string) =>
+    useAPIQuery<{
+      patients: {
+        id: string;
+        type: "appointment" | "queue";
+        tokenNumber: number | null;
+        tokenType: "scheduled" | "walk-in" | "late-arrival" | "pending";
+        status: string;
+        priority: number;
+        scheduledTime: string | null;
+        checkInTime: string | null;
+        patient: {
+          id: string;
+          firstName: string;
+          lastName: string;
+          phoneNumber: string | null;
+          gender: string | null;
+          dateOfBirth: string | null;
+        };
+        doctor: { id: string; name: string } | null;
+        appointmentId: string | null;
+        appointmentType: string | null;
+        estimatedWaitTime: number | null;
+        calledAt: string | null;
+        completedAt: string | null;
+      }[];
+      stats: {
+        total: number;
+        pending: number;
+        waiting: number;
+        inProgress: number;
+        completed: number;
+        noShow: number;
+        walkIns: number;
+        scheduled: number;
+        avgConsultationMinutes: number;
+      };
+    }>(
+      ["todays-patients", doctorId ?? "all"],
+      `/queue/today${doctorId ? `?doctorId=${doctorId}` : ""}`,
+    ),
+
   useQueueByDoctor: (doctorId?: string) =>
     useAPIQuery<
       {

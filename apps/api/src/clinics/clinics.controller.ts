@@ -53,7 +53,26 @@ interface ClinicSettingsDto {
 interface AuthRequest {
   user?: {
     clinicId?: string;
+    userId?: string;
+    role?: string;
   };
+}
+
+interface CreateDoctorDto {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
+interface CreateReceptionistDto {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
 }
 
 @Controller('clinics')
@@ -93,6 +112,50 @@ export class ClinicsController {
   @Get(':id/stats')
   getClinicStats(@Param('id') id: string) {
     return this.clinicsService.getClinicStats(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':clinicId/doctors')
+  async createDoctor(
+    @Param('clinicId') clinicId: string,
+    @Body() data: CreateDoctorDto,
+    @Request() req: AuthRequest,
+  ) {
+    // Only clinic admins can create doctors
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only create doctors in your own clinic',
+      );
+    }
+    return this.clinicsService.createDoctor(clinicId, data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':clinicId/doctors')
+  async getDoctors(@Param('clinicId') clinicId: string) {
+    return this.clinicsService.getDoctors(clinicId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':clinicId/receptionists')
+  async createReceptionist(
+    @Param('clinicId') clinicId: string,
+    @Body() data: CreateReceptionistDto,
+    @Request() req: AuthRequest,
+  ) {
+    // Only clinic admins can create receptionists
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only create receptionists in your own clinic',
+      );
+    }
+    return this.clinicsService.createReceptionist(clinicId, data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':clinicId/receptionists')
+  async getReceptionists(@Param('clinicId') clinicId: string) {
+    return this.clinicsService.getReceptionists(clinicId);
   }
 }
 

@@ -24,8 +24,14 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible";
 import {
   Activity,
   Pill,
@@ -40,6 +46,16 @@ import {
   FlaskConical,
   HeartPulse,
   PanelLeft,
+  AlertTriangle,
+  Heart,
+  Users,
+  Cigarette,
+  Scissors,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Info,
+  History,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
@@ -59,11 +75,99 @@ import type {
   IcdCode,
   Procedure,
   CptCode,
+  Patient,
 } from "@workspace/types";
 import { ROUTE_OPTIONS } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { api } from "@/lib/api-client";
 import { useFormOptions } from "@/lib/app-config-context";
+
+// Define medical history types locally
+type AllergySeverity = "MILD" | "MODERATE" | "SEVERE" | "LIFE_THREATENING";
+type ConditionStatus = "ACTIVE" | "RESOLVED" | "CHRONIC" | "IN_REMISSION";
+type ConditionType = "ACUTE" | "CHRONIC" | "CONGENITAL" | "ACQUIRED";
+
+interface PatientMedicalCondition {
+  id: string;
+  patientId: string;
+  conditionName: string;
+  icdCode?: string;
+  conditionType: ConditionType;
+  status: ConditionStatus;
+  diagnosedDate?: string;
+  resolvedDate?: string;
+  severity?: string;
+  notes?: string;
+  diagnosedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PatientAllergy {
+  id: string;
+  patientId: string;
+  allergen: string;
+  allergyType: string;
+  severity: AllergySeverity;
+  reaction?: string;
+  notes?: string;
+  diagnosedDate?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PatientFamilyHistory {
+  id: string;
+  patientId: string;
+  relationship: string;
+  condition: string;
+  ageAtOnset?: number;
+  isAlive?: boolean;
+  ageAtDeath?: number;
+  causeOfDeath?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PatientSocialHistory {
+  id: string;
+  patientId: string;
+  smokingStatus?: string;
+  alcoholUse?: string;
+  drugUse?: string;
+  occupation?: string;
+  exerciseFrequency?: string;
+  diet?: string;
+  maritalStatus?: string;
+  livingArrangement?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PatientSurgicalHistory {
+  id: string;
+  patientId: string;
+  procedureName: string;
+  procedureDate?: string;
+  hospital?: string;
+  surgeon?: string;
+  complications?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Extend Patient type with medical history
+interface PatientWithHistory extends Patient {
+  medicalConditions?: PatientMedicalCondition[];
+  patientAllergies?: PatientAllergy[];
+  familyHistory?: PatientFamilyHistory[];
+  socialHistory?: PatientSocialHistory[];
+  surgicalHistory?: PatientSurgicalHistory[];
+}
 
 // Define types locally since they may not be exported yet
 interface GeneralExamination {
@@ -207,9 +311,31 @@ export function ClinicalDocumentation({
 }: ClinicalDocumentationProps) {
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedHistorySections, setExpandedHistorySections] = useState<
+    Record<string, boolean>
+  >({
+    conditions: true,
+    allergies: true,
+    surgeries: false,
+    family: false,
+    social: false,
+  });
 
   // Get form options from config
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
+
+  // Fetch patient data with full medical history
+  const { data: patientData } = apiHooks.usePatient(patientId) as {
+    data: PatientWithHistory | undefined;
+  };
+
+  // Toggle history section
+  const toggleHistorySection = (section: string) => {
+    setExpandedHistorySections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   // Clinical Note State
   const [clinicalNote, setClinicalNote] = useState<ClinicalNoteData>({
@@ -800,15 +926,358 @@ export function ClinicalDocumentation({
         {/* History Tab */}
         <TabsContent value="history" className="mt-0 h-full space-y-4">
           <div className="h-full flex flex-col">
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-6 overflow-y-auto">
+              {/* Patient Medical History Summary Banner */}
+              {patientData && (
+                <Card className="border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <History className="h-5 w-5 text-blue-500" />
+                        Patient Medical History
+                      </CardTitle>
+                      <Badge variant="outline" className="text-xs">
+                        From patient record
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      Pre-populated from {patientData.firstName}{" "}
+                      {patientData.lastName}&apos;s medical record. Review and
+                      update as needed.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Known Allergies Alert */}
+                    {patientData.patientAllergies &&
+                      patientData.patientAllergies.length > 0 && (
+                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-medium mb-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            Known Allergies (
+                            {patientData.patientAllergies.length})
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {patientData.patientAllergies.map((allergy) => (
+                              <Badge
+                                key={allergy.id}
+                                variant={
+                                  allergy.severity === "LIFE_THREATENING" ||
+                                  allergy.severity === "SEVERE"
+                                    ? "destructive"
+                                    : allergy.severity === "MODERATE"
+                                      ? "default"
+                                      : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {allergy.allergen}
+                                {allergy.severity && (
+                                  <span className="ml-1 opacity-75">
+                                    (
+                                    {allergy.severity
+                                      .toLowerCase()
+                                      .replace("_", " ")}
+                                    )
+                                  </span>
+                                )}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Active Medical Conditions */}
+                    <Collapsible
+                      open={expandedHistorySections.conditions}
+                      onOpenChange={() => toggleHistorySection("conditions")}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              Medical Conditions
+                            </span>
+                            {patientData.medicalConditions &&
+                              patientData.medicalConditions.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {patientData.medicalConditions.length}
+                                </Badge>
+                              )}
+                          </div>
+                          {expandedHistorySections.conditions ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2">
+                        {patientData.medicalConditions &&
+                        patientData.medicalConditions.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
+                            {patientData.medicalConditions.map((condition) => (
+                              <div
+                                key={condition.id}
+                                className="p-2 rounded border bg-card text-sm"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">
+                                    {condition.conditionName}
+                                  </span>
+                                  <Badge
+                                    variant={
+                                      condition.status === "ACTIVE"
+                                        ? "destructive"
+                                        : condition.status === "CHRONIC"
+                                          ? "default"
+                                          : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {condition.status}
+                                  </Badge>
+                                </div>
+                                {condition.icdCode && (
+                                  <span className="text-xs text-muted-foreground">
+                                    ICD: {condition.icdCode}
+                                  </span>
+                                )}
+                                {condition.diagnosedDate && (
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    Since:{" "}
+                                    {new Date(
+                                      condition.diagnosedDate,
+                                    ).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground pl-6">
+                            No medical conditions recorded
+                          </p>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Surgical History */}
+                    <Collapsible
+                      open={expandedHistorySections.surgeries}
+                      onOpenChange={() => toggleHistorySection("surgeries")}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Scissors className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium">
+                              Surgical History
+                            </span>
+                            {patientData.surgicalHistory &&
+                              patientData.surgicalHistory.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {patientData.surgicalHistory.length}
+                                </Badge>
+                              )}
+                          </div>
+                          {expandedHistorySections.surgeries ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2">
+                        {patientData.surgicalHistory &&
+                        patientData.surgicalHistory.length > 0 ? (
+                          <div className="space-y-2 pl-6">
+                            {patientData.surgicalHistory.map((surgery) => (
+                              <div
+                                key={surgery.id}
+                                className="p-2 rounded border bg-card text-sm"
+                              >
+                                <div className="font-medium">
+                                  {surgery.procedureName}
+                                </div>
+                                <div className="text-xs text-muted-foreground flex gap-3">
+                                  {surgery.procedureDate && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {new Date(
+                                        surgery.procedureDate,
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                  {surgery.hospital && (
+                                    <span>{surgery.hospital}</span>
+                                  )}
+                                </div>
+                                {surgery.complications && (
+                                  <div className="text-xs text-orange-600 mt-1">
+                                    Complications: {surgery.complications}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground pl-6">
+                            No surgical history recorded
+                          </p>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Family History */}
+                    <Collapsible
+                      open={expandedHistorySections.family}
+                      onOpenChange={() => toggleHistorySection("family")}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-purple-500" />
+                            <span className="font-medium">Family History</span>
+                            {patientData.familyHistory &&
+                              patientData.familyHistory.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {patientData.familyHistory.length}
+                                </Badge>
+                              )}
+                          </div>
+                          {expandedHistorySections.family ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2">
+                        {patientData.familyHistory &&
+                        patientData.familyHistory.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
+                            {patientData.familyHistory.map((history) => (
+                              <div
+                                key={history.id}
+                                className="p-2 rounded border bg-card text-sm"
+                              >
+                                <div className="font-medium">
+                                  {history.condition}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {history.relationship}
+                                  {history.ageAtOnset &&
+                                    ` (onset at ${history.ageAtOnset} years)`}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground pl-6">
+                            No family history recorded
+                          </p>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Social History */}
+                    <Collapsible
+                      open={expandedHistorySections.social}
+                      onOpenChange={() => toggleHistorySection("social")}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Cigarette className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium">Social History</span>
+                            {patientData.socialHistory &&
+                              patientData.socialHistory.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Recorded
+                                </Badge>
+                              )}
+                          </div>
+                          {expandedHistorySections.social ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2">
+                        {patientData.socialHistory &&
+                        patientData.socialHistory.length > 0 ? (
+                          <div className="pl-6 space-y-2">
+                            {patientData.socialHistory.map((social) => (
+                              <div
+                                key={social.id}
+                                className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm"
+                              >
+                                {social.smokingStatus && (
+                                  <div className="p-2 rounded border bg-card">
+                                    <div className="text-xs text-muted-foreground">
+                                      Smoking
+                                    </div>
+                                    <div className="font-medium">
+                                      {social.smokingStatus}
+                                    </div>
+                                  </div>
+                                )}
+                                {social.alcoholUse && (
+                                  <div className="p-2 rounded border bg-card">
+                                    <div className="text-xs text-muted-foreground">
+                                      Alcohol
+                                    </div>
+                                    <div className="font-medium">
+                                      {social.alcoholUse}
+                                    </div>
+                                  </div>
+                                )}
+                                {social.occupation && (
+                                  <div className="p-2 rounded border bg-card">
+                                    <div className="text-xs text-muted-foreground">
+                                      Occupation
+                                    </div>
+                                    <div className="font-medium">
+                                      {social.occupation}
+                                    </div>
+                                  </div>
+                                )}
+                                {social.exerciseFrequency && (
+                                  <div className="p-2 rounded border bg-card">
+                                    <div className="text-xs text-muted-foreground">
+                                      Exercise
+                                    </div>
+                                    <div className="font-medium">
+                                      {social.exerciseFrequency}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground pl-6">
+                            No social history recorded
+                          </p>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* History of Present Illness */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
                     History of Present Illness (HPI)
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <CardDescription>
                     Detailed chronological description of the chief complaint
-                  </p>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Textarea
@@ -822,39 +1291,50 @@ export function ClinicalDocumentation({
                     }
                     className="min-h-[120px]"
                   />
+                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <Info className="h-3 w-3 mt-0.5" />
+                    <span>
+                      Use OPQRST format: Onset, Provocation/Palliation, Quality,
+                      Region/Radiation, Severity, Timing
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
 
+              {/* Past Medical History - Free text for additional notes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    Past Medical History
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Past Medical History Notes
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Previous illnesses, surgeries, medications, allergies,
-                    family history
-                  </p>
+                  <CardDescription>
+                    Additional notes about previous illnesses, medications, or
+                    relevant history not captured in structured data
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Textarea
-                    placeholder="Medical conditions, surgical history, drug allergies, family history of diseases..."
+                    placeholder="Additional medical history notes, current medications, previous hospitalizations..."
                     value={clinicalNote.pastMedicalHistory}
                     onChange={(e) =>
                       updateClinicalNote("pastMedicalHistory", e.target.value)
                     }
-                    className="min-h-[120px]"
+                    className="min-h-[100px]"
                   />
                 </CardContent>
               </Card>
 
+              {/* Review of Systems */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-primary" />
                     Review of Systems (ROS)
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <CardDescription>
                     Systematic review of body systems
-                  </p>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Textarea
@@ -865,6 +1345,25 @@ export function ClinicalDocumentation({
                     }
                     className="min-h-[100px]"
                   />
+                  <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
+                    <p className="text-xs text-muted-foreground font-medium mb-2">
+                      Quick ROS Checklist:
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
+                      <span>• Constitutional</span>
+                      <span>• Eyes/Vision</span>
+                      <span>• ENT</span>
+                      <span>• Cardiovascular</span>
+                      <span>• Respiratory</span>
+                      <span>• GI</span>
+                      <span>• Genitourinary</span>
+                      <span>• Musculoskeletal</span>
+                      <span>• Skin</span>
+                      <span>• Neurological</span>
+                      <span>• Psychiatric</span>
+                      <span>• Endocrine</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>

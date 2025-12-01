@@ -9,15 +9,16 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "seed:cpt": "npx ts-node scripts/seed-cpt.ts"
+    "seed:cpt": "npx ts-node prisma/seed-cpt.ts",
+    "seed:icd": "npx ts-node prisma/seed-icd.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
-    "prisma": "^5.10.2",
+    "prisma": "^6.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@prisma/client": "^5.10.2"
+    "@prisma/client": "^6.0.0"
   }
 }

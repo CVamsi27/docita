@@ -11,9 +11,11 @@ const originalError = console.error;
 console.error = (...args: any[]) => {
   // Only suppress Nest errors that are intentionally tested
   const message = args[0]?.toString() || '';
-  if (message.includes('[ExceptionsHandler]') || message.includes('PrismaClientKnownRequestError')) {
+  if (
+    message.includes('[ExceptionsHandler]') ||
+    message.includes('PrismaClientKnownRequestError')
+  ) {
     return;
   }
   originalError(...args);
 };
-

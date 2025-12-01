@@ -56,13 +56,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
           message = responseObj.message.join(', ');
         }
       }
-    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      'code' in exception &&
+      exception instanceof Prisma.PrismaClientKnownRequestError
+    ) {
       errorType = 'PrismaClientKnownRequestError';
-      errorStack = exception.stack;
-      switch (exception.code) {
+      errorStack = (exception as any).stack;
+      switch ((exception as any).code) {
         case 'P2002': {
           status = HttpStatus.CONFLICT;
-          const fields = (exception.meta?.target as string[]) || ['field'];
+          const fields = ((exception as any).meta?.target as string[]) || [
+            'field',
+          ];
           message = `A record with this ${fields.join(', ')} already exists`;
           break;
         }
@@ -77,11 +84,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
         default:
           message = 'Database error occurred';
       }
-    } else if (exception instanceof Prisma.PrismaClientValidationError) {
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      'message' in exception &&
+      exception instanceof Prisma.PrismaClientValidationError
+    ) {
       status = HttpStatus.BAD_REQUEST;
       errorType = 'PrismaClientValidationError';
-      errorStack = exception.stack;
-      const errorMessage = exception.message;
+      errorStack = (exception as any).stack;
+      const errorMessage = (exception as any).message;
 
       if (errorMessage.includes('Invalid value for argument')) {
         const match = errorMessage.match(/Invalid value for argument `(\w+)`/);

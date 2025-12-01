@@ -6,16 +6,15 @@ import { useRouter, usePathname } from "next/navigation";
 import { apiHooks } from "@/lib/api-hooks";
 import { useMemo } from "react";
 import type { Appointment } from "@workspace/types";
+import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
 
 export function FloatingStartConsultation() {
   const router = useRouter();
   const pathname = usePathname();
+  const { canAccess } = usePermissionStore();
   const { data: appointments = [] } = apiHooks.useTodayAppointments();
 
-  // Hide on consultation page
-  const isConsultationPage = pathname?.startsWith("/consultation/");
-
-  // Compute next appointment using useMemo instead of useEffect + useState
+  // Compute next appointment using useMemo
   const nextAppointment = useMemo(() => {
     const now = new Date();
     return (
@@ -33,6 +32,14 @@ export function FloatingStartConsultation() {
         )[0] || null
     );
   }, [appointments]);
+
+  // Hide for Tier 0 users who don't have calendar access
+  if (!canAccess(Feature.CALENDAR_SLOTS)) {
+    return null;
+  }
+
+  // Hide on consultation page
+  const isConsultationPage = pathname?.startsWith("/consultation/");
 
   // Don't show on consultation pages
   if (isConsultationPage) {

@@ -38,9 +38,11 @@ import {
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 
 export default function OCRPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanned, setScanned] = useState(false);
@@ -188,6 +190,7 @@ export default function OCRPage() {
       // 2. Create Appointment (Visit)
       const appointment = await createAppointmentMutation.mutateAsync({
         patientId: patient.id!,
+        doctorId: user?.id || "default-doctor-id",
         clinicId: "default-clinic-id",
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),

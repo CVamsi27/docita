@@ -15,6 +15,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  clinicId?: string;
 }
 
 interface AuthContextType {
@@ -22,15 +23,18 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isSuperAdmin: boolean;
+  isClinicAdmin: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = "docita_token";
-const USER_KEY = "docita_user";
-const COOKIE_KEY = "docita_admin_token";
+// Use distinct keys for admin app to avoid conflicts with patient app
+const TOKEN_KEY = "docita_admin_token";
+const USER_KEY = "docita_admin_user";
+const COOKIE_KEY = "docita_admin_cookie";
 
 // Helper to set cookie
 function setCookie(name: string, value: string, days: number) {
@@ -62,7 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (storedToken && storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.role === "SUPER_ADMIN") {
+        // Allow both SUPER_ADMIN and ADMIN/ADMIN_DOCTOR roles
+        if (
+          parsedUser.role === "SUPER_ADMIN" ||
+          parsedUser.role === "ADMIN" ||
+          parsedUser.role === "ADMIN_DOCTOR"
+        ) {
           setToken(storedToken);
           setUser(parsedUser);
           setCookie(COOKIE_KEY, storedToken, 7);
@@ -86,10 +95,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading || !isMounted) return;
 
-    const isProtectedRoute = pathname?.startsWith("/dashboard");
-    const isAuthenticated = !!token && !!user;
+    const isDashboardRoute = pathname?.startsWith("/dashboard");
+    const isAuthenticatedUser = !!token && !!user;
+    const isSuperAdminUser = user?.role === "SUPER_ADMIN";
 
-    if (isProtectedRoute && !isAuthenticated) {
+    // Super admin only access dashboard
+    if (isDashboardRoute && isSuperAdminUser && !isAuthenticatedUser) {
+      router.replace("/");
+      return;
+    }
+
+    // Clinic admin/admin_doctor can access clinic portal (routes starting with /clinic)
+    const isClinicRoute = pathname?.startsWith("/clinic");
+    const isClinicAdminUser =
+      user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+
+    if (isClinicRoute && isClinicAdminUser && !isAuthenticatedUser) {
+      router.replace("/");
+      return;
+    }
+
+    // If not authenticated and trying to access protected route, redirect to home
+    if ((isDashboardRoute || isClinicRoute) && !isAuthenticatedUser) {
       router.replace("/");
     }
   }, [isLoading, isMounted, pathname, token, user, router]);
@@ -120,6 +147,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isClinicAdmin = user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+
   return (
     <AuthContext.Provider
       value={{
@@ -127,6 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isLoading,
         isAuthenticated: !!token && !!user,
+        isSuperAdmin,
+        isClinicAdmin,
         login,
         logout,
       }}

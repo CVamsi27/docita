@@ -49,6 +49,18 @@ export class QueueController {
   constructor(private readonly queueService: QueueService) {}
 
   /**
+   * Get unified view of today's patients (appointments + queue)
+   * Combines pending appointments, checked-in patients, and walk-ins
+   */
+  @Get('today')
+  getTodaysPatients(
+    @Request() req: AuthRequest,
+    @Query('doctorId') doctorId?: string,
+  ) {
+    return this.queueService.getTodaysPatients(req.user.clinicId, doctorId);
+  }
+
+  /**
    * Get queue settings for the clinic
    */
   @Get('settings')

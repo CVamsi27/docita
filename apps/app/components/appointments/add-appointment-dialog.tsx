@@ -46,6 +46,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/app-config-context";
+import { useClinic } from "@/lib/clinic-context";
 import { DateTimePicker } from "@/components/common/date-time-picker";
 
 interface AddAppointmentDialogProps {
@@ -68,6 +69,20 @@ export function AddAppointmentDialog({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
+
+  // Get clinic settings
+  const { clinic } = useClinic();
+
+  // Extract clinic opening/closing times
+  const openingTimeStr = clinic?.openingTime;
+  const closingTimeStr = clinic?.closingTime;
+
+  const startHour = openingTimeStr
+    ? parseInt(openingTimeStr.split(":")[0] ?? "9", 10)
+    : 9;
+  const endHour = closingTimeStr
+    ? parseInt(closingTimeStr.split(":")[0] ?? "18", 10)
+    : 18;
 
   // Get form options from config
   const appointmentTypeOptions = useFormOptions("appointmentType");
@@ -226,6 +241,8 @@ export function AddAppointmentDialog({
                         onChange={field.onChange}
                         placeholder="Select date and time"
                         minDate={new Date()}
+                        startHour={startHour}
+                        endHour={endHour}
                       />
                     </FormControl>
                     <FormMessage />

@@ -88,6 +88,23 @@ export class PatientsService {
   async findOne(id: string): Promise<Patient> {
     const patient = await this.prisma.patient.findUnique({
       where: { id },
+      include: {
+        // Include structured medical history
+        medicalConditions: {
+          orderBy: { createdAt: 'desc' },
+        },
+        patientAllergies: {
+          orderBy: { createdAt: 'desc' },
+        },
+        familyHistory: {
+          orderBy: { createdAt: 'desc' },
+        },
+        socialHistory: true,
+        surgicalHistory: {
+          orderBy: { procedureDate: 'desc' },
+        },
+        tags: true,
+      },
     });
 
     if (!patient) {
