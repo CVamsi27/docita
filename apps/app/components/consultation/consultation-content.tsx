@@ -49,6 +49,7 @@ import type {
   IcdCode,
   Procedure,
   CptCode,
+  VitalSignValidation,
 } from "@/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { api } from "@/lib/api-client";
@@ -89,7 +90,7 @@ export function ConsultationContent({
 
   // Vital Signs Validation State
   const [vitalSignsValidations, setVitalSignsValidations] = useState<
-    Record<string, any>
+    Record<string, VitalSignValidation>
   >({});
 
   // Template State
@@ -366,10 +367,8 @@ export function ConsultationContent({
       vitalsData.temperature ||
       vitalsData.spo2
     ) {
-      // Trigger validation by updating state - validator component will pick it up
-      setVitalSignsValidations({
-        updated: new Date().getTime(),
-      });
+      // Initialize validations to trigger panel display
+      setVitalSignsValidations({});
     }
   }, [
     vitalsData.bloodPressure,
