@@ -109,7 +109,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
 
-      - name: Build Docker image
+      - name: Build and Push Docker image
         id: build
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -120,34 +120,28 @@ jobs:
           echo "ECR_REGISTRY: $ECR_REGISTRY"
           echo "ECR_REPOSITORY: $ECR_REPOSITORY"
           echo "IMAGE_TAG: $IMAGE_TAG"
-          echo "Building image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "Building and pushing image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
-          # Build for both amd64 and arm64, but don't push yet
+          # Build for both amd64 and arm64 and push directly to ECR
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            --load \
+            --push \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             -f ./apps/api/Dockerfile \
             .
           
+          if [ $? -eq 0 ]; then
+            echo "✓ Image successfully pushed to ECR"
+            echo "  - Tagged: $IMAGE_TAG"
+            echo "  - Latest: latest"
+          else
+            echo "✗ Failed to push image to ECR"
+            exit 1
+          fi
+          
           echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Push Docker image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          set -e
-          
-          echo "Pushing image to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
-          echo "✓ Image successfully pushed to ECR"
-          echo "  - Tagged: $IMAGE_TAG"
-          echo "  - Latest: latest"
 
       - name: Image Summary
         env:
