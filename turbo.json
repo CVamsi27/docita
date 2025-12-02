@@ -10,8 +10,8 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
       "env": ["NODE_ENV"]
     },
-    "@workspace/db#build": {
-      "dependsOn": ["^build", "@workspace/db#db:generate"]
+    "db:generate": {
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
