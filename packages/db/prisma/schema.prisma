@@ -5,12 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  
-  // ✅ OPTIMIZATION: Connection pooling configuration
-  // These settings improve performance under load
-  // directUrl is required for migrations, primaryUrl for connection pooling
-  // During build, if DATABASE_DIRECT_URL is not available, fallback to DATABASE_URL
-  directUrl = env("DATABASE_DIRECT_URL", env("DATABASE_URL"))
 }
 
 model User {
