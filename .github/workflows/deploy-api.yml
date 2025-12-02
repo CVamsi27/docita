@@ -7,8 +7,6 @@ on:
       - 'apps/api/**'
       - 'packages/types/**'
       - 'packages/db/**'
-      - 'apps/api/Dockerfile'
-      - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
     inputs:
       skip_tests:

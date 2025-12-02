@@ -1,0 +1,4 @@
+{
+  "buildCommand": "turbo build --filter=@docita/landing",
+  "outputDirectory": ".next"
+}
