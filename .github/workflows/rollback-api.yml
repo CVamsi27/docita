@@ -27,10 +27,10 @@ jobs:
       - name: Validate input
         run: |
           if [ -z "${{ github.event.inputs.image_tag }}" ]; then
-            echo "❌ Image tag is required"
+            echo "Image tag is required"
             exit 1
           fi
-          echo "🔄 Rolling back to tag: ${{ github.event.inputs.image_tag }}"
+          echo "Rolling back to tag: ${{ github.event.inputs.image_tag }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,30 +60,30 @@ jobs:
           script: |
             set -e
             
-            echo "🔄 Starting rollback..."
+            echo "Starting rollback..."
             cd ~/docita
             
             # Login to ECR
-            echo "🔐 Logging into AWS ECR..."
+            echo "Logging into AWS ECR..."
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
             
             TARGET_IMAGE="${ECR_REGISTRY}/docita-api:${IMAGE_TAG}"
             
             # Pull the rollback image
-            echo "📦 Pulling rollback image: $TARGET_IMAGE"
+            echo "Pulling rollback image: $TARGET_IMAGE"
             if ! docker pull $TARGET_IMAGE; then
-              echo "❌ Failed to pull image. Checking available local images..."
+              echo "Failed to pull image. Checking available local images..."
               docker images ${ECR_REGISTRY}/docita-api --format "{{.Tag}}"
               exit 1
             fi
             
             # Stop current container
-            echo "⛔ Stopping current container..."
+            echo "Stopping current container..."
             docker stop docita-api 2>/dev/null || true
             docker rm docita-api 2>/dev/null || true
             
             # Start rollback container
-            echo "🔧 Starting rollback container..."
+            echo "Starting rollback container..."
             docker run -d \
               --name docita-api \
               --restart unless-stopped \
@@ -92,19 +92,19 @@ jobs:
               $TARGET_IMAGE
             
             # Health check
-            echo "⏳ Waiting for health check..."
+            echo "Waiting for health check..."
             sleep 10
             
             if curl -sf http://localhost:3001/health >/dev/null 2>&1; then
-              echo "✅ Rollback successful!"
+              echo "Rollback successful!"
             else
-              echo "⚠️ Health check warning"
+              echo "Health check warning"
               docker logs docita-api --tail 30
             fi
 
       - name: Rollback Summary
         run: |
-          echo "### Rollback Complete 🔄" >> $GITHUB_STEP_SUMMARY
+          echo "### Rollback Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** AWS ECR" >> $GITHUB_STEP_SUMMARY
           echo "**Rolled back to:** \`${{ github.event.inputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
@@ -119,7 +119,7 @@ jobs:
     steps:
       - name: Rejected
         run: |
-          echo "❌ Rollback cancelled - confirmation text did not match"
+          echo "Rollback cancelled - confirmation text did not match"
           echo "You entered: '${{ github.event.inputs.confirm }}'"
           echo "Expected: 'ROLLBACK'"
           exit 1

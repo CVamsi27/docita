@@ -118,8 +118,8 @@ jobs:
       - name: Check test results
         run: |
           if [ "${{ needs.backend-tests.result }}" = "failure" ]; then
-            echo "❌ Backend tests failed. Please review the logs above."
+            echo "Backend tests failed. Please review the logs above."
             exit 1
           fi
-          echo "✅ Backend tests passed!"
+          echo "Backend tests passed!"
           echo "Note: Frontend E2E tests are skipped in CI (they require a running API server)"

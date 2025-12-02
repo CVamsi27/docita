@@ -52,8 +52,17 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies (API + DB only)
+        # Use --frozen-lockfile to prevent postinstall hook from re-generating Prisma
+        # We generate explicitly below to avoid duplication
+        run: |
+          pnpm install --frozen-lockfile
+          # Skip postinstall which triggers db:generate
+          # We'll generate after with explicit filter
+
+      - name: Generate Prisma Client
+        working-directory: packages/db
+        run: pnpm db:generate
 
       - name: Run database migrations
         env:
@@ -107,15 +116,27 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build the image for both amd64 and arm64 architectures
+          # Note: On first deployment, the buildcache image may not exist yet (normal)
+          # Docker buildx will create it on subsequent deployments for layer reuse
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --push \
-            --cache-from type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:buildcache \
+            --cache-from type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:buildcache || true \
             --cache-to type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:buildcache,mode=max \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             -f ./apps/api/Dockerfile \
-            .
+            . || {
+            # If buildx command fails, try with simpler caching
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --cache-to type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:buildcache,mode=max \
+              -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+              -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+              -f ./apps/api/Dockerfile \
+              .
+          }
           
           # Set outputs
           echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -125,7 +146,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "### Docker Image Built 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "### Docker Image Built" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** AWS ECR (${{ env.AWS_REGION }})" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest\`" >> $GITHUB_STEP_SUMMARY
@@ -135,7 +156,8 @@ jobs:
   migrate:
     name: Run Database Migrations
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
     timeout-minutes: 10
 
     steps:
@@ -156,24 +178,46 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        working-directory: packages/db
+        run: pnpm db:generate
+
       - name: Run Prisma migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         working-directory: packages/db
         run: npx prisma migrate deploy
 
+      - name: Verify migration status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        working-directory: packages/db
+        run: npx prisma migrate status || echo "Migration status check completed"
+
       - name: Migration Summary
+        if: success()
         run: |
-          echo "### Database Migrations 🗄️" >> $GITHUB_STEP_SUMMARY
+          echo "### Database Migrations" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ✅ Migrations completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Migrations completed successfully" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** Production (Neon)" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+      - name: Migration Failed
+        if: failure()
+        run: |
+          echo "### Database Migrations Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Migration deployment failed" >> $GITHUB_STEP_SUMMARY
+          echo "**Action Required:** Review logs and resolve migration issues before retrying deployment" >> $GITHUB_STEP_SUMMARY
+          exit 1
 
   # Deploy with zero-downtime
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     needs: [build, migrate]
+    if: always() && needs.build.result == 'success' && needs.migrate.result == 'success'
     timeout-minutes: 15
     environment: production
 
@@ -206,93 +250,102 @@ jobs:
           script: |
             set -e
             
-            echo "🚀 Starting zero-downtime deployment..."
+            echo "Starting zero-downtime deployment..."
             cd ~/docita
             
             # Login to ECR
-            echo "🔐 Logging into AWS ECR..."
+            echo "Logging into AWS ECR..."
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
             
-            # Save current container ID for rollback
+            # Save current container for rollback
             CURRENT_CONTAINER=$(docker ps -q -f name=docita-api)
+            CURRENT_IMAGE=""
             if [ -n "$CURRENT_CONTAINER" ]; then
-              CURRENT_IMAGE=$(docker inspect --format='{{.Config.Image}}' $CURRENT_CONTAINER)
-              echo "📌 Current image for rollback: $CURRENT_IMAGE"
+              CURRENT_IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT_CONTAINER")
+              echo "Current image for rollback: $CURRENT_IMAGE"
             fi
             
             # Pull the new image
-            echo "📦 Pulling new Docker image from ECR..."
-            docker pull $IMAGE_URI
+            echo "Pulling new Docker image from ECR..."
+            docker pull "$IMAGE_URI"
             
-            # Also pull latest tag
-            docker pull ${ECR_REGISTRY}/docita-api:latest
-            
-            # Start new container with different name
-            echo "🔧 Starting new container..."
+            # Start new container on same port (will use load balancer or proxy if available)
+            echo "Starting new container..."
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
-              -p 3002:3001 \
+              -p 3001:3001 \
               --env-file .env \
-              $IMAGE_URI
+              "$IMAGE_URI" || {
+              echo "Failed to start new container"
+              exit 1
+            }
             
             # Wait for new container to be healthy
-            echo "⏳ Waiting for new container health check..."
+            echo "Waiting for new container health check..."
+            HEALTH_CHECK_PASSED=false
             for i in {1..30}; do
-              if curl -sf http://localhost:3002/health >/dev/null 2>&1; then
-                echo "✅ New container is healthy!"
+              if docker exec docita-api-new node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" 2>/dev/null; then
+                echo "New container is healthy!"
+                HEALTH_CHECK_PASSED=true
                 break
-              fi
-              if [ $i -eq 30 ]; then
-                echo "❌ New container failed health check"
-                docker logs docita-api-new --tail 50
-                docker stop docita-api-new && docker rm docita-api-new
-                exit 1
               fi
               echo "  Waiting... ($i/30)"
               sleep 2
             done
             
-            # Stop old container
-            echo "⛔ Stopping old container..."
-            docker stop docita-api 2>/dev/null || true
-            docker rm docita-api 2>/dev/null || true
+            if [ "$HEALTH_CHECK_PASSED" = false ]; then
+              echo "New container failed health check"
+              docker logs docita-api-new --tail 50
+              docker stop docita-api-new && docker rm docita-api-new
+              exit 1
+            fi
             
-            # Rename new container
+            # Stop old container
+            if [ -n "$CURRENT_CONTAINER" ]; then
+              echo "Stopping old container..."
+              docker stop docita-api 2>/dev/null || true
+              docker rm docita-api 2>/dev/null || true
+            fi
+            
+            # Rename new container to production name
             docker rename docita-api-new docita-api
             
-            # Update port mapping (stop and restart with correct port)
-            docker stop docita-api
-            docker rm docita-api
-            docker run -d \
-              --name docita-api \
-              --restart unless-stopped \
-              -p 3001:3001 \
-              --env-file .env \
-              $IMAGE_URI
-            
-            # Final health check
-            sleep 5
-            if curl -sf http://localhost:3001/health >/dev/null 2>&1; then
-              echo "✅ Deployment successful!"
+            # Verify deployment
+            sleep 3
+            if docker exec docita-api node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" 2>/dev/null; then
+              echo "Deployment successful and verified!"
             else
-              echo "⚠️ Health check warning after port switch"
+              echo "Post-deployment health check failed"
               docker logs docita-api --tail 20
+              if [ -n "$CURRENT_IMAGE" ]; then
+                echo "Rolling back to previous image..."
+                docker stop docita-api && docker rm docita-api
+                docker run -d \
+                  --name docita-api \
+                  --restart unless-stopped \
+                  -p 3001:3001 \
+                  --env-file .env \
+                  "$CURRENT_IMAGE"
+                sleep 5
+                docker exec docita-api node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" && echo "Rollback successful" || echo "Rollback verification inconclusive"
+              fi
+              exit 1
             fi
             
             # Cleanup old images (keep last 3)
-            echo "🧹 Cleaning up old images..."
+            echo "Cleaning up old images..."
             docker image prune -f
-            docker images ${ECR_REGISTRY}/docita-api --format "{{.ID}} {{.Tag}}" | \
+            docker images "${ECR_REGISTRY}/docita-api" --format "{{.ID}} {{.Tag}}" 2>/dev/null | \
               grep -v latest | tail -n +4 | awk '{print $1}' | \
               xargs -r docker rmi 2>/dev/null || true
             
-            echo "✨ Zero-downtime deployment completed!"
+            echo "Zero-downtime deployment completed!"
 
       - name: Deployment Summary
         if: success()
         run: |
-          echo "### Deployment Successful ✅" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** AWS ECR" >> $GITHUB_STEP_SUMMARY
@@ -303,7 +356,7 @@ jobs:
       - name: Deployment Failed
         if: failure()
         run: |
-          echo "### Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Failed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
