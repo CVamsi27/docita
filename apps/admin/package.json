@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/ui": "workspace:*",
     "date-fns": "^4.1.0",
