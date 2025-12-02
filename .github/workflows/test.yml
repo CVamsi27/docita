@@ -20,9 +20,9 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: docita_test
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-        options: >-
+          POSTGRES_PASSWORD: docita
+          POSTGRES_USER: docita
+        options: >
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -50,13 +50,13 @@ jobs:
 
       - name: Run database migrations
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/docita_test
+          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
         working-directory: packages/db
         run: npx prisma migrate deploy
 
       - name: Run backend E2E tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/docita_test
+          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
           JWT_SECRET: test-secret-key
           NODE_ENV: test
         run: pnpm --filter api test:e2e

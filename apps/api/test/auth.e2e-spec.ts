@@ -64,9 +64,11 @@ describe('Auth (e2e)', () => {
         })
         .expect(201);
 
-      expect(response.body.id).toBeDefined();
-      expect(response.body.email).toBe('newdoctor@test.com');
-      expect(response.body.password).toBeUndefined();
+      expect(response.body.access_token).toBeDefined();
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.id).toBeDefined();
+      expect(response.body.user.email).toBe('newdoctor@test.com');
+      expect(response.body.user.password).toBeUndefined();
     });
 
     it('should reject duplicate email', async () => {

@@ -16,7 +16,8 @@
     "test:api": "turbo test --filter=@docita/api",
     "test:e2e": "turbo test --filter=@docita/app",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "pnpm --filter @workspace/db run db:generate"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

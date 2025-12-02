@@ -5,7 +5,7 @@
   "globalDependencies": ["API_URL", "APP_URL", "CI"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
       "env": ["NODE_ENV"]

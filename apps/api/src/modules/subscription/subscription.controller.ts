@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../auth/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
+import { Public } from '../../auth/public.decorator';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
 
@@ -42,6 +43,7 @@ export class SubscriptionController {
     private readonly billingService: SubscriptionBillingService,
   ) {}
 
+  @Public()
   @Get('config')
   getTierConfig() {
     return this.subscriptionService.getTierConfig();
@@ -53,11 +55,13 @@ export class SubscriptionController {
     return this.subscriptionService.getSubscription(req.user.clinicId);
   }
 
+  @Public()
   @Get('tiers')
   getAllTiers() {
     return this.subscriptionService.getAllTiers();
   }
 
+  @Public()
   @Get('intelligence')
   getIntelligenceInfo() {
     return this.subscriptionService.getIntelligenceAddonInfo();
