@@ -4,10 +4,21 @@
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": {
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "node"
+      }
+    }]
   },
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/../src/$1"
+    "^src/(.*)$": "<rootDir>/../src/$1",
+    "^@workspace/db$": "<rootDir>/../../../packages/db/src/index.ts",
+    "^@workspace/db/(.*)$": "<rootDir>/../../../packages/db/src/$1",
+    "^@workspace/types$": "<rootDir>/../../../packages/types/src/index.ts",
+    "^@workspace/types/(.*)$": "<rootDir>/../../../packages/types/src/$1",
+    "^@workspace/(.*)$": "<rootDir>/../../../packages/$1/src/index.ts"
   },
   "setupFiles": ["./setup-env.ts"],
   "collectCoverageFrom": [

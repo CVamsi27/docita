@@ -1,30 +1,30 @@
 import { z } from "zod";
-import { PaymentMethod, PaymentMode } from "./payments.js";
+import { PaymentMethod, PaymentMode } from "./payments";
 
 // ============================================================================
 // Re-export all types from modules
 // ============================================================================
 
 // Tier System
-export * from "./tier.js";
+export * from "./tier";
 
 // App Configuration
-export * from "./config.js";
+export * from "./config";
 
 // Import Types
-export * from "./imports.js";
+export * from "./imports";
 
 // Payment Types
-export * from "./payments.js";
+export * from "./payments";
 
 // Date/Time Utilities
-export * from "./date-utils.js";
+export * from "./date-utils";
 
 // Medical Validation
-export * from "./medical-validation.js";
+export * from "./medical-validation";
 
 // Contraindication Checking
-export * from "./contraindication-checker.js";
+export * from "./contraindication-checker";
 
 // ============================================================================
 // User & Auth Schemas

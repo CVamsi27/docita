@@ -13,7 +13,7 @@ import {
   getDefaultTimezoneForCurrency,
   getLocalesForCurrency,
   getDefaultLocaleForCurrency,
-} from "./date-utils.js";
+} from "./date-utils";
 
 // Re-export for backward compatibility
 export {

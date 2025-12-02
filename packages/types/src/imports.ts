@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GENDER_OPTIONS, BLOOD_GROUP_OPTIONS } from "./config.js";
+import { GENDER_OPTIONS, BLOOD_GROUP_OPTIONS } from "./config";
 
 export const PATIENT_FIELD_MAPPINGS = {
   firstName: [
