@@ -5,10 +5,13 @@
   "globalDependencies": ["API_URL", "APP_URL", "CI"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
       "env": ["NODE_ENV"]
+    },
+    "@workspace/db#build": {
+      "dependsOn": ["^build", "db:generate"]
     },
     "lint": {
       "dependsOn": ["^lint"]
