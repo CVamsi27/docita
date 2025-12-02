@@ -17,14 +17,12 @@ export class ZodValidationPipe implements PipeTransform {
     } catch (error) {
       console.error('[ZodValidationPipe] Validation error:', {
         path: metadata.type,
-        errors: (error as any).errors,
+        errors: error.errors,
         value: value,
       });
       throw new BadRequestException('Validation failed', {
         cause: error,
-        description: (error as any).errors
-          ?.map((e: any) => e.message)
-          .join(', '),
+        description: error.errors?.map((e: any) => e.message).join(', '),
       });
     }
   }

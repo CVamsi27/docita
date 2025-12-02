@@ -433,7 +433,7 @@ export class SubscriptionBillingService {
     });
 
     this.logger.log(
-      `Scheduled downgrade for clinic ${clinicId} to ${newTier} at ${subscription.currentPeriodEnd}`,
+      `Scheduled downgrade for clinic ${clinicId} to ${newTier} at ${subscription.currentPeriodEnd.toISOString()}`,
     );
   }
 

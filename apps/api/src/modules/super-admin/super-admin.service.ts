@@ -448,7 +448,8 @@ export class SuperAdminService {
 
       // Get process memory usage
       const memoryUsage = process.memoryUsage();
-      const totalMemory = require('os').totalmem();
+      const os = await import('os');
+      const totalMemory = os.totalmem();
       const memoryPercent = Math.round(
         (memoryUsage.heapUsed / totalMemory) * 100,
       );
@@ -1402,7 +1403,7 @@ export class SuperAdminService {
     return tierDetails[tier] || null;
   }
 
-  async getTierPricingInfo() {
+  getTierPricingInfo() {
     const tiers: ClinicTier[] = [
       'CAPTURE',
       'CORE',
@@ -1416,7 +1417,7 @@ export class SuperAdminService {
     }));
   }
 
-  async getAIFeaturesCatalog() {
+  getAIFeaturesCatalog() {
     return {
       aiFeatures: [
         {

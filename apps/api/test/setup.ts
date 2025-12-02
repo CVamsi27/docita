@@ -4,7 +4,7 @@ import path from 'path';
 
 let prisma: PrismaClient;
 
-export async function setupTestDatabase() {
+export function setupTestDatabase() {
   prisma = new PrismaClient({
     datasources: {
       db: {

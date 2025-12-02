@@ -391,8 +391,7 @@ Vercel automatically deploys:
 
 #### Prerequisites
 
-- AWS account
-- Docker Hub account (or AWS ECR)
+- AWS account (EC2 + ECR access)
 - Domain name for API (e.g., `api.your-domain.com`)
 
 #### Step 1: Build Docker Image
@@ -412,36 +411,24 @@ docker run -p 3001:3001 \
   docita-api:latest
 ```
 
-#### Step 2: Push to Registry
-
-**Option A: Docker Hub**
+#### Step 2: Push to AWS ECR
 
 ```bash
-# Login
-docker login
+# Set your AWS Account ID
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Create repository (one-time setup)
+aws ecr create-repository --repository-name docita-api --region ap-south-1
+
+# Login to ECR
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
 
 # Tag
-docker tag docita-api:latest your-username/docita-api:latest
+docker tag docita-api:latest $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Push
-docker push your-username/docita-api:latest
-```
-
-**Option B: AWS ECR**
-
-```bash
-# Create repository
-aws ecr create-repository --repository-name docita-api --region us-east-1
-
-# Login
-aws ecr get-login-password --region us-east-1 | \
-  docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
-
-# Tag
-docker tag docita-api:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/docita-api:latest
-
-# Push
-docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/docita-api:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 ```
 
 #### Step 3: Launch EC2 Instance

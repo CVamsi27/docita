@@ -41,8 +41,8 @@ export class HealthController {
   }
 
   @Get('live')
-  async liveness(): Promise<{ status: string }> {
-    return { status: 'ok' };
+  liveness(): Promise<{ status: string }> {
+    return Promise.resolve({ status: 'ok' });
   }
 
   @Get('ready')

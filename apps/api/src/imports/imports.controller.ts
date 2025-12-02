@@ -78,12 +78,12 @@ export class ImportsController {
       },
     }),
   )
-  async previewImport(@UploadedFile() file: Express.Multer.File) {
+  previewImport(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
-    const preview = await this.importsService.previewImport(file.path);
+    const preview = this.importsService.previewImport(file.path);
 
     const sessionId = Array(16)
       .fill(null)

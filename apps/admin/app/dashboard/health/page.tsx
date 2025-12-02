@@ -27,7 +27,6 @@ import {
 } from "@workspace/ui/components/tabs";
 import {
   healthAPI,
-  API_URL,
   type HealthCheckResult,
   type MonitoringDashboard,
 } from "@/lib/api";
@@ -62,7 +61,8 @@ export default function SystemHealthPage() {
       const healthData = await healthAPI.getHealth();
       setHealth(healthData);
       // Note: monitoring/dashboard requires BASIC_ANALYTICS feature
-      // which may not be available for all users, so we skip it for now
+      // which may not be available for all users, so we use null for now
+      setDashboard(null);
     } catch (error) {
       console.error("Failed to fetch health data", error);
     } finally {

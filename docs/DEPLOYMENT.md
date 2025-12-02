@@ -103,6 +103,10 @@ The API is containerized using Docker and deployed on EC2.
 - AWS Account with EC2 access
 - Docker installed locally (for building/pushing)
 - Neon database connection string
+- **IMPORTANT**: Images are now built for multi-architecture support (`linux/amd64` and `linux/arm64`)
+  - EC2 instances use `linux/amd64`
+  - macOS/Apple Silicon machines use `linux/arm64`
+  - The workflow automatically builds and pushes both architectures via Docker manifest
 
 ### Docker Build
 
@@ -134,9 +138,25 @@ docker run -d -p 3001:3001 \
   - Allow SSH (port 22) from your IP
   - Allow HTTP (port 80) from anywhere
   - Allow HTTPS (port 443) from anywhere
-  - Allow port 3001 from anywhere (or restrict to Vercel IPs)
 - **Storage**: 30GB gp3 (minimum)
 - **Key Pair**: Create/use existing for SSH access
+- **Elastic IP**: Allocate and associate an Elastic IP for consistent address (recommended for production)
+
+#### 1a. Associate Elastic IP (Optional but Recommended)
+
+Elastic IPs ensure your instance IP remains constant even after stops/starts:
+
+```bash
+# In AWS Console:
+# 1. Go to Elastic IPs in EC2 Dashboard
+# 2. Allocate new address
+# 3. Associate with your EC2 instance
+# 4. Update your domain DNS records to point to the Elastic IP
+
+# Or use AWS CLI:
+aws ec2 allocate-address --domain vpc --region us-east-1
+aws ec2 associate-address --instance-id i-xxxxx --allocation-id eipalloc-xxxxx --region us-east-1
+```
 
 #### 2. Connect to EC2
 
@@ -175,29 +195,35 @@ docker-compose --version
 
 Option A: **Amazon ECR**
 
+##### ⚠️ Important: ECR Login Method
+
+**Modern Login Command (Recommended):**
 ```bash
-# Login to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
-
-# Tag image
-docker tag docita-api:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/docita-api:latest
-
-# Push image
-docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/docita-api:latest
+# ✅ Works in scripts, GitHub Actions, and non-TTY environments
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-south-1.amazonaws.com
 ```
 
-Option B: **Docker Hub**
+Error you might see with old method:
+```
+Error: "cannot perform an interactive login from a non-TTY device"
+```
+
+**Full ECR deployment steps:**
 
 ```bash
-# Login
-docker login
+# Login to ECR (use modern command)
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-south-1.amazonaws.com
 
 # Tag image
-docker tag docita-api:latest your-username/docita-api:latest
+docker tag docita-api:latest <account-id>.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Push image
-docker push your-username/docita-api:latest
+docker push <account-id>.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 ```
+
+> **Note:** Docker Hub can also be used as an alternative, but AWS ECR is recommended for production as it integrates better with AWS services and provides private image storage.
 
 #### 6. Deploy on EC2
 
@@ -222,8 +248,12 @@ EOF
 Pull and run container:
 
 ```bash
-# Pull image
-docker pull your-username/docita-api:latest
+# Login to ECR first
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-south-1.amazonaws.com
+
+# Pull image from ECR
+docker pull <account-id>.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Run container
 docker run -d \
@@ -231,7 +261,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3001:3001 \
   --env-file .env \
-  your-username/docita-api:latest
+  <account-id>.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Check logs
 docker logs -f docita-api
@@ -239,21 +269,68 @@ docker logs -f docita-api
 
 #### 7. Setup Nginx Reverse Proxy
 
+Nginx acts as a reverse proxy, forwarding traffic from port 80/443 to the API running on port 3001.
+
 ```bash
 # Install Nginx
 sudo apt install -y nginx
+
+# Remove default config
+sudo rm /etc/nginx/sites-enabled/default
 
 # Create configuration
 sudo nano /etc/nginx/sites-available/docita-api
 ```
 
-Add configuration:
+Add HTTP configuration (before SSL setup):
 
 ```nginx
 server {
     listen 80;
-    server_name api.your-domain.com;
+    listen [::]:80;
+    server_name api.docita.work;
 
+    # Redirect all HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+```
+
+Enable site and test:
+
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/docita-api /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl start nginx
+sudo systemctl enable nginx
+```
+
+#### 7a. Setup SSL Certificate
+
+```bash
+# Install Certbot for SSL
+sudo apt install -y certbot python3-certbot-nginx
+
+# Get SSL certificate (this will update nginx config automatically)
+sudo certbot --nginx -d api.docita.work
+
+# Verify auto-renewal
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
+```
+
+After Certbot configures SSL, verify your nginx config includes:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name api.docita.work;
+
+    ssl_certificate /etc/letsencrypt/live/api.docita.work/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.docita.work/privkey.pem;
+
+    # Proxy settings
     location / {
         proxy_pass http://localhost:3001;
         proxy_http_version 1.1;
@@ -264,23 +341,36 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
+
+    # WebSocket support
+    location /socket.io {
+        proxy_pass http://localhost:3001/socket.io;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+}
+
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    listen [::]:80;
+    server_name api.docita.work;
+    return 301 https://$server_name$request_uri;
 }
 ```
 
-Enable site and SSL:
+Reload Nginx:
 
 ```bash
-# Enable site
-sudo ln -s /etc/nginx/sites-available/docita-api /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
-
-# Install Certbot for SSL
-sudo apt install -y certbot python3-certbot-nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d api.your-domain.com
 ```
 
 #### 8. Setup Auto-restart (Optional)
@@ -362,76 +452,637 @@ DATABASE_URL="branch-connection-string" pnpm prisma migrate deploy
 
 ## 5. CI/CD Pipeline (GitHub Actions)
 
-Recommended workflow:
+Recommended workflow for API-only deployment:
 
 1. **Test**: Run `pnpm test` and `pnpm lint` on PRs.
 2. **Build**: Verify `pnpm build` passes.
 3. **Deploy Frontend**: Vercel automatically deploys on push to main.
 4. **Deploy Backend**:
    - Build Docker image.
-   - Push to Docker Hub/ECR.
+   - Push to AWS ECR.
    - SSH into EC2 to pull and restart container.
 
-### Sample GitHub Actions Workflow
+### GitHub Actions Deployment Workflow
 
-Create `.github/workflows/deploy.yml`:
+The workflow is located at `.github/workflows/deploy-api.yml` and includes:
+
+1. **Test Job**: Runs E2E tests (can be skipped for emergencies)
+2. **Build Job**: Builds Docker image and pushes to AWS ECR
+3. **Migrate Job**: Runs database migrations on Neon before deployment
+4. **Deploy Job**: Zero-downtime deployment to EC2
+
+Key features:
+- ✅ Tests run before deployment (gated)
+- ✅ Database migrations run before deployment
+- ✅ Zero-downtime deployment (blue-green style)
+- ✅ **Multi-architecture image builds** (linux/amd64 + linux/arm64)
+- ✅ Docker layer caching via ECR
+- ✅ Health check verification before switching traffic
+- ✅ Automatic old image cleanup
+- ✅ Rollback workflow available
+
+Example workflow structure:
 
 ```yaml
-name: Deploy to Production
+name: Deploy API to Production
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/types/**'
+      - 'packages/db/**'
+      - 'apps/api/Dockerfile'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests (emergency deploy only)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  AWS_REGION: us-west-1
+  ECR_REPOSITORY: docita-api
 
 jobs:
-  deploy-backend:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+    # ... test steps ...
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test]
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Build and Push
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+  migrate:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: [build]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.4.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Prisma migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        working-directory: packages/db
+        run: npx prisma migrate deploy
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: [build, migrate]
+    timeout-minutes: 15
+    environment: production
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build, tag, and push image to Amazon ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/docita-api:latest
+            ${{ steps.login-ecr.outputs.registry }}/docita-api:${{ github.sha }}
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/docita-api:buildcache
+          cache-to: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/docita-api:buildcache,mode=max
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: [build]
+    environment: production
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Get ECR Login Password
+        id: ecr-login
         run: |
-          docker build -f apps/api/Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/docita-api:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/docita-api:latest
+          echo "password=$(aws ecr get-login-password --region ap-south-1)" >> $GITHUB_OUTPUT
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
+        env:
+          ECR_PASSWORD: ${{ steps.ecr-login.outputs.password }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          timeout: 10m
+          envs: ECR_PASSWORD,ECR_REGISTRY
           script: |
+            set -e
+            
+            echo "🚀 Starting zero-downtime deployment..."
             cd ~/docita
-            docker pull ${{ secrets.DOCKER_USERNAME }}/docita-api:latest
-            docker stop docita-api || true
-            docker rm docita-api || true
+            
+            # Login to ECR
+            echo "🔐 Logging into AWS ECR..."
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+            
+            # Pull the new image
+            echo "📦 Pulling new Docker image from ECR..."
+            docker pull $ECR_REGISTRY/docita-api:latest
+            
+            # Start new container on temporary port
+            echo "🔧 Starting new container..."
+            docker run -d \
+              --name docita-api-new \
+              --restart unless-stopped \
+              -p 3002:3001 \
+              --env-file .env \
+              $ECR_REGISTRY/docita-api:latest
+            
+            # Wait for health check
+            echo "⏳ Waiting for health check..."
+            for i in {1..30}; do
+              if curl -sf http://localhost:3002/health >/dev/null 2>&1; then
+                echo "✅ New container is healthy!"
+                break
+              fi
+              if [ $i -eq 30 ]; then
+                echo "❌ Health check failed"
+                docker logs docita-api-new --tail 50
+                docker stop docita-api-new && docker rm docita-api-new
+                exit 1
+              fi
+              sleep 2
+            done
+            
+            # Stop old container and switch
+            echo "⛔ Stopping old container..."
+            docker stop docita-api 2>/dev/null || true
+            docker rm docita-api 2>/dev/null || true
+            docker stop docita-api-new
+            docker rm docita-api-new
+            
+            # Run with correct port
             docker run -d \
               --name docita-api \
               --restart unless-stopped \
               -p 3001:3001 \
               --env-file .env \
-              ${{ secrets.DOCKER_USERNAME }}/docita-api:latest
+              $ECR_REGISTRY/docita-api:latest
+            
+            # Cleanup old images
+            docker image prune -f
+            
+            echo "✨ Deployment completed!"
+```
 
-  deploy-frontend:
+**Why use `aws-actions/amazon-ecr-login@v2`?**
+
+- ✅ Handles ECR login correctly without TTY requirements
+- ✅ Works seamlessly in GitHub Actions environments
+- ✅ No need for `aws ecr get-login` (deprecated command)
+- ✅ Automatically manages credentials
+- ✅ Better security practices
+
+### Alternative: Direct SSH Deployment (Build on EC2)
+
+If you prefer to build directly on the EC2 instance:
+
+```yaml
+name: Deploy API to Production (SSH Build)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/types/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-api:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Vercel Deployment
-        run: |
-          # Vercel deploys automatically on push to main
-          # Or use Vercel CLI for manual trigger
-          echo "Frontend deployed by Vercel"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          timeout: 30m
+          script: |
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to repo
+            cd ~/docita-repo
+            
+            # Pull latest code
+            echo "📥 Pulling latest code..."
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Build Docker image
+            echo "🔨 Building Docker image..."
+            docker build -f apps/api/Dockerfile -t docita-api:latest .
+            
+            # Stop existing container
+            echo "⛔ Stopping existing container..."
+            docker stop docita-api || true
+            docker rm docita-api || true
+            
+            # Run new container from docker app directory
+            echo "🔧 Starting new container..."
+            cd ~/docita
+            docker run -d \
+              --name docita-api \
+              --restart unless-stopped \
+              -p 3001:3001 \
+              --health-cmd='curl -f http://localhost:3001/api/health || exit 1' \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --env-file .env \
+              docita-api:latest
+            
+            # Wait and verify
+            sleep 10
+            if docker ps | grep -q docita-api; then
+              echo "✅ Deployment successful"
+            else
+              echo "❌ Deployment failed"
+              docker logs docita-api
+              exit 1
+            fi
+```
+
+### Setup EC2 for Deployments
+
+Prepare your EC2 instance for automated deployments:
+
+```bash
+# On EC2 instance, create deployment user (optional, more secure)
+sudo adduser deploy
+sudo usermod -aG docker deploy
+
+# Or use existing ubuntu user
+sudo usermod -aG docker ubuntu
+
+# Create app directory
+mkdir -p ~/docita
+cd ~/docita
+
+# Create .env file with secrets
+cat > .env << EOF
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/docita?sslmode=require
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRATION=7d
+PORT=3001
+NODE_ENV=production
+CORS_ORIGIN=https://your-app.vercel.app
+EOF
+
+chmod 600 .env
+
+# If using direct SSH build, also clone repo
+mkdir -p ~/docita-repo
+cd ~/docita-repo
+git clone https://github.com/your-org/docita.git .
 ```
 
 ### Required GitHub Secrets
 
-- `DOCKER_USERNAME`: Docker Hub username
-- `DOCKER_PASSWORD`: Docker Hub password/token
-- `EC2_HOST`: EC2 public IP or domain
-- `EC2_SSH_KEY`: Private SSH key for EC2 access
-- `DATABASE_URL`: Neon connection string (for migrations)
+| Secret | Description |
+|--------|-------------|
+| `AWS_ACCESS_KEY_ID` | AWS IAM access key ID for ECR access |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret access key for ECR access |
+| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID (e.g., `123456789012`) |
+| `DATABASE_URL` | Neon connection string for production database (required for migrations) |
+| `EC2_HOST` | EC2 Elastic IP or domain name |
+| `EC2_USERNAME` | SSH username (usually `ubuntu`) |
+| `EC2_SSH_KEY` | Private SSH key for EC2 access |
+| `SLACK_WEBHOOK` | (Optional) Slack webhook for notifications |
+
+> **Note:** The ECR registry URL is constructed as `${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-1.amazonaws.com` in the workflow.
+
+**Setup Instructions:**
+
+**For AWS Credentials (ECR Access):**
+
+1. Create IAM user with ECR permissions:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": [
+           "ecr:GetDownloadUrlForLayer",
+           "ecr:BatchGetImage",
+           "ecr:PutImage",
+           "ecr:InitiateLayerUpload",
+           "ecr:UploadLayerPart",
+           "ecr:CompleteLayerUpload",
+           "ecr:GetAuthorizationToken"
+         ],
+         "Resource": "*"
+       }
+     ]
+   }
+   ```
+
+2. Create access keys for this IAM user
+3. Add to GitHub Secrets:
+   - `AWS_ACCESS_KEY_ID`: The access key ID
+   - `AWS_SECRET_ACCESS_KEY`: The secret access key
+
+**For AWS Account ID:**
+
+```bash
+# Get your AWS Account ID
+aws sts get-caller-identity --query Account --output text
+
+# Add to GitHub Secrets as AWS_ACCOUNT_ID
+# Example: 123456789012
+```
+
+**For DATABASE_URL (Neon Migrations):**
+
+1. Get your Neon connection string:
+   - Go to [Neon Console](https://console.neon.tech)
+   - Select your project → Branches → Production
+   - Copy the connection string (looks like: `postgresql://user:password@host/database`)
+
+2. In GitHub repo → Settings → Secrets → New repository secret
+   - Name: `DATABASE_URL`
+   - Value: paste the full connection string
+   - This is used by the migrate job in the deployment pipeline
+
+**To generate EC2_SSH_KEY:**
+
+1. Create key pair in AWS EC2 console or use existing
+2. Get the private key content
+3. In GitHub repo → Settings → Secrets → New repository secret
+4. Name: `EC2_SSH_KEY`, Value: paste entire private key content
+5. Make sure to include `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----`
+
+## 6. Troubleshooting Docker Architecture Issues
+
+### "no matching manifest for linux/amd64" Error
+
+This error occurs when pulling a Docker image on EC2 and the registry doesn't have a manifest for the AMD64 architecture:
+
+```
+latest: Pulling from docita-api
+no matching manifest for linux/amd64 in the manifest list entries
+```
+
+**Root Causes:**
+1. Image was built on macOS (ARM64) and pushed without multi-architecture support
+2. CI/CD pipeline only builds for single architecture
+3. Previous deployments didn't use Docker Buildx for multi-platform builds
+
+**Automatic Fix (Going Forward):**
+
+The GitHub Actions workflow now uses Docker Buildx to build for both architectures:
+- ✅ `linux/amd64` - for AWS EC2 instances
+- ✅ `linux/arm64` - for Apple Silicon and ARM systems
+
+All new deployments will have manifests for both architectures, and Docker will automatically pull the correct one.
+
+**Manual Fix (One-time on EC2):**
+
+If you encounter this error on EC2, build the image natively on the instance:
+
+```bash
+# SSH into EC2
+ssh -i "your-key.pem" ubuntu@your-ec2-ip
+
+# Clone or update the repository
+cd ~/docita-repo
+git pull origin main
+
+# Build Docker image natively (will be linux/amd64)
+docker build -f apps/api/Dockerfile -t docita-api:latest .
+
+# Navigate to deployment directory
+cd ~/docita
+
+# Stop existing container
+docker stop docita-api || true
+docker rm docita-api || true
+
+# Run container
+docker run -d \
+  --name docita-api \
+  --restart unless-stopped \
+  -p 3001:3001 \
+  --health-cmd='curl -f http://localhost:3001/health || exit 1' \
+  --health-interval=30s \
+  --health-timeout=10s \
+  --health-retries=3 \
+  --health-start-period=40s \
+  --env-file .env \
+  docita-api:latest
+
+# Verify deployment
+sleep 10
+if docker ps | grep -q docita-api; then
+  echo "✅ Container is running"
+  docker logs docita-api | tail -10
+else
+  echo "❌ Container failed to start"
+  docker logs docita-api
+fi
+```
+
+**For Future Deployments:**
+
+The workflow has been updated to build multi-architecture images. No additional action needed—just push to main and the workflow will handle building for both AMD64 and ARM64.
+
+---
+
+## 7. Manual Deployment (If Automation Fails)
+
+If GitHub Actions deployment fails or you need to deploy manually, SSH into EC2 and run:
+
+```bash
+# SSH into EC2
+ssh -i "your-key.pem" ubuntu@your-ec2-ip
+
+# Navigate to repo
+cd ~/docita-repo
+
+# Pull latest code
+echo "📥 Pulling latest code..."
+git fetch origin main
+git reset --hard origin/main
+
+# Build Docker image
+echo "🔨 Building Docker image..."
+docker build -f apps/api/Dockerfile -t docita-api:latest .
+
+# Stop existing container
+echo "⛔ Stopping existing container..."
+docker stop docita-api || true
+docker rm docita-api || true
+
+# Navigate to app directory
+cd ~/docita
+
+# Run new container
+echo "🔧 Starting new container..."
+docker run -d \
+  --name docita-api \
+  --restart unless-stopped \
+  -p 3001:3001 \
+  --health-cmd='curl -f http://localhost:3001/api/health || exit 1' \
+  --health-interval=30s \
+  --health-timeout=10s \
+  --health-retries=3 \
+  --health-start-period=40s \
+  --env-file .env \
+  docita-api:latest
+
+# Wait for container to start
+echo "⏳ Waiting for container to start..."
+sleep 10
+
+# Check if container is running
+if docker ps | grep -q docita-api; then
+  echo "✅ Container is running"
+else
+  echo "❌ Container failed to start"
+  docker logs docita-api
+  exit 1
+fi
+
+# Verify health endpoint
+if curl -f http://localhost:3001/api/health >/dev/null 2>&1; then
+  echo "✅ API health check passed"
+else
+  echo "⚠️  Health check warning, checking logs..."
+  docker logs docita-api | tail -20
+fi
+
+echo "✨ Manual deployment completed successfully!"
+
+# View logs
+docker logs -f docita-api
+```
+
+### Troubleshooting Manual Deployments
+
+**Container won't start:**
+```bash
+# Check logs
+docker logs docita-api
+
+# Check if port 3001 is already in use
+sudo lsof -i :3001
+
+# Check environment variables
+cat ~/docita/.env
+```
+
+**Health check failing:**
+```bash
+# Test the health endpoint directly
+curl http://localhost:3001/api/health
+
+# Check container resource usage
+docker stats docita-api
+
+# Check API logs for errors
+docker logs docita-api | tail -50
+```
+
+**Need to rebuild everything:**
+```bash
+# Remove old images
+docker image prune -a --force
+
+# Rebuild fresh
+docker build -f apps/api/Dockerfile -t docita-api:latest .
+
+# Restart container
+docker stop docita-api || true
+docker rm docita-api || true
+
+cd ~/docita
+docker run -d \
+  --name docita-api \
+  --restart unless-stopped \
+  -p 3001:3001 \
+  --env-file .env \
+  docita-api:latest
+```
+
+**Revert to previous image:**
+```bash
+# Stop current container
+docker stop docita-api
+
+# Remove current container
+docker rm docita-api
+
+# Run with the previous image tag (if available)
+cd ~/docita
+docker run -d \
+  --name docita-api \
+  --restart unless-stopped \
+  -p 3001:3001 \
+  --env-file .env \
+  docita-api:previous
+```

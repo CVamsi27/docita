@@ -58,37 +58,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
-    setIsMounted(true);
+    // Defer state updates to avoid cascading renders
+    const timer = setTimeout(() => {
+      setIsMounted(true);
 
-    try {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
+      try {
+        const storedToken = localStorage.getItem(TOKEN_KEY);
+        const storedUser = localStorage.getItem(USER_KEY);
 
-      if (storedToken && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        // Allow both SUPER_ADMIN and ADMIN/ADMIN_DOCTOR roles
-        if (
-          parsedUser.role === "SUPER_ADMIN" ||
-          parsedUser.role === "ADMIN" ||
-          parsedUser.role === "ADMIN_DOCTOR"
-        ) {
-          setToken(storedToken);
-          setUser(parsedUser);
-          setCookie(COOKIE_KEY, storedToken, 7);
-        } else {
-          // Clear invalid auth
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-          deleteCookie(COOKIE_KEY);
+        if (storedToken && storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          // Allow both SUPER_ADMIN and ADMIN/ADMIN_DOCTOR roles
+          if (
+            parsedUser.role === "SUPER_ADMIN" ||
+            parsedUser.role === "ADMIN" ||
+            parsedUser.role === "ADMIN_DOCTOR"
+          ) {
+            setToken(storedToken);
+            setUser(parsedUser);
+            setCookie(COOKIE_KEY, storedToken, 7);
+          } else {
+            // Clear invalid auth
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            deleteCookie(COOKIE_KEY);
+          }
         }
+      } catch {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        deleteCookie(COOKIE_KEY);
       }
-    } catch {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      deleteCookie(COOKIE_KEY);
-    }
 
-    setIsLoading(false);
+      setIsLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Handle route protection

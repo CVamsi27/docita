@@ -16,9 +16,8 @@ Frontend (Vercel) → Backend (EC2) → Database (Neon)
 ## Prerequisites
 
 - [ ] Neon account (neon.tech)
-- [ ] AWS account (EC2 access)
+- [ ] AWS account (EC2 + ECR access)
 - [ ] Vercel account
-- [ ] Docker Hub account
 - [ ] Domain name
 
 ---
@@ -49,17 +48,35 @@ Frontend (Vercel) → Backend (EC2) → Database (Neon)
 
 ## Step 2: Backend Deployment (20 minutes)
 
+### Create ECR Repository
+
+```bash
+# Create ECR repository (one-time setup)
+aws ecr create-repository --repository-name docita-api --region ap-south-1
+
+# Get your AWS Account ID
+aws sts get-caller-identity --query Account --output text
+# Example output: 123456789012
+```
+
 ### Build & Push Docker Image
 
 ```bash
-# Build
-docker build -f apps/api/Dockerfile -t your-username/docita-api:latest .
+# Set your AWS Account ID
+export AWS_ACCOUNT_ID=123456789012
 
-# Login to Docker Hub
-docker login
+# Build
+docker build -f apps/api/Dockerfile -t docita-api:latest .
+
+# Login to AWS ECR
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+
+# Tag for ECR
+docker tag docita-api:latest $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Push
-docker push your-username/docita-api:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 ```
 
 ### Launch EC2 Instance
@@ -104,14 +121,18 @@ UPLOAD_DIR=/app/uploads
 EOF
 
 # Pull and run
-docker pull your-username/docita-api:latest
+# First, login to ECR on EC2
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+
+docker pull $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 docker run -d \
   --name docita-api \
   --restart unless-stopped \
   -p 3001:3001 \
   --env-file .env \
   -v ~/docita/uploads:/app/uploads \
-  your-username/docita-api:latest
+  $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Verify
 docker logs -f docita-api
@@ -323,11 +344,13 @@ docker logs -f docita-api
 docker restart docita-api
 
 # Update API
-docker pull your-username/docita-api:latest
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+docker pull $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 docker stop docita-api && docker rm docita-api
 docker run -d --name docita-api --restart unless-stopped \
   -p 3001:3001 --env-file ~/docita/.env \
-  your-username/docita-api:latest
+  $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
 # Check health
 curl http://localhost:3001/api/health

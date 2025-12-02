@@ -23,7 +23,7 @@ describe('Patients (e2e)', () => {
   let doctorId: string;
 
   beforeAll(async () => {
-    await setupTestDatabase();
+    setupTestDatabase();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

@@ -21,6 +21,7 @@
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "baseline-browser-mapping": "^2.8.32",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.5",

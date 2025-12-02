@@ -223,12 +223,12 @@ export class SuperAdminController {
   }
 
   @Get('tier-pricing')
-  async getTierPricingInfo() {
+  getTierPricingInfo() {
     return this.superAdminService.getTierPricingInfo();
   }
 
   @Get('ai-features-catalog')
-  async getAIFeaturesCatalog() {
+  getAIFeaturesCatalog() {
     return this.superAdminService.getAIFeaturesCatalog();
   }
 }

@@ -1,0 +1,85 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Documentation
+docs
+*.md
+
+# Testing
+test
+tests
+__tests__
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+e2e
+playwright.config.ts
+playwright-report
+test-results
+jest.config.js
+vitest.config.ts
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+.env.local
+.env.*.local
+
+# Build artifacts (we rebuild in Docker)
+apps/*/dist
+apps/*/.next
+packages/*/dist
+build
+tsc-out
+
+# Node (Docker installs fresh)
+node_modules
+**/node_modules
+pnpm-debug.log
+npm-debug.log
+yarn-error.log
+.pnpm-store
+
+# Docker
+Dockerfile*
+docker-compose.yml
+.dockerignore
+
+# Analytics
+.nyc_output
+coverage
+*.lcov
+
+# Misc
+.turbo
+.next
+.nuxt
+out
+
+# Frontend apps not needed for API build
+apps/landing
+apps/admin
+apps/app
+
+# UI package not needed for API (types package IS needed)
+packages/ui
+
+# Scripts and misc
+scripts
+*.sh
+copilot.toml
+turbo.json
+
+# Uploads folder (runtime data)
+apps/api/uploads

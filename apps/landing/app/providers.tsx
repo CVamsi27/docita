@@ -5,16 +5,20 @@ import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
 
 // ✅ OPTIMIZATION: Web Vitals monitoring for performance tracking
-async function reportWebVitals() {
+async function reportWebVitals(): Promise<void> {
   // Collect Core Web Vitals metrics using PerformanceObserver
   try {
-    const vitals: any = {};
+    const vitals: Record<string, number | undefined> = {};
 
     // Measure CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          vitals.cls = (vitals.cls || 0) + (entry as any).value;
+        const layoutShiftEntry = entry as PerformanceEntry & {
+          hadRecentInput?: boolean;
+          value?: number;
+        };
+        if (!layoutShiftEntry.hadRecentInput) {
+          vitals.cls = (vitals.cls || 0) + (layoutShiftEntry.value || 0);
         }
       }
     });
@@ -33,7 +37,9 @@ async function reportWebVitals() {
     fcpObserver.observe({ type: "paint", buffered: true });
 
     // Measure TTFB (Time to First Byte)
-    const navigation = performance.getEntriesByType("navigation")[0] as any;
+    const navigation = performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceEntry & { responseStart?: number };
     if (navigation) {
       vitals.ttfb = navigation.responseStart;
     }
@@ -50,7 +56,7 @@ async function reportWebVitals() {
         );
       }
     }, 5000); // Send after 5 seconds to allow all metrics to be collected
-  } catch (error) {
+  } catch {
     // Gracefully handle if PerformanceObserver is not available
     console.warn("Web Vitals monitoring not available");
   }

@@ -104,7 +104,7 @@ export class SubscriptionWebhooksController {
           break;
 
         case 'subscription.completed':
-          await this.handleSubscriptionCompleted(payload);
+          this.handleSubscriptionCompleted(payload);
           break;
 
         case 'payment.captured':
@@ -283,7 +283,7 @@ export class SubscriptionWebhooksController {
     this.logger.log(`Subscription cancelled for clinic ${clinicId}`);
   }
 
-  private async handleSubscriptionCompleted(payload: RazorpayWebhookPayload) {
+  private handleSubscriptionCompleted(payload: RazorpayWebhookPayload) {
     const subscription = payload.payload.subscription?.entity;
     if (!subscription) return;
 

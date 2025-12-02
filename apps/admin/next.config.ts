@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/db", "@workspace/types"],

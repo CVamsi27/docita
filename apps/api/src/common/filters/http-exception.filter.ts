@@ -8,7 +8,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Prisma } from '@workspace/db';
+import { Prisma, ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '../../monitoring/monitoring.service';
 
 interface RequestUser {
@@ -125,7 +125,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
         userAgent: request.headers['user-agent'],
         ip: request.ip || request.headers['x-forwarded-for']?.toString(),
         requestBody: request.body as Record<string, unknown>,
-        severity: status >= 500 ? 'ERROR' : 'WARNING',
+        severity:
+          (status as number) >= 500
+            ? ErrorSeverity.CRITICAL
+            : ErrorSeverity.WARNING,
       });
     }
 

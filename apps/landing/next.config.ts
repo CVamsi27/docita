@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 const nextConfig: NextConfig = {
   // ✅ OPTIMIZATION: Compression for smaller payloads

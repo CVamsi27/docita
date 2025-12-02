@@ -18,7 +18,7 @@ export class MedicationValidationController {
    * Check for drug-drug interactions
    */
   @Post('check-interactions')
-  async checkInteractions(
+  checkInteractions(
     @Body()
     body: {
       medications: Array<{ name: string; dosage?: string }>;
@@ -35,7 +35,7 @@ export class MedicationValidationController {
    * Validate medication dosage
    */
   @Post('validate-dosage')
-  async validateDosage(@Body() body: { medication: string; dosage: string }) {
+  validateDosage(@Body() body: { medication: string; dosage: string }) {
     return this.medicationService.validateMedicationDosage(
       body.medication,
       body.dosage,
@@ -46,7 +46,7 @@ export class MedicationValidationController {
    * Check contraindications for a patient
    */
   @Post('check-contraindications')
-  async checkContraindications(
+  checkContraindications(
     @Body()
     body: {
       medication: string;

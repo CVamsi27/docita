@@ -53,15 +53,12 @@ interface MappedPatientData {
 export class ImportsService {
   constructor(private prisma: PrismaService) {}
 
-  async previewImport(filePath: string): Promise<ImportPreview> {
+  previewImport(filePath: string): ImportPreview {
     try {
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as (
-        | string
-        | number
-      )[][];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
       if (data.length < 2) {
         throw new BadRequestException(
@@ -69,14 +66,16 @@ export class ImportsService {
         );
       }
 
-      const headers = data[0] as string[];
+      const headers = (data[0] as string[]) || [];
       const dataRows = data.slice(1, 6);
 
       const columns: ColumnMapping[] = headers.map((header, index) => ({
         excelColumn: header,
         dbField: this.suggestFieldMapping(header),
         sampleValues: dataRows
-          .map((row) => String(row[index] || ''))
+          .map((row) =>
+            String((row as (string | number | undefined)[])[index] || ''),
+          )
           .filter((v) => v),
       }));
 
@@ -90,7 +89,7 @@ export class ImportsService {
       const sampleData = dataRows.map((row) => {
         const obj: Record<string, string | number> = {};
         headers.forEach((header, index) => {
-          obj[header] = row[index];
+          obj[header] = (row as (string | number | undefined)[])[index] || '';
         });
         return obj;
       });
@@ -118,7 +117,7 @@ export class ImportsService {
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
+      const data = XLSX.utils.sheet_to_json(worksheet);
 
       const results: ImportResult = {
         total: data.length,
@@ -131,9 +130,10 @@ export class ImportsService {
 
       for (const [index, row] of data.entries()) {
         try {
+          const excelRow = row as ExcelRow;
           const mapped = columnMapping
-            ? this.applyColumnMapping(row, columnMapping)
-            : row;
+            ? this.applyColumnMapping(excelRow, columnMapping)
+            : (excelRow as MappedPatientData);
 
           const duplicateCheck = await this.checkForDuplicates(
             mapped,
@@ -348,7 +348,7 @@ export class ImportsService {
   private normalizePhoneNumber(phone: string | number | undefined): string {
     if (!phone) return '';
 
-    let normalized = phone.toString().replace(/\D/g, '');
+    const normalized = phone.toString().replace(/\D/g, '');
 
     if (normalized.length === 10) {
       return normalized;
@@ -401,7 +401,7 @@ export class ImportsService {
       return isoDate;
     }
 
-    const ddmmyyyy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    const ddmmyyyy = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
     if (ddmmyyyy) {
       const [, day, month, year] = ddmmyyyy;
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));

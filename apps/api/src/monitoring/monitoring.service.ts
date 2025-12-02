@@ -45,31 +45,33 @@ export class MonitoringService {
   // Request Logging
   // =============================================
 
-  async logRequest(data: RequestLogData): Promise<void> {
+  logRequest(data: RequestLogData): void {
     try {
       // Use upsert-style async operation to not block the response
-      setImmediate(async () => {
-        try {
-          await this.prisma.apiRequest.create({
-            data: {
-              clinicId: data.clinicId,
-              userId: data.userId,
-              method: data.method,
-              path: data.path,
-              statusCode: data.statusCode,
-              duration: data.duration,
-              requestSize: data.requestSize,
-              responseSize: data.responseSize,
-              userAgent: data.userAgent,
-              ip: data.ip,
-              error: data.error,
-              errorStack: data.errorStack,
-              metadata: data.metadata as Prisma.InputJsonValue,
-            },
-          });
-        } catch (error) {
-          this.logger.error('Failed to log request', error);
-        }
+      setImmediate(() => {
+        (async () => {
+          try {
+            await this.prisma.apiRequest.create({
+              data: {
+                clinicId: data.clinicId,
+                userId: data.userId,
+                method: data.method,
+                path: data.path,
+                statusCode: data.statusCode,
+                duration: data.duration,
+                requestSize: data.requestSize,
+                responseSize: data.responseSize,
+                userAgent: data.userAgent,
+                ip: data.ip,
+                error: data.error,
+                errorStack: data.errorStack,
+                metadata: data.metadata as Prisma.InputJsonValue,
+              },
+            });
+          } catch (error) {
+            this.logger.error('Failed to log request', error);
+          }
+        })();
       });
     } catch (error) {
       this.logger.error('Failed to queue request log', error);
@@ -80,30 +82,32 @@ export class MonitoringService {
   // Error Logging
   // =============================================
 
-  async logError(data: ErrorLogData): Promise<void> {
+  logError(data: ErrorLogData): void {
     try {
-      setImmediate(async () => {
-        try {
-          await this.prisma.errorLog.create({
-            data: {
-              clinicId: data.clinicId,
-              userId: data.userId,
-              type: data.type,
-              message: data.message,
-              stack: data.stack,
-              path: data.path,
-              method: data.method,
-              statusCode: data.statusCode,
-              userAgent: data.userAgent,
-              ip: data.ip,
-              requestBody: data.requestBody as Prisma.InputJsonValue,
-              metadata: data.metadata as Prisma.InputJsonValue,
-              severity: data.severity || ErrorSeverity.ERROR,
-            },
-          });
-        } catch (error) {
-          this.logger.error('Failed to log error', error);
-        }
+      setImmediate(() => {
+        (async () => {
+          try {
+            await this.prisma.errorLog.create({
+              data: {
+                clinicId: data.clinicId,
+                userId: data.userId,
+                type: data.type,
+                message: data.message,
+                stack: data.stack,
+                path: data.path,
+                method: data.method,
+                statusCode: data.statusCode,
+                userAgent: data.userAgent,
+                ip: data.ip,
+                requestBody: data.requestBody as Prisma.InputJsonValue,
+                metadata: data.metadata as Prisma.InputJsonValue,
+                severity: data.severity || ErrorSeverity.ERROR,
+              },
+            });
+          } catch (error) {
+            this.logger.error('Failed to log error', error);
+          }
+        })();
       });
     } catch (error) {
       this.logger.error('Failed to queue error log', error);

@@ -33,20 +33,11 @@ import {
   UserCog,
   Receipt,
   Pill,
-  Search,
   Keyboard,
-  Heart,
   Star,
-  ChevronRight,
-  Play,
-  Zap,
-  Globe,
-  Lock,
-  Headphones,
   TrendingUp,
-  PieChart,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTierConfig } from "./hooks/use-tier-config";
 import { LandingThemeToggle } from "@/components/theme-toggle";
 
@@ -60,37 +51,6 @@ const CURRENCY_RATES: Record<
   GBP: { symbol: "£", rate: 0.0095, country: "UK" },
   EUR: { symbol: "€", rate: 0.011, country: "Europe" },
   AUD: { symbol: "A$", rate: 0.018, country: "Australia" },
-};
-
-// Map country codes to currency
-const COUNTRY_TO_CURRENCY: Record<string, string> = {
-  IN: "INR",
-  US: "USD",
-  CA: "USD",
-  GB: "GBP",
-  UK: "GBP",
-  AU: "AUD",
-  NZ: "AUD",
-  // European countries
-  DE: "EUR",
-  FR: "EUR",
-  IT: "EUR",
-  ES: "EUR",
-  NL: "EUR",
-  BE: "EUR",
-  AT: "EUR",
-  PT: "EUR",
-  IE: "EUR",
-  FI: "EUR",
-  GR: "EUR",
-  LU: "EUR",
-  SI: "EUR",
-  CY: "EUR",
-  MT: "EUR",
-  SK: "EUR",
-  EE: "EUR",
-  LV: "EUR",
-  LT: "EUR",
 };
 
 // Detect currency from timezone synchronously
@@ -127,13 +87,16 @@ export default function Page() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
     "monthly",
   );
-  const { tierConfig, isLoading, getPricing, getCurrencySymbol } =
-    useTierConfig();
+  const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
   // Detect currency after hydration to avoid mismatch
   useEffect(() => {
-    setDetectedCurrency(detectCurrencyFromTimezone());
-    setIsHydrated(true);
+    const currency = detectCurrencyFromTimezone();
+    // Use a microtask to defer state updates
+    queueMicrotask(() => {
+      setDetectedCurrency(currency);
+      setIsHydrated(true);
+    });
   }, []);
 
   // Helper to format price from backend config based on billing period
@@ -168,7 +131,7 @@ export default function Page() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 p-2">
@@ -213,7 +176,7 @@ export default function Page() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden px-6 py-24 sm:py-32 lg:pb-40">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.100),white)] dark:bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.900),theme(colors.background))]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.100),white)] dark:bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.900),var(--color-background))]" />
         <div className="mx-auto max-w-7xl text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 text-sm backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -221,7 +184,7 @@ export default function Page() {
               The Future of Clinic Management
             </span>
           </div>
-          <h1 className="text-5xl font-bold tracking-tight sm:text-7xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+          <h1 className="text-5xl font-bold tracking-tight sm:text-7xl bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
             Modern Healthcare <br />
             <span className="text-primary">Simplified.</span>
           </h1>
@@ -269,7 +232,7 @@ export default function Page() {
 
           <div className="relative">
             {/* Connecting Line */}
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2 hidden lg:block" />
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2 hidden lg:block" />
 
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 relative z-10">
               {[
@@ -317,7 +280,7 @@ export default function Page() {
       </section>
 
       {/* Key Value Propositions */}
-      <section className="px-6 py-20 bg-gradient-to-b from-background to-muted/30">
+      <section className="px-6 py-20 bg-linear-to-b from-background to-muted/30">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:gap-16">
             {/* 1. Complete Paperless Implementation */}
@@ -346,15 +309,15 @@ export default function Page() {
                     "Save on printing and storage costs",
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                       <span className="text-muted-foreground">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="order-1 lg:order-2">
-                <div className="relative rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-8 backdrop-blur-sm border border-green-500/20">
-                  <div className="aspect-square rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-12 flex items-center justify-center">
+                <div className="relative rounded-2xl bg-linear-to-br from-green-500/20 to-emerald-500/20 p-8 backdrop-blur-sm border border-green-500/20">
+                  <div className="aspect-square rounded-xl bg-linear-to-br from-green-500 to-emerald-600 p-12 flex items-center justify-center">
                     <FileText className="h-32 w-32 text-white" />
                   </div>
                   <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
@@ -390,15 +353,15 @@ export default function Page() {
                     "Seamless continuity of care across visits",
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                       <span className="text-muted-foreground">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="order-1">
-                <div className="relative rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-blue-500/20">
-                  <div className="aspect-square rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 p-12 flex items-center justify-center">
+                <div className="relative rounded-2xl bg-linear-to-br from-blue-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-blue-500/20">
+                  <div className="aspect-square rounded-xl bg-linear-to-br from-blue-500 to-cyan-600 p-12 flex items-center justify-center">
                     <Calendar className="h-32 w-32 text-white" />
                   </div>
                   <div className="absolute -top-4 -right-4 bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
@@ -434,15 +397,15 @@ export default function Page() {
                     "Improve patient safety and treatment outcomes",
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                       <span className="text-muted-foreground">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="order-1 lg:order-2">
-                <div className="relative rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-8 backdrop-blur-sm border border-purple-500/20">
-                  <div className="aspect-square rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 p-12 flex items-center justify-center">
+                <div className="relative rounded-2xl bg-linear-to-br from-purple-500/20 to-pink-500/20 p-8 backdrop-blur-sm border border-purple-500/20">
+                  <div className="aspect-square rounded-xl bg-linear-to-br from-purple-500 to-pink-600 p-12 flex items-center justify-center">
                     <ShieldCheck className="h-32 w-32 text-white" />
                   </div>
                   <div className="absolute -top-4 -right-4 bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
@@ -460,7 +423,7 @@ export default function Page() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1 relative">
-              <div className="rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 p-8 backdrop-blur-sm border border-orange-500/20">
+              <div className="rounded-2xl bg-linear-to-br from-orange-500/20 to-amber-500/20 p-8 backdrop-blur-sm border border-orange-500/20">
                 <div className="bg-background rounded-xl p-6 shadow-lg space-y-4">
                   <div className="flex items-center justify-between border-b pb-4">
                     <div className="flex items-center gap-3">
@@ -594,7 +557,7 @@ export default function Page() {
       </section>
 
       {/* Medical Coding Feature Section */}
-      <section className="px-6 py-24 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
+      <section className="px-6 py-24 bg-linear-to-b from-muted/30 to-background relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
         <div className="mx-auto max-w-7xl relative z-10">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -656,7 +619,7 @@ export default function Page() {
               </p>
             </div>
             <div className="relative">
-              <div className="rounded-2xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-teal-500/20">
+              <div className="rounded-2xl bg-linear-to-br from-teal-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-teal-500/20">
                 <div className="bg-background rounded-xl p-6 shadow-lg">
                   <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                     <Activity className="h-5 w-5 text-teal-600" />
@@ -748,7 +711,7 @@ export default function Page() {
 
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
                       <FlaskConical className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                     </div>
@@ -763,7 +726,7 @@ export default function Page() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                       <Package className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
@@ -880,13 +843,13 @@ export default function Page() {
               Grow Your Practice with Analytics
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Understand your clinic's performance with comprehensive reports on
-              revenue, patient trends, and operational efficiency.
+              Understand your clinic&apos;s performance with comprehensive
+              reports on revenue, patient trends, and operational efficiency.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/30 dark:to-background border-indigo-100 dark:border-indigo-900">
+            <Card className="bg-linear-to-br from-indigo-50 to-white dark:from-indigo-950/30 dark:to-background border-indigo-100 dark:border-indigo-900">
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Monthly Revenue
@@ -911,7 +874,7 @@ export default function Page() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-background border-purple-100 dark:border-purple-900">
+            <Card className="bg-linear-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-background border-purple-100 dark:border-purple-900">
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Patient Growth
@@ -936,7 +899,7 @@ export default function Page() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-pink-50 to-white dark:from-pink-950/30 dark:to-background border-pink-100 dark:border-pink-900">
+            <Card className="bg-linear-to-br from-pink-50 to-white dark:from-pink-950/30 dark:to-background border-pink-100 dark:border-pink-900">
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Top Diagnoses
@@ -986,8 +949,8 @@ export default function Page() {
               </h2>
               <p className="text-lg text-muted-foreground mb-6">
                 Send prescriptions, appointment reminders, and follow-up
-                instructions directly to your patients' WhatsApp. No more lost
-                paper slips.
+                instructions directly to your patients&apos; WhatsApp. No more
+                lost paper slips.
               </p>
               <ul className="space-y-4">
                 {[
@@ -998,7 +961,7 @@ export default function Page() {
                   "Two-way patient communication",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     <span className="text-muted-foreground">{item}</span>
                   </li>
                 ))}
@@ -1032,7 +995,7 @@ export default function Page() {
                       </div>
                     </div>
                     <div className="bg-[#dcf8c6] p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
-                      <p>Thank you doctor! I'll be there.</p>
+                      <p>Thank you doctor! I&apos;ll be there.</p>
                       <div className="text-[10px] text-gray-500 text-right mt-1">
                         09:32 AM
                       </div>
@@ -1048,7 +1011,8 @@ export default function Page() {
                         </div>
                       </div>
                       <p>
-                        Here is your digital prescription from today's visit.
+                        Here is your digital prescription from today&apos;s
+                        visit.
                       </p>
                       <div className="text-[10px] text-gray-400 text-right mt-1">
                         10:45 AM
@@ -1272,19 +1236,19 @@ export default function Page() {
               <CardContent className="flex-1 pt-0">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>50 patients</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Basic patient records</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Excel/PDF import</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Manual WhatsApp share</span>
                   </li>
                 </ul>
@@ -1341,27 +1305,27 @@ export default function Page() {
               <CardContent className="flex-1 pt-0">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>500 patients</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Calendar & scheduling</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Digital prescriptions</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>WhatsApp integration</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>ICD-10 medical coding</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Basic analytics</span>
                   </li>
                 </ul>
@@ -1406,27 +1370,27 @@ export default function Page() {
               <CardContent className="flex-1 pt-0">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>2,000 patients</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Everything in Core</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Prescription templates</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Custom form fields</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Clinic branding</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Priority support</span>
                   </li>
                 </ul>
@@ -1471,27 +1435,27 @@ export default function Page() {
               <CardContent className="flex-1 pt-0">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>10,000 patients</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Everything in Plus</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Up to 5 doctors</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Advanced analytics</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Revenue reports</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>API access</span>
                   </li>
                 </ul>
@@ -1504,7 +1468,7 @@ export default function Page() {
             </Card>
 
             {/* ENTERPRISE Tier */}
-            <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors bg-gradient-to-b from-background to-muted/30">
+            <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors bg-linear-to-b from-background to-muted/30">
               <CardHeader className="pb-4">
                 <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1 text-xs mb-2 w-fit">
                   <span className="font-medium text-amber-700 dark:text-amber-300">
@@ -1522,27 +1486,27 @@ export default function Page() {
               <CardContent className="flex-1 pt-0">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Unlimited patients</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Everything in Pro</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Unlimited doctors</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Multi-branch support</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Custom integrations</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>Dedicated support</span>
                   </li>
                 </ul>
@@ -1557,11 +1521,11 @@ export default function Page() {
 
           {/* Intelligence Add-on */}
           <div className="mt-12">
-            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-background to-purple-500/5">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent" />
+            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 via-background to-purple-500/5">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-primary/10 to-transparent" />
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <div className="rounded-xl bg-gradient-to-br from-primary to-purple-600 p-3">
+                  <div className="rounded-xl bg-linear-to-br from-primary to-purple-600 p-3">
                     <Sparkles className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -1605,7 +1569,7 @@ export default function Page() {
                     "Automated coding suggestions",
                   ].map((feature, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                      <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
+                      <Sparkles className="h-4 w-4 text-primary shrink-0" />
                       <span>{feature}</span>
                     </div>
                   ))}

@@ -20,7 +20,7 @@ describe('Auth (e2e)', () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    await setupTestDatabase();
+    setupTestDatabase();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

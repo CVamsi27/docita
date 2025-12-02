@@ -10,9 +10,12 @@ export function LandingThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    setMounted(true);
+    // Defer mounting state update to avoid cascading renders
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
+  // Avoid rendering until client-side hydration is complete
   if (!mounted) {
     return null;
   }

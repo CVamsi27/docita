@@ -1,0 +1,125 @@
+name: Rollback API
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to rollback to (e.g., abc1234 or a specific SHA)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type "ROLLBACK" to confirm'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-west-1
+  ECR_REPOSITORY: docita-api
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirm == 'ROLLBACK' }}
+    environment: production
+
+    steps:
+      - name: Validate input
+        run: |
+          if [ -z "${{ github.event.inputs.image_tag }}" ]; then
+            echo "❌ Image tag is required"
+            exit 1
+          fi
+          echo "🔄 Rolling back to tag: ${{ github.event.inputs.image_tag }}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get ECR Login Password
+        id: ecr-login
+        run: |
+          echo "password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})" >> $GITHUB_OUTPUT
+
+      - name: Rollback on EC2
+        uses: appleboy/ssh-action@master
+        env:
+          ECR_PASSWORD: ${{ steps.ecr-login.outputs.password }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          timeout: 10m
+          envs: ECR_PASSWORD,ECR_REGISTRY,IMAGE_TAG
+          script: |
+            set -e
+            
+            echo "🔄 Starting rollback..."
+            cd ~/docita
+            
+            # Login to ECR
+            echo "🔐 Logging into AWS ECR..."
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+            
+            TARGET_IMAGE="${ECR_REGISTRY}/docita-api:${IMAGE_TAG}"
+            
+            # Pull the rollback image
+            echo "📦 Pulling rollback image: $TARGET_IMAGE"
+            if ! docker pull $TARGET_IMAGE; then
+              echo "❌ Failed to pull image. Checking available local images..."
+              docker images ${ECR_REGISTRY}/docita-api --format "{{.Tag}}"
+              exit 1
+            fi
+            
+            # Stop current container
+            echo "⛔ Stopping current container..."
+            docker stop docita-api 2>/dev/null || true
+            docker rm docita-api 2>/dev/null || true
+            
+            # Start rollback container
+            echo "🔧 Starting rollback container..."
+            docker run -d \
+              --name docita-api \
+              --restart unless-stopped \
+              -p 3001:3001 \
+              --env-file .env \
+              $TARGET_IMAGE
+            
+            # Health check
+            echo "⏳ Waiting for health check..."
+            sleep 10
+            
+            if curl -sf http://localhost:3001/health >/dev/null 2>&1; then
+              echo "✅ Rollback successful!"
+            else
+              echo "⚠️ Health check warning"
+              docker logs docita-api --tail 30
+            fi
+
+      - name: Rollback Summary
+        run: |
+          echo "### Rollback Complete 🔄" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** AWS ECR" >> $GITHUB_STEP_SUMMARY
+          echo "**Rolled back to:** \`${{ github.event.inputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+  rejected:
+    name: Rollback Rejected
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirm != 'ROLLBACK' }}
+
+    steps:
+      - name: Rejected
+        run: |
+          echo "❌ Rollback cancelled - confirmation text did not match"
+          echo "You entered: '${{ github.event.inputs.confirm }}'"
+          echo "Expected: 'ROLLBACK'"
+          exit 1
