@@ -35,7 +35,7 @@ RUN pnpm build
 
 # Production deployment using pnpm deploy
 WORKDIR /app
-RUN pnpm deploy --filter=api --prod /app/deployed
+RUN pnpm deploy --filter=api --prod /app/deployed --legacy
 
 
 # ─────────────────────────────────────────────────────────────
