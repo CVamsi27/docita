@@ -22,26 +22,26 @@ jobs:
           timeout: 30m
           script: |
             set -e
-            
+
             echo "Starting deployment with on-EC2 build..."
-            
+
             # Navigate to repo
             cd ~/docita-repo
-            
+
             # Pull latest code
             echo "Pulling latest code..."
             git fetch origin main
             git reset --hard origin/main
-            
+
             # Build Docker image
             echo "Building Docker image (this may take a few minutes)..."
             docker build -f apps/api/Dockerfile -t docita-api:latest .
-            
+
             # Stop existing container
             echo "Stopping existing container..."
             docker stop docita-api || true
             docker rm docita-api || true
-            
+
             # Run new container
             echo "Starting new container..."
             cd ~/docita
@@ -56,11 +56,11 @@ jobs:
               --health-start-period=40s \
               --env-file .env \
               docita-api:latest
-            
+
             # Wait for container to be healthy
             echo "Waiting for container to start..."
             sleep 15
-            
+
             # Verify container is running
             if docker ps | grep -q docita-api; then
               echo "Container is running"
@@ -69,7 +69,7 @@ jobs:
               docker logs docita-api
               exit 1
             fi
-            
+
             # Check health endpoint
             if curl -f http://localhost:3001/api/health >/dev/null 2>&1; then
               echo "API health check passed"
@@ -77,9 +77,9 @@ jobs:
               echo "Health check warning, checking logs..."
               docker logs docita-api | tail -20
             fi
-            
+
             # Cleanup old images to save space
             echo "Cleaning up old Docker images..."
             docker image prune -a --force --filter "until=72h" || true
-            
+
             echo "Deployment completed successfully!"

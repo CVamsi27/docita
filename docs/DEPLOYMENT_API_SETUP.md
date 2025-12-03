@@ -198,19 +198,19 @@ sudo systemctl reload nginx
 
 ### Required Secrets
 
-| Name | Value | Notes |
-|------|-------|-------|
-| `AWS_ACCESS_KEY_ID` | Your IAM access key ID | For ECR access |
-| `AWS_SECRET_ACCESS_KEY` | Your IAM secret access key | For ECR access |
-| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID | e.g., `123456789012` |
-| `EC2_HOST` | Your Elastic IP or domain | e.g., `12.34.56.78` or `api.your-domain.com` |
-| `EC2_USERNAME` | `ubuntu` | Or your custom deploy user |
-| `EC2_SSH_KEY` | Full private key content | Including `-----BEGIN RSA PRIVATE KEY-----` header |
+| Name                    | Value                        | Notes                                              |
+| ----------------------- | ---------------------------- | -------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | Your IAM access key ID       | For ECR access                                     |
+| `AWS_SECRET_ACCESS_KEY` | Your IAM secret access key   | For ECR access                                     |
+| `AWS_ACCOUNT_ID`        | Your 12-digit AWS account ID | e.g., `123456789012`                               |
+| `EC2_HOST`              | Your Elastic IP or domain    | e.g., `12.34.56.78` or `api.your-domain.com`       |
+| `EC2_USERNAME`          | `ubuntu`                     | Or your custom deploy user                         |
+| `EC2_SSH_KEY`           | Full private key content     | Including `-----BEGIN RSA PRIVATE KEY-----` header |
 
 ### Optional Secrets
 
-| Name | Value | Notes |
-|------|-------|-------|
+| Name            | Value             | Notes                        |
+| --------------- | ----------------- | ---------------------------- |
 | `SLACK_WEBHOOK` | Slack webhook URL | For deployment notifications |
 
 ### How to Get EC2_SSH_KEY
@@ -406,6 +406,7 @@ docker restart docita-api
 ### Backup
 
 No database is running on this instance, so backup needs are minimal. Focus on:
+
 - `.env` file (keep secure copy)
 - GitHub Actions configuration
 - Docker images (stored in AWS ECR)

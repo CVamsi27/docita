@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker image tag to rollback to (e.g., abc1234 or a specific SHA)'
+        description: "Docker image tag to rollback to (e.g., abc1234 or a specific SHA)"
         required: true
         type: string
       confirm:
@@ -59,16 +59,16 @@ jobs:
           envs: ECR_PASSWORD,ECR_REGISTRY,IMAGE_TAG
           script: |
             set -e
-            
+
             echo "Starting rollback..."
             cd ~/docita
-            
+
             # Login to ECR
             echo "Logging into AWS ECR..."
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
-            
+
             TARGET_IMAGE="${ECR_REGISTRY}/docita-api:${IMAGE_TAG}"
-            
+
             # Pull the rollback image
             echo "Pulling rollback image: $TARGET_IMAGE"
             if ! docker pull $TARGET_IMAGE; then
@@ -76,12 +76,12 @@ jobs:
               docker images ${ECR_REGISTRY}/docita-api --format "{{.Tag}}"
               exit 1
             fi
-            
+
             # Stop current container
             echo "Stopping current container..."
             docker stop docita-api 2>/dev/null || true
             docker rm docita-api 2>/dev/null || true
-            
+
             # Start rollback container
             echo "Starting rollback container..."
             docker run -d \
@@ -90,11 +90,11 @@ jobs:
               -p 3001:3001 \
               --env-file .env \
               $TARGET_IMAGE
-            
+
             # Health check
             echo "Waiting for health check..."
             sleep 10
-            
+
             if curl -sf http://localhost:3001/health >/dev/null 2>&1; then
               echo "Rollback successful!"
             else

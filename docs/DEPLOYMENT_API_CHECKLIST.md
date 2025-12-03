@@ -3,16 +3,19 @@
 ## Pre-Deployment Checklist
 
 ### Preparation
+
 - [ ] Have AWS account with ECR and EC2 access
 - [ ] Create IAM user with ECR permissions
 - [ ] Have domain name ready
 - [ ] Have SSH key pair ready
 
 ### AWS ECR Setup
+
 - [ ] Create ECR repository: `aws ecr create-repository --repository-name docita-api --region ap-south-1`
 - [ ] Note your AWS Account ID: `aws sts get-caller-identity --query Account --output text`
 
 ### AWS Setup
+
 - [ ] Launch EC2 instance (Ubuntu 22.04, t3.medium)
 - [ ] Allocate Elastic IP
 - [ ] Associate Elastic IP with instance
@@ -24,6 +27,7 @@
 - [ ] Update DNS records to point to Elastic IP
 
 ### EC2 Initial Setup
+
 - [ ] SSH into instance: `ssh -i key.pem ubuntu@ip`
 - [ ] Update system: `sudo apt update && sudo apt upgrade -y`
 - [ ] Install Docker: `sudo apt install -y docker.io`
@@ -33,6 +37,7 @@
 - [ ] Install Certbot: `sudo apt install -y certbot python3-certbot-nginx`
 
 ### EC2 Application Setup
+
 - [ ] Create app directory: `mkdir -p ~/docita`
 - [ ] Create .env file with secrets:
   - [ ] DATABASE_URL (from Neon)
@@ -44,6 +49,7 @@
 - [ ] Secure .env: `chmod 600 .env`
 
 ### Nginx & SSL Setup
+
 - [ ] Remove default Nginx config: `sudo rm /etc/nginx/sites-enabled/default`
 - [ ] Create docita-api config: `sudo nano /etc/nginx/sites-available/docita-api`
 - [ ] Add HTTP redirect config
@@ -54,6 +60,7 @@
 - [ ] Certbot auto-renewal: `sudo systemctl enable certbot.timer && sudo systemctl start certbot.timer`
 
 ### GitHub Secrets Setup
+
 - [ ] Go to GitHub repo → Settings → Secrets and variables → Actions
 - [ ] Add secret: `AWS_ACCESS_KEY_ID` = your IAM access key ID
 - [ ] Add secret: `AWS_SECRET_ACCESS_KEY` = your IAM secret access key
@@ -64,6 +71,7 @@
 - [ ] (Optional) Add secret: `SLACK_WEBHOOK` = your Slack webhook URL
 
 ### Verification
+
 - [ ] Test SSH connection: `ssh -i key.pem ubuntu@ip "docker --version"`
 - [ ] Test Docker: `ssh -i key.pem ubuntu@ip "docker ps"`
 - [ ] Test Nginx: `ssh -i key.pem ubuntu@ip "sudo systemctl status nginx"`
@@ -75,12 +83,14 @@
 ### Using AWS ECR Method (Recommended)
 
 #### Before First Deployment
+
 - [ ] Ensure all GitHub Secrets are set
 - [ ] Verify ECR repository exists
 - [ ] Test EC2 SSH access works
 - [ ] Nginx is running and configured
 
 #### Deploy
+
 - [ ] Make change to `apps/api/` or `packages/types/`
 - [ ] Commit: `git commit -m "..."`
 - [ ] Push to main: `git push origin main`
@@ -89,6 +99,7 @@
 - [ ] Wait for all steps to complete (5-10 minutes)
 
 #### Verify Deployment
+
 - [ ] Workflow shows green checkmark ✅
 - [ ] Check logs for "✨ Deployment completed successfully!"
 - [ ] SSH to EC2: `ssh -i key.pem ubuntu@ip`
@@ -100,12 +111,14 @@
 ### Using SSH Build Method (Alternative)
 
 #### Deploy
+
 - [ ] Go to GitHub repo → Actions tab
 - [ ] Select "Deploy API to Production (SSH Build)"
 - [ ] Click "Run workflow"
 - [ ] Wait for execution (10-15 minutes)
 
 #### Verify Deployment
+
 - [ ] Workflow shows green checkmark ✅
 - [ ] Check logs for "✨ Deployment completed successfully!"
 - [ ] Follow verification steps above
@@ -113,22 +126,26 @@
 ## Post-Deployment Checklist
 
 ### Immediate (Same Day)
+
 - [ ] Monitor logs for any errors: `docker logs -f docita-api`
 - [ ] Test main API endpoints
 - [ ] Check Nginx error logs: `sudo tail -f /var/log/nginx/error.log`
 - [ ] Verify no disk space issues: `df -h`
 
 ### Daily
+
 - [ ] Quick health check: `curl https://api.docita.work/api/health`
 - [ ] No container restarts: `docker inspect docita-api | grep RestartCount`
 
 ### Weekly
+
 - [ ] Review Docker logs for patterns
 - [ ] Check for unused Docker images: `docker images`
 - [ ] Monitor EC2 disk usage: `df -h`
 - [ ] Check SSL cert expiration: `sudo certbot certificates`
 
 ### Monthly
+
 - [ ] Update EC2 packages: `sudo apt update && sudo apt upgrade -y`
 - [ ] Clean Docker system: `docker system prune -a`
 - [ ] Review security group rules
@@ -138,6 +155,7 @@
 ## Troubleshooting Checklist
 
 ### Workflow Fails
+
 - [ ] Check GitHub Secrets are set correctly
 - [ ] Verify EC2 SSH key is properly formatted (has BEGIN/END)
 - [ ] Check EC2 instance is running
@@ -145,6 +163,7 @@
 - [ ] Check EC2 has internet connectivity
 
 ### Container Won't Start
+
 - [ ] Check logs: `docker logs docita-api`
 - [ ] Check if port 3001 is in use: `sudo lsof -i :3001`
 - [ ] Verify .env file exists and is readable: `cat ~/docita/.env`
@@ -152,6 +171,7 @@
 - [ ] Check Docker is running: `sudo systemctl status docker`
 
 ### API Not Responding
+
 - [ ] Check container is running: `docker ps | grep docita-api`
 - [ ] Check health endpoint: `curl http://localhost:3001/api/health`
 - [ ] Check Nginx is running: `sudo systemctl status nginx`
@@ -160,6 +180,7 @@
 - [ ] Check SSL cert: `sudo certbot certificates`
 
 ### SSL Certificate Issues
+
 - [ ] Verify cert exists: `ls -la /etc/letsencrypt/live/api.docita.work/`
 - [ ] Check expiration: `sudo certbot certificates`
 - [ ] Test renewal: `sudo certbot renew --dry-run`
@@ -167,6 +188,7 @@
 - [ ] Test Nginx config: `sudo nginx -t`
 
 ### Disk Space Issues
+
 - [ ] Check usage: `df -h`
 - [ ] List large files: `du -sh ~/* | sort -h`
 - [ ] Clean Docker: `docker system prune -a`
@@ -243,18 +265,18 @@ curl https://api.docita.work/api/health
 
 ## Important Files
 
-| File | Location | Purpose |
-|------|----------|---------|
-| Dockerfile | `apps/api/Dockerfile` | Container image definition |
-| Deploy workflow | `.github/workflows/deploy-api.yml` | Automated deployment |
-| Alt workflow | `.github/workflows/deploy-api-ssh-build.yml` | Alternative SSH build |
-| Setup guide | `docs/DEPLOYMENT_API_SETUP.md` | Detailed setup instructions |
-| Quick ref | `docs/DEPLOYMENT_API_QUICK_REF.md` | Quick reference guide |
-| Full docs | `docs/DEPLOYMENT.md` | Complete deployment guide |
-| Changes | `docs/DEPLOYMENT_API_CHANGES.md` | Summary of updates |
-| EC2 .env | `~/docita/.env` | Environment variables |
-| Nginx config | `/etc/nginx/sites-available/docita-api` | Reverse proxy config |
-| SSL certs | `/etc/letsencrypt/live/api.docita.work/` | SSL certificates |
+| File            | Location                                     | Purpose                     |
+| --------------- | -------------------------------------------- | --------------------------- |
+| Dockerfile      | `apps/api/Dockerfile`                        | Container image definition  |
+| Deploy workflow | `.github/workflows/deploy-api.yml`           | Automated deployment        |
+| Alt workflow    | `.github/workflows/deploy-api-ssh-build.yml` | Alternative SSH build       |
+| Setup guide     | `docs/DEPLOYMENT_API_SETUP.md`               | Detailed setup instructions |
+| Quick ref       | `docs/DEPLOYMENT_API_QUICK_REF.md`           | Quick reference guide       |
+| Full docs       | `docs/DEPLOYMENT.md`                         | Complete deployment guide   |
+| Changes         | `docs/DEPLOYMENT_API_CHANGES.md`             | Summary of updates          |
+| EC2 .env        | `~/docita/.env`                              | Environment variables       |
+| Nginx config    | `/etc/nginx/sites-available/docita-api`      | Reverse proxy config        |
+| SSL certs       | `/etc/letsencrypt/live/api.docita.work/`     | SSL certificates            |
 
 ## Notes
 

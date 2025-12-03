@@ -202,6 +202,7 @@ Option A: **Amazon ECR**
 ##### ⚠️ Important: ECR Login Method
 
 **Modern Login Command (Recommended):**
+
 ```bash
 # Works in scripts, GitHub Actions, and non-TTY environments
 aws ecr get-login-password --region us-west-1 | \
@@ -209,6 +210,7 @@ aws ecr get-login-password --region us-west-1 | \
 ```
 
 Error you might see with old method:
+
 ```
 Error: "cannot perform an interactive login from a non-TTY device"
 ```
@@ -487,6 +489,7 @@ The workflow is located at `.github/workflows/deploy-api.yml` and includes:
 4. **Deploy Job**: Zero-downtime deployment to EC2
 
 Key features:
+
 - ✅ Tests run before deployment (gated)
 - ✅ Database migrations run before deployment
 - ✅ Zero-downtime deployment (blue-green style)
@@ -639,18 +642,18 @@ jobs:
           envs: ECR_PASSWORD,ECR_REGISTRY,IMAGE_URI
           script: |
             set -e
-            
+
             echo "Starting zero-downtime deployment..."
             cd ~/docita
-            
+
             # Login to ECR
             echo "Logging into AWS ECR..."
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
-            
+
             # Pull the new image
             echo "Pulling new Docker image from ECR..."
             docker pull "$IMAGE_URI"
-            
+
             # Start new container on same port
             echo "Starting new container..."
             docker run -d \
@@ -662,7 +665,7 @@ jobs:
               echo "Failed to start new container"
               exit 1
             }
-            
+
             # Wait for health check
             echo "Waiting for health check..."
             for i in {1..30}; do
@@ -678,18 +681,18 @@ jobs:
               fi
               sleep 2
             done
-            
+
             # Stop old container
             echo "Stopping old container..."
             docker stop docita-api 2>/dev/null || true
             docker rm docita-api 2>/dev/null || true
-            
+
             # Rename new container
             docker rename docita-api-new docita-api
-            
+
             # Cleanup old images
             docker image prune -f
-            
+
             echo "Deployment completed!"
 ```
 
@@ -712,8 +715,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/api/**'
-      - 'packages/types/**'
+      - "apps/api/**"
+      - "packages/types/**"
   workflow_dispatch:
 
 jobs:
@@ -734,26 +737,26 @@ jobs:
           timeout: 30m
           script: |
             set -e
-            
+
             echo "🚀 Starting deployment..."
-            
+
             # Navigate to repo
             cd ~/docita-repo
-            
+
             # Pull latest code
             echo "📥 Pulling latest code..."
             git fetch origin main
             git reset --hard origin/main
-            
+
             # Build Docker image
             echo "🔨 Building Docker image..."
             docker build -f apps/api/Dockerfile -t docita-api:latest .
-            
+
             # Stop existing container
             echo "⛔ Stopping existing container..."
             docker stop docita-api || true
             docker rm docita-api || true
-            
+
             # Run new container from docker app directory
             echo "🔧 Starting new container..."
             cd ~/docita
@@ -767,7 +770,7 @@ jobs:
               --health-retries=3 \
               --env-file .env \
               docita-api:latest
-            
+
             # Wait and verify
             sleep 10
             if docker ps | grep -q docita-api; then
@@ -815,16 +818,16 @@ git clone https://github.com/your-org/docita.git .
 
 ### Required GitHub Secrets
 
-| Secret | Description |
-|--------|-------------|
-| `AWS_ACCESS_KEY_ID` | AWS IAM access key ID for ECR access |
-| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret access key for ECR access |
-| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID (e.g., `123456789012`) |
-| `DATABASE_URL` | Neon connection string for production database (required for migrations) |
-| `EC2_HOST` | EC2 Elastic IP or domain name |
-| `EC2_USERNAME` | SSH username (usually `ubuntu`) |
-| `EC2_SSH_KEY` | Private SSH key for EC2 access |
-| `SLACK_WEBHOOK` | (Optional) Slack webhook for notifications |
+| Secret                  | Description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `AWS_ACCESS_KEY_ID`     | AWS IAM access key ID for ECR access                                     |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret access key for ECR access                                 |
+| `AWS_ACCOUNT_ID`        | Your 12-digit AWS account ID (e.g., `123456789012`)                      |
+| `DATABASE_URL`          | Neon connection string for production database (required for migrations) |
+| `EC2_HOST`              | EC2 Elastic IP or domain name                                            |
+| `EC2_USERNAME`          | SSH username (usually `ubuntu`)                                          |
+| `EC2_SSH_KEY`           | Private SSH key for EC2 access                                           |
+| `SLACK_WEBHOOK`         | (Optional) Slack webhook for notifications                               |
 
 > **Note:** The ECR registry URL is constructed as `${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-1.amazonaws.com` in the workflow.
 
@@ -833,6 +836,7 @@ git clone https://github.com/your-org/docita.git .
 **For AWS Credentials (ECR Access):**
 
 1. Create IAM user with ECR permissions (use this production-ready policy):
+
    ```json
    {
      "Version": "2012-10-17",
@@ -840,9 +844,7 @@ git clone https://github.com/your-org/docita.git .
        {
          "Sid": "AllowAuthorizationToken",
          "Effect": "Allow",
-         "Action": [
-           "ecr:GetAuthorizationToken"
-         ],
+         "Action": ["ecr:GetAuthorizationToken"],
          "Resource": "*"
        },
        {
@@ -862,15 +864,13 @@ git clone https://github.com/your-org/docita.git .
        {
          "Sid": "AllowListing",
          "Effect": "Allow",
-         "Action": [
-           "ecr:DescribeRepositories",
-           "ecr:ListImages"
-         ],
+         "Action": ["ecr:DescribeRepositories", "ecr:ListImages"],
          "Resource": "*"
        }
      ]
    }
    ```
+
    > **Note:** Replace `<account-id>` with your 12-digit AWS account ID. Change `us-west-1` if using a different region.
 
 2. Create access keys for this IAM user
@@ -924,6 +924,7 @@ no matching manifest for linux/amd64 in the manifest list entries
 ```
 
 **Root Causes:**
+
 1. Image was built on macOS (ARM64) and pushed without multi-architecture support
 2. CI/CD pipeline only builds for single architecture
 3. Previous deployments didn't use Docker Buildx for multi-platform builds
@@ -931,6 +932,7 @@ no matching manifest for linux/amd64 in the manifest list entries
 **Automatic Fix (Going Forward):**
 
 The GitHub Actions workflow now uses Docker Buildx to build for both architectures:
+
 - ✅ `linux/amd64` - for AWS EC2 instances
 - ✅ `linux/arm64` - for Apple Silicon and ARM systems
 
@@ -993,19 +995,21 @@ The workflow has been updated to build multi-architecture images. No additional 
 ### "403 Forbidden" Error When Pushing to ECR
 
 **Error Message:**
+
 ```
-failed to push <account-id>.dkr.ecr.us-west-1.amazonaws.com/docita-api:...: 
-unexpected status from HEAD request to https://<account-id>.dkr.ecr.us-west-1.amazonaws.com/v2/docita-api/blobs/sha256:...: 
+failed to push <account-id>.dkr.ecr.us-west-1.amazonaws.com/docita-api:...:
+unexpected status from HEAD request to https://<account-id>.dkr.ecr.us-west-1.amazonaws.com/v2/docita-api/blobs/sha256:...:
 403 Forbidden
 ```
 
 **Common Causes:**
 
 1. **ECR Repository Doesn't Exist**
+
    ```bash
    # Check if repository exists in correct region
    aws ecr describe-repositories --repository-names docita-api --region us-west-1
-   
+
    # If not found, create it
    aws ecr create-repository --repository-name docita-api --region us-west-1
    ```
@@ -1016,6 +1020,7 @@ unexpected status from HEAD request to https://<account-id>.dkr.ecr.us-west-1.am
    - Ensure ECR repository is created in same region
 
 3. **Insufficient IAM Permissions**
+
    ```json
    {
      "Effect": "Allow",
@@ -1034,10 +1039,11 @@ unexpected status from HEAD request to https://<account-id>.dkr.ecr.us-west-1.am
    ```
 
 4. **Expired or Invalid AWS Credentials**
+
    ```bash
    # Verify credentials
    aws sts get-caller-identity
-   
+
    # Update GitHub secrets if credentials are expired
    # Go to: Settings → Secrets and variables → Actions
    # Update AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
@@ -1061,7 +1067,7 @@ aws ecr get-login-password --region us-west-1 | \
 
 # 5. If successful, verify GitHub secrets are set correctly:
 #    - AWS_ACCESS_KEY_ID
-#    - AWS_SECRET_ACCESS_KEY  
+#    - AWS_SECRET_ACCESS_KEY
 #    - AWS_ACCOUNT_ID
 #    - DATABASE_URL
 #    - EC2_HOST
@@ -1085,6 +1091,7 @@ aws ecr create-repository \
 ```
 
 **Common Issues:**
+
 - **403 Forbidden error**: Repository doesn't exist in the specified region or IAM permissions insufficient
 - **Region mismatch**: Workflow uses `us-west-1`, but repository created in different region
 - **404 Not Found**: ECR repository hasn't been created yet
@@ -1161,6 +1168,7 @@ docker logs -f docita-api
 ### Troubleshooting Manual Deployments
 
 **Container won't start:**
+
 ```bash
 # Check logs
 docker logs docita-api
@@ -1173,6 +1181,7 @@ cat ~/docita/.env
 ```
 
 **Health check failing:**
+
 ```bash
 # Test the health endpoint directly
 curl http://localhost:3001/api/health
@@ -1185,6 +1194,7 @@ docker logs docita-api | tail -50
 ```
 
 **Need to rebuild everything:**
+
 ```bash
 # Remove old images
 docker image prune -a --force
@@ -1206,6 +1216,7 @@ docker run -d \
 ```
 
 **Revert to previous image:**
+
 ```bash
 # Stop current container
 docker stop docita-api

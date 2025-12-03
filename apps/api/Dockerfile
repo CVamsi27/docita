@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-# BUILD STAGE
+# BUILD STAGE - Copy pre-built artifacts from host
 # ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -19,43 +19,22 @@ COPY packages/eslint-config ./packages/eslint-config
 # Copy API source
 COPY apps/api ./apps/api
 
-# Install all dependencies (dev included for build)
+# Install all dependencies (production and dev for later use)
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma client
-WORKDIR /app/packages/db
-RUN pnpm db:generate
+# Copy pre-built artifacts from the host build
+# These were compiled on the host with `pnpm build` and include:
+# - @workspace/db/dist (compiled TypeScript + generated Prisma client)
+# - @workspace/types/dist (compiled TypeScript)
+# - apps/api/dist (compiled NestJS app)
+# Copy packages and source
+COPY packages/db/dist ./packages/db/dist
+COPY packages/types/dist ./packages/types/dist
+COPY apps/api/dist ./apps/api/dist
 
-# Build DB package (compile TS -> dist)
-# Run the package-local build so `packages/db/dist` is produced for the API build.
-# Do not swallow failures — if the DB package doesn't build, fail the image build early.
-RUN pnpm build
-
-# Make the built DB package available as a node module during the builder stage
-# so the API TypeScript build can resolve `@workspace/db` from node_modules.
-RUN mkdir -p /app/node_modules/@workspace && \
-  cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
-  cp /app/packages/db/package.json /app/node_modules/@workspace/db/package.json || true
-
-# Make the built DB package available under node_modules for the builder
-# so TypeScript and the API build resolve `@workspace/db` to the compiled output.
-WORKDIR /app
-# (removed) avoid copying source `packages/db` into node_modules which would
-# cause the API build to resolve the package to source files (leading to
-# compiled JS requiring `../../../../packages/db/src`). We keep the copied
-# `dist` layout placed earlier so the compiled output is resolved.
-
-# Build types package
-WORKDIR /app/packages/types
-RUN pnpm build
-
-# Build API
-WORKDIR /app/apps/api
-RUN pnpm build
-
-# Production deployment using pnpm deploy
-WORKDIR /app
-RUN pnpm deploy --filter=api --prod /app/deployed --legacy
+# Don't use pnpm deploy - instead, copy node_modules directly which includes
+# all generated Prisma client files. We'll strip out dev dependencies manually.
+# This ensures .prisma/client files are available at runtime.
 
 
 # ─────────────────────────────────────────────────────────────
@@ -67,25 +46,43 @@ WORKDIR /app
 # Install dumb-init for graceful shutdown
 RUN apk add --no-cache dumb-init
 
-# Copy built deployment contents
-# Copy node_modules from deployed output and copy the API's built JS files.
-# The monorepo/Nx build emits nested artifacts under `apps/api/dist/apps/api/src`.
-# Copy that inner `src` into `/app/dist` so `node dist/main` resolves correctly.
-COPY --from=builder /app/deployed/node_modules ./node_modules
-# Ensure @workspace/db is available at runtime as a node module.
-# Some compiled outputs can contain imports to the workspace package name
-# so we copy the built db package into node_modules for resolution.
-COPY --from=builder /app/packages/db/dist /app/node_modules/@workspace/db
+# Install pnpm for install command
+RUN npm install -g pnpm
 
-# Copy the API built JS files into /app/dist
-COPY --from=builder /app/apps/api/dist/apps/api/src ./dist
-COPY --from=builder /app/deployed/package.json ./
+# Copy manifests
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy ONLY Prisma schema (migrations run in CI/CD, not in container)
-COPY --from=builder /app/packages/db/prisma/schema.prisma ./prisma/schema.prisma
+# Copy workspace source (needed for @workspace package resolution)
+COPY packages/db ./packages/db
+COPY packages/types ./packages/types
+COPY apps/api ./apps/api
 
-# Create non-root user
+# Copy ALL pre-built artifacts and node_modules from builder
+# This is the complete built state - no reinstall needed
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/types/dist ./packages/types/dist
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/node_modules ./node_modules
+
+# Rebuild symlinks - pnpm install will recreate links but keep existing .pnpm cache
+# This is needed because COPY doesn't always preserve relative symlinks correctly
+RUN pnpm install --frozen-lockfile && \
+  rm -rf /app/node_modules/@workspace/db && \
+  mkdir -p /app/node_modules/@workspace && \
+  cp -R /app/packages/db/dist /app/node_modules/@workspace/db
+
+# Copy Prisma schema
+COPY packages/db/prisma/schema.prisma ./prisma/schema.prisma
+
+# Create non-root user FIRST
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
+
+# Create symlink to make dist accessible for app startup
+RUN ln -s /app/apps/api/dist /app/dist
+
+# Create uploads directory and set permissions for nodejs user
+RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app
+
 USER nodejs
 
 ENV NODE_ENV=production

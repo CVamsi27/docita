@@ -36,10 +36,11 @@ vitest.config.ts
 .env.local
 .env.*.local
 
-# Build artifacts (we rebuild in Docker)
-apps/*/dist
+# Build artifacts - Keep dist folders since we use pre-built artifacts
+# apps/*/dist
+# apps/*/.next
+# packages/*/dist
 apps/*/.next
-packages/*/dist
 build
 tsc-out
 
@@ -83,3 +84,4 @@ turbo.json
 
 # Uploads folder (runtime data)
 apps/api/uploads
+

@@ -510,12 +510,14 @@ System Health:
 ## Quick Command Reference
 
 ### View Logs
+
 ```bash
 docker logs -f docita-api           # Real-time logs
 docker logs --tail 50 docita-api    # Last 50 lines
 ```
 
 ### Container Control
+
 ```bash
 docker restart docita-api           # Restart container
 docker stop docita-api              # Stop container
@@ -524,6 +526,7 @@ docker ps                            # List running
 ```
 
 ### System Check
+
 ```bash
 df -h                               # Disk usage
 docker images | grep docita         # List images
@@ -531,11 +534,13 @@ docker system prune -a              # Clean up
 ```
 
 ### Health Check
+
 ```bash
 curl https://api.docita.work/api/health
 ```
 
 ### SSH Connection
+
 ```bash
 ssh -i your-key.pem ubuntu@your-ip
 ```
@@ -544,14 +549,14 @@ ssh -i your-key.pem ubuntu@your-ip
 
 ## Time Estimates
 
-| Task | Time |
-|------|------|
-| EC2 Initial Setup | 10 minutes |
-| Nginx & SSL Config | 15 minutes |
-| Docker Build (first) | 5 minutes |
-| Docker Build (subsequent) | 1 minute |
-| Full Deployment | 5-10 minutes |
-| First Full Setup | 1-2 hours |
+| Task                      | Time         |
+| ------------------------- | ------------ |
+| EC2 Initial Setup         | 10 minutes   |
+| Nginx & SSL Config        | 15 minutes   |
+| Docker Build (first)      | 5 minutes    |
+| Docker Build (subsequent) | 1 minute     |
+| Full Deployment           | 5-10 minutes |
+| First Full Setup          | 1-2 hours    |
 
 ---
 
