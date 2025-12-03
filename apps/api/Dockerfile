@@ -56,6 +56,12 @@ RUN apk add --no-cache dumb-init
 # The monorepo/Nx build emits nested artifacts under `apps/api/dist/apps/api/src`.
 # Copy that inner `src` into `/app/dist` so `node dist/main` resolves correctly.
 COPY --from=builder /app/deployed/node_modules ./node_modules
+# Ensure @workspace/db is available at runtime as a node module.
+# Some compiled outputs can contain imports to the workspace package name
+# so we copy the built db package into node_modules for resolution.
+COPY --from=builder /app/packages/db/dist /app/node_modules/@workspace/db
+
+# Copy the API built JS files into /app/dist
 COPY --from=builder /app/apps/api/dist/apps/api/src ./dist
 COPY --from=builder /app/deployed/package.json ./
 
