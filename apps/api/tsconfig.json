@@ -13,6 +13,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@workspace/db": ["../../packages/db/src"],
+      "@workspace/db/*": ["../../packages/db/src/*"],
+      "@workspace/types": ["../../packages/types/src"],
+      "@workspace/types/*": ["../../packages/types/src/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
