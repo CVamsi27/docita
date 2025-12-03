@@ -67,6 +67,32 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  const server = await app.listen(port);
+
+  // Graceful shutdown handler for zero-downtime deployments
+  // Allows active connections to drain before process exit
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`\n${signal} received: starting graceful shutdown...`);
+    
+    // Stop accepting new connections
+    server.close(async () => {
+      console.log('HTTP server closed, waiting for connections to drain...');
+      
+      // Close NestJS app (closes database, caches, etc.)
+      await app.close();
+      console.log('NestJS app closed');
+      
+      process.exit(0);
+    });
+
+    // Force exit after 15 seconds if connections don't drain
+    setTimeout(() => {
+      console.error('Graceful shutdown timeout exceeded, forcing exit');
+      process.exit(1);
+    }, 15000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 bootstrap();

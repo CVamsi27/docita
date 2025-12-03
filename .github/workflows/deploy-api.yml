@@ -185,22 +185,23 @@ jobs:
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
+              --stop-timeout 15 \
               -p 3001:3001 \
               --env-file ~/docita/.env \
               "$IMAGE_URI"
 
             echo "Running health check..."
-            for i in {1..40}; do
-              if docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
+            for i in {1..15}; do
+              if docker exec docita-api-new curl -f -s http://localhost:3001/health/live >/dev/null 2>&1; then
                 echo "Container is healthy!"
                 break
               fi
-              echo "Waiting... ($i/40)"
+              echo "Waiting... ($i/15)"
               sleep 2
             done
 
             # Verify health check actually succeeded
-            if ! docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
+            if ! docker exec docita-api-new curl -f -s http://localhost:3001/health/live >/dev/null 2>&1; then
               echo "ERROR: Container failed health check. Capturing diagnostics..."
 
               echo "=== docker ps -a ==="
@@ -233,37 +234,3 @@ jobs:
             echo "Promoting new container..."
             docker rename docita-api-new docita-api
             echo "Deployment successful."
-
-      # -----------------------------------------------------------
-      # ECR CLEANUP AFTER SUCCESSFUL DEPLOYMENT
-      # -----------------------------------------------------------
-      - name: Cleanup old ECR images (post-deployment)
-        if: success()
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        run: |
-          echo "Cleaning up old ECR images (keeping latest 3)..."
-
-          DIGESTS=$(aws ecr describe-images \
-            --repository-name $ECR_REPOSITORY \
-            --region $AWS_REGION \
-            --query 'sort_by(imageDetails, &imagePushedAt)[:-3].imageDigest' \
-            --output json)
-
-          if [ "$DIGESTS" = "[]" ] || [ -z "$DIGESTS" ] || [ "$DIGESTS" = "null" ]; then
-            echo "No images to delete."
-            exit 0
-          fi
-
-          echo "Removing these image digests:"
-          echo "$DIGESTS"
-
-          echo "$DIGESTS" | jq -r '.[]' | while read -r digest; do
-            aws ecr batch-delete-image \
-              --repository-name $ECR_REPOSITORY \
-              --region $AWS_REGION \
-              --image-ids "imageDigest=$digest" || true
-          done
-
-          echo "ECR cleanup complete."

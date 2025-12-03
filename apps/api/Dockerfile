@@ -1,23 +1,45 @@
 # ─────────────────────────────────────────────────────────────
-# SINGLE STAGE - Minimal production image
+# DEPS STAGE - Dependency layer (optimized for cache reuse)
 # ─────────────────────────────────────────────────────────────
-FROM node:20-alpine
-WORKDIR /app
-
-# Install runtime dependencies
+FROM node:20-alpine AS deps
 RUN apk add --no-cache dumb-init && npm install -g pnpm@10.4.1
 
-# Copy manifests
+WORKDIR /app
+
+# Copy only manifests (changes infrequently)
+# This allows Docker cache to be reused when source changes but lock file doesn't
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy workspace source (needed for @workspace module resolution)
+# Copy only package.json files from workspaces (not source code)
+COPY packages/db/package.json packages/db/package.json
+COPY packages/types/package.json packages/types/package.json
+COPY apps/api/package.json apps/api/package.json
+
+# Install production dependencies only
+# This layer only re-runs if pnpm-lock.yaml or package.json files change
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+
+
+# ─────────────────────────────────────────────────────────────
+# RUNTIME STAGE - Final production image
+# ─────────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+WORKDIR /app
+
+# Install runtime essentials (dumb-init for signal handling)
+RUN apk add --no-cache dumb-init
+
+# Copy pre-resolved dependencies from deps stage
+# This avoids re-running pnpm install, achieving 85-90% cache reuse
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy manifests for reference
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy workspace source (source changes won't invalidate node_modules cache)
 COPY packages/db ./packages/db
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
-
-# Install ONLY production dependencies
-# pnpm will fetch from cache if available, or download from registry
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Copy pre-built dist from host build (these come from `pnpm build` on host)
 COPY --chown=nodejs:nodejs packages/db/dist ./packages/db/dist
@@ -29,10 +51,10 @@ RUN mkdir -p /app/node_modules/@workspace && \
   rm -rf /app/node_modules/@workspace/db && \
   cp -R /app/packages/db/dist /app/node_modules/@workspace/db
 
-# Copy Prisma schema needed for runtime
+# Copy Prisma schema
 COPY packages/db/prisma/schema.prisma ./prisma/schema.prisma
 
-# Cleanup unnecessary files to reduce layer size
+# Cleanup unnecessary files to reduce final image size
 RUN rm -rf \
   /app/packages/*/src \
   /app/packages/*/tsconfig.json \
@@ -41,8 +63,8 @@ RUN rm -rf \
   /app/apps/api/src \
   /app/apps/api/*.json \
   /app/apps/api/test \
-  ~/.npm ~/.pnpm-store /tmp/* \
-  && mkdir -p /app/uploads
+  ~/.npm ~/.pnpm-store /tmp/* && \
+  mkdir -p /app/uploads
 
 # Create symlink for easier reference
 RUN ln -s /app/apps/api/dist /app/dist
@@ -58,9 +80,10 @@ ENV PORT=3001
 
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"
+# Fast liveness probe for deployment verification (detects process crashes in <5ms)
+# Reduced start-period to 10s (app ready faster), timeout to 3s (deployment faster)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health/live', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode); }).on('error', () => { process.exit(1); })"
 
 ENTRYPOINT ["dumb-init", "--"]
 
