@@ -89,10 +89,10 @@ ENV PORT=3001
 
 EXPOSE 3001
 
-# Health check using fast liveness endpoint (5ms response time)
-# Reduced start-period to 10s for faster deployment verification
+# Health check (uses fast liveness probe)
+# Note: /api prefix is required because of app.setGlobalPrefix('api') in main.ts
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health/live', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode); }).on('error', () => { process.exit(1); })"
+  CMD node -e "require('http').get('http://localhost:3001/api/health/live', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode); }).on('error', () => { process.exit(1); })"
 
 ENTRYPOINT ["dumb-init", "--"]
 
