@@ -119,17 +119,20 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            --cache-from type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            --cache-to type=inline \
-            --push \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            -f apps/api/Dockerfile \
-            .
-          echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-to: type=inline
+      - name: Set image_uri output
+        run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------
   # RUN MIGRATIONS
@@ -209,50 +212,74 @@ jobs:
             echo "Pulling new image from ECR..."
             docker pull "$IMAGE_URI"
 
-            echo "Running new container..."
+            # 1. Start new container on temp port for verification
+            docker rm -f docita-api-new || true
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
-              --stop-timeout 15 \
-              -p 3001:3001 \
+              -p 3002:3001 \
               --env-file ~/docita/.env \
               "$IMAGE_URI"
 
-            echo "Running health check..."
+            # 2. Verify health on temp port
+            echo "Running health check on temp port 3002..."
             for i in {1..15}; do
               if docker exec docita-api-new curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
                 echo "Container is healthy!"
+                HEALTHY=true
                 break
               fi
               echo "Waiting... ($i/15)"
               sleep 2
             done
 
+            if [ "$HEALTHY" != "true" ]; then
+              echo "Health check failed! Keeping old container running."
+              docker rm -f docita-api-new
+              exit 1
+            fi
+
+            # 3. Health check passed - Swap containers
+            echo "Health check passed. Swapping containers..."
+            
+            # Stop temp container
+            docker rm -f docita-api-new
+
+            # Stop old container
+            docker stop docita-api || true
+            docker rm docita-api || true
+
+            # Start new container on production port
+            docker run -d \
+              --name docita-api \
+              --restart unless-stopped \
+              -p 3001:3001 \
+              --env-file ~/docita/.env \
+              "$IMAGE_URI"
+            echo "Deployment successful."
+
             # Verify health check actually succeeded
-            if ! docker exec docita-api-new curl -f -s http://localhost:3001/health/live >/dev/null 2>&1; then
+            if ! docker exec docita-api curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
               echo "ERROR: Container failed health check. Capturing diagnostics..."
 
               echo "=== docker ps -a ==="
               docker ps -a || true
 
-              echo "=== docker inspect docita-api-new ==="
-              docker inspect docita-api-new || true
+              echo "=== docker inspect docita-api ==="
+              docker inspect docita-api || true
 
-              echo "=== docker logs docita-api-new (last 500 lines) ==="
-              docker logs --tail 500 docita-api-new || true
+              echo "=== docker logs docita-api (last 500 lines) ==="
+              docker logs --tail 500 docita-api || true
 
               echo "=== Attempting to curl health endpoint inside container (verbose) ==="
-              docker exec docita-api-new sh -c 'curl -v --max-time 5 http://localhost:3001/health || true' || true
+              docker exec docita-api curl -v http://localhost:3001/api/health/live || true
 
               echo "=== Container environment (first 200 chars) ==="
-              docker exec docita-api-new sh -c 'env' | sed -n '1,200p' || true
+              docker exec docita-api env | head -c 200 || true
 
-              # Preserve failed container for post-mortem by renaming instead of removing
-              FAILED_NAME="docita-api-failed-$(date +%s)"
-              echo "Renaming failed container to: $FAILED_NAME"
-              docker rename docita-api-new "$FAILED_NAME" || docker rm -f docita-api-new || true
-
-              echo "Deployment aborted due to failed health check. See diagnostics above and preserved container: $FAILED_NAME"
+              # Rename failed container for debugging
+              docker rename docita-api docita-api-failed-$(date +%s) || true
+              
               exit 1
             fi
 

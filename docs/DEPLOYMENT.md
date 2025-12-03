@@ -654,46 +654,55 @@ jobs:
             echo "Pulling new Docker image from ECR..."
             docker pull "$IMAGE_URI"
 
-            # Start new container on same port
-            echo "Starting new container..."
+            # 1. Start new container on temp port for verification
+            echo "Starting new container on temp port 3002..."
+            docker rm -f docita-api-new || true
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
-              -p 3001:3001 \
+              -p 3002:3001 \
               --env-file .env \
-              "$IMAGE_URI" || {
-              echo "Failed to start new container"
-              exit 1
-            }
+              "$IMAGE_URI"
 
-            # Wait for health check
-            echo "Waiting for health check..."
-            for i in {1..30}; do
-              if docker exec docita-api-new node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" 2>/dev/null; then
+            # 2. Verify health on temp port
+            echo "Verifying health on temp port..."
+            for i in {1..15}; do
+              if docker exec docita-api-new curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
                 echo "New container is healthy!"
+                HEALTHY=true
                 break
               fi
-              if [ $i -eq 30 ]; then
-                echo "Health check failed"
-                docker logs docita-api-new --tail 50
-                docker stop docita-api-new && docker rm docita-api-new
-                exit 1
-              fi
+              echo "Waiting... ($i/15)"
               sleep 2
             done
 
+            if [ "$HEALTHY" != "true" ]; then
+              echo "Health check failed! Keeping old container running."
+              docker rm -f docita-api-new
+              exit 1
+            fi
+
+            # 3. Health check passed - Swap containers
+            echo "Health check passed. Swapping containers..."
+            
+            # Stop temp container
+            docker rm -f docita-api-new
+
             # Stop old container
             echo "Stopping old container..."
-            docker stop docita-api 2>/dev/null || true
-            docker rm docita-api 2>/dev/null || true
+            docker stop docita-api || true
+            docker rm docita-api || true
 
-            # Rename new container
-            docker rename docita-api-new docita-api
+            # Start new container on production port
+            echo "Starting new container on production port 3001..."
+            docker run -d \
+              --name docita-api \
+              --restart unless-stopped \
+              -p 3001:3001 \
+              --env-file .env \
+              "$IMAGE_URI"
 
-            # Cleanup old images
-            docker image prune -f
-
-            echo "Deployment completed!"
+            echo "Deployment completed successfully!"
 ```
 
 **Why use `aws-actions/amazon-ecr-login@v2`?**
@@ -764,7 +773,7 @@ jobs:
               --name docita-api \
               --restart unless-stopped \
               -p 3001:3001 \
-              --health-cmd='curl -f http://localhost:3001/api/health || exit 1' \
+              --health-cmd='curl -f http://localhost:3001/api/health/live || exit 1' \
               --health-interval=30s \
               --health-timeout=10s \
               --health-retries=3 \
@@ -965,7 +974,7 @@ docker run -d \
   --name docita-api \
   --restart unless-stopped \
   -p 3001:3001 \
-  --health-cmd='curl -f http://localhost:3001/health || exit 1' \
+  --health-cmd='curl -f http://localhost:3001/api/health/live || exit 1' \
   --health-interval=30s \
   --health-timeout=10s \
   --health-retries=3 \
@@ -1130,7 +1139,7 @@ docker run -d \
   --name docita-api \
   --restart unless-stopped \
   -p 3001:3001 \
-  --health-cmd='curl -f http://localhost:3001/api/health || exit 1' \
+  --health-cmd='curl -f http://localhost:3001/api/health/live || exit 1' \
   --health-interval=30s \
   --health-timeout=10s \
   --health-retries=3 \
@@ -1152,7 +1161,7 @@ else
 fi
 
 # Verify health endpoint
-if curl -f http://localhost:3001/api/health >/dev/null 2>&1; then
+if curl -f http://localhost:3001/api/health/live >/dev/null 2>&1; then
   echo "API health check passed"
 else
   echo "Health check warning, checking logs..."
@@ -1184,7 +1193,7 @@ cat ~/docita/.env
 
 ```bash
 # Test the health endpoint directly
-curl http://localhost:3001/api/health
+curl http://localhost:3001/api/health/live
 
 # Check container resource usage
 docker stats docita-api
