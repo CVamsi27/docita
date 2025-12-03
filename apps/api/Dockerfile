@@ -35,7 +35,12 @@ RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm build
 
-# Prune to production dependencies only
+# Install production dependencies (must be done AFTER build, before prune)
+# Go back to root to install only production deps
+WORKDIR /app
+RUN pnpm install --prod --frozen-lockfile
+
+# Prune workspace to only production packages needed at runtime
 RUN pnpm prune --prod
 
 # Remove pnpm internal directory structure (not needed at runtime)
@@ -48,20 +53,11 @@ RUN rm -rf /app/packages/eslint-config /app/packages/typescript-config /app/pack
 # Aggressive cleanup of node_modules to remove non-essential files
 RUN find /app/node_modules -type f \( \
     -name "*.md" -o \
-    -name "*.ts" -o \
-    -name "*.tsx" -o \
     -name "*.map" -o \
-    -name "*.d.ts" -o \
     -name "LICENSE*" -o \
     -name "CHANGELOG*" -o \
     -name "*.example" -o \
-    -name "*.test.js" -o \
-    -name "*.spec.js" -o \
     -name ".npmignore" -o \
-    -name ".eslintrc*" -o \
-    -name ".prettierrc*" -o \
-    -name "tsconfig*.json" -o \
-    -name "*.tsbuildinfo" -o \
     -name "Makefile" -o \
     -name "*.gyp" -o \
     -name "*.gypi" \
@@ -78,8 +74,7 @@ RUN find /app/node_modules -type f \( \
     -name ".github" -o \
     -name "coverage" -o \
     -name "benchmark" -o \
-    -name "benchmarks" -o \
-    -name "dist/test" \
+    -name "benchmarks" \
     \) -exec rm -rf {} + 2>/dev/null || true
 
 # Production stage - Minimal base
