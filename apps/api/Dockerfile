@@ -20,7 +20,7 @@ COPY packages/typescript-config ./packages/typescript-config
 # Copy api app
 COPY apps/api ./apps/api
 
-# Install all dependencies
+# Install all dependencies (including dev)
 RUN pnpm install --frozen-lockfile
 
 # Generate Prisma client
@@ -35,46 +35,35 @@ RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm build
 
-# Install production dependencies (must be done AFTER build, before prune)
-# Go back to root to install only production deps
+# Remove dev dependencies only - keep production deps
+# Combine all cleanup into single layer to reduce image size
 WORKDIR /app
-RUN pnpm install --prod --frozen-lockfile
-
-# Prune workspace to only production packages needed at runtime
-RUN pnpm prune --prod
-
-# Remove pnpm internal directory structure (not needed at runtime)
-RUN rm -rf /app/node_modules/.pnpm 2>/dev/null || true
-
-# Remove entire workspace packages we don't need at runtime
-RUN rm -rf /app/packages/eslint-config /app/packages/typescript-config /app/packages/ui 2>/dev/null || true && \
-    rm -rf /app/apps/app /app/apps/admin /app/apps/landing /app/scripts /app/docs 2>/dev/null || true
-
-# Aggressive cleanup of node_modules to remove non-essential files
-RUN find /app/node_modules -type f \( \
-    -name "*.md" -o \
-    -name "*.map" -o \
-    -name "LICENSE*" -o \
-    -name "CHANGELOG*" -o \
-    -name "*.example" -o \
-    -name ".npmignore" -o \
-    -name "Makefile" -o \
-    -name "*.gyp" -o \
-    -name "*.gypi" \
+RUN pnpm prune --prod && \
+    rm -rf /app/packages/eslint-config /app/packages/typescript-config /app/packages/ui 2>/dev/null || true && \
+    rm -rf /app/apps/app /app/apps/admin /app/apps/landing /app/scripts /app/docs 2>/dev/null || true && \
+    find /app/node_modules -type f \( \
+      -name "*.md" -o \
+      -name "LICENSE*" -o \
+      -name "CHANGELOG*" -o \
+      -name "*.example" -o \
+      -name ".npmignore" -o \
+      -name "Makefile" -o \
+      -name "*.gyp" -o \
+      -name "*.gypi" \
     \) -delete 2>/dev/null || true && \
     find /app/node_modules -type d \( \
-    -name "test" -o \
-    -name "tests" -o \
-    -name "__tests__" -o \
-    -name "__mocks__" -o \
-    -name "example" -o \
-    -name "examples" -o \
-    -name "docs" -o \
-    -name ".git" -o \
-    -name ".github" -o \
-    -name "coverage" -o \
-    -name "benchmark" -o \
-    -name "benchmarks" \
+      -name "test" -o \
+      -name "tests" -o \
+      -name "__tests__" -o \
+      -name "__mocks__" -o \
+      -name "example" -o \
+      -name "examples" -o \
+      -name "docs" -o \
+      -name ".git" -o \
+      -name ".github" -o \
+      -name "coverage" -o \
+      -name "benchmark" -o \
+      -name "benchmarks" \
     \) -exec rm -rf {} + 2>/dev/null || true
 
 # Production stage - Minimal base
@@ -88,37 +77,37 @@ RUN apk add --no-cache dumb-init
 # Copy pruned node_modules
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy Prisma files needed at runtime
-COPY --from=builder /app/packages/db/node_modules/@prisma ./node_modules/@prisma
+# Copy Prisma schema and package.json for runtime
 COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/package.json ./packages/db/
 
 # Copy ONLY built API (not source code)
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 
-# Copy minimal workspace files
+# Copy workspace root package.json
 COPY --from=builder /app/package.json ./
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Set proper ownership
+# Set proper ownership (must be done before USER change)
 RUN chown -R nodejs:nodejs /app
 USER nodejs
 
-# Environment
+# Environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
 
 # Expose port
 EXPOSE 3001
 
-# Health check - uses Node's http module (no curl needed)
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 # Use dumb-init to properly handle signals (SIGTERM, SIGKILL)
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start application
-CMD ["node", "apps/api/dist/main"]
+# Start application with absolute path
+CMD ["node", "/app/apps/api/dist/main"]
