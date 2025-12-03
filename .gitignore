@@ -1,6 +1,5 @@
 # Ignore Git
 .git
-.gitignore
 
 # Node Modules (ALL nested workspaces)
 node_modules
@@ -43,14 +42,20 @@ out
 .turbo
 **/.turbo
 
-# Prisma client output (will be rebuilt in Docker)
+# Prisma client output (rebuilt during Docker build)
 **/prisma/generated
+
+# Sensitive files — KEEP PRIVATE
+*.key.pem
+*.private.pem
+*private.key
+*.pem.key
+id_*.pem
 
 # Editor / OS junk
 .DS_Store
 *.swp
 *.swo
-*.pem
 *.tmp
 .idea
 .vscode
@@ -61,7 +66,3 @@ out
 # Nx / Turborepo caches
 .nx
 **/.nx
-
-# Docker itself
-Dockerfile
-docker-compose.yml

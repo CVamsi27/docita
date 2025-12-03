@@ -193,12 +193,18 @@ jobs:
               sleep 2
             done
 
+            # Verify health check actually succeeded
+            if ! docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
+              echo "ERROR: Container failed health check. Aborting deployment."
+              docker rm -f docita-api-new || true
+              exit 1
+            fi
+
             echo "Stopping and removing old container..."
             docker rm -f docita-api 2>/dev/null || true
 
             echo "Promoting new container..."
             docker rename docita-api-new docita-api
-
             echo "Deployment successful."
 
       # -----------------------------------------------------------
@@ -227,7 +233,7 @@ jobs:
           echo "$DIGESTS"
 
           echo "$DIGESTS" | jq -r '.[]' | while read -r digest; do
-            aws ecr.batch-delete-image \
+            aws ecr batch-delete-image \
               --repository-name $ECR_REPOSITORY \
               --region $AWS_REGION \
               --image-ids "imageDigest=$digest" || true

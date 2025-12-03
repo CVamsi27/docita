@@ -10,15 +10,15 @@ RUN npm install -g pnpm
 # Copy only root manifests for dependency resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy only required workspaces
+# Copy required workspaces
 COPY packages/db ./packages/db
 COPY packages/types ./packages/types
 COPY packages/typescript-config ./packages/typescript-config
 
-# Copy API app
+# Copy API source
 COPY apps/api ./apps/api
 
-# Install dependencies (dev included for build)
+# Install all dependencies (dev included for build)
 RUN pnpm install --frozen-lockfile
 
 # Generate Prisma client
@@ -47,15 +47,15 @@ WORKDIR /app
 # Install dumb-init for graceful shutdown
 RUN apk add --no-cache dumb-init
 
-# Copy production output
+# Copy built deployment contents
 COPY --from=builder /app/deployed/node_modules ./node_modules
 COPY --from=builder /app/deployed/dist ./dist
 COPY --from=builder /app/deployed/package.json ./
 
-# Copy Prisma schema only
-COPY --from=builder /app/packages/db/prisma ./prisma
+# Copy ONLY Prisma schema (migrations run in CI/CD, not in container)
+COPY --from=builder /app/packages/db/prisma/schema.prisma ./prisma/schema.prisma
 
-# Non-root user
+# Create non-root user
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
 USER nodejs
 
