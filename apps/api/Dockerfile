@@ -50,7 +50,7 @@ RUN apk add --no-cache dumb-init
 
 # Copy built deployment contents
 COPY --from=builder /app/deployed/node_modules ./node_modules
-COPY --from=builder /app/deployed/dist ./dist
+COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/deployed/package.json ./
 
 # Copy ONLY Prisma schema (migrations run in CI/CD, not in container)
