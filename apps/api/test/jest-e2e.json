@@ -27,8 +27,10 @@
     "!../src/**/*.module.ts"
   ],
   "coverageDirectory": "../coverage-e2e",
-  "testTimeout": 30000,
+  "testTimeout": 60000,
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "maxWorkers": 1,
-  "forceExit": true
+  "forceExit": true,
+  "bail": false,
+  "verbose": true
 }

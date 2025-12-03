@@ -44,6 +44,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U docita && break
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 1
+          done
+
       - name: Run database migrations
         env:
           DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
@@ -53,6 +61,7 @@ jobs:
       - name: Run backend E2E tests
         env:
           DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
+          DATABASE_URL_TEST: postgresql://docita:docita@localhost:5432/docita_test
           JWT_SECRET: test-secret-key
           NODE_ENV: test
         run: pnpm --filter api test:e2e
