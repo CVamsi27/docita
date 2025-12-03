@@ -27,7 +27,9 @@ WORKDIR /app/packages/db
 RUN pnpm db:generate
 
 # Build DB package (compile TS -> dist)
-RUN pnpm -w --filter @workspace/db build || pnpm --filter @workspace/db run build || true
+# Run the package-local build so `packages/db/dist` is produced for the API build.
+# Do not swallow failures — if the DB package doesn't build, fail the image build early.
+RUN pnpm build
 
 # Build types package
 WORKDIR /app/packages/types
