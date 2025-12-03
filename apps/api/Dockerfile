@@ -52,8 +52,11 @@ WORKDIR /app
 RUN apk add --no-cache dumb-init
 
 # Copy built deployment contents
+# Copy node_modules from deployed output and copy the API's built JS files.
+# The monorepo/Nx build emits nested artifacts under `apps/api/dist/apps/api/src`.
+# Copy that inner `src` into `/app/dist` so `node dist/main` resolves correctly.
 COPY --from=builder /app/deployed/node_modules ./node_modules
-COPY --from=builder /app/apps/api/dist ./dist
+COPY --from=builder /app/apps/api/dist/apps/api/src ./dist
 COPY --from=builder /app/deployed/package.json ./
 
 # Copy ONLY Prisma schema (migrations run in CI/CD, not in container)
