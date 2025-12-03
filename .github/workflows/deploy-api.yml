@@ -150,15 +150,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
-        id: ecr
-        run: echo "password=$(aws ecr get-login-password)" >> $GITHUB_OUTPUT
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         env:
           IMAGE_URI: ${{ needs.build.outputs.image_uri }}
-          ECR_PASSWORD: ${{ steps.ecr.outputs.password }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -167,11 +165,17 @@ jobs:
           script: |
             set -e
 
+            echo "Installing AWS CLI tools if needed..."
+            which aws || (apk add --no-cache aws-cli 2>/dev/null || apt-get update && apt-get install -y awscli) || echo "AWS CLI not available, trying docker login with token"
+
             echo "Logging into ECR registry..."
-            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY" || \
+            (echo "AWS CLI login failed, retrying with direct password..." && \
+             ECR_PASSWORD=$(aws ecr get-login-password --region "$AWS_REGION") && \
+             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin "$ECR_REGISTRY")
 
             echo "Removing old local cached images..."
-            docker images -q "${{ env.ECR_REPOSITORY }}" | xargs -r docker rmi -f || true
+            docker images -q "docita-api" | xargs -r docker rmi -f || true
 
             echo "Pulling new image from ECR..."
             docker pull "$IMAGE_URI"
