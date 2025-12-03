@@ -1,77 +1,86 @@
 # ─────────────────────────────────────────────────────────────
-# DEPS STAGE - Dependency layer (optimized for cache reuse)
+# STAGE 1: DEPENDENCIES - Optimized for cache reuse
+# This stage invalidates ONLY when package manifests change (~5% of commits)
 # ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS deps
-RUN apk add --no-cache dumb-init && npm install -g pnpm@10.4.1
-
 WORKDIR /app
 
-# Copy only manifests (changes infrequently)
-# This allows Docker cache to be reused when source changes but lock file doesn't
+# Install pnpm
+RUN npm install -g pnpm@10.4.1
+
+# Copy ONLY package manifests (not source code)
+# This layer is cached unless these files change
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/db/package.json ./packages/db/
+COPY packages/types/package.json ./packages/types/
+COPY apps/api/package.json ./apps/api/
 
-# Copy only package.json files from workspaces (not source code)
-COPY packages/db/package.json packages/db/package.json
-COPY packages/types/package.json packages/types/package.json
-COPY apps/api/package.json apps/api/package.json
+# Copy Prisma schema (needed for client generation)
+COPY packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
 
-# Install production dependencies only
-# This layer only re-runs if pnpm-lock.yaml or package.json files change
+# Install production dependencies with frozen lockfile
+# This expensive operation is cached across source code changes
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
+# Generate Prisma client (required for runtime)
+# Using npx with explicit version since prisma CLI is a dev dependency
+RUN cd packages/db && npx prisma@6.0.0 generate
 
 # ─────────────────────────────────────────────────────────────
-# RUNTIME STAGE - Final production image
+# STAGE 2: RUNTIME - Minimal production image
+# This stage invalidates when source code changes (~95% of commits)
+# but reuses the cached deps layer from Stage 1
 # ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
-# Install runtime essentials (dumb-init for signal handling)
-RUN apk add --no-cache dumb-init
+# Install ONLY runtime essentials
+# curl is needed for health check in deployment workflow
+RUN apk add --no-cache dumb-init curl && \
+    npm install -g pnpm@10.4.1
 
-# Copy pre-resolved dependencies from deps stage
-# This avoids re-running pnpm install, achieving 85-90% cache reuse
+# Copy node_modules from deps stage (cached unless manifests change)
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
-# Copy manifests for reference
+# Copy package manifests for workspace resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/db/package.json ./packages/db/
+COPY packages/types/package.json ./packages/types/
+COPY apps/api/package.json ./apps/api/
 
-# Copy workspace source (source changes won't invalidate node_modules cache)
-COPY packages/db ./packages/db
-COPY packages/types ./packages/types
-COPY apps/api ./apps/api
-
-# Copy pre-built dist from host build (these come from `pnpm build` on host)
+# Copy pre-built artifacts (built on host by GitHub Actions)
 COPY --chown=nodejs:nodejs packages/db/dist ./packages/db/dist
 COPY --chown=nodejs:nodejs packages/types/dist ./packages/types/dist
 COPY --chown=nodejs:nodejs apps/api/dist ./apps/api/dist
 
-# Setup @workspace/db package link
+# Setup @workspace/db package link for runtime module resolution
 RUN mkdir -p /app/node_modules/@workspace && \
-  rm -rf /app/node_modules/@workspace/db && \
-  cp -R /app/packages/db/dist /app/node_modules/@workspace/db
+    rm -rf /app/node_modules/@workspace/db && \
+    cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
+    ln -s /app/apps/api/dist /app/dist
 
-# Copy Prisma schema
-COPY packages/db/prisma/schema.prisma ./prisma/schema.prisma
+# Create uploads directory
+RUN mkdir -p /app/uploads
 
-# Cleanup unnecessary files to reduce final image size
+# Aggressive cleanup to minimize image size
+# Removes source files, config files, and caches
 RUN rm -rf \
-  /app/packages/*/src \
-  /app/packages/*/tsconfig.json \
-  /app/packages/*/.eslintrc.* \
-  /app/packages/*/jest.config.* \
-  /app/apps/api/src \
-  /app/apps/api/*.json \
-  /app/apps/api/test \
-  ~/.npm ~/.pnpm-store /tmp/* && \
-  mkdir -p /app/uploads
-
-# Create symlink for easier reference
-RUN ln -s /app/apps/api/dist /app/dist
+    /app/packages/*/src \
+    /app/packages/*/tsconfig.json \
+    /app/packages/*/.eslintrc.* \
+    /app/packages/*/jest.config.* \
+    /app/apps/api/src \
+    /app/apps/api/*.json \
+    /app/apps/api/test \
+    ~/.npm ~/.pnpm-store /tmp/* \
+    /usr/local/share/.cache
 
 # Create non-root user for security
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs && \
-  chown -R nodejs:nodejs /app
+    chown -R nodejs:nodejs /app
 
 USER nodejs
 
@@ -80,8 +89,8 @@ ENV PORT=3001
 
 EXPOSE 3001
 
-# Fast liveness probe for deployment verification (detects process crashes in <5ms)
-# Reduced start-period to 10s (app ready faster), timeout to 3s (deployment faster)
+# Health check using fast liveness endpoint (5ms response time)
+# Reduced start-period to 10s for faster deployment verification
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/health/live', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode); }).on('error', () => { process.exit(1); })"
 

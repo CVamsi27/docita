@@ -77,6 +77,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ─────────────────────────────────────────────
+      # Build TypeScript artifacts on host (faster than building in Docker)
+      # ─────────────────────────────────────────────
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Packages
+        run: |
+          pnpm --filter @workspace/db run build
+          pnpm --filter @workspace/types run build
+          pnpm --filter @docita/api run build
+
+      - name: Generate Prisma Client
+        working-directory: packages/db
+        run: pnpm db:generate
+      # ─────────────────────────────────────────────
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -96,6 +122,8 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
+            --cache-from type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --cache-to type=inline \
             --push \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
