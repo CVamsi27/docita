@@ -201,8 +201,29 @@ jobs:
 
             # Verify health check actually succeeded
             if ! docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
-              echo "ERROR: Container failed health check. Aborting deployment."
-              docker rm -f docita-api-new || true
+              echo "ERROR: Container failed health check. Capturing diagnostics..."
+
+              echo "=== docker ps -a ==="
+              docker ps -a || true
+
+              echo "=== docker inspect docita-api-new ==="
+              docker inspect docita-api-new || true
+
+              echo "=== docker logs docita-api-new (last 500 lines) ==="
+              docker logs --tail 500 docita-api-new || true
+
+              echo "=== Attempting to curl health endpoint inside container (verbose) ==="
+              docker exec docita-api-new sh -c 'curl -v --max-time 5 http://localhost:3001/health || true' || true
+
+              echo "=== Container environment (first 200 chars) ==="
+              docker exec docita-api-new sh -c 'env' | sed -n '1,200p' || true
+
+              # Preserve failed container for post-mortem by renaming instead of removing
+              FAILED_NAME="docita-api-failed-$(date +%s)"
+              echo "Renaming failed container to: $FAILED_NAME"
+              docker rename docita-api-new "$FAILED_NAME" || docker rm -f docita-api-new || true
+
+              echo "Deployment aborted due to failed health check. See diagnostics above and preserved container: $FAILED_NAME"
               exit 1
             fi
 
