@@ -14,12 +14,27 @@ env:
   ECR_REPOSITORY: docita-api
 
 # ---------------------------------------------------------------
-# TEST JOB
+# TEST JOB (WITH POSTGRES FIXED)
 # ---------------------------------------------------------------
 jobs:
   test:
     runs-on: ubuntu-latest
     name: Run Tests
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: docita_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@v4
@@ -155,7 +170,7 @@ jobs:
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             echo "Removing old local cached images..."
-            docker images -q $ECR_REPOSITORY | xargs -r docker rmi -f || true
+            docker images -q "${{ env.ECR_REPOSITORY }}" | xargs -r docker rmi -f || true
 
             echo "Pulling new image from ECR..."
             docker pull "$IMAGE_URI"
@@ -168,17 +183,17 @@ jobs:
               --env-file ~/docita/.env \
               "$IMAGE_URI"
 
-            echo "Running container health check..."
+            echo "Running health check..."
             for i in {1..40}; do
               if docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
-                echo "Container healthy!"
+                echo "Container is healthy!"
                 break
               fi
-              echo "Waiting for health... ($i/40)"
+              echo "Waiting... ($i/40)"
               sleep 2
             done
 
-            echo "Stopping & removing old container..."
+            echo "Stopping and removing old container..."
             docker rm -f docita-api 2>/dev/null || true
 
             echo "Promoting new container..."
@@ -186,6 +201,9 @@ jobs:
 
             echo "Deployment successful."
 
+      # -----------------------------------------------------------
+      # ECR CLEANUP AFTER SUCCESSFUL DEPLOYMENT
+      # -----------------------------------------------------------
       - name: Cleanup old ECR images (post-deployment)
         if: success()
         env:
@@ -205,14 +223,14 @@ jobs:
             exit 0
           fi
 
-          echo "Deleting the following image digests:"
+          echo "Removing these image digests:"
           echo "$DIGESTS"
 
           echo "$DIGESTS" | jq -r '.[]' | while read -r digest; do
-            aws ecr batch-delete-image \
+            aws ecr.batch-delete-image \
               --repository-name $ECR_REPOSITORY \
               --region $AWS_REGION \
               --image-ids "imageDigest=$digest" || true
           done
 
-          echo "ECR cleanup completed."
+          echo "ECR cleanup complete."
