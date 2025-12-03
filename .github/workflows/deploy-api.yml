@@ -8,216 +8,100 @@ on:
       - 'packages/types/**'
       - 'packages/db/**'
   workflow_dispatch:
-    inputs:
-      skip_tests:
-        description: 'Skip tests (emergency deploy only)'
-        required: false
-        default: false
-        type: boolean
 
 env:
   AWS_REGION: us-west-1
   ECR_REPOSITORY: docita-api
 
+# ---------------------------------------------------------------
+# TEST JOB
+# ---------------------------------------------------------------
 jobs:
-  # Run tests before deployment
   test:
-    name: Run Tests
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip_tests != 'true' }}
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: docita_test
-          POSTGRES_PASSWORD: docita
-          POSTGRES_USER: docita
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        ports:
-          - 5432:5432
+    name: Run Tests
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v2
         with:
           version: 10.4.1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
-      - name: Install dependencies (API + DB only)
-        # Use --frozen-lockfile to prevent postinstall hook from re-generating Prisma
-        # We generate explicitly below to avoid duplication
-        run: |
-          pnpm install --frozen-lockfile
-          # Skip postinstall which triggers db:generate
-          # We'll generate after with explicit filter
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
         working-directory: packages/db
         run: pnpm db:generate
 
-      - name: Run database migrations
+      - name: Run E2E Tests
         env:
-          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
-        working-directory: packages/db
-        run: npx prisma migrate deploy
-
-      - name: Run backend E2E tests
-        env:
-          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
-          JWT_SECRET: test-secret-key
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/docita_test
+          JWT_SECRET: test-key
           NODE_ENV: test
         run: pnpm --filter api test:e2e
 
-  # Build and push Docker image to ECR
+# ---------------------------------------------------------------
+# BUILD DOCKER IMAGE
+# ---------------------------------------------------------------
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [test]
-    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
-    timeout-minutes: 30
+    needs: test
 
     outputs:
-      image_uri: ${{ steps.build.outputs.image_uri }}
-      image_tag: ${{ steps.build.outputs.image_tag }}
+      image_uri: ${{ steps.build-image.outputs.image_uri }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Docker image
-        id: build
+      - name: Build & Push Image
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          set -e
-          
-          echo "ECR_REGISTRY: $ECR_REGISTRY"
-          echo "ECR_REPOSITORY: $ECR_REPOSITORY"
-          echo "IMAGE_TAG: $IMAGE_TAG"
-          echo "Building and pushing image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          
-          # Build for amd64 only (single platform = 1 image in ECR)
-          # Change to --platform linux/amd64,linux/arm64 if you need multi-arch
           docker buildx build \
             --platform linux/amd64 \
             --push \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            -f ./apps/api/Dockerfile \
+            -f apps/api/Dockerfile \
             .
-          
-          echo "✓ Image successfully pushed to ECR"
-          echo "  - Tagged: $IMAGE_TAG"
-          echo "  - Latest: latest"
-          
           echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Cleanup old ECR images
-        run: |
-          echo "Cleaning up old ECR images (keeping only latest 2)..."
-          
-          # Get ALL image digests (tagged and untagged) except latest 2
-          DIGESTS=$(aws ecr describe-images \
-            --repository-name ${{ env.ECR_REPOSITORY }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'sort_by(imageDetails, &imagePushedAt)[:-2].imageDigest' \
-            --output json)
-          
-          # Check if there are images to delete
-          if [ "$DIGESTS" = "[]" ] || [ -z "$DIGESTS" ] || [ "$DIGESTS" = "null" ]; then
-            echo "No old images to delete. Keeping latest 2."
-          else
-            # Delete each image digest (this removes both tagged and untagged)
-            echo "Found images to delete: $DIGESTS"
-            echo "$DIGESTS" | jq -r '.[]' | while read -r digest; do
-              if [ -n "$digest" ]; then
-                echo "Deleting: $digest"
-                aws ecr batch-delete-image \
-                  --repository-name ${{ env.ECR_REPOSITORY }} \
-                  --region ${{ env.AWS_REGION }} \
-                  --image-ids "imageDigest=$digest" 2>/dev/null || true
-              fi
-            done
-          fi
-          
-          # Also cleanup any untagged images (dangling manifests)
-          echo "Cleaning up untagged images..."
-          UNTAGGED=$(aws ecr describe-images \
-            --repository-name ${{ env.ECR_REPOSITORY }} \
-            --region ${{ env.AWS_REGION }} \
-            --filter tagStatus=UNTAGGED \
-            --query 'imageDetails[*].imageDigest' \
-            --output json)
-          
-          if [ "$UNTAGGED" != "[]" ] && [ -n "$UNTAGGED" ] && [ "$UNTAGGED" != "null" ]; then
-            echo "Found untagged images: $UNTAGGED"
-            echo "$UNTAGGED" | jq -r '.[]' | while read -r digest; do
-              if [ -n "$digest" ]; then
-                echo "Deleting untagged: $digest"
-                aws ecr batch-delete-image \
-                  --repository-name ${{ env.ECR_REPOSITORY }} \
-                  --region ${{ env.AWS_REGION }} \
-                  --image-ids "imageDigest=$digest" 2>/dev/null || true
-              fi
-            done
-          fi
-          
-          echo "ECR cleanup completed"
-
-      - name: Image Summary
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          echo "### Docker Image Built" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Registry:** AWS ECR (${{ env.AWS_REGION }})" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "**SHA Tag:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-
-  # Run database migrations
+# ---------------------------------------------------------------
+# RUN MIGRATIONS
+# ---------------------------------------------------------------
   migrate:
-    name: Run Database Migrations
     runs-on: ubuntu-latest
-    needs: [test, build]
-    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.build.result == 'success')
-    timeout-minutes: 10
+    needs: build
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v2
         with:
           version: 10.4.1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
@@ -229,199 +113,106 @@ jobs:
         working-directory: packages/db
         run: pnpm db:generate
 
-      - name: Run Prisma migrations
+      - name: Run Migrations
+        working-directory: packages/db
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        working-directory: packages/db
         run: npx prisma migrate deploy
 
-      - name: Verify migration status
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        working-directory: packages/db
-        run: npx prisma migrate status || echo "Migration status check completed"
-
-      - name: Migration Summary
-        if: success()
-        run: |
-          echo "### Database Migrations" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** Migrations completed successfully" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** Production (Neon)" >> $GITHUB_STEP_SUMMARY
-          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-
-      - name: Migration Failed
-        if: failure()
-        run: |
-          echo "### Database Migrations Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** Migration deployment failed" >> $GITHUB_STEP_SUMMARY
-          echo "**Action Required:** Review logs and resolve migration issues before retrying deployment" >> $GITHUB_STEP_SUMMARY
-          exit 1
-
-  # Deploy with zero-downtime
+# ---------------------------------------------------------------
+# DEPLOY TO EC2 (ZERO DOWNTIME)
+# ---------------------------------------------------------------
   deploy:
-    name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs: [build, migrate]
-    if: needs.build.result == 'success' && needs.migrate.result == 'success'
-    timeout-minutes: 25
+    needs: migrate
     environment: production
 
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get ECR Login Password
-        id: ecr-login
-        run: |
-          echo "password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})" >> $GITHUB_OUTPUT
+      - name: Login to ECR
+        id: ecr
+        run: echo "password=$(aws ecr get-login-password)" >> $GITHUB_OUTPUT
 
-      - name: Deploy to EC2 via SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         env:
-          ECR_PASSWORD: ${{ steps.ecr-login.outputs.password }}
-          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
           IMAGE_URI: ${{ needs.build.outputs.image_uri }}
+          ECR_PASSWORD: ${{ steps.ecr.outputs.password }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          timeout: 10m
-          envs: ECR_PASSWORD,ECR_REGISTRY,IMAGE_URI
           script: |
             set -e
-            
-            echo "Starting zero-downtime deployment..."
-            cd ~/docita
-            
-            # Validate environment configuration
-            if [ ! -f .env ]; then
-              echo "ERROR: .env file not found on EC2"
-              exit 1
-            fi
-            echo "Environment file validated"
-            
-            # Login to ECR
-            echo "Logging into AWS ECR..."
+
+            echo "Logging into ECR registry..."
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
-            
-            # Save current container for rollback
-            CURRENT_CONTAINER=$(docker ps -q -f name=docita-api)
-            CURRENT_IMAGE=""
-            if [ -n "$CURRENT_CONTAINER" ]; then
-              CURRENT_IMAGE=$(docker inspect --format='{{.Config.Image}}' "$CURRENT_CONTAINER")
-              echo "Current image for rollback: $CURRENT_IMAGE"
-            fi
-            
-            # Pull the new image
-            echo "Pulling new Docker image from ECR..."
+
+            echo "Removing old local cached images..."
+            docker images -q $ECR_REPOSITORY | xargs -r docker rmi -f || true
+
+            echo "Pulling new image from ECR..."
             docker pull "$IMAGE_URI"
-            
-            # Start new container on same port (will use load balancer or proxy if available)
-            echo "Starting new container..."
+
+            echo "Running new container..."
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
               -p 3001:3001 \
-              --env-file .env \
-              "$IMAGE_URI" || {
-              echo "Failed to start new container"
-              exit 1
-            }
-            
-            # Wait for new container to be healthy
-            echo "Waiting for new container health check..."
-            HEALTH_CHECK_PASSED=false
+              --env-file ~/docita/.env \
+              "$IMAGE_URI"
+
+            echo "Running container health check..."
             for i in {1..40}; do
               if docker exec docita-api-new curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
-                echo "New container is healthy!"
-                HEALTH_CHECK_PASSED=true
+                echo "Container healthy!"
                 break
               fi
-              echo "  Waiting... ($i/40)"
+              echo "Waiting for health... ($i/40)"
               sleep 2
             done
-            
-            if [ "$HEALTH_CHECK_PASSED" = false ]; then
-              echo "New container failed health check"
-              docker logs docita-api-new --tail 50
-              docker stop docita-api-new && docker rm docita-api-new
-              exit 1
-            fi
-            
-            # Stop old container
-            if [ -n "$CURRENT_CONTAINER" ]; then
-              echo "Stopping old container..."
-              docker stop docita-api 2>/dev/null || true
-              docker rm docita-api 2>/dev/null || true
-            fi
-            
-            # Rename new container to production name
+
+            echo "Stopping & removing old container..."
+            docker rm -f docita-api 2>/dev/null || true
+
+            echo "Promoting new container..."
             docker rename docita-api-new docita-api
-            
-            # Verify deployment
-            sleep 3
-            if docker exec docita-api curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
-              echo "Deployment successful and verified!"
-            else
-              echo "Post-deployment health check failed"
-              docker logs docita-api --tail 20
-              if [ -n "$CURRENT_IMAGE" ]; then
-                echo "Rolling back to previous image..."
-                docker stop docita-api && docker rm docita-api
-                docker run -d \
-                  --name docita-api \
-                  --restart unless-stopped \
-                  -p 3001:3001 \
-                  --env-file .env \
-                  "$CURRENT_IMAGE"
-                sleep 5
-                if docker exec docita-api curl -f -s http://localhost:3001/health >/dev/null 2>&1; then
-                  echo "Rollback successful"
-                else
-                  echo "Rollback verification failed"
-                fi
-              fi
-              exit 1
-            fi
-            
-            # Cleanup old images (keep last 3 versions)
-            echo "Cleaning up old images on EC2..."
-            docker image prune -f --filter "until=72h"
-            
-            # Remove untagged images
-            docker rmi $(docker images -q --filter "dangling=true") 2>/dev/null || true
-            
-            echo "Zero-downtime deployment completed!"
 
-      - name: Deployment Summary
+            echo "Deployment successful."
+
+      - name: Cleanup old ECR images (post-deployment)
         if: success()
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
         run: |
-          echo "### Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
-          echo "**Registry:** AWS ECR" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`${{ needs.build.outputs.image_uri }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployed at:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "Cleaning up old ECR images (keeping latest 3)..."
 
-      - name: Deployment Failed
-        if: failure()
-        run: |
-          echo "### Deployment Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Rollback:** Run the rollback workflow or manually:" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "aws ecr get-login-password | docker login --username AWS --password-stdin <ecr-registry>" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull <previous-image-tag>" >> $GITHUB_STEP_SUMMARY
-          echo "docker stop docita-api && docker rm docita-api" >> $GITHUB_STEP_SUMMARY
-          echo "docker run -d --name docita-api ... <previous-image-tag>" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          DIGESTS=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --region $AWS_REGION \
+            --query 'sort_by(imageDetails, &imagePushedAt)[:-3].imageDigest' \
+            --output json)
+
+          if [ "$DIGESTS" = "[]" ] || [ -z "$DIGESTS" ] || [ "$DIGESTS" = "null" ]; then
+            echo "No images to delete."
+            exit 0
+          fi
+
+          echo "Deleting the following image digests:"
+          echo "$DIGESTS"
+
+          echo "$DIGESTS" | jq -r '.[]' | while read -r digest; do
+            aws ecr batch-delete-image \
+              --repository-name $ECR_REPOSITORY \
+              --region $AWS_REGION \
+              --image-ids "imageDigest=$digest" || true
+          done
+
+          echo "ECR cleanup completed."
