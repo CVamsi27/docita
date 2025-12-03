@@ -31,6 +31,20 @@ RUN pnpm db:generate
 # Do not swallow failures — if the DB package doesn't build, fail the image build early.
 RUN pnpm build
 
+# Make the built DB package available as a node module during the builder stage
+# so the API TypeScript build can resolve `@workspace/db` from node_modules.
+RUN mkdir -p /app/node_modules/@workspace && \
+  cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
+  cp /app/packages/db/package.json /app/node_modules/@workspace/db/package.json || true
+
+# Make the built DB package available under node_modules for the builder
+# so TypeScript and the API build resolve `@workspace/db` to the compiled output.
+WORKDIR /app
+# (removed) avoid copying source `packages/db` into node_modules which would
+# cause the API build to resolve the package to source files (leading to
+# compiled JS requiring `../../../../packages/db/src`). We keep the copied
+# `dist` layout placed earlier so the compiled output is resolved.
+
 # Build types package
 WORKDIR /app/packages/types
 RUN pnpm build
