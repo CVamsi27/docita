@@ -14,6 +14,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/db ./packages/db
 COPY packages/types ./packages/types
 COPY packages/typescript-config ./packages/typescript-config
+COPY packages/eslint-config ./packages/eslint-config
 
 # Copy API source
 COPY apps/api ./apps/api
