@@ -14,7 +14,7 @@ import { extname } from 'path';
 
 @Controller('uploads')
 export class UploadsController {
-  constructor(private readonly uploadsService: UploadsService) {}
+  constructor(private readonly uploadsService: UploadsService) { }
 
   @Post('session')
   async createSession() {
@@ -47,7 +47,7 @@ export class UploadsController {
         if (
           !file.mimetype.match(/^image\/(jpeg|jpg|png|gif|webp|heic|heif)$/i)
         ) {
-          cb(new Error('Only image files are allowed'), false);
+          return cb(new Error('Only image files are allowed'), false);
         }
         cb(null, true);
       },

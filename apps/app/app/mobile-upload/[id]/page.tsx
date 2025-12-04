@@ -79,7 +79,20 @@ export default function MobileUploadPage() {
       });
 
       if (response.ok) {
-        setSuccess(true);
+        // Verify the response actually contains the updated session
+        try {
+          const data = await response.json();
+          if (data.status === "uploaded" && data.fileUrl) {
+            setSuccess(true);
+          } else {
+            // Response ok but session not updated properly
+            console.error("Unexpected response:", data);
+            alert("Upload completed but session update may have failed. Please try again.");
+          }
+        } catch {
+          // If we can't parse response, assume success since response.ok was true
+          setSuccess(true);
+        }
       } else {
         // Try to get error message from response
         let errorMessage = "Upload failed. Please try again.";
