@@ -62,8 +62,8 @@ RUN mkdir -p /app/node_modules/@workspace && \
     cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
     ln -s /app/apps/api/dist /app/dist
 
-# Create uploads directory
-RUN mkdir -p /app/uploads
+# Create uploads directory and temp subdirectory for Multer
+RUN mkdir -p /app/uploads/temp
 
 # Aggressive cleanup to minimize image size
 # Removes source files, config files, and caches

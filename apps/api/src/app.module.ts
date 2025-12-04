@@ -49,7 +49,7 @@ import { FhirModule } from './fhir/fhir.module';
     CacheConfigModule,
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
     PrismaModule,
@@ -87,4 +87,4 @@ import { FhirModule } from './fhir/fhir.module';
   controllers: [AppController],
   providers: [AppService, PaymentGateway],
 })
-export class AppModule {}
+export class AppModule { }
