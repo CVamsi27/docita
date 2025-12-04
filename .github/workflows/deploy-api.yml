@@ -246,9 +246,18 @@ jobs:
             # Stop temp container
             docker rm -f docita-api-new
 
-            # Stop old container
+            # Stop old container (by name OR port)
+            echo "Stopping old container..."
             docker stop docita-api || true
             docker rm docita-api || true
+            
+            # Find and stop any container using port 3001 (in case name mismatch)
+            CONFLICT_ID=$(docker ps -q --filter "publish=3001")
+            if [ ! -z "$CONFLICT_ID" ]; then
+              echo "Found conflicting container $CONFLICT_ID on port 3001. Stopping..."
+              docker stop $CONFLICT_ID || true
+              docker rm $CONFLICT_ID || true
+            fi
 
             # Start new container on production port
             docker run -d \
