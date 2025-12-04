@@ -305,9 +305,4 @@ jobs:
               exit 1
             fi
 
-            echo "Stopping and removing old container..."
-            docker rm -f docita-api 2>/dev/null || true
 
-            echo "Promoting new container..."
-            docker rename docita-api-new docita-api
-            echo "Deployment successful."
