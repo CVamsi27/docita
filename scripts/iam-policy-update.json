@@ -1,39 +1,34 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "AllowAuthorizationToken",
-            "Effect": "Allow",
-            "Action": [
-                "ecr:GetAuthorizationToken"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "AllowRepoOperations",
-            "Effect": "Allow",
-            "Action": [
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:PutImage",
-                "ecr:InitiateLayerUpload",
-                "ecr:UploadLayerPart",
-                "ecr:CompleteLayerUpload",
-                "ecr:PutLifecyclePolicy",
-                "ecr:GetLifecyclePolicy",
-                "ecr:DeleteLifecyclePolicy"
-            ],
-            "Resource": "arn:aws:ecr:us-west-1:440494317023:repository/docita-api"
-        },
-        {
-            "Sid": "AllowListing",
-            "Effect": "Allow",
-            "Action": [
-                "ecr:DescribeRepositories",
-                "ecr:ListImages"
-            ],
-            "Resource": "*"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAuthorizationToken",
+      "Effect": "Allow",
+      "Action": ["ecr:GetAuthorizationToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowRepoOperations",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutLifecyclePolicy",
+        "ecr:GetLifecyclePolicy",
+        "ecr:DeleteLifecyclePolicy"
+      ],
+      "Resource": "arn:aws:ecr:us-west-1:440494317023:repository/docita-api"
+    },
+    {
+      "Sid": "AllowListing",
+      "Effect": "Allow",
+      "Action": ["ecr:DescribeRepositories", "ecr:ListImages"],
+      "Resource": "*"
+    }
+  ]
 }

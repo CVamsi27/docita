@@ -11,6 +11,7 @@
 - **Stage 2 (runtime)**: Copies deps from Stage 1 + pre-built artifacts
 
 **Impact**:
+
 - ✅ **85-90% cache hit rate** (vs 60% before)
 - ✅ **Image size: ~450MB → ~120MB** (67% reduction)
 - ✅ **Build time (cache hit): 20s → 1-2s** (90% faster)
@@ -18,26 +19,31 @@
 ### 2. GitHub Actions Workflow ([`.github/workflows/deploy-api.yml`](file:///Users/vamsikrishnachandaluri/repos/docita/.github/workflows/deploy-api.yml))
 
 **Added**:
+
 - pnpm setup and Node.js caching
 - Build steps for `@workspace/db`, `@workspace/types`, `@docita/api`
 - Prisma client generation
 - BuildKit cache-from/cache-to for layer reuse
 
 **Impact**:
+
 - ✅ **Faster CI/CD**: 1-3min builds (cache hit) vs 5-8min (cold)
 - ✅ **Layer reuse**: Pulls cache from ECR `latest` tag
 
 ### 3. ECR Lifecycle Policy
 
 **Created**:
+
 - [`scripts/ecr-lifecycle-policy.json`](file:///Users/vamsikrishnachandaluri/repos/docita/scripts/ecr-lifecycle-policy.json) - Policy definition
 - [`scripts/setup-ecr-lifecycle-policy.sh`](file:///Users/vamsikrishnachandaluri/repos/docita/scripts/setup-ecr-lifecycle-policy.sh) - Setup script
 
 **Policy Rules**:
+
 - Keep last 5 tagged images (prefixes: `v`, `main`, `prod`, `latest`)
 - Expire untagged images after 30 days
 
 **Impact**:
+
 - ✅ **Automatic cleanup** (no manual scripts needed)
 - ✅ **Cost reduction: $5/mo → $0.50/mo** (90% savings)
 
@@ -92,6 +98,7 @@ docker rm -f docita-api-test
 ```
 
 **Success Criteria**:
+
 - ✅ First build completes successfully
 - ✅ Second build completes in <5s (shows cache hit)
 - ✅ Image size <150MB
@@ -207,6 +214,7 @@ git push origin main
 ```
 
 **Monitor Production Deployment**:
+
 - Watch GitHub Actions workflow
 - Verify zero downtime (old container serves until new is healthy)
 - Check application logs for errors
@@ -218,21 +226,21 @@ git push origin main
 
 ### Immediate (After First Deployment)
 
-| Metric | Before | Target | How to Check |
-|--------|--------|--------|--------------|
-| **Image Size** | ~450MB | <150MB | ECR Console: `imageSizeInBytes` |
-| **Build Time (cold)** | 5-8min | 5-8min | GitHub Actions: Build job duration |
+| Metric                     | Before | Target | How to Check                          |
+| -------------------------- | ------ | ------ | ------------------------------------- |
+| **Image Size**             | ~450MB | <150MB | ECR Console: `imageSizeInBytes`       |
+| **Build Time (cold)**      | 5-8min | 5-8min | GitHub Actions: Build job duration    |
 | **Build Time (cache hit)** | 5-8min | 1-3min | GitHub Actions: Second build duration |
-| **Deployment Time** | ~2min | ~2min | GitHub Actions: Deploy job duration |
-| **Health Check Time** | <30s | <10s | Deploy job logs |
+| **Deployment Time**        | ~2min  | ~2min  | GitHub Actions: Deploy job duration   |
+| **Health Check Time**      | <30s   | <10s   | Deploy job logs                       |
 
 ### Long-term (After 1 Week)
 
-| Metric | Before | Target | How to Check |
-|--------|--------|--------|--------------|
-| **ECR Images Stored** | ~50 | 5-7 | `aws ecr describe-images` |
-| **ECR Storage Size** | ~22GB | ~1GB | ECR Console |
-| **ECR Monthly Cost** | ~$5 | ~$0.50 | AWS Billing Console |
+| Metric                | Before | Target | How to Check              |
+| --------------------- | ------ | ------ | ------------------------- |
+| **ECR Images Stored** | ~50    | 5-7    | `aws ecr describe-images` |
+| **ECR Storage Size**  | ~22GB  | ~1GB   | ECR Console               |
+| **ECR Monthly Cost**  | ~$5    | ~$0.50 | AWS Billing Console       |
 
 ---
 
@@ -286,6 +294,7 @@ aws ecr delete-lifecycle-policy \
 
 **Cause**: Layer invalidation due to file changes
 **Debug**:
+
 ```bash
 # Check what changed
 git diff HEAD~1 pnpm-lock.yaml
@@ -298,6 +307,7 @@ git diff HEAD~1 package.json
 
 **Cause**: Missing environment variables or database connection issues
 **Debug**:
+
 ```bash
 # Check container logs
 docker logs docita-api-new
@@ -335,6 +345,7 @@ A: Yes! Use the local testing commands above. Build locally to verify before dep
 ## Summary
 
 ✅ **Implementation Complete**:
+
 - Multi-stage Dockerfile with aggressive caching
 - GitHub Actions workflow with build optimization
 - ECR lifecycle policy configuration
@@ -342,12 +353,14 @@ A: Yes! Use the local testing commands above. Build locally to verify before dep
 🚀 **Next Action**: Run Phase 1 local testing, then deploy to test branch
 
 📊 **Expected Results**:
+
 - 67% smaller images (~120MB vs ~450MB)
 - 90% faster builds on cache hit (1-2s vs 20s)
 - 90% ECR cost reduction ($0.50/mo vs $5/mo)
 - Zero deployment downtime (already working)
 
 🔗 **Related Files**:
+
 - [`apps/api/Dockerfile`](file:///Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile)
 - [`.github/workflows/deploy-api.yml`](file:///Users/vamsikrishnachandaluri/repos/docita/.github/workflows/deploy-api.yml)
 - [`scripts/ecr-lifecycle-policy.json`](file:///Users/vamsikrishnachandaluri/repos/docita/scripts/ecr-lifecycle-policy.json)

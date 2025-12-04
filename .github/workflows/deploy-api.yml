@@ -242,7 +242,7 @@ jobs:
 
             # 3. Health check passed - Swap containers
             echo "Health check passed. Swapping containers..."
-            
+
             # Stop temp container
             docker rm -f docita-api-new
 
@@ -250,7 +250,7 @@ jobs:
             echo "Stopping old container..."
             docker stop docita-api || true
             docker rm docita-api || true
-            
+
             # Find and stop any container using port 3001 (in case name mismatch)
             CONFLICT_ID=$(docker ps -q --filter "publish=3001")
             if [ ! -z "$CONFLICT_ID" ]; then
@@ -304,5 +304,3 @@ jobs:
               
               exit 1
             fi
-
-

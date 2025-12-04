@@ -81,11 +81,35 @@ export default function MobileUploadPage() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        alert("Upload failed. Please try again.");
+        // Try to get error message from response
+        let errorMessage = "Upload failed. Please try again.";
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = Array.isArray(errorData.message)
+              ? errorData.message.join(", ")
+              : errorData.message;
+          }
+        } catch {
+          // If we can't parse JSON, use status text
+          if (response.status === 413) {
+            errorMessage = "File is too large. Please use a smaller image.";
+          } else if (response.status === 404) {
+            errorMessage = "Session expired. Please scan the QR code again.";
+          } else if (response.status === 400) {
+            errorMessage = "Invalid file type. Please upload an image.";
+          }
+        }
+        alert(errorMessage);
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Upload failed. Please check your connection.");
+      // Network error or CORS issue
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        alert("Connection failed. Please check your internet and try again.");
+      } else {
+        alert("Upload failed. Please check your connection.");
+      }
     } finally {
       setUploading(false);
     }

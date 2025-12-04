@@ -39,6 +39,18 @@ export class UploadsController {
           cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
+      limits: {
+        fileSize: 20 * 1024 * 1024, // 20MB limit for phone photos
+      },
+      fileFilter: (req, file, cb) => {
+        // Accept images only
+        if (
+          !file.mimetype.match(/^image\/(jpeg|jpg|png|gif|webp|heic|heif)$/i)
+        ) {
+          cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
     }),
   )
   async uploadFile(

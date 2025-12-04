@@ -684,7 +684,7 @@ jobs:
 
             # 3. Health check passed - Swap containers
             echo "Health check passed. Swapping containers..."
-            
+
             # Stop temp container
             docker rm -f docita-api-new
 
@@ -1248,7 +1248,7 @@ docker run -d \
 ### Symptoms
 
 ```
-Access to fetch at 'https://api.docita.work/...' from origin 'https://app.docita.work' 
+Access to fetch at 'https://api.docita.work/...' from origin 'https://app.docita.work'
 has been blocked by CORS policy
 ```
 
@@ -1266,13 +1266,13 @@ The frontend apps are using `localhost:3001` instead of production URLs because 
 
 In **Vercel Dashboard → Project → Settings → Environment Variables**, add:
 
-| Project | Variable | Value |
-|---------|----------|-------|
-| `apps/app` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
-| `apps/app` | `NEXT_PUBLIC_SOCKET_URL` | `https://api.docita.work` |
-| `apps/landing` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
-| `apps/landing` | `NEXT_PUBLIC_APP_URL` | `https://app.docita.work` |
-| `apps/admin` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
+| Project        | Variable                 | Value                         |
+| -------------- | ------------------------ | ----------------------------- |
+| `apps/app`     | `NEXT_PUBLIC_API_URL`    | `https://api.docita.work/api` |
+| `apps/app`     | `NEXT_PUBLIC_SOCKET_URL` | `https://api.docita.work`     |
+| `apps/landing` | `NEXT_PUBLIC_API_URL`    | `https://api.docita.work/api` |
+| `apps/landing` | `NEXT_PUBLIC_APP_URL`    | `https://app.docita.work`     |
+| `apps/admin`   | `NEXT_PUBLIC_API_URL`    | `https://api.docita.work/api` |
 
 #### 2. Redeploy Apps (Required!)
 
@@ -1284,6 +1284,7 @@ In **Vercel Dashboard → Project → Settings → Environment Variables**, add:
 #### 3. Verify
 
 Open browser DevTools at `https://app.docita.work`:
+
 - API calls should go to `https://api.docita.work/api/*`
 - WebSocket should connect to `wss://api.docita.work/socket.io/*`
 
@@ -1294,12 +1295,12 @@ The API CORS is configured in `apps/api/src/main.ts`:
 ```typescript
 app.enableCors({
   origin: [
-    'https://landing.docita.work',
-    'https://app.docita.work',
-    'https://admin.docita.work',
-    'http://localhost:3003', // landing dev
-    'http://localhost:3000', // app dev
-    'http://localhost:3002', // admin dev
+    "https://landing.docita.work",
+    "https://app.docita.work",
+    "https://admin.docita.work",
+    "http://localhost:3003", // landing dev
+    "http://localhost:3000", // app dev
+    "http://localhost:3002", // admin dev
   ],
   credentials: true,
 });

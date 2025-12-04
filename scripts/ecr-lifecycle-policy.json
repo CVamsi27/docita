@@ -1,35 +1,30 @@
 {
-    "rules": [
-        {
-            "rulePriority": 1,
-            "description": "Keep last 2 tagged images by push date",
-            "selection": {
-                "tagStatus": "tagged",
-                "tagPrefixList": [
-                    "v",
-                    "main",
-                    "prod",
-                    "latest"
-                ],
-                "countType": "imageCountMoreThan",
-                "countNumber": 2
-            },
-            "action": {
-                "type": "expire"
-            }
-        },
-        {
-            "rulePriority": 2,
-            "description": "Expire untagged images after 30 days",
-            "selection": {
-                "tagStatus": "untagged",
-                "countType": "sinceImagePushed",
-                "countUnit": "days",
-                "countNumber": 30
-            },
-            "action": {
-                "type": "expire"
-            }
-        }
-    ]
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Keep last 2 tagged images by push date",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPrefixList": ["v", "main", "prod", "latest"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 2
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Expire untagged images after 30 days",
+      "selection": {
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "countNumber": 30
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
 }

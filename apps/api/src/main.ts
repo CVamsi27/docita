@@ -61,7 +61,16 @@ async function bootstrap() {
       'http://localhost:3000', // app dev
       'http://localhost:3002', // admin dev
     ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
     credentials: true,
+    maxAge: 86400, // Cache preflight response for 24 hours
   });
 
   app.setGlobalPrefix('api');
@@ -73,15 +82,15 @@ async function bootstrap() {
   // Allows active connections to drain before process exit
   const gracefulShutdown = async (signal: string) => {
     console.log(`\n${signal} received: starting graceful shutdown...`);
-    
+
     // Stop accepting new connections
     server.close(async () => {
       console.log('HTTP server closed, waiting for connections to drain...');
-      
+
       // Close NestJS app (closes database, caches, etc.)
       await app.close();
       console.log('NestJS app closed');
-      
+
       process.exit(0);
     });
 
