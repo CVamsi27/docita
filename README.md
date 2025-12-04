@@ -5,8 +5,10 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ## 🚀 Live Demo
 
-- **Frontend**: [https://docita.buildora.work](https://docita.buildora.work)
-- **Backend API**: [https://docita-api.buildora.work](https://docita-api.buildora.work)
+- **Landing**: [https://landing.docita.work](https://landing.docita.work)
+- **App**: [https://app.docita.work](https://app.docita.work)
+- **Admin**: [https://admin.docita.work](https://admin.docita.work)
+- **API**: [https://api.docita.work](https://api.docita.work)
 - **Repository**: [https://github.com/CVamsi27/docita](https://github.com/CVamsi27/docita)
 
 ## ✨ Features
@@ -61,9 +63,10 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ### Frontend
 
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS, Shadcn UI
+- **Framework**: Next.js 15/16 (App Router)
+- **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
+- **Data Fetching**: TanStack React Query
 - **Hosting**: Vercel
 
 ### Backend
@@ -85,8 +88,8 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ### Prerequisites
 
-- Node.js v18+
-- pnpm v8+
+- Node.js v20+
+- pnpm v10+
 - PostgreSQL
 
 ### Installation
