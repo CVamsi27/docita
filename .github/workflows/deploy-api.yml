@@ -268,9 +268,21 @@ jobs:
               "$IMAGE_URI"
             echo "Deployment successful."
 
-            # Verify health check actually succeeded
-            if ! docker exec docita-api curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
-              echo "ERROR: Container failed health check. Capturing diagnostics..."
+            # Verify health check actually succeeded (with wait loop)
+            echo "Verifying final deployment health..."
+            FINAL_HEALTHY=false
+            for i in {1..15}; do
+              if docker exec docita-api curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
+                echo "Final container is healthy!"
+                FINAL_HEALTHY=true
+                break
+              fi
+              echo "Waiting for final startup... ($i/15)"
+              sleep 2
+            done
+
+            if [ "$FINAL_HEALTHY" != "true" ]; then
+              echo "ERROR: Container failed final health check. Capturing diagnostics..."
 
               echo "=== docker ps -a ==="
               docker ps -a || true
