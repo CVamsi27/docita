@@ -50,13 +50,14 @@ echo "📝 Applying lifecycle policy..."
 aws ecr put-lifecycle-policy \
     --repository-name "$REPOSITORY_NAME" \
     --region "$AWS_REGION" \
-    --lifecycle-policy-text "file://$POLICY_FILE"
+    --lifecycle-policy-text "file://$POLICY_FILE" \
+    --no-cli-pager
 
 if [ $? -eq 0 ]; then
     echo "✅ Lifecycle policy successfully applied!"
     echo ""
     echo "📊 Policy Summary:"
-    echo "  • Keep last 5 tagged images (prefixes: v, main, prod, latest)"
+    echo "  • Keep last 2 tagged images (prefixes: v, main, prod, latest)"
     echo "  • Expire untagged images after 30 days"
     echo "  • Expected cost reduction: ~90%"
     echo ""
