@@ -1242,3 +1242,67 @@ docker run -d \
   --env-file .env \
   docita-api:previous
 ```
+
+## Troubleshooting: CORS and Localhost Errors
+
+### Symptoms
+
+```
+Access to fetch at 'https://api.docita.work/...' from origin 'https://app.docita.work' 
+has been blocked by CORS policy
+```
+
+```
+WebSocket connection to 'ws://localhost:3001/socket.io/...' failed
+```
+
+### Root Cause
+
+The frontend apps are using `localhost:3001` instead of production URLs because `NEXT_PUBLIC_*` environment variables are **not set in Vercel**.
+
+### Solution
+
+#### 1. Set Vercel Environment Variables
+
+In **Vercel Dashboard → Project → Settings → Environment Variables**, add:
+
+| Project | Variable | Value |
+|---------|----------|-------|
+| `apps/app` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
+| `apps/app` | `NEXT_PUBLIC_SOCKET_URL` | `https://api.docita.work` |
+| `apps/landing` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
+| `apps/landing` | `NEXT_PUBLIC_APP_URL` | `https://app.docita.work` |
+| `apps/admin` | `NEXT_PUBLIC_API_URL` | `https://api.docita.work/api` |
+
+#### 2. Redeploy Apps (Required!)
+
+`NEXT_PUBLIC_*` variables are embedded at **build time**. After setting them:
+
+1. Go to **Deployments** tab in each Vercel project
+2. Click **"..."** → **"Redeploy"** → Uncheck "Use existing Build Cache" → **"Redeploy"**
+
+#### 3. Verify
+
+Open browser DevTools at `https://app.docita.work`:
+- API calls should go to `https://api.docita.work/api/*`
+- WebSocket should connect to `wss://api.docita.work/socket.io/*`
+
+### Backend CORS Configuration
+
+The API CORS is configured in `apps/api/src/main.ts`:
+
+```typescript
+app.enableCors({
+  origin: [
+    'https://landing.docita.work',
+    'https://app.docita.work',
+    'https://admin.docita.work',
+    'http://localhost:3003', // landing dev
+    'http://localhost:3000', // app dev
+    'http://localhost:3002', // admin dev
+  ],
+  credentials: true,
+});
+```
+
+If you add a new domain, update this list and redeploy the API.
