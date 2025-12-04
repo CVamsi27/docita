@@ -72,7 +72,7 @@ jobs:
     needs: test
 
     outputs:
-      image_uri: ${{ steps.build-image.outputs.image_uri }}
+      image_uri: ${{ steps.set-output.outputs.image_uri }}
 
     steps:
       - uses: actions/checkout@v4
@@ -132,6 +132,7 @@ jobs:
           cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           cache-to: type=inline
       - name: Set image_uri output
+        id: set-output
         run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------
