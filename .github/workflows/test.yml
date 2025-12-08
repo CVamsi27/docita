@@ -52,6 +52,13 @@ jobs:
             sleep 1
           done
 
+      - name: Reset test database
+        env:
+          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
+        run: |
+          psql -h localhost -U docita -d docita_test -c "DROP SCHEMA IF EXISTS public CASCADE;" || true
+          psql -h localhost -U docita -d docita_test -c "CREATE SCHEMA public;" || true
+
       - name: Run database migrations
         env:
           DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
