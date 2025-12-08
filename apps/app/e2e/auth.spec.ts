@@ -19,8 +19,16 @@ test.describe("Auth Flow", () => {
 
     expect(registerRes.ok()).toBeTruthy();
 
-    // Navigate to login page
+    // Navigate to login page and wait for inputs
     await page.goto("/login");
+    try {
+      await page.waitForSelector('input[type="email"]', { timeout: 30000 });
+    } catch {
+      // Fallback: try root then login again
+      await page.goto("/").catch(() => null);
+      await page.goto("/login").catch(() => null);
+      await page.waitForSelector('input[type="email"]', { timeout: 30000 });
+    }
 
     // Fill form
     await page.fill('input[type="email"]', uniqueEmail);

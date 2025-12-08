@@ -23,19 +23,24 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Handle redirect synchronously during render
-  if (!isAuthenticated && !hasRedirectedRef.current) {
-    hasRedirectedRef.current = true;
-    // Store the attempted URL to redirect back after login
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("redirectAfterLogin", pathname);
-      // Use setTimeout to avoid updating state during render - only on client
-      setTimeout(() => router.push("/login"), 0);
-    }
-    return null;
-  }
-
-  // Don't render children if not authenticated
+  // If user is not authenticated, allow access to public routes like /login.
+  // Do not redirect when already on the login page to avoid hiding the page.
   if (!isAuthenticated) {
+    if (pathname === "/login" || pathname?.startsWith("/login")) {
+      return <>{children}</>;
+    }
+
+    if (!hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      // Store the attempted URL to redirect back after login
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("redirectAfterLogin", pathname);
+        // Use setTimeout to avoid updating state during render - only on client
+        setTimeout(() => router.push("/login"), 0);
+      }
+    }
+
+    // Don't render children for protected routes when unauthenticated
     return null;
   }
 

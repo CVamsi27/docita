@@ -101,4 +101,8 @@ export class PatientsController {
   getPatientDocuments(@Param('id') id: string) {
     return this.patientsService.getDocuments(id);
   }
+  @Get(':id/tags')
+  getPatientTags(@Param('id') id: string) {
+    return this.patientsService.getTags(id);
+  }
 }

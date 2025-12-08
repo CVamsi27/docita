@@ -171,6 +171,64 @@ const commonIcdCodes = [
     description: "Sepsis, unspecified organism",
     category: "Certain infectious and parasitic diseases",
   },
+
+  // Mental Health
+  {
+    code: "F41.1",
+    description: "Generalized anxiety disorder",
+    category: "Mental and behavioral disorders",
+  },
+  {
+    code: "F32.9",
+    description: "Major depressive disorder, single episode, unspecified",
+    category: "Mental and behavioral disorders",
+  },
+  {
+    code: "F43.10",
+    description: "Post-traumatic stress disorder, unspecified",
+    category: "Mental and behavioral disorders",
+  },
+
+  // Common Viral
+  {
+    code: "J10.1",
+    description:
+      "Influenza due to other identified influenza virus with other respiratory manifestations",
+    category: "Diseases of the respiratory system",
+  },
+  {
+    code: "U07.1",
+    description: "COVID-19",
+    category: "Codes for special purposes",
+  },
+
+  // Obesity & Lifestyle
+  {
+    code: "E66.9",
+    description: "Obesity, unspecified",
+    category: "Endocrine, nutritional and metabolic diseases",
+  },
+  {
+    code: "Z72.0",
+    description: "Tobacco use",
+    category:
+      "Factors influencing health status and contact with health services",
+  },
+
+  // Injuries
+  {
+    code: "S06.0X0A",
+    description: "Concussion without loss of consciousness, initial encounter",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
+  },
+  {
+    code: "S93.401A",
+    description:
+      "Sprain of unspecified ligament of right ankle, initial encounter",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
+  },
 ];
 
 async function main() {

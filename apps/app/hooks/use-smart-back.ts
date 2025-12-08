@@ -27,10 +27,10 @@ export function useSmartBack(fallback: string = "/") {
 
   const goBack = useCallback(() => {
     if (canGoBack()) {
-      // Pop current page from history
-      popRoute();
-      // Get the previous route (which is now the last item after popping)
+      // Get the previous route FIRST (history[length-2])
       const previousRoute = getPreviousRoute(fallback);
+      // Then pop current page from history
+      popRoute();
       router.push(previousRoute);
     } else {
       // No history available, go to fallback

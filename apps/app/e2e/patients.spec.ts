@@ -24,19 +24,73 @@ test.describe("Patient Management", () => {
     });
 
     const user = await registerRes.json();
-    clinicId = user.clinicId;
+    const regData = user;
+    // If register didn't create a clinic association, create a clinic and assign
+    let token = null as any;
+    try {
+      token = regData.access_token || regData.accessToken;
 
-    // Login
-    const loginRes = await page.request.post(`${API_URL}/auth/login`, {
-      data: {
-        email: userEmail,
-        password: userPassword,
-      },
-    });
+      // Create clinic
+      const clinicRes = await page.request.post(`${API_URL}/clinics`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          name: "Patients Test Clinic",
+          email: `clinic${Date.now()}@test.com`,
+          phone: "1234567890",
+          address: "123 Test St",
+        },
+      });
 
-    const loginData = await loginRes.json();
-    authToken = loginData.access_token;
+      if (clinicRes.ok()) {
+        const clinic = await clinicRes.json();
+        clinicId = clinic.id;
 
+        // Assign doctor to clinic
+        const doctorId = regData.user?.id || regData.id;
+        const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { doctorId, clinicId: clinic.id, role: "doctor" },
+        });
+
+        if (assignRes.ok()) {
+          // Re-login to refresh token
+          const loginRes = await page.request.post(`${API_URL}/auth/login`, {
+            data: { email: userEmail, password: userPassword },
+          });
+          if (loginRes.ok()) {
+            const loginData = await loginRes.json();
+            authToken = loginData.access_token || loginData.accessToken;
+            clinicId = loginData.user?.clinicId || clinicId;
+            // keep user info for frontend localStorage
+            // store minimal user info to satisfy client checks
+            (regData as any).user = loginData.user || regData.user;
+          }
+        }
+      }
+    } catch (err) {
+      // Fallback to a login if anything fails
+      const loginRes = await page.request.post(`${API_URL}/auth/login`, {
+        data: {
+          email: userEmail,
+          password: userPassword,
+        },
+      });
+
+      const loginData = await loginRes.json();
+      authToken = loginData.access_token || loginData.accessToken;
+      clinicId = loginData.user?.clinicId || clinicId;
+    }
+
+    // Save minimal user info from registration/login for later localStorage injection
+    const storedUser = regData.user || regData;
+    const minimalUser = {
+      id: storedUser?.id || storedUser?.userId || null,
+      email: storedUser?.email || null,
+      clinicId: storedUser?.clinicId || clinicId || null,
+      role: storedUser?.role || "DOCTOR",
+    };
+    // store globally so loginAsDoctor can construct docita_user
+    (globalThis as any).__E2E_REG_USER = minimalUser;
     await context.close();
   });
 
@@ -230,19 +284,48 @@ test.describe("Patient Management", () => {
 async function loginAsDoctor(page: any) {
   // Try to login or navigate to dashboard
   const loginUrl = page.url().includes("/login");
+  // Prefer injecting token into localStorage for reliable auth during e2e
+  const storedToken = typeof window !== "undefined" ? null : null;
+  if (!(await page.url()).includes("/dashboard")) {
+    // token variable should be set in the test scope (authToken)
+    if (typeof authToken !== "undefined" && authToken) {
+      // Construct a minimal user object for the frontend
+      const storedUser = (globalThis as any).__E2E_REG_USER || {
+        id: null,
+        email: null,
+        clinicId: clinicId || null,
+        role: "DOCTOR",
+      };
 
-  if (loginUrl || !(await page.url().includes("/dashboard"))) {
-    // Navigate to app
-    await page.goto("/", { waitUntil: "networkidle" }).catch(() => {
-      // Might redirect automatically
-    });
+      const userForStorage = JSON.stringify({
+        id: storedUser.id || null,
+        email: storedUser.email || null,
+        clinicId: storedUser.clinicId || clinicId || null,
+        role: storedUser.role || "DOCTOR",
+      });
 
-    // If login page appears, try to login
-    const emailInput = page.locator('input[type="email"]').first();
-    if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      // This is a simplified approach - in real tests you'd have test user credentials
-      // For now, just wait and continue
+      await page.addInitScript(
+        (args: { t: string; u: string }) => {
+          try {
+            const { t, u } = args;
+            localStorage.setItem("docita_token", t);
+            localStorage.setItem("docita_user", u);
+          } catch {
+            // noop
+          }
+        },
+        { t: authToken, u: userForStorage },
+      );
+
+      await page
+        .goto("/dashboard", { waitUntil: "networkidle" })
+        .catch(() => null);
       await page.waitForTimeout(500);
+      return;
     }
+
+    // Fallback: navigate to login
+    await page.goto("/login").catch(() => null);
+    await page.waitForTimeout(500);
   }
 }

@@ -1,9 +1,13 @@
 import { useState, useCallback, useRef, useSyncExternalStore } from "react";
 import { apiFetch } from "@/lib/api-client";
-import { Patient, Appointment, Document } from "@workspace/types";
+import {
+  PatientWithMedicalHistory,
+  Appointment,
+  Document,
+} from "@workspace/types";
 
 interface UsePatientDataReturn {
-  patient: Patient | null;
+  patient: PatientWithMedicalHistory | null;
   appointments: Appointment[];
   documents: Document[];
   loading: boolean;
@@ -12,7 +16,9 @@ interface UsePatientDataReturn {
 }
 
 export function usePatientData(patientId: string): UsePatientDataReturn {
-  const [patient, setPatient] = useState<Patient | null>(null);
+  const [patient, setPatient] = useState<PatientWithMedicalHistory | null>(
+    null,
+  );
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +33,9 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setError(null);
 
       // Fetch patient details
-      const patientData = await apiFetch<Patient>(`/patients/${patientId}`);
+      const patientData = await apiFetch<PatientWithMedicalHistory>(
+        `/patients/${patientId}`,
+      );
 
       if (
         patientData &&

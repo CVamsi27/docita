@@ -102,6 +102,22 @@ describe('PatientsService', () => {
       expect(result).toEqual(mockPatient);
       expect(mockPrismaService.patient.findUnique).toHaveBeenCalledWith({
         where: { id: 'patient-123' },
+        include: {
+          medicalConditions: {
+            orderBy: { createdAt: 'desc' },
+          },
+          patientAllergies: {
+            orderBy: { createdAt: 'desc' },
+          },
+          familyHistory: {
+            orderBy: { createdAt: 'desc' },
+          },
+          socialHistory: true,
+          surgicalHistory: {
+            orderBy: { procedureDate: 'desc' },
+          },
+          tags: true,
+        },
       });
     });
 

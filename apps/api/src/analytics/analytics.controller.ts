@@ -150,4 +150,57 @@ export class AnalyticsController {
       endDate ? new Date(endDate) : undefined,
     );
   }
+
+  // ========== NEW ENDPOINTS FOR ADVANCED ANALYTICS (Phase 1) ==========
+
+  @Get('revenue-metrics')
+  getRevenueMetrics(
+    @Query('clinicId') clinicId: string,
+    @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.analyticsService.getRevenueMetrics(
+      clinicId,
+      period,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+
+  @Get('appointment-metrics')
+  getAppointmentMetrics(
+    @Query('clinicId') clinicId: string,
+    @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.analyticsService.getAppointmentMetrics(
+      clinicId,
+      period,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+
+  @Get('patient-demographics')
+  getPatientDemographics(
+    @Query('clinicId') clinicId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.analyticsService.getPatientDemographics(
+      clinicId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+
+  @Get('top-conditions')
+  getTopConditions(
+    @Query('clinicId') clinicId: string,
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.analyticsService.getTopConditions(clinicId, parseInt(limit));
+  }
 }

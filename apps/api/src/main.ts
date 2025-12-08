@@ -80,7 +80,7 @@ async function bootstrap() {
 
   // Graceful shutdown handler for zero-downtime deployments
   // Allows active connections to drain before process exit
-  const gracefulShutdown = async (signal: string) => {
+  const gracefulShutdown = (signal: string) => {
     console.log(`\n${signal} received: starting graceful shutdown...`);
 
     // Stop accepting new connections
@@ -101,7 +101,7 @@ async function bootstrap() {
     }, 15000);
   };
 
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
 }
 bootstrap();

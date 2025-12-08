@@ -6,8 +6,10 @@ import {
   Request,
   Get,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,5 +27,39 @@ export class AuthController {
   @Post('register')
   async register(@Body() req) {
     return this.authService.register(req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Request() req: any,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
+    if (!body.currentPassword || !body.newPassword) {
+      throw new BadRequestException(
+        'Current password and new password are required',
+      );
+    }
+
+    if (body.currentPassword === body.newPassword) {
+      throw new BadRequestException(
+        'New password must be different from current password',
+      );
+    }
+
+    // Validate password strength (minimum 8 characters, at least one uppercase, one lowercase, one number)
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(body.newPassword)) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character',
+      );
+    }
+
+    return this.authService.changePassword({
+      userId: req.user.sub,
+      currentPassword: body.currentPassword,
+      newPassword: body.newPassword,
+    });
   }
 }

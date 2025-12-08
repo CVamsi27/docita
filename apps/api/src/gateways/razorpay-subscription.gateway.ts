@@ -242,6 +242,71 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   }
 
   // =========================================================================
+  // Token Management (for auto-pay with stored payment methods)
+  // =========================================================================
+
+  async createTokenFromCheckout(
+    paymentId: string,
+  ): Promise<{ tokenId: string; customerId: string }> {
+    try {
+      const razorpay = this.ensureRazorpayInitialized();
+      // Fetch payment to get customer and card token
+      const payment = (await razorpay.payments.fetch(paymentId)) as unknown as {
+        customer_id?: string;
+        vpa?: string;
+        card?: { id?: string };
+      };
+
+      if (!payment.customer_id) {
+        throw new Error('Payment does not have a customer ID');
+      }
+
+      // For cards, token is in payment.card.id
+      // For UPI/bank transfers, we use the payment method reference
+      const tokenId = payment.card?.id || paymentId;
+
+      return {
+        tokenId,
+        customerId: payment.customer_id,
+      };
+    } catch (error) {
+      this.logger.error('Failed to create token from checkout payment', error);
+      throw error;
+    }
+  }
+
+  async chargeWithToken(
+    customerId: string,
+    tokenId: string,
+    amountCents: number,
+    currency: string,
+    description?: string,
+  ): Promise<{ paymentId: string; status: string }> {
+    try {
+      const razorpay = this.ensureRazorpayInitialized();
+      // For Razorpay, create a recurring payment mandate via tokens
+      // First create an order, then attach it to token for processing
+      const order = await razorpay.orders.create({
+        amount: amountCents,
+        currency,
+        receipt: `autopay_${Date.now()}`,
+        customer_id: customerId,
+        notes: { description: description || 'Auto-pay subscription renewal' },
+      });
+
+      // In production, this would trigger a mandate charge
+      // For now, return order details that will be processed via webhook
+      return {
+        paymentId: (order as unknown as { id: string }).id,
+        status: 'created',
+      };
+    } catch (error) {
+      this.logger.error('Failed to charge with token', error);
+      throw error;
+    }
+  }
+
+  // =========================================================================
   // One-time Checkout (for prorated payments, etc.)
   // =========================================================================
 

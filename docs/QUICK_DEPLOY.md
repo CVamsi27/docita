@@ -137,6 +137,8 @@ docker run -d \
 # Verify
 docker logs -f docita-api
 curl http://localhost:3001/api/health
+
+# Note: This is a quick manual deployment. For production, use the GitHub Actions workflow for zero-downtime updates.
 ```
 
 ### Setup Nginx + SSL
@@ -343,7 +345,7 @@ docker logs -f docita-api
 # Restart API
 docker restart docita-api
 
-# Update API
+# Update API (Manual - causes downtime)
 aws ecr get-login-password --region ap-south-1 | \
   docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
 docker pull $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
@@ -351,6 +353,8 @@ docker stop docita-api && docker rm docita-api
 docker run -d --name docita-api --restart unless-stopped \
   -p 3001:3001 --env-file ~/docita/.env \
   $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
+
+# Note: For zero-downtime updates, trigger the GitHub Actions workflow.
 
 # Check health
 curl http://localhost:3001/api/health

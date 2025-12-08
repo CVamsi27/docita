@@ -30,7 +30,7 @@ export const sidebarItems: SidebarItem[] = [
   // ======= Always Available =======
   {
     title: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
     roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
   },
@@ -137,6 +137,12 @@ export const sidebarItems: SidebarItem[] = [
     roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
     feature: Feature.AI_PRESCRIPTION_ASSISTANT,
     badge: "AI",
+  },
+  {
+    title: "Feedback",
+    href: "#feedback",
+    icon: MessageSquare,
+    roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
   },
 ];
 

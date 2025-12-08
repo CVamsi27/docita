@@ -30,6 +30,8 @@ model User {
   specialization            Specialization?
   yearsOfExperience         Int?
   appointments              Appointment[]
+  auditLogs                 AuditLog[]
+  bulkImportJobs            BulkImportJob[]
   certifications            DoctorCertification[]
   doctorClinics             DoctorClinic[]
   educationHistory          DoctorEducation[]
@@ -565,6 +567,7 @@ model Invoice {
   appointment     Appointment?     @relation(fields: [appointmentId], references: [id])
   patient         Patient          @relation(fields: [patientId], references: [id])
   paymentSessions PaymentSession[]
+  paymentRetries  PaymentRetry[]
 
   @@index([createdAt])
   @@index([patientId])
@@ -696,6 +699,9 @@ model Clinic {
   // Relations
   appointments            Appointment[]
   auditLogs               AuditLog[]
+  analyticsSnapshots      AnalyticsSnapshot[]
+  paymentRetries          PaymentRetry[]
+  bulkImportJobs          BulkImportJob[]
   clinicalTemplates       ClinicalTemplate[]
   customFields            CustomField[]
   doctorClinics           DoctorClinic[]
@@ -929,26 +935,6 @@ model PatientMergeSuggestion {
   @@unique([patient1Id, patient2Id])
   @@index([clinicId])
   @@index([status])
-}
-
-model AuditLog {
-  id         String   @id @default(cuid())
-  clinicId   String
-  userId     String
-  action     String
-  entityType String
-  entityId   String
-  oldValue   Json?
-  newValue   Json?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
-  clinic     Clinic   @relation(fields: [clinicId], references: [id])
-
-  @@index([clinicId])
-  @@index([userId])
-  @@index([entityType, entityId])
-  @@index([createdAt])
 }
 
 model QueueToken {
@@ -1694,6 +1680,8 @@ model Subscription {
   // Razorpay integration
   razorpaySubscriptionId String?            // Razorpay subscription ID
   razorpayPlanId         String?            // Razorpay plan ID
+  razorpayTokenId        String?            // Razorpay customer token for autopay
+  razorpayCustomerId     String?            // Razorpay customer ID
 
   // Period tracking
   currentPeriodStart     DateTime
@@ -1704,6 +1692,13 @@ model Subscription {
 
   // Credits & proration
   creditsCents           Int                @default(0) // Monetary credits from proration/referrals
+
+  // Auto-pay configuration
+  autoPayEnabled         Boolean            @default(false)
+  paymentMethodType      String?            // CARD | BANK_TRANSFER
+  lastFailedPaymentDate  DateTime?
+  failureRetryCount      Int                @default(0)
+  graceUntil             DateTime?          // 3-day grace period end date if payment fails
 
   // Scheduled changes (for downgrades or cycle switches)
   scheduledChange        Json?              // {plan, billingCycle, effectiveAt}
@@ -1843,6 +1838,155 @@ model ReferralCredit {
 
   @@index([clinicId])
   @@index([referralId])
+}
+
+// ============================================================================
+// Phase 2: Audit, Analytics, Payment & Import Tables
+// ============================================================================
+
+model AuditLog {
+  id             String    @id @default(cuid())
+  clinicId       String
+  userId         String
+  action         String    // PRESCRIPTION_CREATED, PATIENT_UPDATED, INVOICE_PAID, etc.
+  entityType     String    // PRESCRIPTION, PATIENT, INVOICE, APPOINTMENT, etc.
+  entityId       String
+  oldValue       Json?
+  newValue       Json?
+  ipAddress      String?
+  userAgent      String?
+  status         String    @default("SUCCESS") // SUCCESS, FAILED, PENDING
+  errorMessage   String?
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+
+  clinic         Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([clinicId, createdAt])
+}
+
+model AnalyticsSnapshot {
+  id                  String    @id @default(cuid())
+  clinicId            String
+  period              String    // "daily", "weekly", "monthly"
+  snapshotDate        DateTime
+
+  // Revenue Metrics
+  totalRevenue        Decimal   @db.Decimal(12, 2) @default(0)
+  invoiceCount        Int       @default(0)
+  avgInvoiceAmount    Decimal   @db.Decimal(12, 2) @default(0)
+
+  // Appointment Metrics
+  totalAppointments   Int       @default(0)
+  completedAppts      Int       @default(0)
+  cancelledAppts      Int       @default(0)
+  appointmentFillRate Decimal   @db.Decimal(5, 2) @default(0)
+
+  // Patient Metrics
+  newPatients         Int       @default(0)
+  activePatients      Int       @default(0)
+  appointmentRate     Decimal   @db.Decimal(5, 2) @default(0)
+
+  // Condition Metrics
+  topConditions       Json      @default("[]") // Array of {condition, count, percentage}
+
+  createdAt           DateTime  @default(now())
+
+  clinic              Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId])
+  @@index([period])
+  @@index([snapshotDate])
+  @@unique([clinicId, period, snapshotDate])
+}
+
+model PaymentRetry {
+  id                String    @id @default(cuid())
+  clinicId          String
+  invoiceId         String
+  razorpayOrderId   String?
+  razorpayLinkId    String?
+
+  // Retry Strategy
+  attemptCount      Int       @default(0)
+  maxRetries        Int       @default(3)
+  nextRetryAt       DateTime
+  retryIntervals    Int[]     @default([3600, 86400, 259200]) // 1h, 24h, 72h
+
+  // Status
+  status            String    @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED_EXHAUSTED
+  lastError         String?
+  lastAttemptAt     DateTime?
+  completedAt       DateTime?
+
+  // Context
+  paymentMethod     String?
+  amount            Decimal   @db.Decimal(12, 2)
+  phoneNumber       String?   // For WhatsApp reminders
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  clinic            Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  invoice           Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([invoiceId])
+  @@index([clinicId, status])
+}
+
+model BulkImportJob {
+  id              String    @id @default(cuid())
+  clinicId        String
+  userId          String
+
+  // Job Details
+  entityType      String    // PATIENT, PRESCRIPTION, DOCTOR, LAB_TEST, INVENTORY
+  fileName        String
+  fileSize        Int       // Bytes
+  originalKey     String    // S3 key for file storage
+
+  // Progress
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  totalRows       Int
+  processedRows   Int       @default(0)
+  successRows     Int       @default(0)
+  failedRows      Int       @default(0)
+  skippedRows     Int       @default(0)
+
+  // Error Tracking
+  errors          Json      @default("[]") // [{rowNumber, error, field}]
+  errorSummary    String?   // Aggregated error summary
+
+  // Timing
+  startedAt       DateTime?
+  completedAt     DateTime?
+  duration        Int?      // Milliseconds
+
+  // Results
+  importedIds     String[]  @default([])
+  resultKey       String?   // S3 key for result CSV
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  clinic          Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([status])
+  @@index([entityType])
+  @@index([createdAt])
+  @@index([clinicId, createdAt])
+  @@index([userId])
 }
 
 // ============================================================================

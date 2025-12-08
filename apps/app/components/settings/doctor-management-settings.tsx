@@ -36,6 +36,7 @@ interface DoctorForm {
 export function DoctorManagementSettings() {
   const { data: doctors = [], isLoading: loading } = apiHooks.useDoctors();
   const queryClient = useQueryClient();
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<User | null>(null);
@@ -43,6 +44,11 @@ export function DoctorManagementSettings() {
     name: "",
     email: "",
   });
+
+  const filteredDoctors =
+    roleFilter === "ALL"
+      ? doctors
+      : doctors.filter((d) => d.role?.toUpperCase() === roleFilter);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,41 +196,73 @@ export function DoctorManagementSettings() {
           />
         ) : (
           <div className="space-y-4">
-            {doctors.map((doctor) => (
-              <div
-                key={doctor.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{doctor.name}</h3>
-                    <Badge variant="secondary">{doctor.role}</Badge>
-                  </div>
-                  <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Mail className="h-3 w-3" />
-                      {doctor.email}
+            {/* Role Filter Buttons */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {["ALL", "ADMIN", "DOCTOR", "STAFF"].map((role) => (
+                <Button
+                  key={role}
+                  variant={roleFilter === role ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRoleFilter(role)}
+                >
+                  {role === "ALL"
+                    ? "All Users"
+                    : role === "ADMIN"
+                      ? "Admins"
+                      : role === "DOCTOR"
+                        ? "Doctors"
+                        : "Staff"}
+                </Button>
+              ))}
+            </div>
+
+            {/* Doctors List */}
+            {filteredDoctors.length === 0 ? (
+              <EmptyState
+                icon={UserCog}
+                title={`No ${roleFilter === "ALL" ? "users" : roleFilter.toLowerCase()}s found`}
+                description="No users match the selected filter."
+                className="py-8 border-2 border-dashed rounded-lg"
+              />
+            ) : (
+              <div className="space-y-4">
+                {filteredDoctors.map((doctor) => (
+                  <div
+                    key={doctor.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{doctor.name}</h3>
+                        <Badge variant="secondary">{doctor.role}</Badge>
+                      </div>
+                      <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {doctor.email}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(doctor)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(doctor.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(doctor)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(doctor.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </CardContent>

@@ -13,10 +13,12 @@ test.describe("Prescriptions", () => {
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
       // Register doctor
+      const email = `doctor${Date.now()}@test.com`;
+      const password = "Test@123456";
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
-          email: `doctor${Date.now()}@test.com`,
-          password: "Test@123456",
+          email,
+          password,
           name: "Dr. Prescription",
           role: "DOCTOR",
         },
@@ -55,6 +57,7 @@ test.describe("Prescriptions", () => {
       // Try to assign doctor to clinic if not already assigned
       if (doctorId && clinic.id) {
         const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
+          headers: { Authorization: `Bearer ${authToken}` },
           data: {
             doctorId,
             clinicId: clinic.id,
@@ -64,10 +67,59 @@ test.describe("Prescriptions", () => {
 
         if (!assignRes.ok()) {
           console.log("Doctor-clinic assignment failed, will try without it");
+        } else {
+          // Re-login to refresh token so clinicId is reflected in JWT
+          const loginRes = await request.post(`${API_URL}/auth/login`, {
+            data: { email, password },
+          });
+          if (loginRes.ok()) {
+            const loginData = await loginRes.json();
+            authToken = loginData.access_token;
+          } else {
+            console.log(
+              "Re-login after assignment failed:",
+              await loginRes.text(),
+            );
+          }
         }
       }
 
-      // Test if prescriptions endpoint works without patient ID
+      // Create a patient for prescriptions
+      const patientRes = await request.post(`${API_URL}/patients`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: {
+          firstName: "Test",
+          lastName: `Patient${Date.now()}`,
+          phone: `9${Math.floor(Math.random() * 1e9)}`,
+        },
+      });
+      if (patientRes.ok()) {
+        const patient = await patientRes.json();
+        patientId = patient.id;
+      }
+
+      // Create an appointment for prescriptions
+      if (patientId) {
+        const now = new Date();
+        const start = new Date(now.getTime() + 5 * 60 * 1000).toISOString();
+        const end = new Date(now.getTime() + 35 * 60 * 1000).toISOString();
+        const apptRes = await request.post(`${API_URL}/appointments`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+          data: {
+            patientId,
+            doctorId,
+            startTime: start,
+            endTime: end,
+            status: "scheduled",
+            type: "consultation",
+          },
+        });
+        if (apptRes.ok()) {
+          const appt = await apptRes.json();
+          appointmentId = appt.id;
+        }
+      }
+
       const testRes = await request.get(`${API_URL}/prescriptions`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });

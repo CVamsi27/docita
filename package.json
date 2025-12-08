@@ -22,7 +22,6 @@
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "baseline-browser-mapping": "^2.8.32",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.5",
@@ -38,15 +37,5 @@
       "@prisma/engines"
     ]
   },
-  "dependencies": {
-    "@nestjs/bull": "^11.0.4",
-    "@nestjs/cache-manager": "^3.0.1",
-    "@types/cache-manager": "^5.0.0",
-    "bull": "^4.16.5",
-    "cache-manager": "^7.2.5",
-    "cache-manager-redis-store": "^3.0.1",
-    "react-hook-form": "^7.66.1",
-    "redis": "^5.10.0",
-    "web-vitals": "^5.1.0"
-  }
+  "dependencies": {}
 }

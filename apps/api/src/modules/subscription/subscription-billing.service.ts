@@ -12,6 +12,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentProvider } from '../../gateways/payment-gateway.interface';
 import { ClinicTier, BillingCycle, Prisma } from '@workspace/db';
 import { TIER_PRICING, ANNUAL_DISCOUNT_PERCENT } from '@workspace/types';
 
@@ -830,5 +831,272 @@ export class SubscriptionBillingService {
       currency: subscription.currency,
       isChanged: false,
     };
+  }
+
+  // =========================================================================
+  // Payment Method Management (Auto-Pay)
+  // =========================================================================
+
+  /**
+   * Save payment method (Razorpay token for auto-pay)
+   */
+  async savePaymentMethod(
+    clinicId: string,
+    razorpayTokenId: string,
+    methodType: 'CARD' | 'BANK_TRANSFER',
+  ) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { clinicId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    // Update subscription with token and method type
+    const updated = await this.prisma.subscription.update({
+      where: { clinicId },
+      data: {
+        razorpayTokenId,
+        paymentMethodType: methodType,
+      },
+    });
+
+    return {
+      success: true,
+      methodType: updated.paymentMethodType,
+      message: `Payment method saved as ${methodType}`,
+    };
+  }
+
+  /**
+   * Get saved payment method
+   */
+  async getPaymentMethod(clinicId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { clinicId },
+    });
+
+    if (!subscription || !subscription.razorpayTokenId) {
+      return {
+        saved: false,
+        methodType: null,
+      };
+    }
+
+    // Mask token for security
+    const maskedToken = `****${subscription.razorpayTokenId?.slice(-4)}`;
+
+    return {
+      saved: true,
+      methodType: subscription.paymentMethodType,
+      maskedToken,
+    };
+  }
+
+  /**
+   * Enable or disable auto-pay
+   */
+  async setAutoPay(clinicId: string, enabled: boolean) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { clinicId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (enabled && !subscription.razorpayTokenId) {
+      throw new BadRequestException(
+        'Payment method must be saved before enabling auto-pay',
+      );
+    }
+
+    const updated = await this.prisma.subscription.update({
+      where: { clinicId },
+      data: {
+        autoPayEnabled: enabled,
+      },
+    });
+
+    return {
+      success: true,
+      autoPayEnabled: updated.autoPayEnabled,
+      message: enabled ? 'Auto-pay enabled' : 'Auto-pay disabled',
+    };
+  }
+
+  /**
+   * Create payment checkout for one-time payments
+   */
+  async createPaymentCheckout(
+    clinicId: string,
+    amountCents: number,
+    description?: string,
+  ) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { id: true, name: true, email: true },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clinic not found');
+    }
+
+    if (amountCents < 10000) {
+      // Minimum 100 INR
+      throw new BadRequestException('Minimum payment amount is ₹100');
+    }
+
+    const gateway = this.gatewayFactory.getGateway(PaymentProvider.RAZORPAY);
+    const checkout = await gateway.createCheckout({
+      amountCents,
+      currency: 'INR',
+      customerId: clinicId,
+      description: description || 'One-time payment',
+      callbackUrl: `${process.env.APP_URL || 'http://localhost:3000'}/api/payment/callback`,
+      notes: {
+        clinicId,
+        clinicName: clinic.name,
+        description: description || 'One-time payment',
+      },
+    });
+
+    return {
+      orderId: checkout.orderId,
+      amountCents,
+      currency: 'INR',
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+    };
+  }
+
+  /**
+   * Process auto-pay on renewal date (called by scheduler)
+   */
+  async processAutoPayment(subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+      include: { clinic: true },
+    });
+
+    if (
+      !subscription ||
+      !subscription.autoPayEnabled ||
+      !subscription.razorpayTokenId ||
+      !subscription.razorpayCustomerId
+    ) {
+      this.logger.warn(
+        `Auto-pay not available for subscription ${subscriptionId}`,
+      );
+      return;
+    }
+
+    try {
+      const gateway = this.gatewayFactory.getGateway(PaymentProvider.RAZORPAY);
+      const payment = await (gateway as any).chargeWithToken(
+        subscription.razorpayCustomerId,
+        subscription.razorpayTokenId,
+        subscription.priceCents,
+        subscription.currency,
+        `Auto-pay renewal for ${subscription.clinic.name}`,
+      );
+
+      this.logger.log(
+        `Auto-pay processed for subscription ${subscriptionId}: ${payment.paymentId}`,
+      );
+
+      return payment;
+    } catch (error) {
+      this.logger.error(
+        `Auto-pay failed for subscription ${subscriptionId}`,
+        error,
+      );
+
+      // Mark for retry with grace period
+      await this.handleAutoPayFailure(subscriptionId);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle failed auto-pay (enter grace period)
+   */
+  async handleAutoPayFailure(subscriptionId: string) {
+    const graceUntil = new Date();
+    graceUntil.setDate(graceUntil.getDate() + GRACE_PERIOD_DAYS);
+
+    await this.prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: {
+        lastFailedPaymentDate: new Date(),
+        failureRetryCount: {
+          increment: 1,
+        },
+        graceUntil,
+        status: 'PAST_DUE',
+      },
+    });
+
+    this.logger.log(
+      `Subscription ${subscriptionId} entered grace period until ${graceUntil.toISOString()}`,
+    );
+  }
+
+  /**
+   * Retry failed payment (called by scheduler during grace period)
+   */
+  async retryFailedPayment(subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+    });
+
+    if (!subscription || subscription.failureRetryCount >= 3) {
+      // Max 3 retries before suspension
+      if (subscription) {
+        await this.suspendSubscription(subscriptionId);
+      }
+      return;
+    }
+
+    try {
+      await this.processAutoPayment(subscriptionId);
+
+      // On success, reset to active
+      await this.prisma.subscription.update({
+        where: { id: subscriptionId },
+        data: {
+          status: 'ACTIVE',
+          failureRetryCount: 0,
+          lastFailedPaymentDate: null,
+          graceUntil: null,
+        },
+      });
+
+      this.logger.log(
+        `Auto-pay retry successful for subscription ${subscriptionId}`,
+      );
+    } catch (error) {
+      // Retry again in 12 hours
+      this.logger.warn(
+        `Auto-pay retry failed for subscription ${subscriptionId}, will retry again`,
+      );
+    }
+  }
+
+  /**
+   * Suspend subscription when grace period expires
+   */
+  async suspendSubscription(subscriptionId: string) {
+    await this.prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: {
+        status: 'PAUSED',
+        graceUntil: null,
+      },
+    });
+
+    this.logger.log(
+      `Subscription ${subscriptionId} suspended due to non-payment`,
+    );
   }
 }

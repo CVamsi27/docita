@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiHooks } from "@/lib/api-hooks";
 import { createPatientSchema, CreatePatientInput } from "@workspace/types";
@@ -11,7 +11,11 @@ interface UsePatientFormProps {
   onPatientAdded: () => void;
 }
 
-export function usePatientForm({ onPatientAdded }: UsePatientFormProps) {
+export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
+  form: UseFormReturn<CreatePatientInput>;
+  loading: boolean;
+  onSubmit: (data: CreatePatientInput, onSuccess?: () => void) => Promise<void>;
+} {
   const router = useRouter();
   const { clinicId } = useClinic();
   const { mutateAsync: createPatient, isPending: loading } =
@@ -27,12 +31,16 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps) {
       email: "",
       address: "",
       medicalHistory: [],
+      isolationStatus: "NONE" as const,
+      fallRisk: false,
     }),
     [],
   );
 
   const form = useForm<CreatePatientInput>({
-    resolver: zodResolver(createPatientSchema),
+    resolver: zodResolver(
+      createPatientSchema,
+    ) as unknown as Resolver<CreatePatientInput>,
     defaultValues,
   });
 
@@ -75,7 +83,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps) {
   );
 
   return {
-    form,
+    form: form as unknown as UseFormReturn<CreatePatientInput>,
     loading,
     onSubmit,
   };

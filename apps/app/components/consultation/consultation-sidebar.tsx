@@ -21,7 +21,6 @@ import {
   MapPin,
   Activity,
   Droplet,
-  Heart,
   Stethoscope,
   ChevronDown,
   ChevronRight,
@@ -31,7 +30,6 @@ import {
 import { format, differenceInYears } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
 import {
-  MedicalHistorySummary,
   CompactAllergyAlert,
   type PatientMedicalCondition,
   type PatientAllergy,
@@ -67,6 +65,8 @@ interface PatientInfo {
 
 interface VitalSignData {
   bloodPressure?: string;
+  systolicBP?: number;
+  diastolicBP?: number;
   pulse?: number;
   temperature?: number;
   spo2?: number;
@@ -210,8 +210,14 @@ function PatientHeader({ patient }: { patient: PatientInfo }) {
 function QuickVitals({ vitals }: { vitals?: VitalSignData }) {
   if (!vitals) return null;
 
+  const bpValue =
+    vitals.bloodPressure ||
+    (vitals.systolicBP && vitals.diastolicBP
+      ? `${vitals.systolicBP}/${vitals.diastolicBP}`
+      : undefined);
+
   const vitalItems = [
-    { label: "BP", value: vitals.bloodPressure, unit: "", type: "bp" },
+    { label: "BP", value: bpValue, unit: "", type: "bp" },
     { label: "HR", value: vitals.pulse, unit: "bpm", type: "pulse" },
     { label: "Temp", value: vitals.temperature, unit: "°F", type: "temp" },
     { label: "SpO₂", value: vitals.spo2, unit: "%", type: "spo2" },
@@ -444,7 +450,6 @@ function PastVisitsSection({
 export function ConsultationSidebar({
   appointment,
   pastAppointments = [],
-  currentMedications = [],
   onViewPatientDetails,
   className,
 }: ConsultationSidebarProps) {
@@ -458,12 +463,7 @@ export function ConsultationSidebar({
     );
   }
 
-  // Normalize legacy data
-  const legacyMedicalHistory = patient.medicalHistory
-    ? Array.isArray(patient.medicalHistory)
-      ? patient.medicalHistory
-      : [patient.medicalHistory]
-    : [];
+  // Normalize legacy data (structured vs legacy fields)
 
   const legacyAllergies =
     patient.allergies && typeof patient.allergies === "string"
@@ -490,14 +490,9 @@ export function ConsultationSidebar({
     diagnosisCounts.set(d.code, (diagnosisCounts.get(d.code) || 0) + 1);
   });
 
-  const uniqueDiagnoses = pastDiagnoses
-    .filter(
-      (d, index, arr) => arr.findIndex((x) => x.code === d.code) === index,
-    )
-    .map((d) => ({
-      ...d,
-      count: diagnosisCounts.get(d.code) || 1,
-    }));
+  // `uniqueDiagnoses` intentionally omitted — use `diagnosisCounts` or
+  // `pastDiagnoses`/`topDiagnoses` where needed. Keeping this code removed
+  // avoids unused-variable lint warnings.
 
   return (
     <ScrollArea className={cn("h-full", className)}>
@@ -545,33 +540,6 @@ export function ConsultationSidebar({
                 <ExternalLink className="h-3 w-3" />
               </Button>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Medical History Summary */}
-        <Card>
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Heart className="h-4 w-4 text-red-500" />
-              Medical History
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <MedicalHistorySummary
-              patientId={patient.id || ""}
-              medicalConditions={patient.medicalConditions}
-              allergies={patient.patientAllergies}
-              familyHistory={patient.familyHistory}
-              socialHistory={patient.socialHistory}
-              surgicalHistory={patient.surgicalHistory}
-              legacyMedicalHistory={legacyMedicalHistory}
-              legacyAllergies={legacyAllergies}
-              currentMedications={currentMedications}
-              pastDiagnoses={uniqueDiagnoses}
-              variant="sidebar"
-              showExpandButton={true}
-              defaultExpanded={false}
-            />
           </CardContent>
         </Card>
 

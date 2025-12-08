@@ -234,4 +234,24 @@ export class PatientsService {
     });
     return documents;
   }
+  async getTags(patientId: string) {
+    const patient = await this.prisma.patient.findUnique({
+      where: { id: patientId },
+      select: {
+        tags: {
+          select: {
+            id: true,
+            tag: true,
+            color: true,
+          },
+        },
+      },
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with ID ${patientId} not found`);
+    }
+
+    return patient.tags;
+  }
 }

@@ -420,15 +420,16 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 # Create repository (one-time setup)
 aws ecr create-repository --repository-name docita-api --region ap-south-1
 
-# Login to ECR
+# Update API (Manual - causes downtime)
 aws ecr get-login-password --region ap-south-1 | \
   docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+docker pull $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
+docker stop docita-api && docker rm docita-api
+docker run -d --name docita-api --restart unless-stopped \
+  -p 3001:3001 --env-file ~/docita/.env \
+  $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
 
-# Tag
-docker tag docita-api:latest $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
-
-# Push
-docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docita-api:latest
+# Note: For zero-downtime updates, trigger the GitHub Actions workflow.
 ```
 
 #### Step 3: Launch EC2 Instance
@@ -526,6 +527,8 @@ docker logs -f docita-api
 
 # Verify it's running
 curl http://localhost:3001/api/health
+
+> **Note**: This manual deployment method involves a brief downtime while the container restarts. For production, it is recommended to use the **Zero-Downtime Deployment** strategy configured in the GitHub Actions workflow (`.github/workflows/deploy-api.yml`), which uses a "Verify-then-Swap" approach to ensure no service interruption. See `docs/DEPLOYMENT.md` for details.
 ```
 
 #### Step 6: Setup Nginx Reverse Proxy
@@ -1523,6 +1526,8 @@ docker run -d --name docita-api \
   --env-file .env \
   -v ~/docita/uploads:/app/uploads \
   your-username/docita-api:latest
+
+# Note: This manual process causes downtime. Use GitHub Actions for zero-downtime updates.
 
 # Verify
 docker logs -f docita-api

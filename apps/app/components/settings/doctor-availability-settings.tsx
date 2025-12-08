@@ -423,7 +423,7 @@ export function DoctorAvailabilitySettings() {
                   <TableHead>Period</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Reason</TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

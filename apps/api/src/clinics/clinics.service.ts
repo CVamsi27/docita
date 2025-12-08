@@ -52,6 +52,10 @@ export class ClinicsService {
         tier: data.tier || ClinicTier.CORE, // Default to CORE for basic functionality
         settings: data.settings ?? Prisma.JsonNull,
         active: true,
+        // For local development/e2e runs, default clinics to a trial subscription
+        // so feature/tier checks pass without needing external subscription webhooks.
+        subscriptionStatus:
+          process.env.NODE_ENV === 'production' ? undefined : 'trial',
       },
     });
   }

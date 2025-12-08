@@ -16,12 +16,16 @@ interface UseAppointmentFormProps {
   onAppointmentAdded: () => void;
   selectedDate?: Date;
   preselectedPatientId?: string;
+  startHour?: number;
+  endHour?: number;
 }
 
 export function useAppointmentForm({
   onAppointmentAdded,
   selectedDate,
   preselectedPatientId,
+  startHour = 9,
+  endHour = 17,
 }: UseAppointmentFormProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const { data: searchedPatients = [], isLoading: patientsLoading } =
@@ -47,6 +51,9 @@ export function useAppointmentForm({
     }
     return searchedPatients;
   }, [searchedPatients, preselectedPatient, preselectedPatientId]);
+  const { data: doctors = [], isLoading: doctorsLoading } =
+    apiHooks.useDoctors();
+
   const { mutateAsync: createAppointment, isPending: loading } =
     apiHooks.useCreateAppointment();
   const { config } = useAppConfig();
@@ -55,19 +62,62 @@ export function useAppointmentForm({
   // Get default appointment duration from config
   const defaultDuration = config.defaults.appointmentDuration;
 
-  const defaultValues = useMemo(
-    () => ({
+  const defaultValues = useMemo(() => {
+    let defaultStart = "";
+
+    if (selectedDate) {
+      defaultStart = selectedDate.toISOString().slice(0, 16);
+    } else {
+      // Logic for next available slot
+      const now = new Date();
+
+      // Check if we are past closing time
+      if (now.getHours() >= endHour) {
+        // Move to tomorrow at opening time
+        now.setDate(now.getDate() + 1);
+        now.setHours(startHour, 0, 0, 0);
+      } else {
+        // Round to next 15 minutes
+        const remainder = 15 - (now.getMinutes() % 15);
+        now.setMinutes(now.getMinutes() + remainder);
+        now.setSeconds(0);
+        now.setMilliseconds(0);
+
+        // If rounding pushed us past closing time, move to tomorrow
+        if (now.getHours() >= endHour) {
+          now.setDate(now.getDate() + 1);
+          now.setHours(startHour, 0, 0, 0);
+        } else if (now.getHours() < startHour) {
+          // If we are before opening time (e.g. early morning), set to opening time
+          now.setHours(startHour, 0, 0, 0);
+        }
+      }
+
+      // Convert to local ISO string (simple slice for now as we want local time input)
+      // Note: simplistic handling, ideally use date-fns and timezone handling
+      const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+      const localDate = new Date(now.getTime() - offsetMs);
+      defaultStart = localDate.toISOString().slice(0, 16);
+    }
+
+    return {
       patientId: preselectedPatientId || "",
-      doctorId: user?.id || "",
+      doctorId: user?.id || "", // Default to current user if they are a doctor
       clinicId: user?.clinicId || "",
-      startTime: selectedDate ? selectedDate.toISOString().slice(0, 16) : "",
+      startTime: defaultStart,
       endTime: "",
       status: "scheduled" as const,
       type: "consultation" as const,
       notes: "",
-    }),
-    [preselectedPatientId, selectedDate, user?.id, user?.clinicId],
-  );
+    };
+  }, [
+    preselectedPatientId,
+    selectedDate,
+    user?.id,
+    user?.clinicId,
+    startHour,
+    endHour,
+  ]);
 
   const form = useForm<CreateAppointmentInput>({
     resolver: zodResolver(createAppointmentSchema),
@@ -132,6 +182,8 @@ export function useAppointmentForm({
     patientsLoading,
     patientSearch,
     setPatientSearch,
+    doctors,
+    doctorsLoading,
     onSubmit,
   };
 }

@@ -21,13 +21,23 @@ export class DoctorClinicsService {
     });
 
     if (existing) {
-      return this.prisma.doctorClinic.update({
+      const updated = await this.prisma.doctorClinic.update({
         where: { id: existing.id },
         data: { active: true, role },
       });
+      // Ensure user's primary clinicId is set for token generation
+      try {
+        await this.prisma.user.update({
+          where: { id: doctorId },
+          data: { clinicId },
+        });
+      } catch (e) {
+        // ignore if user not found or update fails
+      }
+      return updated;
     }
 
-    return this.prisma.doctorClinic.create({
+    const created = await this.prisma.doctorClinic.create({
       data: {
         doctorId,
         clinicId,
@@ -51,6 +61,17 @@ export class DoctorClinicsService {
         },
       },
     });
+    // Set user's clinicId so subsequent logins include clinicId in token
+    try {
+      await this.prisma.user.update({
+        where: { id: doctorId },
+        data: { clinicId },
+      });
+    } catch (e) {
+      // ignore errors updating user
+    }
+
+    return created;
   }
 
   async removeDoctor(doctorId: string, clinicId: string) {

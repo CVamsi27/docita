@@ -209,4 +209,62 @@ export class SubscriptionController {
   async getUpcomingInvoice(@Request() req: AuthRequest) {
     return this.billingService.getUpcomingInvoice(req.user.clinicId);
   }
+
+  // =========================================================================
+  // Auto-Pay & Payment Method Management
+  // =========================================================================
+
+  /**
+   * Save payment method (card/bank token from Razorpay)
+   */
+  @Post('billing/payment-method')
+  @UseGuards(JwtAuthGuard)
+  async savePaymentMethod(
+    @Request() req: AuthRequest,
+    @Body()
+    body: { razorpayTokenId: string; methodType: 'CARD' | 'BANK_TRANSFER' },
+  ) {
+    return this.billingService.savePaymentMethod(
+      req.user.clinicId,
+      body.razorpayTokenId,
+      body.methodType,
+    );
+  }
+
+  /**
+   * Get saved payment method
+   */
+  @Get('billing/payment-method')
+  @UseGuards(JwtAuthGuard)
+  async getPaymentMethod(@Request() req: AuthRequest) {
+    return this.billingService.getPaymentMethod(req.user.clinicId);
+  }
+
+  /**
+   * Enable/disable auto-pay
+   */
+  @Post('billing/auto-pay')
+  @UseGuards(JwtAuthGuard)
+  async setAutoPay(
+    @Request() req: AuthRequest,
+    @Body() body: { enabled: boolean },
+  ) {
+    return this.billingService.setAutoPay(req.user.clinicId, body.enabled);
+  }
+
+  /**
+   * Make one-time payment
+   */
+  @Post('billing/make-payment')
+  @UseGuards(JwtAuthGuard)
+  async makePayment(
+    @Request() req: AuthRequest,
+    @Body() body: { amountCents: number; description?: string },
+  ) {
+    return this.billingService.createPaymentCheckout(
+      req.user.clinicId,
+      body.amountCents,
+      body.description,
+    );
+  }
 }

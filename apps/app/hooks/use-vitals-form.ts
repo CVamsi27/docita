@@ -10,7 +10,8 @@ interface UseVitalsFormProps {
 interface VitalsFormData {
   height: string;
   weight: string;
-  bloodPressure: string;
+  systolicBP: string;
+  diastolicBP: string;
   pulse: string;
   respiratoryRate: string;
   temperature: string;
@@ -30,7 +31,8 @@ export function useVitalsForm({
   const [formData, setFormData] = useState<VitalsFormData>({
     height: "",
     weight: "",
-    bloodPressure: "",
+    systolicBP: "",
+    diastolicBP: "",
     pulse: "",
     respiratoryRate: "",
     temperature: "",
@@ -44,10 +46,25 @@ export function useVitalsForm({
   useEffect(() => {
     if (appointment?.vitalSign) {
       const vitals = appointment.vitalSign;
+
+      // Handle legacy BP vs structured BP
+      let sys = vitals.systolicBP?.toString() || "";
+      let dia = vitals.diastolicBP?.toString() || "";
+
+      // Fallback to parsing legacy string if structured is empty
+      if ((!sys || !dia) && vitals.bloodPressure) {
+        const parts = vitals.bloodPressure.split("/");
+        if (parts.length === 2) {
+          if (!sys) sys = parts[0] || "";
+          if (!dia) dia = parts[1] || "";
+        }
+      }
+
       setFormData({
         height: vitals.height?.toString() || "",
         weight: vitals.weight?.toString() || "",
-        bloodPressure: vitals.bloodPressure || "",
+        systolicBP: sys,
+        diastolicBP: dia,
         pulse: vitals.pulse?.toString() || "",
         respiratoryRate: vitals.respiratoryRate?.toString() || "",
         temperature: vitals.temperature?.toString() || "",
@@ -67,10 +84,25 @@ export function useVitalsForm({
     e.preventDefault();
 
     try {
+      const systolic = formData.systolicBP
+        ? parseInt(formData.systolicBP)
+        : undefined;
+      const diastolic = formData.diastolicBP
+        ? parseInt(formData.diastolicBP)
+        : undefined;
+
+      // Construct legacy string for backward compatibility
+      let legacyBP: string | undefined = undefined;
+      if (systolic && diastolic) {
+        legacyBP = `${systolic}/${diastolic}`;
+      }
+
       await saveVitals.mutateAsync({
         height: formData.height ? parseFloat(formData.height) : undefined,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
-        bloodPressure: formData.bloodPressure || undefined,
+        systolicBP: systolic,
+        diastolicBP: diastolic,
+        bloodPressure: legacyBP, // Keep synchronized
         pulse: formData.pulse ? parseInt(formData.pulse) : undefined,
         respiratoryRate: formData.respiratoryRate
           ? parseInt(formData.respiratoryRate)
@@ -78,7 +110,7 @@ export function useVitalsForm({
         temperature: formData.temperature
           ? parseFloat(formData.temperature)
           : undefined,
-        spo2: formData.spo2 ? parseFloat(formData.spo2) : undefined,
+        spo2: formData.spo2 ? parseInt(formData.spo2) : undefined, // Changed to Int based on schema
         painScore: formData.painScore
           ? parseInt(formData.painScore)
           : undefined,

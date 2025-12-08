@@ -9,8 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
+import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import {
   Tabs,
   TabsContent,
@@ -185,86 +185,112 @@ export function FhirExportDialog({
     label,
     count,
     color,
+    bgColor,
   }: {
     icon: React.ElementType;
     label: string;
     count: number;
     color: string;
+    bgColor: string;
   }) => (
-    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-      <Icon className={`h-4 w-4 ${color}`} />
-      <span className="text-sm">{label}</span>
-      <Badge variant="secondary" className="ml-auto">
-        {count}
-      </Badge>
-    </div>
+    <Card className="border-none shadow-sm bg-muted/20">
+      <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
+        <div className={`p-2 rounded-full ${bgColor}`}>
+          <Icon className={`h-5 w-5 ${color}`} />
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">{count}</div>
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            {label}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant="outline" size="sm">
-            <FileJson className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" className="gap-2">
+            <FileJson className="h-4 w-4" />
             Export FHIR
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileJson className="h-5 w-5 text-primary" />
-            FHIR R4 Export - {patientName}
-          </DialogTitle>
-          <DialogDescription>
-            Export patient data in FHIR R4 format for health information
-            exchange and interoperability.
-          </DialogDescription>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <FileJson className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl">FHIR R4 Export</DialogTitle>
+              <DialogDescription className="text-base">
+                Export clinical data for {patientName}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading FHIR resources...</p>
+          <div className="flex flex-col items-center justify-center py-16 space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full" />
+              <div className="relative p-4 bg-background rounded-full border shadow-sm">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="font-medium">Generating FHIR Bundle</p>
+              <p className="text-sm text-muted-foreground">
+                Collecting clinical resources...
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <ResourceCount
                 icon={User}
                 label="Patient"
                 count={resources.patient ? 1 : 0}
-                color="text-blue-500"
+                color="text-blue-600"
+                bgColor="bg-blue-100 dark:bg-blue-900/30"
               />
               <ResourceCount
                 icon={Activity}
                 label="Vitals"
                 count={resources.observations.length}
-                color="text-green-500"
+                color="text-green-600"
+                bgColor="bg-green-100 dark:bg-green-900/30"
               />
               <ResourceCount
                 icon={Pill}
-                label="Medications"
+                label="Meds"
                 count={resources.medications.length}
-                color="text-purple-500"
+                color="text-purple-600"
+                bgColor="bg-purple-100 dark:bg-purple-900/30"
               />
               <ResourceCount
                 icon={Stethoscope}
                 label="Conditions"
                 count={resources.conditions.length}
-                color="text-orange-500"
+                color="text-orange-600"
+                bgColor="bg-orange-100 dark:bg-orange-900/30"
               />
               <ResourceCount
                 icon={AlertTriangle}
                 label="Allergies"
                 count={resources.allergies.length}
-                color="text-red-500"
+                color="text-red-600"
+                bgColor="bg-red-100 dark:bg-red-900/30"
               />
             </div>
 
             {/* Export Actions */}
-            <div className="flex gap-2 p-3 rounded-lg bg-muted/50 border">
+            <div className="flex gap-2 p-3 rounded-lg bg-muted/30 border">
               <Button
                 onClick={() =>
                   bundle &&
@@ -299,7 +325,7 @@ export function FhirExportDialog({
 
             {/* Resource Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-6 mb-4">
                 <TabsTrigger value="bundle">Bundle</TabsTrigger>
                 <TabsTrigger value="patient">Patient</TabsTrigger>
                 <TabsTrigger value="observations">Vitals</TabsTrigger>
@@ -308,7 +334,7 @@ export function FhirExportDialog({
                 <TabsTrigger value="allergies">Allergies</TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="h-[400px] mt-4 rounded-lg border">
+              <ScrollArea className="h-[350px] rounded-lg border bg-muted/10">
                 <TabsContent value="bundle" className="m-0 p-4">
                   {bundle ? (
                     <pre className="text-xs font-mono whitespace-pre-wrap">

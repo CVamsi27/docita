@@ -599,6 +599,41 @@ export const patientTagSchema = z.object({
 });
 export type PatientTag = z.infer<typeof patientTagSchema>;
 
+// Isolation Status
+export const isolationStatusSchema = z.enum([
+  "NONE",
+  "CONTACT",
+  "DROPLET",
+  "AIRBORNE",
+  "CONTACT_Droplet",
+  "PROTECTIVE",
+]);
+export type IsolationStatus = z.infer<typeof isolationStatusSchema>;
+
+export const ISOLATION_STATUS_LABELS: Record<IsolationStatus, string> = {
+  NONE: "Standard Precautions",
+  CONTACT: "Contact Isolation",
+  DROPLET: "Droplet Isolation",
+  AIRBORNE: "Airborne Isolation",
+  CONTACT_Droplet: "Contact & Droplet",
+  PROTECTIVE: "Protective (Neutropenic)",
+};
+
+// Comprehensive Vitals Schema
+export const comprehensiveVitalsSchema = z.object({
+  systolicBP: z.number().min(0).max(300).optional(),
+  diastolicBP: z.number().min(0).max(200).optional(),
+  heartRate: z.number().min(0).max(300).optional(),
+  temperature: z.number().min(30).max(45).optional(), // Celsius default
+  temperatureUnit: z.enum(["C", "F"]).default("C"),
+  oxygenSaturation: z.number().min(0).max(100).optional(),
+  respiratoryRate: z.number().min(0).max(100).optional(),
+  painScore: z.number().min(0).max(10).optional(),
+  bloodGlucose: z.number().optional(), // mg/dL
+  consciousness: z.enum(["ALERT", "VERBAL", "PAIN", "UNRESPONSIVE"]).optional(),
+});
+export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
+
 export const patientSchema = z.object({
   id: z.string().optional(),
   mrn: z.string().optional(), // Medical Record Number
@@ -621,6 +656,15 @@ export const patientSchema = z.object({
   ethnicity: z.string().optional(),
   preferredLanguage: z.string().optional(),
   maritalStatus: z.string().optional(),
+
+  // Hospital Safety
+  isolationStatus: isolationStatusSchema.default("NONE"),
+  fallRisk: z.boolean().default(false),
+
+  // Insurance Information
+  insuranceProvider: z.string().optional(),
+  insurancePolicyNumber: z.string().optional(),
+  insuranceGroupNumber: z.string().optional(),
 
   // Emergency Contact
   emergencyContactName: z.string().optional(),

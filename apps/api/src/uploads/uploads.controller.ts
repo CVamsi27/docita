@@ -14,7 +14,7 @@ import { extname } from 'path';
 
 @Controller('uploads')
 export class UploadsController {
-  constructor(private readonly uploadsService: UploadsService) { }
+  constructor(private readonly uploadsService: UploadsService) {}
 
   @Post('session')
   async createSession() {

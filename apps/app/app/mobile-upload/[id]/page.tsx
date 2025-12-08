@@ -87,7 +87,9 @@ export default function MobileUploadPage() {
           } else {
             // Response ok but session not updated properly
             console.error("Unexpected response:", data);
-            alert("Upload completed but session update may have failed. Please try again.");
+            alert(
+              "Upload completed but session update may have failed. Please try again.",
+            );
           }
         } catch {
           // If we can't parse response, assume success since response.ok was true
@@ -131,13 +133,13 @@ export default function MobileUploadPage() {
   // Success State
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center space-y-6">
             {/* Success Icon */}
             <div className="relative mx-auto w-24 h-24">
               <div className="absolute inset-0 bg-green-100 dark:bg-green-900/30 rounded-full animate-ping opacity-20" />
-              <div className="relative bg-gradient-to-br from-green-400 to-green-600 w-24 h-24 rounded-full flex items-center justify-center shadow-lg shadow-green-500/25">
+              <div className="relative bg-linear-to-br from-green-400 to-green-600 w-24 h-24 rounded-full flex items-center justify-center shadow-lg shadow-green-500/25">
                 <CheckCircle2 className="h-12 w-12 text-white" />
               </div>
             </div>
@@ -166,12 +168,12 @@ export default function MobileUploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-background">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white dark:from-slate-950 dark:to-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-background/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-sm mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <Camera className="h-4 w-4 text-white" />
             </div>
             <span className="font-semibold text-lg">Docita Scan</span>
@@ -207,7 +209,7 @@ export default function MobileUploadPage() {
             >
               {previewUrl ? (
                 /* Preview Mode */
-                <div className="relative aspect-[4/3]">
+                <div className="relative aspect-4/3">
                   <Image
                     src={previewUrl}
                     alt="Preview"
@@ -233,7 +235,7 @@ export default function MobileUploadPage() {
               ) : (
                 /* Upload Mode */
                 <label className="block cursor-pointer">
-                  <div className="aspect-[4/3] flex flex-col items-center justify-center p-6 space-y-4">
+                  <div className="aspect-4/3 flex flex-col items-center justify-center p-6 space-y-4">
                     <div
                       className={`p-4 rounded-2xl transition-colors ${
                         dragActive
@@ -279,7 +281,7 @@ export default function MobileUploadPage() {
         {/* File Info */}
         {file && (
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
               <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
@@ -295,7 +297,7 @@ export default function MobileUploadPage() {
         <Button
           className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${
             file && !uploading
-              ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/25"
+              ? "bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/25"
               : ""
           }`}
           onClick={handleUpload}

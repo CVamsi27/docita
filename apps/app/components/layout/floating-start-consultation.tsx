@@ -54,7 +54,7 @@ export function FloatingStartConsultation() {
       : "Patient";
 
     return (
-      <div className="fixed bottom-6 right-6 z-50 print:hidden">
+      <div className="fixed bottom-6 right-6 z-40 print:hidden">
         <Button
           size="lg"
           className="h-14 gap-3 rounded-full shadow-2xl shadow-primary/50 hover:shadow-primary/70 transition-all hover:scale-105"

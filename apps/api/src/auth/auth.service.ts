@@ -22,6 +22,12 @@ interface RegisterData {
   clinicId?: string;
 }
 
+interface ChangePasswordData {
+  userId: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -80,5 +86,35 @@ export class AuthService {
     });
     // Return login response to automatically log the user in after registration
     return this.login(user);
+  }
+
+  async changePassword(data: ChangePasswordData) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(
+      data.currentPassword,
+      user.password,
+    );
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+    // Update password
+    await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 }

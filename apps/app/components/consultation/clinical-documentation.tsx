@@ -28,14 +28,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
-import {
   Activity,
-  Pill,
-  Receipt,
   FileText,
   Plus,
   X,
@@ -48,16 +41,13 @@ import {
   PanelLeft,
   AlertTriangle,
   Heart,
-  Users,
-  Cigarette,
-  Scissors,
-  ChevronDown,
-  ChevronUp,
-  Clock,
   Info,
-  History,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
+import {
+  PatientMedicalHistory,
+  PatientWithHistory,
+} from "@/components/patients/patient-medical-history";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
 import { usePrescriptionForm } from "@/hooks/use-prescription-form";
 import { useInvoiceForm } from "@/hooks/use-invoice-form";
@@ -68,6 +58,10 @@ import { CptCodeSearch } from "@/components/medical-coding/cpt-code-search";
 import { ProcedureList } from "@/components/medical-coding/procedure-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
 import { ClinicalExamination } from "@/components/consultation/clinical-examination";
+import {
+  QuickConditions,
+  QUICK_CONDITIONS,
+} from "@/components/ui/quick-conditions";
 import type {
   PrescriptionTemplate,
   Medication,
@@ -75,99 +69,11 @@ import type {
   IcdCode,
   Procedure,
   CptCode,
-  Patient,
 } from "@workspace/types";
 import { ROUTE_OPTIONS } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { api } from "@/lib/api-client";
 import { useFormOptions } from "@/lib/app-config-context";
-
-// Define medical history types locally
-type AllergySeverity = "MILD" | "MODERATE" | "SEVERE" | "LIFE_THREATENING";
-type ConditionStatus = "ACTIVE" | "RESOLVED" | "CHRONIC" | "IN_REMISSION";
-type ConditionType = "ACUTE" | "CHRONIC" | "CONGENITAL" | "ACQUIRED";
-
-interface PatientMedicalCondition {
-  id: string;
-  patientId: string;
-  conditionName: string;
-  icdCode?: string;
-  conditionType: ConditionType;
-  status: ConditionStatus;
-  diagnosedDate?: string;
-  resolvedDate?: string;
-  severity?: string;
-  notes?: string;
-  diagnosedBy?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PatientAllergy {
-  id: string;
-  patientId: string;
-  allergen: string;
-  allergyType: string;
-  severity: AllergySeverity;
-  reaction?: string;
-  notes?: string;
-  diagnosedDate?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PatientFamilyHistory {
-  id: string;
-  patientId: string;
-  relationship: string;
-  condition: string;
-  ageAtOnset?: number;
-  isAlive?: boolean;
-  ageAtDeath?: number;
-  causeOfDeath?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PatientSocialHistory {
-  id: string;
-  patientId: string;
-  smokingStatus?: string;
-  alcoholUse?: string;
-  drugUse?: string;
-  occupation?: string;
-  exerciseFrequency?: string;
-  diet?: string;
-  maritalStatus?: string;
-  livingArrangement?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PatientSurgicalHistory {
-  id: string;
-  patientId: string;
-  procedureName: string;
-  procedureDate?: string;
-  hospital?: string;
-  surgeon?: string;
-  complications?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Extend Patient type with medical history
-interface PatientWithHistory extends Patient {
-  medicalConditions?: PatientMedicalCondition[];
-  patientAllergies?: PatientAllergy[];
-  familyHistory?: PatientFamilyHistory[];
-  socialHistory?: PatientSocialHistory[];
-  surgicalHistory?: PatientSurgicalHistory[];
-}
 
 // Define types locally since they may not be exported yet
 interface GeneralExamination {
@@ -271,10 +177,7 @@ type TabValue =
   | "history"
   | "examination"
   | "diagnosis"
-  | "treatment"
-  | "vitals"
-  | "prescription"
-  | "invoice";
+  | "treatment";
 
 // Clinical documentation state
 interface ClinicalNoteData {
@@ -311,15 +214,6 @@ export function ClinicalDocumentation({
 }: ClinicalDocumentationProps) {
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
   const [isSaving, setIsSaving] = useState(false);
-  const [expandedHistorySections, setExpandedHistorySections] = useState<
-    Record<string, boolean>
-  >({
-    conditions: true,
-    allergies: true,
-    surgeries: false,
-    family: false,
-    social: false,
-  });
 
   // Get form options from config
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
@@ -327,14 +221,6 @@ export function ClinicalDocumentation({
   // Fetch patient data with full medical history
   const { data: patientData } = apiHooks.usePatient(patientId) as {
     data: PatientWithHistory | undefined;
-  };
-
-  // Toggle history section
-  const toggleHistorySection = (section: string) => {
-    setExpandedHistorySections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
   };
 
   // Clinical Note State
@@ -687,1544 +573,1331 @@ export function ClinicalDocumentation({
   } = useInvoiceForm({ appointmentId, patientId });
 
   const handleGlobalSave = () => {
-    if (activeTab === "vitals") {
-      // Trigger vitals submit
-      const form = document.querySelector("form");
-      if (form) form.requestSubmit();
-    } else if (activeTab === "prescription") {
-      // Trigger prescription submit
-      const form = document.querySelector("form");
-      if (form) form.requestSubmit();
-    } else if (activeTab === "invoice") {
-      // Trigger invoice submit
-      const form = document.querySelector("form");
-      if (form) form.requestSubmit();
-    } else {
-      // Save clinical note
-      saveClinicalNote();
-    }
+    // Save clinical note
+    saveClinicalNote();
   };
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(v) => setActiveTab(v as TabValue)}
-      className="flex-1 flex flex-col h-full overflow-x-hidden"
-    >
-      {/* Sticky Header with Quick Vitals and Save */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-2">
-          {/* Quick Vitals Strip */}
-          <div className="flex items-center gap-4 text-sm">
-            {onToggleFocus && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggleFocus}
-                className="h-8 w-8 p-0 mr-2 md:hidden"
-              >
-                {isFocusMode ? (
-                  <PanelLeft className="h-4 w-4" />
-                ) : (
-                  <PanelLeft className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <HeartPulse className="h-4 w-4 text-red-500" />
-              <span className="font-medium text-foreground">
-                {vitalsData.bloodPressure || "--/--"}
-              </span>
-              <span className="text-xs">BP</span>
-            </div>
-            <div className="h-4 w-px bg-border" />
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Activity className="h-4 w-4 text-blue-500" />
-              <span className="font-medium text-foreground">
-                {vitalsData.pulse || "--"}
-              </span>
-              <span className="text-xs">bpm</span>
-            </div>
-            <div className="h-4 w-px bg-border" />
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {vitalsData.temperature || "--"}
-              </span>
-              <span className="text-xs">°F</span>
-            </div>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Allergy Alert Banner */}
+      {patientData?.allergies && (
+        <div className="mx-1 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-800 animate-in fade-in slide-in-from-top-2 shadow-sm">
+          <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" />
+          <div className="flex-1">
+            <span className="font-bold">ALLERGY ALERT:</span>
+            <span className="ml-2 font-medium">{patientData.allergies}</span>
           </div>
-
-          {/* Sticky Save Button */}
-          <Button
-            onClick={handleGlobalSave}
-            disabled={isSaving || vitalsLoading || rxLoading || invLoading}
-            size="sm"
-            className="gap-2 shadow-sm"
-          >
-            {isSaving || vitalsLoading || rxLoading || invLoading ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="h-4 w-4" /> Save
-              </>
-            )}
-          </Button>
         </div>
-      </div>
+      )}
 
-      <div className="px-6 bg-muted/5 overflow-x-auto">
-        <TabsList className="h-12 w-full justify-start bg-transparent p-0 gap-4 flex-nowrap min-w-max">
-          <TabsTrigger
-            value="chief-complaint"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <ClipboardList className="h-4 w-4" />
-              <span>Chief Complaint</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="history"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <FileText className="h-4 w-4" />
-              <span>History</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="vitals"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <HeartPulse className="h-4 w-4" />
-              <span>Vitals</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="examination"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <Stethoscope className="h-4 w-4" />
-              <span>Examination</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="diagnosis"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <Activity className="h-4 w-4" />
-              <span>Diagnosis</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="treatment"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <FlaskConical className="h-4 w-4" />
-              <span>Investigations & Plan</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="prescription"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <Pill className="h-4 w-4" />
-              <span>Prescription</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="invoice"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-          >
-            <div className="flex items-center gap-2 py-2">
-              <Receipt className="h-4 w-4" />
-              <span>Invoice</span>
-            </div>
-          </TabsTrigger>
-        </TabsList>
-      </div>
-
-      <div className="p-6 flex-1 overflow-y-auto overflow-x-hidden min-h-[400px]">
-        {/* Chief Complaint Tab */}
-        <TabsContent value="chief-complaint" className="mt-0 h-full space-y-4">
-          <div className="h-full flex flex-col">
-            <div className="flex-1 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    Chief Complaint
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    The primary reason for the patient&apos;s visit in their own
-                    words
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="e.g., Fever and cough for 3 days, headache since yesterday..."
-                    value={clinicalNote.chiefComplaint}
-                    onChange={(e) =>
-                      updateClinicalNote("chiefComplaint", e.target.value)
-                    }
-                    className="min-h-[150px]"
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Clinical Template Selection */}
-              <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg border border-border/50">
-                <div className="flex-1">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-1.5 block">
-                    Clinical Template (Optional)
-                  </Label>
-                  <SearchableSelect
-                    options={templateOptions}
-                    value={selectedTemplateId}
-                    onValueChange={handleTemplateChange}
-                    placeholder="Select a speciality template..."
-                    searchPlaceholder="Search templates..."
-                    emptyMessage="No templates found."
-                    className="bg-background"
-                  />
-                </div>
-                {selectedTemplateId && selectedTemplateId !== "none" && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground pt-6">
-                    <Badge className="bg-primary/10 text-primary">
-                      {
-                        templates.find((t) => t.id === selectedTemplateId)
-                          ?.speciality
-                      }
-                    </Badge>
-                  </div>
-                )}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as TabValue)}
+        className="flex-1 flex flex-col h-full overflow-x-hidden"
+      >
+        {/* Sticky Header with Quick Vitals and Save */}
+        <div className="sticky top-0 z-10 bg-background border-b border-border">
+          <div className="flex items-center justify-between px-6 py-2">
+            {/* Quick Vitals Strip */}
+            <div className="flex items-center gap-4 text-sm">
+              {onToggleFocus && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleFocus}
+                  className="h-8 w-8 p-0 mr-2 md:hidden"
+                >
+                  {isFocusMode ? (
+                    <PanelLeft className="h-4 w-4" />
+                  ) : (
+                    <PanelLeft className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <HeartPulse className="h-4 w-4 text-red-500" />
+                <span className="font-medium text-foreground">
+                  {vitalsData.systolicBP && vitalsData.diastolicBP
+                    ? `${vitalsData.systolicBP}/${vitalsData.diastolicBP}`
+                    : "--/--"}
+                </span>
+                <span className="text-xs">BP</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Activity className="h-4 w-4 text-blue-500" />
+                <span className="font-medium text-foreground">
+                  {vitalsData.pulse || "--"}
+                </span>
+                <span className="text-xs">bpm</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {vitalsData.temperature || "--"}
+                </span>
+                <span className="text-xs">°F</span>
               </div>
             </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button
-                onClick={saveClinicalNote}
-                disabled={isSaving}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save & Continue
-                  </>
-                )}
-              </Button>
-            </div>
+
+            {/* Sticky Save Button */}
+            <Button
+              onClick={handleGlobalSave}
+              disabled={isSaving || vitalsLoading || rxLoading || invLoading}
+              size="sm"
+              className="gap-2 shadow-sm"
+            >
+              {isSaving || vitalsLoading || rxLoading || invLoading ? (
+                "Saving..."
+              ) : (
+                <>
+                  <Save className="h-4 w-4" /> Save
+                </>
+              )}
+            </Button>
           </div>
-        </TabsContent>
+        </div>
 
-        {/* History Tab */}
-        <TabsContent value="history" className="mt-0 h-full space-y-4">
-          <div className="h-full flex flex-col">
-            <div className="flex-1 space-y-6 overflow-y-auto">
-              {/* Patient Medical History Summary Banner */}
-              {patientData && (
-                <Card className="border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <History className="h-5 w-5 text-blue-500" />
-                        Patient Medical History
-                      </CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        From patient record
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      Pre-populated from {patientData.firstName}{" "}
-                      {patientData.lastName}&apos;s medical record. Review and
-                      update as needed.
-                    </CardDescription>
+        <div className="px-6 bg-muted/5 overflow-x-auto">
+          <TabsList className="h-12 w-full justify-start bg-transparent p-0 gap-4 flex-nowrap min-w-max">
+            <TabsTrigger
+              value="chief-complaint"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+            >
+              <div className="flex items-center gap-2 py-2">
+                <ClipboardList className="h-4 w-4" />
+                <span>Chief Complaint</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+            >
+              <div className="flex items-center gap-2 py-2">
+                <FileText className="h-4 w-4" />
+                <span>History</span>
+              </div>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="examination"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+            >
+              <div className="flex items-center gap-2 py-2">
+                <Stethoscope className="h-4 w-4" />
+                <span>Examination</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="diagnosis"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+            >
+              <div className="flex items-center gap-2 py-2">
+                <Activity className="h-4 w-4" />
+                <span>Diagnosis</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="treatment"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+            >
+              <div className="flex items-center gap-2 py-2">
+                <FlaskConical className="h-4 w-4" />
+                <span>Investigations & Plan</span>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <div className="p-6 flex-1 overflow-y-auto overflow-x-hidden min-h-[400px]">
+          {/* Chief Complaint Tab */}
+          <TabsContent
+            value="chief-complaint"
+            className="mt-0 h-full space-y-4"
+          >
+            <div className="h-full flex flex-col">
+              <div className="flex-1 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-primary" />
+                      Chief Complaint
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      The primary reason for the patient&apos;s visit in their
+                      own words
+                    </p>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Known Allergies Alert */}
-                    {patientData.patientAllergies &&
-                      patientData.patientAllergies.length > 0 && (
-                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-medium mb-2">
-                            <AlertTriangle className="h-4 w-4" />
-                            Known Allergies (
-                            {patientData.patientAllergies.length})
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {patientData.patientAllergies.map((allergy) => (
-                              <Badge
-                                key={allergy.id}
-                                variant={
-                                  allergy.severity === "LIFE_THREATENING" ||
-                                  allergy.severity === "SEVERE"
-                                    ? "destructive"
-                                    : allergy.severity === "MODERATE"
-                                      ? "default"
-                                      : "secondary"
-                                }
-                                className="text-xs"
-                              >
-                                {allergy.allergen}
-                                {allergy.severity && (
-                                  <span className="ml-1 opacity-75">
-                                    (
-                                    {allergy.severity
-                                      .toLowerCase()
-                                      .replace("_", " ")}
-                                    )
-                                  </span>
-                                )}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Active Medical Conditions */}
-                    <Collapsible
-                      open={expandedHistorySections.conditions}
-                      onOpenChange={() => toggleHistorySection("conditions")}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Heart className="h-4 w-4 text-primary" />
-                            <span className="font-medium">
-                              Medical Conditions
-                            </span>
-                            {patientData.medicalConditions &&
-                              patientData.medicalConditions.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {patientData.medicalConditions.length}
-                                </Badge>
-                              )}
-                          </div>
-                          {expandedHistorySections.conditions ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pt-2">
-                        {patientData.medicalConditions &&
-                        patientData.medicalConditions.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
-                            {patientData.medicalConditions.map((condition) => (
-                              <div
-                                key={condition.id}
-                                className="p-2 rounded border bg-card text-sm"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">
-                                    {condition.conditionName}
-                                  </span>
-                                  <Badge
-                                    variant={
-                                      condition.status === "ACTIVE"
-                                        ? "destructive"
-                                        : condition.status === "CHRONIC"
-                                          ? "default"
-                                          : "secondary"
-                                    }
-                                    className="text-xs"
-                                  >
-                                    {condition.status}
-                                  </Badge>
-                                </div>
-                                {condition.icdCode && (
-                                  <span className="text-xs text-muted-foreground">
-                                    ICD: {condition.icdCode}
-                                  </span>
-                                )}
-                                {condition.diagnosedDate && (
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    Since:{" "}
-                                    {new Date(
-                                      condition.diagnosedDate,
-                                    ).toLocaleDateString()}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pl-6">
-                            No medical conditions recorded
-                          </p>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {/* Surgical History */}
-                    <Collapsible
-                      open={expandedHistorySections.surgeries}
-                      onOpenChange={() => toggleHistorySection("surgeries")}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Scissors className="h-4 w-4 text-orange-500" />
-                            <span className="font-medium">
-                              Surgical History
-                            </span>
-                            {patientData.surgicalHistory &&
-                              patientData.surgicalHistory.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {patientData.surgicalHistory.length}
-                                </Badge>
-                              )}
-                          </div>
-                          {expandedHistorySections.surgeries ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pt-2">
-                        {patientData.surgicalHistory &&
-                        patientData.surgicalHistory.length > 0 ? (
-                          <div className="space-y-2 pl-6">
-                            {patientData.surgicalHistory.map((surgery) => (
-                              <div
-                                key={surgery.id}
-                                className="p-2 rounded border bg-card text-sm"
-                              >
-                                <div className="font-medium">
-                                  {surgery.procedureName}
-                                </div>
-                                <div className="text-xs text-muted-foreground flex gap-3">
-                                  {surgery.procedureDate && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {new Date(
-                                        surgery.procedureDate,
-                                      ).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                  {surgery.hospital && (
-                                    <span>{surgery.hospital}</span>
-                                  )}
-                                </div>
-                                {surgery.complications && (
-                                  <div className="text-xs text-orange-600 mt-1">
-                                    Complications: {surgery.complications}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pl-6">
-                            No surgical history recorded
-                          </p>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {/* Family History */}
-                    <Collapsible
-                      open={expandedHistorySections.family}
-                      onOpenChange={() => toggleHistorySection("family")}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-purple-500" />
-                            <span className="font-medium">Family History</span>
-                            {patientData.familyHistory &&
-                              patientData.familyHistory.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {patientData.familyHistory.length}
-                                </Badge>
-                              )}
-                          </div>
-                          {expandedHistorySections.family ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pt-2">
-                        {patientData.familyHistory &&
-                        patientData.familyHistory.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
-                            {patientData.familyHistory.map((history) => (
-                              <div
-                                key={history.id}
-                                className="p-2 rounded border bg-card text-sm"
-                              >
-                                <div className="font-medium">
-                                  {history.condition}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {history.relationship}
-                                  {history.ageAtOnset &&
-                                    ` (onset at ${history.ageAtOnset} years)`}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pl-6">
-                            No family history recorded
-                          </p>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {/* Social History */}
-                    <Collapsible
-                      open={expandedHistorySections.social}
-                      onOpenChange={() => toggleHistorySection("social")}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Cigarette className="h-4 w-4 text-gray-500" />
-                            <span className="font-medium">Social History</span>
-                            {patientData.socialHistory &&
-                              patientData.socialHistory.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Recorded
-                                </Badge>
-                              )}
-                          </div>
-                          {expandedHistorySections.social ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pt-2">
-                        {patientData.socialHistory &&
-                        patientData.socialHistory.length > 0 ? (
-                          <div className="pl-6 space-y-2">
-                            {patientData.socialHistory.map((social) => (
-                              <div
-                                key={social.id}
-                                className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm"
-                              >
-                                {social.smokingStatus && (
-                                  <div className="p-2 rounded border bg-card">
-                                    <div className="text-xs text-muted-foreground">
-                                      Smoking
-                                    </div>
-                                    <div className="font-medium">
-                                      {social.smokingStatus}
-                                    </div>
-                                  </div>
-                                )}
-                                {social.alcoholUse && (
-                                  <div className="p-2 rounded border bg-card">
-                                    <div className="text-xs text-muted-foreground">
-                                      Alcohol
-                                    </div>
-                                    <div className="font-medium">
-                                      {social.alcoholUse}
-                                    </div>
-                                  </div>
-                                )}
-                                {social.occupation && (
-                                  <div className="p-2 rounded border bg-card">
-                                    <div className="text-xs text-muted-foreground">
-                                      Occupation
-                                    </div>
-                                    <div className="font-medium">
-                                      {social.occupation}
-                                    </div>
-                                  </div>
-                                )}
-                                {social.exerciseFrequency && (
-                                  <div className="p-2 rounded border bg-card">
-                                    <div className="text-xs text-muted-foreground">
-                                      Exercise
-                                    </div>
-                                    <div className="font-medium">
-                                      {social.exerciseFrequency}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pl-6">
-                            No social history recorded
-                          </p>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
+                  <CardContent>
+                    <Textarea
+                      placeholder="e.g., Fever and cough for 3 days, headache since yesterday..."
+                      value={clinicalNote.chiefComplaint}
+                      onChange={(e) =>
+                        updateClinicalNote("chiefComplaint", e.target.value)
+                      }
+                      className="min-h-[150px]"
+                    />
                   </CardContent>
                 </Card>
-              )}
 
-              {/* History of Present Illness */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    History of Present Illness (HPI)
-                  </CardTitle>
-                  <CardDescription>
-                    Detailed chronological description of the chief complaint
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Duration, onset, location, character, aggravating/relieving factors, associated symptoms..."
-                    value={clinicalNote.historyOfPresentIllness}
-                    onChange={(e) =>
-                      updateClinicalNote(
-                        "historyOfPresentIllness",
-                        e.target.value,
-                      )
-                    }
-                    className="min-h-[120px]"
-                  />
-                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
-                    <Info className="h-3 w-3 mt-0.5" />
-                    <span>
-                      Use OPQRST format: Onset, Provocation/Palliation, Quality,
-                      Region/Radiation, Severity, Timing
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Past Medical History - Free text for additional notes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Past Medical History Notes
-                  </CardTitle>
-                  <CardDescription>
-                    Additional notes about previous illnesses, medications, or
-                    relevant history not captured in structured data
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Additional medical history notes, current medications, previous hospitalizations..."
-                    value={clinicalNote.pastMedicalHistory}
-                    onChange={(e) =>
-                      updateClinicalNote("pastMedicalHistory", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Review of Systems */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-primary" />
-                    Review of Systems (ROS)
-                  </CardTitle>
-                  <CardDescription>
-                    Systematic review of body systems
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
-                    value={clinicalNote.reviewOfSystems}
-                    onChange={(e) =>
-                      updateClinicalNote("reviewOfSystems", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                  <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
-                    <p className="text-xs text-muted-foreground font-medium mb-2">
-                      Quick ROS Checklist:
+                {/* Quick Conditions Shortcuts */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-primary" />
+                      Quick Add to History
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Quickly add common medical conditions to patient history
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
-                      <span>• Constitutional</span>
-                      <span>• Eyes/Vision</span>
-                      <span>• ENT</span>
-                      <span>• Cardiovascular</span>
-                      <span>• Respiratory</span>
-                      <span>• GI</span>
-                      <span>• Genitourinary</span>
-                      <span>• Musculoskeletal</span>
-                      <span>• Skin</span>
-                      <span>• Neurological</span>
-                      <span>• Psychiatric</span>
-                      <span>• Endocrine</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button
-                onClick={saveClinicalNote}
-                disabled={isSaving}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save & Continue
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
+                  </CardHeader>
+                  <CardContent>
+                    <QuickConditions
+                      selectedConditions={[]}
+                      onSelect={(conditionId) => {
+                        const condition = QUICK_CONDITIONS.find(
+                          (c) => c.id === conditionId,
+                        );
+                        if (condition) {
+                          const newComplaint =
+                            clinicalNote.chiefComplaint +
+                            (clinicalNote.chiefComplaint ? ", " : "") +
+                            condition.label;
+                          updateClinicalNote("chiefComplaint", newComplaint);
+                          toast.success(
+                            `Added "${condition.label}" to chief complaint`,
+                          );
+                        }
+                      }}
+                      className="justify-start"
+                    />
+                  </CardContent>
+                </Card>
 
-        {/* Vitals Tab */}
-        <TabsContent value="vitals" className="mt-0 h-full space-y-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleVitalsSubmit(e);
-            }}
-            className="h-full flex flex-col"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" /> Physical Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="height">Height (cm)</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        step="0.1"
-                        placeholder="170"
-                        value={vitalsData.height}
-                        onChange={(e) => updateVitals("height", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weight">Weight (kg)</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        step="0.1"
-                        placeholder="70"
-                        value={vitalsData.weight}
-                        onChange={(e) => updateVitals("weight", e.target.value)}
-                      />
-                    </div>
+                {/* Clinical Template Selection */}
+                <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg border border-border/50">
+                  <div className="flex-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-1.5 block">
+                      Clinical Template (Optional)
+                    </Label>
+                    <SearchableSelect
+                      options={templateOptions}
+                      value={selectedTemplateId}
+                      onValueChange={handleTemplateChange}
+                      placeholder="Select a speciality template..."
+                      searchPlaceholder="Search templates..."
+                      emptyMessage="No templates found."
+                      className="bg-background"
+                    />
                   </div>
-                  {vitalsData.height && vitalsData.weight && (
-                    <div className="mt-4 p-3 bg-muted/20 rounded-lg">
-                      <span className="text-sm text-muted-foreground">
-                        BMI:{" "}
-                      </span>
-                      <span className="font-medium">
-                        {(
-                          parseFloat(vitalsData.weight) /
-                          Math.pow(parseFloat(vitalsData.height) / 100, 2)
-                        ).toFixed(1)}
-                      </span>
+                  {selectedTemplateId && selectedTemplateId !== "none" && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-6">
+                      <Badge className="bg-primary/10 text-primary">
+                        {
+                          templates.find((t) => t.id === selectedTemplateId)
+                            ?.speciality
+                        }
+                      </Badge>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  onClick={saveClinicalNote}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save & Continue
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <HeartPulse className="h-5 w-5 text-red-500" /> Vital Signs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="bp">Blood Pressure</Label>
-                      <Input
-                        id="bp"
-                        placeholder="120/80"
-                        value={vitalsData.bloodPressure}
-                        onChange={(e) =>
-                          updateVitals("bloodPressure", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="pulse">Pulse (bpm)</Label>
-                      <Input
-                        id="pulse"
-                        type="number"
-                        placeholder="72"
-                        value={vitalsData.pulse}
-                        onChange={(e) => updateVitals("pulse", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="rr">Respiratory Rate (/min)</Label>
-                      <Input
-                        id="rr"
-                        type="number"
-                        placeholder="16"
-                        value={vitalsData.respiratoryRate || ""}
-                        onChange={(e) =>
-                          updateVitals("respiratoryRate", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="temp">Temperature (°F)</Label>
-                      <Input
-                        id="temp"
-                        type="number"
-                        step="0.1"
-                        placeholder="98.6"
-                        value={vitalsData.temperature}
-                        onChange={(e) =>
-                          updateVitals("temperature", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="spo2">SpO2 (%)</Label>
-                      <Input
-                        id="spo2"
-                        type="number"
-                        placeholder="98"
-                        value={vitalsData.spo2}
-                        onChange={(e) => updateVitals("spo2", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="pain">Pain Score (0-10)</Label>
-                      <Input
-                        id="pain"
-                        type="number"
-                        min="0"
-                        max="10"
-                        placeholder="0"
-                        value={vitalsData.painScore || ""}
-                        onChange={(e) =>
-                          updateVitals("painScore", e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="flex justify-end pt-6 mt-auto">
-              <Button type="submit" disabled={vitalsLoading} className="gap-2">
-                {vitalsLoading ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Vitals
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </TabsContent>
-
-        {/* Examination Tab */}
-        <TabsContent value="examination" className="mt-0 h-full space-y-4">
-          <div className="h-full flex flex-col">
-            <div className="flex-1">
-              <ClinicalExamination
-                generalExamination={clinicalNote.generalExamination}
-                systemicExamination={clinicalNote.systemicExamination}
-                onGeneralExaminationChange={(data) =>
-                  updateClinicalNote("generalExamination", data)
-                }
-                onSystemicExaminationChange={(data) =>
-                  updateClinicalNote("systemicExamination", data)
-                }
-              />
-            </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button
-                onClick={saveClinicalNote}
-                disabled={isSaving}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Examination
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Diagnosis Tab */}
-        <TabsContent value="diagnosis" className="mt-0 h-full space-y-4">
-          <div className="h-full flex flex-col">
-            <div className="flex-1 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    Provisional Diagnosis
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Initial diagnosis based on history and examination
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Initial diagnosis before investigations..."
-                    value={clinicalNote.provisionalDiagnosis}
-                    onChange={(e) =>
-                      updateClinicalNote("provisionalDiagnosis", e.target.value)
-                    }
-                    className="min-h-[80px]"
+          {/* History Tab */}
+          <TabsContent value="history" className="mt-0 h-full space-y-4">
+            <div className="h-full flex flex-col">
+              <div className="flex-1 space-y-6 overflow-y-auto">
+                {patientData && (
+                  <PatientMedicalHistory
+                    patient={patientData}
+                    readOnly={false}
                   />
-                </CardContent>
-              </Card>
+                )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    Differential Diagnosis
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Other possible diagnoses to consider
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="List other possible diagnoses..."
-                    value={clinicalNote.differentialDiagnosis}
-                    onChange={(e) =>
-                      updateClinicalNote(
-                        "differentialDiagnosis",
-                        e.target.value,
-                      )
-                    }
-                    className="min-h-[80px]"
-                  />
-                </CardContent>
-              </Card>
+                {/* History of Present Illness */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-primary" />
+                      History of Present Illness (HPI)
+                    </CardTitle>
+                    <CardDescription>
+                      Detailed chronological description of the chief complaint
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Duration, onset, location, character, aggravating/relieving factors, associated symptoms..."
+                      value={clinicalNote.historyOfPresentIllness}
+                      onChange={(e) =>
+                        updateClinicalNote(
+                          "historyOfPresentIllness",
+                          e.target.value,
+                        )
+                      }
+                      className="min-h-[120px]"
+                    />
+                    <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                      <Info className="h-3 w-3 mt-0.5" />
+                      <span>
+                        Use OPQRST format: Onset, Provocation/Palliation,
+                        Quality, Region/Radiation, Severity, Timing
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* ICD-10 Coded Diagnoses */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        ICD-10 Coded Diagnoses
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Add standardized ICD-10 diagnosis codes
+                {/* Past Medical History - Free text for additional notes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Past Medical History Notes
+                    </CardTitle>
+                    <CardDescription>
+                      Additional notes about previous illnesses, medications, or
+                      relevant history not captured in structured data
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Additional medical history notes, current medications, previous hospitalizations..."
+                      value={clinicalNote.pastMedicalHistory}
+                      onChange={(e) =>
+                        updateClinicalNote("pastMedicalHistory", e.target.value)
+                      }
+                      className="min-h-[100px]"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Review of Systems */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Stethoscope className="h-5 w-5 text-primary" />
+                      Review of Systems (ROS)
+                    </CardTitle>
+                    <CardDescription>
+                      Systematic review of body systems
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
+                      value={clinicalNote.reviewOfSystems}
+                      onChange={(e) =>
+                        updateClinicalNote("reviewOfSystems", e.target.value)
+                      }
+                      className="min-h-[100px]"
+                    />
+                    <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
+                      <p className="text-xs text-muted-foreground font-medium mb-2">
+                        Quick ROS Checklist:
                       </p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
+                        <span>• Constitutional</span>
+                        <span>• Eyes/Vision</span>
+                        <span>• ENT</span>
+                        <span>• Cardiovascular</span>
+                        <span>• Respiratory</span>
+                        <span>• GI</span>
+                        <span>• Genitourinary</span>
+                        <span>• Musculoskeletal</span>
+                        <span>• Skin</span>
+                        <span>• Neurological</span>
+                        <span>• Psychiatric</span>
+                        <span>• Endocrine</span>
+                      </div>
                     </div>
-                    <div className="w-[300px]">
-                      <IcdCodeSearch onSelect={handleAddDiagnosis} />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <DiagnosisList
-                    diagnoses={diagnoses}
-                    onRemove={handleRemoveDiagnosis}
-                    onUpdateNotes={handleUpdateDiagnosisNote}
-                    onTogglePrimary={handleTogglePrimaryDiagnosis}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Clinical Impression</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Overall clinical impression and summary..."
-                    value={clinicalNote.clinicalImpression}
-                    onChange={(e) =>
-                      updateClinicalNote("clinicalImpression", e.target.value)
-                    }
-                    className="min-h-[80px]"
-                  />
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  onClick={saveClinicalNote}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save & Continue
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button
-                onClick={saveClinicalNote}
-                disabled={isSaving}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Diagnosis
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Investigations & Treatment Plan Tab */}
-        <TabsContent value="treatment" className="mt-0 h-full space-y-4">
-          <div className="h-full flex flex-col">
-            <div className="flex-1 space-y-6">
-              {/* Clinical Investigations */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <FlaskConical className="h-5 w-5 text-primary" />
-                        Clinical Investigations
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Order laboratory tests and imaging studies
-                      </p>
+          {/* Vitals Tab - Hospital Grade */}
+          <TabsContent value="vitals" className="mt-0 h-full space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleVitalsSubmit(e);
+              }}
+              className="h-full flex flex-col"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Vital Signs Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-primary" /> Vital Signs
+                    </CardTitle>
+                    <CardDescription>
+                      Enter comprehensive patient vitals.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Blood Pressure */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bp-sys">Systolic BP (mmHg)</Label>
+                        <Input
+                          id="bp-sys"
+                          type="number"
+                          placeholder="120"
+                          value={vitalsData.systolicBP}
+                          onChange={(e) =>
+                            updateVitals("systolicBP", e.target.value)
+                          }
+                          className={
+                            parseInt(vitalsData.systolicBP) > 140 ||
+                            parseInt(vitalsData.systolicBP) < 90
+                              ? "border-red-300 bg-red-50"
+                              : ""
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bp-dia">Diastolic BP (mmHg)</Label>
+                        <Input
+                          id="bp-dia"
+                          type="number"
+                          placeholder="80"
+                          value={vitalsData.diastolicBP}
+                          onChange={(e) =>
+                            updateVitals("diastolicBP", e.target.value)
+                          }
+                          className={
+                            parseInt(vitalsData.diastolicBP) > 90 ||
+                            parseInt(vitalsData.diastolicBP) < 60
+                              ? "border-red-300 bg-red-50"
+                              : ""
+                          }
+                        />
+                      </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={addInvestigation}
-                      className="gap-2"
-                    >
-                      <Plus className="h-4 w-4" /> Add Investigation
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {clinicalNote.investigations.map((inv, index) => (
-                      <div
-                        key={inv.id || index}
-                        className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
-                      >
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
-                          <div className="md:col-span-4 space-y-1">
-                            <Label className="text-xs text-muted-foreground">
-                              Investigation
-                            </Label>
-                            <Input
-                              placeholder="e.g., CBC, LFT, X-Ray Chest"
-                              value={inv.name}
-                              onChange={(e) =>
-                                updateInvestigation(
-                                  index,
-                                  "name",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="md:col-span-2 space-y-1">
-                            <Label className="text-xs text-muted-foreground">
-                              Category
-                            </Label>
-                            <Select
-                              value={inv.category || "LABORATORY"}
-                              onValueChange={(v) =>
-                                updateInvestigation(index, "category", v)
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="LABORATORY">
-                                  Laboratory
-                                </SelectItem>
-                                <SelectItem value="IMAGING">Imaging</SelectItem>
-                                <SelectItem value="SPECIAL">Special</SelectItem>
-                                <SelectItem value="OTHER">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="md:col-span-2 space-y-1">
-                            <Label className="text-xs text-muted-foreground">
-                              Status
-                            </Label>
-                            <Select
-                              value={inv.status || "ORDERED"}
-                              onValueChange={(v) =>
-                                updateInvestigation(index, "status", v)
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="ORDERED">Ordered</SelectItem>
-                                <SelectItem value="PENDING">Pending</SelectItem>
-                                <SelectItem value="COMPLETED">
-                                  Completed
-                                </SelectItem>
-                                <SelectItem value="CANCELLED">
-                                  Cancelled
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="md:col-span-3 space-y-1">
-                            <Label className="text-xs text-muted-foreground">
-                              Notes
-                            </Label>
-                            <Input
-                              placeholder="Special instructions..."
-                              value={inv.notes || ""}
-                              onChange={(e) =>
-                                updateInvestigation(
-                                  index,
-                                  "notes",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="md:col-span-1 flex items-end justify-end pb-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeInvestigation(index)}
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
+
+                    {/* Heart Rate & Resp Rate */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="pulse">Heart Rate (bpm)</Label>
+                        <div className="relative">
+                          <HeartPulse className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="pulse"
+                            type="number"
+                            placeholder="72"
+                            value={vitalsData.pulse}
+                            onChange={(e) =>
+                              updateVitals("pulse", e.target.value)
+                            }
+                            className="pl-9"
+                          />
                         </div>
                       </div>
-                    ))}
-                    {clinicalNote.investigations.length === 0 && (
-                      <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground">
-                        No investigations ordered. Click &quot;Add
-                        Investigation&quot; to order tests.
+                      <div className="space-y-2">
+                        <Label htmlFor="resp">Resp. Rate (bpm)</Label>
+                        <div className="relative">
+                          <Activity className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="resp"
+                            type="number"
+                            placeholder="16"
+                            value={vitalsData.respiratoryRate}
+                            onChange={(e) =>
+                              updateVitals("respiratoryRate", e.target.value)
+                            }
+                            className="pl-9"
+                          />
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Procedures */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        Procedures (CPT)
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Add procedures performed during this visit
-                      </p>
                     </div>
-                    <div className="w-[300px]">
-                      <CptCodeSearch
-                        onSelect={handleAddProcedure}
-                        selectedCodes={procedures.map((p) => p.cptCode.code)}
-                      />
+
+                    {/* Temp & O2 */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="temp">Temperature (°C)</Label>
+                        <div className="relative">
+                          <FlaskConical className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="temp"
+                            type="number"
+                            step="0.1"
+                            placeholder="37.0"
+                            value={vitalsData.temperature}
+                            onChange={(e) =>
+                              updateVitals("temperature", e.target.value)
+                            }
+                            className="pl-9"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="spo2">SpO2 (%)</Label>
+                        <div className="relative">
+                          <Activity className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="spo2"
+                            type="number"
+                            placeholder="98"
+                            value={vitalsData.spo2}
+                            onChange={(e) =>
+                              updateVitals("spo2", e.target.value)
+                            }
+                            className="pl-9"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ProcedureList
-                    procedures={procedures}
-                    onRemove={handleRemoveProcedure}
-                    onAddToInvoice={handleAddToInvoice}
-                  />
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Final Diagnosis */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Final Diagnosis</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Confirmed diagnosis after investigations
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Confirmed diagnosis based on clinical findings and investigations..."
-                    value={clinicalNote.finalDiagnosis}
-                    onChange={(e) =>
-                      updateClinicalNote("finalDiagnosis", e.target.value)
-                    }
-                    className="min-h-[80px]"
-                  />
-                </CardContent>
-              </Card>
+                {/* Anthropometry & Other */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Anthropometry</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="height">Height (cm)</Label>
+                          <Input
+                            id="height"
+                            type="number"
+                            step="0.1"
+                            placeholder="170"
+                            value={vitalsData.height}
+                            onChange={(e) =>
+                              updateVitals("height", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="weight">Weight (kg)</Label>
+                          <Input
+                            id="weight"
+                            type="number"
+                            step="0.1"
+                            placeholder="70"
+                            value={vitalsData.weight}
+                            onChange={(e) =>
+                              updateVitals("weight", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                      {vitalsData.height && vitalsData.weight && (
+                        <div className="mt-4 p-3 bg-muted/20 rounded-lg flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">
+                            BMI Calculation:
+                          </span>
+                          <span className="font-bold text-lg">
+                            {(
+                              parseFloat(vitalsData.weight) /
+                              Math.pow(parseFloat(vitalsData.height) / 100, 2)
+                            ).toFixed(1)}
+                          </span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-              {/* Treatment Plan */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Treatment Plan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Treatment approach, recommendations, lifestyle modifications..."
-                    value={clinicalNote.treatmentPlan}
-                    onChange={(e) =>
-                      updateClinicalNote("treatmentPlan", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Follow-up Plan */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Follow-up Plan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Follow-up schedule, red flag symptoms to watch for, when to return..."
-                    value={clinicalNote.followUpPlan}
-                    onChange={(e) =>
-                      updateClinicalNote("followUpPlan", e.target.value)
-                    }
-                    className="min-h-[80px]"
-                  />
-                </CardContent>
-              </Card>
-            </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button
-                onClick={saveClinicalNote}
-                disabled={isSaving}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Treatment Plan
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Prescription Tab */}
-        <TabsContent value="prescription" className="mt-0 h-full space-y-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleRxSubmit(e);
-            }}
-            className="h-full flex flex-col"
-          >
-            <div className="flex-1 space-y-6">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">Medications</Label>
-                <div className="flex gap-2">
-                  <PrescriptionTemplateManager
-                    onTemplateSelect={handleApplyPrescriptionTemplate}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addMedication}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" /> Add Medication
-                  </Button>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Other</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="pain">Pain Score (0-10)</Label>
+                          <Input
+                            id="pain"
+                            type="number"
+                            min="0"
+                            max="10"
+                            placeholder="0"
+                            value={vitalsData.painScore}
+                            onChange={(e) =>
+                              updateVitals("painScore", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="glucose">Blood Glucose (mg/dL)</Label>
+                          <Input
+                            id="glucose"
+                            type="number"
+                            placeholder="100"
+                            value={vitalsData.bloodGlucose}
+                            onChange={(e) =>
+                              updateVitals("bloodGlucose", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
 
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                {medications.map((med, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border rounded-lg bg-card space-y-4 relative group"
-                  >
-                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMedication(index)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Medicine Name</Label>
-                        <MedicineAutocomplete
-                          value={med.name}
-                          onChange={(val) =>
-                            updateMedication(index, "name", val)
-                          }
-                          placeholder="Search medicine..."
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        <div className="space-y-2">
-                          <Label>Route</Label>
-                          <Select
-                            value={med.route || "PO"}
-                            onValueChange={(val) =>
-                              updateMedication(index, "route", val)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Route" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ROUTE_OPTIONS.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.value}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Dosage</Label>
-                          <Input
-                            placeholder="500mg"
-                            value={med.dosage}
-                            onChange={(e) =>
-                              updateMedication(index, "dosage", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Freq</Label>
-                          <Input
-                            placeholder="2x daily"
-                            value={med.frequency}
-                            onChange={(e) =>
-                              updateMedication(
-                                index,
-                                "frequency",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Duration</Label>
-                          <Input
-                            placeholder="7 days"
-                            value={med.duration}
-                            onChange={(e) =>
-                              updateMedication(
-                                index,
-                                "duration",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {medications.length === 0 && (
-                  <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
-                    No medications added. Click &quot;Add Medication&quot; to
-                    start.
-                  </div>
-                )}
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  type="submit"
+                  disabled={vitalsLoading}
+                  className="gap-2"
+                >
+                  {vitalsLoading ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Vitals
+                    </>
+                  )}
+                </Button>
               </div>
+            </form>
+          </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="rx-instructions">Instructions</Label>
-                <Textarea
-                  id="rx-instructions"
-                  placeholder="Special instructions (e.g., take after food)..."
-                  value={rxInstructions}
-                  onChange={(e) => setRxInstructions(e.target.value)}
-                  rows={3}
+          {/* Examination Tab */}
+          <TabsContent value="examination" className="mt-0 h-full space-y-4">
+            <div className="h-full flex flex-col">
+              <div className="flex-1">
+                <ClinicalExamination
+                  generalExamination={clinicalNote.generalExamination}
+                  systemicExamination={clinicalNote.systemicExamination}
+                  onGeneralExaminationChange={(data) =>
+                    updateClinicalNote("generalExamination", data)
+                  }
+                  onSystemicExaminationChange={(data) =>
+                    updateClinicalNote("systemicExamination", data)
+                  }
                 />
               </div>
-            </div>
-            <div className="flex justify-between items-center pt-4 mt-auto">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSaveAsTemplate}
-                disabled={medications.length === 0}
-                className="gap-2"
-              >
-                <Save className="h-4 w-4" /> Save as Template
-              </Button>
-              <Button type="submit" disabled={rxLoading} className="gap-2">
-                {rxLoading ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Prescription
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </TabsContent>
-
-        {/* Invoice Tab */}
-        <TabsContent value="invoice" className="mt-0 h-full space-y-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleInvSubmit(e);
-            }}
-            className="h-full flex flex-col"
-          >
-            <div className="flex-1 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-base font-medium">Invoice Items</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Add services and costs
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Select value={invStatus} onValueChange={setInvStatus}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {invoiceStatusOptions
-                        .filter((opt) => opt.value !== "cancelled")
-                        .map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addItem()}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" /> Add Item
-                  </Button>
-                </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  onClick={saveClinicalNote}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Examination
+                    </>
+                  )}
+                </Button>
               </div>
+            </div>
+          </TabsContent>
 
-              <div className="space-y-3">
-                {invoiceItems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
-                  >
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
-                      <div className="md:col-span-6 space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Description
-                        </Label>
-                        <Input
-                          placeholder="Service description"
-                          value={item.description}
-                          onChange={(e) =>
-                            updateInvoiceItem(
-                              index,
-                              "description",
-                              e.target.value,
-                            )
-                          }
+          {/* Diagnosis Tab */}
+          <TabsContent value="diagnosis" className="mt-0 h-full space-y-4">
+            <div className="h-full flex flex-col">
+              <div className="flex-1 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Provisional Diagnosis
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Initial diagnosis based on history and examination
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Initial diagnosis before investigations..."
+                      value={clinicalNote.provisionalDiagnosis}
+                      onChange={(e) =>
+                        updateClinicalNote(
+                          "provisionalDiagnosis",
+                          e.target.value,
+                        )
+                      }
+                      className="min-h-20"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Differential Diagnosis
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Other possible diagnoses to consider
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="List other possible diagnoses..."
+                      value={clinicalNote.differentialDiagnosis}
+                      onChange={(e) =>
+                        updateClinicalNote(
+                          "differentialDiagnosis",
+                          e.target.value,
+                        )
+                      }
+                      className="min-h-20"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* ICD-10 Coded Diagnoses */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          ICD-10 Coded Diagnoses
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Add standardized ICD-10 diagnosis codes
+                        </p>
+                      </div>
+                      <div className="w-[300px]">
+                        <IcdCodeSearch onSelect={handleAddDiagnosis} />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <DiagnosisList
+                      diagnoses={diagnoses}
+                      onRemove={handleRemoveDiagnosis}
+                      onUpdateNotes={handleUpdateDiagnosisNote}
+                      onTogglePrimary={handleTogglePrimaryDiagnosis}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Clinical Impression
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Overall clinical impression and summary..."
+                      value={clinicalNote.clinicalImpression}
+                      onChange={(e) =>
+                        updateClinicalNote("clinicalImpression", e.target.value)
+                      }
+                      className="min-h-20"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  onClick={saveClinicalNote}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Diagnosis
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Investigations & Treatment Plan Tab */}
+          <TabsContent value="treatment" className="mt-0 h-full space-y-4">
+            <div className="h-full flex flex-col">
+              <div className="flex-1 space-y-6">
+                {/* Clinical Investigations */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <FlaskConical className="h-5 w-5 text-primary" />
+                          Clinical Investigations
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Order laboratory tests and imaging studies
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={addInvestigation}
+                        className="gap-2"
+                      >
+                        <Plus className="h-4 w-4" /> Add Investigation
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {clinicalNote.investigations.map((inv, index) => (
+                        <div
+                          key={inv.id || index}
+                          className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
+                        >
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div className="md:col-span-4 space-y-1">
+                              <Label className="text-xs text-muted-foreground">
+                                Investigation
+                              </Label>
+                              <Input
+                                placeholder="e.g., CBC, LFT, X-Ray Chest"
+                                value={inv.name}
+                                onChange={(e) =>
+                                  updateInvestigation(
+                                    index,
+                                    "name",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <Label className="text-xs text-muted-foreground">
+                                Category
+                              </Label>
+                              <Select
+                                value={inv.category || "LABORATORY"}
+                                onValueChange={(v) =>
+                                  updateInvestigation(index, "category", v)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="LABORATORY">
+                                    Laboratory
+                                  </SelectItem>
+                                  <SelectItem value="IMAGING">
+                                    Imaging
+                                  </SelectItem>
+                                  <SelectItem value="SPECIAL">
+                                    Special
+                                  </SelectItem>
+                                  <SelectItem value="OTHER">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <Label className="text-xs text-muted-foreground">
+                                Status
+                              </Label>
+                              <Select
+                                value={inv.status || "ORDERED"}
+                                onValueChange={(v) =>
+                                  updateInvestigation(index, "status", v)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ORDERED">
+                                    Ordered
+                                  </SelectItem>
+                                  <SelectItem value="PENDING">
+                                    Pending
+                                  </SelectItem>
+                                  <SelectItem value="COMPLETED">
+                                    Completed
+                                  </SelectItem>
+                                  <SelectItem value="CANCELLED">
+                                    Cancelled
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="md:col-span-3 space-y-1">
+                              <Label className="text-xs text-muted-foreground">
+                                Notes
+                              </Label>
+                              <Input
+                                placeholder="Special instructions..."
+                                value={inv.notes || ""}
+                                onChange={(e) =>
+                                  updateInvestigation(
+                                    index,
+                                    "notes",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="md:col-span-1 flex items-end justify-end pb-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeInvestigation(index)}
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {clinicalNote.investigations.length === 0 && (
+                        <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground">
+                          No investigations ordered. Click &quot;Add
+                          Investigation&quot; to order tests.
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Procedures */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          Procedures (CPT)
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Add procedures performed during this visit
+                        </p>
+                      </div>
+                      <div className="w-[300px]">
+                        <CptCodeSearch
+                          onSelect={handleAddProcedure}
+                          selectedCodes={procedures.map((p) => p.cptCode.code)}
                         />
                       </div>
-                      <div className="md:col-span-2 space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Qty
-                        </Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) =>
-                            updateInvoiceItem(
-                              index,
-                              "quantity",
-                              parseInt(e.target.value),
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-3 space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Price (₹)
-                        </Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.price}
-                          onChange={(e) =>
-                            updateInvoiceItem(
-                              index,
-                              "price",
-                              parseFloat(e.target.value),
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-1 flex items-end justify-end pb-1">
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ProcedureList
+                      procedures={procedures}
+                      onRemove={handleRemoveProcedure}
+                      onAddToInvoice={handleAddToInvoice}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Final Diagnosis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Final Diagnosis</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Confirmed diagnosis after investigations
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Confirmed diagnosis based on clinical findings and investigations..."
+                      value={clinicalNote.finalDiagnosis}
+                      onChange={(e) =>
+                        updateClinicalNote("finalDiagnosis", e.target.value)
+                      }
+                      className="min-h-20"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Treatment Plan */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Treatment Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Treatment approach, recommendations, lifestyle modifications..."
+                      value={clinicalNote.treatmentPlan}
+                      onChange={(e) =>
+                        updateClinicalNote("treatmentPlan", e.target.value)
+                      }
+                      className="min-h-[100px]"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Follow-up Plan */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Follow-up Plan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Follow-up schedule, red flag symptoms to watch for, when to return..."
+                      value={clinicalNote.followUpPlan}
+                      onChange={(e) =>
+                        updateClinicalNote("followUpPlan", e.target.value)
+                      }
+                      className="min-h-20"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button
+                  onClick={saveClinicalNote}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Treatment Plan
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Prescription Tab */}
+          <TabsContent value="prescription" className="mt-0 h-full space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleRxSubmit(e);
+              }}
+              className="h-full flex flex-col"
+            >
+              <div className="flex-1 space-y-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-medium">Medications</Label>
+                  <div className="flex gap-2">
+                    <PrescriptionTemplateManager
+                      onTemplateSelect={handleApplyPrescriptionTemplate}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addMedication}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" /> Add Medication
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                  {medications.map((med, index) => (
+                    <div
+                      key={index}
+                      className="p-4 border rounded-lg bg-card space-y-4 relative group"
+                    >
+                      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeInvoiceItem(index)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeMedication(index)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
 
-              <div className="flex items-center justify-end gap-4 p-4 bg-muted/10 rounded-lg">
-                <span className="text-lg font-medium">Total Amount:</span>
-                <span className="text-2xl font-bold text-primary">
-                  ₹{calculateInvTotal().toFixed(2)}
-                </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Medicine Name</Label>
+                          <MedicineAutocomplete
+                            value={med.name}
+                            onChange={(val) =>
+                              updateMedication(index, "name", val)
+                            }
+                            placeholder="Search medicine..."
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="space-y-2">
+                            <Label>Route</Label>
+                            <Select
+                              value={med.route || "PO"}
+                              onValueChange={(val) =>
+                                updateMedication(index, "route", val)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Route" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ROUTE_OPTIONS.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.value}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Dosage</Label>
+                            <Input
+                              placeholder="500mg"
+                              value={med.dosage}
+                              onChange={(e) =>
+                                updateMedication(
+                                  index,
+                                  "dosage",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Freq</Label>
+                            <Input
+                              placeholder="2x daily"
+                              value={med.frequency}
+                              onChange={(e) =>
+                                updateMedication(
+                                  index,
+                                  "frequency",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Duration</Label>
+                            <Input
+                              placeholder="7 days"
+                              value={med.duration}
+                              onChange={(e) =>
+                                updateMedication(
+                                  index,
+                                  "duration",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {medications.length === 0 && (
+                    <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
+                      No medications added. Click &quot;Add Medication&quot; to
+                      start.
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rx-instructions">Instructions</Label>
+                  <Textarea
+                    id="rx-instructions"
+                    placeholder="Special instructions (e.g., take after food)..."
+                    value={rxInstructions}
+                    onChange={(e) => setRxInstructions(e.target.value)}
+                    rows={3}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex justify-end pt-4 mt-auto">
-              <Button type="submit" disabled={invLoading} className="gap-2">
-                {invLoading ? (
-                  "Creating..."
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4" /> Create Invoice
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </TabsContent>
-      </div>
-    </Tabs>
+              <div className="flex justify-between items-center pt-4 mt-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveAsTemplate}
+                  disabled={medications.length === 0}
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" /> Save as Template
+                </Button>
+                <Button type="submit" disabled={rxLoading} className="gap-2">
+                  {rxLoading ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Prescription
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+
+          {/* Invoice Tab */}
+          <TabsContent value="invoice" className="mt-0 h-full space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleInvSubmit(e);
+              }}
+              className="h-full flex flex-col"
+            >
+              <div className="flex-1 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">
+                      Invoice Items
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Add services and costs
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Select value={invStatus} onValueChange={setInvStatus}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {invoiceStatusOptions
+                          .filter((opt) => opt.value !== "cancelled")
+                          .map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addItem()}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" /> Add Item
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {invoiceItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div className="md:col-span-6 space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Description
+                          </Label>
+                          <Input
+                            placeholder="Service description"
+                            value={item.description}
+                            onChange={(e) =>
+                              updateInvoiceItem(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="md:col-span-2 space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Qty
+                          </Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateInvoiceItem(
+                                index,
+                                "quantity",
+                                parseInt(e.target.value),
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="md:col-span-3 space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Price (₹)
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.price}
+                            onChange={(e) =>
+                              updateInvoiceItem(
+                                index,
+                                "price",
+                                parseFloat(e.target.value),
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="md:col-span-1 flex items-end justify-end pb-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeInvoiceItem(index)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-end gap-4 p-4 bg-muted/10 rounded-lg">
+                  <span className="text-lg font-medium">Total Amount:</span>
+                  <span className="text-2xl font-bold text-primary">
+                    ₹{calculateInvTotal().toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4 mt-auto">
+                <Button type="submit" disabled={invLoading} className="gap-2">
+                  {invLoading ? (
+                    "Creating..."
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" /> Create Invoice
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+        </div>
+      </Tabs>
+    </div>
   );
 }

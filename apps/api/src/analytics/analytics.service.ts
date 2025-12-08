@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,6 +12,8 @@ import {
 
 @Injectable()
 export class AnalyticsService {
+  private readonly logger = new Logger(AnalyticsService.name);
+
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -695,5 +697,365 @@ export class AnalyticsService {
       distribution,
       totalCoded: timeToCodeData.length,
     };
+  }
+
+  /**
+   * Get revenue metrics for given period
+   * Used for advanced analytics dashboard
+   */
+  async getRevenueMetrics(
+    clinicId: string,
+    period: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const cacheKey = `revenue-metrics-${clinicId}-${period}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
+    const cached = await this.cacheManager.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const where: any = { patient: { clinicId } };
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = startDate;
+      if (endDate) where.createdAt.lte = endDate;
+    }
+
+    const invoices = await this.prisma.invoice.findMany({
+      where,
+      select: { total: true, createdAt: true, status: true },
+    });
+
+    // Group by period
+    const grouped: Record<string, any> = {};
+    invoices.forEach((inv) => {
+      const key = this.getPeriodKey(inv.createdAt, period);
+      if (!grouped[key]) {
+        grouped[key] = { totalRevenue: 0, invoiceCount: 0, date: key };
+      }
+      grouped[key].totalRevenue += inv.total || 0;
+      grouped[key].invoiceCount += 1;
+    });
+
+    const result = Object.values(grouped).map((g: any) => ({
+      ...g,
+      avgInvoiceAmount: g.totalRevenue / g.invoiceCount,
+    }));
+
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+    );
+    return result;
+  }
+
+  /**
+   * Get appointment metrics for given period
+   * Includes fill rates, completion rates, etc.
+   */
+  async getAppointmentMetrics(
+    clinicId: string,
+    period: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const cacheKey = `appointment-metrics-${clinicId}-${period}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
+    const cached = await this.cacheManager.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const where: any = { patient: { clinicId } };
+    if (startDate || endDate) {
+      where.scheduledAt = {};
+      if (startDate) where.scheduledAt.gte = startDate;
+      if (endDate) where.scheduledAt.lte = endDate;
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where,
+      select: { status: true, startTime: true },
+    });
+
+    const statuses = {
+      total: appointments.length,
+      booked: appointments.filter((a) => a.status === 'confirmed').length,
+      completed: appointments.filter((a) => a.status === 'completed').length,
+      cancelled: appointments.filter((a) => a.status === 'cancelled').length,
+      noShow: appointments.filter((a) => a.status === 'no_show').length,
+    };
+
+    const result = {
+      ...statuses,
+      fillRate:
+        statuses.total > 0 ? (statuses.booked / statuses.total) * 100 : 0,
+      completionRate:
+        statuses.total > 0 ? (statuses.completed / statuses.total) * 100 : 0,
+    };
+
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+    );
+    return result;
+  }
+
+  /**
+   * Get patient demographics
+   */
+  async getPatientDemographics(
+    clinicId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const cacheKey = `patient-demographics-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
+    const cached = await this.cacheManager.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const where: any = { clinicId };
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = startDate;
+      if (endDate) where.createdAt.lte = endDate;
+    }
+
+    const patients = await this.prisma.patient.findMany({
+      where,
+      select: { dateOfBirth: true, gender: true },
+    });
+
+    // Calculate age distribution
+    const now = new Date();
+    const ageDistribution = {
+      '0-18': 0,
+      '18-35': 0,
+      '35-50': 0,
+      '50-65': 0,
+      '65+': 0,
+    };
+
+    patients.forEach((p) => {
+      if (!p.dateOfBirth) return;
+      const age = now.getFullYear() - p.dateOfBirth.getFullYear();
+      if (age < 18) ageDistribution['0-18']++;
+      else if (age < 35) ageDistribution['18-35']++;
+      else if (age < 50) ageDistribution['35-50']++;
+      else if (age < 65) ageDistribution['50-65']++;
+      else ageDistribution['65+']++;
+    });
+
+    const genderDistribution = {
+      MALE: patients.filter((p) => p.gender === 'MALE').length,
+      FEMALE: patients.filter((p) => p.gender === 'FEMALE').length,
+      OTHER: patients.filter((p) => p.gender === 'OTHER').length,
+    };
+
+    const result = {
+      totalPatients: patients.length,
+      newPatients: patients.length, // Within date range
+      ageDistribution,
+      genderDistribution,
+    };
+
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+    );
+    return result;
+  }
+
+  /**
+   * Get top medical conditions
+   */
+  async getTopConditions(clinicId: string, limit: number = 10) {
+    const cacheKey = `top-conditions-${clinicId}-${limit}`;
+    const cached = await this.cacheManager.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const conditions = await this.prisma.patientMedicalCondition.groupBy({
+      by: ['conditionName'],
+      where: { patient: { clinicId } },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: limit,
+    });
+
+    const result = conditions.map((c) => ({
+      condition: c.conditionName,
+      count: c._count.id,
+      percentage: 0, // Will be calculated by frontend
+    }));
+
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+    );
+    return result;
+  }
+
+  /**
+   * Create an analytics snapshot for a clinic (Phase 2)
+   * Called daily to capture a point-in-time view of key metrics
+   */
+  async createAnalyticsSnapshot(clinicId: string): Promise<void> {
+    try {
+      this.logger.log(`Creating analytics snapshot for clinic ${clinicId}`);
+
+      // Get current metrics
+      const revenue = await this.getRevenueMetrics(clinicId, 'daily');
+      const appointments = await this.getAppointmentMetrics(clinicId, 'daily');
+      const demographics = await this.getPatientDemographics(clinicId);
+      const topConditions = await this.getTopConditions(clinicId, 10);
+
+      // Calculate aggregated values
+      const totalRevenue = revenue.reduce((sum, r) => sum + r.totalRevenue, 0);
+      const totalAppointments = appointments.total || 0;
+      const completedAppointments = appointments.completed || 0;
+      const totalPatients = demographics.totalPatients || 0;
+
+      // Calculate compliance metrics
+      const compliance = await this.getCodingComplianceMetrics(clinicId);
+      const timely = await this.getCodingTimeliness(clinicId);
+
+      // Create snapshot record
+      const snapshot = await this.prisma.analyticsSnapshot.create({
+        data: {
+          clinicId,
+          snapshotDate: new Date(),
+          period: 'daily', // Phase 2: Can add period parameter later
+          totalRevenue,
+          invoiceCount: revenue.length,
+          avgInvoiceAmount:
+            revenue.length > 0
+              ? revenue.reduce((sum, r) => sum + r.totalRevenue, 0) /
+                revenue.length
+              : 0,
+          totalAppointments,
+          completedAppts: completedAppointments,
+          cancelledAppts: appointments.cancelled || 0,
+          appointmentFillRate: appointments.fillRate || 0,
+          newPatients: demographics.newPatients || 0,
+          activePatients: demographics.totalPatients || 0,
+          appointmentRate: appointments.fillRate || 0,
+          topConditions: JSON.stringify(topConditions),
+        },
+      });
+
+      this.logger.log(
+        `Analytics snapshot created for clinic ${clinicId}: ID ${snapshot.id}`,
+      );
+
+      // Update cache
+      await this.cacheManager.set(
+        `snapshot-${clinicId}-${new Date().toISOString().split('T')[0]}`,
+        snapshot,
+        86400000, // 24 hours
+      );
+    } catch (error) {
+      this.logger.error(`Error creating analytics snapshot: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get analytics snapshots for a clinic (Phase 2)
+   * Retrieves historical point-in-time snapshots
+   */
+  async getAnalyticsSnapshots(
+    clinicId: string,
+    days: number = 30,
+  ): Promise<any[]> {
+    try {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const snapshots = await this.prisma.analyticsSnapshot.findMany({
+        where: {
+          clinicId,
+          snapshotDate: { gte: startDate },
+        },
+        orderBy: { snapshotDate: 'desc' },
+        take: days,
+      });
+
+      return snapshots.map((s) => ({
+        ...s,
+        topConditions: s.topConditions
+          ? JSON.parse(s.topConditions as any)
+          : [],
+      }));
+    } catch (error) {
+      this.logger.error(
+        `Error retrieving analytics snapshots: ${error.message}`,
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get trend analysis from snapshots (Phase 2)
+   * Compares snapshots over time to show trends
+   */
+  async getSnapshotTrends(clinicId: string, days: number = 30): Promise<any> {
+    try {
+      const snapshots = await this.getAnalyticsSnapshots(clinicId, days);
+
+      if (snapshots.length === 0) {
+        return null;
+      }
+
+      const latestSnapshot = snapshots[0];
+      const oldestSnapshot = snapshots[snapshots.length - 1];
+
+      return {
+        currentMetrics: {
+          totalRevenue: latestSnapshot.totalRevenue,
+          totalAppointments: latestSnapshot.totalAppointments,
+          totalPatients: latestSnapshot.totalPatients,
+          codingCompletenessRate: latestSnapshot.codingCompletenessRate,
+          billingRate: latestSnapshot.billingRate,
+        },
+        trendComparison: {
+          revenueChange:
+            latestSnapshot.totalRevenue - oldestSnapshot.totalRevenue,
+          appointmentChange:
+            latestSnapshot.totalAppointments - oldestSnapshot.totalAppointments,
+          patientChange:
+            latestSnapshot.totalPatients - oldestSnapshot.totalPatients,
+          codingCompletenessTrend:
+            latestSnapshot.codingCompletenessRate -
+            oldestSnapshot.codingCompletenessRate,
+        },
+        snapshotCount: snapshots.length,
+        dateRange: {
+          start: oldestSnapshot.snapshotDate,
+          end: latestSnapshot.snapshotDate,
+        },
+        snapshots: snapshots.slice(0, 10), // Return last 10 snapshots
+      };
+    } catch (error) {
+      this.logger.error(`Error retrieving snapshot trends: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Helper: Get period key for grouping
+   */
+  private getPeriodKey(
+    date: Date,
+    period: 'daily' | 'weekly' | 'monthly',
+  ): string {
+    const d = new Date(date);
+    if (period === 'daily') {
+      return d.toISOString().split('T')[0];
+    }
+    if (period === 'weekly') {
+      const weekStart = new Date(d);
+      weekStart.setDate(d.getDate() - d.getDay());
+      return `${weekStart.getFullYear()}-W${Math.ceil((d.getDate() + weekStart.getDay()) / 7)}`;
+    }
+    // monthly
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   }
 }

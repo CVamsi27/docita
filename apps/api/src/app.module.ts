@@ -39,6 +39,10 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
 import { FhirModule } from './fhir/fhir.module';
+import { UsersModule } from './users/users.module';
+import { ContactModule } from './contact/contact.module';
+import { AIModule } from './modules/ai/ai.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -83,8 +87,12 @@ import { FhirModule } from './fhir/fhir.module';
     InventoryModule,
     FeedbackModule,
     FhirModule,
+    UsersModule,
+    ContactModule,
+    AIModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService, PaymentGateway],
 })
-export class AppModule { }
+export class AppModule {}

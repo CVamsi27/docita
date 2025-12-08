@@ -109,7 +109,9 @@ export function AddPatientDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={form.handleSubmit((data) =>
+              handleSubmit(data as unknown as CreatePatientInput),
+            )}
             className="space-y-4"
           >
             <div className="grid grid-cols-2 gap-4">

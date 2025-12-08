@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Stethoscope,
@@ -18,12 +19,14 @@ import { Button } from "@workspace/ui/components/button";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore, Tier } from "@/lib/stores/permission-store";
 import { sidebarItems, SidebarItem } from "@/lib/constants";
+import { FeedbackFormDialogDynamic } from "@/lib/dynamic-imports";
 
 export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const { canAccess, currentTier, getTierInfo } = usePermissionStore();
   const { theme, setTheme } = useTheme();
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const tierInfo = getTierInfo();
 
@@ -139,10 +142,20 @@ export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
               item={item}
               isActive={pathname === item.href}
               isCollapsed={isCollapsed}
+              onClick={
+                item.href === "#feedback"
+                  ? () => setShowFeedback(true)
+                  : undefined
+              }
             />
           ))}
         </nav>
       </div>
+
+      <FeedbackFormDialogDynamic
+        open={showFeedback}
+        onOpenChange={setShowFeedback}
+      />
 
       {/* Footer */}
       <div className="border-t border-sidebar-border p-4 bg-sidebar">
@@ -248,9 +261,46 @@ interface NavItemProps {
   item: SidebarItem;
   isActive: boolean;
   isCollapsed: boolean;
+  onClick?: () => void;
 }
 
-function NavItem({ item, isActive, isCollapsed }: NavItemProps) {
+function NavItem({ item, isActive, isCollapsed, onClick }: NavItemProps) {
+  if (onClick || item.href.startsWith("#")) {
+    return (
+      <button
+        onClick={onClick}
+        title={isCollapsed ? item.title : undefined}
+        className={cn(
+          "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+          isActive
+            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md shadow-sidebar-primary/20"
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          isCollapsed && "justify-center px-2",
+        )}
+      >
+        <item.icon
+          className={cn(
+            "h-5 w-5 shrink-0 transition-transform duration-200",
+            !isActive && "group-hover:scale-110",
+          )}
+        />
+        <span
+          className={cn(
+            "whitespace-nowrap transition-all duration-300 overflow-hidden flex-1 text-left",
+            isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100",
+          )}
+        >
+          {item.title}
+        </span>
+        {item.badge && !isCollapsed && (
+          <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-pink-500/20 text-pink-500">
+            {item.badge}
+          </span>
+        )}
+      </button>
+    );
+  }
+
   return (
     <Link
       href={item.href}

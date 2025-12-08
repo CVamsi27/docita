@@ -180,6 +180,132 @@ export class MonitoringService {
     }
   }
 
+  /**
+   * Record feature usage metrics (Phase 2)
+   * Tracks usage of AI features, bulk operations, analytics, etc.
+   */
+  async recordFeatureUsage(
+    featureName: string,
+    clinicId?: string,
+    userId?: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      await this.prisma.systemMetric.create({
+        data: {
+          metricType: MetricType.REQUEST_COUNT,
+          value: 1,
+          unit: 'count',
+          metadata: {
+            featureName,
+            metricCategory: 'feature_usage',
+            clinicId,
+            userId,
+            timestamp: new Date().toISOString(),
+            ...metadata,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to record feature usage for ${featureName}: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Record cache hit/miss metrics (Phase 2)
+   * Tracks cache performance for analytics and API responses
+   */
+  async recordCacheMetric(
+    isHit: boolean,
+    key: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      await this.prisma.systemMetric.create({
+        data: {
+          metricType: MetricType.REQUEST_COUNT,
+          value: 1,
+          unit: 'count',
+          metadata: {
+            metricCategory: isHit ? 'cache_hit' : 'cache_miss',
+            key,
+            timestamp: new Date().toISOString(),
+            ...metadata,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to record cache metric: ${error.message}`);
+    }
+  }
+
+  /**
+   * Record database query performance (Phase 2)
+   * Tracks slow queries and query patterns
+   */
+  async recordDatabaseMetric(
+    operationType: string,
+    duration: number,
+    isError: boolean,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      await this.prisma.systemMetric.create({
+        data: {
+          metricType: MetricType.DB_QUERY_TIME,
+          value: duration,
+          unit: 'ms',
+          metadata: {
+            operationType,
+            duration,
+            isError,
+            timestamp: new Date().toISOString(),
+            ...metadata,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to record database metric: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get system metrics for given time period (Phase 2)
+   * Retrieves all recorded metrics for analysis
+   */
+  async getSystemMetrics(
+    startDate: Date,
+    endDate: Date,
+    metricType?: MetricType,
+  ): Promise<any[]> {
+    try {
+      const where: any = {
+        recordedAt: { gte: startDate, lte: endDate },
+      };
+
+      if (metricType) {
+        where.metricType = metricType;
+      }
+
+      const metrics = await this.prisma.systemMetric.findMany({
+        where,
+        orderBy: { recordedAt: 'asc' },
+        take: 1000,
+      });
+
+      return metrics;
+    } catch (error) {
+      this.logger.error(`Failed to retrieve system metrics: ${error.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get performance summary (Phase 2)
+   * Aggregates metrics into summary statistics
+   */
   // =============================================
   // Analytics Retrieval
   // =============================================

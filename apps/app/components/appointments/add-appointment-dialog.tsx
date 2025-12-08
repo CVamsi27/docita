@@ -94,11 +94,15 @@ export function AddAppointmentDialog({
     patientsLoading,
     patientSearch,
     setPatientSearch,
+    doctors,
+    doctorsLoading,
     onSubmit,
   } = useAppointmentForm({
     onAppointmentAdded,
     selectedDate,
     preselectedPatientId,
+    startHour,
+    endHour,
   });
 
   const handleSubmit = useCallback(
@@ -163,7 +167,7 @@ export function AddAppointmentDialog({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-[400px] p-0 z-[100]"
+                      className="w-[400px] p-0 z-100"
                       align="start"
                     >
                       <Command shouldFilter={false}>
@@ -223,6 +227,39 @@ export function AddAppointmentDialog({
                       </Command>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="doctorId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Doctor</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={doctorsLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            doctorsLoading ? "Loading..." : "Select doctor"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {doctors.map((doctor) => (
+                        <SelectItem key={doctor.id} value={doctor.id}>
+                          Dr. {doctor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

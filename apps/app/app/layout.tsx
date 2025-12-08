@@ -4,11 +4,11 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Providers } from "@/components/providers";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { ToasterWrapper } from "@/components/toaster-wrapper";
-import { CommandMenu } from "@/components/command-menu";
+import { LoginLayout } from "@/components/layout/login-layout";
 
 const outfit = Outfit({
   subsets: ["latin"],
-  display: "swap", // Faster text rendering
+  display: "swap",
   preload: true,
 });
 
@@ -36,8 +36,7 @@ export default function RootLayout({
         <Providers>
           <ReactQueryProvider>
             <AuthProvider>
-              <CommandMenu />
-              {children}
+              <LoginLayout>{children}</LoginLayout>
               <ToasterWrapper />
             </AuthProvider>
           </ReactQueryProvider>

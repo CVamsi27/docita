@@ -673,7 +673,7 @@ export function SubscriptionSettings() {
                         )}
                         {getTierInfo(tier).name.replace("Docita ", "")}
                       </CardTitle>
-                      <CardDescription className="min-h-[40px]">
+                      <CardDescription className="min-h-10">
                         {description.description}
                       </CardDescription>
                     </CardHeader>
@@ -798,8 +798,8 @@ export function SubscriptionSettings() {
                     <Card key={addon.feature} className="border-dashed">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-lg bg-purple-100">
-                            <IconComponent className="h-5 w-5 text-purple-600" />
+                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                            <IconComponent className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div className="flex-1">
                             <h4 className="font-medium">{addon.name}</h4>
@@ -822,10 +822,10 @@ export function SubscriptionSettings() {
                 })}
               </div>
 
-              <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100">
+              <div className="mt-4 p-4 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-lg border border-purple-100 dark:border-purple-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Brain className="h-8 w-8 text-purple-600" />
+                    <Brain className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                     <div>
                       <h4 className="font-medium">Intelligence Bundle</h4>
                       <p className="text-sm text-muted-foreground">

@@ -167,6 +167,11 @@ export const apiHooks = {
     useAPIMutation<Patient, UpdatePatientInput>(`/patients/${id}`, "PUT"),
   useDeletePatient: (id: string) =>
     useAPIMutation<void, void>(`/patients/${id}`, "DELETE"),
+  useUpdateProfile: () =>
+    useAPIMutation<User, { name?: string; email?: string }>(
+      "/users/profile",
+      "PUT",
+    ),
   usePatientAppointments: (patientId: string) =>
     useAPIQuery<Appointment[]>(
       ["patients", patientId, "appointments"],
@@ -412,6 +417,38 @@ export const apiHooks = {
       `/appointments/${appointmentId}`,
       "PATCH",
     ),
+
+  // Lab Tests
+  useLabTests: () =>
+    useAPIQuery<{ id: string; status: string; createdAt: Date }[]>(
+      ["lab-tests"],
+      "/lab-tests/orders",
+    ),
+  useLabTestsStats: () =>
+    useAPIQuery<{ totalOrders: number; pendingOrders: number }>(
+      ["lab-tests", "stats"],
+      "/lab-tests/orders/stats",
+    ),
+  useCreateLabTestOrder: () =>
+    useAPIMutation<
+      { id: string; status: string },
+      {
+        patientId: string;
+        labTestId: string;
+        appointmentId?: string;
+        notes?: string;
+      }
+    >("/lab-tests/orders", "POST"),
+  useUpdateLabTestOrder: (id: string) =>
+    useAPIMutation<
+      { id: string; status: string },
+      {
+        status?: string;
+        result?: Record<string, unknown>;
+        resultUrl?: string;
+        notes?: string;
+      }
+    >(`/lab-tests/orders/${id}`, "PATCH"),
 
   // Invoice operations
   useUpdateInvoice: (id: string) =>
@@ -726,26 +763,6 @@ export const apiHooks = {
         active: boolean;
       }[]
     >(["lab-test-catalog"], "/lab-tests/catalog"),
-  useCreateLabTestOrder: () =>
-    useAPIMutation<
-      unknown,
-      {
-        patientId: string;
-        labTestId: string;
-        appointmentId?: string;
-        notes?: string;
-      }
-    >("/lab-tests/orders", "POST"),
-  useUpdateLabTestOrder: (id: string) =>
-    useAPIMutation<
-      unknown,
-      {
-        status?: string;
-        result?: Record<string, unknown>;
-        resultUrl?: string;
-        notes?: string;
-      }
-    >(`/lab-tests/orders/${id}`, "PATCH"),
 
   // Inventory
   useInventory: () =>
@@ -1267,4 +1284,198 @@ export const apiHooks = {
       enabled: !!code && code.length >= 6,
       staleTime: 1000 * 60,
     }),
+
+  // ========== AI FEATURES (Phase 1) ==========
+
+  useAIPrescriptionAnalysis: () =>
+    useAPIMutation<
+      {
+        drugInteractions: Array<{
+          drug1: string;
+          drug2: string;
+          severity: "mild" | "moderate" | "severe";
+          description: string;
+        }>;
+        contraindications: Array<{
+          medication: string;
+          condition: string;
+          description: string;
+        }>;
+        dosageRecommendations: Array<{
+          medication: string;
+          status: "appropriate" | "high" | "low";
+          recommendation: string;
+        }>;
+      },
+      {
+        medications: Array<{ name: string; dosage: string }>;
+        patientAge?: number;
+        patientAllergies?: string[];
+        existingConditions?: string[];
+      }
+    >("/ai/prescription-analysis", "POST"),
+
+  useAIDiagnosisSuggestions: () =>
+    useAPIMutation<
+      Array<{
+        icdCode: string;
+        diagnosis: string;
+        confidence: number;
+        description: string;
+      }>,
+      { symptoms: string[]; findingsNotes?: string }
+    >("/ai/diagnosis-suggestions", "POST"),
+
+  useAIMedicationRecommendations: () =>
+    useAPIMutation<
+      Array<{
+        medicationName: string;
+        strength: string;
+        frequency: string;
+        indication: string;
+        confidence: number;
+      }>,
+      { condition: string; patientAge?: number; allergies?: string[] }
+    >("/ai/medication-recommendations", "POST"),
+
+  // ========== ANALYTICS FEATURES (Phase 1) ==========
+
+  useRevenueMetrics: (
+    clinicId: string,
+    period: "daily" | "weekly" | "monthly" = "monthly",
+    startDate?: Date,
+    endDate?: Date,
+  ) =>
+    useAPIQuery<
+      Array<{
+        date: string;
+        totalRevenue: number;
+        invoiceCount: number;
+        avgInvoiceAmount: number;
+      }>
+    >(
+      [
+        "revenue-metrics",
+        clinicId,
+        period,
+        startDate?.toISOString() || "",
+        endDate?.toISOString() || "",
+      ],
+      `/analytics/revenue-metrics?clinicId=${clinicId}&period=${period}${startDate ? `&startDate=${startDate.toISOString()}` : ""}${endDate ? `&endDate=${endDate.toISOString()}` : ""}`,
+      { staleTime: 1000 * 60 * 5 },
+    ),
+
+  useAppointmentMetrics: (
+    clinicId: string,
+    period: "daily" | "weekly" | "monthly" = "monthly",
+    startDate?: Date,
+    endDate?: Date,
+  ) =>
+    useAPIQuery<{
+      total: number;
+      booked: number;
+      completed: number;
+      cancelled: number;
+      noShow: number;
+      fillRate: number;
+      completionRate: number;
+    }>(
+      [
+        "appointment-metrics",
+        clinicId,
+        period,
+        startDate?.toISOString() || "",
+        endDate?.toISOString() || "",
+      ],
+      `/analytics/appointment-metrics?clinicId=${clinicId}&period=${period}${startDate ? `&startDate=${startDate.toISOString()}` : ""}${endDate ? `&endDate=${endDate.toISOString()}` : ""}`,
+      { staleTime: 1000 * 60 * 5 },
+    ),
+
+  usePatientDemographics: (
+    clinicId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) =>
+    useAPIQuery<{
+      totalPatients: number;
+      newPatients: number;
+      ageDistribution: Record<string, number>;
+      genderDistribution: Record<string, number>;
+    }>(
+      [
+        "patient-demographics",
+        clinicId,
+        startDate?.toISOString() || "",
+        endDate?.toISOString() || "",
+      ],
+      `/analytics/patient-demographics?clinicId=${clinicId}${startDate ? `&startDate=${startDate.toISOString()}` : ""}${endDate ? `&endDate=${endDate.toISOString()}` : ""}`,
+      { staleTime: 1000 * 60 * 5 },
+    ),
+
+  useTopConditions: (clinicId: string, limit: number = 10) =>
+    useAPIQuery<
+      Array<{
+        condition: string;
+        count: number;
+        percentage: number;
+      }>
+    >(
+      ["top-conditions", clinicId, limit.toString()],
+      `/analytics/top-conditions?clinicId=${clinicId}&limit=${limit}`,
+      { staleTime: 1000 * 60 * 5 },
+    ),
+
+  // ========== BULK IMPORT FEATURES (Phase 1) ==========
+
+  useBulkImportTemplate: (entityType: string) =>
+    useAPIQuery<{ template: string; format: string }>(
+      ["import-template", entityType],
+      `/imports/template?entityType=${entityType}`,
+      { staleTime: 1000 * 60 * 60 }, // Cache for 1 hour
+    ),
+
+  useBulkImport: () =>
+    useAPIMutation<
+      { jobId: string; status: string; totalRows: number },
+      { entityType: string; fileName: string; fileBuffer: Buffer }
+    >("/imports/bulk", "POST"),
+
+  // ========== AUDIT LOG FEATURES (Phase 1) ==========
+
+  useAuditLogs: (
+    clinicId?: string,
+    actionType?: string,
+    startDate?: Date,
+    endDate?: Date,
+    options?: UseQueryOptions<
+      Array<{
+        id: string;
+        clinicId: string;
+        userId: string;
+        action: string;
+        entityType: string;
+        createdAt: Date;
+      }>
+    >,
+  ) =>
+    useAPIQuery<
+      Array<{
+        id: string;
+        clinicId: string;
+        userId: string;
+        action: string;
+        entityType: string;
+        createdAt: Date;
+      }>
+    >(
+      [
+        "audit-logs",
+        clinicId || "",
+        actionType || "",
+        startDate?.toISOString() || "",
+        endDate?.toISOString() || "",
+      ],
+      `/audit-logs?${clinicId ? `clinicId=${clinicId}&` : ""}${actionType ? `actionType=${actionType}&` : ""}${startDate ? `startDate=${startDate.toISOString()}&` : ""}${endDate ? `endDate=${endDate.toISOString()}` : ""}`,
+      { staleTime: 1000 * 60, ...options },
+    ),
 };

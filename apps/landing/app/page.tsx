@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
+import { useState, useEffect } from "react";
+import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
 import {
   Card,
   CardContent,
@@ -37,7 +45,6 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { useTierConfig } from "./hooks/use-tier-config";
 import { LandingThemeToggle } from "@/components/theme-toggle";
 
@@ -87,6 +94,8 @@ export default function Page() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
     "monthly",
   );
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
   // Detect currency after hydration to avoid mismatch
@@ -210,6 +219,7 @@ export default function Page() {
               size="lg"
               variant="outline"
               className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm"
+              onClick={() => setShowDemoModal(true)}
             >
               View Demo
             </Button>
@@ -1654,6 +1664,35 @@ export default function Page() {
           </div>
         </div>
       </footer>
+
+      {/* Demo Modal */}
+      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Docita Demo</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video bg-black rounded-lg overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              src={
+                process.env.NEXT_PUBLIC_DEMO_VIDEO_URL ||
+                "https://www.youtube.com/embed/dQw4w9WgXcQ"
+              }
+              title="Docita Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Sales Modal */}
+      <ContactSalesModal
+        open={showContactSalesModal}
+        onOpenChange={setShowContactSalesModal}
+      />
     </div>
   );
 }

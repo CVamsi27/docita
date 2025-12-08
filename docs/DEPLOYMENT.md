@@ -107,6 +107,11 @@ The API is containerized using Docker and deployed on EC2.
   ```bash
   aws ecr create-repository --repository-name docita-api --region us-west-1
   ```
+- **ECR Lifecycle Policy**: It is highly recommended to apply a lifecycle policy to prevent storage costs from accumulating.
+  ```bash
+  # Run the setup script to apply the policy (keeps last 5 images, expires untagged after 30 days)
+  ./scripts/setup-ecr-lifecycle-policy.sh
+  ```
 - **IMPORTANT**: Images are now built for multi-architecture support (`linux/amd64` and `linux/arm64`)
   - EC2 instances use `linux/amd64`
   - macOS/Apple Silicon machines use `linux/arm64`
@@ -119,6 +124,8 @@ Navigate to the project root and run:
 ```bash
 docker build -f apps/api/Dockerfile -t docita-api .
 ```
+
+> **Note**: The Dockerfile uses a **multi-stage build** process. It separates the build environment from the runtime environment and uses aggressive caching for dependencies. This results in significantly smaller image sizes (~120MB) and faster build times.
 
 ### Running the Container
 
@@ -643,32 +650,42 @@ jobs:
           script: |
             set -e
 
-            echo "Starting zero-downtime deployment..."
-            cd ~/docita
+            # Export necessary AWS/ECR variables resolved on the runner
+            export IMAGE_URI="${{ needs.build.outputs.image_uri }}"
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ env.AWS_REGION }}"
+            export ECR_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
 
-            # Login to ECR
-            echo "Logging into AWS ECR..."
-            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $ECR_REGISTRY
+            echo "Installing AWS CLI tools if needed..."
+            which aws || (apk add --no-cache aws-cli 2>/dev/null || apt-get update && apt-get install -y awscli) || echo "AWS CLI not available, trying docker login with token"
 
-            # Pull the new image
-            echo "Pulling new Docker image from ECR..."
+            echo "Logging into ECR registry..."
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY" || \
+            (echo "AWS CLI login failed, retrying with direct password..." && \
+             ECR_PASSWORD=$(aws ecr get-login-password --region "$AWS_REGION") && \
+             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin "$ECR_REGISTRY")
+
+            echo "Removing old local cached images..."
+            docker images -q "docita-api" | xargs -r docker rmi -f || true
+
+            echo "Pulling new image from ECR..."
             docker pull "$IMAGE_URI"
 
             # 1. Start new container on temp port for verification
-            echo "Starting new container on temp port 3002..."
             docker rm -f docita-api-new || true
             docker run -d \
               --name docita-api-new \
               --restart unless-stopped \
               -p 3002:3001 \
-              --env-file .env \
+              --env-file ~/docita/.env \
               "$IMAGE_URI"
 
             # 2. Verify health on temp port
-            echo "Verifying health on temp port..."
+            echo "Running health check on temp port 3002..."
             for i in {1..15}; do
               if docker exec docita-api-new curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
-                echo "New container is healthy!"
+                echo "Container is healthy!"
                 HEALTHY=true
                 break
               fi
@@ -688,21 +705,47 @@ jobs:
             # Stop temp container
             docker rm -f docita-api-new
 
-            # Stop old container
+            # Stop old container (by name OR port)
             echo "Stopping old container..."
             docker stop docita-api || true
             docker rm docita-api || true
 
+            # Find and stop any container using port 3001 (in case name mismatch)
+            CONFLICT_ID=$(docker ps -q --filter "publish=3001")
+            if [ ! -z "$CONFLICT_ID" ]; then
+              echo "Found conflicting container $CONFLICT_ID on port 3001. Stopping..."
+              docker stop $CONFLICT_ID || true
+              docker rm $CONFLICT_ID || true
+            fi
+
             # Start new container on production port
-            echo "Starting new container on production port 3001..."
             docker run -d \
               --name docita-api \
               --restart unless-stopped \
               -p 3001:3001 \
-              --env-file .env \
+              --env-file ~/docita/.env \
               "$IMAGE_URI"
+            echo "Deployment successful."
 
-            echo "Deployment completed successfully!"
+            # Verify health check actually succeeded (with wait loop)
+            echo "Verifying final deployment health..."
+            FINAL_HEALTHY=false
+            for i in {1..15}; do
+              if docker exec docita-api curl -f -s http://localhost:3001/api/health/live >/dev/null 2>&1; then
+                echo "Final container is healthy!"
+                FINAL_HEALTHY=true
+                break
+              fi
+              echo "Waiting for final startup... ($i/15)"
+              sleep 2
+            done
+
+            if [ "$FINAL_HEALTHY" != "true" ]; then
+              echo "ERROR: Container failed final health check. Capturing diagnostics..."
+              docker ps -a || true
+              docker logs --tail 500 docita-api || true
+              exit 1
+            fi
 ```
 
 **Why use `aws-actions/amazon-ecr-login@v2`?**

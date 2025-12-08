@@ -6,34 +6,6 @@ settings:
 
 importers:
   .:
-    dependencies:
-      "@nestjs/bull":
-        specifier: ^11.0.4
-        version: 11.0.4(@nestjs/common@11.1.9(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(bull@4.16.5)
-      "@nestjs/cache-manager":
-        specifier: ^3.0.1
-        version: 3.0.1(@nestjs/common@11.1.9(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(cache-manager@7.2.5)(keyv@5.5.4)(rxjs@7.8.2)
-      "@types/cache-manager":
-        specifier: ^5.0.0
-        version: 5.0.0
-      bull:
-        specifier: ^4.16.5
-        version: 4.16.5
-      cache-manager:
-        specifier: ^7.2.5
-        version: 7.2.5
-      cache-manager-redis-store:
-        specifier: ^3.0.1
-        version: 3.0.1
-      react-hook-form:
-        specifier: ^7.66.1
-        version: 7.66.1(react@19.2.1)
-      redis:
-        specifier: ^5.10.0
-        version: 5.10.0
-      web-vitals:
-        specifier: ^5.1.0
-        version: 5.1.0
     devDependencies:
       "@workspace/eslint-config":
         specifier: workspace:*
@@ -41,9 +13,6 @@ importers:
       "@workspace/typescript-config":
         specifier: workspace:*
         version: link:packages/typescript-config
-      baseline-browser-mapping:
-        specifier: ^2.8.32
-        version: 2.8.32
       prettier:
         specifier: ^3.6.2
         version: 3.7.1
@@ -105,9 +74,6 @@ importers:
       "@types/react-dom":
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
-      baseline-browser-mapping:
-        specifier: ^2.8.32
-        version: 2.8.32
       eslint:
         specifier: ^9
         version: 9.39.1(jiti@2.6.1)
@@ -213,6 +179,12 @@ importers:
       nanoid:
         specifier: ^3.3.7
         version: 3.3.11
+      openai:
+        specifier: ^6.10.0
+        version: 6.10.0(zod@3.25.76)
+      papaparse:
+        specifier: ^5.5.3
+        version: 5.5.3
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -277,6 +249,9 @@ importers:
       "@types/node":
         specifier: ^22.10.7
         version: 22.19.1
+      "@types/papaparse":
+        specifier: ^5.5.1
+        version: 5.5.1
       "@types/pdfkit":
         specifier: ^0.17.3
         version: 0.17.4
@@ -413,9 +388,6 @@ importers:
       "@workspace/typescript-config":
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      baseline-browser-mapping:
-        specifier: ^2.8.32
-        version: 2.8.32
       eslint:
         specifier: ^9.32.0
         version: 9.39.1(jiti@2.6.1)
@@ -452,9 +424,6 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
-      web-vitals:
-        specifier: ^5.1.0
-        version: 5.1.0
     devDependencies:
       "@tailwindcss/postcss":
         specifier: ^4
@@ -468,9 +437,6 @@ importers:
       "@types/react-dom":
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
-      baseline-browser-mapping:
-        specifier: ^2.8.32
-        version: 2.8.32
       eslint:
         specifier: ^9
         version: 9.39.1(jiti@2.6.1)
@@ -4173,6 +4139,12 @@ packages:
     resolution:
       {
         integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==,
+      }
+
+  "@types/papaparse@5.5.1":
+    resolution:
+      {
+        integrity: sha512-esEO+VISsLIyE+JZBmb89NzsYYbpwV8lmv2rPo6oX5y9KhBaIP7hhHgjuTut54qjdKVMufTEcrh5fUl9+58huw==,
       }
 
   "@types/passport-jwt@4.0.1":
@@ -9071,6 +9043,21 @@ packages:
       }
     engines: { node: ">=6" }
 
+  openai@6.10.0:
+    resolution:
+      {
+        integrity: sha512-ITxOGo7rO3XRMiKA5l7tQ43iNNu+iXGFAcf2t+aWVzzqRaS0i7m1K2BhxNdaveB+5eENhO0VY1FkiZzhBk4v3A==,
+      }
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   opener@1.5.2:
     resolution:
       {
@@ -9179,6 +9166,12 @@ packages:
     resolution:
       {
         integrity: sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA==,
+      }
+
+  papaparse@5.5.3:
+    resolution:
+      {
+        integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==,
       }
 
   param-case@2.1.1:
@@ -12307,7 +12300,7 @@ snapshots:
     dependencies:
       "@jest/fake-timers": 30.2.0
       "@jest/types": 30.2.0
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       jest-mock: 30.2.0
 
   "@jest/expect-utils@30.2.0":
@@ -12325,7 +12318,7 @@ snapshots:
     dependencies:
       "@jest/types": 30.2.0
       "@sinonjs/fake-timers": 13.0.5
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       jest-message-util: 30.2.0
       jest-mock: 30.2.0
       jest-util: 30.2.0
@@ -13654,7 +13647,7 @@ snapshots:
 
   "@types/cors@2.8.19":
     dependencies:
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
 
   "@types/d3-array@3.2.2": {}
 
@@ -13768,6 +13761,10 @@ snapshots:
   "@types/node@24.10.1":
     dependencies:
       undici-types: 7.16.0
+
+  "@types/papaparse@5.5.1":
+    dependencies:
+      "@types/node": 20.19.25
 
   "@types/passport-jwt@4.0.1":
     dependencies:
@@ -16280,7 +16277,7 @@ snapshots:
       "@jest/expect": 30.2.0
       "@jest/test-result": 30.2.0
       "@jest/types": 30.2.0
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.7.0
@@ -16376,7 +16373,7 @@ snapshots:
       "@jest/environment": 30.2.0
       "@jest/fake-timers": 30.2.0
       "@jest/types": 30.2.0
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       jest-mock: 30.2.0
       jest-util: 30.2.0
       jest-validate: 30.2.0
@@ -16561,13 +16558,13 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@30.2.0:
     dependencies:
-      "@types/node": 22.19.1
+      "@types/node": 20.19.25
       "@ungap/structured-clone": 1.3.0
       jest-util: 30.2.0
       merge-stream: 2.0.0
@@ -17127,6 +17124,10 @@ snapshots:
     dependencies:
       mimic-fn: 2.1.0
 
+  openai@6.10.0(zod@3.25.76):
+    optionalDependencies:
+      zod: 3.25.76
+
   opener@1.5.2: {}
 
   optionator@0.9.4:
@@ -17212,6 +17213,8 @@ snapshots:
   package-json-from-dist@1.0.1: {}
 
   pako@0.2.9: {}
+
+  papaparse@5.5.3: {}
 
   param-case@2.1.1:
     dependencies:

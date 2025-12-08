@@ -113,7 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("docita_user", JSON.stringify(user));
 
       // Redirect to originally requested page or dashboard
-      const redirectUrl = sessionStorage.getItem("redirectAfterLogin") || "/";
+      const redirectUrl =
+        sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectUrl);
     } catch (error) {

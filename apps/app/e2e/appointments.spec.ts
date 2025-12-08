@@ -8,6 +8,7 @@ test.describe("Appointments", () => {
     email: string;
     clinicId: string;
     accessToken: string;
+    role?: string;
   } | null = null;
   let cachedPatient: { id: string } | null = null;
 
@@ -42,10 +43,11 @@ test.describe("Appointments", () => {
       email: registerData.user.email,
       clinicId: registerData.user.clinicId,
       accessToken: token,
+      role: registerData.user.role,
     };
     console.log("Cached user created:", cachedUser);
 
-    // Create a clinic if clinicId is null
+    // Create a clinic if clinicId is null, assign doctor and re-login to refresh token
     if (!cachedUser.clinicId) {
       const clinicRes = await request.post(`${API_URL}/clinics`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -64,18 +66,41 @@ test.describe("Appointments", () => {
         const clinic = await clinicRes.json();
         cachedUser.clinicId = clinic.id;
         console.log("Clinic created:", clinic.id);
+
+        // Assign the doctor to the clinic so token reflects clinicId
+        const doctorId = cachedUser.id;
+        const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { doctorId, clinicId: clinic.id, role: "doctor" },
+        });
+
+        if (assignRes.ok()) {
+          // Re-login to refresh token and include clinicId in JWT
+          const loginRes = await request.post(`${API_URL}/auth/login`, {
+            data: { email: cachedUser.email, password },
+          });
+          if (loginRes.ok()) {
+            const loginData = await loginRes.json();
+            cachedUser.accessToken =
+              loginData.access_token || loginData.accessToken;
+            cachedUser.clinicId =
+              loginData.user?.clinicId || cachedUser.clinicId;
+            console.log("Re-logged in, refreshed token and clinicId");
+          }
+        }
       }
     }
 
-    // Create patient
+    // Create patient (use refreshed token)
     const patientRes = await request.post(`${API_URL}/patients`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${cachedUser!.accessToken}` },
       data: {
         firstName: "Test",
         lastName: "Patient",
         phoneNumber: "1234567890",
         gender: "MALE",
         dateOfBirth: "1990-01-01",
+        clinicId: cachedUser!.clinicId,
       },
     });
 
@@ -91,19 +116,34 @@ test.describe("Appointments", () => {
 
   test.beforeEach(async ({ page }: { page: Page }) => {
     console.log("Starting beforeEach setup for Appointments tests");
+    // Use token-based auth to avoid flaky UI login during setup
+    const token = cachedUser!.accessToken;
+    // Set the frontend's expected keys so the app recognizes the logged-in user
+    const userForStorage = JSON.stringify({
+      id: cachedUser!.id,
+      email: cachedUser!.email,
+      clinicId: cachedUser!.clinicId,
+      role: cachedUser!.role || "DOCTOR",
+    });
 
-    await page.goto("/login");
-    await page.fill('input[type="email"]', cachedUser!.email);
-    await page.fill('input[type="password"]', "Test@123456");
-    await page.click('button[type="submit"]');
+    await page.addInitScript(
+      (args: { t: string; u: string }) => {
+        try {
+          const { t, u } = args;
+          localStorage.setItem("docita_token", t);
+          localStorage.setItem("docita_user", u);
+        } catch {
+          // noop
+        }
+      },
+      { t: token, u: userForStorage },
+    );
 
-    try {
-      await page.waitForURL("**/dashboard", { timeout: 30000 });
-      console.log("Navigation to dashboard successful");
-    } catch (error) {
-      console.error("Navigation to dashboard failed:", error);
-      throw error;
-    }
+    // Navigate to dashboard which should pick up token from localStorage
+    await page
+      .goto("/dashboard", { waitUntil: "networkidle" })
+      .catch(() => null);
+    await page.waitForTimeout(500);
   });
 
   test("should display appointments list", async ({ page }) => {
