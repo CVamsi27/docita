@@ -54,10 +54,10 @@ jobs:
 
       - name: Reset test database
         env:
-          DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
+          PGPASSWORD: docita
         run: |
-          psql -h localhost -U docita -d docita_test -c "DROP SCHEMA IF EXISTS public CASCADE;" || true
-          psql -h localhost -U docita -d docita_test -c "CREATE SCHEMA public;" || true
+          dropdb -h localhost -U docita docita_test 2>/dev/null || true
+          createdb -h localhost -U docita docita_test
 
       - name: Run database migrations
         env:
