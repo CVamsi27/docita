@@ -10,7 +10,7 @@ export function LoginLayout({ children }: { children: React.ReactNode }) {
   if (isLoginRoute) {
     return (
       <AuthGuard>
-        <div className="flex min-h-screen items-center justify-center bg-muted/40">
+        <div className="bg-muted/50 min-h-screen">
           {children}
         </div>
       </AuthGuard>

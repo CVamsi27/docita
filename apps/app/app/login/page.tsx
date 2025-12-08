@@ -37,17 +37,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-md border-border shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
+    <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4">
+      <Card className="w-full max-w-xl border-2 border-border shadow-xl rounded-lg">
+        <CardHeader className="space-y-1 px-8 pt-8 pb-6">
+          <CardTitle className="text-3xl font-bold text-center">
             Docita Login
           </CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access the clinic dashboard
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-8 pb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

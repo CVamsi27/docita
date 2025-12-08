@@ -234,10 +234,11 @@ export class SuperAdminService {
       const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
       // Current totals
-      const [clinics, users, patients, invoices, prescriptions] =
+      const [clinics, users, doctors, patients, invoices, prescriptions] =
         await Promise.all([
           this.prisma.clinic.count(),
           this.prisma.user.count(),
+          this.prisma.user.count({ where: { role: 'DOCTOR' } }),
           this.prisma.patient.count(),
           this.prisma.invoice.count(),
           this.prisma.prescription.count(),
@@ -247,6 +248,7 @@ export class SuperAdminService {
       const [
         clinicsThisMonth,
         usersThisMonth,
+        doctorsThisMonth,
         patientsThisMonth,
         invoicesThisMonth,
         prescriptionsThisMonth,
@@ -256,6 +258,12 @@ export class SuperAdminService {
         }),
         this.prisma.user.count({
           where: { createdAt: { gte: thisMonthRange.start } },
+        }),
+        this.prisma.user.count({
+          where: {
+            role: 'DOCTOR',
+            createdAt: { gte: thisMonthRange.start },
+          },
         }),
         this.prisma.patient.count({
           where: { createdAt: { gte: thisMonthRange.start } },
@@ -307,12 +315,14 @@ export class SuperAdminService {
       return {
         clinics,
         users,
+        doctors,
         patients,
         invoices,
         prescriptions,
         trends: {
           clinicsThisMonth,
           usersThisMonth,
+          doctorsThisMonth,
           patientsThisMonth,
           invoicesPercentChange,
           prescriptionsPercentChange,
