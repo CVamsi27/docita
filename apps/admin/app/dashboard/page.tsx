@@ -137,8 +137,8 @@ export default function SuperAdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.doctors}</div>
-            {renderTrend(trends.doctorsThisMonth)}
+            <div className="text-2xl font-bold">{stats.users}</div>
+            {renderTrend(trends.usersThisMonth)}
           </CardContent>
         </Card>
         <Card>

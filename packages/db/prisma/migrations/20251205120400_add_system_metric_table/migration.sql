@@ -1,3 +1,6 @@
+-- DropTable
+DROP TABLE IF EXISTS "SystemMetric";
+
 -- CreateTable SystemMetric (for performance monitoring and feature tracking)
 CREATE TABLE "SystemMetric" (
     "id" TEXT NOT NULL,
