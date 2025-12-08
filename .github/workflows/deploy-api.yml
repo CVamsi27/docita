@@ -131,6 +131,8 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           cache-to: type=inline
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
       - name: Set image_uri output
         id: set-output
         run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
@@ -219,6 +221,7 @@ jobs:
               --name docita-api-new \
               --restart unless-stopped \
               -p 3002:3001 \
+              -e "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
               --env-file ~/docita/.env \
               "$IMAGE_URI"
 
@@ -264,6 +267,7 @@ jobs:
               --name docita-api \
               --restart unless-stopped \
               -p 3001:3001 \
+              -e "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
               --env-file ~/docita/.env \
               "$IMAGE_URI"
             echo "Deployment successful."

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Plus, Trash2, Save, Clock, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -172,10 +172,9 @@ export function DoctorAvailabilitySettings() {
   });
 
   // Reset form when schedules change
-  useMemo(() => {
+  useEffect(() => {
     scheduleForm.reset(defaultScheduleValues);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultScheduleValues]);
+  }, [defaultScheduleValues, scheduleForm]);
 
   const timeOffForm = useForm<TimeOffFormData>({
     defaultValues: {

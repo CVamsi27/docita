@@ -68,17 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (storedToken && storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          // Allow both SUPER_ADMIN and ADMIN/ADMIN_DOCTOR roles
-          if (
-            parsedUser.role === "SUPER_ADMIN" ||
-            parsedUser.role === "ADMIN" ||
-            parsedUser.role === "ADMIN_DOCTOR"
-          ) {
+          // Only SUPER_ADMIN can access admin app
+          if (parsedUser.role === "SUPER_ADMIN") {
             setToken(storedToken);
             setUser(parsedUser);
             setCookie(COOKIE_KEY, storedToken, 7);
           } else {
-            // Clear invalid auth
+            // Clear invalid auth - clinic admins should not have access
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
             deleteCookie(COOKIE_KEY);
@@ -96,32 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle route protection
+  // Handle route protection - only SUPER_ADMIN can access admin app
   useEffect(() => {
     if (isLoading || !isMounted) return;
 
-    const isDashboardRoute = pathname?.startsWith("/dashboard");
-    const isAuthenticatedUser = !!token && !!user;
-    const isSuperAdminUser = user?.role === "SUPER_ADMIN";
+    const isProtectedRoute =
+      pathname?.startsWith("/dashboard") || pathname?.startsWith("/clinic");
+    const isAuthenticatedSuperAdmin =
+      !!token && !!user && user.role === "SUPER_ADMIN";
 
-    // Super admin only access dashboard
-    if (isDashboardRoute && isSuperAdminUser && !isAuthenticatedUser) {
-      router.replace("/");
-      return;
-    }
-
-    // Clinic admin/admin_doctor can access clinic portal (routes starting with /clinic)
-    const isClinicRoute = pathname?.startsWith("/clinic");
-    const isClinicAdminUser =
-      user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
-
-    if (isClinicRoute && isClinicAdminUser && !isAuthenticatedUser) {
-      router.replace("/");
-      return;
-    }
-
-    // If not authenticated and trying to access protected route, redirect to home
-    if ((isDashboardRoute || isClinicRoute) && !isAuthenticatedUser) {
+    // If not authenticated SUPER_ADMIN and trying to access protected route, redirect to login
+    if (isProtectedRoute && !isAuthenticatedSuperAdmin) {
       router.replace("/");
     }
   }, [isLoading, isMounted, pathname, token, user, router]);

@@ -1115,6 +1115,7 @@ export class SuperAdminService {
       currency: string;
       newTier: ClinicTier;
       paymentMethod: string;
+      notes?: string;
     },
   ) {
     try {
@@ -1144,6 +1145,8 @@ export class SuperAdminService {
         status: 'completed', // In production, verify with payment gateway
         amount: data.amount,
         currency: data.currency,
+        paymentMethod: data.paymentMethod,
+        notes: data.notes,
         timestamp: new Date(),
       };
 

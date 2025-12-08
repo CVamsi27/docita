@@ -30,7 +30,7 @@ function SettingsContent() {
   const defaultTab = searchParams.get("tab") || "general";
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
+    <div className="container mx-auto p-4 md:p-6 space-y-8">
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Button variant="ghost" size="sm" asChild>

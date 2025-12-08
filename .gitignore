@@ -52,6 +52,9 @@ out
 *.pem.key
 id_*.pem
 
+# Admin seed file (contains sensitive credentials)
+apps/api/src/seed-admin.ts
+
 # Editor / OS junk
 .DS_Store
 *.swp

@@ -83,6 +83,35 @@ export class DoctorAvailabilityController {
   // ============================================================================
 
   /**
+   * Get all schedules for the clinic (for admins and receptionists)
+   * This must come BEFORE the generic :id routes
+   */
+  @Get('schedules/clinic')
+  getClinicSchedules(@Request() req: AuthRequest) {
+    return this.doctorAvailabilityService.getSchedulesByClinic(
+      req.user.clinicId,
+    );
+  }
+
+  /**
+   * Bulk create/update schedules for a doctor
+   * This must come BEFORE the generic :id routes
+   */
+  @Post('schedules/bulk')
+  bulkUpsertSchedules(
+    @Request() req: AuthRequest,
+    @Body() dto: BulkScheduleDto,
+  ) {
+    const doctorId =
+      req.user.role === 'ADMIN' && dto.doctorId ? dto.doctorId : req.user.id;
+    return this.doctorAvailabilityService.bulkUpsertSchedules(
+      doctorId,
+      req.user.clinicId,
+      dto.schedules,
+    );
+  }
+
+  /**
    * Get all schedules for a doctor (optionally filtered by clinic)
    */
   @Get('schedules')
@@ -95,16 +124,6 @@ export class DoctorAvailabilityController {
       req.user.role === 'ADMIN' && doctorId ? doctorId : req.user.id;
     return this.doctorAvailabilityService.getSchedules(
       targetDoctorId,
-      req.user.clinicId,
-    );
-  }
-
-  /**
-   * Get all schedules for the clinic (for admins and receptionists)
-   */
-  @Get('schedules/clinic')
-  getClinicSchedules(@Request() req: AuthRequest) {
-    return this.doctorAvailabilityService.getSchedulesByClinic(
       req.user.clinicId,
     );
   }
@@ -125,23 +144,6 @@ export class DoctorAvailabilityController {
       slotDuration: dto.slotDuration,
       isActive: dto.isActive,
     });
-  }
-
-  /**
-   * Bulk create/update schedules for a doctor
-   */
-  @Post('schedules/bulk')
-  bulkUpsertSchedules(
-    @Request() req: AuthRequest,
-    @Body() dto: BulkScheduleDto,
-  ) {
-    const doctorId =
-      req.user.role === 'ADMIN' && dto.doctorId ? dto.doctorId : req.user.id;
-    return this.doctorAvailabilityService.bulkUpsertSchedules(
-      doctorId,
-      req.user.clinicId,
-      dto.schedules,
-    );
   }
 
   /**

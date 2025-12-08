@@ -57,24 +57,16 @@ export default function SuperAdminLogin() {
         throw new Error("Invalid response from server");
       }
 
-      // Check role - allow SUPER_ADMIN, ADMIN, or ADMIN_DOCTOR
-      const allowedRoles = ["SUPER_ADMIN", "ADMIN", "ADMIN_DOCTOR"];
-      if (!allowedRoles.includes(data.user.role)) {
+      // Check role - only SUPER_ADMIN can access admin app
+      if (data.user.role !== "SUPER_ADMIN") {
         throw new Error(
-          "Unauthorized access - Super Admin or Clinic Admin only",
+          "Unauthorized access - Super Admin only. Clinic admins should use the main app.",
         );
       }
 
       login(data.access_token, data.user);
       toast.success("Login successful");
-
-      // Route based on role
-      if (data.user.role === "SUPER_ADMIN") {
-        router.push("/dashboard");
-      } else {
-        // ADMIN or ADMIN_DOCTOR
-        router.push("/clinic");
-      }
+      router.push("/dashboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -91,7 +83,7 @@ export default function SuperAdminLogin() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Docita Admin</h1>
           <p className="text-sm text-muted-foreground">
-            Admin Portal - Super Admin & Clinic Admin Access
+            Super Admin Console - Product Owners & System Admins
           </p>
         </div>
         <Card>

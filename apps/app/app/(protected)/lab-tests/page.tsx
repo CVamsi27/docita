@@ -165,7 +165,7 @@ export default function LabTestsPage() {
         </div>
       }
     >
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>

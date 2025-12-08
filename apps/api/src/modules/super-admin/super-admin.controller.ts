@@ -66,7 +66,8 @@ interface ProcessPaymentDto {
   amount: number;
   currency: string;
   newTier: ClinicTier;
-  paymentMethod: 'razorpay' | 'stripe' | 'bank_transfer';
+  paymentMethod: 'razorpay' | 'stripe' | 'bank_transfer' | 'manual';
+  notes?: string;
 }
 
 @Controller('super-admin')
