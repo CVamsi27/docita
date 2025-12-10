@@ -2,18 +2,13 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
+  CRUDDialog,
+  FormFieldGroup,
+} from "@workspace/ui/components";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
 import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Label } from "@workspace/ui/components/label";
 import { toast } from "sonner";
 
 interface WhatsAppBroadcastDialogProps {
@@ -36,7 +31,19 @@ export function WhatsAppBroadcastDialog({
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const resetForm = () => {
+    setFormData({
+      campaignName: "",
+      message: "",
+      sendToAllPatients: true,
+      sendToSpecificPatients: false,
+      scheduleTime: "",
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!formData.campaignName || !formData.message) {
       toast.error("Campaign name and message are required");
       return;
@@ -54,15 +61,9 @@ export function WhatsAppBroadcastDialog({
       if (!response.ok) throw new Error("Failed to create campaign");
 
       toast.success("Campaign created successfully");
-      setFormData({
-        campaignName: "",
-        message: "",
-        sendToAllPatients: true,
-        sendToSpecificPatients: false,
-        scheduleTime: "",
-      });
-      onSuccess?.();
+      resetForm();
       onClose();
+      onSuccess?.();
     } catch (error) {
       toast.error("Failed to create campaign");
       console.error("Error creating campaign:", error);
@@ -72,82 +73,87 @@ export function WhatsAppBroadcastDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create Broadcast Campaign</DialogTitle>
-          <DialogDescription>
-            Send a message to multiple patients via WhatsApp
-          </DialogDescription>
-        </DialogHeader>
+    <CRUDDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        onClose();
+        if (!open) resetForm();
+      }}
+      title="Create Broadcast Campaign"
+      description="Send a message to multiple patients via WhatsApp"
+      isLoading={isLoading}
+      onSubmit={handleSubmit}
+      submitLabel="Create Campaign"
+      contentClassName="max-w-md"
+    >
+      <FormFieldGroup
+        label="Campaign Name"
+        required
+        error={formData.campaignName ? undefined : "Campaign name is required"}
+      >
+        <Input
+          id="campaignName"
+          value={formData.campaignName}
+          onChange={(e) =>
+            setFormData({ ...formData, campaignName: e.target.value })
+          }
+          placeholder="e.g., Monthly Health Reminder"
+          required
+        />
+      </FormFieldGroup>
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="campaignName">Campaign Name</Label>
-            <Input
-              id="campaignName"
-              value={formData.campaignName}
-              onChange={(e) =>
-                setFormData({ ...formData, campaignName: e.target.value })
-              }
-              placeholder="e.g., Monthly Health Reminder"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="message">Message *</Label>
-            <Textarea
-              id="message"
-              value={formData.message}
-              onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
-              }
-              placeholder="Enter your message..."
-              rows={4}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {formData.message.length}/160 characters
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={formData.sendToAllPatients}
-                onCheckedChange={() =>
-                  setFormData({
-                    ...formData,
-                    sendToAllPatients: !formData.sendToAllPatients,
-                    sendToSpecificPatients: formData.sendToAllPatients,
-                  })
-                }
-              />
-              <Label>Send to all patients</Label>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="scheduleTime">Schedule (Optional)</Label>
-            <Input
-              id="scheduleTime"
-              type="datetime-local"
-              value={formData.scheduleTime}
-              onChange={(e) =>
-                setFormData({ ...formData, scheduleTime: e.target.value })
-              }
-            />
-          </div>
+      <FormFieldGroup
+        label="Message"
+        required
+        error={formData.message ? undefined : "Message is required"}
+      >
+        <div className="space-y-2">
+          <Textarea
+            id="message"
+            value={formData.message}
+            onChange={(e) =>
+              setFormData({ ...formData, message: e.target.value })
+            }
+            placeholder="Enter your message..."
+            rows={4}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            {formData.message.length}/160 characters
+          </p>
         </div>
+      </FormFieldGroup>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Campaign"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <div className="space-y-2">
+        <Label>Recipients</Label>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="sendAll"
+            checked={formData.sendToAllPatients}
+            onCheckedChange={() =>
+              setFormData({
+                ...formData,
+                sendToAllPatients: !formData.sendToAllPatients,
+                sendToSpecificPatients: formData.sendToAllPatients,
+              })
+            }
+          />
+          <Label htmlFor="sendAll">Send to all patients</Label>
+        </div>
+      </div>
+
+      <FormFieldGroup label="Schedule (Optional)" hint="Leave empty to send immediately">
+        <Input
+          id="scheduleTime"
+          type="datetime-local"
+          value={formData.scheduleTime}
+          onChange={(e) =>
+            setFormData({ ...formData, scheduleTime: e.target.value })
+          }
+        />
+      </FormFieldGroup>
+    </CRUDDialog>
+  );
+}    </Dialog>
   );
 }

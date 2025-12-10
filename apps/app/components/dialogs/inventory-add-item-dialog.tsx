@@ -2,16 +2,9 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+  CRUDDialog,
+  FormFieldGroup,
+} from "@workspace/ui/components";
 import {
   Select,
   SelectContent,
@@ -19,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { Input } from "@workspace/ui/components/input";
 import { toast } from "sonner";
 
 interface InventoryAddItemDialogProps {
@@ -41,6 +35,16 @@ export function InventoryAddItemDialog({
   });
 
   const [isPending, setIsPending] = useState(false);
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      category: "",
+      quantity: "",
+      expiryDate: "",
+      minStock: "10",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,13 +74,8 @@ export function InventoryAddItemDialog({
       if (!response.ok) throw new Error("Failed to add item");
 
       toast.success("Item added successfully");
-      setFormData({
-        name: "",
-        category: "",
-        quantity: "",
-        expiryDate: "",
-        minStock: "10",
-      });
+      resetForm();
+      onClose();
       onSuccess();
     } catch (error) {
       toast.error("Failed to add item");
@@ -87,91 +86,97 @@ export function InventoryAddItemDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Inventory Item</DialogTitle>
-          <DialogDescription>
-            Add a new item to your inventory
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Item Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="e.g., Paracetamol 500mg"
-            />
-          </div>
-          <div>
-            <Label htmlFor="category">Category *</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) =>
-                setFormData({ ...formData, category: value })
-              }
-            >
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="medicine">Medicine</SelectItem>
-                <SelectItem value="medical-supply">Medical Supply</SelectItem>
-                <SelectItem value="equipment">Equipment</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="quantity">Quantity *</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="0"
-              value={formData.quantity}
-              onChange={(e) =>
-                setFormData({ ...formData, quantity: e.target.value })
-              }
-              placeholder="0"
-            />
-          </div>
-          <div>
-            <Label htmlFor="minStock">Minimum Stock Level</Label>
-            <Input
-              id="minStock"
-              type="number"
-              min="0"
-              value={formData.minStock}
-              onChange={(e) =>
-                setFormData({ ...formData, minStock: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="expiryDate">Expiry Date</Label>
-            <Input
-              id="expiryDate"
-              type="date"
-              value={formData.expiryDate}
-              onChange={(e) =>
-                setFormData({ ...formData, expiryDate: e.target.value })
-              }
-            />
-          </div>
-        </form>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? "Adding..." : "Add Item"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <CRUDDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        onClose();
+        if (!open) resetForm();
+      }}
+      title="Add Inventory Item"
+      description="Add a new item to your inventory"
+      isLoading={isPending}
+      onSubmit={handleSubmit}
+      submitLabel="Add Item"
+    >
+      <FormFieldGroup
+        label="Item Name"
+        required
+        error={formData.name ? undefined : "Item name is required"}
+      >
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) =>
+            setFormData({ ...formData, name: e.target.value })
+          }
+          placeholder="e.g., Paracetamol 500mg"
+          required
+        />
+      </FormFieldGroup>
+
+      <FormFieldGroup
+        label="Category"
+        required
+        error={formData.category ? undefined : "Category is required"}
+      >
+        <Select
+          value={formData.category}
+          onValueChange={(value) =>
+            setFormData({ ...formData, category: value })
+          }
+        >
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="medicine">Medicine</SelectItem>
+            <SelectItem value="medical-supply">Medical Supply</SelectItem>
+            <SelectItem value="equipment">Equipment</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormFieldGroup>
+
+      <FormFieldGroup
+        label="Quantity"
+        required
+        error={formData.quantity ? undefined : "Quantity is required"}
+      >
+        <Input
+          id="quantity"
+          type="number"
+          min="0"
+          value={formData.quantity}
+          onChange={(e) =>
+            setFormData({ ...formData, quantity: e.target.value })
+          }
+          placeholder="0"
+          required
+        />
+      </FormFieldGroup>
+
+      <FormFieldGroup label="Minimum Stock Level">
+        <Input
+          id="minStock"
+          type="number"
+          min="0"
+          value={formData.minStock}
+          onChange={(e) =>
+            setFormData({ ...formData, minStock: e.target.value })
+          }
+        />
+      </FormFieldGroup>
+
+      <FormFieldGroup label="Expiry Date">
+        <Input
+          id="expiryDate"
+          type="date"
+          value={formData.expiryDate}
+          onChange={(e) =>
+            setFormData({ ...formData, expiryDate: e.target.value })
+          }
+        />
+      </FormFieldGroup>
+    </CRUDDialog>
   );
 }
