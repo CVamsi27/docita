@@ -201,9 +201,9 @@ export default function TeamPage() {
 
       if (editingMember) {
         // Update
-        const updatePayload = { ...payload };
+        const updatePayload: Record<string, unknown> = { ...payload };
         if (formData.password) {
-          (updatePayload as any).password = formData.password;
+          updatePayload.password = formData.password;
         }
 
         const res = await fetch(`${API_URL}${endpoint}/${editingMember.id}`, {
@@ -240,8 +240,8 @@ export default function TeamPage() {
             );
             const receptionists = receptRes.ok ? await receptRes.json() : [];
             setMembers([
-              ...doctors.map((d: any) => ({ ...d, role: "DOCTOR" as const })),
-              ...receptionists.map((r: any) => ({
+              ...doctors.map((d: TeamMember) => ({ ...d, role: "DOCTOR" as const })),
+              ...receptionists.map((r: TeamMember) => ({
                 ...r,
                 role: "RECEPTIONIST" as const,
               })),
@@ -265,7 +265,9 @@ export default function TeamPage() {
         });
 
         if (res.ok) {
-          toast.success(`${formData.role === "DOCTOR" ? "Doctor" : "Receptionist"} created successfully`);
+          toast.success(
+            `${formData.role === "DOCTOR" ? "Doctor" : "Receptionist"} created successfully`,
+          );
           setIsDialogOpen(false);
           resetForm();
           // Reload team
@@ -289,8 +291,8 @@ export default function TeamPage() {
             );
             const receptionists = receptRes.ok ? await receptRes.json() : [];
             setMembers([
-              ...doctors.map((d: any) => ({ ...d, role: "DOCTOR" as const })),
-              ...receptionists.map((r: any) => ({
+              ...doctors.map((d: TeamMember) => ({ ...d, role: "DOCTOR" as const })),
+              ...receptionists.map((r: TeamMember) => ({
                 ...r,
                 role: "RECEPTIONIST" as const,
               })),
@@ -334,7 +336,9 @@ export default function TeamPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Team Management</h1>
-          <p className="text-muted-foreground">Manage your clinic team members</p>
+          <p className="text-muted-foreground">
+            Manage your clinic team members
+          </p>
         </div>
         <Button
           className="gap-2"
@@ -553,7 +557,7 @@ export default function TeamPage() {
             </div>
           ) : members.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No team members yet. Click "Add Team Member" to get started.
+              No team members yet. Click &quot;Add Team Member&quot; to get started.
             </div>
           ) : (
             <Table>

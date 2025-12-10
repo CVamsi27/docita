@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CRUDDialog,
-  FormFieldGroup,
-} from "@workspace/ui/components";
+import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
 import {
   Select,
   SelectContent,
@@ -106,9 +103,7 @@ export function InventoryAddItemDialog({
         <Input
           id="name"
           value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="e.g., Paracetamol 500mg"
           required
         />

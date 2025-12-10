@@ -43,7 +43,7 @@ export class CacheInterceptor implements NestInterceptor {
             );
 
             // Add ETag for conditional requests
-            // Note: Express automatically generates ETags, we just ensure they're enabled
+
             response.setHeader('Vary', 'Accept-Encoding');
           }
         }),

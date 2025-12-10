@@ -42,13 +42,17 @@ export function FormDialog({
   onOpenChange,
   title,
   description,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isEditing = false,
   isLoading = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   submitLabel,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   cancelLabel = "Cancel",
   contentClassName,
   disabled = false,
   children,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCancel,
 }: FormDialogProps) {
   return (

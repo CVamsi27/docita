@@ -154,6 +154,4 @@ export function WhatsAppBroadcastDialog({
       </FormFieldGroup>
     </CRUDDialog>
   );
-}    </Dialog>
-  );
 }

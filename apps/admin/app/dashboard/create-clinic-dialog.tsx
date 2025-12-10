@@ -294,7 +294,6 @@ export function CreateClinicDialog({
               </p>
             </div>
           </div>
-
         </form>
       </CRUDDialog>
     </>

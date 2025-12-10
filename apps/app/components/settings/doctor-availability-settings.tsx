@@ -457,7 +457,10 @@ export function DoctorAvailabilitySettings() {
         description="Schedule vacation, sick leave, or other unavailable time"
         isLoading={creatingTimeOff}
       >
-        <form onSubmit={timeOffForm.handleSubmit(onCreateTimeOff)} className="space-y-4">
+        <form
+          onSubmit={timeOffForm.handleSubmit(onCreateTimeOff)}
+          className="space-y-4"
+        >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

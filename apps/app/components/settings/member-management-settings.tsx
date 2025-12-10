@@ -10,7 +10,6 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
 import {
   CRUDDialog,
   FormGrid,
@@ -31,7 +30,6 @@ import { toast } from "sonner";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Select,
   SelectContent,

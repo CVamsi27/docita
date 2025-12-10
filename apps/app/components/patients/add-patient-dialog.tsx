@@ -5,9 +5,7 @@ import { useState, useRef } from "react";
 import { Plus } from "lucide-react";
 import type { CreatePatientInput } from "@workspace/types";
 
-import {
-  DialogTrigger,
-} from "@workspace/ui/components/dialog.js";
+import { DialogTrigger, DialogFooter } from "@workspace/ui/components/dialog.js";
 import {
   Form,
   FormControl,
@@ -16,7 +14,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form.js";
-import { FormDialog, FormDialogFooter } from "@workspace/ui/components/form-dialog.js";
+import {
+  FormDialog,
+} from "@workspace/ui/components/form-dialog.js";
 import { Button } from "@workspace/ui/components/button.js";
 import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";

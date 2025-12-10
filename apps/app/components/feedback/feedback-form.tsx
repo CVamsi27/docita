@@ -307,7 +307,7 @@ export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
                   value={goodFeaturesReason}
                   onChange={(e) => setGoodFeaturesReason(e.target.value)}
                   placeholder="Tell us what makes these features great..."
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </div>
             )}
@@ -339,7 +339,7 @@ export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
                   value={badFeaturesReason}
                   onChange={(e) => setBadFeaturesReason(e.target.value)}
                   placeholder="Describe the issues you've encountered..."
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </div>
             )}
@@ -359,7 +359,7 @@ export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
                   value={improvementReason}
                   onChange={(e) => setImprovementReason(e.target.value)}
                   placeholder="Share your suggestions..."
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </div>
             )}

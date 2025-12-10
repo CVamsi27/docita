@@ -241,7 +241,6 @@ export function EditClinicDialog({
               </Select>
             </div>
           </div>
-
         </form>
       </CRUDDialog>
     </>

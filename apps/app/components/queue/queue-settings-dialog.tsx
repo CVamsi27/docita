@@ -72,83 +72,83 @@ export function QueueSettingsDialog({
       submitLabel={updateSettings.isPending ? "Saving..." : "Save Settings"}
     >
       <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 items-center gap-4">
-            <Label
-              htmlFor="avgConsultationMinutes"
-              className="text-right text-sm"
-            >
-              Avg Consultation (min)
-            </Label>
-            <Input
-              id="avgConsultationMinutes"
-              type="number"
-              value={settingsForm.avgConsultationMinutes}
-              onChange={(e) =>
-                setSettingsForm({
-                  ...settingsForm,
-                  avgConsultationMinutes: parseInt(e.target.value) || 15,
-                })
-              }
-              className="h-9"
-            />
-          </div>
-          <div className="grid grid-cols-2 items-center gap-4">
-            <Label htmlFor="queueBufferMinutes" className="text-right text-sm">
-              Queue Buffer (min)
-            </Label>
-            <Input
-              id="queueBufferMinutes"
-              type="number"
-              value={settingsForm.queueBufferMinutes}
-              onChange={(e) =>
-                setSettingsForm({
-                  ...settingsForm,
-                  queueBufferMinutes: parseInt(e.target.value) || 10,
-                })
-              }
-              className="h-9"
-            />
-          </div>
-          <div className="grid grid-cols-2 items-center gap-4">
-            <Label
-              htmlFor="lateArrivalGraceMinutes"
-              className="text-right text-sm"
-            >
-              Late Grace Period (min)
-            </Label>
-            <Input
-              id="lateArrivalGraceMinutes"
-              type="number"
-              value={settingsForm.lateArrivalGraceMinutes}
-              onChange={(e) =>
-                setSettingsForm({
-                  ...settingsForm,
-                  lateArrivalGraceMinutes: parseInt(e.target.value) || 30,
-                })
-              }
-              className="h-9"
-            />
-          </div>
-          <div className="grid grid-cols-2 items-center gap-4">
-            <Label htmlFor="useDoctorQueues" className="text-right text-sm">
-              Doctor-specific Queues
-            </Label>
-            <Button
-              id="useDoctorQueues"
-              variant={settingsForm.useDoctorQueues ? "default" : "outline"}
-              size="sm"
-              onClick={() =>
-                setSettingsForm({
-                  ...settingsForm,
-                  useDoctorQueues: !settingsForm.useDoctorQueues,
-                })
-              }
-              className="h-9"
-            >
-              {settingsForm.useDoctorQueues ? "Enabled" : "Disabled"}
-            </Button>
-          </div>
+        <div className="grid grid-cols-2 items-center gap-4">
+          <Label
+            htmlFor="avgConsultationMinutes"
+            className="text-right text-sm"
+          >
+            Avg Consultation (min)
+          </Label>
+          <Input
+            id="avgConsultationMinutes"
+            type="number"
+            value={settingsForm.avgConsultationMinutes}
+            onChange={(e) =>
+              setSettingsForm({
+                ...settingsForm,
+                avgConsultationMinutes: parseInt(e.target.value) || 15,
+              })
+            }
+            className="h-9"
+          />
         </div>
+        <div className="grid grid-cols-2 items-center gap-4">
+          <Label htmlFor="queueBufferMinutes" className="text-right text-sm">
+            Queue Buffer (min)
+          </Label>
+          <Input
+            id="queueBufferMinutes"
+            type="number"
+            value={settingsForm.queueBufferMinutes}
+            onChange={(e) =>
+              setSettingsForm({
+                ...settingsForm,
+                queueBufferMinutes: parseInt(e.target.value) || 10,
+              })
+            }
+            className="h-9"
+          />
+        </div>
+        <div className="grid grid-cols-2 items-center gap-4">
+          <Label
+            htmlFor="lateArrivalGraceMinutes"
+            className="text-right text-sm"
+          >
+            Late Grace Period (min)
+          </Label>
+          <Input
+            id="lateArrivalGraceMinutes"
+            type="number"
+            value={settingsForm.lateArrivalGraceMinutes}
+            onChange={(e) =>
+              setSettingsForm({
+                ...settingsForm,
+                lateArrivalGraceMinutes: parseInt(e.target.value) || 30,
+              })
+            }
+            className="h-9"
+          />
+        </div>
+        <div className="grid grid-cols-2 items-center gap-4">
+          <Label htmlFor="useDoctorQueues" className="text-right text-sm">
+            Doctor-specific Queues
+          </Label>
+          <Button
+            id="useDoctorQueues"
+            variant={settingsForm.useDoctorQueues ? "default" : "outline"}
+            size="sm"
+            onClick={() =>
+              setSettingsForm({
+                ...settingsForm,
+                useDoctorQueues: !settingsForm.useDoctorQueues,
+              })
+            }
+            className="h-9"
+          >
+            {settingsForm.useDoctorQueues ? "Enabled" : "Disabled"}
+          </Button>
+        </div>
+      </div>
     </CRUDDialog>
   );
 }
