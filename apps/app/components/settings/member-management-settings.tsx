@@ -62,6 +62,11 @@ interface Member {
   email: string;
   role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   phoneNumber?: string;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+  yearsOfExperience?: number;
+  consultationFee?: number;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -180,11 +185,11 @@ export function MemberManagementSettings() {
       password: "",
       role: member.role || "DOCTOR",
       phoneNumber: member.phoneNumber || "",
-      specialization: "",
-      qualification: "",
-      registrationNumber: "",
-      yearsOfExperience: "",
-      consultationFee: "",
+      specialization: member.specialization || "",
+      qualification: member.qualification || "",
+      registrationNumber: member.registrationNumber || "",
+      yearsOfExperience: member.yearsOfExperience ? String(member.yearsOfExperience) : "",
+      consultationFee: member.consultationFee ? String(member.consultationFee) : "",
     });
     setIsDialogOpen(true);
   };
