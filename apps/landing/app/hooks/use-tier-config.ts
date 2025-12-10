@@ -217,7 +217,6 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   AED: "AED",
   ZAR: "R",
 };
-
 // Fetch function for tier config
 async function fetchTierConfig(): Promise<TierConfigData> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";

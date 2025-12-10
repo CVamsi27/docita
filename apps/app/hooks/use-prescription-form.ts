@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Medication, type DosageValidation } from "@workspace/types";
+import {
+  Medication,
+  type DosageValidation,
+  type Specialization,
+  type HospitalRole,
+} from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import {
   validateDosage,
@@ -16,6 +21,13 @@ interface UsePrescriptionFormProps {
   currentMedications?: string[];
   isPregnant?: boolean;
   onPrescriptionSaved?: () => void;
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorSpecialization?: Specialization;
+  doctorRole?: HospitalRole;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
 }
 
 interface MedicationValidation {
@@ -34,6 +46,13 @@ export function usePrescriptionForm({
   currentMedications = [],
   isPregnant = false,
   onPrescriptionSaved,
+  doctorName,
+  doctorEmail,
+  doctorPhone,
+  doctorSpecialization,
+  doctorRole,
+  doctorRegistrationNumber,
+  doctorLicenseNumber,
 }: UsePrescriptionFormProps) {
   const createPrescription = apiHooks.useCreatePrescription();
   const [instructions, setInstructions] = useState("");
@@ -169,9 +188,15 @@ export function usePrescriptionForm({
         doctorId,
         medications: validMedications,
         instructions: instructions || undefined,
+        doctorName,
+        doctorEmail,
+        doctorPhone,
+        doctorSpecialization,
+        doctorRole,
+        doctorRegistrationNumber,
+        doctorLicenseNumber,
       });
 
-      // Reset form
       setMedications([
         { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
       ]);

@@ -113,7 +113,7 @@ export default function ClinicLayout({
           <Button
             variant="outline"
             className="w-full justify-start gap-2"
-            onClick={logout}
+            onClick={() => logout()}
           >
             <LogOut className="h-4 w-4" />
             Logout

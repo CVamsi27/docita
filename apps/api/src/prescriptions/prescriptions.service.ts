@@ -100,6 +100,14 @@ export class PrescriptionsService {
       duration: string;
       route?: string;
     }>;
+    // Doctor context for audit trail (Phase 5)
+    doctorName?: string;
+    doctorEmail?: string;
+    doctorPhone?: string;
+    doctorSpecialization?: any;
+    doctorRole?: any;
+    doctorRegistrationNumber?: string;
+    doctorLicenseNumber?: string;
   }) {
     const prescription = await this.prisma.prescription.create({
       data: {
@@ -107,6 +115,14 @@ export class PrescriptionsService {
         patientId: data.patientId,
         doctorId: data.doctorId,
         instructions: data.instructions,
+        // Save doctor context snapshot (Phase 5)
+        doctorName: data.doctorName,
+        doctorEmail: data.doctorEmail,
+        doctorPhone: data.doctorPhone,
+        doctorSpecialization: data.doctorSpecialization || null,
+        doctorRole: data.doctorRole || null,
+        doctorRegistrationNumber: data.doctorRegistrationNumber,
+        doctorLicenseNumber: data.doctorLicenseNumber,
         medications: {
           create: data.medications.map((med) => ({
             name: med.name,

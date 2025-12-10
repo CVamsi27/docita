@@ -17,12 +17,10 @@ import {
   BarChart3,
   FileText,
   LogOut,
-  Activity,
   Menu,
   Stethoscope,
   CreditCard,
   MessageSquare,
-  HeartPulse,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -46,16 +44,6 @@ const sidebarItems = [
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart3,
-  },
-  {
-    title: "Performance",
-    href: "/dashboard/performance",
-    icon: Activity,
-  },
-  {
-    title: "System Health",
-    href: "/dashboard/health",
-    icon: HeartPulse,
   },
   {
     title: "Feedback",

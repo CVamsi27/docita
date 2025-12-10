@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { getWebSocketCorsOrigins } from '../config/app-config';
 
 interface PaymentUpdateData {
   sessionId: string;
@@ -24,14 +25,7 @@ interface ClinicUpdateData {
 
 @WebSocketGateway({
   cors: {
-    origin: [
-      'https://landing.docita.work',
-      'https://app.docita.work',
-      'https://admin.docita.work',
-      'http://localhost:3003',
-      'http://localhost:3000',
-      'http://localhost:3002',
-    ],
+    origin: getWebSocketCorsOrigins(),
     credentials: true,
   },
 })

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -15,6 +16,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Pencil, Loader2 } from "lucide-react";
 import { API_URL } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   Select,
   SelectContent,
@@ -84,6 +86,8 @@ export function EditClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuth();
   const [formData, setFormData] = useState(() => getInitialFormData(clinic));
 
   // Reset form data when dialog opens to ensure latest clinic data is used
@@ -98,7 +102,7 @@ export function EditClinicDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      const token = localStorage.getItem("docita_token");
+      const token = localStorage.getItem("docita_admin_token");
       const res = await fetch(`${API_URL}/super-admin/clinics/${clinic.id}`, {
         method: "PATCH",
         headers: {
@@ -107,6 +111,22 @@ export function EditClinicDialog({
         },
         body: JSON.stringify(formData),
       });
+
+      // Handle auth errors
+      if (res.status === 401) {
+        logout("Your session has expired. Please log in again.");
+        return;
+      }
+
+      if (res.status === 404) {
+        logout("Your account has been deleted. Please contact support.");
+        return;
+      }
+
+      if (res.status === 403) {
+        logout("You no longer have permission to update clinics.");
+        return;
+      }
 
       if (res.ok) {
         setOpen(false);
@@ -228,6 +248,7 @@ export function EditClinicDialog({
               </Select>
             </div>
           </div>
+
           <DialogFooter>
             <Button
               type="button"

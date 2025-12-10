@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { Specialization, HospitalRole } from '@workspace/db';
+import { Specialization, HospitalRole, Role } from '@workspace/db';
 
 interface CreateDoctorData {
   email: string;
@@ -146,7 +146,7 @@ export class DoctorsService {
       email,
       password,
       name,
-      role = 'doctor',
+      role = 'DOCTOR',
       specialization,
       hospitalRole,
       qualification,
@@ -164,7 +164,7 @@ export class DoctorsService {
         email,
         password: hashedPassword,
         name,
-        role: 'DOCTOR',
+        role: (role as unknown as Role) || 'DOCTOR',
         specialization,
         hospitalRole,
         qualification,

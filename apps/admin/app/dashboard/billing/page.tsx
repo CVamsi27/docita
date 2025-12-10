@@ -117,7 +117,7 @@ export default function BillingDashboard() {
     if (!token) return;
 
     try {
-      const [metricsData, subscriptionsData, paymentsData] = await Promise.all([
+      const results = await Promise.allSettled([
         billingAPI.getMetrics(),
         billingAPI.getSubscriptions({
           tier: tierFilter !== "all" ? tierFilter : undefined,
@@ -128,11 +128,34 @@ export default function BillingDashboard() {
         billingAPI.getPayments({}),
       ]);
 
-      setMetrics(metricsData);
-      setSubscriptions(subscriptionsData);
-      setPayments(paymentsData);
+      // Handle metrics
+      if (results[0].status === "fulfilled") {
+        setMetrics(results[0].value);
+      } else {
+        console.error("Failed to fetch metrics:", results[0].reason);
+        setMetrics(null);
+      }
+
+      // Handle subscriptions
+      if (results[1].status === "fulfilled") {
+        setSubscriptions(results[1].value);
+      } else {
+        console.error("Failed to fetch subscriptions:", results[1].reason);
+        setSubscriptions([]);
+      }
+
+      // Handle payments
+      if (results[2].status === "fulfilled") {
+        setPayments(results[2].value);
+      } else {
+        console.error("Failed to fetch payments:", results[2].reason);
+        setPayments([]);
+      }
     } catch (error) {
       console.error("Failed to fetch billing data:", error);
+      setMetrics(null);
+      setSubscriptions([]);
+      setPayments([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

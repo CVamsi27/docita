@@ -27,6 +27,14 @@ interface CreatePrescriptionDto {
   doctorId: string;
   instructions?: string;
   medications: Medication[];
+  // Doctor context for audit trail (Phase 5)
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorSpecialization?: string;
+  doctorRole?: string;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
 }
 
 @Controller('prescriptions')

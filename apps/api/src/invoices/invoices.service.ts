@@ -99,6 +99,14 @@ export class InvoicesService {
     total: number;
     status: string;
     items: InvoiceItem[];
+    // Doctor context for audit trail (Phase 5)
+    doctorName?: string;
+    doctorEmail?: string;
+    doctorPhone?: string;
+    doctorSpecialization?: any;
+    doctorRole?: any;
+    doctorRegistrationNumber?: string;
+    doctorLicenseNumber?: string;
   }) {
     return this.prisma.invoice.create({
       data: {
@@ -107,6 +115,14 @@ export class InvoicesService {
         total: data.total,
         status: data.status,
         items: data.items as unknown as Prisma.InputJsonValue,
+        // Save doctor context snapshot (Phase 5)
+        doctorName: data.doctorName,
+        doctorEmail: data.doctorEmail,
+        doctorPhone: data.doctorPhone,
+        doctorSpecialization: data.doctorSpecialization || null,
+        doctorRole: data.doctorRole || null,
+        doctorRegistrationNumber: data.doctorRegistrationNumber,
+        doctorLicenseNumber: data.doctorLicenseNumber,
       },
       select: {
         id: true,

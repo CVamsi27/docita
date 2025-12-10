@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -13,8 +14,9 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Plus, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Plus, Eye, EyeOff, Loader2, Users, Shield } from "lucide-react";
 import { API_URL } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,8 @@ export function CreateClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -50,6 +54,7 @@ export function CreateClinicDialog({
     adminName: "",
     adminEmail: "",
     adminPassword: "",
+    adminType: "admin" as "admin" | "admin_doctor",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -58,7 +63,7 @@ export function CreateClinicDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      const token = localStorage.getItem("docita_token");
+      const token = localStorage.getItem("docita_admin_token");
       const res = await fetch(`${API_URL}/super-admin/clinics`, {
         method: "POST",
         headers: {
@@ -67,6 +72,22 @@ export function CreateClinicDialog({
         },
         body: JSON.stringify(formData),
       });
+
+      // Handle auth errors
+      if (res.status === 401) {
+        logout("Your session has expired. Please log in again.");
+        return;
+      }
+
+      if (res.status === 404) {
+        logout("Your account has been deleted. Please contact support.");
+        return;
+      }
+
+      if (res.status === 403) {
+        logout("You no longer have permission to create clinics.");
+        return;
+      }
 
       if (res.ok) {
         setOpen(false);
@@ -80,6 +101,7 @@ export function CreateClinicDialog({
           adminName: "",
           adminEmail: "",
           adminPassword: "",
+          adminType: "admin",
         });
         toast.success("Clinic created successfully");
       } else {
@@ -241,6 +263,41 @@ export function CreateClinicDialog({
                   )}
                 </Button>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="adminType">Admin Type *</Label>
+              <Select
+                value={formData.adminType}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    adminType: value as "admin" | "admin_doctor",
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select admin type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Clinic Admin (manages clinics with multiple doctors)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin_doctor">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Admin Doctor (for single-doctor clinics)
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.adminType === "admin_doctor"
+                  ? "Admin Doctor can manage clinic operations and also act as a doctor"
+                  : "Clinic Admin manages clinic operations and staff"}
+              </p>
             </div>
           </div>
 

@@ -18,7 +18,14 @@ import { MedicineAutocomplete } from "@/components/medicines/medicine-autocomple
 import { IcdCodeSearch } from "@/components/medical-coding/icd-code-search";
 import { DiagnosisList } from "@/components/medical-coding/diagnosis-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
-import type { Diagnosis, IcdCode, PrescriptionTemplate } from "@/types";
+import type {
+  Diagnosis,
+  IcdCode,
+  PrescriptionTemplate,
+  Specialization,
+  HospitalRole,
+} from "@/types";
+import { SPECIALIZATION_LABELS, HOSPITAL_ROLE_LABELS } from "@workspace/types";
 import { api } from "@/lib/api-client";
 import { apiHooks } from "@/lib/api-hooks";
 
@@ -31,6 +38,13 @@ interface PrescriptionModalProps {
   patientName?: string;
   initialDiagnoses?: Diagnosis[];
   onSaved?: () => void;
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorSpecialization?: Specialization;
+  doctorRole?: HospitalRole;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
 }
 
 export function PrescriptionModal({
@@ -42,11 +56,16 @@ export function PrescriptionModal({
   patientName,
   initialDiagnoses = [],
   onSaved,
+  doctorName,
+  doctorEmail,
+  doctorPhone,
+  doctorSpecialization,
+  doctorRole,
+  doctorRegistrationNumber,
+  doctorLicenseNumber,
 }: PrescriptionModalProps) {
-  // Diagnosis State - initialized with any passed diagnoses
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>(initialDiagnoses);
 
-  // Sync diagnoses when initialDiagnoses changes (e.g., when opening modal for different appointment)
   useEffect(() => {
     setDiagnoses(initialDiagnoses);
   }, [initialDiagnoses]);
@@ -69,6 +88,13 @@ export function PrescriptionModal({
     appointmentId,
     patientId,
     doctorId,
+    doctorName,
+    doctorEmail,
+    doctorPhone,
+    doctorSpecialization,
+    doctorRole,
+    doctorRegistrationNumber,
+    doctorLicenseNumber,
     onPrescriptionSaved: () => {
       onSaved?.();
       onOpenChange(false);
@@ -175,6 +201,62 @@ export function PrescriptionModal({
               </span>
             )}
           </DialogTitle>
+          {/* Doctor Context Information */}
+          {doctorName && (
+            <div className="mt-3 pt-3 border-t space-y-2 text-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-muted-foreground">Prescribed by</p>
+                  <p className="font-semibold text-foreground">
+                    Dr. {doctorName}
+                  </p>
+                </div>
+                {doctorRegistrationNumber && (
+                  <div className="text-right">
+                    <p className="text-muted-foreground">Registration</p>
+                    <p className="font-mono text-sm">
+                      {doctorRegistrationNumber}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {doctorSpecialization && (
+                  <div>
+                    <p className="text-muted-foreground">Specialty</p>
+                    <p className="font-medium">
+                      {SPECIALIZATION_LABELS[doctorSpecialization] ||
+                        doctorSpecialization}
+                    </p>
+                  </div>
+                )}
+                {doctorRole && (
+                  <div>
+                    <p className="text-muted-foreground">Role</p>
+                    <p className="font-medium">
+                      {HOSPITAL_ROLE_LABELS[doctorRole] || doctorRole}
+                    </p>
+                  </div>
+                )}
+              </div>
+              {(doctorEmail || doctorPhone) && (
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  {doctorEmail && (
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p>{doctorEmail}</p>
+                    </div>
+                  )}
+                  {doctorPhone && (
+                    <div>
+                      <p className="text-muted-foreground">Phone</p>
+                      <p>{doctorPhone}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </DialogHeader>
 
         <form

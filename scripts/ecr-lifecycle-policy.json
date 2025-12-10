@@ -28,11 +28,11 @@
     },
     {
       "rulePriority": 3,
-      "description": "Keep last 50 images total (cleans up old SHA tags)",
+      "description": "Keep last 2 images total (cleans up old SHA tags)",
       "selection": {
         "tagStatus": "any",
         "countType": "imageCountMoreThan",
-        "countNumber": 50
+        "countNumber": 2
       },
       "action": {
         "type": "expire"

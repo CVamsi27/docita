@@ -401,6 +401,12 @@ Vercel automatically deploys:
 git clone https://github.com/CVamsi27/docita.git
 cd docita
 
+# Build packages first (required for Docker build)
+pnpm install
+pnpm --filter @workspace/db run build
+pnpm --filter @workspace/types run build
+pnpm --filter @docita/api run build
+
 # Build image
 docker build -f apps/api/Dockerfile -t docita-api:latest .
 

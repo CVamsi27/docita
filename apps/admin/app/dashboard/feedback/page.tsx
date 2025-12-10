@@ -712,7 +712,7 @@ export default function FeedbackPage() {
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder="Add notes about this feedback..."
-                      className="min-h-[80px]"
+                      className="min-h-20"
                     />
                   </div>
 

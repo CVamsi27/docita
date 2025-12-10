@@ -23,7 +23,6 @@ export class MedicationValidationService {
       for (let j = i + 1; j < medications.length; j++) {
         const med1 = medications[i].name.toLowerCase();
         const med2 = medications[j].name.toLowerCase();
-        // TODO: Call actual drug interaction API (DrugBank, RxNorm, FDA)
       }
     }
 

@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,6 +18,7 @@ interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
+    role: string;
   };
 }
 
@@ -108,16 +110,32 @@ export class DoctorsController {
 
   @Post()
   async create(@Request() req: AuthRequest, @Body() data: CreateDoctorDto) {
+    // Only ADMIN and ADMIN_DOCTOR can create members
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
+      throw new ForbiddenException('Only admins can create members');
+    }
     return this.doctorsService.create(req.user.clinicId, data);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateDoctorDto) {
+  async update(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() data: UpdateDoctorDto,
+  ) {
+    // Only ADMIN and ADMIN_DOCTOR can update members
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
+      throw new ForbiddenException('Only admins can update members');
+    }
     return this.doctorsService.update(id, data);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    // Only ADMIN and ADMIN_DOCTOR can delete members
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
+      throw new ForbiddenException('Only admins can delete members');
+    }
     return this.doctorsService.remove(id);
   }
 

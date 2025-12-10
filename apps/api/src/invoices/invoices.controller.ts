@@ -34,6 +34,14 @@ interface CreateInvoiceDto {
   total: number;
   status: string;
   items: InvoiceItem[];
+  // Doctor context for audit trail (Phase 5)
+  doctorName?: string;
+  doctorEmail?: string;
+  doctorPhone?: string;
+  doctorSpecialization?: string;
+  doctorRole?: string;
+  doctorRegistrationNumber?: string;
+  doctorLicenseNumber?: string;
 }
 
 interface UpdateInvoiceDto {

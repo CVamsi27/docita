@@ -6,7 +6,7 @@ import { WhatsAppAutomationSettings } from "@/components/settings/whatsapp-autom
 import { CustomFieldsSettings } from "@/components/settings/custom-fields-settings";
 import { ReminderSettings } from "@/components/settings/reminder-settings";
 import { ClinicGeneralSettings } from "@/components/settings/clinic-general-settings";
-import { DoctorManagementSettings } from "@/components/settings/doctor-management-settings";
+import { MemberManagementSettings } from "@/components/settings/member-management-settings";
 import { PrescriptionDefaultsSettings } from "@/components/settings/prescription-defaults-settings";
 import { QueueSettings } from "@/components/settings/queue-settings";
 import { BillingSettings } from "@/components/settings/billing-settings";
@@ -51,7 +51,7 @@ function SettingsContent() {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          <TabsTrigger value="doctors">Doctors</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="queue">Queue</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
@@ -73,8 +73,8 @@ function SettingsContent() {
           <SubscriptionSettingsDynamic />
         </TabsContent>
 
-        <TabsContent value="doctors" className="space-y-6">
-          <DoctorManagementSettings />
+        <TabsContent value="members" className="space-y-6">
+          <MemberManagementSettings />
         </TabsContent>
 
         <TabsContent value="availability" className="space-y-6">

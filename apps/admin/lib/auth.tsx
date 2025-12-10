@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { toast } from "sonner";
+import { API_URL } from "./api";
 
 interface User {
   id: string;
@@ -26,7 +28,8 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isClinicAdmin: boolean;
   login: (token: string, user: User) => void;
-  logout: () => void;
+  logout: (reason?: string) => void;
+  validateToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,10 +59,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Validate token with backend
+  const validateToken = useCallback(
+    async (tokenToValidate?: string): Promise<boolean> => {
+      const tokenValue = tokenToValidate || token;
+      if (!tokenValue) return false;
+
+      try {
+        const res = await fetch(`${API_URL}/auth/validate`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${tokenValue}` },
+        });
+
+        if (!res.ok) {
+          // 401 = token expired or invalid
+          // 404 = user account deleted
+          const reason =
+            res.status === 404
+              ? "Your account has been deleted"
+              : res.status === 401
+                ? "Your session has expired"
+                : "Your authentication is no longer valid";
+
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Token validation failed:", error);
+        return false;
+      }
+    },
+    [token],
+  );
+
   // Initialize auth state from localStorage on mount
   useEffect(() => {
-    // Defer state updates to avoid cascading renders
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       setIsMounted(true);
 
       try {
@@ -70,9 +106,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const parsedUser = JSON.parse(storedUser);
           // Only SUPER_ADMIN can access admin app
           if (parsedUser.role === "SUPER_ADMIN") {
-            setToken(storedToken);
-            setUser(parsedUser);
-            setCookie(COOKIE_KEY, storedToken, 7);
+            // Validate token on app load
+            const isValid = await validateToken(storedToken);
+
+            if (isValid) {
+              setToken(storedToken);
+              setUser(parsedUser);
+              setCookie(COOKIE_KEY, storedToken, 7);
+            } else {
+              // Token is invalid, expired, or user was deleted
+              localStorage.removeItem(TOKEN_KEY);
+              localStorage.removeItem(USER_KEY);
+              deleteCookie(COOKIE_KEY);
+              setToken(null);
+              setUser(null);
+              toast.error("Session expired. Please log in again.");
+            }
           } else {
             // Clear invalid auth - clinic admins should not have access
             localStorage.removeItem(TOKEN_KEY);
@@ -80,7 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             deleteCookie(COOKIE_KEY);
           }
         }
-      } catch {
+      } catch (error) {
+        console.error("Auth initialization error:", error);
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         deleteCookie(COOKIE_KEY);
@@ -90,9 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [validateToken]);
 
-  // Handle route protection - only SUPER_ADMIN can access admin app
+  // Handle route protection - validate token when accessing protected routes
   useEffect(() => {
     if (isLoading || !isMounted) return;
 
@@ -101,11 +151,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAuthenticatedSuperAdmin =
       !!token && !!user && user.role === "SUPER_ADMIN";
 
-    // If not authenticated SUPER_ADMIN and trying to access protected route, redirect to login
-    if (isProtectedRoute && !isAuthenticatedSuperAdmin) {
+    if (isProtectedRoute && isAuthenticatedSuperAdmin) {
+      // Re-validate token when accessing protected route
+      validateToken(token).then((isValid) => {
+        if (!isValid) {
+          // Token is no longer valid
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          deleteCookie(COOKIE_KEY);
+          setToken(null);
+          setUser(null);
+          toast.error("Your session has expired. Please log in again.");
+          router.replace("/");
+        }
+      });
+    } else if (isProtectedRoute && !isAuthenticatedSuperAdmin) {
+      // If not authenticated SUPER_ADMIN and trying to access protected route, redirect to login
       router.replace("/");
     }
-  }, [isLoading, isMounted, pathname, token, user, router]);
+  }, [isLoading, isMounted, pathname, token, user, router, validateToken]);
 
   const login = useCallback((newToken: string, newUser: User) => {
     localStorage.setItem(TOKEN_KEY, newToken);
@@ -115,14 +179,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    deleteCookie(COOKIE_KEY);
-    setToken(null);
-    setUser(null);
-    router.replace("/");
-  }, [router]);
+  const logout = useCallback(
+    (reason?: string) => {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      deleteCookie(COOKIE_KEY);
+      setToken(null);
+      setUser(null);
+
+      if (reason) {
+        toast.error(reason);
+      }
+
+      router.replace("/");
+    },
+    [router],
+  );
 
   // Show loading spinner during SSR and initial hydration
   if (!isMounted || isLoading) {
@@ -147,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isClinicAdmin,
         login,
         logout,
+        validateToken,
       }}
     >
       {children}

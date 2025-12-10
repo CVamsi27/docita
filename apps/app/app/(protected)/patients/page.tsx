@@ -15,6 +15,13 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import {
   Search,
   ArrowUpDown,
   ArrowUp,
@@ -167,165 +174,182 @@ function PatientsContent() {
         />
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or phone..."
-            className="pl-9 bg-background"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        {searchQuery && (
-          <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")}>
-            Clear
-          </Button>
-        )}
-      </div>
-
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
-
-      <div className="rounded-md border border-border bg-card overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-muted/50">
-              <TableHead className="w-[50px]"></TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort("fullName")}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Patients</CardTitle>
+          <CardDescription>
+            A list of all patients in your practice including their name,
+            contact, and medical history.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or phone..."
+                className="pl-9 bg-background"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery("")}
               >
-                <div className="flex items-center">
-                  Name
-                  <SortIcon column="fullName" />
-                </div>
-              </TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Main Symptom</TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort("gender")}
-              >
-                <div className="flex items-center">
-                  Gender
-                  <SortIcon column="gender" />
-                </div>
-              </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSort("updatedAt")}
-              >
-                <div className="flex items-center">
-                  Last Updated
-                  <SortIcon column="updatedAt" />
-                </div>
-              </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  Loading patients...
-                </TableCell>
-              </TableRow>
-            ) : filteredPatients.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  {searchQuery
-                    ? `No patients found matching "${searchQuery}"`
-                    : "No patients found."}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredPatients.map((patient) => (
-                <TableRow
-                  key={patient.id}
-                  className="hover:bg-muted/50 cursor-pointer"
-                  onClick={() =>
-                    (window.location.href = `/patients/${patient.id}`)
-                  }
-                >
-                  <TableCell>
-                    <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {patient.firstName.charAt(0)}
-                        {patient.lastName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {patient.firstName} {patient.lastName}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col text-sm">
-                      <span>{patient.phoneNumber}</span>
-                      <span className="text-muted-foreground">
-                        {patient.email}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground italic">
-                      {patient.medicalHistory &&
-                      patient.medicalHistory.length > 0
-                        ? patient.medicalHistory[0]
-                        : patient.allergies || "-"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="capitalize">{patient.gender}</TableCell>
-                  <TableCell>
-                    {patient.updatedAt
-                      ? format(new Date(patient.updatedAt), "MMM d, yyyy")
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(
-                            `/appointments?action=new&patientId=${patient.id}`,
-                          );
-                        }}
-                      >
-                        <Calendar className="h-4 w-4" />
-                        Schedule
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingPatient(patient);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Edit
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                Clear
+              </Button>
             )}
-          </TableBody>
-        </Table>
-      </div>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20 mb-6">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <div className="rounded-md border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-muted/50">
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("fullName")}
+                  >
+                    <div className="flex items-center">
+                      Name
+                      <SortIcon column="fullName" />
+                    </div>
+                  </TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Main Symptom</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("gender")}
+                  >
+                    <div className="flex items-center">
+                      Gender
+                      <SortIcon column="gender" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("updatedAt")}
+                  >
+                    <div className="flex items-center">
+                      Last Updated
+                      <SortIcon column="updatedAt" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      Loading patients...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredPatients.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      {searchQuery
+                        ? `No patients found matching "${searchQuery}"`
+                        : "No patients found."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPatients.map((patient) => (
+                    <TableRow
+                      key={patient.id}
+                      className="hover:bg-muted/50 cursor-pointer"
+                      onClick={() =>
+                        (window.location.href = `/patients/${patient.id}`)
+                      }
+                    >
+                      <TableCell>
+                        <Avatar className="h-8 w-8 bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {patient.firstName.charAt(0)}
+                            {patient.lastName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {patient.firstName} {patient.lastName}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col text-sm">
+                          <span>{patient.phoneNumber}</span>
+                          <span className="text-muted-foreground">
+                            {patient.email}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground italic">
+                          {patient.medicalHistory &&
+                          patient.medicalHistory.length > 0
+                            ? patient.medicalHistory[0]
+                            : patient.allergies || "-"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {patient.gender}
+                      </TableCell>
+                      <TableCell>
+                        {patient.updatedAt
+                          ? format(new Date(patient.updatedAt), "MMM d, yyyy")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(
+                                `/appointments?action=new&patientId=${patient.id}`,
+                              );
+                            }}
+                          >
+                            <Calendar className="h-4 w-4" />
+                            Schedule
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPatient(patient);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

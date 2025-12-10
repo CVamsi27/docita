@@ -173,9 +173,7 @@ export default function Page() {
           <div className="flex items-center gap-4">
             <LandingThemeToggle />
             <Link
-              href={
-                process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/login"
-              }
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
             >
               <Button>Login</Button>
             </Link>
@@ -203,9 +201,7 @@ export default function Page() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
             <Link
-              href={
-                process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/login"
-              }
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
             >
               <Button
                 size="lg"
@@ -1269,9 +1265,7 @@ export default function Page() {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    (window.location.href =
-                      process.env.NEXT_PUBLIC_APP_URL ||
-                      "http://localhost:3000/login")
+                    (window.location.href = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`)
                   }
                 >
                   Get Started
@@ -1611,9 +1605,7 @@ export default function Page() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
-              href={
-                process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/login"
-              }
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
             >
               <Button
                 size="lg"

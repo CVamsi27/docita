@@ -122,6 +122,13 @@ The API is containerized using Docker and deployed on EC2.
 Navigate to the project root and run:
 
 ```bash
+# Build packages first (required for Docker build)
+pnpm install
+pnpm --filter @workspace/db run build
+pnpm --filter @workspace/types run build
+pnpm --filter @docita/api run build
+
+# Build Docker image
 docker build -f apps/api/Dockerfile -t docita-api .
 ```
 

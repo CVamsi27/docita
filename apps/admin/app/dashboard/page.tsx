@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { CreateClinicDialog } from "./create-clinic-dialog";
@@ -27,12 +28,14 @@ import {
 interface StatsData {
   clinics: number;
   users: number;
+  doctors: number;
   patients: number;
   invoices: number;
   prescriptions: number;
   trends?: {
     clinicsThisMonth: number;
     usersThisMonth: number;
+    doctorsThisMonth: number;
     patientsThisMonth: number;
     invoicesPercentChange: number;
     prescriptionsPercentChange: number;
@@ -45,14 +48,18 @@ export default function SuperAdminDashboard() {
   const [stats, setStats] = useState<StatsData>({
     clinics: 0,
     users: 0,
+    doctors: 0,
     patients: 0,
     invoices: 0,
     prescriptions: 0,
   });
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
 
   const loadData = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
@@ -62,6 +69,22 @@ export default function SuperAdminDashboard() {
         fetch(`${API_URL}/super-admin/stats`, { headers }),
       ]);
 
+      // Handle auth errors
+      if (clinicsRes.status === 401 || statsRes.status === 401) {
+        logout("Your session has expired. Please log in again.");
+        return;
+      }
+
+      if (clinicsRes.status === 404 || statsRes.status === 404) {
+        logout("Your account has been deleted. Please contact support.");
+        return;
+      }
+
+      if (clinicsRes.status === 403 || statsRes.status === 403) {
+        logout("You no longer have permission to access this resource.");
+        return;
+      }
+
       if (clinicsRes.ok) setClinics(await clinicsRes.json());
       if (statsRes.ok) setStats(await statsRes.json());
     } catch (error) {
@@ -69,7 +92,7 @@ export default function SuperAdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, logout]);
 
   // Fetch data on mount and when token changes
   useEffect(() => {
@@ -79,6 +102,7 @@ export default function SuperAdminDashboard() {
   const trends = stats.trends || {
     clinicsThisMonth: 0,
     usersThisMonth: 0,
+    doctorsThisMonth: 0,
     patientsThisMonth: 0,
     invoicesPercentChange: 0,
     prescriptionsPercentChange: 0,
@@ -108,6 +132,13 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="space-y-8">
+      {!token && (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+            Loading authentication... If this persists, please log in again.
+          </p>
+        </div>
+      )}
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
@@ -137,8 +168,8 @@ export default function SuperAdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.users}</div>
-            {renderTrend(trends.usersThisMonth)}
+            <div className="text-2xl font-bold">{stats.doctors}</div>
+            {renderTrend(trends.doctorsThisMonth)}
           </CardContent>
         </Card>
         <Card>

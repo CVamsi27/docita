@@ -13,9 +13,7 @@ import {
   Stethoscope,
   MessageSquare,
   CreditCard,
-  HeartPulse,
   Shield,
-  Zap,
 } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
 import { useAuth } from "@/lib/auth";
@@ -38,11 +36,6 @@ const sidebarItems = [
     icon: Shield,
   },
   {
-    title: "AI Features",
-    href: "/dashboard/ai-features",
-    icon: Zap,
-  },
-  {
     title: "Payment Processing",
     href: "/dashboard/payment-processing",
     icon: CreditCard,
@@ -58,14 +51,9 @@ const sidebarItems = [
     icon: BarChart3,
   },
   {
-    title: "Performance",
-    href: "/dashboard/performance",
+    title: "System Monitoring",
+    href: "/dashboard/system-monitoring",
     icon: Activity,
-  },
-  {
-    title: "System Health",
-    href: "/dashboard/health",
-    icon: HeartPulse,
   },
   {
     title: "Feedback",
@@ -96,7 +84,11 @@ export default function DashboardLayout({
             href="/dashboard"
             className="flex items-center gap-2 font-bold text-lg"
           >
-            <div className="h-6 w-6 rounded-full bg-primary" />
+            <img
+              src="/icon.png"
+              alt="Docita Logo"
+              className="h-6 w-6 rounded-full object-cover"
+            />
             <span>Docita Admin</span>
           </Link>
         </div>
@@ -127,7 +119,7 @@ export default function DashboardLayout({
           <Button
             variant="outline"
             className="w-full justify-start gap-2"
-            onClick={logout}
+            onClick={() => logout()}
           >
             <LogOut className="h-4 w-4" />
             Logout

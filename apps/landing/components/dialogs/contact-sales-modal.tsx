@@ -69,17 +69,17 @@ export function ContactSalesModal({
     setIsSubmitting(true);
     try {
       // Call contact endpoint or send email
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/contact/inquiry" ||
-          "http://localhost:3001/api/contact/inquiry",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
+      const contactUrl = process.env.NEXT_PUBLIC_API_URL
+        ? `${process.env.NEXT_PUBLIC_API_URL}/contact/inquiry`
+        : "http://localhost:3001/api/contact/inquiry";
+
+      const response = await fetch(contactUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(formData),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to send inquiry");

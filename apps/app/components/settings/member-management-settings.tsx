@@ -12,7 +12,15 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { apiHooks } from "@/lib/api-hooks";
-import { Plus, Edit, Trash2, UserCog, Mail, Eye, EyeOff } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Users as UsersIcon,
+  Mail,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,65 +33,102 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Badge } from "@workspace/ui/components/badge";
-import type { User } from "@workspace/types";
+import { useAuth } from "@/lib/auth-context";
 
-interface DoctorForm {
+interface MemberForm {
   name: string;
   email: string;
   password?: string;
+  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
 }
 
-export function DoctorManagementSettings() {
-  const { data: doctors = [], isLoading: loading } = apiHooks.useDoctors();
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
+  phoneNumber?: string;
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Admin",
+  ADMIN_DOCTOR: "Admin Doctor",
+  DOCTOR: "Doctor",
+  RECEPTIONIST: "Receptionist",
+};
+
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  ADMIN: "Manages clinic operations and staff",
+  ADMIN_DOCTOR: "Admin with doctor privileges",
+  DOCTOR: "Provides medical services",
+  RECEPTIONIST: "Handles appointments and billing",
+};
+
+export function MemberManagementSettings() {
+  const { user: currentUser } = useAuth();
+  const { data: members = [], isLoading: loading } = apiHooks.useDoctors();
   const queryClient = useQueryClient();
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [showPassword, setShowPassword] = useState(false);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDoctor, setEditingDoctor] = useState<User | null>(null);
-  const [formData, setFormData] = useState<DoctorForm>({
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [formData, setFormData] = useState<MemberForm>({
     name: "",
     email: "",
     password: "",
+    role: "DOCTOR",
   });
 
-  const filteredDoctors =
+  // Check if current user is admin
+  const isAdmin =
+    currentUser?.role === "ADMIN" || currentUser?.role === "ADMIN_DOCTOR";
+
+  const filteredMembers =
     roleFilter === "ALL"
-      ? doctors
-      : doctors.filter((d) => d.role?.toUpperCase() === roleFilter);
+      ? members
+      : members.filter((m) => m.role === roleFilter);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate required fields
-    if (!formData.name || !formData.email) {
+    if (!formData.name || !formData.email || !formData.role) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // If creating a new doctor, password is required
-    if (!editingDoctor && !formData.password) {
-      toast.error("Password is required when creating a new doctor");
+    // If creating a new member, password is required
+    if (!editingMember && !formData.password) {
+      toast.error("Password is required when creating a new member");
       return;
     }
 
     try {
-      if (editingDoctor) {
+      if (editingMember) {
         // When editing, only send password if it was changed
-        const updateData: DoctorForm = {
+        const updateData: Partial<MemberForm> = {
           name: formData.name,
           email: formData.email,
+          role: formData.role,
         };
         if (formData.password) {
           updateData.password = formData.password;
         }
-        await api.put(`/doctors/${editingDoctor.id}`, updateData);
-        toast.success("Doctor has been updated successfully.");
+        await api.put(`/doctors/${editingMember.id}`, updateData);
+        toast.success("Member has been updated successfully.");
       } else {
         // When creating, password is required
         await api.post("/doctors", formData);
-        toast.success("Doctor has been added successfully.");
+        toast.success("Member has been added successfully.");
       }
 
       queryClient.invalidateQueries({ queryKey: ["doctors"] });
@@ -91,43 +136,71 @@ export function DoctorManagementSettings() {
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
-      console.error("Save doctor error:", error);
-      toast.error(`Failed to save doctor. Please try again.`);
+      console.error("Save member error:", error);
+      toast.error(`Failed to save member. Please try again.`);
     }
   };
 
-  const handleEdit = (doctor: User) => {
-    setEditingDoctor(doctor);
+  const handleEdit = (member: Member) => {
+    if (!isAdmin) {
+      toast.error("You don't have permission to edit members");
+      return;
+    }
+    setEditingMember(member);
     setFormData({
-      name: doctor.name || "",
-      email: doctor.email || "",
+      name: member.name || "",
+      email: member.email || "",
       password: "",
+      role: member.role || "DOCTOR",
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (doctorId: string) => {
-    if (!confirm("Are you sure you want to remove this doctor?")) return;
+  const handleDelete = async (memberId: string) => {
+    if (!isAdmin) {
+      toast.error("You don't have permission to remove members");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to remove this member?")) return;
 
     try {
-      await api.delete(`/doctors/${doctorId}`);
-      toast.success("Doctor has been removed successfully.");
+      await api.delete(`/doctors/${memberId}`);
+      toast.success("Member has been removed successfully.");
 
       queryClient.invalidateQueries({ queryKey: ["doctors"] });
     } catch (error) {
-      console.error("Delete doctor error:", error);
-      toast.error("Failed to remove doctor.");
+      console.error("Delete member error:", error);
+      toast.error("Failed to remove member.");
     }
   };
 
   const resetForm = () => {
-    setEditingDoctor(null);
+    setEditingMember(null);
     setFormData({
       name: "",
       email: "",
       password: "",
+      role: "DOCTOR",
     });
     setShowPassword(false);
+  };
+
+  const getRoleBadgeVariant = (
+    role: string,
+  ): "default" | "secondary" | "destructive" | "outline" => {
+    switch (role) {
+      case "ADMIN":
+        return "default";
+      case "ADMIN_DOCTOR":
+        return "default";
+      case "DOCTOR":
+        return "secondary";
+      case "RECEPTIONIST":
+        return "outline";
+      default:
+        return "outline";
+    }
   };
 
   return (
@@ -136,10 +209,10 @@ export function DoctorManagementSettings() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <UserCog className="h-5 w-5 text-primary" />
-              <CardTitle>Doctor Management</CardTitle>
+              <UsersIcon className="h-5 w-5 text-primary" />
+              <CardTitle>Member Management</CardTitle>
             </div>
-            <CardDescription>Manage doctors in your clinic</CardDescription>
+            <CardDescription>Manage all clinic team members</CardDescription>
           </div>
           <Dialog
             open={isDialogOpen}
@@ -147,8 +220,8 @@ export function DoctorManagementSettings() {
               setIsDialogOpen(open);
               if (!open) {
                 resetForm();
-              } else if (!editingDoctor) {
-                // When opening for a new doctor, ensure form is reset
+              } else if (!editingMember) {
+                // When opening for a new member, ensure form is reset
                 resetForm();
               }
             }}
@@ -156,25 +229,30 @@ export function DoctorManagementSettings() {
             <DialogTrigger asChild>
               <Button
                 className="gap-2"
+                disabled={!isAdmin}
                 onClick={() => {
-                  setEditingDoctor(null);
+                  if (!isAdmin) {
+                    toast.error("You don't have permission to add members");
+                    return;
+                  }
+                  setEditingMember(null);
                   resetForm();
                   setIsDialogOpen(true);
                 }}
               >
                 <Plus className="h-4 w-4" />
-                Add Doctor
+                Add Member
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingDoctor ? "Edit Doctor" : "Add New Doctor"}
+                  {editingMember ? "Edit Member" : "Add New Member"}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingDoctor
-                    ? "Update doctor information"
-                    : "Add a new doctor to your clinic"}
+                  {editingMember
+                    ? "Update member information"
+                    : "Add a new team member to your clinic"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -187,7 +265,7 @@ export function DoctorManagementSettings() {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      placeholder="Dr. John Doe"
+                      placeholder="John Doe"
                       required
                     />
                   </div>
@@ -200,13 +278,48 @@ export function DoctorManagementSettings() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      placeholder="doctor@example.com"
+                      placeholder="member@example.com"
                       required
                     />
                   </div>
                 </div>
 
-                {!editingDoctor && (
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role *</Label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        role: value as
+                          | "DOCTOR"
+                          | "RECEPTIONIST"
+                          | "ADMIN"
+                          | "ADMIN_DOCTOR",
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">
+                        Admin - {ROLE_DESCRIPTIONS.ADMIN}
+                      </SelectItem>
+                      <SelectItem value="ADMIN_DOCTOR">
+                        Admin Doctor - {ROLE_DESCRIPTIONS.ADMIN_DOCTOR}
+                      </SelectItem>
+                      <SelectItem value="DOCTOR">
+                        Doctor - {ROLE_DESCRIPTIONS.DOCTOR}
+                      </SelectItem>
+                      <SelectItem value="RECEPTIONIST">
+                        Receptionist - {ROLE_DESCRIPTIONS.RECEPTIONIST}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {!editingMember && (
                   <div className="space-y-2">
                     <Label htmlFor="password">Password *</Label>
                     <div className="relative">
@@ -215,10 +328,13 @@ export function DoctorManagementSettings() {
                         type={showPassword ? "text" : "password"}
                         value={formData.password || ""}
                         onChange={(e) =>
-                          setFormData({ ...formData, password: e.target.value })
+                          setFormData({
+                            ...formData,
+                            password: e.target.value,
+                          })
                         }
                         placeholder="Enter a strong password"
-                        required={!editingDoctor}
+                        required={!editingMember}
                       />
                       <Button
                         type="button"
@@ -237,7 +353,7 @@ export function DoctorManagementSettings() {
                   </div>
                 )}
 
-                {editingDoctor && (
+                {editingMember && (
                   <div className="space-y-2">
                     <Label htmlFor="password">New Password (Optional)</Label>
                     <div className="relative">
@@ -246,7 +362,10 @@ export function DoctorManagementSettings() {
                         type={showPassword ? "text" : "password"}
                         value={formData.password || ""}
                         onChange={(e) =>
-                          setFormData({ ...formData, password: e.target.value })
+                          setFormData({
+                            ...formData,
+                            password: e.target.value,
+                          })
                         }
                         placeholder="Leave blank to keep existing password"
                       />
@@ -276,7 +395,7 @@ export function DoctorManagementSettings() {
                     Cancel
                   </Button>
                   <Button type="submit">
-                    {editingDoctor ? "Update Doctor" : "Add Doctor"}
+                    {editingMember ? "Update Member" : "Add Member"}
                   </Button>
                 </div>
               </form>
@@ -286,60 +405,58 @@ export function DoctorManagementSettings() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <LoadingState message="Loading doctors..." className="py-8" />
-        ) : doctors.length === 0 ? (
+          <LoadingState message="Loading members..." className="py-8" />
+        ) : members.length === 0 ? (
           <EmptyState
-            icon={UserCog}
-            title="No doctors added yet"
-            description="Click 'Add Doctor' to get started."
+            icon={UsersIcon}
+            title="No members added yet"
+            description="Click 'Add Member' to get started."
             className="py-8 border-2 border-dashed rounded-lg"
           />
         ) : (
           <div className="space-y-4">
             {/* Role Filter Buttons */}
             <div className="flex gap-2 mb-4 flex-wrap">
-              {["ALL", "ADMIN", "DOCTOR", "STAFF"].map((role) => (
-                <Button
-                  key={role}
-                  variant={roleFilter === role ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setRoleFilter(role)}
-                >
-                  {role === "ALL"
-                    ? "All Users"
-                    : role === "ADMIN"
-                      ? "Admins"
-                      : role === "DOCTOR"
-                        ? "Doctors"
-                        : "Staff"}
-                </Button>
-              ))}
+              {["ALL", "ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"].map(
+                (role) => (
+                  <Button
+                    key={role}
+                    variant={roleFilter === role ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setRoleFilter(role)}
+                  >
+                    {role === "ALL" ? "All Members" : ROLE_LABELS[role]}
+                  </Button>
+                ),
+              )}
             </div>
 
-            {/* Doctors List */}
-            {filteredDoctors.length === 0 ? (
+            {/* Members List */}
+            {filteredMembers.length === 0 ? (
               <EmptyState
-                icon={UserCog}
-                title={`No ${roleFilter === "ALL" ? "users" : roleFilter.toLowerCase()}s found`}
-                description="No users match the selected filter."
+                icon={UsersIcon}
+                title={`No ${roleFilter === "ALL" ? "members" : roleFilter.toLowerCase()}s found`}
+                description="No members match the selected filter."
                 className="py-8 border-2 border-dashed rounded-lg"
               />
             ) : (
               <div className="space-y-4">
-                {filteredDoctors.map((doctor) => (
+                {filteredMembers.map((member) => (
                   <div
-                    key={doctor.id}
+                    key={member.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{doctor.name}</h3>
-                        <Badge variant="secondary">{doctor.role}</Badge>
+                        <h3 className="font-semibold">{member.name}</h3>
+                        <Badge variant={getRoleBadgeVariant(member.role)}>
+                          {ROLE_LABELS[member.role]}
+                        </Badge>
                       </div>
                       <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {doctor.email}
+                          {member.email}
                         </div>
                       </div>
                     </div>
@@ -347,14 +464,16 @@ export function DoctorManagementSettings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEdit(doctor)}
+                        onClick={() => handleEdit(member as Member)}
+                        disabled={!isAdmin}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDelete(doctor.id)}
+                        onClick={() => handleDelete(member.id)}
+                        disabled={!isAdmin}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

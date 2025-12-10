@@ -98,9 +98,18 @@ export default function PaymentProcessingPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      if (res.status === 401) {
+        console.error("Unauthorized access to clinics");
+        toast.error("Session expired. Please login again.");
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         setClinics(data);
+      } else {
+        console.error("Failed to load clinics:", res.status);
+        toast.error("Failed to load clinics");
       }
     } catch (error) {
       console.error("Failed to load clinics", error);
@@ -113,6 +122,50 @@ export default function PaymentProcessingPage() {
   const loadTierPricing = async () => {
     if (!token) return;
 
+    // Default tier pricing as fallback
+    const defaultTiers: TierPricing[] = [
+      {
+        tier: "CAPTURE",
+        price: 0,
+        billingCycle: "monthly",
+        maxDoctors: 5,
+        maxPatients: 100,
+        features: ["Basic"],
+      },
+      {
+        tier: "CORE",
+        price: 999,
+        billingCycle: "monthly",
+        maxDoctors: 20,
+        maxPatients: 500,
+        features: ["Standard"],
+      },
+      {
+        tier: "PLUS",
+        price: 2999,
+        billingCycle: "monthly",
+        maxDoctors: 50,
+        maxPatients: 2000,
+        features: ["Advanced"],
+      },
+      {
+        tier: "PRO",
+        price: 5999,
+        billingCycle: "monthly",
+        maxDoctors: 100,
+        maxPatients: 5000,
+        features: ["Professional"],
+      },
+      {
+        tier: "ENTERPRISE",
+        price: 0,
+        billingCycle: "custom",
+        maxDoctors: -1,
+        maxPatients: -1,
+        features: ["Enterprise"],
+      },
+    ];
+
     try {
       const res = await fetch(`${API_URL}/super-admin/tier-pricing`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -120,10 +173,18 @@ export default function PaymentProcessingPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setTierPricing(data.tiers);
+        setTierPricing(Array.isArray(data.tiers) ? data.tiers : defaultTiers);
+      } else if (res.status === 404) {
+        // Endpoint doesn't exist, use default
+        setTierPricing(defaultTiers);
+      } else {
+        console.error("Failed to load tier pricing:", res.status);
+        setTierPricing(defaultTiers);
       }
     } catch (error) {
       console.error("Failed to load tier pricing", error);
+      // Use default tier pricing on error
+      setTierPricing(defaultTiers);
     }
   };
 
@@ -243,33 +304,42 @@ export default function PaymentProcessingPage() {
         <>
           {/* Tier Pricing Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {tierPricing.map((tier) => (
-              <Card key={tier.tier}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">
-                    {tier.tier}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold">
-                      ₹{tier.price === 0 ? "Free" : tier.price.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {tier.billingCycle}
-                    </p>
-                    <div className="space-y-1 pt-2 border-t">
-                      <p className="text-xs">
-                        <strong>{tier.maxDoctors}</strong> doctors
+            {tierPricing && tierPricing.length > 0 ? (
+              tierPricing.map((tier) => (
+                <Card key={tier.tier}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">
+                      {tier.tier}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-bold">
+                        ₹
+                        {tier.price === 0
+                          ? "Free"
+                          : tier.price.toLocaleString()}
                       </p>
-                      <p className="text-xs">
-                        <strong>{tier.maxPatients}</strong> patients
+                      <p className="text-xs text-muted-foreground">
+                        {tier.billingCycle}
                       </p>
+                      <div className="space-y-1 pt-2 border-t">
+                        <p className="text-xs">
+                          <strong>{tier.maxDoctors}</strong> doctors
+                        </p>
+                        <p className="text-xs">
+                          <strong>{tier.maxPatients}</strong> patients
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <p>No tier pricing information available</p>
+              </div>
+            )}
           </div>
 
           {/* Clinics List */}

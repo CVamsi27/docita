@@ -4,6 +4,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { MonitoringService } from './monitoring/monitoring.service';
+import { getCorsOrigins } from './config/app-config';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import compression from 'compression';
@@ -53,14 +54,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: [
-      'https://landing.docita.work',
-      'https://app.docita.work',
-      'https://admin.docita.work',
-      'http://localhost:3003', // landing dev
-      'http://localhost:3000', // app dev
-      'http://localhost:3002', // admin dev
-    ],
+    origin: getCorsOrigins(),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',

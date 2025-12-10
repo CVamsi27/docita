@@ -501,6 +501,14 @@ model Prescription {
   date          DateTime     @default(now())
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+  // Doctor context snapshot for audit trail (Phase 5)
+  doctorName    String?
+  doctorEmail   String?
+  doctorPhone   String?
+  doctorSpecialization Specialization?
+  doctorRole    HospitalRole?
+  doctorRegistrationNumber String?
+  doctorLicenseNumber String?
   medications   Medication[]
   appointment   Appointment  @relation(fields: [appointmentId], references: [id])
   doctor        User         @relation(fields: [doctorId], references: [id])
@@ -564,6 +572,14 @@ model Invoice {
   items           Json
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  // Doctor context snapshot for audit trail (Phase 5)
+  doctorName      String?
+  doctorEmail     String?
+  doctorPhone     String?
+  doctorSpecialization Specialization?
+  doctorRole      HospitalRole?
+  doctorRegistrationNumber String?
+  doctorLicenseNumber String?
   appointment     Appointment?     @relation(fields: [appointmentId], references: [id])
   patient         Patient          @relation(fields: [patientId], references: [id])
   paymentSessions PaymentSession[]

@@ -62,4 +62,20 @@ export class AuthController {
       newPassword: body.newPassword,
     });
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('validate')
+  async validate(@Request() req: any) {
+    // If request reaches here, JWT is valid and user exists in the database
+    return {
+      valid: true,
+      user: {
+        id: req.user.userId,
+        email: req.user.email,
+        name: req.user.name,
+        role: req.user.role,
+        clinicId: req.user.clinicId,
+      },
+    };
+  }
 }

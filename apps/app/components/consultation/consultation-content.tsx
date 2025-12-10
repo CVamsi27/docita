@@ -80,21 +80,13 @@ export function ConsultationContent({
 }: ConsultationContentProps) {
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
 
-  // Get form options from config
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
 
-  // Diagnosis State
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
-
-  // Procedure State
   const [procedures, setProcedures] = useState<Procedure[]>([]);
-
-  // Vital Signs Validation State
   const [vitalSignsValidations, setVitalSignsValidations] = useState<
     Record<string, VitalSignValidation>
   >({});
-
-  // AI Analysis Dialog State
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [aiAnalysisData, setAiAnalysisData] = useState<{
     prescriptionId?: string;
@@ -103,7 +95,8 @@ export function ConsultationContent({
     appointmentId: string;
   } | null>(null);
 
-  // Template State
+  const { data: doctorData } = apiHooks.useDoctor(doctorId);
+
   const { data: templates = [], refetch: loadTemplates } =
     apiHooks.useTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -111,7 +104,6 @@ export function ConsultationContent({
     {},
   );
 
-  // Prepare template options for searchable select
   const templateOptions = useMemo(() => {
     const options: { value: string; label: string; description?: string }[] = [
       { value: "none", label: "None (Standard)" },
@@ -257,7 +249,6 @@ export function ConsultationContent({
     template.medications.forEach(() => {
       addMedication();
     });
-    // Wait for state update, then populate
     setTimeout(() => {
       template.medications.forEach((med: Medication, index: number) => {
         updateMedication(index, "name", med.name);
@@ -353,6 +344,13 @@ export function ConsultationContent({
     appointmentId,
     patientId,
     doctorId,
+    doctorName: doctorData?.name,
+    doctorEmail: doctorData?.email,
+    doctorPhone: doctorData?.phoneNumber,
+    doctorSpecialization: doctorData?.specialization,
+    doctorRole: doctorData?.hospitalRole,
+    doctorRegistrationNumber: doctorData?.registrationNumber,
+    doctorLicenseNumber: doctorData?.licenseNumber,
     onPrescriptionSaved: onSave,
   });
 
@@ -367,7 +365,19 @@ export function ConsultationContent({
     updateItem: updateInvoiceItem,
     calculateTotal: calculateInvTotal,
     handleSubmit: handleInvSubmit,
-  } = useInvoiceForm({ appointmentId, patientId });
+  } = useInvoiceForm({
+    appointmentId,
+    patientId,
+    // Pass doctor specialization for specialty-based defaults (Phase 4)
+    doctorSpecialization: doctorData?.specialization,
+    // Pass doctor context for audit trail (Phase 5)
+    doctorName: doctorData?.name,
+    doctorEmail: doctorData?.email,
+    doctorPhone: doctorData?.phoneNumber,
+    doctorRole: doctorData?.hospitalRole,
+    doctorRegistrationNumber: doctorData?.registrationNumber,
+    doctorLicenseNumber: doctorData?.licenseNumber,
+  });
 
   // Trigger vital signs validation when vitals data changes
   useEffect(() => {
@@ -705,8 +715,8 @@ export function ConsultationContent({
                       spO2: vitalsData.spo2
                         ? parseFloat(vitalsData.spo2)
                         : null,
-                      respiratoryRate: null, // Not in current form
-                      glucose: null, // Not in current form
+                      respiratoryRate: null,
+                      glucose: null,
                     }}
                     onValidationChange={(results) =>
                       setVitalSignsValidations(results)
