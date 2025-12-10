@@ -26,6 +26,9 @@ export * from "./medical-validation";
 // Contraindication Checking
 export * from "./contraindication-checker";
 
+// Team Member Types
+export * from "./members";
+
 // ============================================================================
 // User & Auth Schemas
 // ============================================================================
