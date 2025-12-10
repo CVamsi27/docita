@@ -5,16 +5,9 @@ import { useState, useRef } from "react";
 import { Plus } from "lucide-react";
 import type { CreatePatientInput } from "@workspace/types";
 
-import { Button } from "@workspace/ui/components/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
-} from "@workspace/ui/components/dialog";
+} from "@workspace/ui/components/dialog.js";
 import {
   Form,
   FormControl,
@@ -22,7 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form.js";
+import { FormDialog, FormDialogFooter } from "@workspace/ui/components/form-dialog.js";
+import { Button } from "@workspace/ui/components/button.js";
 import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -92,21 +87,19 @@ export function AddPatientDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
           Add Patient
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Add New Patient</DialogTitle>
-          <DialogDescription>
-            Enter the patient&apos;s personal information. We&apos;ll create a
-            secure record.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Add New Patient"
+        description="Enter the patient's personal information. We'll create a secure record."
+      >
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((data) =>
@@ -345,7 +338,7 @@ export function AddPatientDialog({
             </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </FormDialog>
+    </>
   );
 }

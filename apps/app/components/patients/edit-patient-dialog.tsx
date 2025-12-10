@@ -2,26 +2,19 @@
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Label } from "@workspace/ui/components/label";
-import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button.js";
+import { Label } from "@workspace/ui/components/label.js";
+import { Input } from "@workspace/ui/components/input.js";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
-import { DatePicker } from "@workspace/ui/components/date-picker";
+} from "@workspace/ui/components/select.js";
+import { Textarea } from "@workspace/ui/components/textarea.js";
+import { DatePicker } from "@workspace/ui/components/date-picker.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
 import { Patient } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { useFormOptions } from "@/lib/app-config-context";
@@ -121,15 +114,16 @@ export function EditPatientDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Edit Patient</DialogTitle>
-          <DialogDescription>
-            Update the patient&apos;s information.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Patient"
+      description="Update the patient's information."
+      isLoading={loading}
+      onSubmit={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
+      submitLabel={loading ? "Saving..." : "Save Changes"}
+    >
+      <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
@@ -270,20 +264,7 @@ export function EditPatientDialog({
             />
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+    </CRUDDialog>
   );
 }
