@@ -7,16 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 
-import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog";
+import { Button } from "@workspace/ui/components/button.js";
+import { DialogTrigger } from "@workspace/ui/components/dialog.js";
 import {
   Form,
   FormControl,
@@ -24,27 +16,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form.js";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/select.js";
+import { Textarea } from "@workspace/ui/components/textarea.js";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/popover.js";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandList,
-} from "@workspace/ui/components/command";
+} from "@workspace/ui/components/command.js";
+import { FormDialog } from "@workspace/ui/components/form-dialog.js";
 import { cn } from "@workspace/ui/lib/utils";
 import { apiHooks } from "@/lib/api-hooks";
 
@@ -131,20 +124,19 @@ export function AddWalkInDialog({
   const selectedPatient = patients.find((p) => p.id === selectedPatientId);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
           Add Walk-in
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Walk-in Patient</DialogTitle>
-          <DialogDescription>
-            Add a walk-in patient directly to the queue.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Add Walk-in Patient"
+        description="Add a walk-in patient directly to the queue."
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -178,7 +170,7 @@ export function AddWalkInDialog({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-[400px] p-0 z-[100]"
+                      className="w-[400px] p-0 z-100"
                       align="start"
                     >
                       <Command shouldFilter={false}>
@@ -321,18 +313,32 @@ export function AddWalkInDialog({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            </FormField>
 
-            <DialogFooter>
-              <Button type="submit" disabled={createQueueToken.isPending}>
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen?.(false)}
+                disabled={createQueueToken.isPending}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={createQueueToken.isPending}
+                className="flex-1"
+              >
                 {createQueueToken.isPending
                   ? "Adding to Queue..."
                   : "Add to Queue"}
               </Button>
-            </DialogFooter>
+            </div>
+
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </FormDialog>
+    </>
   );
 }
