@@ -32,14 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
+import { FormDialog } from "@workspace/ui/components";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
 
@@ -457,94 +450,93 @@ export function DoctorAvailabilitySettings() {
       </Card>
 
       {/* Add Time Off Dialog */}
-      <Dialog open={showTimeOffDialog} onOpenChange={setShowTimeOffDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Time Off</DialogTitle>
-            <DialogDescription>
-              Schedule vacation, sick leave, or other unavailable time
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={timeOffForm.handleSubmit(onCreateTimeOff)}>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    {...timeOffForm.register("startDate", { required: true })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    {...timeOffForm.register("endDate", { required: true })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isFullDay"
-                  checked={timeOffForm.watch("isFullDay")}
-                  onCheckedChange={(checked: boolean) =>
-                    timeOffForm.setValue("isFullDay", checked)
-                  }
-                />
-                <Label htmlFor="isFullDay">Full Day</Label>
-              </div>
-
-              {!timeOffForm.watch("isFullDay") && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      {...timeOffForm.register("startTime")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      {...timeOffForm.register("endTime")}
-                    />
-                  </div>
-                </div>
-              )}
-
+      <FormDialog
+        open={showTimeOffDialog}
+        onOpenChange={setShowTimeOffDialog}
+        title="Add Time Off"
+        description="Schedule vacation, sick leave, or other unavailable time"
+        isLoading={creatingTimeOff}
+      >
+        <form onSubmit={timeOffForm.handleSubmit(onCreateTimeOff)} className="space-y-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason (optional)</Label>
-                <Textarea
-                  id="reason"
-                  placeholder="e.g., Annual leave, Conference, etc."
-                  {...timeOffForm.register("reason")}
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  {...timeOffForm.register("startDate", { required: true })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  {...timeOffForm.register("endDate", { required: true })}
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowTimeOffDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={creatingTimeOff}>
-                {creatingTimeOff && (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                )}
-                Add Time Off
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isFullDay"
+                checked={timeOffForm.watch("isFullDay")}
+                onCheckedChange={(checked: boolean) =>
+                  timeOffForm.setValue("isFullDay", checked)
+                }
+              />
+              <Label htmlFor="isFullDay">Full Day</Label>
+            </div>
+
+            {!timeOffForm.watch("isFullDay") && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime">Start Time</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    {...timeOffForm.register("startTime")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">End Time</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    {...timeOffForm.register("endTime")}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason (optional)</Label>
+              <Textarea
+                id="reason"
+                placeholder="e.g., Annual leave, Conference, etc."
+                {...timeOffForm.register("reason")}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowTimeOffDialog(false)}
+              disabled={creatingTimeOff}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={creatingTimeOff}>
+              {creatingTimeOff && (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              )}
+              Add Time Off
+            </Button>
+          </div>
+        </form>
+      </FormDialog>
     </div>
   );
 }
