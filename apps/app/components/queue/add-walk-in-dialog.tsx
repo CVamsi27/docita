@@ -313,7 +313,7 @@ export function AddWalkInDialog({
                   <FormMessage />
                 </FormItem>
               )}
-            </FormField>
+            />
 
             <div className="flex gap-3 pt-4">
               <Button
