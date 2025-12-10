@@ -42,7 +42,7 @@ export interface MultiStepDialogProps {
  * @example
  * ```tsx
  * const [step, setStep] = useState(0);
- * 
+ *
  * <MultiStepDialog
  *   open={open}
  *   onOpenChange={setOpen}
@@ -114,7 +114,7 @@ export function MultiStepDialog({
           {currentStep && currentStep.description && (
             <DialogDescription>{currentStep.description}</DialogDescription>
           )}
-          
+
           {/* Step indicator */}
           <div className="mt-4 flex gap-2">
             {steps.map((step, index) => (

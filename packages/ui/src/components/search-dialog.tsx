@@ -73,7 +73,7 @@ export function SearchDialog({
   // Group items by category if groups are specified
   const groupedItems = React.useMemo(() => {
     const groups: Record<string, SearchItem[]> = {};
-    
+
     items.forEach((item) => {
       const groupName = item.group || "Other";
       if (!groups[groupName]) {
@@ -93,7 +93,7 @@ export function SearchDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <Command shouldFilter={false} className="[&_[cmdk-input]]:h-12">
+        <Command shouldFilter={false} className="**:[[cmdk-input]]:h-12">
           <CommandInput
             placeholder={placeholder}
             value={value}

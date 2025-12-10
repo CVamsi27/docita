@@ -18,12 +18,14 @@ The Docita dialog component library provides a comprehensive set of reusable, ac
 The foundational dialog component using Radix UI.
 
 **Features:**
+
 - Accessible modal with keyboard support
 - Customizable sizing and positioning
 - Support for header, content, and footer sections
 - Managed open/close state
 
 **Import:**
+
 ```typescript
 import {
   Dialog,
@@ -37,6 +39,7 @@ import {
 ```
 
 **Example:**
+
 ```tsx
 <Dialog open={open} onOpenChange={setOpen}>
   <DialogTrigger asChild>
@@ -60,6 +63,7 @@ import {
 Specialized dialog for form submissions with built-in loading states and button management.
 
 **Features:**
+
 - Automatic submit button handling
 - Loading state management
 - Disabled state support
@@ -67,6 +71,7 @@ Specialized dialog for form submissions with built-in loading states and button 
 - Semantic editing mode
 
 **Props:**
+
 ```typescript
 interface CRUDDialogProps {
   open: boolean;
@@ -85,6 +90,7 @@ interface CRUDDialogProps {
 ```
 
 **Example:**
+
 ```tsx
 <CRUDDialog
   open={open}
@@ -95,9 +101,7 @@ interface CRUDDialogProps {
   onSubmit={handleSubmit}
   submitLabel="Add"
 >
-  <form className="space-y-4">
-    {/* Form fields */}
-  </form>
+  <form className="space-y-4">{/* Form fields */}</form>
 </CRUDDialog>
 ```
 
@@ -106,12 +110,14 @@ interface CRUDDialogProps {
 Optimized for React Hook Form integration with minimal configuration.
 
 **Features:**
+
 - Built for `react-hook-form` patterns
 - Automatic form state management
 - Loading indicator support
 - Pre-configured footer
 
 **Props:**
+
 ```typescript
 interface FormDialogProps {
   open: boolean;
@@ -128,6 +134,7 @@ interface FormDialogProps {
 ```
 
 **Example:**
+
 ```tsx
 const form = useForm({
   resolver: zodResolver(schema),
@@ -159,6 +166,7 @@ const form = useForm({
 For confirming destructive or important actions.
 
 **Features:**
+
 - Semantic dialog types: danger, warning, info, success
 - Contextual icons
 - Appropriate button colors
@@ -166,6 +174,7 @@ For confirming destructive or important actions.
 - Promise-based onConfirm callback
 
 **Props:**
+
 ```typescript
 interface ConfirmationDialogProps {
   open: boolean;
@@ -182,6 +191,7 @@ interface ConfirmationDialogProps {
 ```
 
 **Example:**
+
 ```tsx
 <ConfirmationDialog
   open={open}
@@ -200,6 +210,7 @@ interface ConfirmationDialogProps {
 For guided workflows with multiple sequential steps (wizards).
 
 **Features:**
+
 - Visual step indicators
 - Step navigation (next/previous)
 - Optional step descriptions
@@ -207,6 +218,7 @@ For guided workflows with multiple sequential steps (wizards).
 - Configurable labels
 
 **Props:**
+
 ```typescript
 interface MultiStepDialogProps {
   open: boolean;
@@ -227,6 +239,7 @@ interface MultiStepDialogProps {
 ```
 
 **Example:**
+
 ```tsx
 const [step, setStep] = useState(0);
 
@@ -235,7 +248,11 @@ const [step, setStep] = useState(0);
   onOpenChange={setOpen}
   title="Create Account"
   steps={[
-    { id: "personal", title: "Personal Info", description: "Enter your details" },
+    {
+      id: "personal",
+      title: "Personal Info",
+      description: "Enter your details",
+    },
     { id: "contact", title: "Contact", description: "Provide contact info" },
     { id: "verify", title: "Verify", description: "Confirm your email" },
   ]}
@@ -246,7 +263,7 @@ const [step, setStep] = useState(0);
   {step === 0 && <PersonalForm />}
   {step === 1 && <ContactForm />}
   {step === 2 && <VerificationForm />}
-</MultiStepDialog>
+</MultiStepDialog>;
 ```
 
 ### 6. SearchDialog
@@ -254,6 +271,7 @@ const [step, setStep] = useState(0);
 For large lists with filtering and grouping capabilities.
 
 **Features:**
+
 - Searchable combobox interface
 - Optional item grouping
 - Loading states
@@ -261,6 +279,7 @@ For large lists with filtering and grouping capabilities.
 - Single selection
 
 **Props:**
+
 ```typescript
 interface SearchDialogProps {
   open: boolean;
@@ -276,13 +295,14 @@ interface SearchDialogProps {
 ```
 
 **Example:**
+
 ```tsx
 <SearchDialog
   open={open}
   onOpenChange={setOpen}
   title="Select Patient"
   placeholder="Search by name or ID..."
-  items={patients.map(p => ({
+  items={patients.map((p) => ({
     id: p.id,
     label: p.name,
     group: p.clinic?.name,
@@ -311,7 +331,7 @@ Use controlled state for all dialogs:
 ```tsx
 const [open, setOpen] = useState(false);
 
-<MyDialog open={open} onOpenChange={setOpen} />
+<MyDialog open={open} onOpenChange={setOpen} />;
 ```
 
 ### 2. Form Integration
@@ -327,11 +347,9 @@ const form = useForm({ resolver: zodResolver(schema) });
   isLoading={form.formState.isSubmitting}
 >
   <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      {/* Fields */}
-    </form>
+    <form onSubmit={form.handleSubmit(onSubmit)}>{/* Fields */}</form>
   </Form>
-</FormDialog>
+</FormDialog>;
 ```
 
 ### 3. Error Handling
@@ -366,10 +384,7 @@ const handleDelete = async (id) => {
   }
 };
 
-<ConfirmationDialog
-  isLoading={loading}
-  onConfirm={() => handleDelete(id)}
-/>
+<ConfirmationDialog isLoading={loading} onConfirm={() => handleDelete(id)} />;
 ```
 
 ### 5. Multi-Step Workflows
@@ -394,15 +409,14 @@ const handleStepChange = (nextStep) => {
 ### From Basic Dialog to CRUDDialog
 
 **Before:**
+
 ```tsx
 <Dialog open={open} onOpenChange={setOpen}>
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Add Patient</DialogTitle>
     </DialogHeader>
-    <form onSubmit={handleSubmit}>
-      {/* Form fields */}
-    </form>
+    <form onSubmit={handleSubmit}>{/* Form fields */}</form>
     <DialogFooter>
       <Button variant="outline" onClick={() => setOpen(false)}>
         Cancel
@@ -414,6 +428,7 @@ const handleStepChange = (nextStep) => {
 ```
 
 **After:**
+
 ```tsx
 <CRUDDialog
   open={open}
@@ -422,9 +437,7 @@ const handleStepChange = (nextStep) => {
   onSubmit={handleSubmit}
   isLoading={loading}
 >
-  <form>
-    {/* Form fields */}
-  </form>
+  <form>{/* Form fields */}</form>
 </CRUDDialog>
 ```
 
@@ -446,7 +459,7 @@ const form = useForm({ resolver: zodResolver(schema) });
       {/* FormField components */}
     </form>
   </Form>
-</FormDialog>
+</FormDialog>;
 ```
 
 ## Accessibility
@@ -487,10 +500,7 @@ Dialogs use Tailwind CSS and support the default theme system:
 Customize button styles through the submit/cancel labels:
 
 ```tsx
-<CRUDDialog
-  submitLabel="Save Changes"
-  cancelLabel="Discard"
-/>
+<CRUDDialog submitLabel="Save Changes" cancelLabel="Discard" />
 ```
 
 ## Performance Considerations
@@ -501,9 +511,12 @@ Customize button styles through the submit/cancel labels:
 - Use `useCallback` for event handlers
 
 ```tsx
-const handleSubmit = useCallback(async (data) => {
-  // Handle submission
-}, [dependencies]);
+const handleSubmit = useCallback(
+  async (data) => {
+    // Handle submission
+  },
+  [dependencies],
+);
 ```
 
 ## Common Patterns
@@ -537,7 +550,7 @@ const handleSave = async (data) => {
   }
 };
 
-<FormDialog isLoading={loading} onSubmit={handleSave} />
+<FormDialog isLoading={loading} onSubmit={handleSave} />;
 ```
 
 ### Search & Filter
@@ -582,7 +595,7 @@ Ensure you're updating `currentStepIndex`:
 
 ```tsx
 const handleNext = () => {
-  setCurrentStep(current => current + 1); // Update state
+  setCurrentStep((current) => current + 1); // Update state
 };
 ```
 

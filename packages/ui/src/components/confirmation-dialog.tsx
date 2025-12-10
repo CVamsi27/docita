@@ -29,9 +29,13 @@ export interface ConfirmationDialogProps {
 
 const iconMap = {
   danger: <XCircle className="h-5 w-5 text-destructive" />,
-  warning: <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />,
+  warning: (
+    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+  ),
   info: <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
-  success: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
+  success: (
+    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+  ),
 };
 
 const buttonVariantMap = {
@@ -48,7 +52,7 @@ const buttonVariantMap = {
  * @example
  * ```tsx
  * const [open, setOpen] = useState(false);
- * 
+ *
  * <ConfirmationDialog
  *   open={open}
  *   onOpenChange={setOpen}
@@ -96,7 +100,9 @@ export function ConfirmationDialog({
             <div className="flex-1">
               <DialogTitle>{title}</DialogTitle>
               {description && (
-                <DialogDescription className="mt-2">{description}</DialogDescription>
+                <DialogDescription className="mt-2">
+                  {description}
+                </DialogDescription>
               )}
             </div>
           </div>

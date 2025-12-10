@@ -21,7 +21,7 @@ Always use controlled state for dialogs:
 ```tsx
 const [open, setOpen] = useState(false);
 
-<CRUDDialog open={open} onOpenChange={setOpen} />
+<CRUDDialog open={open} onOpenChange={setOpen} />;
 ```
 
 **Why:** Provides predictable behavior and enables external control (e.g., closing after successful submission).
@@ -41,7 +41,7 @@ const handleOpenChange = (newOpen: boolean) => {
   setOpen(newOpen);
 };
 
-<CRUDDialog open={open} onOpenChange={handleOpenChange} />
+<CRUDDialog open={open} onOpenChange={handleOpenChange} />;
 ```
 
 ### ❌ DON'T: Use Uncontrolled State
@@ -62,7 +62,9 @@ const [editOpen, setEditOpen] = useState(false);
 const [deleteOpen, setDeleteOpen] = useState(false);
 
 // Better approach:
-const [openDialog, setOpenDialog] = useState<null | 'add' | 'edit' | 'delete'>(null);
+const [openDialog, setOpenDialog] = useState<null | "add" | "edit" | "delete">(
+  null,
+);
 ```
 
 ## Form Integration
@@ -74,7 +76,9 @@ Leverage React Hook Form for robust form handling:
 ```tsx
 const form = useForm({
   resolver: zodResolver(schema),
-  defaultValues: { /* ... */ },
+  defaultValues: {
+    /* ... */
+  },
 });
 
 <FormDialog
@@ -87,7 +91,7 @@ const form = useForm({
       {/* FormField components */}
     </form>
   </Form>
-</FormDialog>
+</FormDialog>;
 ```
 
 ### ✅ DO: Validate Before Submission
@@ -126,8 +130,12 @@ const handleSubmit = async (data) => {
 
 ```tsx
 // ❌ Don't do this
-const AddForm = () => { /* */ };
-const EditForm = () => { /* */ };
+const AddForm = () => {
+  /* */
+};
+const EditForm = () => {
+  /* */
+};
 
 // ✅ Instead:
 interface PatientFormProps {
@@ -137,7 +145,11 @@ interface PatientFormProps {
 
 const PatientForm = ({ data, onSubmit }: PatientFormProps) => {
   const form = useForm({
-    defaultValues: data || { /* defaults */ },
+    defaultValues:
+      data ||
+      {
+        /* defaults */
+      },
   });
 };
 ```
@@ -243,7 +255,7 @@ const form = useForm({ resolver: zodResolver(schema) });
 <FormDialog
   isLoading={form.formState.isSubmitting}
   // Automatically managed by react-hook-form
-/>
+/>;
 ```
 
 ### ✅ DO: Disable Inputs During Loading
@@ -269,7 +281,7 @@ const handleDelete = async () => {
   }
 };
 
-<ConfirmationDialog isLoading={loading} />
+<ConfirmationDialog isLoading={loading} />;
 ```
 
 ### ❌ DON'T: Forget Cleanup
@@ -340,7 +352,7 @@ Let Zod handle validation:
 ```tsx
 // ❌ Don't do this
 const onSubmit = (data) => {
-  if (!data.email.includes('@')) {
+  if (!data.email.includes("@")) {
     return;
   }
   // ...
@@ -422,15 +434,16 @@ const handleSubmit = useCallback(async (data) => {
 ### ✅ DO: Optimize Lists in SearchDialog
 
 ```tsx
-const items = useMemo(() => 
-  largeList.map(item => ({
-    id: item.id,
-    label: item.name,
-  })),
+const items = useMemo(
+  () =>
+    largeList.map((item) => ({
+      id: item.id,
+      label: item.name,
+    })),
   [largeList],
 );
 
-<SearchDialog items={items} />
+<SearchDialog items={items} />;
 ```
 
 ### ❌ DON'T: Create New Objects in Render
@@ -455,14 +468,14 @@ const MyComponent = () => {
 
 ```tsx
 // ❌ New function on every render
-<Button onClick={() => handleDelete(id)} />
+<Button onClick={() => handleDelete(id)} />;
 
 // ✅ Use useCallback
 const handleDelete = useCallback((id: string) => {
   // ...
 }, []);
 
-<Button onClick={() => handleDelete(id)} />
+<Button onClick={() => handleDelete(id)} />;
 ```
 
 ## Common Patterns
@@ -474,7 +487,7 @@ const [deleteId, setDeleteId] = useState<string | null>(null);
 
 const handleDelete = async () => {
   if (!deleteId) return;
-  
+
   try {
     await api.deletePatient(deleteId);
     toast.success("Patient deleted");
@@ -491,7 +504,7 @@ const handleDelete = async () => {
   type="danger"
   title="Delete Patient?"
   onConfirm={handleDelete}
-/>
+/>;
 ```
 
 ### Create/Edit Toggle
@@ -499,7 +512,7 @@ const handleDelete = async () => {
 ```tsx
 const [editId, setEditId] = useState<string | null>(null);
 const isEditing = !!editId;
-const data = editId ? patients.find(p => p.id === editId) : null;
+const data = editId ? patients.find((p) => p.id === editId) : null;
 
 const handleSubmit = async (formData) => {
   try {
@@ -519,7 +532,7 @@ const handleSubmit = async (formData) => {
   open={isEditing || showCreate}
   title={isEditing ? "Edit Patient" : "Create Patient"}
   // ...
-/>
+/>;
 ```
 
 ### Multi-Step Form with Validation
@@ -531,7 +544,7 @@ const form = useForm({ resolver: zodResolver(schema) });
 const handleStepChange = async (nextStep: number) => {
   const stepFields = getStepFields(nextStep);
   const isValid = await form.trigger(stepFields);
-  
+
   if (isValid) {
     setStep(nextStep);
   }
@@ -541,7 +554,7 @@ const handleStepChange = async (nextStep: number) => {
   currentStepIndex={step}
   onStepChange={handleStepChange}
   // ...
-/>
+/>;
 ```
 
 ## Anti-Patterns
@@ -554,7 +567,7 @@ setAddOpen(true);
 setEditOpen(true);
 
 // ✅ Use a single state for which dialog is open
-setActiveDialog('add' | 'edit' | null);
+setActiveDialog("add" | "edit" | null);
 ```
 
 ### ❌ Closing Dialog in useEffect
@@ -579,7 +592,7 @@ const handleSubmit = async () => {
 data.name = "new name";
 
 // ✅ Use form.setValue
-form.setValue('name', 'new name');
+form.setValue("name", "new name");
 ```
 
 ### ❌ Nested Dialogs
@@ -587,19 +600,22 @@ form.setValue('name', 'new name');
 ```tsx
 // ❌ Don't nest dialogs
 <CRUDDialog>
-  <CRUDDialog>
-    {/* content */}
-  </CRUDDialog>
-</CRUDDialog>
+  <CRUDDialog>{/* content */}</CRUDDialog>
+</CRUDDialog>;
 
 // ✅ Use sequential dialogs
-{state === 'form' && <FormDialog />}
-{state === 'confirm' && <ConfirmationDialog />}
+{
+  state === "form" && <FormDialog />;
+}
+{
+  state === "confirm" && <ConfirmationDialog />;
+}
 ```
 
 ## Summary
 
 **Key Takeaways:**
+
 1. Always use controlled state
 2. Use React Hook Form for complex forms
 3. Handle errors gracefully
