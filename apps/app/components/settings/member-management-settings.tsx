@@ -52,6 +52,7 @@ interface MemberForm {
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
+  licenseNumber?: string;
   yearsOfExperience?: string;
   consultationFee?: string;
 }
@@ -65,6 +66,7 @@ interface Member {
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
+  licenseNumber?: string;
   yearsOfExperience?: number;
   consultationFee?: number;
 }
@@ -101,6 +103,7 @@ export function MemberManagementSettings() {
     specialization: "",
     qualification: "",
     registrationNumber: "",
+    licenseNumber: "",
     yearsOfExperience: "",
     consultationFee: "",
   });
@@ -129,6 +132,12 @@ export function MemberManagementSettings() {
       return;
     }
 
+    // Registration number is required for doctors
+    if ((formData.role === "DOCTOR" || formData.role === "ADMIN_DOCTOR") && !formData.registrationNumber) {
+      toast.error("Registration number is required for doctors");
+      return;
+    }
+
     try {
       if (editingMember) {
         // When editing, send all fields that might have changed
@@ -140,6 +149,7 @@ export function MemberManagementSettings() {
           specialization: formData.specialization,
           qualification: formData.qualification,
           registrationNumber: formData.registrationNumber,
+          licenseNumber: formData.licenseNumber,
           yearsOfExperience: formData.yearsOfExperience,
           consultationFee: formData.consultationFee,
         };
@@ -188,6 +198,7 @@ export function MemberManagementSettings() {
       specialization: member.specialization || "",
       qualification: member.qualification || "",
       registrationNumber: member.registrationNumber || "",
+      licenseNumber: member.licenseNumber || "",
       yearsOfExperience: member.yearsOfExperience ? String(member.yearsOfExperience) : "",
       consultationFee: member.consultationFee ? String(member.consultationFee) : "",
     });
@@ -487,7 +498,7 @@ export function MemberManagementSettings() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="registrationNumber">
-                          Registration Number
+                          Registration Number *
                         </Label>
                         <Input
                           id="registrationNumber"
@@ -498,9 +509,28 @@ export function MemberManagementSettings() {
                               registrationNumber: e.target.value,
                             })
                           }
-                          placeholder="License/Registration number"
+                          placeholder="Medical registration number"
+                          required
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="licenseNumber">
+                          License Number
+                        </Label>
+                        <Input
+                          id="licenseNumber"
+                          value={formData.licenseNumber || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              licenseNumber: e.target.value,
+                            })
+                          }
+                          placeholder="Medical license number (optional)"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="yearsOfExperience">
                           Years of Experience
@@ -519,23 +549,23 @@ export function MemberManagementSettings() {
                           placeholder="e.g., 10"
                         />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="consultationFee">Consultation Fee</Label>
-                      <Input
-                        id="consultationFee"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.consultationFee || ""}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            consultationFee: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 500"
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="consultationFee">Consultation Fee</Label>
+                        <Input
+                          id="consultationFee"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.consultationFee || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              consultationFee: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 500"
+                        />
+                      </div>
                     </div>
                   </>
                 )}
