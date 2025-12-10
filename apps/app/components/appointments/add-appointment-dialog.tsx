@@ -5,44 +5,37 @@ import { useState, useCallback } from "react";
 import { Plus, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import type { CreateAppointmentInput } from "@workspace/types";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/button.js";
+import { DialogTrigger } from "@workspace/ui/components/dialog.js";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog";
-import { FormProvider } from "react-hook-form";
-import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form";
+} from "@workspace/ui/components/form.js";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@workspace/ui/components/select.js";
+import { Textarea } from "@workspace/ui/components/textarea.js";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/popover.js";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandList,
-} from "@workspace/ui/components/command";
+} from "@workspace/ui/components/command.js";
+import { FormDialog } from "@workspace/ui/components/form-dialog.js";
 import { cn } from "@workspace/ui/lib/utils";
 import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/app-config-context";
@@ -117,21 +110,20 @@ export function AddAppointmentDialog({
   const selectedPatient = patients.find((p) => p.id === selectedPatientId);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
           New Appointment
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Schedule Appointment</DialogTitle>
-          <DialogDescription>
-            Create a new appointment for a patient.
-          </DialogDescription>
-        </DialogHeader>
-        <FormProvider {...form}>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Schedule Appointment"
+        description="Create a new appointment for a patient."
+      >
+        <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
@@ -333,14 +325,23 @@ export function AddAppointmentDialog({
               )}
             />
 
-            <DialogFooter>
-              <Button type="submit" disabled={loading}>
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen?.(false)}
+                disabled={loading}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? "Scheduling..." : "Schedule Appointment"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
-        </FormProvider>
-      </DialogContent>
-    </Dialog>
+        </Form>
+      </FormDialog>
+    </>
   );
 }
