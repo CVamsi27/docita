@@ -8,8 +8,6 @@ import {
   LayoutDashboard,
   Users,
   LogOut,
-  Stethoscope,
-  UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,16 +22,6 @@ const sidebarItems = [
     title: "Team",
     href: "/clinic/team",
     icon: Users,
-  },
-  {
-    title: "Create Doctor",
-    href: "/clinic/create-doctor",
-    icon: Stethoscope,
-  },
-  {
-    title: "Create Receptionist",
-    href: "/clinic/create-receptionist",
-    icon: UserPlus,
   },
 ];
 
