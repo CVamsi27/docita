@@ -65,8 +65,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('validate')
-  async validate(@Request() req: any) {
-    // If request reaches here, JWT is valid and user exists in the database
+  validate(@Request() req: any) {
     return {
       valid: true,
       user: {

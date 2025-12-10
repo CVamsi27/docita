@@ -915,25 +915,50 @@ model ImportJob {
 }
 
 model OcrDocument {
-  id            String    @id @default(cuid())
-  clinicId      String
-  patientId     String?
-  sourceUrl     String
-  processedUrl  String?
-  documentType  String    @default("UNKNOWN")
-  ocrText       String?
-  extractedData Json?
-  confidence    Float?
-  status        String    @default("pending")
-  reviewedBy    String?
-  reviewedAt    DateTime?
-  corrections   Json?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  clinicId              String
+  patientId             String?
+  sourceUrl             String
+  processedUrl          String?
+  documentType          String    @default("UNKNOWN")
+  ocrText               String?
+  extractedData         Json?
+  confidence            Float?
+  fieldConfidenceScores Json?     // Per-field confidence scores
+  suggestedCorrections  Json?     // AI-suggested corrections
+  status                String    @default("pending")
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  corrections           Json?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relationship to feedback for learning
+  feedbacks             OcrFeedback[]
 
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
+  @@index([documentType])
+}
+
+model OcrFeedback {
+  id              String        @id @default(cuid())
+  ocrDocumentId   String
+  ocrDocument     OcrDocument   @relation(fields: [ocrDocumentId], references: [id], onDelete: Cascade)
+  clinicId        String
+  providedBy      String        // Staff member who made correction
+  fieldName       String        // Which field was corrected
+  originalValue   String
+  correctedValue  String
+  confidence      Float?        // Original confidence score
+  helpful         Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([ocrDocumentId])
+  @@index([clinicId])
+  @@index([fieldName])
 }
 
 model PatientMergeSuggestion {

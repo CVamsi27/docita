@@ -48,6 +48,12 @@ interface MemberForm {
   email: string;
   password?: string;
   role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
+  phoneNumber?: string;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+  yearsOfExperience?: string;
+  consultationFee?: string;
 }
 
 interface Member {
@@ -86,6 +92,12 @@ export function MemberManagementSettings() {
     email: "",
     password: "",
     role: "DOCTOR",
+    phoneNumber: "",
+    specialization: "",
+    qualification: "",
+    registrationNumber: "",
+    yearsOfExperience: "",
+    consultationFee: "",
   });
 
   // Check if current user is admin
@@ -114,11 +126,17 @@ export function MemberManagementSettings() {
 
     try {
       if (editingMember) {
-        // When editing, only send password if it was changed
+        // When editing, send all fields that might have changed
         const updateData: Partial<MemberForm> = {
           name: formData.name,
           email: formData.email,
           role: formData.role,
+          phoneNumber: formData.phoneNumber,
+          specialization: formData.specialization,
+          qualification: formData.qualification,
+          registrationNumber: formData.registrationNumber,
+          yearsOfExperience: formData.yearsOfExperience,
+          consultationFee: formData.consultationFee,
         };
         if (formData.password) {
           updateData.password = formData.password;
@@ -126,8 +144,17 @@ export function MemberManagementSettings() {
         await api.put(`/doctors/${editingMember.id}`, updateData);
         toast.success("Member has been updated successfully.");
       } else {
-        // When creating, password is required
-        await api.post("/doctors", formData);
+        // When creating, send all fields including password
+        const createData = {
+          ...formData,
+          yearsOfExperience: formData.yearsOfExperience
+            ? parseInt(formData.yearsOfExperience)
+            : undefined,
+          consultationFee: formData.consultationFee
+            ? parseFloat(formData.consultationFee)
+            : undefined,
+        };
+        await api.post("/doctors", createData);
         toast.success("Member has been added successfully.");
       }
 
@@ -152,6 +179,12 @@ export function MemberManagementSettings() {
       email: member.email || "",
       password: "",
       role: member.role || "DOCTOR",
+      phoneNumber: member.phoneNumber || "",
+      specialization: "",
+      qualification: "",
+      registrationNumber: "",
+      yearsOfExperience: "",
+      consultationFee: "",
     });
     setIsDialogOpen(true);
   };
@@ -182,6 +215,12 @@ export function MemberManagementSettings() {
       email: "",
       password: "",
       role: "DOCTOR",
+      phoneNumber: "",
+      specialization: "",
+      qualification: "",
+      registrationNumber: "",
+      yearsOfExperience: "",
+      consultationFee: "",
     });
     setShowPassword(false);
   };
@@ -384,6 +423,116 @@ export function MemberManagementSettings() {
                       </Button>
                     </div>
                   </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        phoneNumber: e.target.value,
+                      })
+                    }
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+
+                {(formData.role === "DOCTOR" ||
+                  formData.role === "ADMIN_DOCTOR") && (
+                  <>
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-4">
+                        Doctor Details
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="specialization">Specialization</Label>
+                        <Input
+                          id="specialization"
+                          value={formData.specialization || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              specialization: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Cardiology"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="qualification">Qualification</Label>
+                        <Input
+                          id="qualification"
+                          value={formData.qualification || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              qualification: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., MD, MBBS"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="registrationNumber">
+                          Registration Number
+                        </Label>
+                        <Input
+                          id="registrationNumber"
+                          value={formData.registrationNumber || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              registrationNumber: e.target.value,
+                            })
+                          }
+                          placeholder="License/Registration number"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="yearsOfExperience">
+                          Years of Experience
+                        </Label>
+                        <Input
+                          id="yearsOfExperience"
+                          type="number"
+                          min="0"
+                          value={formData.yearsOfExperience || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              yearsOfExperience: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 10"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="consultationFee">Consultation Fee</Label>
+                      <Input
+                        id="consultationFee"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.consultationFee || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            consultationFee: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., 500"
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="flex justify-end gap-2 pt-4">

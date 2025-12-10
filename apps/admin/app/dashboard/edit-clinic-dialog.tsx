@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -86,11 +85,9 @@ export function EditClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { logout } = useAuth();
   const [formData, setFormData] = useState(() => getInitialFormData(clinic));
 
-  // Reset form data when dialog opens to ensure latest clinic data is used
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
       setFormData(getInitialFormData(clinic));

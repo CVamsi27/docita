@@ -62,6 +62,7 @@ async function bootstrap() {
       'Accept',
       'Origin',
       'X-Requested-With',
+      'Cache-Control',
     ],
     credentials: true,
     maxAge: 86400, // Cache preflight response for 24 hours

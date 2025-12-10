@@ -96,6 +96,7 @@ export const CONFIG = {
     'Accept',
     'Origin',
     'X-Requested-With',
+    'Cache-Control',
   ],
 
   // Payment
@@ -110,6 +111,21 @@ export const CONFIG = {
   // Rate limiting
   RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: 100,
+
+  // OCR Configuration
+  OCR_CONFIDENCE_THRESHOLD: parseFloat(
+    process.env.OCR_CONFIDENCE_THRESHOLD || '0.75',
+  ),
+  OCR_MEDICAL_FIELD_THRESHOLD: parseFloat(
+    process.env.OCR_MEDICAL_FIELD_THRESHOLD || '0.8',
+  ),
+  OCR_CONTACT_FIELD_THRESHOLD: parseFloat(
+    process.env.OCR_CONTACT_FIELD_THRESHOLD || '0.65',
+  ),
+
+  // Google Cloud Vision
+  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  GOOGLE_CLOUD_CREDENTIALS_JSON: process.env.GOOGLE_CLOUD_CREDENTIALS_JSON,
 } as const;
 
 export default {

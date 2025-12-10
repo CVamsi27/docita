@@ -74,13 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!res.ok) {
           // 401 = token expired or invalid
           // 404 = user account deleted
-          const reason =
-            res.status === 404
-              ? "Your account has been deleted"
-              : res.status === 401
-                ? "Your session has expired"
-                : "Your authentication is no longer valid";
-
+          if (res.status === 404 || res.status === 401) {
+            clearAuthStorage();
+            return false;
+          }
           return false;
         }
 

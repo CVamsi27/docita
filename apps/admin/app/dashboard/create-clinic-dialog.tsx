@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -43,7 +42,6 @@ export function CreateClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { logout } = useAuth();
   const [formData, setFormData] = useState({
     name: "",

@@ -385,7 +385,40 @@ export const apiHooks = {
   useProcessOCR: () =>
     useAPIMutation<
       {
-        text: string;
+        text?: string;
+        documentType?: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
+        confidence?: number;
+        fields?: {
+          firstName?: string;
+          lastName?: string;
+          age?: string;
+          gender?: string;
+          phoneNumber?: string;
+          email?: string;
+          bloodType?: string;
+          diagnosis?: string;
+          symptoms?: string[];
+          allergies?: string[];
+          medicalHistory?: string[];
+          vitals?: {
+            bp?: string;
+            temp?: string;
+            pulse?: string;
+            respiratoryRate?: string;
+            spO2?: string;
+            glucose?: string;
+          };
+          medications?: Array<{
+            name: string;
+            dosage: string;
+            frequency: string;
+            route?: string;
+            duration?: string;
+          }>;
+          fieldConfidence?: Record<string, number>;
+        };
+        suggestedCorrections?: Record<string, string>;
+        // Legacy response format support
         firstName?: string;
         lastName?: string;
         age?: string;

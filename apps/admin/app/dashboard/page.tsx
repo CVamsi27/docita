@@ -9,7 +9,6 @@ import {
   CardDescription,
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
-import { Button } from "@workspace/ui/components/button";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { CreateClinicDialog } from "./create-clinic-dialog";

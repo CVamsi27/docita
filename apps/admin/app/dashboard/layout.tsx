@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
@@ -84,10 +85,12 @@ export default function DashboardLayout({
             href="/dashboard"
             className="flex items-center gap-2 font-bold text-lg"
           >
-            <img
+            <Image
               src="/icon.png"
               alt="Docita Logo"
-              className="h-6 w-6 rounded-full object-cover"
+              width={24}
+              height={24}
+              className="rounded-full object-cover"
             />
             <span>Docita Admin</span>
           </Link>

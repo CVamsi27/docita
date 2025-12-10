@@ -64,42 +64,85 @@ export class DoctorsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(clinicId: string) {
-    const doctorClinics = await this.prisma.doctorClinic.findMany({
-      where: { clinicId },
-      include: {
-        doctor: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            specialization: true,
-            hospitalRole: true,
-            qualification: true,
-            registrationNumber: true,
-            profilePhotoUrl: true,
-            yearsOfExperience: true,
-            consultationFee: true,
-            createdAt: true,
+    // Fetch all clinic staff including doctors from doctorClinic and direct clinic users
+    const [doctorClinics, clinicUsers] = await Promise.all([
+      this.prisma.doctorClinic.findMany({
+        where: { clinicId },
+        include: {
+          doctor: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              specialization: true,
+              hospitalRole: true,
+              qualification: true,
+              registrationNumber: true,
+              profilePhotoUrl: true,
+              yearsOfExperience: true,
+              consultationFee: true,
+              createdAt: true,
+            },
           },
         },
-      },
-    });
+      }),
+      // Also fetch users directly assigned to clinic (admins, receptionists created with clinic)
+      this.prisma.user.findMany({
+        where: { clinicId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          specialization: true,
+          hospitalRole: true,
+          qualification: true,
+          registrationNumber: true,
+          profilePhotoUrl: true,
+          yearsOfExperience: true,
+          consultationFee: true,
+          createdAt: true,
+        },
+      }),
+    ]);
 
-    return doctorClinics.map((dc) => ({
-      id: dc.doctor.id,
-      email: dc.doctor.email,
-      name: dc.doctor.name,
-      role: dc.doctor.role,
-      specialization: dc.doctor.specialization,
-      hospitalRole: dc.doctor.hospitalRole,
-      qualification: dc.doctor.qualification,
-      registrationNumber: dc.doctor.registrationNumber,
-      profilePhotoUrl: dc.doctor.profilePhotoUrl,
-      yearsOfExperience: dc.doctor.yearsOfExperience,
-      consultationFee: dc.doctor.consultationFee,
-      createdAt: dc.doctor.createdAt,
-    }));
+    // Combine both lists, avoiding duplicates (users that appear in both)
+    const doctorClinicIds = new Set(doctorClinics.map((dc) => dc.doctor.id));
+    const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
+
+    const allUsers = [
+      ...doctorClinics.map((dc) => ({
+        id: dc.doctor.id,
+        email: dc.doctor.email,
+        name: dc.doctor.name,
+        role: dc.doctor.role,
+        specialization: dc.doctor.specialization,
+        hospitalRole: dc.doctor.hospitalRole,
+        qualification: dc.doctor.qualification,
+        registrationNumber: dc.doctor.registrationNumber,
+        profilePhotoUrl: dc.doctor.profilePhotoUrl,
+        yearsOfExperience: dc.doctor.yearsOfExperience,
+        consultationFee: dc.doctor.consultationFee,
+        createdAt: dc.doctor.createdAt,
+      })),
+      ...directUsers.map((u) => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        specialization: u.specialization,
+        hospitalRole: u.hospitalRole,
+        qualification: u.qualification,
+        registrationNumber: u.registrationNumber,
+        profilePhotoUrl: u.profilePhotoUrl,
+        yearsOfExperience: u.yearsOfExperience,
+        consultationFee: u.consultationFee,
+        createdAt: u.createdAt,
+      })),
+    ];
+
+    return allUsers;
   }
 
   async findOne(id: string) {

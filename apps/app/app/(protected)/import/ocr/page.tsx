@@ -25,6 +25,11 @@ import {
   Activity,
   ArrowLeft,
   Smartphone,
+  AlertTriangle,
+  Pill,
+  ChevronDown,
+  Lightbulb,
+  AlertOctagon,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { QRCodeSVG } from "qrcode.react";
@@ -40,12 +45,85 @@ import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 
+// Confidence indicator component
+const ConfidenceIndicator = ({ score }: { score?: number }) => {
+  if (!score) return null;
+  const percentage = Math.round(score * 100);
+  let color = "bg-green-500";
+  let icon = null;
+
+  if (percentage >= 80) {
+    color = "bg-green-500";
+  } else if (percentage >= 60) {
+    color = "bg-yellow-500";
+    icon = <AlertTriangle className="h-3 w-3" />;
+  } else {
+    color = "bg-red-500";
+    icon = <AlertOctagon className="h-3 w-3" />;
+  }
+
+  return (
+    <div className="flex items-center gap-1 text-xs">
+      {icon}
+      <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${color}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      <span className="text-muted-foreground text-xs">{percentage}%</span>
+    </div>
+  );
+};
+
+// Section toggle component
+const SectionToggle = ({
+  title,
+  icon: Icon,
+  isOpen,
+  onToggle,
+  badge,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isOpen?: boolean;
+  onToggle: () => void;
+  badge?: string;
+}) => (
+  <button
+    onClick={onToggle}
+    className="flex items-center justify-between w-full p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+  >
+    <div className="flex items-center gap-2">
+      <Icon className="h-4 w-4" />
+      <span className="font-medium text-sm">{title}</span>
+      {badge && (
+        <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded">
+          {badge}
+        </span>
+      )}
+    </div>
+    <ChevronDown
+      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+    />
+  </button>
+);
+
 export default function OCRPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean | undefined>
+  >({
+    patient: true,
+    clinical: true,
+    vitals: true,
+    medications: false,
+    labValues: false,
+  });
 
   // QR Code State
   const [showQr, setShowQr] = useState(false);
@@ -56,20 +134,46 @@ export default function OCRPage() {
   const createPatientMutation = apiHooks.useCreatePatient();
   const createAppointmentMutation = apiHooks.useCreateAppointment();
 
-  // Form State
+  // Enhanced Form State with Confidence Scores and Suggestions
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     age: "",
     gender: "MALE",
     phoneNumber: "",
+    email: "",
+    bloodType: "",
     diagnosis: "",
+    symptoms: [] as string[],
+    allergies: [] as string[],
+    medicalHistory: [] as string[],
+    medications: [] as Array<{
+      name: string;
+      dosage: string;
+      frequency: string;
+    }>,
     vitals: {
       bp: "",
       temp: "",
       pulse: "",
+      respiratoryRate: "",
+      spO2: "",
+      glucose: "",
+    },
+    labValues: {
+      glucose: "",
+      hemoglobin: "",
+      creatinine: "",
     },
   });
+
+  const [confidenceScores, setConfidenceScores] = useState<
+    Record<string, number>
+  >({});
+  const [suggestedCorrections, setSuggestedCorrections] = useState<
+    Record<string, string>
+  >({});
+  const [documentType, setDocumentType] = useState<string>("GENERAL");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -172,24 +276,50 @@ export default function OCRPage() {
     if (!file) return;
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const formDataObj = new FormData();
+      formDataObj.append("file", file);
 
-      const result = await processOCRMutation.mutateAsync(formData);
+      const result = await processOCRMutation.mutateAsync(formDataObj);
 
+      // Update form data from OCR result
       setFormData({
-        firstName: result.firstName || "",
-        lastName: result.lastName || "",
-        age: result.age || "",
-        gender: result.gender || "MALE",
-        phoneNumber: result.phoneNumber || "",
-        diagnosis: result.diagnosis || "",
+        firstName: result.fields?.firstName || result.firstName || "",
+        lastName: result.fields?.lastName || result.lastName || "",
+        age: result.fields?.age || result.age || "",
+        gender: result.fields?.gender || result.gender || "MALE",
+        phoneNumber: result.fields?.phoneNumber || result.phoneNumber || "",
+        email: result.fields?.email || "",
+        bloodType: result.fields?.bloodType || "",
+        diagnosis: result.fields?.diagnosis || result.diagnosis || "",
+        symptoms: result.fields?.symptoms || [],
+        allergies: result.fields?.allergies || [],
+        medicalHistory: result.fields?.medicalHistory || [],
+        medications: result.fields?.medications || [],
         vitals: {
-          bp: result.vitals?.bp || "",
-          temp: result.vitals?.temp || "",
-          pulse: result.vitals?.pulse || "",
+          bp: result.fields?.vitals?.bp || result.vitals?.bp || "",
+          temp: result.fields?.vitals?.temp || result.vitals?.temp || "",
+          pulse: result.fields?.vitals?.pulse || result.vitals?.pulse || "",
+          respiratoryRate: result.fields?.vitals?.respiratoryRate || "",
+          spO2: result.fields?.vitals?.spO2 || "",
+          glucose: result.fields?.vitals?.glucose || "",
+        },
+        labValues: {
+          glucose: "",
+          hemoglobin: "",
+          creatinine: "",
         },
       });
+
+      // Set confidence scores and suggestions from enhanced response
+      if (result.fields?.fieldConfidence) {
+        setConfidenceScores(result.fields.fieldConfidence);
+      }
+      if (result.suggestedCorrections) {
+        setSuggestedCorrections(result.suggestedCorrections);
+      }
+      if (result.documentType) {
+        setDocumentType(result.documentType);
+      }
 
       setScanned(true);
       toast.success("Document scanned successfully");
@@ -367,126 +497,446 @@ export default function OCRPage() {
               <CardTitle>2. Staff Correction Panel</CardTitle>
               <CardDescription>
                 Verify and correct the extracted information
+                {documentType && documentType !== "GENERAL" && (
+                  <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                    {documentType}
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Patient Details */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                  <User className="h-4 w-4" /> Patient Information
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
-                    <Input
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, firstName: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, lastName: e.target.value })
-                      }
-                    />
+            <CardContent className="space-y-4">
+              {/* Low Confidence Warning */}
+              {Object.entries(confidenceScores).some(
+                ([, score]) => score < 0.6,
+              ) && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-3 flex gap-3">
+                  <AlertOctagon className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+                  <div className="text-sm text-red-800 dark:text-red-300">
+                    <p className="font-medium">
+                      Low confidence fields detected
+                    </p>
+                    <p className="text-xs">
+                      Please review and correct highlighted fields
+                    </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Age</Label>
-                    <Input
-                      value={formData.age}
-                      onChange={(e) =>
-                        setFormData({ ...formData, age: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone</Label>
-                    <Input
-                      value={formData.phoneNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          phoneNumber: e.target.value,
-                        })
-                      }
-                    />
+              )}
+
+              {/* AI Suggestions */}
+              {Object.keys(suggestedCorrections).length > 0 && (
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 flex gap-3">
+                  <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <div className="text-sm text-blue-800 dark:text-blue-300">
+                    <p className="font-medium">AI Suggestions Available</p>
+                    <p className="text-xs">
+                      Review suggested corrections above each field
+                    </p>
                   </div>
                 </div>
+              )}
+
+              {/* Patient Information Section */}
+              <div className="space-y-3">
+                <SectionToggle
+                  title="Patient Information"
+                  icon={User}
+                  isOpen={expandedSections.patient}
+                  onToggle={() =>
+                    setExpandedSections({
+                      ...expandedSections,
+                      patient: !expandedSections.patient,
+                    })
+                  }
+                  badge={
+                    Object.entries(confidenceScores)
+                      .filter(([key]) =>
+                        [
+                          "firstName",
+                          "lastName",
+                          "phoneNumber",
+                          "email",
+                        ].includes(key),
+                      )
+                      .some(([, score]) => score < 0.6)
+                      ? "Check"
+                      : undefined
+                  }
+                />
+                {expandedSections.patient && (
+                  <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">First Name</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.firstName}
+                          />
+                        </div>
+                        {suggestedCorrections.firstName && (
+                          <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
+                            <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                              Suggestion:
+                            </p>
+                            <p className="text-yellow-700 dark:text-yellow-300">
+                              {suggestedCorrections.firstName}
+                            </p>
+                          </div>
+                        )}
+                        <Input
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Last Name</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.lastName}
+                          />
+                        </div>
+                        {suggestedCorrections.lastName && (
+                          <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
+                            <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                              Suggestion:
+                            </p>
+                            <p className="text-yellow-700 dark:text-yellow-300">
+                              {suggestedCorrections.lastName}
+                            </p>
+                          </div>
+                        )}
+                        <Input
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              lastName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Age</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.age}
+                          />
+                        </div>
+                        <Input
+                          value={formData.age}
+                          onChange={(e) =>
+                            setFormData({ ...formData, age: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Phone</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.phoneNumber}
+                          />
+                        </div>
+                        <Input
+                          value={formData.phoneNumber}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              phoneNumber: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Email</Label>
+                        <Input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Blood Type</Label>
+                        <Input
+                          value={formData.bloodType}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              bloodType: e.target.value,
+                            })
+                          }
+                          placeholder="O+, A-, etc."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-border my-4"></div>
+              {/* Clinical Findings Section */}
+              <div className="space-y-3">
+                <SectionToggle
+                  title="Clinical Findings"
+                  icon={FileText}
+                  isOpen={expandedSections.clinical}
+                  onToggle={() =>
+                    setExpandedSections({
+                      ...expandedSections,
+                      clinical: !expandedSections.clinical,
+                    })
+                  }
+                  badge={
+                    confidenceScores.diagnosis &&
+                    confidenceScores.diagnosis < 0.6
+                      ? "Check"
+                      : undefined
+                  }
+                />
+                {expandedSections.clinical && (
+                  <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Diagnosis</Label>
+                        <ConfidenceIndicator
+                          score={confidenceScores.diagnosis}
+                        />
+                      </div>
+                      <Textarea
+                        value={formData.diagnosis}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            diagnosis: e.target.value,
+                          })
+                        }
+                        rows={2}
+                      />
+                    </div>
 
-              {/* Clinical Data */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                  <FileText className="h-4 w-4" /> Clinical Findings
-                </div>
-                <div className="space-y-2">
-                  <Label>Diagnosis / Symptoms</Label>
-                  <Textarea
-                    value={formData.diagnosis}
-                    onChange={(e) =>
-                      setFormData({ ...formData, diagnosis: e.target.value })
-                    }
-                    rows={3}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Allergies</Label>
+                      <Textarea
+                        value={formData.allergies.join(", ")}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            allergies: e.target.value
+                              .split(",")
+                              .map((a) => a.trim()),
+                          })
+                        }
+                        placeholder="Separated by commas"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Medical History</Label>
+                      <Textarea
+                        value={formData.medicalHistory.join(", ")}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            medicalHistory: e.target.value
+                              .split(",")
+                              .map((m) => m.trim()),
+                          })
+                        }
+                        placeholder="Previous conditions, surgeries, etc."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-border my-4"></div>
+              {/* Vitals Section */}
+              <div className="space-y-3">
+                <SectionToggle
+                  title="Vitals"
+                  icon={Activity}
+                  isOpen={expandedSections.vitals}
+                  onToggle={() =>
+                    setExpandedSections({
+                      ...expandedSections,
+                      vitals: !expandedSections.vitals,
+                    })
+                  }
+                />
+                {expandedSections.vitals && (
+                  <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">BP</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.vitals_bp}
+                          />
+                        </div>
+                        <Input
+                          value={formData.vitals.bp}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                bp: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="120/80"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Temp (°F)</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.vitals_temp}
+                          />
+                        </div>
+                        <Input
+                          value={formData.vitals.temp}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                temp: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="98.6"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Pulse</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.vitals_pulse}
+                          />
+                        </div>
+                        <Input
+                          value={formData.vitals.pulse}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                pulse: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="72"
+                        />
+                      </div>
+                    </div>
 
-              {/* Vitals */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                  <Activity className="h-4 w-4" /> Vitals
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>BP</Label>
-                    <Input
-                      value={formData.vitals.bp}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          vitals: { ...formData.vitals, bp: e.target.value },
-                        })
-                      }
-                      placeholder="120/80"
-                    />
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Respiratory Rate</Label>
+                        <Input
+                          value={formData.vitals.respiratoryRate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                respiratoryRate: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="16"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">SpO2 (%)</Label>
+                        <Input
+                          value={formData.vitals.spO2}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                spO2: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="98"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Glucose</Label>
+                        <Input
+                          value={formData.vitals.glucose}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              vitals: {
+                                ...formData.vitals,
+                                glucose: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="100"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Temp (°F)</Label>
-                    <Input
-                      value={formData.vitals.temp}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          vitals: { ...formData.vitals, temp: e.target.value },
-                        })
-                      }
-                      placeholder="98.6"
-                    />
+                )}
+              </div>
+
+              {/* Medications Section */}
+              <div className="space-y-3">
+                <SectionToggle
+                  title="Medications"
+                  icon={Pill}
+                  isOpen={expandedSections.medications}
+                  onToggle={() =>
+                    setExpandedSections({
+                      ...expandedSections,
+                      medications: !expandedSections.medications,
+                    })
+                  }
+                  badge={
+                    formData.medications.length > 0
+                      ? String(formData.medications.length)
+                      : undefined
+                  }
+                />
+                {expandedSections.medications && (
+                  <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                    {formData.medications.length > 0 ? (
+                      formData.medications.map((med, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2 border border-border rounded text-sm space-y-1"
+                        >
+                          <p>
+                            <strong>{med.name}</strong> - {med.dosage}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {med.frequency}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        No medications detected
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Pulse</Label>
-                    <Input
-                      value={formData.vitals.pulse}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          vitals: { ...formData.vitals, pulse: e.target.value },
-                        })
-                      }
-                      placeholder="72"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               <Button
