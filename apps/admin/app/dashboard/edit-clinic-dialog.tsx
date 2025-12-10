@@ -1,19 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Pencil, Loader2 } from "lucide-react";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+import { Input } from "@workspace/ui/components/input.js";
+import { Label } from "@workspace/ui/components/label.js";
+import { Pencil } from "lucide-react";
+import { Button } from "@workspace/ui/components/button.js";
+import { DialogTrigger } from "@workspace/ui/components/dialog.js";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -95,67 +88,70 @@ export function EditClinicDialog({
     setOpen(newOpen);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     setLoading(true);
-    try {
-      const token = localStorage.getItem("docita_admin_token");
-      const res = await fetch(`${API_URL}/super-admin/clinics/${clinic.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+    (async () => {
+      try {
+        const token = localStorage.getItem("docita_admin_token");
+        const res = await fetch(`${API_URL}/super-admin/clinics/${clinic.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
 
-      // Handle auth errors
-      if (res.status === 401) {
-        logout("Your session has expired. Please log in again.");
-        return;
-      }
+        // Handle auth errors
+        if (res.status === 401) {
+          logout("Your session has expired. Please log in again.");
+          return;
+        }
 
-      if (res.status === 404) {
-        logout("Your account has been deleted. Please contact support.");
-        return;
-      }
+        if (res.status === 404) {
+          logout("Your account has been deleted. Please contact support.");
+          return;
+        }
 
-      if (res.status === 403) {
-        logout("You no longer have permission to update clinics.");
-        return;
-      }
+        if (res.status === 403) {
+          logout("You no longer have permission to update clinics.");
+          return;
+        }
 
-      if (res.ok) {
-        setOpen(false);
-        onClinicUpdated();
-        toast.success("Clinic updated successfully");
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to update clinic");
+        if (res.ok) {
+          setOpen(false);
+          onClinicUpdated();
+          toast.success("Clinic updated successfully");
+        } else {
+          const error = await res.json();
+          toast.error(error.message || "Failed to update clinic");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Error updating clinic");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error updating clinic");
-    } finally {
-      setLoading(false);
-    }
+    })();
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Clinic</DialogTitle>
-          <DialogDescription>
-            Update clinic details and status.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CRUDDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        title="Edit Clinic"
+        description="Update clinic details and status."
+        isLoading={loading}
+        onSubmit={handleSubmit}
+        submitLabel={loading ? "Updating..." : "Update Clinic"}
+      >
+        <form className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -246,21 +242,8 @@ export function EditClinicDialog({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Updating..." : "Update Clinic"}
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </CRUDDialog>
+    </>
   );
 }
