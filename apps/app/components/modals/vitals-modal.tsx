@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+import { Button } from "@workspace/ui/components/button.js";
+import { Input } from "@workspace/ui/components/input.js";
+import { Label } from "@workspace/ui/components/label.js";
 import { Activity, Save } from "lucide-react";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
 import { VitalSignsValidationPanel } from "@/components/vital-signs/vital-signs-validator";
@@ -48,28 +43,21 @@ export function VitalsModal({
     vitalsData.temperature ||
     vitalsData.spo2;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Activity className="h-5 w-5 text-primary" />
-            Record Vitals
-            {patientName && (
-              <span className="text-muted-foreground font-normal">
-                - {patientName}
-              </span>
-            )}
-          </DialogTitle>
-        </DialogHeader>
+  const handleVitalsSubmit = () => {
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  };
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit(e);
-          }}
-          className="space-y-6 py-4"
-        >
+  return (
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Record Vitals${patientName ? ` - ${patientName}` : ""}`}
+      isLoading={loading}
+      onSubmit={handleVitalsSubmit}
+      submitLabel={loading ? "Saving..." : "Save Vitals"}
+      contentClassName="max-w-2xl max-h-[90vh] overflow-y-auto"
+    >
+      <form className="space-y-6 py-4">
           {/* Physical Stats Section */}
           <div className="space-y-4 p-4 border rounded-lg bg-muted/10">
             <h3 className="font-medium flex items-center gap-2">
@@ -201,7 +189,6 @@ export function VitalsModal({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </CRUDDialog>
   );
 }

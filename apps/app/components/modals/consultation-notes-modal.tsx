@@ -1,21 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+import { Button } from "@workspace/ui/components/button.js";
+import { Label } from "@workspace/ui/components/label.js";
+import { Textarea } from "@workspace/ui/components/textarea.js";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
-import { Badge } from "@workspace/ui/components/badge";
+} from "@workspace/ui/components/collapsible.js";
+import { Badge } from "@workspace/ui/components/badge.js";
 import { FileText, Save, ChevronDown, Clock, Stethoscope } from "lucide-react";
 import { useObservationsForm } from "@/hooks/use-observations-form";
 import { apiHooks } from "@/lib/api-hooks";
@@ -86,22 +81,21 @@ export function ConsultationNotesModal({
     }));
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <FileText className="h-5 w-5 text-amber-600" />
-            Consultation Notes
-            {patientName && (
-              <span className="text-muted-foreground font-normal">
-                - {patientName}
-              </span>
-            )}
-          </DialogTitle>
-        </DialogHeader>
+  const handleNotesSubmit = () => {
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  };
 
-        <div className="space-y-6 py-4">
+  return (
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Consultation Notes${patientName ? ` - ${patientName}` : ""}`}
+      isLoading={loading}
+      onSubmit={handleNotesSubmit}
+      submitLabel={loading ? "Saving..." : "Save Notes"}
+      contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto"
+    >
+      <div className="space-y-6 py-4">
           {/* Previous Consultation History */}
           {pastConsultations.length > 0 && (
             <Collapsible
@@ -209,13 +203,7 @@ export function ConsultationNotesModal({
           )}
 
           {/* Current Notes Form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit(e);
-            }}
-            className="space-y-4"
-          >
+          <form className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="observations" className="text-base font-medium">
                 Clinical Notes & Observations
@@ -228,29 +216,8 @@ export function ConsultationNotesModal({
                 className="min-h-[200px] font-mono text-sm resize-none"
               />
             </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading} className="gap-2">
-                {loading ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save Notes
-                  </>
-                )}
-              </Button>
-            </div>
           </form>
         </div>
-      </DialogContent>
-    </Dialog>
+    </CRUDDialog>
   );
 }

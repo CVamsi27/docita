@@ -625,9 +625,7 @@ export default function OCRPage() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Age</Label>
-                          <ConfidenceIndicator
-                            score={confidenceScores.age}
-                          />
+                          <ConfidenceIndicator score={confidenceScores.age} />
                         </div>
                         <Input
                           value={formData.age}
