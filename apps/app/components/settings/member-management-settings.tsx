@@ -11,6 +11,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import {
+  CRUDDialog,
+  FormGrid,
+  FormSection,
+  FormFieldGroup,
+} from "@workspace/ui/components";
 import { apiHooks } from "@/lib/api-hooks";
 import {
   Plus,
@@ -25,14 +31,7 @@ import { toast } from "sonner";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/dialog";
+import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Select,
   SelectContent,
@@ -133,7 +132,10 @@ export function MemberManagementSettings() {
     }
 
     // Registration number is required for doctors
-    if ((formData.role === "DOCTOR" || formData.role === "ADMIN_DOCTOR") && !formData.registrationNumber) {
+    if (
+      (formData.role === "DOCTOR" || formData.role === "ADMIN_DOCTOR") &&
+      !formData.registrationNumber
+    ) {
       toast.error("Registration number is required for doctors");
       return;
     }
@@ -199,8 +201,12 @@ export function MemberManagementSettings() {
       qualification: member.qualification || "",
       registrationNumber: member.registrationNumber || "",
       licenseNumber: member.licenseNumber || "",
-      yearsOfExperience: member.yearsOfExperience ? String(member.yearsOfExperience) : "",
-      consultationFee: member.consultationFee ? String(member.consultationFee) : "",
+      yearsOfExperience: member.yearsOfExperience
+        ? String(member.yearsOfExperience)
+        : "",
+      consultationFee: member.consultationFee
+        ? String(member.consultationFee)
+        : "",
     });
     setIsDialogOpen(true);
   };
@@ -269,322 +275,320 @@ export function MemberManagementSettings() {
             </div>
             <CardDescription>Manage all clinic team members</CardDescription>
           </div>
-          <Dialog
+          <Button
+            className="gap-2"
+            disabled={!isAdmin}
+            onClick={() => {
+              if (!isAdmin) {
+                toast.error("You don't have permission to add members");
+                return;
+              }
+              setEditingMember(null);
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Add Member
+          </Button>
+
+          <CRUDDialog
             open={isDialogOpen}
             onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) {
                 resetForm();
-              } else if (!editingMember) {
-                // When opening for a new member, ensure form is reset
-                resetForm();
               }
             }}
+            title={editingMember ? "Edit Member" : "Add New Member"}
+            description={
+              editingMember
+                ? "Update member information"
+                : "Add a new team member to your clinic"
+            }
+            isEditing={!!editingMember}
+            isLoading={false}
+            onSubmit={handleSubmit}
+            submitLabel={editingMember ? "Update Member" : "Add Member"}
+            contentClassName="sm:max-w-[600px]"
           >
-            <DialogTrigger asChild>
-              <Button
-                className="gap-2"
-                disabled={!isAdmin}
-                onClick={() => {
-                  if (!isAdmin) {
-                    toast.error("You don't have permission to add members");
-                    return;
-                  }
-                  setEditingMember(null);
-                  resetForm();
-                  setIsDialogOpen(true);
-                }}
+            <FormGrid columns={2}>
+              <FormFieldGroup
+                label="Full Name"
+                required
+                error={formData.name ? undefined : "Name is required"}
               >
-                <Plus className="h-4 w-4" />
-                Add Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingMember ? "Edit Member" : "Add New Member"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingMember
-                    ? "Update member information"
-                    : "Add a new team member to your clinic"}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      placeholder="John Doe"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      placeholder="member@example.com"
-                      required
-                    />
-                  </div>
-                </div>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="John Doe"
+                  required
+                />
+              </FormFieldGroup>
 
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role *</Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        role: value as
-                          | "DOCTOR"
-                          | "RECEPTIONIST"
-                          | "ADMIN"
-                          | "ADMIN_DOCTOR",
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ADMIN">
-                        Admin - {ROLE_DESCRIPTIONS.ADMIN}
-                      </SelectItem>
-                      <SelectItem value="ADMIN_DOCTOR">
-                        Admin Doctor - {ROLE_DESCRIPTIONS.ADMIN_DOCTOR}
-                      </SelectItem>
-                      <SelectItem value="DOCTOR">
-                        Doctor - {ROLE_DESCRIPTIONS.DOCTOR}
-                      </SelectItem>
-                      <SelectItem value="RECEPTIONIST">
-                        Receptionist - {ROLE_DESCRIPTIONS.RECEPTIONIST}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <FormFieldGroup
+                label="Email"
+                required
+                error={formData.email ? undefined : "Email is required"}
+              >
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="member@example.com"
+                  required
+                />
+              </FormFieldGroup>
+            </FormGrid>
 
-                {!editingMember && (
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password *</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password || ""}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            password: e.target.value,
-                          })
-                        }
-                        placeholder="Enter a strong password"
-                        required={!editingMember}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+            <FormFieldGroup
+              label="Role"
+              required
+              error={formData.role ? undefined : "Role is required"}
+            >
+              <Select
+                value={formData.role}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    role: value as
+                      | "DOCTOR"
+                      | "RECEPTIONIST"
+                      | "ADMIN"
+                      | "ADMIN_DOCTOR",
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">
+                    Admin - {ROLE_DESCRIPTIONS.ADMIN}
+                  </SelectItem>
+                  <SelectItem value="ADMIN_DOCTOR">
+                    Admin Doctor - {ROLE_DESCRIPTIONS.ADMIN_DOCTOR}
+                  </SelectItem>
+                  <SelectItem value="DOCTOR">
+                    Doctor - {ROLE_DESCRIPTIONS.DOCTOR}
+                  </SelectItem>
+                  <SelectItem value="RECEPTIONIST">
+                    Receptionist - {ROLE_DESCRIPTIONS.RECEPTIONIST}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FormFieldGroup>
 
-                {editingMember && (
-                  <div className="space-y-2">
-                    <Label htmlFor="password">New Password (Optional)</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password || ""}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            password: e.target.value,
-                          })
-                        }
-                        placeholder="Leave blank to keep existing password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
+            {!editingMember && (
+              <FormFieldGroup
+                label="Password"
+                required
+                error={formData.password ? undefined : "Password is required"}
+              >
+                <div className="relative">
                   <Input
-                    id="phoneNumber"
-                    type="tel"
-                    value={formData.phoneNumber || ""}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password || ""}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        phoneNumber: e.target.value,
+                        password: e.target.value,
                       })
                     }
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="Enter a strong password"
+                    required={!editingMember}
                   />
-                </div>
-
-                {(formData.role === "DOCTOR" ||
-                  formData.role === "ADMIN_DOCTOR") && (
-                  <>
-                    <div className="border-t pt-4">
-                      <h4 className="text-sm font-medium mb-4">
-                        Doctor Details
-                      </h4>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="specialization">Specialization</Label>
-                        <Input
-                          id="specialization"
-                          value={formData.specialization || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              specialization: e.target.value,
-                            })
-                          }
-                          placeholder="e.g., Cardiology"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="qualification">Qualification</Label>
-                        <Input
-                          id="qualification"
-                          value={formData.qualification || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              qualification: e.target.value,
-                            })
-                          }
-                          placeholder="e.g., MD, MBBS"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="registrationNumber">
-                          Registration Number *
-                        </Label>
-                        <Input
-                          id="registrationNumber"
-                          value={formData.registrationNumber || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              registrationNumber: e.target.value,
-                            })
-                          }
-                          placeholder="Medical registration number"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="licenseNumber">
-                          License Number
-                        </Label>
-                        <Input
-                          id="licenseNumber"
-                          value={formData.licenseNumber || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              licenseNumber: e.target.value,
-                            })
-                          }
-                          placeholder="Medical license number (optional)"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="yearsOfExperience">
-                          Years of Experience
-                        </Label>
-                        <Input
-                          id="yearsOfExperience"
-                          type="number"
-                          min="0"
-                          value={formData.yearsOfExperience || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              yearsOfExperience: e.target.value,
-                            })
-                          }
-                          placeholder="e.g., 10"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="consultationFee">Consultation Fee</Label>
-                        <Input
-                          id="consultationFee"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formData.consultationFee || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              consultationFee: e.target.value,
-                            })
-                          }
-                          placeholder="e.g., 500"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div className="flex justify-end gap-2 pt-4">
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
                   >
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {editingMember ? "Update Member" : "Add Member"}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
                   </Button>
                 </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </FormFieldGroup>
+            )}
+
+            {editingMember && (
+              <FormFieldGroup
+                label="New Password (Optional)"
+                hint="Leave blank to keep existing password"
+              >
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        password: e.target.value,
+                      })
+                    }
+                    placeholder="Leave blank to keep existing password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </FormFieldGroup>
+            )}
+
+            <FormFieldGroup label="Phone Number">
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={formData.phoneNumber || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    phoneNumber: e.target.value,
+                  })
+                }
+                placeholder="+1 (555) 000-0000"
+              />
+            </FormFieldGroup>
+
+            {(formData.role === "DOCTOR" ||
+              formData.role === "ADMIN_DOCTOR") && (
+              <>
+                <FormSection
+                  title="Doctor Details"
+                  description="Professional qualifications and credentials"
+                />
+
+                <FormGrid columns={2}>
+                  <FormFieldGroup label="Specialization">
+                    <Input
+                      id="specialization"
+                      value={formData.specialization || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          specialization: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., Cardiology"
+                    />
+                  </FormFieldGroup>
+
+                  <FormFieldGroup label="Qualification">
+                    <Input
+                      id="qualification"
+                      value={formData.qualification || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          qualification: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., MD, MBBS"
+                    />
+                  </FormFieldGroup>
+                </FormGrid>
+
+                <FormGrid columns={2}>
+                  <FormFieldGroup
+                    label="Registration Number"
+                    required
+                    error={
+                      formData.registrationNumber
+                        ? undefined
+                        : "Registration number is required for doctors"
+                    }
+                  >
+                    <Input
+                      id="registrationNumber"
+                      value={formData.registrationNumber || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          registrationNumber: e.target.value,
+                        })
+                      }
+                      placeholder="Medical registration number"
+                      required
+                    />
+                  </FormFieldGroup>
+
+                  <FormFieldGroup
+                    label="License Number"
+                    hint="Optional medical license number"
+                  >
+                    <Input
+                      id="licenseNumber"
+                      value={formData.licenseNumber || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          licenseNumber: e.target.value,
+                        })
+                      }
+                      placeholder="Medical license number (optional)"
+                    />
+                  </FormFieldGroup>
+                </FormGrid>
+
+                <FormGrid columns={2}>
+                  <FormFieldGroup label="Years of Experience">
+                    <Input
+                      id="yearsOfExperience"
+                      type="number"
+                      min="0"
+                      value={formData.yearsOfExperience || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          yearsOfExperience: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., 10"
+                    />
+                  </FormFieldGroup>
+
+                  <FormFieldGroup label="Consultation Fee">
+                    <Input
+                      id="consultationFee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.consultationFee || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          consultationFee: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., 500"
+                    />
+                  </FormFieldGroup>
+                </FormGrid>
+              </>
+            )}
+          </CRUDDialog>
         </div>
       </CardHeader>
       <CardContent>
