@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 export function LoginLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginRoute = pathname === "/login" || pathname?.startsWith("/login");
+  const isMobileUploadRoute = pathname?.startsWith("/mobile-upload");
 
   if (isLoginRoute) {
     return (
@@ -15,6 +16,9 @@ export function LoginLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // For protected and other routes, just return children (they'll be wrapped by their own layouts)
+  if (isMobileUploadRoute) {
+    return <>{children}</>;
+  }
+
   return <AuthGuard>{children}</AuthGuard>;
 }
