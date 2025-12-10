@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@workspace/ui/lib/utils.js";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface FormGridProps extends React.HTMLAttributes<HTMLDivElement> {
   columns?: 1 | 2 | 3;

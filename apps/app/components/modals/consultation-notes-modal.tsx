@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Button } from "@workspace/ui/components/button.js";
-import { Label } from "@workspace/ui/components/label.js";
-import { Textarea } from "@workspace/ui/components/textarea.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Label } from "@workspace/ui/components/label";
+import { Textarea } from "@workspace/ui/components/textarea";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible.js";
-import { Badge } from "@workspace/ui/components/badge.js";
+} from "@workspace/ui/components/collapsible";
+import { Badge } from "@workspace/ui/components/badge";
 import { ChevronDown, Clock, Stethoscope } from "lucide-react";
 import { useObservationsForm } from "@/hooks/use-observations-form";
 import { apiHooks } from "@/lib/api-hooks";

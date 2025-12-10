@@ -50,6 +50,13 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
 
+// Helper to clear all auth storage
+function clearAuthStorage() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  deleteCookie(COOKIE_KEY);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);

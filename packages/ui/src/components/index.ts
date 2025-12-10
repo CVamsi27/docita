@@ -1,13 +1,16 @@
 // Dialog components
-export { CRUDDialog } from "./crud-dialog.js";
-export type { CRUDDialogProps } from "./crud-dialog.js";
+export { CRUDDialog } from "./crud-dialog";
+export type { CRUDDialogProps } from "./crud-dialog";
 
-export { FormDialog, FormDialogFooter } from "./form-dialog.js";
-export type { FormDialogProps, FormDialogFooterProps } from "./form-dialog.js";
+export { FormDialog, FormDialogFooter } from "./form-dialog";
+export type { FormDialogProps, FormDialogFooterProps } from "./form-dialog";
 
 // Form layout components
-export { FormGrid, FormSection } from "./form-grid.js";
-export type { FormGridProps, FormSectionProps } from "./form-grid.js";
+export { FormGrid, FormSection } from "./form-grid";
+export type { FormGridProps, FormSectionProps } from "./form-grid";
 
-export { FormFieldGroup } from "./form-field-group.js";
-export type { FormFieldGroupProps } from "./form-field-group.js";
+export { FormFieldGroup } from "./form-field-group";
+export type { FormFieldGroupProps } from "./form-field-group";
+
+// Label component
+export { Label } from "./label";

@@ -1,9 +1,9 @@
 "use client";
 
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Button } from "@workspace/ui/components/button.js";
-import { Input } from "@workspace/ui/components/input.js";
-import { Label } from "@workspace/ui/components/label.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import { Activity, Save } from "lucide-react";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
 import { VitalSignsValidationPanel } from "@/components/vital-signs/vital-signs-validator";

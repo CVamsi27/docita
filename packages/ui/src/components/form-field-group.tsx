@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Label } from "./label.js";
-import { cn } from "@workspace/ui/lib/utils.js";
+import { Label } from "./label";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface FormFieldGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string;

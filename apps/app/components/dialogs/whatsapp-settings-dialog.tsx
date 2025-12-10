@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Label } from "@workspace/ui/components/label.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Label } from "@workspace/ui/components/label";
 import { toast } from "sonner";
 
 interface WhatsAppSettingsDialogProps {

@@ -7,8 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 
-import { Button } from "@workspace/ui/components/button.js";
-import { DialogTrigger } from "@workspace/ui/components/dialog.js";
+import { Button } from "@workspace/ui/components/button";
+import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -16,28 +16,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form.js";
+} from "@workspace/ui/components/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select.js";
-import { Textarea } from "@workspace/ui/components/textarea.js";
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover.js";
+} from "@workspace/ui/components/popover";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandList,
-} from "@workspace/ui/components/command.js";
-import { FormDialog } from "@workspace/ui/components/form-dialog.js";
+} from "@workspace/ui/components/command";
+import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { cn } from "@workspace/ui/lib/utils";
 import { apiHooks } from "@/lib/api-hooks";
 
@@ -69,7 +69,16 @@ export function AddWalkInDialog({
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
+  const setOpen = useCallback(
+    (newOpen: boolean) => {
+      if (isControlled && controlledOnOpenChange) {
+        controlledOnOpenChange(newOpen);
+      } else {
+        setInternalOpen(newOpen);
+      }
+    },
+    [isControlled, controlledOnOpenChange],
+  );
 
   // Fetch doctors if not provided
   const { data: fetchedDoctors = [] } = apiHooks.useDoctors();
@@ -103,7 +112,7 @@ export function AddWalkInDialog({
 
         toast.success("Walk-in patient added to queue");
         form.reset();
-        setOpen?.(false);
+        setOpen(false);
         // Give the server a moment to persist, then refetch
         setTimeout(() => {
           onWalkInAdded();
@@ -319,7 +328,7 @@ export function AddWalkInDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen?.(false)}
+                onClick={() => setOpen(false)}
                 disabled={createQueueToken.isPending}
                 className="flex-1"
               >
@@ -335,7 +344,6 @@ export function AddWalkInDialog({
                   : "Add to Queue"}
               </Button>
             </div>
-
           </form>
         </Form>
       </FormDialog>

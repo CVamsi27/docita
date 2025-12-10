@@ -2,18 +2,18 @@
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { Label } from "@workspace/ui/components/label.js";
-import { Input } from "@workspace/ui/components/input.js";
+import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select.js";
-import { Textarea } from "@workspace/ui/components/textarea.js";
-import { DatePicker } from "@workspace/ui/components/date-picker.js";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { DatePicker } from "@workspace/ui/components/date-picker";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Patient } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { useFormOptions } from "@/lib/app-config-context";

@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Input } from "@workspace/ui/components/input.js";
-import { Label } from "@workspace/ui/components/label.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select.js";
+} from "@workspace/ui/components/select";
 import { toast } from "sonner";
 
 interface MedicineReminderDialogProps {

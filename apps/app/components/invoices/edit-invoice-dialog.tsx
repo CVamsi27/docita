@@ -2,17 +2,17 @@
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Button } from "@workspace/ui/components/button.js";
-import { Label } from "@workspace/ui/components/label.js";
-import { Input } from "@workspace/ui/components/input.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Label } from "@workspace/ui/components/label";
+import { Input } from "@workspace/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select.js";
+} from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
 import { apiHooks } from "@/lib/api-hooks";
 import { useFormOptions } from "@/lib/app-config-context";

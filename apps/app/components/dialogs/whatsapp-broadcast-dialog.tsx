@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CRUDDialog,
-  FormFieldGroup,
-} from "@workspace/ui/components";
+import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Checkbox } from "@workspace/ui/components/checkbox";
@@ -142,7 +139,10 @@ export function WhatsAppBroadcastDialog({
         </div>
       </div>
 
-      <FormFieldGroup label="Schedule (Optional)" hint="Leave empty to send immediately">
+      <FormFieldGroup
+        label="Schedule (Optional)"
+        hint="Leave empty to send immediately"
+      >
         <Input
           id="scheduleTime"
           type="datetime-local"

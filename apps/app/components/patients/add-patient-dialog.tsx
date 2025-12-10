@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 import { Plus } from "lucide-react";
 import type { CreatePatientInput } from "@workspace/types";
 
-import { DialogTrigger, DialogFooter } from "@workspace/ui/components/dialog.js";
+import { DialogTrigger, DialogFooter } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -13,11 +13,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form.js";
-import {
-  FormDialog,
-} from "@workspace/ui/components/form-dialog.js";
-import { Button } from "@workspace/ui/components/button.js";
+} from "@workspace/ui/components/form";
+import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -56,7 +54,16 @@ export function AddPatientDialog({
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
+  const setOpen = useCallback(
+    (newOpen: boolean) => {
+      if (isControlled && controlledOnOpenChange) {
+        controlledOnOpenChange(newOpen);
+      } else {
+        setInternalOpen(newOpen);
+      }
+    },
+    [isControlled, controlledOnOpenChange],
+  );
 
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [customData, setCustomData] = useState<
@@ -83,7 +90,7 @@ export function AddPatientDialog({
 
   const handleSubmit = async (data: CreatePatientInput) => {
     const finalData = { ...data, customData };
-    await onSubmit(finalData as CreatePatientInput, () => setOpen?.(false));
+    await onSubmit(finalData as CreatePatientInput, () => setOpen(false));
   };
 
   return (

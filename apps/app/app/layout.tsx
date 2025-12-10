@@ -6,6 +6,9 @@ import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { ToasterWrapper } from "@/components/toaster-wrapper";
 import { LoginLayout } from "@/components/layout/login-layout";
 
+// Disable static generation for this route
+export const dynamic = "force-dynamic";
+
 const outfit = Outfit({
   subsets: ["latin"],
   display: "swap",

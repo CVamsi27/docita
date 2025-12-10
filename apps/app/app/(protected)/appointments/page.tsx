@@ -1,13 +1,11 @@
 "use client";
 
-import {
-  useState,
-  useCallback,
-  useMemo,
-  Suspense,
-  useEffect,
-  memo,
-} from "react";
+import { Suspense } from "react";
+
+// Prevent static prerendering of this page
+export const dynamic = "force-dynamic";
+
+import { useState, useCallback, useMemo, useEffect, memo } from "react";
 
 import { Calendar } from "@workspace/ui/components/calendar";
 import {

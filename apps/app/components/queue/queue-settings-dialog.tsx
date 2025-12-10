@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
-import { Input } from "@workspace/ui/components/input.js";
-import { Label } from "@workspace/ui/components/label.js";
-import { Button } from "@workspace/ui/components/button.js";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Button } from "@workspace/ui/components/button";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
 

@@ -5,8 +5,8 @@ import { useState, useCallback } from "react";
 import { Plus, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import type { CreateAppointmentInput } from "@workspace/types";
 
-import { Button } from "@workspace/ui/components/button.js";
-import { DialogTrigger } from "@workspace/ui/components/dialog.js";
+import { Button } from "@workspace/ui/components/button";
+import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -14,28 +14,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@workspace/ui/components/form.js";
+} from "@workspace/ui/components/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select.js";
-import { Textarea } from "@workspace/ui/components/textarea.js";
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover.js";
+} from "@workspace/ui/components/popover";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandList,
-} from "@workspace/ui/components/command.js";
-import { FormDialog } from "@workspace/ui/components/form-dialog.js";
+} from "@workspace/ui/components/command";
+import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { cn } from "@workspace/ui/lib/utils";
 import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/app-config-context";
@@ -61,7 +61,16 @@ export function AddAppointmentDialog({
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
+  const setOpen = useCallback(
+    (newOpen: boolean) => {
+      if (isControlled && controlledOnOpenChange) {
+        controlledOnOpenChange(newOpen);
+      } else {
+        setInternalOpen(newOpen);
+      }
+    },
+    [isControlled, controlledOnOpenChange],
+  );
 
   // Get clinic settings
   const { clinic } = useClinic();
@@ -100,7 +109,7 @@ export function AddAppointmentDialog({
 
   const handleSubmit = useCallback(
     async (data: CreateAppointmentInput) => {
-      await onSubmit(data, () => setOpen?.(false));
+      await onSubmit(data, () => setOpen(false));
     },
     [onSubmit, setOpen],
   );
@@ -329,7 +338,7 @@ export function AddAppointmentDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen?.(false)}
+                onClick={() => setOpen(false)}
                 disabled={loading}
                 className="flex-1"
               >

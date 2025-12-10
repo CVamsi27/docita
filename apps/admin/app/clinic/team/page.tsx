@@ -240,7 +240,10 @@ export default function TeamPage() {
             );
             const receptionists = receptRes.ok ? await receptRes.json() : [];
             setMembers([
-              ...doctors.map((d: TeamMember) => ({ ...d, role: "DOCTOR" as const })),
+              ...doctors.map((d: TeamMember) => ({
+                ...d,
+                role: "DOCTOR" as const,
+              })),
               ...receptionists.map((r: TeamMember) => ({
                 ...r,
                 role: "RECEPTIONIST" as const,
@@ -291,7 +294,10 @@ export default function TeamPage() {
             );
             const receptionists = receptRes.ok ? await receptRes.json() : [];
             setMembers([
-              ...doctors.map((d: TeamMember) => ({ ...d, role: "DOCTOR" as const })),
+              ...doctors.map((d: TeamMember) => ({
+                ...d,
+                role: "DOCTOR" as const,
+              })),
               ...receptionists.map((r: TeamMember) => ({
                 ...r,
                 role: "RECEPTIONIST" as const,
@@ -557,7 +563,8 @@ export default function TeamPage() {
             </div>
           ) : members.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No team members yet. Click &quot;Add Team Member&quot; to get started.
+              No team members yet. Click &quot;Add Team Member&quot; to get
+              started.
             </div>
           ) : (
             <Table>

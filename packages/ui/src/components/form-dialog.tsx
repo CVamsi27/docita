@@ -8,9 +8,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./dialog.js";
-import { Button } from "./button.js";
-import { cn } from "@workspace/ui/lib/utils.js";
+} from "./dialog";
+import { Button } from "./button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface FormDialogProps {
   open: boolean;
