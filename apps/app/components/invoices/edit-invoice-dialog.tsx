@@ -2,24 +2,17 @@
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Label } from "@workspace/ui/components/label";
-import { Input } from "@workspace/ui/components/input";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+import { Button } from "@workspace/ui/components/button.js";
+import { Label } from "@workspace/ui/components/label.js";
+import { Input } from "@workspace/ui/components/input.js";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
+} from "@workspace/ui/components/select.js";
 import { Plus, X } from "lucide-react";
 import { apiHooks } from "@/lib/api-hooks";
 import { useFormOptions } from "@/lib/app-config-context";
@@ -99,39 +92,40 @@ export function EditInvoiceDialog({
     return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!invoice?.id) return;
 
     setLoading(true);
-    try {
-      await updateInvoiceMutation.mutateAsync({
-        items,
-        status,
-        total: calculateTotal(),
-      });
-      toast.success("Invoice updated successfully");
-      onInvoiceUpdated();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to update invoice:", error);
-      toast.error("Failed to update invoice");
-    } finally {
-      setLoading(false);
-    }
+    (async () => {
+      try {
+        await updateInvoiceMutation.mutateAsync({
+          items,
+          status,
+          total: calculateTotal(),
+        });
+        toast.success("Invoice updated successfully");
+        onInvoiceUpdated();
+        onOpenChange(false);
+      } catch (error) {
+        console.error("Failed to update invoice:", error);
+        toast.error("Failed to update invoice");
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
-        <DialogHeader>
-          <DialogTitle>Edit Invoice</DialogTitle>
-          <DialogDescription>
-            Update invoice details for {invoice?.patient?.firstName}{" "}
-            {invoice?.patient?.lastName}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Invoice"
+      description={`Update invoice details for ${invoice?.patient?.firstName} ${invoice?.patient?.lastName}`}
+      isLoading={loading}
+      onSubmit={handleSubmit}
+      submitLabel={loading ? "Saving..." : "Save Changes"}
+    >
+      <form className="space-y-4">
           <div className="space-y-2">
             <Label>Status</Label>
             <Select
@@ -240,20 +234,7 @@ export function EditInvoiceDialog({
             </span>
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </CRUDDialog>
   );
 }

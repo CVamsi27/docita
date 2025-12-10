@@ -1,17 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog.js";
+import { Input } from "@workspace/ui/components/input.js";
+import { Label } from "@workspace/ui/components/label.js";
+import { Button } from "@workspace/ui/components/button.js";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
 
@@ -54,28 +47,31 @@ export function QueueSettingsDialog({
     }
   }, [settings]);
 
-  const handleSaveSettings = async () => {
-    try {
-      await updateSettings.mutateAsync(settingsForm);
-      toast.success("Queue settings saved");
-      onOpenChange(false);
-      onSettingsUpdated();
-    } catch (error) {
-      console.error("Failed to save settings:", error);
-      toast.error("Failed to save settings");
-    }
+  const handleSaveSettings = () => {
+    (async () => {
+      try {
+        await updateSettings.mutateAsync(settingsForm);
+        toast.success("Queue settings saved");
+        onOpenChange(false);
+        onSettingsUpdated();
+      } catch (error) {
+        console.error("Failed to save settings:", error);
+        toast.error("Failed to save settings");
+      }
+    })();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Queue Settings</DialogTitle>
-          <DialogDescription>
-            Configure queue management settings for your clinic.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Queue Settings"
+      description="Configure queue management settings for your clinic."
+      isLoading={updateSettings.isPending}
+      onSubmit={handleSaveSettings}
+      submitLabel={updateSettings.isPending ? "Saving..." : "Save Settings"}
+    >
+      <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 items-center gap-4">
             <Label
               htmlFor="avgConsultationMinutes"
@@ -153,18 +149,6 @@ export function QueueSettingsDialog({
             </Button>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveSettings}
-            disabled={updateSettings.isPending}
-          >
-            {updateSettings.isPending ? "Saving..." : "Save Settings"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </CRUDDialog>
   );
 }
