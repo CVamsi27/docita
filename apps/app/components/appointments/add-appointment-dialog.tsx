@@ -6,7 +6,6 @@ import { Plus, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import type { CreateAppointmentInput } from "@workspace/types";
 
 import { Button } from "@workspace/ui/components/button";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -120,12 +119,10 @@ export function AddAppointmentDialog({
 
   return (
     <>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Appointment
-        </Button>
-      </DialogTrigger>
+      <Button className="gap-2" onClick={() => setOpen(true)}>
+        <Plus className="h-4 w-4" />
+        New Appointment
+      </Button>
       <FormDialog
         open={open}
         onOpenChange={setOpen}

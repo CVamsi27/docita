@@ -1,20 +1,9 @@
-/**
- * Backend Application Configuration
- *
- * Centralizes all configuration values that were previously hardcoded.
- * Uses environment variables with sensible defaults for development.
- */
-
-/**
- * Get CORS origins from environment or use defaults
- */
 export function getCorsOrigins(): string[] {
   const envOrigins = process.env.CORS_ORIGINS;
   if (envOrigins) {
     return envOrigins.split(',').map((origin) => origin.trim());
   }
 
-  // Default development origins
   return [
     'https://landing.docita.work',
     'https://app.docita.work',
@@ -24,64 +13,31 @@ export function getCorsOrigins(): string[] {
     'http://localhost:3002', // admin dev
   ];
 }
-
-/**
- * Get WebSocket CORS origins
- */
 export function getWebSocketCorsOrigins(): string[] {
   return getCorsOrigins();
 }
-
-/**
- * Get app URL for callbacks
- */
 export function getAppUrl(): string {
   return process.env.APP_URL || 'http://localhost:3000';
 }
-
-/**
- * Get payment callback URL
- */
 export function getPaymentCallbackUrl(): string {
   return `${getAppUrl()}/api/payment/callback`;
 }
-
-/**
- * Get frontend app URL for redirects
- */
 export function getFrontendAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 }
-
-/**
- * Get environment name
- */
 export function getEnvironment(): 'development' | 'staging' | 'production' {
   const env = process.env.NODE_ENV || 'development';
   if (env === 'production') return 'production';
   if (env === 'staging') return 'staging';
   return 'development';
 }
-
-/**
- * Check if running in production
- */
 export function isProduction(): boolean {
   return getEnvironment() === 'production';
 }
-
-/**
- * Check if running in development
- */
 export function isDevelopment(): boolean {
   return getEnvironment() === 'development';
 }
-
-/**
- * Configuration object
- */
 export const CONFIG = {
-  // Application
   APP_URL: getAppUrl(),
   FRONTEND_APP_URL: getFrontendAppUrl(),
   ENVIRONMENT: getEnvironment(),

@@ -100,21 +100,22 @@ export function DateTimePicker({
   // Filter available time slots based on selected date
   const availableTimeSlots = React.useMemo(() => {
     const now = new Date();
+    const selectedDate = dateValue || now; // Default to today if no date selected
+
     return clinicTimeSlots.filter((slot) => {
       // Parse slot time
       const timeParts = slot.value.split(":").map(Number);
       const slotHours = timeParts[0] ?? 0;
       const slotMinutes = timeParts[1] ?? 0;
 
-      // Check if slot is in past (only for today)
-      if (dateValue && dateValue.toDateString() === now.toDateString()) {
-        const slotDate = new Date(dateValue);
-        slotDate.setHours(slotHours, slotMinutes, 0, 0);
+      // Create a date object with the slot time for comparison
+      const slotDate = new Date(selectedDate);
+      slotDate.setHours(slotHours, slotMinutes, 0, 0);
 
-        // Disable if time is in past
-        if (slotDate < now) {
-          return false;
-        }
+      // Disable if time is in past (add 15-minute buffer for booking)
+      const bufferTime = new Date(now.getTime() + 15 * 60 * 1000);
+      if (slotDate < bufferTime) {
+        return false;
       }
 
       return true;
@@ -179,7 +180,7 @@ export function DateTimePicker({
           {displayValue || <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 z-[100]" align="start">
+      <PopoverContent className="w-auto p-0 z-100" align="start">
         <div className="flex flex-col sm:flex-row">
           <Calendar
             mode="single"

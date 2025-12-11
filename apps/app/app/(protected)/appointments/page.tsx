@@ -43,6 +43,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { Appointment } from "@workspace/types";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useAuth } from "@/lib/auth-context";
 
 function AppointmentsContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -51,6 +52,7 @@ function AppointmentsContent() {
   const [cancellingAptId, setCancellingAptId] = useState<string | null>(null);
   const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
   const [noShowAptId, setNoShowAptId] = useState<string | null>(null);
+  const { user } = useAuth();
   const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
   const {
     data: appointments = [],
@@ -99,10 +101,12 @@ function AppointmentsContent() {
   // Sort appointments by time (already filtered by date from API)
   const filteredAppointments = useMemo(
     () =>
-      [...uniqueAppointments].sort(
-        (a, b) =>
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-      ),
+      [...uniqueAppointments]
+        .filter((apt) => apt.status !== "cancelled")
+        .sort(
+          (a, b) =>
+            new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+        ),
     [uniqueAppointments],
   );
 
@@ -263,6 +267,7 @@ function AppointmentsContent() {
                           setNoShowAptId(id);
                           setNoShowDialogOpen(true);
                         }}
+                        userRole={user?.role}
                       />
                     ))}
                   </div>
@@ -310,6 +315,7 @@ const AppointmentCard = memo<{
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
+  userRole?: string;
 }>(
   ({
     appointment: apt,
@@ -319,6 +325,7 @@ const AppointmentCard = memo<{
     onStartConsultation,
     onCancelClick,
     onNoShowClick,
+    userRole,
   }) => {
     // Determine if this is the "Next Up" appointment
     const isNextUp = useMemo(() => {
@@ -406,6 +413,13 @@ const AppointmentCard = memo<{
             size="sm"
             variant={apt.status === "completed" ? "outline" : "default"}
             onClick={() => onStartConsultation(apt.id!)}
+            style={{
+              display:
+                userRole &&
+                ["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"].includes(userRole)
+                  ? "none"
+                  : "inline-flex",
+            }}
           >
             <Stethoscope className="mr-2 h-4 w-4" />
             {apt.status === "completed" ? "View" : "Start"}

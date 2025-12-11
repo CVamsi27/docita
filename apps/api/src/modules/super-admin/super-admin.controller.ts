@@ -77,8 +77,14 @@ export class SuperAdminController {
   constructor(private readonly superAdminService: SuperAdminService) {}
 
   @Get('clinics')
-  async getAllClinics() {
-    return this.superAdminService.getAllClinics();
+  async getAllClinics(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.superAdminService.getAllClinics({
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Get('clinics/:id/doctors')

@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 
 import { apiHooks } from "@/lib/api-hooks";
+import { useAuth } from "@/lib/auth-context";
 import { Patient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -46,6 +47,8 @@ function PatientsContent() {
     error: queryError,
     refetch,
   } = apiHooks.usePatients();
+  const { user } = useAuth();
+  const { data: appointments = [] } = apiHooks.useAppointments();
   const error = queryError ? (queryError as Error).message : null;
   const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearchParams();
@@ -94,6 +97,18 @@ function PatientsContent() {
   const filteredPatients = useMemo(() => {
     let result = [...patients];
 
+    // For doctors, only show patients they have appointments with
+    if (user?.role === "DOCTOR" && user?.id) {
+      const patientIdsWithAppointments = new Set(
+        appointments
+          .filter((apt) => apt.doctorId === user.id)
+          .map((apt) => apt.patientId),
+      );
+      result = result.filter(
+        (patient) => patient.id && patientIdsWithAppointments.has(patient.id),
+      );
+    }
+
     // Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -139,7 +154,7 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patients, searchQuery, sortConfig]);
+  }, [patients, searchQuery, sortConfig, user, appointments]);
 
   const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {

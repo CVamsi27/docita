@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -40,7 +40,6 @@ import {
   HeartPulse,
   PanelLeft,
   AlertTriangle,
-  Heart,
   Info,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
@@ -58,10 +57,7 @@ import { CptCodeSearch } from "@/components/medical-coding/cpt-code-search";
 import { ProcedureList } from "@/components/medical-coding/procedure-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
 import { ClinicalExamination } from "@/components/consultation/clinical-examination";
-import {
-  QuickConditions,
-  QUICK_CONDITIONS,
-} from "@/components/ui/quick-conditions";
+import { ClinicalSuggestions } from "@/components/consultation/clinical-suggestions";
 import type {
   PrescriptionTemplate,
   Medication,
@@ -74,6 +70,7 @@ import { ROUTE_OPTIONS } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { api } from "@/lib/api-client";
 import { useFormOptions } from "@/lib/app-config-context";
+import { useAuth } from "@/lib/auth-context";
 
 // Define types locally since they may not be exported yet
 interface GeneralExamination {
@@ -214,6 +211,9 @@ export function ClinicalDocumentation({
 }: ClinicalDocumentationProps) {
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const { user } = useAuth();
 
   // Get form options from config
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
@@ -222,6 +222,21 @@ export function ClinicalDocumentation({
   const { data: patientData } = apiHooks.usePatient(patientId) as {
     data: PatientWithHistory | undefined;
   };
+
+  // Diagnosis State
+  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+
+  // Procedure State
+  const [procedures, setProcedures] = useState<Procedure[]>([]);
+
+  // Template State
+  const { data: templates = [], refetch: loadTemplates } =
+    apiHooks.useTemplates();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
+    {},
+  );
 
   // Clinical Note State
   const [clinicalNote, setClinicalNote] = useState<ClinicalNoteData>({
@@ -276,20 +291,19 @@ export function ClinicalDocumentation({
     }
   }, [appointmentData]);
 
-  // Diagnosis State
-  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  // Diagnosis State - moved after appointmentData useEffect
+  // const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
 
-  // Procedure State
-  const [procedures, setProcedures] = useState<Procedure[]>([]);
+  // Procedure State - moved after appointmentData useEffect
+  // const [procedures, setProcedures] = useState<Procedure[]>([]);
 
-  // Template State
-  const { data: templates = [], refetch: loadTemplates } =
-    apiHooks.useTemplates();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
-    {},
-  );
+  // Template State - moved after appointmentData useEffect
+  // const { data: templates = [], refetch: loadTemplates } =
+  //   apiHooks.useTemplates();
+  // const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  // const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
+  //   {},
+  // );
 
   // Prepare template options for searchable select
   const templateOptions = useMemo(() => {
@@ -322,35 +336,95 @@ export function ClinicalDocumentation({
   };
 
   // Save clinical note to API
-  const saveClinicalNote = async () => {
-    setIsSaving(true);
-    try {
-      await api.patch(`/appointments/${appointmentId}`, {
-        chiefComplaint: clinicalNote.chiefComplaint,
-        historyOfPresentIllness: clinicalNote.historyOfPresentIllness,
-        pastMedicalHistory: clinicalNote.pastMedicalHistory,
-        reviewOfSystems: clinicalNote.reviewOfSystems,
-        generalExamination: clinicalNote.generalExamination,
-        systemicExamination: clinicalNote.systemicExamination,
-        provisionalDiagnosis: clinicalNote.provisionalDiagnosis,
-        differentialDiagnosis: clinicalNote.differentialDiagnosis,
-        clinicalImpression: clinicalNote.clinicalImpression,
-        investigations: clinicalNote.investigations,
-        finalDiagnosis: clinicalNote.finalDiagnosis,
-        treatmentPlan: clinicalNote.treatmentPlan,
-        followUpPlan: clinicalNote.followUpPlan,
-      });
-      toast.success("Clinical documentation saved");
-      onSave?.();
-    } catch (error) {
-      console.error("Failed to save clinical note:", error);
-      toast.error("Failed to save clinical documentation");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const saveClinicalNote = useCallback(
+    async (isAutoSave = false) => {
+      if (isAutoSave) {
+        setIsAutoSaving(true);
+      } else {
+        setIsSaving(true);
+      }
 
-  const handleAddDiagnosis = (code: IcdCode) => {
+      try {
+        await api.patch(`/appointments/${appointmentId}`, {
+          chiefComplaint: clinicalNote.chiefComplaint,
+          historyOfPresentIllness: clinicalNote.historyOfPresentIllness,
+          pastMedicalHistory: clinicalNote.pastMedicalHistory,
+          reviewOfSystems: clinicalNote.reviewOfSystems,
+          generalExamination: clinicalNote.generalExamination,
+          systemicExamination: clinicalNote.systemicExamination,
+          provisionalDiagnosis: clinicalNote.provisionalDiagnosis,
+          differentialDiagnosis: clinicalNote.differentialDiagnosis,
+          clinicalImpression: clinicalNote.clinicalImpression,
+          investigations: clinicalNote.investigations,
+          finalDiagnosis: clinicalNote.finalDiagnosis,
+          treatmentPlan: clinicalNote.treatmentPlan,
+          followUpPlan: clinicalNote.followUpPlan,
+        });
+
+        setLastSaved(new Date());
+
+        if (!isAutoSave) {
+          toast.success("Clinical documentation saved");
+        }
+        onSave?.();
+      } catch (error) {
+        console.error("Failed to save clinical note:", error);
+        if (!isAutoSave) {
+          toast.error("Failed to save clinical documentation");
+        }
+      } finally {
+        if (isAutoSave) {
+          setIsAutoSaving(false);
+        } else {
+          setIsSaving(false);
+        }
+      }
+    },
+    [appointmentId, clinicalNote, onSave],
+  );
+
+  // Auto-save interval - saves every 30 seconds if there's content
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (clinicalNote.chiefComplaint || clinicalNote.historyOfPresentIllness) {
+        saveClinicalNote(true);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [clinicalNote, saveClinicalNote]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + S to save
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        saveClinicalNote(false);
+      }
+
+      // Cmd/Ctrl + 1-5 to switch tabs
+      if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "5") {
+        e.preventDefault();
+        const tabs: TabValue[] = [
+          "chief-complaint",
+          "history",
+          "examination",
+          "diagnosis",
+          "treatment",
+        ];
+        const tabIndex = parseInt(e.key) - 1;
+        if (tabs[tabIndex]) {
+          setActiveTab(tabs[tabIndex]);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [saveClinicalNote]);
+
+  const handleAddDiagnosis = async (code: IcdCode) => {
     if (diagnoses.some((d) => d.icdCode?.code === code.code)) {
       toast.error("Diagnosis already added");
       return;
@@ -364,8 +438,23 @@ export function ClinicalDocumentation({
       createdAt: new Date().toISOString(),
     };
 
+    // Optimistically update UI
     setDiagnoses([...diagnoses, newDiagnosis]);
-    toast.success("Diagnosis added");
+
+    try {
+      // Persist to backend
+      await api.post(`/appointments/${appointmentId}/diagnoses`, {
+        icdCodeId: code.id,
+        notes: "",
+        isPrimary: diagnoses.length === 0,
+      });
+      toast.success("Diagnosis added");
+    } catch (error) {
+      // Rollback on error
+      setDiagnoses(diagnoses);
+      console.error("Failed to add diagnosis:", error);
+      toast.error("Failed to add diagnosis. Please try again.");
+    }
   };
 
   const handleRemoveDiagnosis = (index: number) => {
@@ -572,11 +661,6 @@ export function ClinicalDocumentation({
     handleSubmit: handleInvSubmit,
   } = useInvoiceForm({ appointmentId, patientId });
 
-  const handleGlobalSave = () => {
-    // Save clinical note
-    saveClinicalNote();
-  };
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Allergy Alert Banner */}
@@ -640,21 +724,61 @@ export function ClinicalDocumentation({
               </div>
             </div>
 
-            {/* Sticky Save Button */}
-            <Button
-              onClick={handleGlobalSave}
-              disabled={isSaving || vitalsLoading || rxLoading || invLoading}
-              size="sm"
-              className="gap-2 shadow-sm"
-            >
-              {isSaving || vitalsLoading || rxLoading || invLoading ? (
-                "Saving..."
-              ) : (
-                <>
-                  <Save className="h-4 w-4" /> Save
-                </>
+            {/* Save Section with Auto-save Status */}
+            <div className="flex items-center gap-3">
+              {/* Auto-save status indicator */}
+              {isAutoSaving && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full" />
+                  <span>Auto-saving...</span>
+                </div>
               )}
-            </Button>
+              {!isAutoSaving && lastSaved && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  <span>
+                    Saved{" "}
+                    {new Date(lastSaved).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              )}
+
+              {/* Keyboard shortcut hint */}
+              <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-background border border-border rounded">
+                  ⌘
+                </kbd>
+                <span>+</span>
+                <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-background border border-border rounded">
+                  S
+                </kbd>
+              </div>
+
+              {/* Sticky Save Button */}
+              <Button
+                onClick={() => saveClinicalNote(false)}
+                disabled={
+                  isSaving ||
+                  vitalsLoading ||
+                  rxLoading ||
+                  invLoading ||
+                  isAutoSaving
+                }
+                size="sm"
+                className="gap-2 shadow-sm"
+              >
+                {isSaving || vitalsLoading || rxLoading || invLoading ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" /> Save
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -711,243 +835,209 @@ export function ClinicalDocumentation({
 
         <div className="p-6 flex-1 overflow-y-auto overflow-x-hidden min-h-[400px]">
           {/* Chief Complaint Tab */}
-          <TabsContent
-            value="chief-complaint"
-            className="mt-0 h-full space-y-4"
-          >
-            <div className="h-full flex flex-col">
-              <div className="flex-1 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-primary" />
-                      Chief Complaint
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      The primary reason for the patient&apos;s visit in their
-                      own words
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="e.g., Fever and cough for 3 days, headache since yesterday..."
-                      value={clinicalNote.chiefComplaint}
-                      onChange={(e) =>
-                        updateClinicalNote("chiefComplaint", e.target.value)
-                      }
-                      className="min-h-[150px]"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Quick Conditions Shortcuts */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-primary" />
-                      Quick Add to History
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Quickly add common medical conditions to patient history
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <QuickConditions
-                      selectedConditions={[]}
-                      onSelect={(conditionId) => {
-                        const condition = QUICK_CONDITIONS.find(
-                          (c) => c.id === conditionId,
-                        );
-                        if (condition) {
-                          const newComplaint =
-                            clinicalNote.chiefComplaint +
-                            (clinicalNote.chiefComplaint ? ", " : "") +
-                            condition.label;
-                          updateClinicalNote("chiefComplaint", newComplaint);
-                          toast.success(
-                            `Added "${condition.label}" to chief complaint`,
-                          );
-                        }
-                      }}
-                      className="justify-start"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Clinical Template Selection */}
-                <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg border border-border/50">
-                  <div className="flex-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-1.5 block">
-                      Clinical Template (Optional)
-                    </Label>
-                    <SearchableSelect
-                      options={templateOptions}
-                      value={selectedTemplateId}
-                      onValueChange={handleTemplateChange}
-                      placeholder="Select a speciality template..."
-                      searchPlaceholder="Search templates..."
-                      emptyMessage="No templates found."
-                      className="bg-background"
-                    />
+          <TabsContent value="chief-complaint" className="mt-0 h-full">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                    Chief Complaint (CC){" "}
+                    <span className="text-destructive">*</span>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Primary reason for visit - Use patient&apos;s own words when
+                    possible
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="e.g., 'Fever and cough for 3 days' or 'Severe headache since this morning'..."
+                    value={clinicalNote.chiefComplaint}
+                    onChange={(e) =>
+                      updateClinicalNote("chiefComplaint", e.target.value)
+                    }
+                    className="min-h-[120px]"
+                    required
+                  />
+                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <Info className="h-3 w-3 mt-0.5" />
+                    <span>
+                      Brief, descriptive statement. Include duration when
+                      relevant.
+                    </span>
                   </div>
-                  {selectedTemplateId && selectedTemplateId !== "none" && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-6">
-                      <Badge className="bg-primary/10 text-primary">
+                </CardContent>
+              </Card>
+
+              {/* Clinical Decision Support - Smart Suggestions */}
+              {clinicalNote.chiefComplaint && (
+                <ClinicalSuggestions
+                  chiefComplaint={clinicalNote.chiefComplaint}
+                  onApplySuggestion={(suggestion) => {
+                    if (suggestion.type === "investigation") {
+                      const newInvestigation = {
+                        id: Math.random().toString(36).substr(2, 9),
+                        name: suggestion.text,
+                        category: "LABORATORY" as const,
+                        status: "ORDERED" as const,
+                        notes: suggestion.reason || "",
+                      };
+                      updateClinicalNote("investigations", [
+                        ...clinicalNote.investigations,
+                        newInvestigation,
+                      ]);
+                      toast.success(`Added investigation: ${suggestion.text}`);
+                    }
+                  }}
+                />
+              )}
+
+              {/* Clinical Template Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Clinical Template (Optional)
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Use specialty-specific templates to streamline documentation
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <SearchableSelect
+                        options={templateOptions}
+                        value={selectedTemplateId}
+                        onValueChange={handleTemplateChange}
+                        placeholder="Select a template..."
+                        searchPlaceholder="Search templates..."
+                        emptyMessage="No templates found."
+                        className="bg-background"
+                      />
+                    </div>
+                    {selectedTemplateId && selectedTemplateId !== "none" && (
+                      <Badge variant="secondary" className="whitespace-nowrap">
                         {
                           templates.find((t) => t.id === selectedTemplateId)
                             ?.speciality
                         }
                       </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  onClick={saveClinicalNote}
-                  disabled={isSaving}
-                  className="gap-2"
-                >
-                  {isSaving ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save & Continue
-                    </>
-                  )}
-                </Button>
-              </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
-
           {/* History Tab */}
-          <TabsContent value="history" className="mt-0 h-full space-y-4">
-            <div className="h-full flex flex-col">
-              <div className="flex-1 space-y-6 overflow-y-auto">
-                {patientData && (
-                  <PatientMedicalHistory
-                    patient={patientData}
-                    readOnly={false}
+          <TabsContent value="history" className="mt-0 h-full">
+            <div className="space-y-6">
+              {patientData && (
+                <PatientMedicalHistory patient={patientData} readOnly={false} />
+              )}
+
+              {/* History of Present Illness */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                    History of Present Illness (HPI){" "}
+                    <span className="text-destructive">*</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Detailed chronological description using OLDCARTS format
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Onset, Location, Duration, Character, Aggravating/Relieving factors, Radiation, Timing, Severity. Include pertinent positives and negatives."
+                    value={clinicalNote.historyOfPresentIllness}
+                    onChange={(e) =>
+                      updateClinicalNote(
+                        "historyOfPresentIllness",
+                        e.target.value,
+                      )
+                    }
+                    className="min-h-[150px]"
+                    required
                   />
-                )}
+                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <Info className="h-3 w-3 mt-0.5" />
+                    <span>
+                      Use OPQRST format: Onset, Provocation/Palliation, Quality,
+                      Region/Radiation, Severity, Timing
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* History of Present Illness */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-primary" />
-                      History of Present Illness (HPI)
-                    </CardTitle>
-                    <CardDescription>
-                      Detailed chronological description of the chief complaint
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Duration, onset, location, character, aggravating/relieving factors, associated symptoms..."
-                      value={clinicalNote.historyOfPresentIllness}
-                      onChange={(e) =>
-                        updateClinicalNote(
-                          "historyOfPresentIllness",
-                          e.target.value,
-                        )
-                      }
-                      className="min-h-[120px]"
-                    />
-                    <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
-                      <Info className="h-3 w-3 mt-0.5" />
-                      <span>
-                        Use OPQRST format: Onset, Provocation/Palliation,
-                        Quality, Region/Radiation, Severity, Timing
-                      </span>
+              {/* Past Medical History - Free text for additional notes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Past Medical History Notes
+                  </CardTitle>
+                  <CardDescription>
+                    Additional notes about previous illnesses, medications, or
+                    relevant history not captured in structured data
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Additional medical history notes, current medications, previous hospitalizations..."
+                    value={clinicalNote.pastMedicalHistory}
+                    onChange={(e) =>
+                      updateClinicalNote("pastMedicalHistory", e.target.value)
+                    }
+                    className="min-h-[100px]"
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Review of Systems */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-primary" />
+                    Review of Systems (ROS)
+                  </CardTitle>
+                  <CardDescription>
+                    Systematic review of body systems
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
+                    value={clinicalNote.reviewOfSystems}
+                    onChange={(e) =>
+                      updateClinicalNote("reviewOfSystems", e.target.value)
+                    }
+                    className="min-h-[100px]"
+                  />
+                  <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
+                    <p className="text-xs text-muted-foreground font-medium mb-2">
+                      Quick ROS Checklist:
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
+                      <span>• Constitutional</span>
+                      <span>• Eyes/Vision</span>
+                      <span>• ENT</span>
+                      <span>• Cardiovascular</span>
+                      <span>• Respiratory</span>
+                      <span>• GI</span>
+                      <span>• Genitourinary</span>
+                      <span>• Musculoskeletal</span>
+                      <span>• Skin</span>
+                      <span>• Neurological</span>
+                      <span>• Psychiatric</span>
+                      <span>• Endocrine</span>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Past Medical History - Free text for additional notes */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      Past Medical History Notes
-                    </CardTitle>
-                    <CardDescription>
-                      Additional notes about previous illnesses, medications, or
-                      relevant history not captured in structured data
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Additional medical history notes, current medications, previous hospitalizations..."
-                      value={clinicalNote.pastMedicalHistory}
-                      onChange={(e) =>
-                        updateClinicalNote("pastMedicalHistory", e.target.value)
-                      }
-                      className="min-h-[100px]"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Review of Systems */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Stethoscope className="h-5 w-5 text-primary" />
-                      Review of Systems (ROS)
-                    </CardTitle>
-                    <CardDescription>
-                      Systematic review of body systems
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
-                      value={clinicalNote.reviewOfSystems}
-                      onChange={(e) =>
-                        updateClinicalNote("reviewOfSystems", e.target.value)
-                      }
-                      className="min-h-[100px]"
-                    />
-                    <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
-                      <p className="text-xs text-muted-foreground font-medium mb-2">
-                        Quick ROS Checklist:
-                      </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
-                        <span>• Constitutional</span>
-                        <span>• Eyes/Vision</span>
-                        <span>• ENT</span>
-                        <span>• Cardiovascular</span>
-                        <span>• Respiratory</span>
-                        <span>• GI</span>
-                        <span>• Genitourinary</span>
-                        <span>• Musculoskeletal</span>
-                        <span>• Skin</span>
-                        <span>• Neurological</span>
-                        <span>• Psychiatric</span>
-                        <span>• Endocrine</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  onClick={saveClinicalNote}
-                  disabled={isSaving}
-                  className="gap-2"
-                >
-                  {isSaving ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save & Continue
-                    </>
-                  )}
-                </Button>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </TabsContent>
-
+          </TabsContent>{" "}
           {/* Vitals Tab - Hospital Grade */}
           <TabsContent value="vitals" className="mt-0 h-full space-y-4">
             <form
@@ -962,17 +1052,22 @@ export function ClinicalDocumentation({
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-primary" /> Vital Signs
+                      <Activity className="h-5 w-5 text-primary" /> Vital Signs{" "}
+                      <span className="text-destructive ml-1">*</span>
                     </CardTitle>
                     <CardDescription>
-                      Enter comprehensive patient vitals.
+                      At minimum, record Blood Pressure, Heart Rate, and
+                      Temperature
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Blood Pressure */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="bp-sys">Systolic BP (mmHg)</Label>
+                        <Label htmlFor="bp-sys">
+                          Systolic BP (mmHg){" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id="bp-sys"
                           type="number"
@@ -987,10 +1082,14 @@ export function ClinicalDocumentation({
                               ? "border-red-300 bg-red-50"
                               : ""
                           }
+                          required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="bp-dia">Diastolic BP (mmHg)</Label>
+                        <Label htmlFor="bp-dia">
+                          Diastolic BP (mmHg){" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id="bp-dia"
                           type="number"
@@ -1005,6 +1104,7 @@ export function ClinicalDocumentation({
                               ? "border-red-300 bg-red-50"
                               : ""
                           }
+                          required
                         />
                       </div>
                     </div>
@@ -1012,7 +1112,10 @@ export function ClinicalDocumentation({
                     {/* Heart Rate & Resp Rate */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="pulse">Heart Rate (bpm)</Label>
+                        <Label htmlFor="pulse">
+                          Heart Rate (bpm){" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
                         <div className="relative">
                           <HeartPulse className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -1172,421 +1275,334 @@ export function ClinicalDocumentation({
                   </Card>
                 </div>
               </div>
-
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  type="submit"
-                  disabled={vitalsLoading}
-                  className="gap-2"
-                >
-                  {vitalsLoading ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Vitals
-                    </>
-                  )}
-                </Button>
-              </div>
             </form>
-          </TabsContent>
-
+          </TabsContent>{" "}
           {/* Examination Tab */}
-          <TabsContent value="examination" className="mt-0 h-full space-y-4">
-            <div className="h-full flex flex-col">
-              <div className="flex-1">
-                <ClinicalExamination
-                  generalExamination={clinicalNote.generalExamination}
-                  systemicExamination={clinicalNote.systemicExamination}
-                  onGeneralExaminationChange={(data) =>
-                    updateClinicalNote("generalExamination", data)
-                  }
-                  onSystemicExaminationChange={(data) =>
-                    updateClinicalNote("systemicExamination", data)
-                  }
-                />
-              </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  onClick={saveClinicalNote}
-                  disabled={isSaving}
-                  className="gap-2"
-                >
-                  {isSaving ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Examination
-                    </>
-                  )}
-                </Button>
-              </div>
+          <TabsContent value="examination" className="mt-0 h-full">
+            <div className="space-y-6">
+              <ClinicalExamination
+                generalExamination={clinicalNote.generalExamination}
+                systemicExamination={clinicalNote.systemicExamination}
+                onGeneralExaminationChange={(data) =>
+                  updateClinicalNote("generalExamination", data)
+                }
+                onSystemicExaminationChange={(data) =>
+                  updateClinicalNote("systemicExamination", data)
+                }
+              />
             </div>
-          </TabsContent>
-
+          </TabsContent>{" "}
           {/* Diagnosis Tab */}
-          <TabsContent value="diagnosis" className="mt-0 h-full space-y-4">
-            <div className="h-full flex flex-col">
-              <div className="flex-1 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Provisional Diagnosis
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Initial diagnosis based on history and examination
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Initial diagnosis before investigations..."
-                      value={clinicalNote.provisionalDiagnosis}
-                      onChange={(e) =>
-                        updateClinicalNote(
-                          "provisionalDiagnosis",
-                          e.target.value,
-                        )
-                      }
-                      className="min-h-20"
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Differential Diagnosis
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Other possible diagnoses to consider
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="List other possible diagnoses..."
-                      value={clinicalNote.differentialDiagnosis}
-                      onChange={(e) =>
-                        updateClinicalNote(
-                          "differentialDiagnosis",
-                          e.target.value,
-                        )
-                      }
-                      className="min-h-20"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* ICD-10 Coded Diagnoses */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          ICD-10 Coded Diagnoses
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Add standardized ICD-10 diagnosis codes
-                        </p>
-                      </div>
-                      <div className="w-[300px]">
-                        <IcdCodeSearch onSelect={handleAddDiagnosis} />
-                      </div>
+          <TabsContent value="diagnosis" className="mt-0 h-full">
+            <div className="space-y-6">
+              {/* ICD-10 Coded Diagnoses - PRIMARY SECTION */}
+              <Card className="border-primary/30">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        Primary Diagnoses (ICD-10){" "}
+                        <span className="text-destructive ml-1">*</span>
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add standardized diagnosis codes for accurate medical
+                        records and billing. At least one diagnosis required.
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
+                    <div className="w-full max-w-md">
+                      <IcdCodeSearch onSelect={handleAddDiagnosis} />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {diagnoses.length > 0 ? (
                     <DiagnosisList
                       diagnoses={diagnoses}
                       onRemove={handleRemoveDiagnosis}
                       onUpdateNotes={handleUpdateDiagnosisNote}
                       onTogglePrimary={handleTogglePrimaryDiagnosis}
                     />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Clinical Impression
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Overall clinical impression and summary..."
-                      value={clinicalNote.clinicalImpression}
-                      onChange={(e) =>
-                        updateClinicalNote("clinicalImpression", e.target.value)
-                      }
-                      className="min-h-20"
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  onClick={saveClinicalNote}
-                  disabled={isSaving}
-                  className="gap-2"
-                >
-                  {isSaving ? (
-                    "Saving..."
                   ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Diagnosis
-                    </>
+                    <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <p className="text-sm text-muted-foreground">
+                        No coded diagnoses added. Click above to search and add
+                        ICD-10 codes.
+                      </p>
+                    </div>
                   )}
-                </Button>
-              </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Clinical Assessment</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Detailed clinical assessment and reasoning
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Describe clinical assessment, key findings, and diagnostic reasoning..."
+                    value={clinicalNote.clinicalImpression}
+                    onChange={(e) =>
+                      updateClinicalNote("clinicalImpression", e.target.value)
+                    }
+                    className="min-h-[100px]"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Differential Diagnoses
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Alternative diagnoses considered
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="List other possible diagnoses considered and why they were ruled out..."
+                    value={clinicalNote.differentialDiagnosis}
+                    onChange={(e) =>
+                      updateClinicalNote(
+                        "differentialDiagnosis",
+                        e.target.value,
+                      )
+                    }
+                    className="min-h-20"
+                  />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
-
           {/* Investigations & Treatment Plan Tab */}
-          <TabsContent value="treatment" className="mt-0 h-full space-y-4">
-            <div className="h-full flex flex-col">
-              <div className="flex-1 space-y-6">
-                {/* Clinical Investigations */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FlaskConical className="h-5 w-5 text-primary" />
-                          Clinical Investigations
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Order laboratory tests and imaging studies
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={addInvestigation}
-                        className="gap-2"
-                      >
-                        <Plus className="h-4 w-4" /> Add Investigation
-                      </Button>
+          <TabsContent value="treatment" className="mt-0 h-full">
+            <div className="space-y-6">
+              {/* Clinical Investigations */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <FlaskConical className="h-5 w-5 text-primary" />
+                        Clinical Investigations
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Order laboratory tests, imaging studies, and special
+                        procedures
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {clinicalNote.investigations.map((inv, index) => (
-                        <div
-                          key={inv.id || index}
-                          className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
-                        >
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
-                            <div className="md:col-span-4 space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Investigation
-                              </Label>
-                              <Input
-                                placeholder="e.g., CBC, LFT, X-Ray Chest"
-                                value={inv.name}
-                                onChange={(e) =>
-                                  updateInvestigation(
-                                    index,
-                                    "name",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="md:col-span-2 space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Category
-                              </Label>
-                              <Select
-                                value={inv.category || "LABORATORY"}
-                                onValueChange={(v) =>
-                                  updateInvestigation(index, "category", v)
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="LABORATORY">
-                                    Laboratory
-                                  </SelectItem>
-                                  <SelectItem value="IMAGING">
-                                    Imaging
-                                  </SelectItem>
-                                  <SelectItem value="SPECIAL">
-                                    Special
-                                  </SelectItem>
-                                  <SelectItem value="OTHER">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="md:col-span-2 space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Status
-                              </Label>
-                              <Select
-                                value={inv.status || "ORDERED"}
-                                onValueChange={(v) =>
-                                  updateInvestigation(index, "status", v)
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="ORDERED">
-                                    Ordered
-                                  </SelectItem>
-                                  <SelectItem value="PENDING">
-                                    Pending
-                                  </SelectItem>
-                                  <SelectItem value="COMPLETED">
-                                    Completed
-                                  </SelectItem>
-                                  <SelectItem value="CANCELLED">
-                                    Cancelled
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="md:col-span-3 space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Notes
-                              </Label>
-                              <Input
-                                placeholder="Special instructions..."
-                                value={inv.notes || ""}
-                                onChange={(e) =>
-                                  updateInvestigation(
-                                    index,
-                                    "notes",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="md:col-span-1 flex items-end justify-end pb-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeInvestigation(index)}
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addInvestigation}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" /> Add Investigation
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {clinicalNote.investigations.map((inv, index) => (
+                      <div
+                        key={inv.id || index}
+                        className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
+                      >
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
+                          <div className="md:col-span-4 space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Investigation
+                            </Label>
+                            <Input
+                              placeholder="e.g., CBC, LFT, X-Ray Chest"
+                              value={inv.name}
+                              onChange={(e) =>
+                                updateInvestigation(
+                                  index,
+                                  "name",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="md:col-span-2 space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Category
+                            </Label>
+                            <Select
+                              value={inv.category || "LABORATORY"}
+                              onValueChange={(v) =>
+                                updateInvestigation(index, "category", v)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="LABORATORY">
+                                  Laboratory
+                                </SelectItem>
+                                <SelectItem value="IMAGING">Imaging</SelectItem>
+                                <SelectItem value="SPECIAL">Special</SelectItem>
+                                <SelectItem value="OTHER">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="md:col-span-2 space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Status
+                            </Label>
+                            <Select
+                              value={inv.status || "ORDERED"}
+                              onValueChange={(v) =>
+                                updateInvestigation(index, "status", v)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ORDERED">Ordered</SelectItem>
+                                <SelectItem value="PENDING">Pending</SelectItem>
+                                <SelectItem value="COMPLETED">
+                                  Completed
+                                </SelectItem>
+                                <SelectItem value="CANCELLED">
+                                  Cancelled
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="md:col-span-3 space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Notes
+                            </Label>
+                            <Input
+                              placeholder="Special instructions..."
+                              value={inv.notes || ""}
+                              onChange={(e) =>
+                                updateInvestigation(
+                                  index,
+                                  "notes",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="md:col-span-1 flex items-end justify-end pb-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeInvestigation(index)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                      ))}
-                      {clinicalNote.investigations.length === 0 && (
-                        <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground">
-                          No investigations ordered. Click &quot;Add
-                          Investigation&quot; to order tests.
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Procedures */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          Procedures (CPT)
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Add procedures performed during this visit
-                        </p>
                       </div>
-                      <div className="w-[300px]">
-                        <CptCodeSearch
-                          onSelect={handleAddProcedure}
-                          selectedCodes={procedures.map((p) => p.cptCode.code)}
-                        />
+                    ))}
+                    {clinicalNote.investigations.length === 0 && (
+                      <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground">
+                        No investigations ordered. Click &quot;Add
+                        Investigation&quot; to order tests.
                       </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Procedures */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">
+                        Procedures (CPT)
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Add procedures performed during this visit with CPT
+                        codes for billing
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ProcedureList
-                      procedures={procedures}
-                      onRemove={handleRemoveProcedure}
-                      onAddToInvoice={handleAddToInvoice}
-                    />
-                  </CardContent>
-                </Card>
+                    <div className="w-full max-w-md">
+                      <CptCodeSearch
+                        onSelect={handleAddProcedure}
+                        selectedCodes={procedures.map((p) => p.cptCode.code)}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ProcedureList
+                    procedures={procedures}
+                    onRemove={handleRemoveProcedure}
+                    onAddToInvoice={handleAddToInvoice}
+                  />
+                </CardContent>
+              </Card>
 
-                {/* Final Diagnosis */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Final Diagnosis</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Confirmed diagnosis after investigations
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Confirmed diagnosis based on clinical findings and investigations..."
-                      value={clinicalNote.finalDiagnosis}
-                      onChange={(e) =>
-                        updateClinicalNote("finalDiagnosis", e.target.value)
-                      }
-                      className="min-h-20"
-                    />
-                  </CardContent>
-                </Card>
+              {/* Final Diagnosis */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Final Diagnosis</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Confirmed diagnosis after investigations
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Confirmed diagnosis based on clinical findings and investigations..."
+                    value={clinicalNote.finalDiagnosis}
+                    onChange={(e) =>
+                      updateClinicalNote("finalDiagnosis", e.target.value)
+                    }
+                    className="min-h-20"
+                  />
+                </CardContent>
+              </Card>
 
-                {/* Treatment Plan */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Treatment Plan</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Treatment approach, recommendations, lifestyle modifications..."
-                      value={clinicalNote.treatmentPlan}
-                      onChange={(e) =>
-                        updateClinicalNote("treatmentPlan", e.target.value)
-                      }
-                      className="min-h-[100px]"
-                    />
-                  </CardContent>
-                </Card>
+              {/* Treatment Plan */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Treatment Plan</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Treatment approach, recommendations, lifestyle modifications..."
+                    value={clinicalNote.treatmentPlan}
+                    onChange={(e) =>
+                      updateClinicalNote("treatmentPlan", e.target.value)
+                    }
+                    className="min-h-[100px]"
+                  />
+                </CardContent>
+              </Card>
 
-                {/* Follow-up Plan */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Follow-up Plan</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Follow-up schedule, red flag symptoms to watch for, when to return..."
-                      value={clinicalNote.followUpPlan}
-                      onChange={(e) =>
-                        updateClinicalNote("followUpPlan", e.target.value)
-                      }
-                      className="min-h-20"
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button
-                  onClick={saveClinicalNote}
-                  disabled={isSaving}
-                  className="gap-2"
-                >
-                  {isSaving ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Treatment Plan
-                    </>
-                  )}
-                </Button>
-              </div>
+              {/* Follow-up Plan */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Follow-up Plan</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Follow-up schedule, red flag symptoms to watch for, when to return..."
+                    value={clinicalNote.followUpPlan}
+                    onChange={(e) =>
+                      updateClinicalNote("followUpPlan", e.target.value)
+                    }
+                    className="min-h-20"
+                  />
+                </CardContent>
+              </Card>
             </div>
-          </TabsContent>
-
+          </TabsContent>{" "}
           {/* Prescription Tab */}
           <TabsContent value="prescription" className="mt-0 h-full space-y-4">
             <form
@@ -1597,6 +1613,44 @@ export function ClinicalDocumentation({
               className="h-full flex flex-col"
             >
               <div className="flex-1 space-y-6">
+                {/* ICD-10 Diagnoses for Prescription - Medical Accuracy */}
+                <Card className="border-primary/20">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-primary" />
+                          Diagnoses (ICD-10)
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Select diagnoses to link with this prescription
+                        </p>
+                      </div>
+                      <div className="w-[300px]">
+                        <IcdCodeSearch onSelect={handleAddDiagnosis} />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {diagnoses.length > 0 ? (
+                      <DiagnosisList
+                        diagnoses={diagnoses}
+                        onRemove={handleRemoveDiagnosis}
+                        onUpdateNotes={handleUpdateDiagnosisNote}
+                        onTogglePrimary={handleTogglePrimaryDiagnosis}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Add diagnoses from the Diagnosis tab to ensure
+                          accurate prescription coding
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 <div className="flex items-center justify-between">
                   <Label className="text-base font-medium">Medications</Label>
                   <div className="flex gap-2">
@@ -1615,7 +1669,7 @@ export function ClinicalDocumentation({
                   </div>
                 </div>
 
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                <div className="space-y-4 pr-2">
                   {medications.map((med, index) => (
                     <div
                       key={index}
@@ -1740,10 +1794,28 @@ export function ClinicalDocumentation({
                   onClick={handleSaveAsTemplate}
                   disabled={medications.length === 0}
                   className="gap-2"
+                  style={{
+                    display:
+                      user?.role &&
+                      ["ADMIN", "RECEPTIONIST"].includes(user.role)
+                        ? "none"
+                        : "inline-flex",
+                  }}
                 >
                   <Save className="h-4 w-4" /> Save as Template
                 </Button>
-                <Button type="submit" disabled={rxLoading} className="gap-2">
+                <Button
+                  type="submit"
+                  disabled={rxLoading}
+                  className="gap-2"
+                  style={{
+                    display:
+                      user?.role &&
+                      ["ADMIN", "RECEPTIONIST"].includes(user.role)
+                        ? "none"
+                        : "inline-flex",
+                  }}
+                >
                   {rxLoading ? (
                     "Saving..."
                   ) : (
@@ -1755,7 +1827,6 @@ export function ClinicalDocumentation({
               </div>
             </form>
           </TabsContent>
-
           {/* Invoice Tab */}
           <TabsContent value="invoice" className="mt-0 h-full space-y-4">
             <form

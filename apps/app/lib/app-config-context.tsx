@@ -6,8 +6,7 @@ import {
   useState,
   useCallback,
   ReactNode,
-  useRef,
-  useSyncExternalStore,
+  useEffect,
 } from "react";
 
 // Types for config options
@@ -216,7 +215,6 @@ export function AppConfigProvider({
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const hasFetchedRef = useRef(false);
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -250,18 +248,10 @@ export function AppConfigProvider({
     }
   }, [clinicId]);
 
-  // Use useSyncExternalStore to trigger initial fetch
-  useSyncExternalStore(
-    useCallback(() => {
-      if (!hasFetchedRef.current) {
-        hasFetchedRef.current = true;
-        fetchConfig();
-      }
-      return () => {};
-    }, [fetchConfig]),
-    () => config,
-    () => DEFAULT_CONFIG,
-  );
+  // Use useEffect to trigger initial fetch
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
 
   const getFormOptions = useCallback(
     <K extends keyof FormOptions>(key: K): FormOptions[K] => {

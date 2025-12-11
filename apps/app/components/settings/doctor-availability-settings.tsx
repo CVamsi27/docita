@@ -164,10 +164,14 @@ export function DoctorAvailabilitySettings() {
     name: "schedules",
   });
 
-  // Reset form when schedules change
+  // Reset form when schedules change - only reset if schedules data actually loaded
   useEffect(() => {
-    scheduleForm.reset(defaultScheduleValues);
-  }, [defaultScheduleValues, scheduleForm]);
+    if (schedules.length >= 0) {
+      scheduleForm.reset(defaultScheduleValues);
+    }
+    // Only re-run when schedules array changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedules]);
 
   const timeOffForm = useForm<TimeOffFormData>({
     defaultValues: {

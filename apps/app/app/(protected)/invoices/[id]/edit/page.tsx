@@ -55,7 +55,11 @@ export default function InvoiceEditPage() {
       router.push(`/invoices/${invoiceId}`);
     } catch (error) {
       console.error("Save invoice error:", error);
-      toast.error("Failed to save invoice. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save invoice. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

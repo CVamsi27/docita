@@ -34,23 +34,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Use distinct keys for admin app to avoid conflicts with patient app
 const TOKEN_KEY = "docita_admin_token";
 const USER_KEY = "docita_admin_user";
 const COOKIE_KEY = "docita_admin_cookie";
-
-// Helper to set cookie
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
 }
 
-// Helper to delete cookie
 function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
 
-// Helper to clear all auth storage
 function clearAuthStorage() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
@@ -66,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Validate token with backend
   const validateToken = useCallback(
     async (tokenToValidate?: string): Promise<boolean> => {
       const tokenValue = tokenToValidate || token;
@@ -79,8 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (!res.ok) {
-          // 401 = token expired or invalid
-          // 404 = user account deleted
           if (res.status === 404 || res.status === 401) {
             clearAuthStorage();
             return false;
@@ -97,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [token],
   );
 
-  // Initialize auth state from localStorage on mount
   useEffect(() => {
     const timer = setTimeout(async () => {
       setIsMounted(true);
@@ -108,7 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (storedToken && storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          // Only SUPER_ADMIN can access admin app
           if (parsedUser.role === "SUPER_ADMIN") {
             // Validate token on app load
             const isValid = await validateToken(storedToken);
@@ -127,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               toast.error("Session expired. Please log in again.");
             }
           } else {
-            // Clear invalid auth - clinic admins should not have access
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
             deleteCookie(COOKIE_KEY);

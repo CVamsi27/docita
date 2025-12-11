@@ -74,7 +74,11 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       }
     } catch (err) {
       console.error("Failed to load patient data:", err);
-      setError("An error occurred while fetching data");
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching data";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

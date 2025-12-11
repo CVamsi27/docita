@@ -72,7 +72,11 @@ export function ClinicGeneralSettings() {
       toast.success("Clinic settings have been updated successfully.");
     } catch (error) {
       console.error("Failed to save clinic settings:", error);
-      toast.error("Failed to save clinic settings. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save clinic settings. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

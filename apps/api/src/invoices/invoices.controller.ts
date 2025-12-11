@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
   Res,
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
@@ -57,8 +58,15 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  findAll(@Request() req: AuthRequest) {
-    return this.invoicesService.findAll(req.user.clinicId);
+  findAll(
+    @Request() req: AuthRequest,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.invoicesService.findAll(req.user.clinicId, {
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Get(':id')

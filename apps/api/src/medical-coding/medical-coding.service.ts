@@ -10,6 +10,43 @@ export class MedicalCodingService {
       return [];
     }
 
+    // Handle range searches like "C00-D49" or "C00"
+    const rangeMatch = query.match(/^([A-Z]\d+)(?:-([A-Z]\d+))?$/i);
+
+    if (rangeMatch) {
+      const [, start, end] = rangeMatch;
+
+      if (end) {
+        // Range search (e.g., "C00-D49")
+        return this.prisma.icdCode.findMany({
+          where: {
+            code: {
+              gte: start.toUpperCase(),
+              lte: end.toUpperCase(),
+            },
+          },
+          take: 50,
+          orderBy: {
+            code: 'asc',
+          },
+        });
+      } else {
+        // Single code or code prefix (e.g., "C00" finds C00, C000, C001, etc.)
+        return this.prisma.icdCode.findMany({
+          where: {
+            code: {
+              startsWith: start.toUpperCase(),
+            },
+          },
+          take: 50,
+          orderBy: {
+            code: 'asc',
+          },
+        });
+      }
+    }
+
+    // Regular text search
     return this.prisma.icdCode.findMany({
       where: {
         OR: [
@@ -29,6 +66,44 @@ export class MedicalCodingService {
       return [];
     }
 
+    // Handle range searches like "00100-01999" or numeric codes
+    const rangeMatch = query.match(/^(\d+)(?:-(\d+))?$/);
+
+    if (rangeMatch) {
+      const [, start, end] = rangeMatch;
+
+      if (end) {
+        // Range search (e.g., "00100-01999")
+        return this.prisma.cptCode.findMany({
+          where: {
+            code: {
+              gte: start.padStart(5, '0'),
+              lte: end.padStart(5, '0'),
+            },
+          },
+          take: 50,
+          orderBy: {
+            code: 'asc',
+          },
+        });
+      } else {
+        // Single code or code prefix (e.g., "001" finds 00100, 00101, etc.)
+        const paddedCode = start.padStart(5, '0');
+        return this.prisma.cptCode.findMany({
+          where: {
+            code: {
+              startsWith: paddedCode.substring(0, start.length),
+            },
+          },
+          take: 50,
+          orderBy: {
+            code: 'asc',
+          },
+        });
+      }
+    }
+
+    // Regular text search
     return this.prisma.cptCode.findMany({
       where: {
         OR: [

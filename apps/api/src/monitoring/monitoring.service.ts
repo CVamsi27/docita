@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, ErrorSeverity, MetricType } from '@workspace/db';
+import { WebVitalDto } from './dto/web-vital.dto';
 
 interface RequestLogData {
   clinicId?: string;
@@ -38,43 +39,119 @@ interface ErrorLogData {
 export class MonitoringService {
   private readonly logger = new Logger(MonitoringService.name);
   private readonly startTime = Date.now();
+  
+  // Batching buffers
+  private requestBuffer: RequestLogData[] = [];
+  private errorBuffer: ErrorLogData[] = [];
+  private readonly BATCH_SIZE = 100;
+  private readonly FLUSH_INTERVAL = 5000; // 5 seconds
+  private flushTimer: NodeJS.Timeout | null = null;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    // Start the periodic flush timer
+    this.startFlushTimer();
+  }
+
+  /**
+   * Start periodic flushing of buffered logs
+   */
+  private startFlushTimer(): void {
+    this.flushTimer = setInterval(() => {
+      this.flushBuffers().catch((error) => {
+        this.logger.error('Failed to flush monitoring buffers', error);
+      });
+    }, this.FLUSH_INTERVAL);
+  }
+
+  /**
+   * Flush all buffered logs to database
+   */
+  private async flushBuffers(): Promise<void> {
+    const requestsToFlush = this.requestBuffer.splice(0, this.BATCH_SIZE);
+    const errorsToFlush = this.errorBuffer.splice(0, this.BATCH_SIZE);
+
+    const promises: Promise<any>[] = [];
+
+    if (requestsToFlush.length > 0) {
+      promises.push(
+        this.prisma.apiRequest.createMany({
+          data: requestsToFlush.map((req) => ({
+            clinicId: req.clinicId,
+            userId: req.userId,
+            method: req.method,
+            path: req.path,
+            statusCode: req.statusCode,
+            duration: req.duration,
+            requestSize: req.requestSize,
+            responseSize: req.responseSize,
+            userAgent: req.userAgent,
+            ip: req.ip,
+            error: req.error,
+            errorStack: req.errorStack,
+            metadata: req.metadata as Prisma.InputJsonValue,
+          })),
+          skipDuplicates: true,
+        }),
+      );
+    }
+
+    if (errorsToFlush.length > 0) {
+      promises.push(
+        this.prisma.errorLog.createMany({
+          data: errorsToFlush.map((err) => ({
+            clinicId: err.clinicId,
+            userId: err.userId,
+            type: err.type,
+            message: err.message,
+            stack: err.stack,
+            path: err.path,
+            method: err.method,
+            statusCode: err.statusCode,
+            userAgent: err.userAgent,
+            ip: err.ip,
+            requestBody: err.requestBody as Prisma.InputJsonValue,
+            metadata: err.metadata as Prisma.InputJsonValue,
+            severity: err.severity || ErrorSeverity.ERROR,
+          })),
+          skipDuplicates: true,
+        }),
+      );
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
+      this.logger.debug(
+        `Flushed ${requestsToFlush.length} requests and ${errorsToFlush.length} errors`,
+      );
+    }
+  }
+
+  /**
+   * Cleanup on service destruction
+   */
+  onModuleDestroy(): void {
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+    }
+    // Flush remaining logs synchronously before shutdown
+    this.flushBuffers().catch((error) => {
+      this.logger.error('Failed to flush logs on shutdown', error);
+    });
+  }
 
   // =============================================
   // Request Logging
   // =============================================
 
   logRequest(data: RequestLogData): void {
-    try {
-      // Use upsert-style async operation to not block the response
-      setImmediate(() => {
-        (async () => {
-          try {
-            await this.prisma.apiRequest.create({
-              data: {
-                clinicId: data.clinicId,
-                userId: data.userId,
-                method: data.method,
-                path: data.path,
-                statusCode: data.statusCode,
-                duration: data.duration,
-                requestSize: data.requestSize,
-                responseSize: data.responseSize,
-                userAgent: data.userAgent,
-                ip: data.ip,
-                error: data.error,
-                errorStack: data.errorStack,
-                metadata: data.metadata as Prisma.InputJsonValue,
-              },
-            });
-          } catch (error) {
-            this.logger.error('Failed to log request', error);
-          }
-        })();
+    // Add to buffer instead of immediate database write
+    this.requestBuffer.push(data);
+    
+    // If buffer is full, flush immediately
+    if (this.requestBuffer.length >= this.BATCH_SIZE) {
+      this.flushBuffers().catch((error) => {
+        this.logger.error('Failed to flush request buffer', error);
       });
-    } catch (error) {
-      this.logger.error('Failed to queue request log', error);
     }
   }
 
@@ -83,34 +160,14 @@ export class MonitoringService {
   // =============================================
 
   logError(data: ErrorLogData): void {
-    try {
-      setImmediate(() => {
-        (async () => {
-          try {
-            await this.prisma.errorLog.create({
-              data: {
-                clinicId: data.clinicId,
-                userId: data.userId,
-                type: data.type,
-                message: data.message,
-                stack: data.stack,
-                path: data.path,
-                method: data.method,
-                statusCode: data.statusCode,
-                userAgent: data.userAgent,
-                ip: data.ip,
-                requestBody: data.requestBody as Prisma.InputJsonValue,
-                metadata: data.metadata as Prisma.InputJsonValue,
-                severity: data.severity || ErrorSeverity.ERROR,
-              },
-            });
-          } catch (error) {
-            this.logger.error('Failed to log error', error);
-          }
-        })();
+    // Add to buffer instead of immediate database write
+    this.errorBuffer.push(data);
+    
+    // If buffer is full, flush immediately
+    if (this.errorBuffer.length >= this.BATCH_SIZE) {
+      this.flushBuffers().catch((error) => {
+        this.logger.error('Failed to flush error buffer', error);
       });
-    } catch (error) {
-      this.logger.error('Failed to queue error log', error);
     }
   }
 
@@ -798,5 +855,122 @@ export class MonitoringService {
       },
       orderBy: { periodStart: 'asc' },
     });
+  }
+
+  /**
+   * Record Web Vital metric from frontend
+   * ✅ OPTIMIZATION: Store Core Web Vitals for real user monitoring (RUM)
+   * 
+   * Web Vitals thresholds:
+   * - LCP (Largest Contentful Paint): < 2.5s good, > 4s poor
+   * - INP (Interaction to Next Paint): < 200ms good, > 500ms poor
+   * - CLS (Cumulative Layout Shift): < 0.1 good, > 0.25 poor
+   * - FCP (First Contentful Paint): < 1.8s good, > 3s poor
+   * - TTFB (Time to First Byte): < 800ms good, > 1800ms poor
+   */
+  async recordWebVital(vital: WebVitalDto) {
+    const rating = this.getRating(vital.name, vital.value);
+    
+    // Store vital in database using SystemMetric table
+    await this.prisma.systemMetric.create({
+      data: {
+        metricType: MetricType.AVG_RESPONSE_TIME, // Repurpose for web vitals
+        value: vital.value,
+        unit: vital.name, // Store metric name in unit field
+        metadata: {
+          rating,
+          page: vital.page,
+          userId: vital.userId,
+          sessionId: vital.sessionId,
+          metricName: vital.name,
+        },
+      },
+    });
+
+    return { success: true, rating };
+  }
+
+  /**
+   * Get Web Vitals statistics
+   */
+  async getWebVitals(startDate?: Date, endDate?: Date, page?: string) {
+    const where = {
+      metricType: MetricType.AVG_RESPONSE_TIME,
+      recordedAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    };
+
+    // Get all web vitals
+    const vitals = await this.prisma.systemMetric.findMany({
+      where,
+      orderBy: { recordedAt: 'desc' },
+      take: 1000,
+    });
+
+    // Filter by page if specified and group by metric name
+    const filtered = vitals.filter(
+      (v) =>
+        !page ||
+        (v.metadata &&
+          typeof v.metadata === 'object' &&
+          'page' in v.metadata &&
+          v.metadata.page === page),
+    );
+
+    // Group by metric name (stored in unit field)
+    const grouped = filtered.reduce(
+      (acc, vital) => {
+        const name = vital.unit || 'unknown';
+        if (!acc[name]) acc[name] = [];
+        acc[name].push(vital.value);
+        return acc;
+      },
+      {} as Record<string, number[]>,
+    );
+
+    // Calculate statistics for each metric
+    return Object.entries(grouped).map(([name, values]) => {
+      const sorted = values.sort((a, b) => a - b);
+      const count = sorted.length;
+      const avg = sorted.reduce((a, b) => a + b, 0) / count;
+      const p75Index = Math.floor(count * 0.75);
+      const p95Index = Math.floor(count * 0.95);
+
+      return {
+        name,
+        count,
+        avg,
+        min: sorted[0] || 0,
+        max: sorted[count - 1] || 0,
+        p75: sorted[p75Index] || 0,
+        p95: sorted[p95Index] || 0,
+        rating: this.getRating(name, avg),
+      };
+    });
+  }
+
+  /**
+   * Get rating for Web Vital based on thresholds
+   */
+  private getRating(
+    name: string,
+    value: number,
+  ): 'good' | 'needs-improvement' | 'poor' {
+    const thresholds = {
+      LCP: { good: 2500, poor: 4000 },
+      INP: { good: 200, poor: 500 },
+      CLS: { good: 0.1, poor: 0.25 },
+      FCP: { good: 1800, poor: 3000 },
+      TTFB: { good: 800, poor: 1800 },
+    };
+
+    const threshold = thresholds[name as keyof typeof thresholds];
+    if (!threshold) return 'good';
+
+    if (value <= threshold.good) return 'good';
+    if (value >= threshold.poor) return 'poor';
+    return 'needs-improvement';
   }
 }

@@ -390,7 +390,11 @@ export default function OCRPage() {
       router.push(`/patients/${patient.id}`);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to save record. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save record. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -933,6 +937,90 @@ export default function OCRPage() {
                         No medications detected
                       </p>
                     )}
+                  </div>
+                )}
+              </div>
+
+              {/* Lab Values Section */}
+              <div className="space-y-3">
+                <SectionToggle
+                  title="Lab Values"
+                  icon={FileText}
+                  isOpen={expandedSections.labValues}
+                  onToggle={() =>
+                    setExpandedSections({
+                      ...expandedSections,
+                      labValues: !expandedSections.labValues,
+                    })
+                  }
+                />
+                {expandedSections.labValues && (
+                  <div className="space-y-3 bg-muted/30 rounded-lg p-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Glucose (mg/dL)</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.labValues_glucose}
+                          />
+                        </div>
+                        <Input
+                          value={formData.labValues.glucose}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              labValues: {
+                                ...formData.labValues,
+                                glucose: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Hemoglobin (g/dL)</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.labValues_hemoglobin}
+                          />
+                        </div>
+                        <Input
+                          value={formData.labValues.hemoglobin}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              labValues: {
+                                ...formData.labValues,
+                                hemoglobin: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="13.5"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Creatinine (mg/dL)</Label>
+                          <ConfidenceIndicator
+                            score={confidenceScores.labValues_creatinine}
+                          />
+                        </div>
+                        <Input
+                          value={formData.labValues.creatinine}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              labValues: {
+                                ...formData.labValues,
+                                creatinine: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="0.8"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

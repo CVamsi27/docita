@@ -6,7 +6,6 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Plus, Eye, EyeOff, Users, Shield } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -110,12 +109,10 @@ export function CreateClinicDialog({
 
   return (
     <>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Clinic
-        </Button>
-      </DialogTrigger>
+      <Button onClick={() => setOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Clinic
+      </Button>
       <CRUDDialog
         open={open}
         onOpenChange={setOpen}

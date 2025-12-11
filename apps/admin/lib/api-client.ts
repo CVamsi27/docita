@@ -2,16 +2,10 @@ import { API_URL } from "./api";
 
 let authLogoutCallback: ((reason: string) => void) | null = null;
 
-/**
- * Set the logout callback to be called when auth errors occur
- */
 export function setAuthLogoutCallback(callback: (reason: string) => void) {
   authLogoutCallback = callback;
 }
 
-/**
- * Enhanced fetch wrapper that handles auth errors and token validation
- */
 export async function fetchWithAuth(
   endpoint: string,
   options: RequestInit & { skipAuthCheck?: boolean } = {},
@@ -20,7 +14,6 @@ export async function fetchWithAuth(
 
   const token = localStorage.getItem("docita_admin_token");
 
-  // Set up headers
   const headers = new Headers(fetchOptions.headers || {});
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -31,10 +24,8 @@ export async function fetchWithAuth(
     headers,
   });
 
-  // Handle auth errors
   if (!skipAuthCheck) {
     if (response.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem("docita_admin_token");
       localStorage.removeItem("docita_admin_user");
       authLogoutCallback?.("Your session has expired. Please log in again.");
@@ -42,7 +33,6 @@ export async function fetchWithAuth(
     }
 
     if (response.status === 404) {
-      // Check if it's a user not found error (account deleted)
       try {
         const data = await response.clone().json();
         if (
@@ -62,7 +52,6 @@ export async function fetchWithAuth(
     }
 
     if (response.status === 403) {
-      // Permission denied / role changed
       localStorage.removeItem("docita_admin_token");
       localStorage.removeItem("docita_admin_user");
       authLogoutCallback?.(

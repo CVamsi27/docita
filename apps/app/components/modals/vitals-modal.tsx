@@ -1,10 +1,9 @@
 "use client";
 
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
-import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Activity, Save } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
 import { VitalSignsValidationPanel } from "@/components/vital-signs/vital-signs-validator";
 
@@ -168,26 +167,6 @@ export function VitalsModal({
             }}
           />
         )}
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={loading} className="gap-2">
-            {loading ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="h-4 w-4" /> Save Vitals
-              </>
-            )}
-          </Button>
-        </div>
       </form>
     </CRUDDialog>
   );

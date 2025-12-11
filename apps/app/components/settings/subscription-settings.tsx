@@ -330,8 +330,12 @@ export function SubscriptionSettings() {
 
       const razorpay = new window.Razorpay(options);
       razorpay.open();
-    } catch {
-      toast.error("Unable to process upgrade. Please try again.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unable to process upgrade. Please try again.";
+      toast.error(errorMessage);
       setIsProcessingPayment(false);
     }
   };

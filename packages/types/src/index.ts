@@ -1412,9 +1412,9 @@ export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 
 export const appointmentSchema = z.object({
   id: z.string().optional(),
-  patientId: z.string(),
-  doctorId: z.string(),
-  clinicId: z.string(),
+  patientId: z.string().min(1, "Patient is required"),
+  doctorId: z.string().min(1, "Doctor is required"),
+  clinicId: z.string().min(1, "Clinic is required"),
   startTime: z.string().or(z.date()),
   endTime: z.string().or(z.date()),
   status: appointmentStatusSchema,

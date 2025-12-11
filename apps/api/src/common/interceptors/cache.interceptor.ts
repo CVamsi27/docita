@@ -5,11 +5,12 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
+import * as crypto from 'crypto';
 
 /**
- * Cache interceptor that adds cache-control headers to GET requests
- * This helps browsers and CDNs cache responses appropriately
+ * Cache interceptor that adds cache-control headers and ETag support to GET requests
+ * This helps browsers and CDNs cache responses appropriately and reduces bandwidth
  */
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
@@ -20,7 +21,7 @@ export class CacheInterceptor implements NestInterceptor {
     // Only cache GET requests
     if (request.method === 'GET') {
       return next.handle().pipe(
-        tap(() => {
+        map((data) => {
           // Check if the route has a custom cache duration
           const handler = context.getHandler();
           const cacheMetadata = Reflect.getMetadata('cache-duration', handler);
@@ -42,10 +43,26 @@ export class CacheInterceptor implements NestInterceptor {
               `public, max-age=${cacheDuration}, s-maxage=${cacheDuration}`,
             );
 
-            // Add ETag for conditional requests
+            // Add ETag for conditional requests (304 Not Modified responses)
+            if (data) {
+              const etag = crypto
+                .createHash('md5')
+                .update(JSON.stringify(data))
+                .digest('hex');
+              response.setHeader('ETag', `"${etag}"`);
+
+              // Check if client sent If-None-Match header
+              const clientEtag = request.headers['if-none-match'];
+              if (clientEtag === `"${etag}"`) {
+                response.status(304);
+                return null; // Don't send body for 304 responses
+              }
+            }
 
             response.setHeader('Vary', 'Accept-Encoding');
           }
+
+          return data;
         }),
       );
     }

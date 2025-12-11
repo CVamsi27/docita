@@ -29,8 +29,12 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-    } catch {
-      setError("Invalid email or password");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during login";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

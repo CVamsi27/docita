@@ -179,7 +179,11 @@ export function MemberManagementSettings() {
       resetForm();
     } catch (error) {
       console.error("Save member error:", error);
-      toast.error(`Failed to save member. Please try again.`);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save member. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

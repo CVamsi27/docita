@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getStats(clinicId: string) {
     if (!clinicId) {
@@ -15,6 +20,15 @@ export class DashboardService {
         recentActivity: [],
         upcomingAppointments: [],
       };
+    }
+
+    // Cache key for this clinic's dashboard stats
+    const cacheKey = `dashboard:stats:${clinicId}`;
+    
+    // Try to get cached data (60 second TTL)
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     const today = new Date();
@@ -111,7 +125,7 @@ export class DashboardService {
       },
     });
 
-    return {
+    const result = {
       totalPatients,
       totalDoctors,
       newPatientsThisMonth,
@@ -119,9 +133,12 @@ export class DashboardService {
       activePrescriptions,
       pendingReports: 0, // Placeholder
     };
-  }
 
-  private formatTimeAgo(date: Date): string {
+    // Cache the result for 60 seconds
+    await this.cacheManager.set(cacheKey, result, 60 * 1000);
+
+    return result;
+  }  private formatTimeAgo(date: Date): string {
     const now = new Date();
     const diffInSeconds = Math.floor(
       (now.getTime() - new Date(date).getTime()) / 1000,

@@ -83,12 +83,12 @@ export default function ConsultationPage() {
     }
   }, [canGoBack, goBack, router, fallbackRoute]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     // Refetch appointment data after save
     queryClient.invalidateQueries({
       queryKey: ["appointments", appointmentId],
     });
-  };
+  }, [queryClient, appointmentId]);
 
   if (loading) {
     return (

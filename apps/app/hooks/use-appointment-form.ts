@@ -54,6 +54,12 @@ export function useAppointmentForm({
   const { data: doctors = [], isLoading: doctorsLoading } =
     apiHooks.useDoctors();
 
+  // Filter doctors to only include actual doctors (exclude admins)
+  const filteredDoctors = useMemo(
+    () => doctors.filter((doc) => doc.role === "DOCTOR"),
+    [doctors],
+  );
+
   const { mutateAsync: createAppointment, isPending: loading } =
     apiHooks.useCreateAppointment();
   const { config } = useAppConfig();
@@ -169,7 +175,11 @@ export function useAppointmentForm({
         toast.success("Appointment scheduled successfully");
       } catch (error) {
         console.error("Failed to create appointment:", error);
-        toast.error("Failed to schedule appointment. Please try again.");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to schedule appointment. Please try again.";
+        toast.error(errorMessage);
       }
     },
     [form, onAppointmentAdded, createAppointment, defaultDuration],
@@ -182,7 +192,7 @@ export function useAppointmentForm({
     patientsLoading,
     patientSearch,
     setPatientSearch,
-    doctors,
+    doctors: filteredDoctors,
     doctorsLoading,
     onSubmit,
   };

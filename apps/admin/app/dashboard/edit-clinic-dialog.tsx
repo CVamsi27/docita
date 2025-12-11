@@ -6,7 +6,6 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Pencil } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -137,11 +136,9 @@ export function EditClinicDialog({
 
   return (
     <>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+        <Pencil className="h-4 w-4" />
+      </Button>
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}

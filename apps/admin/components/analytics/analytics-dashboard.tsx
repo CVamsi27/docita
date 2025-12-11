@@ -190,7 +190,6 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -209,7 +208,7 @@ export function AnalyticsDashboard() {
         </button>
       </div>
 
-      {/* Controls */}
+      
       <div className="bg-background rounded-lg border border-border p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -255,7 +254,6 @@ export function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, idx) => (
           <div
@@ -295,9 +293,8 @@ export function AnalyticsDashboard() {
         ))}
       </div>
 
-      {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
+        
         {data?.revenue ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -314,7 +311,7 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        {/* Appointment Metrics Chart */}
+        
         {data?.appointments ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -331,7 +328,7 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        {/* Patient Demographics */}
+        
         {data?.newPatients ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -348,7 +345,7 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        {/* Top Conditions */}
+        
         {data?.appointments ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -366,7 +363,6 @@ export function AnalyticsDashboard() {
         ) : null}
       </div>
 
-      {/* Detailed Metrics Table */}
       <div className="bg-background rounded-lg border border-border p-6 space-y-4">
         <h2 className="text-lg font-semibold text-foreground">
           Detailed Metrics
@@ -439,7 +435,6 @@ export function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Info Box */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-sm text-blue-600 dark:text-blue-400">
         💡 Tip: All metrics are fetched from the API based on your selected
         period and date range. The detailed metrics table shows actual clinic

@@ -86,8 +86,12 @@ export function PrescriptionDefaultsSettings() {
       } else {
         throw new Error("Failed to save settings");
       }
-    } catch {
-      alert("Failed to save prescription defaults. Please try again.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save prescription defaults. Please try again.";
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }

@@ -10,6 +10,7 @@ import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
 import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/clinic-context";
+import { useAuth } from "@/lib/auth-context";
 import {
   Tooltip,
   TooltipContent,
@@ -41,6 +42,7 @@ export default function PrescriptionViewPage() {
   const prescriptionId = params.id as string;
   const { canAccess } = usePermissionStore();
   const { clinic: contextClinic } = useClinic();
+  const { user } = useAuth();
   const hasWhatsAppAccess = canAccess(Feature.ONE_WAY_WHATSAPP);
   const goBack = useSmartBack("/patients");
 
@@ -159,7 +161,17 @@ export default function PrescriptionViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleEdit}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEdit}
+            style={{
+              display:
+                user?.role && ["ADMIN", "RECEPTIONIST"].includes(user.role)
+                  ? "none"
+                  : "inline-flex",
+            }}
+          >
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>

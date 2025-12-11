@@ -450,6 +450,7 @@ model Appointment {
   @@index([status, startTime])
   @@index([doctorId])
   @@index([patientId])
+  @@index([clinicId, status, startTime]) // Composite index for optimized clinic-wide filtered appointment queries
 }
 
 model VitalSign {

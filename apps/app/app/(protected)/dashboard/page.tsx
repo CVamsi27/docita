@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { apiHooks } from "@/lib/api-hooks";
 import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
 import { cn } from "@workspace/ui/lib/utils";
@@ -28,35 +29,44 @@ interface Appointment {
 
 export default function DashboardPage() {
   const { canAccess } = usePermissionStore();
+  
+  // ✅ OPTIMIZATION: All hooks run in parallel automatically via React Query
   const { data, isLoading: loading } = apiHooks.useDashboardStats();
-  // Cast the appointments data to our specific interface to ensure compatibility
   const { data: rawAppointments = [] } = apiHooks.useTodayAppointments();
-  const appointments = rawAppointments as unknown as Appointment[];
   const { data: recentPatients = [] } = apiHooks.useRecentPatients(5);
+  
+  const appointments = rawAppointments as unknown as Appointment[];
 
-  const stats = {
+  // ✅ OPTIMIZATION: Memoize stats object to prevent unnecessary re-renders
+  const stats = useMemo(() => ({
     totalPatients: data?.totalPatients ?? 0,
     todayAppointments: data?.todayAppointments ?? 0,
     activePrescriptions: data?.activePrescriptions ?? 0,
     pendingReports: data?.pendingReports ?? 0,
     newPatientsThisMonth: data?.newPatientsThisMonth ?? 0,
-  };
+  }), [data]);
 
-  const castRecentPatients = (recentPatients || []).filter(
-    (p): p is typeof p & { id: string } =>
-      p && typeof p === "object" && "id" in p && !!p.id,
+  // ✅ OPTIMIZATION: Memoize filtered patients
+  const castRecentPatients = useMemo(() => 
+    (recentPatients || []).filter(
+      (p): p is typeof p & { id: string } =>
+        p && typeof p === "object" && "id" in p && !!p.id,
+    ),
+    [recentPatients]
   );
 
-  const todayAppointments = [...appointments].sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-  );
-
-  const completedToday = todayAppointments.filter(
-    (a) => a.status === "completed",
-  ).length;
-  const inProgressToday = todayAppointments.filter(
-    (a) => a.status === "in-progress",
-  ).length;
+  // ✅ OPTIMIZATION: Memoize sorted appointments and computed values
+  const { todayAppointments, completedToday, inProgressToday } = useMemo(() => {
+    const sorted = [...appointments].sort(
+      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    );
+    
+    return {
+      todayAppointments: sorted,
+      completedToday: sorted.filter((a) => a.status === "completed").length,
+      inProgressToday: sorted.filter((a) => a.status === "in-progress").length,
+    };
+  }, [appointments]);
 
   if (loading) {
     return <DashboardSkeleton />;

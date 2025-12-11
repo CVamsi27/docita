@@ -5,7 +5,7 @@ import { useState, useRef, useCallback } from "react";
 import { Plus } from "lucide-react";
 import type { CreatePatientInput } from "@workspace/types";
 
-import { DialogTrigger, DialogFooter } from "@workspace/ui/components/dialog";
+import { DialogFooter } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -95,12 +95,10 @@ export function AddPatientDialog({
 
   return (
     <>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Patient
-        </Button>
-      </DialogTrigger>
+      <Button className="gap-2" onClick={() => setOpen(true)}>
+        <Plus className="h-4 w-4" />
+        Add Patient
+      </Button>
       <FormDialog
         open={open}
         onOpenChange={setOpen}

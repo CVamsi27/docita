@@ -1,5 +1,17 @@
 import { z } from "zod";
-import { userRoleSchema, specializationSchema } from "./index";
+
+// ============================================================================
+// Local schema definitions (to avoid circular dependencies)
+// ============================================================================
+
+// Define these locally to avoid circular dependency with index.ts
+const userRoleSchema = z.enum([
+  "DOCTOR",
+  "RECEPTIONIST",
+  "ADMIN",
+  "SUPER_ADMIN",
+  "ADMIN_DOCTOR",
+]);
 
 // ============================================================================
 // Team Member Schemas & Types

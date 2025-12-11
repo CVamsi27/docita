@@ -47,18 +47,58 @@ function SettingsContent() {
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
-          <TabsTrigger value="queue">Queue</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="custom-fields">Custom Fields</TabsTrigger>
-          <TabsTrigger value="reminders">Reminders</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-11 h-auto gap-2 md:gap-0">
+          <TabsTrigger value="general" className="text-xs md:text-sm">
+            General
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="text-xs md:text-sm">
+            Billing
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="text-xs md:text-sm">
+            Subscription
+          </TabsTrigger>
+          <TabsTrigger value="members" className="text-xs md:text-sm">
+            Members
+          </TabsTrigger>
+          <TabsTrigger value="availability" className="text-xs md:text-sm">
+            Availability
+          </TabsTrigger>
+          <TabsTrigger
+            value="queue"
+            className="text-xs md:text-sm hidden md:inline-flex"
+          >
+            Queue
+          </TabsTrigger>
+          <TabsTrigger
+            value="prescriptions"
+            className="text-xs md:text-sm hidden lg:inline-flex"
+          >
+            Prescriptions
+          </TabsTrigger>
+          <TabsTrigger
+            value="templates"
+            className="text-xs md:text-sm hidden lg:inline-flex"
+          >
+            Templates
+          </TabsTrigger>
+          <TabsTrigger
+            value="custom-fields"
+            className="text-xs md:text-sm hidden lg:inline-flex"
+          >
+            Custom Fields
+          </TabsTrigger>
+          <TabsTrigger
+            value="reminders"
+            className="text-xs md:text-sm hidden lg:inline-flex"
+          >
+            Reminders
+          </TabsTrigger>
+          <TabsTrigger
+            value="whatsapp"
+            className="text-xs md:text-sm hidden lg:inline-flex"
+          >
+            WhatsApp
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">

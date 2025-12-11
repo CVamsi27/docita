@@ -9,6 +9,11 @@ import {
   toISODateString,
   DEFAULT_TIMEZONE,
 } from '@workspace/types';
+import {
+  INVOICE_ANALYTICS_SELECT,
+  PATIENT_ANALYTICS_SELECT,
+  APPOINTMENT_ANALYTICS_SELECT,
+} from '../common/select-fragments';
 
 @Injectable()
 export class AnalyticsService {
@@ -18,6 +23,14 @@ export class AnalyticsService {
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  /**
+   * Get read-optimized Prisma client (read replica if available)
+   * Use for all analytics queries to reduce load on primary database
+   */
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
 
   async getOverview(timezone: string = DEFAULT_TIMEZONE) {
     const cacheKey = `dashboard-overview-${timezone}`;
@@ -33,7 +46,10 @@ export class AnalyticsService {
     lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
     const lastMonthRange = getMonthRange(lastMonthDate, { timezone });
 
+    const readClient = this.getReadClient();
+
     // ✅ OPTIMIZATION: Use Promise.all for parallel queries instead of sequential
+    // ✅ OPTIMIZATION: Use read replica to reduce load on primary database
     const [
       totalPatients,
       newPatientsThisMonth,
@@ -43,24 +59,24 @@ export class AnalyticsService {
       invoicesThisMonth,
       invoicesLastMonth,
     ] = await Promise.all([
-      this.prisma.patient.count(),
-      this.prisma.patient.count({
+      readClient.patient.count(),
+      readClient.patient.count({
         where: { createdAt: { gte: thisMonthRange.start } },
       }),
-      this.prisma.patient.count({
+      readClient.patient.count({
         where: {
           createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
       }),
-      this.prisma.appointment.count(),
-      this.prisma.appointment.count({
+      readClient.appointment.count(),
+      readClient.appointment.count({
         where: { createdAt: { gte: thisMonthRange.start } },
       }),
-      this.prisma.invoice.aggregate({
+      readClient.invoice.aggregate({
         where: { createdAt: { gte: thisMonthRange.start } },
         _sum: { total: true },
       }),
-      this.prisma.invoice.aggregate({
+      readClient.invoice.aggregate({
         where: {
           createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
@@ -104,16 +120,20 @@ export class AnalyticsService {
     days: number = 30,
     timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const dateRange = getLastNDaysRange(days, { timezone });
+    const cacheKey = `analytics:revenue-trends:${period}:${days}:${timezone}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
 
-    const invoices = await this.prisma.invoice.findMany({
+    const dateRange = getLastNDaysRange(days, { timezone });
+    const readClient = this.getReadClient();
+
+    const invoices = await readClient.invoice.findMany({
       where: {
         createdAt: { gte: dateRange.start },
       },
-      select: {
-        total: true,
-        createdAt: true,
-      },
+      select: INVOICE_ANALYTICS_SELECT, // Only total and createdAt (~50 bytes per record)
       orderBy: { createdAt: 'asc' },
     });
 
@@ -130,6 +150,9 @@ export class AnalyticsService {
       revenue,
     }));
 
+    // Cache for 1 hour (3600 seconds)
+    await this.cacheManager.set(cacheKey, data, 3600 * 1000);
+
     return data;
   }
 
@@ -137,15 +160,20 @@ export class AnalyticsService {
     days: number = 30,
     timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const dateRange = getLastNDaysRange(days, { timezone });
+    const cacheKey = `analytics:patient-growth:${days}:${timezone}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
 
-    const patients = await this.prisma.patient.findMany({
+    const dateRange = getLastNDaysRange(days, { timezone });
+    const readClient = this.getReadClient();
+
+    const patients = await readClient.patient.findMany({
       where: {
         createdAt: { gte: dateRange.start },
       },
-      select: {
-        createdAt: true,
-      },
+      select: PATIENT_ANALYTICS_SELECT, // Only createdAt (~20 bytes per record)
       orderBy: { createdAt: 'asc' },
     });
 
@@ -163,18 +191,19 @@ export class AnalyticsService {
       return { date, count: cumulative };
     });
 
+    // Cache for 1 hour (3600 seconds)
+    await this.cacheManager.set(cacheKey, data, 3600 * 1000);
+
     return data;
   }
 
   async getAppointmentStats(timezone: string = DEFAULT_TIMEZONE) {
     const monthRange = getMonthRange(new Date(), { timezone });
+    const readClient = this.getReadClient();
 
-    const appointments = await this.prisma.appointment.findMany({
+    const appointments = await readClient.appointment.findMany({
       where: { createdAt: { gte: monthRange.start } },
-      select: {
-        status: true,
-        type: true,
-      },
+      select: APPOINTMENT_ANALYTICS_SELECT, // Only status, type, createdAt (~80 bytes per record)
     });
 
     const byStatus = appointments.reduce(
@@ -201,7 +230,9 @@ export class AnalyticsService {
   }
 
   async getTopDiagnoses(limit: number = 10) {
-    const appointments = await this.prisma.appointment.findMany({
+    const readClient = this.getReadClient();
+
+    const appointments = await readClient.appointment.findMany({
       where: {
         observations: { not: null },
       },
@@ -251,8 +282,10 @@ export class AnalyticsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
+    const readClient = this.getReadClient();
+
     // ✅ OPTIMIZATION: Include icdCode in the query to avoid N+1
-    const diagnoses = await this.prisma.diagnosis.groupBy({
+    const diagnoses = await readClient.diagnosis.groupBy({
       by: ['icdCodeId'],
       where,
       _count: {
@@ -269,7 +302,7 @@ export class AnalyticsService {
     const icdCodeIds = diagnoses.map((d) => d.icdCodeId).filter(Boolean);
 
     // ✅ OPTIMIZATION: Batch fetch all ICD codes at once
-    const icdCodes = await this.prisma.icdCode.findMany({
+    const icdCodes = await readClient.icdCode.findMany({
       where: { id: { in: icdCodeIds as string[] } },
     });
 
@@ -314,7 +347,9 @@ export class AnalyticsService {
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
-    const diagnoses = await this.prisma.diagnosis.findMany({
+    const readClient = this.getReadClient();
+
+    const diagnoses = await readClient.diagnosis.findMany({
       where: {
         appointment: { clinicId },
         createdAt: { gte: startDate, lte: endDate },
@@ -388,7 +423,9 @@ export class AnalyticsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const procedures = await this.prisma.procedure.groupBy({
+    const readClient = this.getReadClient();
+
+    const procedures = await readClient.procedure.groupBy({
       by: ['cptCodeId'],
       where,
       _count: {
@@ -405,7 +442,7 @@ export class AnalyticsService {
     const cptCodeIds = procedures.map((p) => p.cptCodeId).filter(Boolean);
 
     // ✅ OPTIMIZATION: Batch fetch all CPT codes at once
-    const cptCodes = await this.prisma.cptCode.findMany({
+    const cptCodes = await readClient.cptCode.findMany({
       where: { id: { in: cptCodeIds as string[] } },
     });
 
@@ -720,7 +757,10 @@ export class AnalyticsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const invoices = await this.prisma.invoice.findMany({
+    const readClient = this.getReadClient();
+
+    // ✅ OPTIMIZATION: Use select to fetch only needed fields instead of full records
+    const invoices = await readClient.invoice.findMany({
       where,
       select: { total: true, createdAt: true, status: true },
     });
@@ -763,32 +803,32 @@ export class AnalyticsService {
     const cached = await this.cacheManager.get<any>(cacheKey);
     if (cached) return cached;
 
-    const where: any = { patient: { clinicId } };
+    const where: any = { clinicId };
     if (startDate || endDate) {
-      where.scheduledAt = {};
-      if (startDate) where.scheduledAt.gte = startDate;
-      if (endDate) where.scheduledAt.lte = endDate;
+      where.startTime = {};
+      if (startDate) where.startTime.gte = startDate;
+      if (endDate) where.startTime.lte = endDate;
     }
 
-    const appointments = await this.prisma.appointment.findMany({
-      where,
-      select: { status: true, startTime: true },
-    });
+    const readClient = this.getReadClient();
 
-    const statuses = {
-      total: appointments.length,
-      booked: appointments.filter((a) => a.status === 'confirmed').length,
-      completed: appointments.filter((a) => a.status === 'completed').length,
-      cancelled: appointments.filter((a) => a.status === 'cancelled').length,
-      noShow: appointments.filter((a) => a.status === 'no_show').length,
-    };
+    // ✅ OPTIMIZATION: Use Promise.all for parallel count queries
+    const [total, booked, completed, cancelled, noShow] = await Promise.all([
+      readClient.appointment.count({ where }),
+      readClient.appointment.count({ where: { ...where, status: 'confirmed' } }),
+      readClient.appointment.count({ where: { ...where, status: 'completed' } }),
+      readClient.appointment.count({ where: { ...where, status: 'cancelled' } }),
+      readClient.appointment.count({ where: { ...where, status: 'no_show' } }),
+    ]);
 
     const result = {
-      ...statuses,
-      fillRate:
-        statuses.total > 0 ? (statuses.booked / statuses.total) * 100 : 0,
-      completionRate:
-        statuses.total > 0 ? (statuses.completed / statuses.total) * 100 : 0,
+      total,
+      booked,
+      completed,
+      cancelled,
+      noShow,
+      fillRate: total > 0 ? (booked / total) * 100 : 0,
+      completionRate: total > 0 ? (completed / total) * 100 : 0,
     };
 
     await this.cacheManager.set(
@@ -818,7 +858,9 @@ export class AnalyticsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const patients = await this.prisma.patient.findMany({
+    const readClient = this.getReadClient();
+
+    const patients = await readClient.patient.findMany({
       where,
       select: { dateOfBirth: true, gender: true },
     });
@@ -872,7 +914,9 @@ export class AnalyticsService {
     const cached = await this.cacheManager.get<any>(cacheKey);
     if (cached) return cached;
 
-    const conditions = await this.prisma.patientMedicalCondition.groupBy({
+    const readClient = this.getReadClient();
+
+    const conditions = await readClient.patientMedicalCondition.groupBy({
       by: ['conditionName'],
       where: { patient: { clinicId } },
       _count: { id: true },

@@ -89,7 +89,9 @@ type UpdateAppointmentDto = Partial<CreateAppointmentDto> & {
 
 interface AuthRequest {
   user: {
+    id: string;
     clinicId: string;
+    role: string;
   };
 }
 
@@ -119,11 +121,19 @@ export class AppointmentsController {
     @Query('date') date?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('patientId') patientId?: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.appointmentsService.findAll(req.user.clinicId, {
       date,
       startDate,
       endDate,
+      patientId,
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      userId: req.user.id,
+      userRole: req.user.role,
     });
   }
 
@@ -146,6 +156,14 @@ export class AppointmentsController {
 
   @Patch(':id')
   update(
+    @Param('id') id: string,
+    @Body() updateAppointmentDto: UpdateAppointmentDto,
+  ) {
+    return this.appointmentsService.update(id, updateAppointmentDto);
+  }
+
+  @Put(':id')
+  updateWithPut(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
   ) {

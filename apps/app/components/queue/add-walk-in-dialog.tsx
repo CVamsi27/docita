@@ -8,7 +8,6 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 import { Button } from "@workspace/ui/components/button";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -134,12 +133,10 @@ export function AddWalkInDialog({
 
   return (
     <>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Walk-in
-        </Button>
-      </DialogTrigger>
+      <Button className="gap-2" onClick={() => setOpen(true)}>
+        <Plus className="h-4 w-4" />
+        Add Walk-in
+      </Button>
       <FormDialog
         open={open}
         onOpenChange={setOpen}

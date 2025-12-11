@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
@@ -23,6 +23,7 @@ import { FeedbackFormDialogDynamic } from "@/lib/dynamic-imports";
 
 export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { logout, user } = useAuth();
   const { canAccess, currentTier, getTierInfo } = usePermissionStore();
   const { theme, setTheme } = useTheme();
@@ -162,6 +163,7 @@ export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
         <Link
           href="/profile"
           title={isCollapsed ? "Profile" : undefined}
+          onMouseEnter={() => router.prefetch("/profile")}
           className={cn(
             "mb-4 flex items-center gap-3 rounded-lg border border-sidebar-border bg-sidebar p-3 shadow-sm hover:bg-sidebar-accent transition-colors",
             isCollapsed &&
@@ -188,7 +190,7 @@ export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
           </div>
         </Link>
 
-        <div className="grid gap-1">
+      <div className="grid gap-1">
           <button
             onClick={toggleTheme}
             title={isCollapsed ? "Toggle theme" : undefined}
@@ -214,6 +216,7 @@ export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
           <Link
             href="/settings"
             title={isCollapsed ? "Settings" : undefined}
+            onMouseEnter={() => router.prefetch("/settings")}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               pathname === "/settings" &&
@@ -265,6 +268,15 @@ interface NavItemProps {
 }
 
 function NavItem({ item, isActive, isCollapsed, onClick }: NavItemProps) {
+  const router = useRouter();
+
+  // ✅ OPTIMIZATION: Prefetch route on hover for instant navigation
+  const handleMouseEnter = () => {
+    if (!onClick && !item.href.startsWith("#")) {
+      router.prefetch(item.href);
+    }
+  };
+
   if (onClick || item.href.startsWith("#")) {
     return (
       <button
@@ -305,6 +317,7 @@ function NavItem({ item, isActive, isCollapsed, onClick }: NavItemProps) {
     <Link
       href={item.href}
       title={isCollapsed ? item.title : undefined}
+      onMouseEnter={handleMouseEnter}
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive

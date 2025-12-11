@@ -2,7 +2,10 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ClinicTier } from '@workspace/db';
 import { PaymentGateway } from '../../gateways/payment.gateway';
@@ -15,27 +18,28 @@ import {
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
 } from '@workspace/types';
+import {
+  CLINIC_CARD_SELECT,
+  DOCTOR_CARD_SELECT,
+} from '../../common/select-fragments';
+import { paginateWithCursor } from '../../common/pagination.helper';
 
 @Injectable()
 export class SuperAdminService {
   constructor(
     private prisma: PrismaService,
     private paymentGateway: PaymentGateway,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getAllClinics() {
+  async getAllClinics(options?: { cursor?: string; limit?: number }) {
     try {
-      return await this.prisma.clinic.findMany({
-        include: {
-          _count: {
-            select: {
-              users: true,
-              patients: true,
-              appointments: true,
-            },
-          },
-        },
+      return paginateWithCursor({
+        model: this.prisma.clinic,
+        cursor: options?.cursor,
+        limit: options?.limit || 50,
         orderBy: { createdAt: 'desc' },
+        select: CLINIC_CARD_SELECT, // Use optimized card select with counts
       });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch clinics');
@@ -48,44 +52,12 @@ export class SuperAdminService {
         where: { clinicId },
         include: {
           doctor: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-              specialization: true,
-              hospitalRole: true,
-              qualification: true,
-              registrationNumber: true,
-              licenseNumber: true,
-              profilePhotoUrl: true,
-              phoneNumber: true,
-              bio: true,
-              yearsOfExperience: true,
-              consultationFee: true,
-              createdAt: true,
-            },
+            select: DOCTOR_CARD_SELECT, // Use optimized card select
           },
         },
       });
 
-      return doctorClinics.map((dc) => ({
-        id: dc.doctor.id,
-        email: dc.doctor.email,
-        name: dc.doctor.name,
-        role: dc.doctor.role,
-        specialization: dc.doctor.specialization,
-        hospitalRole: dc.doctor.hospitalRole,
-        qualification: dc.doctor.qualification,
-        registrationNumber: dc.doctor.registrationNumber,
-        licenseNumber: dc.doctor.licenseNumber,
-        profilePhotoUrl: dc.doctor.profilePhotoUrl,
-        phoneNumber: dc.doctor.phoneNumber,
-        bio: dc.doctor.bio,
-        yearsOfExperience: dc.doctor.yearsOfExperience,
-        consultationFee: dc.doctor.consultationFee,
-        createdAt: dc.doctor.createdAt,
-      }));
+      return doctorClinics.map((dc) => dc.doctor);
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch clinic doctors');
     }
@@ -227,6 +199,15 @@ export class SuperAdminService {
 
   async getGlobalStats(timezone: string = DEFAULT_TIMEZONE) {
     try {
+      // Cache key for global stats
+      const cacheKey = `super-admin:global-stats:${timezone}`;
+      
+      // Try to get cached data (5 minute TTL)
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
       // Use timezone-aware date ranges
       const thisMonthRange = getMonthRange(new Date(), { timezone });
       const lastMonthDate = new Date();
@@ -312,7 +293,7 @@ export class SuperAdminService {
             ? 100
             : 0;
 
-      return {
+      const result = {
         clinics,
         users,
         doctors,
@@ -328,6 +309,11 @@ export class SuperAdminService {
           prescriptionsPercentChange,
         },
       };
+
+      // Cache the result for 5 minutes (300 seconds)
+      await this.cacheManager.set(cacheKey, result, 300 * 1000);
+
+      return result;
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch global stats');
     }

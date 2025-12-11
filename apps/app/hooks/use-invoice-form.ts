@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { LineItem, type Specialization } from "@workspace/types";
 import { apiFetch } from "@/lib/api-client";
@@ -64,7 +64,8 @@ export function useInvoiceForm({
   const defaultItems = config.defaults.invoiceItems;
 
   // Generate specialty-based default consultation fee (Phase 4)
-  const getDefaultItems = () => {
+  // Memoize to prevent creating new array on every render
+  const initialItems = useMemo(() => {
     const basePrice =
       doctorSpecialization && SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
         ? SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
@@ -77,9 +78,7 @@ export function useInvoiceForm({
         price: basePrice,
       },
     ];
-  };
-
-  const initialItems = getDefaultItems();
+  }, [doctorSpecialization, defaultItems]);
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("pending");
@@ -90,11 +89,16 @@ export function useInvoiceForm({
     initialItems.map((item) => ({ ...item })),
   );
 
-  // Sync items when defaultItems change (without useEffect)
-  if (initialItems !== lastDefaultItemsRef.current && initialItems.length > 0) {
-    lastDefaultItemsRef.current = initialItems;
-    setItems(initialItems.map((item) => ({ ...item })));
-  }
+  // Sync items when defaultItems change using useEffect
+  useEffect(() => {
+    if (
+      initialItems !== lastDefaultItemsRef.current &&
+      initialItems.length > 0
+    ) {
+      lastDefaultItemsRef.current = initialItems;
+      setItems(initialItems.map((item) => ({ ...item })));
+    }
+  }, [initialItems]);
 
   const addItem = (item?: Partial<LineItem>) => {
     const newItem: LineItem = {
@@ -126,7 +130,7 @@ export function useInvoiceForm({
   };
 
   const resetItems = () => {
-    setItems(getDefaultItems().map((item) => ({ ...item })));
+    setItems(initialItems.map((item) => ({ ...item })));
   };
 
   const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {

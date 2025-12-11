@@ -11,6 +11,7 @@ import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { WebVitalDto } from './dto/web-vital.dto';
 
 @Controller('monitoring')
 @UseGuards(JwtAuthGuard, TierGuard)
@@ -119,4 +120,35 @@ export class MonitoringController {
       },
     };
   }
+
+  /**
+   * Web Vitals endpoint for Core Web Vitals tracking
+   * ✅ OPTIMIZATION: Track real user performance metrics from frontend
+   * 
+   * Metrics tracked:
+   * - LCP (Largest Contentful Paint): < 2.5s good
+   * - FID (First Input Delay): < 100ms good
+   * - CLS (Cumulative Layout Shift): < 0.1 good
+   * - FCP (First Contentful Paint): < 1.8s good
+   * - TTFB (Time to First Byte): < 800ms good
+   * - INP (Interaction to Next Paint): < 200ms good
+   */
+  @Post('web-vitals')
+  async reportWebVital(@Body() vital: WebVitalDto) {
+    return this.monitoringService.recordWebVital(vital);
+  }
+
+  @Get('web-vitals')
+  async getWebVitals(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: string,
+  ) {
+    return this.monitoringService.getWebVitals(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+      page,
+    );
+  }
 }
+

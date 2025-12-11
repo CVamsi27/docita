@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Specialization, HospitalRole, Role } from '@workspace/db';
+import {
+  DOCTOR_LIST_SELECT,
+  DOCTOR_CARD_SELECT,
+  DOCTOR_DETAIL_SELECT,
+} from '../common/select-fragments';
 
 interface CreateDoctorData {
   email: string;
@@ -70,20 +75,7 @@ export class DoctorsService {
         where: { clinicId },
         include: {
           doctor: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-              specialization: true,
-              hospitalRole: true,
-              qualification: true,
-              registrationNumber: true,
-              profilePhotoUrl: true,
-              yearsOfExperience: true,
-              consultationFee: true,
-              createdAt: true,
-            },
+            select: DOCTOR_CARD_SELECT, // Use optimized card select
           },
         },
       }),
@@ -91,13 +83,7 @@ export class DoctorsService {
       this.prisma.user.findMany({
         where: { clinicId },
         select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          specialization: true,
-          hospitalRole: true,
-          qualification: true,
+          ...DOCTOR_LIST_SELECT, // Use optimized list select
           registrationNumber: true,
           profilePhotoUrl: true,
           yearsOfExperience: true,
@@ -116,7 +102,6 @@ export class DoctorsService {
         id: dc.doctor.id,
         email: dc.doctor.email,
         name: dc.doctor.name,
-        role: dc.doctor.role,
         specialization: dc.doctor.specialization,
         hospitalRole: dc.doctor.hospitalRole,
         qualification: dc.doctor.qualification,
@@ -130,7 +115,6 @@ export class DoctorsService {
         id: u.id,
         email: u.email,
         name: u.name,
-        role: u.role,
         specialization: u.specialization,
         hospitalRole: u.hospitalRole,
         qualification: u.qualification,
@@ -207,6 +191,7 @@ export class DoctorsService {
         email,
         password: hashedPassword,
         name,
+        clinicId,
         role: (role as unknown as Role) || 'DOCTOR',
         specialization,
         hospitalRole,

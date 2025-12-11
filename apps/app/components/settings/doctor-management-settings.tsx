@@ -92,7 +92,11 @@ export function DoctorManagementSettings() {
       resetForm();
     } catch (error) {
       console.error("Save doctor error:", error);
-      toast.error(`Failed to save doctor. Please try again.`);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save doctor. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

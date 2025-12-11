@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Patient } from '@workspace/types';
 import { Gender } from '@workspace/db';
+import {
+  PATIENT_LIST_SELECT,
+  PATIENT_DETAIL_SELECT,
+} from '../common/select-fragments';
+import { paginateWithCursor } from '../common/pagination.helper';
 
 interface PatientTag {
   tag: string;
@@ -31,11 +36,17 @@ export class PatientsService {
     clinicId: string,
     options?: {
       limit?: number;
+      cursor?: string;
       search?: string;
     },
-  ): Promise<Patient[]> {
+  ) {
     if (!clinicId) {
-      return [];
+      return {
+        items: [],
+        nextCursor: undefined,
+        hasMore: false,
+        count: 0,
+      };
     }
 
     const where: {
@@ -58,20 +69,16 @@ export class PatientsService {
       ];
     }
 
-    const patients = await this.prisma.patient.findMany({
+    return paginateWithCursor({
+      model: this.prisma.patient,
+      cursor: options?.cursor,
+      limit: options?.limit || 50,
       where,
       orderBy: { updatedAt: 'desc' },
-      ...(options?.limit && { take: options.limit }),
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phoneNumber: true,
-        email: true,
-        gender: true,
-        dateOfBirth: true,
+        ...PATIENT_LIST_SELECT,
+        email: true, // Additional field for this view
         bloodGroup: true,
-        createdAt: true,
         updatedAt: true,
         tags: {
           select: {
@@ -82,29 +89,12 @@ export class PatientsService {
         },
       },
     });
-    return patients as unknown as Patient[];
   }
 
   async findOne(id: string): Promise<Patient> {
     const patient = await this.prisma.patient.findUnique({
       where: { id },
-      include: {
-        // Include structured medical history
-        medicalConditions: {
-          orderBy: { createdAt: 'desc' },
-        },
-        patientAllergies: {
-          orderBy: { createdAt: 'desc' },
-        },
-        familyHistory: {
-          orderBy: { createdAt: 'desc' },
-        },
-        socialHistory: true,
-        surgicalHistory: {
-          orderBy: { procedureDate: 'desc' },
-        },
-        tags: true,
-      },
+      select: PATIENT_DETAIL_SELECT,
     });
 
     if (!patient) {

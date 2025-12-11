@@ -46,10 +46,12 @@ export class PatientsController {
   findAll(
     @Request() req: AuthRequest,
     @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
     @Query('search') search?: string,
   ) {
     return this.patientsService.findAll(req.user.clinicId, {
       limit: limit ? parseInt(limit, 10) : undefined,
+      cursor,
       search,
     });
   }

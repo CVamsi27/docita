@@ -44,9 +44,13 @@ export function IcdCodeSearch({
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const { data: favoritesData = [] } = apiHooks.useICDFavorites();
-  const { data: codes = [], isLoading: loading } =
-    apiHooks.useSearchIcdCodes(debouncedSearch);
+  const { data: favoritesData = [], isLoading: favLoading } =
+    apiHooks.useICDFavorites();
+  const {
+    data: codes = [],
+    isLoading: loading,
+    error,
+  } = apiHooks.useSearchIcdCodes(debouncedSearch);
 
   // Extract icdCode from favorites response (API returns { icdCode: {...} })
   const favorites = (favoritesData as IcdFavoriteResponse[])
@@ -66,19 +70,38 @@ export function IcdCodeSearch({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent className="w-[650px] p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search by code or description..."
+            placeholder="Type 2+ characters to search ICD-10 codes..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandList>
             <CommandEmpty>
-              {loading ? "Searching..." : "No diagnosis found."}
+              {loading ? (
+                <div className="py-6 text-center text-sm">
+                  <div className="animate-pulse">Searching diagnoses...</div>
+                </div>
+              ) : error ? (
+                <div className="py-6 text-center text-sm text-destructive">
+                  <p className="font-medium">Error loading diagnoses</p>
+                  <p className="text-xs mt-1">
+                    Please try again or contact support
+                  </p>
+                </div>
+              ) : searchQuery.length > 0 && searchQuery.length < 2 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  Type at least 2 characters to search
+                </div>
+              ) : (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No diagnosis found. Try a different search term.
+                </div>
+              )}
             </CommandEmpty>
 
-            {!searchQuery && favorites.length > 0 && (
+            {!searchQuery && !favLoading && favorites.length > 0 && (
               <CommandGroup heading="Favorites">
                 {favorites.map((code) => (
                   <CommandItem
@@ -100,7 +123,7 @@ export function IcdCodeSearch({
               </CommandGroup>
             )}
 
-            {codes.length > 0 && (
+            {!loading && codes.length > 0 && (
               <CommandGroup heading="Search Results">
                 {codes.map((code: IcdCode) => (
                   <CommandItem

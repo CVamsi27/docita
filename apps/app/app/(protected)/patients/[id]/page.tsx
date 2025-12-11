@@ -6,6 +6,7 @@ import { Card, CardContent } from "@workspace/ui/components/card";
 import { PatientTagManager } from "@/components/patients/patient-tag-manager";
 import { FhirExportDialog } from "@/components/patients/fhir-export-dialog";
 import { usePatientData } from "@/hooks/use-patient-data";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -48,10 +49,22 @@ export default function PatientDetailPage() {
   const { patient, appointments, documents, loading, refetch } = usePatientData(
     params.id as string,
   );
+  const { user } = useAuth();
   const goBack = useSmartBack("/");
 
   const { canAccess } = usePermissionStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Check if doctor can access this patient
+  const canAccessPatient = useMemo(() => {
+    if (user?.role !== "DOCTOR") return true; // Non-doctors can access all patients
+
+    // Doctors can only access patients they have appointments with
+    const hasAppointment = appointments.some(
+      (apt) => apt.doctorId === user?.id,
+    );
+    return hasAppointment;
+  }, [user, appointments]);
 
   // Modal state
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
@@ -156,6 +169,19 @@ export default function PatientDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <p className="text-muted-foreground">Patient not found</p>
+        <Button onClick={() => router.push("/patients")}>
+          Back to Patients
+        </Button>
+      </div>
+    );
+  }
+
+  if (!canAccessPatient) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <p className="text-muted-foreground">
+          You do not have access to this patient
+        </p>
         <Button onClick={() => router.push("/patients")}>
           Back to Patients
         </Button>

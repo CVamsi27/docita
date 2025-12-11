@@ -1,6 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import {
+  INVOICE_LIST_SELECT,
+  INVOICE_CARD_SELECT,
+  INVOICE_DETAIL_SELECT,
+} from '../common/select-fragments';
+import { paginateWithCursor } from '../common/pagination.helper';
 import PDFDocument from 'pdfkit';
 
 interface InvoiceItem {
@@ -13,77 +19,38 @@ interface InvoiceItem {
 export class InvoicesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(clinicId: string) {
+  async findAll(
+    clinicId: string,
+    options?: {
+      cursor?: string;
+      limit?: number;
+    },
+  ) {
     if (!clinicId) {
-      return [];
+      return {
+        items: [],
+        nextCursor: undefined,
+        hasMore: false,
+        count: 0,
+      };
     }
-    return this.prisma.invoice.findMany({
+
+    return paginateWithCursor({
+      model: this.prisma.invoice,
+      cursor: options?.cursor,
+      limit: options?.limit || 50,
       where: { patient: { clinicId } },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-        appointment: {
-          select: {
-            id: true,
-            doctor: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
       orderBy: { createdAt: 'desc' },
+      select: {
+        ...INVOICE_CARD_SELECT, // Use optimized card select (excludes binary data)
+      },
     });
   }
 
   async findOne(id: string) {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-            address: true,
-            clinic: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
-                phone: true,
-                email: true,
-                logo: true,
-              },
-            },
-          },
-        },
-        appointment: {
-          select: {
-            id: true,
-            doctor: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                qualification: true,
-                registrationNumber: true,
-                signatureUrl: true,
-              },
-            },
-          },
-        },
-      },
+      select: INVOICE_DETAIL_SELECT, // Use optimized detail select (excludes binary data)
     });
 
     if (!invoice) {

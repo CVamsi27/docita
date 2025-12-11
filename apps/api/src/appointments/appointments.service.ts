@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Appointment } from '@workspace/types';
 import { Prisma } from '@workspace/db';
+import {
+  APPOINTMENT_LIST_SELECT,
+  APPOINTMENT_CARD_SELECT,
+  APPOINTMENT_DETAIL_SELECT,
+} from '../common/select-fragments';
+import { paginateWithCursor } from '../common/pagination.helper';
 
-// Default select for appointment includes all clinical documentation fields
-const appointmentSelect = {
-  id: true,
-  patientId: true,
-  doctorId: true,
-  clinicId: true,
-  startTime: true,
-  endTime: true,
-  status: true,
-  type: true,
+// Extended select for appointment with all clinical documentation fields
+// Used for updates and creates where full object is needed
+const appointmentFullSelect = {
+  ...APPOINTMENT_LIST_SELECT,
   // Legacy fields
   notes: true,
   observations: true,
@@ -33,9 +33,9 @@ const appointmentSelect = {
   finalDiagnosis: true,
   treatmentPlan: true,
   followUpPlan: true,
-  // Timestamps
-  createdAt: true,
-  updatedAt: true,
+  patientId: true,
+  doctorId: true,
+  clinicId: true,
 };
 
 @Injectable()
@@ -48,13 +48,33 @@ export class AppointmentsService {
       date?: string;
       startDate?: string;
       endDate?: string;
+      patientId?: string;
+      cursor?: string;
+      limit?: number;
+      userId?: string;
+      userRole?: string;
     },
-  ): Promise<Appointment[]> {
+  ) {
     if (!clinicId) {
-      return [];
+      return {
+        items: [],
+        nextCursor: undefined,
+        hasMore: false,
+        count: 0,
+      };
     }
 
     const where: Prisma.AppointmentWhereInput = { clinicId };
+
+    // Filter by patient if specified
+    if (options?.patientId) {
+      where.patientId = options.patientId;
+    }
+
+    // If user is a doctor (not admin or admin_doctor), only show their appointments
+    if (options?.userRole === 'DOCTOR' && options?.userId) {
+      where.doctorId = options.userId;
+    }
 
     // Filter by specific date (for today's appointments)
     if (options?.date) {
@@ -84,106 +104,22 @@ export class AppointmentsService {
       }
     }
 
-    const appointments = await this.prisma.appointment.findMany({
+    return paginateWithCursor({
+      model: this.prisma.appointment,
+      cursor: options?.cursor,
+      limit: options?.limit || 50,
       where,
       orderBy: { startTime: 'desc' },
       select: {
-        ...appointmentSelect,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            gender: true,
-            dateOfBirth: true,
-          },
-        },
+        ...APPOINTMENT_CARD_SELECT, // Use optimized card select for lists
       },
     });
-    return appointments as unknown as Appointment[];
   }
 
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
-      select: {
-        ...appointmentSelect,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            gender: true,
-            dateOfBirth: true,
-            phoneNumber: true,
-            email: true,
-            address: true,
-            bloodGroup: true,
-            allergies: true,
-            medicalHistory: true,
-          },
-        },
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-            qualification: true,
-            registrationNumber: true,
-          },
-        },
-        vitalSign: true,
-        prescription: {
-          select: {
-            id: true,
-            appointmentId: true,
-            patientId: true,
-            doctorId: true,
-            instructions: true,
-            date: true,
-            createdAt: true,
-            updatedAt: true,
-            medications: true,
-          },
-        },
-        invoice: true,
-        diagnoses: {
-          select: {
-            id: true,
-            icdCodeId: true,
-            notes: true,
-            isPrimary: true,
-            createdAt: true,
-            icdCode: {
-              select: {
-                id: true,
-                code: true,
-                description: true,
-                category: true,
-              },
-            },
-          },
-        },
-        procedures: {
-          select: {
-            id: true,
-            cptCodeId: true,
-            notes: true,
-            createdAt: true,
-            updatedAt: true,
-            cptCode: {
-              select: {
-                id: true,
-                code: true,
-                description: true,
-                category: true,
-                price: true,
-              },
-            },
-          },
-        },
-      },
+      select: APPOINTMENT_DETAIL_SELECT, // Use optimized detail select
     });
 
     if (!appointment) {
@@ -202,6 +138,30 @@ export class AppointmentsService {
     const diagnoses = (data as Record<string, unknown>).diagnoses;
     const procedures = (data as Record<string, unknown>).procedures;
 
+    // Validate that patient exists in the clinic
+    const patientRecord = await this.prisma.patient.findUnique({
+      where: { id: rest.patientId as string },
+      select: { id: true, clinicId: true },
+    });
+
+    if (!patientRecord) {
+      throw new Error(`Patient with ID ${rest.patientId} not found`);
+    }
+
+    if (patientRecord.clinicId !== rest.clinicId) {
+      throw new Error('Patient does not belong to this clinic');
+    }
+
+    // Validate that doctor exists (clinicId may be NULL for doctors)
+    const doctorRecord = await this.prisma.user.findUnique({
+      where: { id: rest.doctorId as string },
+      select: { id: true, role: true },
+    });
+
+    if (!doctorRecord) {
+      throw new Error(`Doctor with ID ${rest.doctorId} not found`);
+    }
+
     const appointmentData: Prisma.AppointmentCreateInput = {
       id: undefined,
       startTime: new Date(data.startTime),
@@ -218,7 +178,7 @@ export class AppointmentsService {
     const appointment = await this.prisma.appointment.create({
       data: appointmentData,
       select: {
-        ...appointmentSelect,
+        ...appointmentFullSelect,
         patient: {
           select: {
             id: true,
@@ -304,7 +264,7 @@ export class AppointmentsService {
       where: { id },
       data: updateData,
       select: {
-        ...appointmentSelect,
+        ...appointmentFullSelect,
         patient: {
           select: {
             id: true,

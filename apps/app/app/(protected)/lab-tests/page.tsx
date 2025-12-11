@@ -147,7 +147,11 @@ export default function LabTestsPage() {
         toast.success("Lab test order created successfully");
       } catch (error) {
         console.error("Failed to create lab test order:", error);
-        toast.error("Failed to create lab test order. Please try again.");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to create lab test order. Please try again.";
+        toast.error(errorMessage);
       }
     },
     [createOrder, form, refetch],

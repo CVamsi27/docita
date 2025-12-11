@@ -149,8 +149,12 @@ export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
       setOpen(false);
       resetForm();
       onSuccess?.();
-    } catch {
-      toast.error("Failed to submit feedback. Please try again.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit feedback. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }

@@ -2,6 +2,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
   UseQueryOptions,
   UseMutationOptions,
 } from "@tanstack/react-query";
@@ -172,11 +173,6 @@ export const apiHooks = {
       "/users/profile",
       "PUT",
     ),
-  usePatientAppointments: (patientId: string) =>
-    useAPIQuery<Appointment[]>(
-      ["patients", patientId, "appointments"],
-      `/patients/${patientId}/appointments`,
-    ),
 
   // Appointments
   useAppointments: (options?: {
@@ -212,6 +208,12 @@ export const apiHooks = {
     useAPIQuery<Appointment & { patient?: Patient }>(
       ["appointments", id],
       `/appointments/${id}`,
+    ),
+  usePatientAppointments: (patientId: string) =>
+    useAPIQuery<(Appointment & { patient?: Patient })[]>(
+      ["appointments", "patient", patientId],
+      `/appointments?patientId=${patientId}`,
+      { enabled: !!patientId },
     ),
   useCreateAppointment: () =>
     useAPIMutation<Appointment, CreateAppointmentInput>(
@@ -436,13 +438,13 @@ export const apiHooks = {
   useSearchIcdCodes: (search: string) =>
     useAPIQuery<IcdCode[]>(
       ["icd-codes", search],
-      `/medical-coding/icd-codes?search=${search}`,
+      `/medical-coding/icd-codes?search=${encodeURIComponent(search || "")}`,
       { enabled: search.length >= 2 },
     ),
   useSearchCptCodes: (search: string) =>
     useAPIQuery<CptCode[]>(
       ["cpt-codes", search],
-      `/medical-coding/cpt-codes?search=${search}`,
+      `/medical-coding/cpt-codes?search=${encodeURIComponent(search || "")}`,
       { enabled: search.length >= 2 },
     ),
   useUpdateVisitCoding: (appointmentId: string) =>
@@ -1511,4 +1513,125 @@ export const apiHooks = {
       `/audit-logs?${clinicId ? `clinicId=${clinicId}&` : ""}${actionType ? `actionType=${actionType}&` : ""}${startDate ? `startDate=${startDate.toISOString()}&` : ""}${endDate ? `endDate=${endDate.toISOString()}` : ""}`,
       { staleTime: 1000 * 60, ...options },
     ),
+
+  // ✅ NEW: Infinite query hooks for cursor pagination
+  // These hooks support infinite scrolling with cursor-based pagination
+  
+  /**
+   * Infinite patients query with cursor pagination
+   * @example
+   * const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = apiHooks.useInfinitePatients({ limit: 50 });
+   */
+  useInfinitePatients: (options?: { limit?: number; search?: string }) => {
+    return useInfiniteQuery({
+      queryKey: ["patients", "infinite", options?.limit, options?.search],
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams({
+          limit: (options?.limit || 50).toString(),
+          ...(pageParam && { cursor: pageParam }),
+          ...(options?.search && { search: options.search }),
+        });
+        
+        const response = await fetch(`${API_URL}/patients?${params}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch patients");
+        return response.json() as Promise<{
+          items: Patient[];
+          nextCursor: string | null;
+          hasMore: boolean;
+          count: number;
+        }>;
+      },
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialPageParam: undefined as string | undefined,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  },
+
+  /**
+   * Infinite appointments query with cursor pagination
+   * @example
+   * const { data, fetchNextPage, hasNextPage } = apiHooks.useInfiniteAppointments({ limit: 50, date: '2024-01-15' });
+   */
+  useInfiniteAppointments: (options?: {
+    limit?: number;
+    date?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    return useInfiniteQuery({
+      queryKey: [
+        "appointments",
+        "infinite",
+        options?.limit,
+        options?.date,
+        options?.startDate,
+        options?.endDate,
+      ],
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams({
+          limit: (options?.limit || 50).toString(),
+          ...(pageParam && { cursor: pageParam }),
+          ...(options?.date && { date: options.date }),
+          ...(options?.startDate && { startDate: options.startDate }),
+          ...(options?.endDate && { endDate: options.endDate }),
+        });
+        
+        const response = await fetch(`${API_URL}/appointments?${params}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch appointments");
+        return response.json() as Promise<{
+          items: Appointment[];
+          nextCursor: string | null;
+          hasMore: boolean;
+          count: number;
+        }>;
+      },
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialPageParam: undefined as string | undefined,
+      staleTime: 1000 * 60 * 2, // 2 minutes
+    });
+  },
+
+  /**
+   * Infinite invoices query with cursor pagination
+   * @example
+   * const { data, fetchNextPage, hasNextPage } = apiHooks.useInfiniteInvoices({ limit: 50 });
+   */
+  useInfiniteInvoices: (options?: { limit?: number }) => {
+    return useInfiniteQuery({
+      queryKey: ["invoices", "infinite", options?.limit],
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams({
+          limit: (options?.limit || 50).toString(),
+          ...(pageParam && { cursor: pageParam }),
+        });
+        
+        const response = await fetch(`${API_URL}/invoices?${params}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch invoices");
+        return response.json() as Promise<{
+          items: Invoice[];
+          nextCursor: string | null;
+          hasMore: boolean;
+          count: number;
+        }>;
+      },
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialPageParam: undefined as string | undefined,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  },
 };
