@@ -136,8 +136,9 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(2);
+      expect(response.body.items).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
+      expect(response.body.items.length).toBe(2);
     });
 
     it('should search patients', async () => {
@@ -150,8 +151,8 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.length).toBeGreaterThan(0);
-      expect(response.body[0].firstName).toBe('SearchMe');
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body.items[0].firstName).toBe('SearchMe');
     });
 
     it('should not list patients from other clinics', async () => {
@@ -165,7 +166,7 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.length).toBe(0);
+      expect(response.body.items.length).toBe(0);
     });
   });
 
