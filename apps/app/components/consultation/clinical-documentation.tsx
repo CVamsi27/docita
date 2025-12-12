@@ -663,19 +663,13 @@ export function ClinicalDocumentation({
   } = useInvoiceForm({
     appointmentId,
     patientId,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorSpecialization: (appointmentData?.doctor as any)?.specialization,
     doctorName: appointmentData?.doctor?.name,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorEmail: (appointmentData?.doctor as any)?.email,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorPhone: (appointmentData?.doctor as any)?.phoneNumber,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorRole: (appointmentData?.doctor as any)?.role,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorRegistrationNumber: (appointmentData?.doctor as any)
       ?.registrationNumber,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     doctorLicenseNumber: (appointmentData?.doctor as any)?.licenseNumber,
   });
 
@@ -1902,18 +1896,15 @@ export function ClinicalDocumentation({
                     <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
                       <CheckCircle2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                       <p className="text-muted-foreground font-medium mb-1">
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(appointmentData as any)?.invoice
                           ? "Invoice already created"
                           : "No items added yet"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(appointmentData as any)?.invoice
                           ? "This appointment already has an invoice. You can view it in the Invoices section."
                           : 'Click "Add Item" to start building the invoice'}
                       </p>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {(appointmentData as any)?.invoice && (
                         <Button
                           variant="outline"

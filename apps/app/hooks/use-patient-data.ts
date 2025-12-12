@@ -87,6 +87,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
   // Use useSyncExternalStore to trigger fetch when patientId changes
   useSyncExternalStore(
     useCallback(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (notify) => {
         if (patientId && hasFetchedRef.current !== patientId) {
           hasFetchedRef.current = patientId;

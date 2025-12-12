@@ -43,6 +43,7 @@ export function useAppointmentForm({
 
   // Combine preselected patient with search results, avoiding duplicates
   const patients = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const searchedPatients: Patient[] =
       (searchedPatientsResponse as any)?.items || [];
     if (preselectedPatient && preselectedPatientId) {

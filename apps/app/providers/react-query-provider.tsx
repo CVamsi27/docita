@@ -7,12 +7,15 @@ import { ReactNode, useState, useEffect } from "react";
 async function reportWebVitals() {
   // Collect Core Web Vitals metrics using PerformanceObserver
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vitals: any = {};
 
     // Measure CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!(entry as any).hadRecentInput) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           vitals.cls = (vitals.cls || 0) + (entry as any).value;
         }
       }
@@ -32,6 +35,7 @@ async function reportWebVitals() {
     fcpObserver.observe({ type: "paint", buffered: true });
 
     // Measure TTFB (Time to First Byte)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const navigation = performance.getEntriesByType("navigation")[0] as any;
     if (navigation) {
       vitals.ttfb = navigation.responseStart;
@@ -51,6 +55,7 @@ async function reportWebVitals() {
     }, 5000); // Send after 5 seconds to allow all metrics to be collected
   } catch (error) {
     // Gracefully handle if PerformanceObserver is not available
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     console.warn("Web Vitals monitoring not available");
   }
 }
@@ -74,6 +79,7 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             refetchOnMount: false,
 
             // Retry failed requests with exponential backoff
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             retry: (failureCount, error: any) => {
               // Don't retry on 4xx errors (client errors)
               if (

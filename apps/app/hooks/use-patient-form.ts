@@ -4,7 +4,6 @@ import { useForm, UseFormReturn, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiHooks } from "@/lib/api-hooks";
 import { createPatientSchema, CreatePatientInput } from "@workspace/types";
-import { useRouter } from "next/navigation";
 import { useClinic } from "@/lib/clinic-context";
 
 interface UsePatientFormProps {
@@ -16,7 +15,6 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   loading: boolean;
   onSubmit: (data: CreatePatientInput, onSuccess?: () => void) => Promise<void>;
 } {
-  const router = useRouter();
   const { clinicId } = useClinic();
   const { mutateAsync: createPatient, isPending: loading } =
     apiHooks.useCreatePatient();
