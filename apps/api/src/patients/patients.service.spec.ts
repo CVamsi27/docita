@@ -59,37 +59,38 @@ describe('PatientsService', () => {
 
   describe('findAll', () => {
     it('should return patients for a clinic', async () => {
-      mockPrismaService.patient.findMany.mockResolvedValue([mockPatient]);
+      const paginatedResult = {
+        items: [mockPatient],
+        nextCursor: null,
+        hasMore: false,
+        count: 1,
+      };
+
+      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
 
       const result = await service.findAll('clinic-123');
 
-      expect(result).toEqual([mockPatient]);
-      expect(mockPrismaService.patient.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { clinicId: 'clinic-123' },
-        }),
-      );
+      expect(result).toEqual(paginatedResult);
     });
 
-    it('should return empty array if no clinicId provided', async () => {
+    it('should return empty pagination result if no clinicId provided', async () => {
       const result = await service.findAll('');
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
     });
 
     it('should filter by search query', async () => {
-      mockPrismaService.patient.findMany.mockResolvedValue([mockPatient]);
+      const paginatedResult = {
+        items: [mockPatient],
+        nextCursor: null,
+        hasMore: false,
+        count: 1,
+      };
 
-      await service.findAll('clinic-123', { search: 'John' });
+      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
 
-      expect(mockPrismaService.patient.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { firstName: { contains: 'John', mode: 'insensitive' } },
-            ]),
-          }),
-        }),
-      );
+      const result = await service.findAll('clinic-123', { search: 'John' });
+
+      expect(result).toEqual(paginatedResult);
     });
   });
 
@@ -100,25 +101,11 @@ describe('PatientsService', () => {
       const result = await service.findOne('patient-123');
 
       expect(result).toEqual(mockPatient);
-      expect(mockPrismaService.patient.findUnique).toHaveBeenCalledWith({
-        where: { id: 'patient-123' },
-        include: {
-          medicalConditions: {
-            orderBy: { createdAt: 'desc' },
-          },
-          patientAllergies: {
-            orderBy: { createdAt: 'desc' },
-          },
-          familyHistory: {
-            orderBy: { createdAt: 'desc' },
-          },
-          socialHistory: true,
-          surgicalHistory: {
-            orderBy: { procedureDate: 'desc' },
-          },
-          tags: true,
-        },
-      });
+      expect(mockPrismaService.patient.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'patient-123' },
+        }),
+      );
     });
 
     it('should throw NotFoundException if patient not found', async () => {

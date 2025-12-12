@@ -166,7 +166,10 @@ test.describe("Invoices", () => {
     }
 
     const invoices = await invoiceList.json();
-    expect(Array.isArray(invoices) || invoices === null).toBeTruthy();
+    // API now returns paginated response: { items, nextCursor, hasMore, count }
+    expect(
+      invoices && (Array.isArray(invoices.items) || Array.isArray(invoices)),
+    ).toBeTruthy();
   });
 
   test("should fetch specific invoice", async ({ request }) => {

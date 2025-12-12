@@ -56,15 +56,6 @@ function storeTimer(timer: TimerState) {
   }
 }
 
-function clearStoredTimer(appointmentId: string) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(`${STORAGE_KEY}_${appointmentId}`);
-  } catch {
-    // Ignore storage errors
-  }
-}
-
 export function ConsultationTimer({
   appointmentId,
   onTimeUpdate,
@@ -178,15 +169,6 @@ export function ConsultationTimer({
     setSeconds(0);
     setIsRunning(true);
   };
-
-  const stopTimer = React.useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    clearStoredTimer(appointmentId);
-    timerRef.current = null;
-    setIsRunning(false);
-  }, [appointmentId]);
 
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);

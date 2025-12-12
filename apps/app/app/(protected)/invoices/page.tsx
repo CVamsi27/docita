@@ -52,8 +52,6 @@ export default function InvoicesPage() {
     isLoading: loading,
     refetch,
   } = apiHooks.useInvoices();
-  const invoices: InvoiceWithPatient[] =
-    (invoicesResponse as { items?: InvoiceWithPatient[] })?.items || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [editingInvoice, setEditingInvoice] =
     useState<InvoiceWithPatient | null>(null);

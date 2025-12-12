@@ -159,6 +159,13 @@ describe('PrescriptionsService', () => {
           patientId: createData.patientId,
           doctorId: createData.doctorId,
           instructions: createData.instructions,
+          doctorName: undefined,
+          doctorEmail: undefined,
+          doctorPhone: undefined,
+          doctorSpecialization: null,
+          doctorRole: null,
+          doctorRegistrationNumber: undefined,
+          doctorLicenseNumber: undefined,
           medications: {
             create: expect.arrayContaining([
               expect.objectContaining({

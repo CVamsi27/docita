@@ -56,9 +56,7 @@ export function ConsultationNotesModal({
 
   // Filter past consultations (exclude current appointment)
   const pastConsultations: PastConsultation[] = appointments
-    .filter(
-      (apt) => apt.id !== appointmentId && apt.status === "completed",
-    )
+    .filter((apt) => apt.id !== appointmentId && apt.status === "completed")
     .map((apt) => ({
       id: apt.id || "",
       date: new Date(apt.startTime || ""),

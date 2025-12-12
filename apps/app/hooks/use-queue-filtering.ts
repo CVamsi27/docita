@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Appointment } from "@workspace/types";
 
 type SortKey =
   | "token"
@@ -17,7 +16,34 @@ interface SortConfig {
   direction: "asc" | "desc";
 }
 
-export function useQueueFiltering(queue: Appointment[]) {
+interface Patient {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+}
+
+interface Doctor {
+  name: string;
+}
+
+interface QueueItem {
+  id: string;
+  tokenNumber: number;
+  tokenType: string;
+  status: string;
+  patientId: string;
+  appointmentId?: string;
+  scheduledTime?: string;
+  createdAt: string;
+  estimatedWaitTime?: number;
+  patient?: Patient;
+  doctor?: Doctor;
+  appointment?: {
+    doctor?: Doctor;
+  };
+}
+
+export function useQueueFiltering(queue: QueueItem[]) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "token",

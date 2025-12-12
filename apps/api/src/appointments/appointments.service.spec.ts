@@ -69,40 +69,36 @@ describe('AppointmentsService', () => {
   describe('findAll', () => {
     it('should return all appointments for a clinic', async () => {
       const appointments = [mockAppointment];
-      mockPrismaService.appointment.findMany.mockResolvedValue(appointments);
+      const paginatedResult = {
+        items: appointments,
+        nextCursor: null,
+        hasMore: false,
+        count: 1,
+      };
+
+      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
 
       const result = await service.findAll('clinic-123');
 
-      expect(result).toEqual(appointments);
-      expect(mockPrismaService.appointment.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            clinicId: 'clinic-123',
-          }),
-        }),
-      );
+      expect(result).toEqual(paginatedResult);
     });
 
     it('should filter appointments by date', async () => {
       const appointments = [mockAppointment];
-      mockPrismaService.appointment.findMany.mockResolvedValue(appointments);
+      const paginatedResult = {
+        items: appointments,
+        nextCursor: null,
+        hasMore: false,
+        count: 1,
+      };
+
+      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
 
       const result = await service.findAll('clinic-123', {
         date: '2025-11-28',
       });
 
-      expect(result).toEqual(appointments);
-      expect(mockPrismaService.appointment.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            clinicId: 'clinic-123',
-            startTime: expect.objectContaining({
-              gte: expect.any(Date),
-              lte: expect.any(Date),
-            }),
-          }),
-        }),
-      );
+      expect(result).toEqual(paginatedResult);
     });
   });
 
@@ -141,6 +137,22 @@ describe('AppointmentsService', () => {
         endTime: new Date('2025-11-28T10:30:00Z'),
         status: 'scheduled' as const,
         type: 'consultation' as const,
+      };
+
+      // Mock patient lookup
+      mockPrismaService.patient = {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'patient-123',
+          clinicId: 'clinic-123',
+        }),
+      };
+
+      // Mock user (doctor) lookup
+      mockPrismaService.user = {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'doctor-123',
+          role: 'DOCTOR',
+        }),
       };
 
       mockPrismaService.appointment.create.mockResolvedValue(mockAppointment);

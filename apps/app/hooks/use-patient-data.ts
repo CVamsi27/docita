@@ -86,16 +86,13 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
 
   // Use useSyncExternalStore to trigger fetch when patientId changes
   useSyncExternalStore(
-    useCallback(
-      () => {
-        if (patientId && hasFetchedRef.current !== patientId) {
-          hasFetchedRef.current = patientId;
-          loadPatientData();
-        }
-        return () => {};
-      },
-      [patientId, loadPatientData],
-    ),
+    useCallback(() => {
+      if (patientId && hasFetchedRef.current !== patientId) {
+        hasFetchedRef.current = patientId;
+        loadPatientData();
+      }
+      return () => {};
+    }, [patientId, loadPatientData]),
     () => patient,
     () => null,
   );

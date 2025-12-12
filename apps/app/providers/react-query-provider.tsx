@@ -18,7 +18,10 @@ async function reportWebVitals() {
     // Measure CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+        const layoutEntry = entry as PerformanceEntry & {
+          hadRecentInput?: boolean;
+          value?: number;
+        };
         if (!layoutEntry.hadRecentInput) {
           vitals.cls = (vitals.cls || 0) + (layoutEntry.value || 0);
         }
@@ -39,7 +42,9 @@ async function reportWebVitals() {
     fcpObserver.observe({ type: "paint", buffered: true });
 
     // Measure TTFB (Time to First Byte)
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    const navigation = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
     if (navigation) {
       vitals.ttfb = navigation.responseStart;
     }
@@ -83,11 +88,11 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             // Retry failed requests with exponential backoff
             retry: (failureCount, error: unknown) => {
               // Don't retry on 4xx errors (client errors)
-              const httpError = error as { response?: { status: number } } | undefined;
-              if (
-                httpError?.response?.status >= 400 &&
-                httpError?.response?.status < 500
-              ) {
+              const httpError = error as
+                | { response?: { status?: number } }
+                | undefined;
+              const status = httpError?.response?.status;
+              if (typeof status === "number" && status >= 400 && status < 500) {
                 return false;
               }
               // Retry up to 2 times for other errors
