@@ -234,7 +234,6 @@ export function ClinicalDocumentation({
   const { data: templates = [], refetch: loadTemplates } =
     apiHooks.useTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
     {},
   );

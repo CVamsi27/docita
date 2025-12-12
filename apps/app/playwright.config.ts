@@ -1,7 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const API_URL = process.env.API_URL || "http://localhost:3001";
+const API_URL = process.env.API_URL || "http://localhost:3001/api";
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
 /**

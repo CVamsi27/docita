@@ -179,7 +179,6 @@ export function ConsultationTimer({
     setIsRunning(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const stopTimer = React.useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);

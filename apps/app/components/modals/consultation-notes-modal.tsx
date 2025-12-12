@@ -50,16 +50,13 @@ export function ConsultationNotesModal({
   // Fetch patient's previous appointments for history
   const { data: appointmentsResponse } =
     apiHooks.usePatientAppointments(patientId);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appointments = (appointmentsResponse as any)?.items || [];
 
   // Filter past consultations (exclude current appointment)
   const pastConsultations: PastConsultation[] = appointments
     .filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apt: any) => apt.id !== appointmentId && apt.status === "completed",
     )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((apt: any) => ({
       id: apt.id || "",
       date: new Date(apt.startTime),
@@ -68,7 +65,6 @@ export function ConsultationNotesModal({
       observations: apt.observations,
       chiefComplaint: apt.chiefComplaint,
     }))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .sort((a: any, b: any) => b.date.getTime() - a.date.getTime())
     .slice(0, 5); // Show last 5 consultations
 

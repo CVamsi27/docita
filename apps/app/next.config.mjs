@@ -27,11 +27,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
 
   // Bundle analyzer (only in production with ANALYZE=true)
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
   ...(process.env.ANALYZE === "true" && {
     webpack: (config, { isServer }) => {
       if (!isServer) {
-        // eslint-disable-next-line turbo/no-undeclared-env-vars, @typescript-eslint/no-require-imports, no-undef
         const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
         config.plugins.push(
           new BundleAnalyzerPlugin({

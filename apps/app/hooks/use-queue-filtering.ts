@@ -16,7 +16,6 @@ interface SortConfig {
   direction: "asc" | "desc";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useQueueFiltering(queue: any[]) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({

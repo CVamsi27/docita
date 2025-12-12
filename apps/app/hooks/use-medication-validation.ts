@@ -19,7 +19,6 @@ interface ContraindicationResult {
 
 interface ComprehensiveCheckResult {
   dosageValidations: ValidationResult[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contraindications: any[];
   warnings: string[];
   errors: string[];

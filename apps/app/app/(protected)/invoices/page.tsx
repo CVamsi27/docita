@@ -150,7 +150,6 @@ export default function InvoicesPage() {
     });
 
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoicesResponse, searchTerm, sortConfig]);
 
   const SortableHeader = ({
