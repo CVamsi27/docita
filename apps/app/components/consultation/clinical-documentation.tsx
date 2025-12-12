@@ -234,9 +234,7 @@ export function ClinicalDocumentation({
   const { data: templates = [], refetch: loadTemplates } =
     apiHooks.useTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
-    {},
-  );
+  // Template field state can be added when template feature is fully implemented
 
   // Clinical Note State
   const [clinicalNote, setClinicalNote] = useState<ClinicalNoteData>({
@@ -322,7 +320,7 @@ export function ClinicalDocumentation({
 
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId);
-    setDynamicFields({});
+    // Reset form when template changes (will be re-initialized on render)
   };
 
   const updateClinicalNote = (
@@ -662,14 +660,24 @@ export function ClinicalDocumentation({
   } = useInvoiceForm({
     appointmentId,
     patientId,
-    doctorSpecialization: (appointmentData?.doctor as any)?.specialization,
+    doctorSpecialization:
+      (appointmentData?.doctor as {specialization?: string} | undefined)
+        ?.specialization === 'GENERAL_PRACTICE'
+        ? 'GENERAL_PRACTICE'
+        : (appointmentData?.doctor as {specialization?: string} | undefined)
+        ?.specialization === 'DENTAL'
+        ? 'DENTAL'
+        : (appointmentData?.doctor as {specialization?: string} | undefined)
+        ?.specialization === 'CARDIOLOGY'
+        ? 'CARDIOLOGY'
+        : 'OTHER',
     doctorName: appointmentData?.doctor?.name,
-    doctorEmail: (appointmentData?.doctor as any)?.email,
-    doctorPhone: (appointmentData?.doctor as any)?.phoneNumber,
-    doctorRole: (appointmentData?.doctor as any)?.role,
-    doctorRegistrationNumber: (appointmentData?.doctor as any)
+    doctorEmail: (appointmentData?.doctor as { email?: string } | undefined)?.email,
+    doctorPhone: (appointmentData?.doctor as { phoneNumber?: string } | undefined)?.phoneNumber,
+    doctorRole: (appointmentData?.doctor as { role?: string } | undefined)?.role,
+    doctorRegistrationNumber: (appointmentData?.doctor as { registrationNumber?: string } | undefined)
       ?.registrationNumber,
-    doctorLicenseNumber: (appointmentData?.doctor as any)?.licenseNumber,
+    doctorLicenseNumber: (appointmentData?.doctor as { licenseNumber?: string } | undefined)?.licenseNumber,
   });
 
   return (
@@ -1895,16 +1903,16 @@ export function ClinicalDocumentation({
                     <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
                       <CheckCircle2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                       <p className="text-muted-foreground font-medium mb-1">
-                        {(appointmentData as any)?.invoice
+                        {!!(appointmentData as { invoice?: unknown } | undefined)?.invoice
                           ? "Invoice already created"
                           : "No items added yet"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {(appointmentData as any)?.invoice
+                        {!!(appointmentData as { invoice?: unknown } | undefined)?.invoice
                           ? "This appointment already has an invoice. You can view it in the Invoices section."
                           : 'Click "Add Item" to start building the invoice'}
                       </p>
-                      {(appointmentData as any)?.invoice && (
+                      {!!(appointmentData as { invoice?: unknown } | undefined)?.invoice && (
                         <Button
                           variant="outline"
                           size="sm"

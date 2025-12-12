@@ -19,7 +19,7 @@ interface ContraindicationResult {
 
 interface ComprehensiveCheckResult {
   dosageValidations: ValidationResult[];
-  contraindications: any[];
+  contraindications: ContraindicationResult[];
   warnings: string[];
   errors: string[];
   isApproved: boolean;

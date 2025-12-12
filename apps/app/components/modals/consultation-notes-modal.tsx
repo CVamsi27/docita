@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Appointment } from "@workspace/types";
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
@@ -50,22 +51,23 @@ export function ConsultationNotesModal({
   // Fetch patient's previous appointments for history
   const { data: appointmentsResponse } =
     apiHooks.usePatientAppointments(patientId);
-  const appointments = (appointmentsResponse as any)?.items || [];
+  const appointments: Appointment[] =
+    ((appointmentsResponse as { items?: Appointment[] }) || {}).items || [];
 
   // Filter past consultations (exclude current appointment)
   const pastConsultations: PastConsultation[] = appointments
     .filter(
-      (apt: any) => apt.id !== appointmentId && apt.status === "completed",
+      (apt) => apt.id !== appointmentId && apt.status === "completed",
     )
-    .map((apt: any) => ({
+    .map((apt) => ({
       id: apt.id || "",
-      date: new Date(apt.startTime),
-      type: apt.type,
+      date: new Date(apt.startTime || ""),
+      type: apt.type || "",
       doctorName: apt.doctor?.name,
-      observations: apt.observations,
-      chiefComplaint: apt.chiefComplaint,
+      observations: apt.observations || "",
+      chiefComplaint: apt.chiefComplaint || "",
     }))
-    .sort((a: any, b: any) => b.date.getTime() - a.date.getTime())
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 5); // Show last 5 consultations
 
   const { loading, observations, setObservations, handleSubmit } =

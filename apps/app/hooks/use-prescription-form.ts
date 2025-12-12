@@ -31,10 +31,15 @@ interface UsePrescriptionFormProps {
   doctorLicenseNumber?: string;
 }
 
+interface MedicationContraindication {
+  severity: "info" | "warning" | "critical";
+  message: string;
+}
+
 interface MedicationValidation {
   medicationIndex: number;
   dosageValidation?: DosageValidation;
-  contraindications?: any[];
+  contraindications?: MedicationContraindication[];
   warnings: string[];
 }
 
@@ -104,7 +109,7 @@ export function usePrescriptionForm({
     }
 
     // Check contraindications
-    let contraindications: any[] = [];
+    let contraindications: MedicationContraindication[] = [];
     if (med.name) {
       contraindications = checkMedicationContraindications(med.name, {
         allergies: patientAllergies.map((name) => ({
@@ -122,9 +127,9 @@ export function usePrescriptionForm({
       });
 
       const criticalIssues = contraindications.filter(
-        (c: any) => c.severity === "critical",
+        (c) => c.severity === "critical",
       );
-      if (criticalIssues.length > 0) {
+      if (criticalIssues.length > 0 && criticalIssues[0]) {
         warnings.push(`${med.name}: ${criticalIssues[0].message}`);
       }
     }
@@ -162,7 +167,7 @@ export function usePrescriptionForm({
         const hasDosageError =
           v.dosageValidation && !v.dosageValidation.isValid;
         const hasCriticalContraindication = v.contraindications?.some(
-          (c: any) => c.severity === "critical",
+          (c) => c.severity === "critical",
         );
         return hasDosageError || hasCriticalContraindication;
       });

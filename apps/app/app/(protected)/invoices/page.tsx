@@ -97,6 +97,8 @@ export default function InvoicesPage() {
   };
 
   const filteredAndSortedInvoices = useMemo(() => {
+    const invoices: InvoiceWithPatient[] =
+      (invoicesResponse as { items?: InvoiceWithPatient[] })?.items || [];
     let result = [...invoices];
 
     // Filter

@@ -26,22 +26,8 @@ const nextConfig = {
   // Production source maps (disabled for smaller builds)
   productionBrowserSourceMaps: false,
 
-  // Bundle analyzer (only in production with ANALYZE=true)
-  ...(process.env.ANALYZE === "true" && {
-    webpack: (config, { isServer }) => {
-      if (!isServer) {
-        const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: "static",
-            reportFilename: "./analyze.html",
-            openAnalyzer: true,
-          }),
-        );
-      }
-      return config;
-    },
-  }),
+  // Bundle analyzer disabled in favor of Next.js built-in analysis
+  // To enable: install @next/bundle-analyzer and use with ANALYZE=true environment variable
 };
 
 export default nextConfig;

@@ -44,7 +44,7 @@ export function useAppointmentForm({
   // Combine preselected patient with search results, avoiding duplicates
   const patients = useMemo(() => {
     const searchedPatients: Patient[] =
-      (searchedPatientsResponse as any)?.items || [];
+      ((searchedPatientsResponse as { items?: Patient[] }) || {}).items || [];
     if (preselectedPatient && preselectedPatientId) {
       const hasPreselected = searchedPatients.some(
         (p) => p.id === preselectedPatientId,

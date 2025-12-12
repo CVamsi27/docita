@@ -6,14 +6,21 @@ import { ReactNode, useState, useEffect } from "react";
 // ✅ OPTIMIZATION: Web Vitals monitoring for performance tracking
 async function reportWebVitals() {
   // Collect Core Web Vitals metrics using PerformanceObserver
+  interface WebVitals {
+    cls?: number;
+    lcp?: number;
+    fcp?: number;
+    ttfb?: number;
+  }
   try {
-    const vitals: any = {};
+    const vitals: WebVitals = {};
 
     // Measure CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          vitals.cls = (vitals.cls || 0) + (entry as any).value;
+        const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+        if (!layoutEntry.hadRecentInput) {
+          vitals.cls = (vitals.cls || 0) + (layoutEntry.value || 0);
         }
       }
     });
@@ -32,7 +39,7 @@ async function reportWebVitals() {
     fcpObserver.observe({ type: "paint", buffered: true });
 
     // Measure TTFB (Time to First Byte)
-    const navigation = performance.getEntriesByType("navigation")[0] as any;
+    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
     if (navigation) {
       vitals.ttfb = navigation.responseStart;
     }
@@ -49,7 +56,7 @@ async function reportWebVitals() {
         );
       }
     }, 5000); // Send after 5 seconds to allow all metrics to be collected
-  } catch (error) {
+  } catch {
     // Gracefully handle if PerformanceObserver is not available
     console.warn("Web Vitals monitoring not available");
   }
@@ -74,11 +81,12 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             refetchOnMount: false,
 
             // Retry failed requests with exponential backoff
-            retry: (failureCount, error: any) => {
+            retry: (failureCount, error: unknown) => {
               // Don't retry on 4xx errors (client errors)
+              const httpError = error as { response?: { status: number } } | undefined;
               if (
-                error?.response?.status >= 400 &&
-                error?.response?.status < 500
+                httpError?.response?.status >= 400 &&
+                httpError?.response?.status < 500
               ) {
                 return false;
               }

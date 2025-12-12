@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token =
-    request.cookies.get("docita_token")?.value ||
-    request.headers.get("Authorization")?.split(" ")[1];
-
   // Check for token in localStorage via client-side check is not possible in middleware
   // So we rely on cookies or we have to accept that middleware might not catch everything
   // if we only use localStorage.
@@ -18,9 +14,6 @@ export function middleware(request: NextRequest) {
   // The best way in Next.js App Router with localStorage is a client-side wrapper.
   // But let's see if we can add a basic check for public paths.
 
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/register");
   const isPublicPath =
     request.nextUrl.pathname.startsWith("/_next") ||
     request.nextUrl.pathname.startsWith("/api") ||
