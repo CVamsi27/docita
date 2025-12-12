@@ -124,7 +124,7 @@ export class MonitoringController {
   /**
    * Web Vitals endpoint for Core Web Vitals tracking
    * ✅ OPTIMIZATION: Track real user performance metrics from frontend
-   * 
+   *
    * Metrics tracked:
    * - LCP (Largest Contentful Paint): < 2.5s good
    * - FID (First Input Delay): < 100ms good
@@ -151,4 +151,3 @@ export class MonitoringController {
     );
   }
 }
-

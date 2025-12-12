@@ -190,7 +190,7 @@ export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
           </div>
         </Link>
 
-      <div className="grid gap-1">
+        <div className="grid gap-1">
           <button
             onClick={toggleTheme}
             title={isCollapsed ? "Toggle theme" : undefined}

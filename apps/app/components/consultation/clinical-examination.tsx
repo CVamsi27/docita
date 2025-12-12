@@ -306,7 +306,6 @@ export function ClinicalExamination({
           </AccordionTrigger>
           <AccordionContent className="px-4 pb-4">
             <div className="space-y-6">
-              {/* Consciousness & Orientation */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>GCS Score (3-15)</Label>

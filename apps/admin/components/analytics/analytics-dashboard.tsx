@@ -208,7 +208,6 @@ export function AnalyticsDashboard() {
         </button>
       </div>
 
-      
       <div className="bg-background rounded-lg border border-border p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -294,7 +293,6 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {data?.revenue ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -311,7 +309,6 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        
         {data?.appointments ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -328,7 +325,6 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        
         {data?.newPatients ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
@@ -345,7 +341,6 @@ export function AnalyticsDashboard() {
           </div>
         ) : null}
 
-        
         {data?.appointments ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">

@@ -18,7 +18,15 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
 import { apiHooks } from "@/lib/api-hooks";
+import { Appointment, Patient } from "@workspace/types";
 import { AddAppointmentDialog } from "@/components/appointments/add-appointment-dialog";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 import {
   Clock,
   User,
@@ -41,7 +49,6 @@ import { FeatureGate } from "@/components/common/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import Link from "next/link";
 import { toast } from "sonner";
-import type { Appointment } from "@workspace/types";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useAuth } from "@/lib/auth-context";
 
@@ -55,10 +62,19 @@ function AppointmentsContent() {
   const { user } = useAuth();
   const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
   const {
-    data: appointments = [],
+    data: appointmentsResponse,
     isLoading: loading,
     refetch,
   } = apiHooks.useAppointments({ date: selectedDateStr });
+
+  // Extract appointments from paginated response
+  const appointments = useMemo(() => {
+    const paginatedResponse =
+      appointmentsResponse as unknown as PaginatedResponse<
+        Appointment & { patient?: Patient }
+      >;
+    return paginatedResponse?.items || [];
+  }, [appointmentsResponse]);
   const updateAppointmentMutation = apiHooks.useUpdateAppointment(
     cancellingAptId || noShowAptId || "",
   );

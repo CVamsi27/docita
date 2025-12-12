@@ -27,46 +27,73 @@ interface Appointment {
   patient: Patient;
 }
 
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
+
+interface PatientListItem extends Patient {
+  id: string;
+  email?: string;
+  bloodGroup?: string;
+  updatedAt?: string;
+  tags?: Array<{ id: string; tag: string; color: string }>;
+}
+
+interface AppointmentListItem extends Appointment {
+  notes?: string;
+  createdAt?: string;
+}
+
 export default function DashboardPage() {
   const { canAccess } = usePermissionStore();
-  
+
   // ✅ OPTIMIZATION: All hooks run in parallel automatically via React Query
   const { data, isLoading: loading } = apiHooks.useDashboardStats();
-  const { data: rawAppointments = [] } = apiHooks.useTodayAppointments();
-  const { data: recentPatients = [] } = apiHooks.useRecentPatients(5);
-  
-  const appointments = rawAppointments as unknown as Appointment[];
+  const { data: rawAppointmentsResponse } = apiHooks.useTodayAppointments();
+  const { data: recentPatientsResponse } = apiHooks.useRecentPatients(5);
 
-  // ✅ OPTIMIZATION: Memoize stats object to prevent unnecessary re-renders
-  const stats = useMemo(() => ({
-    totalPatients: data?.totalPatients ?? 0,
-    todayAppointments: data?.todayAppointments ?? 0,
-    activePrescriptions: data?.activePrescriptions ?? 0,
-    pendingReports: data?.pendingReports ?? 0,
-    newPatientsThisMonth: data?.newPatientsThisMonth ?? 0,
-  }), [data]);
+  const stats = useMemo(
+    () => ({
+      totalPatients: data?.totalPatients ?? 0,
+      todayAppointments: data?.todayAppointments ?? 0,
+      activePrescriptions: data?.activePrescriptions ?? 0,
+      pendingReports: data?.pendingReports ?? 0,
+      newPatientsThisMonth: data?.newPatientsThisMonth ?? 0,
+    }),
+    [data],
+  );
 
   // ✅ OPTIMIZATION: Memoize filtered patients
-  const castRecentPatients = useMemo(() => 
-    (recentPatients || []).filter(
-      (p): p is typeof p & { id: string } =>
-        p && typeof p === "object" && "id" in p && !!p.id,
-    ),
-    [recentPatients]
-  );
+  const castRecentPatients = useMemo(() => {
+    const paginatedResponse =
+      recentPatientsResponse as unknown as PaginatedResponse<PatientListItem>;
+    const patients = paginatedResponse?.items || [];
+    return patients.filter(
+      (p): p is PatientListItem & { id: string } => !!(p && p.id),
+    );
+  }, [recentPatientsResponse]);
 
   // ✅ OPTIMIZATION: Memoize sorted appointments and computed values
   const { todayAppointments, completedToday, inProgressToday } = useMemo(() => {
-    const sorted = [...appointments].sort(
-      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    // Extract items from paginated response
+    const paginatedResponse =
+      rawAppointmentsResponse as unknown as PaginatedResponse<AppointmentListItem>;
+    const appointmentsData = paginatedResponse?.items || [];
+
+    const sorted = [...appointmentsData].sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     );
-    
+
     return {
       todayAppointments: sorted,
       completedToday: sorted.filter((a) => a.status === "completed").length,
       inProgressToday: sorted.filter((a) => a.status === "in-progress").length,
     };
-  }, [appointments]);
+  }, [rawAppointmentsResponse]);
 
   if (loading) {
     return <DashboardSkeleton />;

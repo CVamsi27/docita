@@ -575,7 +575,7 @@ export default function PatientDetailPage() {
                             </div>
                             {/* Footer Actions */}
                             <div className="bg-muted/30 px-4 py-3 border-t border-purple-200/50 dark:border-purple-800/30 space-y-2">
-                              {apt.invoice ? (
+                              {apt.invoice && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -585,19 +585,6 @@ export default function PatientDetailPage() {
                                   }
                                 >
                                   View Invoice
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full text-xs"
-                                  onClick={() =>
-                                    router.push(
-                                      `/consultation/${apt.id}?from=patient&action=generate-invoice`,
-                                    )
-                                  }
-                                >
-                                  Generate Invoice
                                 </Button>
                               )}
                             </div>

@@ -105,7 +105,7 @@ export function EditInvoiceDialog({
         });
         toast.success("Invoice updated successfully");
         onInvoiceUpdated();
-        onOpenChange(false);
+        setTimeout(() => onOpenChange(false), 100);
       } catch (error) {
         console.error("Failed to update invoice:", error);
         toast.error("Failed to update invoice");
@@ -124,8 +124,9 @@ export function EditInvoiceDialog({
       isLoading={loading}
       onSubmit={handleSubmit}
       submitLabel={loading ? "Saving..." : "Save Changes"}
+      contentClassName="max-w-6xl max-h-[90vh] overflow-y-auto"
     >
-      <form className="space-y-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label>Status</Label>
           <Select
@@ -228,7 +229,7 @@ export function EditInvoiceDialog({
             ₹{calculateTotal().toFixed(2)}
           </span>
         </div>
-      </form>
+      </div>
     </CRUDDialog>
   );
 }

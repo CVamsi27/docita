@@ -96,7 +96,7 @@ export async function paginateWithCursor<T = any>(
 
   // Enforce max limit to prevent abuse
   const safeLimit = Math.min(limit, 100);
-  
+
   // Fetch one extra item to determine if there are more pages
   const takeCount = safeLimit + 1;
 

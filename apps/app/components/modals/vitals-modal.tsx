@@ -29,9 +29,10 @@ export function VitalsModal({
     handleSubmit,
   } = useVitalsForm({
     appointmentId,
-    onVitalsSaved: () => {
-      onSaved?.();
-      onOpenChange(false);
+    onVitalsSaved: async () => {
+      await onSaved?.();
+      // Small delay to ensure UI updates
+      setTimeout(() => onOpenChange(false), 100);
     },
   });
 
@@ -54,9 +55,9 @@ export function VitalsModal({
       isLoading={loading}
       onSubmit={handleVitalsSubmit}
       submitLabel={loading ? "Saving..." : "Save Vitals"}
-      contentClassName="max-w-2xl max-h-[90vh] overflow-y-auto"
+      contentClassName="max-w-6xl max-h-[90vh] overflow-y-auto"
     >
-      <form className="space-y-6 py-4">
+      <div className="space-y-6 py-4">
         {/* Physical Stats Section */}
         <div className="space-y-4 p-4 border rounded-lg bg-muted/10">
           <h3 className="font-medium flex items-center gap-2">
@@ -167,7 +168,7 @@ export function VitalsModal({
             }}
           />
         )}
-      </form>
+      </div>
     </CRUDDialog>
   );
 }

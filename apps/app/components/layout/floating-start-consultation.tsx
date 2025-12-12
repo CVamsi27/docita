@@ -7,16 +7,36 @@ import { apiHooks } from "@/lib/api-hooks";
 import { useMemo } from "react";
 import type { Appointment } from "@workspace/types";
 import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { useAuth } from "@/lib/auth-context";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 
 export function FloatingStartConsultation() {
   const router = useRouter();
   const pathname = usePathname();
   const { canAccess } = usePermissionStore();
-  const { data: appointments = [] } = apiHooks.useTodayAppointments();
+  const { user } = useAuth();
+
+  // Only fetch appointments for doctors and receptionists
+  const shouldFetchAppointments =
+    user?.role === "DOCTOR" || user?.role === "RECEPTIONIST";
+  const { data: appointmentsResponse } = apiHooks.useTodayAppointments(
+    shouldFetchAppointments,
+  );
 
   // Compute next appointment using useMemo
   const nextAppointment = useMemo(() => {
     const now = new Date();
+    // Extract items from paginated response
+    const paginatedResponse =
+      appointmentsResponse as unknown as PaginatedResponse<Appointment>;
+    const appointments = paginatedResponse?.items || [];
+
     return (
       appointments
         .filter(
@@ -31,7 +51,7 @@ export function FloatingStartConsultation() {
             new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
         )[0] || null
     );
-  }, [appointments]);
+  }, [appointmentsResponse]);
 
   // Hide for Tier 0 users who don't have calendar access
   if (!canAccess(Feature.CALENDAR_SLOTS)) {

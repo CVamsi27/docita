@@ -103,7 +103,7 @@ export function EditPatientDialog({
       });
       toast.success("Patient updated successfully");
       onPatientUpdated();
-      onOpenChange(false);
+      setTimeout(() => onOpenChange(false), 100);
     } catch (error) {
       console.error("Failed to update patient:", error);
       toast.error("Failed to update patient");

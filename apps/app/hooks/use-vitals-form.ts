@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseVitalsFormProps {
   appointmentId: string;
@@ -25,6 +26,7 @@ export function useVitalsForm({
   appointmentId,
   onVitalsSaved,
 }: UseVitalsFormProps) {
+  const queryClient = useQueryClient();
   const saveVitals = apiHooks.useSaveVitals(appointmentId);
   const { data: appointment } = apiHooks.useAppointment(appointmentId);
 
@@ -120,8 +122,21 @@ export function useVitalsForm({
         notes: formData.notes || undefined,
       });
 
-      onVitalsSaved?.();
-      onSuccess?.();
+      // Invalidate and refetch queries to refresh data immediately
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", appointmentId],
+      });
+      await queryClient.refetchQueries({
+        queryKey: ["appointments", appointmentId],
+        type: 'active',
+      });
+
+      if (onVitalsSaved) {
+        await onVitalsSaved();
+      }
+      if (onSuccess) {
+        await onSuccess();
+      }
       toast.success("Vitals saved successfully");
     } catch (error) {
       console.error("Failed to save vitals:", error);

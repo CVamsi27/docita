@@ -19,7 +19,7 @@ interface Clinic {
   phone?: string;
   email?: string;
   logo?: string;
-  tier?: "CAPTURE" | "CORE" | "PLUS" | "PRO" | "ENTERPRISE";
+  tier?: "CAPTURE" | "CORE" | "PLUS" | "PRO" | "ENTERPRISE" | string;
   intelligenceAddon?: "NONE" | "ACTIVE";
   features?: Record<string, boolean>;
   trialEndsAt?: string;
@@ -128,11 +128,21 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     usePermissionStore();
   const { socket, isConnected } = useSocket();
   const hasFetchedRef = useRef(false);
+  const isFetchingRef = useRef(false);
+  const lastFetchTimeRef = useRef<number>(0);
 
   const updatePermissionsFromClinic = useCallback(
     (clinicData: Clinic) => {
       if (clinicData.tier) {
-        setTier(clinicData.tier);
+        // Map any custom tier names to standard tier values
+        let mappedTier = clinicData.tier;
+        
+        // Handle custom tier mappings
+        if (clinicData.tier === "code subscription" || clinicData.tier === "CODE_SUBSCRIPTION") {
+          mappedTier = "CAPTURE"; // Default to lowest tier for unknown tier values
+        }
+        
+        setTier(mappedTier);
       }
       if (clinicData.intelligenceAddon) {
         setIntelligence(clinicData.intelligenceAddon === "ACTIVE");
@@ -145,7 +155,16 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   );
 
   const fetchClinicFromAPI = useCallback(async () => {
+    // Prevent duplicate calls within 1 second
+    const now = Date.now();
+    if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
+      return;
+    }
+
     try {
+      isFetchingRef.current = true;
+      lastFetchTimeRef.current = now;
+
       const token = localStorage.getItem("docita_token");
       if (!token) return;
 
@@ -170,6 +189,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       // Silently handle API errors
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [updatePermissionsFromClinic]);
 

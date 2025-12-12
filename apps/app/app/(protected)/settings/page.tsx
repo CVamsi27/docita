@@ -47,55 +47,55 @@ function SettingsContent() {
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-11 h-auto gap-2 md:gap-0">
-          <TabsTrigger value="general" className="text-xs md:text-sm">
+        <TabsList className="flex flex-wrap w-full h-auto gap-1 md:gap-0 bg-transparent md:bg-background p-0 md:p-1">
+          <TabsTrigger value="general" className="text-xs md:text-sm whitespace-nowrap">
             General
           </TabsTrigger>
-          <TabsTrigger value="billing" className="text-xs md:text-sm">
+          <TabsTrigger value="billing" className="text-xs md:text-sm whitespace-nowrap">
             Billing
           </TabsTrigger>
-          <TabsTrigger value="subscription" className="text-xs md:text-sm">
+          <TabsTrigger value="subscription" className="text-xs md:text-sm whitespace-nowrap">
             Subscription
           </TabsTrigger>
-          <TabsTrigger value="members" className="text-xs md:text-sm">
+          <TabsTrigger value="members" className="text-xs md:text-sm whitespace-nowrap">
             Members
           </TabsTrigger>
-          <TabsTrigger value="availability" className="text-xs md:text-sm">
+          <TabsTrigger value="availability" className="text-xs md:text-sm whitespace-nowrap">
             Availability
           </TabsTrigger>
           <TabsTrigger
             value="queue"
-            className="text-xs md:text-sm hidden md:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden md:inline-flex"
           >
             Queue
           </TabsTrigger>
           <TabsTrigger
             value="prescriptions"
-            className="text-xs md:text-sm hidden lg:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
           >
             Prescriptions
           </TabsTrigger>
           <TabsTrigger
             value="templates"
-            className="text-xs md:text-sm hidden lg:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
           >
             Templates
           </TabsTrigger>
           <TabsTrigger
             value="custom-fields"
-            className="text-xs md:text-sm hidden lg:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
           >
             Custom Fields
           </TabsTrigger>
           <TabsTrigger
             value="reminders"
-            className="text-xs md:text-sm hidden lg:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
           >
             Reminders
           </TabsTrigger>
           <TabsTrigger
             value="whatsapp"
-            className="text-xs md:text-sm hidden lg:inline-flex"
+            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
           >
             WhatsApp
           </TabsTrigger>

@@ -7,14 +7,14 @@ import type { Metric } from "web-vitals";
 /**
  * Web Vitals Reporter - Track Core Web Vitals and send to backend
  * ✅ OPTIMIZATION: Real User Monitoring (RUM) for performance tracking
- * 
+ *
  * Metrics tracked:
  * - LCP (Largest Contentful Paint): Loading performance
  * - INP (Interaction to Next Paint): Interactivity (replaced FID)
  * - CLS (Cumulative Layout Shift): Visual stability
  * - FCP (First Contentful Paint): First paint
  * - TTFB (Time to First Byte): Server response time
- * 
+ *
  * Usage: Add <WebVitalsReporter /> to root layout
  */
 export function WebVitalsReporter() {

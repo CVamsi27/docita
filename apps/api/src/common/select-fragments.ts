@@ -1,8 +1,8 @@
 /**
  * Reusable Prisma select fragments for optimizing API responses
- * 
+ *
  * Purpose: Eliminate data bloat by defining minimal field selections for different use cases
- * 
+ *
  * Patterns:
  * - LIST: Minimal fields for table/list views (~500 bytes per record)
  * - DETAIL: Full object for edit/view pages (~2-5KB per record)
@@ -86,7 +86,7 @@ export const PATIENT_DETAIL_SELECT = {
   medicalConditions: {
     select: {
       id: true,
-      condition: true,
+      conditionName: true,
       diagnosedDate: true,
       status: true,
       notes: true,
@@ -106,9 +106,9 @@ export const PATIENT_DETAIL_SELECT = {
   familyHistory: {
     select: {
       id: true,
-      relation: true,
+      relationship: true,
       condition: true,
-      ageAtDiagnosis: true,
+      ageAtOnset: true,
       notes: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -117,10 +117,16 @@ export const PATIENT_DETAIL_SELECT = {
     select: {
       id: true,
       smokingStatus: true,
+      smokingPackYears: true,
+      smokingQuitDate: true,
       alcoholUse: true,
-      drugUse: true,
+      alcoholFrequency: true,
+      substanceUse: true,
       occupation: true,
-      livingArrangement: true,
+      occupationalHazards: true,
+      exerciseFrequency: true,
+      dietaryRestrictions: true,
+      notes: true,
     },
   },
   surgicalHistory: {
@@ -159,7 +165,6 @@ export const APPOINTMENT_LIST_SELECT = {
   endTime: true,
   status: true,
   type: true,
-  reason: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -176,7 +181,6 @@ export const APPOINTMENT_CARD_SELECT = {
   endTime: true,
   status: true,
   type: true,
-  reason: true,
   notes: true,
   createdAt: true,
   patient: {
@@ -210,14 +214,20 @@ export const APPOINTMENT_DETAIL_SELECT = {
   endTime: true,
   status: true,
   type: true,
-  reason: true,
   notes: true,
   chiefComplaint: true,
-  presentIllnessHistory: true,
-  physicalExamination: true,
-  plan: true,
-  followUpDate: true,
-  followUpInstructions: true,
+  clinicalImpression: true,
+  differentialDiagnosis: true,
+  finalDiagnosis: true,
+  followUpPlan: true,
+  generalExamination: true,
+  historyOfPresentIllness: true,
+  investigations: true,
+  observations: true,
+  provisionalDiagnosis: true,
+  reviewOfSystems: true,
+  systemicExamination: true,
+  treatmentPlan: true,
   createdAt: true,
   updatedAt: true,
   patient: {
@@ -252,11 +262,9 @@ export const APPOINTMENT_DETAIL_SELECT = {
       diastolicBP: true,
       pulse: true,
       temperature: true,
-      respiratoryRate: true,
       spo2: true,
       weight: true,
       height: true,
-      bmi: true,
     },
   },
   prescription: {

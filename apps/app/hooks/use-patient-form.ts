@@ -52,8 +52,10 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
           clinicId: clinicId || "default-clinic-id",
         } as CreatePatientInput & { clinicId: string });
         form.reset();
-        onPatientAdded();
-        onSuccess?.();
+        await onPatientAdded();
+        if (onSuccess) {
+          await onSuccess();
+        }
         toast.success("Patient added successfully");
       } catch (error: unknown) {
         console.error("Failed to create patient:", error);

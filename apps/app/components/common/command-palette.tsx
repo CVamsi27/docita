@@ -122,7 +122,7 @@ export function CommandPalette({ children }: CommandPaletteProps) {
       icon: Activity,
       label: "Analytics",
       action: () => router.push("/analytics"),
-      feature: Feature.BASIC_ANALYTICS,
+      feature: Feature.ADVANCED_ANALYTICS,
     },
     {
       icon: TestTube2,

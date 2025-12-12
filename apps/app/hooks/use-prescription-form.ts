@@ -7,6 +7,7 @@ import {
   type HospitalRole,
 } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   validateDosage,
   checkMedicationContraindications,
@@ -54,6 +55,7 @@ export function usePrescriptionForm({
   doctorRegistrationNumber,
   doctorLicenseNumber,
 }: UsePrescriptionFormProps) {
+  const queryClient = useQueryClient();
   const createPrescription = apiHooks.useCreatePrescription();
   const [instructions, setInstructions] = useState("");
   const [medications, setMedications] = useState<Medication[]>([
@@ -197,13 +199,26 @@ export function usePrescriptionForm({
         doctorLicenseNumber,
       });
 
+      // Invalidate and refetch queries to refresh data immediately
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", appointmentId],
+      });
+      await queryClient.refetchQueries({
+        queryKey: ["appointments", appointmentId],
+        type: 'active',
+      });
+
       setMedications([
         { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
       ]);
       setInstructions("");
       setValidations([]);
-      onPrescriptionSaved?.();
-      onSuccess?.();
+      if (onPrescriptionSaved) {
+        await onPrescriptionSaved();
+      }
+      if (onSuccess) {
+        await onSuccess();
+      }
       toast.success("Prescription saved successfully");
     } catch (error) {
       console.error("Failed to save prescription:", error);

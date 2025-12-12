@@ -12,12 +12,24 @@ import {
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { apiHooks } from "@/lib/api-hooks";
+import { Patient } from "@workspace/types";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/components/dialogs/whatsapp-broadcast-dialog";
 import { WhatsAppSettingsDialog } from "@/components/dialogs/whatsapp-settings-dialog";
 
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
+
 export default function WhatsAppPage() {
-  const { data: patients = [] } = apiHooks.usePatients();
+  const { data: patientsResponse } = apiHooks.usePatients();
+  const paginatedResponse = patientsResponse as
+    | PaginatedResponse<Patient>
+    | undefined;
+  const patients: Patient[] = paginatedResponse?.items || [];
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 

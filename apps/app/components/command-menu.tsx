@@ -23,12 +23,26 @@ import {
 } from "@workspace/ui/components/command";
 import { apiHooks } from "@/lib/api-hooks";
 import { useAuth } from "@/lib/auth-context";
+import { Patient } from "@workspace/types";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 
 export function CommandMenu() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { data: patients } = apiHooks.usePatients(isAuthenticated ? {} : null); // Only fetch when authenticated
+  const { data: patientsResponse } = apiHooks.usePatients(
+    isAuthenticated ? {} : null,
+  ); // Only fetch when authenticated
+  const paginatedResponse = patientsResponse as
+    | PaginatedResponse<Patient>
+    | undefined;
+  const patients: Patient[] = paginatedResponse?.items || [];
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {

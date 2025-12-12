@@ -201,7 +201,7 @@ export class SuperAdminService {
     try {
       // Cache key for global stats
       const cacheKey = `super-admin:global-stats:${timezone}`;
-      
+
       // Try to get cached data (5 minute TTL)
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) {

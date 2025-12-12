@@ -3,10 +3,7 @@
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { apiHooks } from "@/lib/api-hooks";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2, Users } from "lucide-react";
@@ -22,7 +19,7 @@ interface InfinitePatientsListProps {
  * ✅ OPTIMIZATION: Uses cursor pagination for O(1) performance
  * ✅ OPTIMIZATION: Automatic infinite scroll with intersection observer
  * ✅ OPTIMIZATION: React Query caching with 5-minute staleTime
- * 
+ *
  * @example
  * <InfinitePatientsList searchQuery={search} onPatientSelect={handleSelect} />
  */
@@ -85,7 +82,9 @@ export function InfinitePatientsList({
         <CardContent className="p-6 text-center">
           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
-            {searchQuery ? "No patients found matching your search" : "No patients yet"}
+            {searchQuery
+              ? "No patients found matching your search"
+              : "No patients yet"}
           </p>
         </CardContent>
       </Card>
@@ -115,7 +114,7 @@ export function InfinitePatientsList({
                     {patient.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold truncate">
                     {patient.firstName} {patient.lastName}
@@ -151,7 +150,7 @@ export function InfinitePatientsList({
             </span>
           </div>
         )}
-        
+
         {!hasNextPage && patients.length > 0 && (
           <p className="text-center text-sm text-muted-foreground">
             No more patients to load

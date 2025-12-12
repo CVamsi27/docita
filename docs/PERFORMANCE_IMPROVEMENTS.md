@@ -15,6 +15,7 @@ This document summarizes all performance optimizations implemented across the Do
 **Solution**: Implemented **Select Fragments** system
 
 #### Created Patterns:
+
 - `PATIENT_LIST_SELECT` - 7 fields (~500 bytes)
 - `PATIENT_DETAIL_SELECT` - 20+ fields with nested relations (~5-10KB)
 - `APPOINTMENT_CARD_SELECT` - Minimal patient/doctor info (~1.5KB)
@@ -25,9 +26,10 @@ This document summarizes all performance optimizations implemented across the Do
 - `INVOICE_ANALYTICS_SELECT` - Only total/status (~80 bytes)
 - `PATIENT_ANALYTICS_SELECT` - Only name/dateOfBirth (~100 bytes)
 - `APPOINTMENT_ANALYTICS_SELECT` - Only startTime/status (~70 bytes)
-- `CLINIC_CARD_SELECT` - Includes _count aggregations
+- `CLINIC_CARD_SELECT` - Includes \_count aggregations
 
 #### Applied To:
+
 - ✅ `patients.service.ts` - findAll, findOne
 - ✅ `appointments.service.ts` - findAll, findOne, create, update
 - ✅ `doctors.service.ts` - findAll
@@ -36,6 +38,7 @@ This document summarizes all performance optimizations implemented across the Do
 - ✅ `super-admin.service.ts` - getAllClinics, getClinicDoctors, getGlobalStats
 
 **Results**:
+
 - **60%** payload size reduction
 - **500KB → 200KB** on patient list (100 records)
 - **15MB → 4MB** on invoice list with binary data excluded
@@ -52,11 +55,11 @@ This document summarizes all performance optimizations implemented across the Do
 
 #### Cache Configuration:
 
-| Endpoint | TTL | Reason |
-|----------|-----|--------|
-| Dashboard stats | 60s | Real-time updates needed |
-| Super admin global stats | 300s (5 min) | Moderate update frequency |
-| Analytics trends | 3600s (1 hour) | Historical data, expensive queries |
+| Endpoint                 | TTL            | Reason                             |
+| ------------------------ | -------------- | ---------------------------------- |
+| Dashboard stats          | 60s            | Real-time updates needed           |
+| Super admin global stats | 300s (5 min)   | Moderate update frequency          |
+| Analytics trends         | 3600s (1 hour) | Historical data, expensive queries |
 
 #### Implementation:
 
@@ -72,11 +75,13 @@ return stats;
 ```
 
 **Results**:
+
 - **90%** reduction in dashboard DB load
 - **50%** response time improvement on analytics
 - **40%** reduction in database connections
 
 **Files Modified**:
+
 - ✅ `dashboard.service.ts` - 60s TTL
 - ✅ `super-admin.service.ts` - 300s TTL on getGlobalStats
 - ✅ `analytics.service.ts` - 3600s TTL on getRevenueTrends, getPatientGrowth
@@ -93,19 +98,21 @@ return stats;
 
 ```typescript
 // cache.interceptor.ts
-const etag = crypto.createHash('md5')
+const etag = crypto
+  .createHash("md5")
   .update(JSON.stringify(data))
-  .digest('hex');
+  .digest("hex");
 
-if (request.headers['if-none-match'] === etag) {
+if (request.headers["if-none-match"] === etag) {
   return new Response(null, { status: 304 }); // Not Modified
 }
 
-response.setHeader('ETag', etag);
-response.setHeader('Vary', 'Accept-Encoding');
+response.setHeader("ETag", etag);
+response.setHeader("Vary", "Accept-Encoding");
 ```
 
 **Results**:
+
 - **50%** bandwidth savings on unchanged data
 - **304 Not Modified** responses in <5ms
 - Works with frontend cache strategies
@@ -121,6 +128,7 @@ response.setHeader('Vary', 'Accept-Encoding');
 **Solution**: Implemented cursor pagination with O(1) lookups
 
 #### Features:
+
 - Base64-encoded cursors containing `{id, sortField}`
 - +1 fetch strategy to detect `hasMore` without extra query
 - Backward compatible with legacy clients
@@ -129,11 +137,13 @@ response.setHeader('Vary', 'Accept-Encoding');
 #### API Changes:
 
 **Request:**
+
 ```
 GET /patients?cursor=Y2xqczBqZDAwMDAwMQ&limit=50
 ```
 
 **Response:**
+
 ```json
 {
   "items": [...],
@@ -144,17 +154,20 @@ GET /patients?cursor=Y2xqczBqZDAwMDAwMQ&limit=50
 ```
 
 #### Applied To:
+
 - ✅ `patients.service.ts` - findAll with search support
 - ✅ `appointments.service.ts` - findAll with date/range/patient filters
 - ✅ `invoices.service.ts` - findAll
 - ✅ `super-admin.service.ts` - getAllClinics
 
 **Results**:
+
 - **98%** faster at page 100 (2500ms → 50ms)
 - **10-100x** improvement on large datasets
 - Consistent performance regardless of page depth
 
 **Files**:
+
 - `apps/api/src/common/pagination.helper.ts` (229 lines)
 - Updated controllers: patients, appointments, invoices, super-admin
 
@@ -190,11 +203,13 @@ private async flushBuffers() {
 ```
 
 **Features**:
+
 - 100-item buffer with 5-second flush interval
 - Graceful shutdown in `onModuleDestroy()`
 - `skipDuplicates` for idempotency
 
 **Results**:
+
 - **50%** reduction in monitoring overhead
 - Prevents connection pool exhaustion
 - No request logging overhead under load
@@ -217,6 +232,7 @@ model Appointment {
 ```
 
 **Results**:
+
 - **70%** faster clinic appointment queries
 - Supports common filter combinations
 - Enables efficient pagination
@@ -239,7 +255,7 @@ model Appointment {
 // prisma.service.ts
 export class PrismaService {
   private readReplica?: PrismaClient;
-  
+
   constructor() {
     // Initialize read replica if URL provided
     if (process.env.DATABASE_READ_URL) {
@@ -248,7 +264,7 @@ export class PrismaService {
       });
     }
   }
-  
+
   getReadClient(): PrismaClient {
     return this.readReplica || this; // Fallback to primary if no replica
   }
@@ -258,6 +274,7 @@ export class PrismaService {
 #### Automatic Routing:
 
 **Read Replica** (analytics, reporting, dashboards):
+
 - ✅ Analytics queries (`getRevenueTrends`, `getPatientGrowth`, `getAppointmentStats`)
 - ✅ Super admin statistics (`getGlobalStats`)
 - ✅ Dashboard metrics
@@ -265,12 +282,14 @@ export class PrismaService {
 - ✅ All `groupBy` and `aggregate` operations
 
 **Primary Database** (writes and real-time data):
+
 - ✅ All write operations (create, update, delete)
 - ✅ User authentication
 - ✅ Transactional operations
 - ✅ Just-created records (within last second)
 
 **Results**:
+
 - **70%** load offloaded from primary to replica
 - **50%** reduction in primary database load
 - **20%** faster read operations on replica
@@ -278,6 +297,7 @@ export class PrismaService {
 - **3x traffic capacity** before hitting database limits
 
 **Files Modified**:
+
 - `apps/api/src/prisma/prisma.service.ts`
 - `apps/api/src/analytics/analytics.service.ts` - 20+ methods updated
 
@@ -320,11 +340,12 @@ const totalRevenue = result._sum.total;
 
 - ✅ `getOverview()` - Parallel count/aggregate queries instead of findMany
 - ✅ `getAppointmentMetrics()` - 5 parallel count queries instead of fetching all appointments
-- ✅ `getDiseaseTrends()` - groupBy with _count instead of findMany + JS grouping
-- ✅ `getRevenueByCptCode()` - groupBy with _count instead of fetching all procedures
-- ✅ `getTopConditions()` - groupBy with _count and orderBy
+- ✅ `getDiseaseTrends()` - groupBy with \_count instead of findMany + JS grouping
+- ✅ `getRevenueByCptCode()` - groupBy with \_count instead of fetching all procedures
+- ✅ `getTopConditions()` - groupBy with \_count and orderBy
 
 **Results**:
+
 - **95%** less data transferred (50MB → 2.5MB)
 - **94%** faster queries (2700ms → 150ms)
 - **90%** less memory usage in Node.js
@@ -338,29 +359,31 @@ const totalRevenue = result._sum.total;
 
 ### Before vs After (All Optimizations)
 
-| Metric | Before | Phase 1-2 | Phase 3 | Total Improvement |
-|--------|--------|-----------|---------|-------------------|
-| Patient list payload | 500KB | 200KB | 200KB | **60%** |
-| Dashboard response time | 450ms | 50ms | 50ms | **89%** |
-| Analytics query time | 2.5s | 350ms | 150ms | **94%** |
-| Page 100 pagination | 2500ms | 50ms | 50ms | **98%** |
-| Unchanged data response | 450ms | 5ms (304) | 5ms | **99%** |
-| Invoice list payload | 15MB | 4MB | 4MB | **73%** |
-| Monitoring overhead | 100-200ms | <5ms | <5ms | **95%** |
-| Cache hit rate | 0% | 50-70% | 50-70% | **+50-70%** |
-| Primary DB load | 100% | 100% | 30% | **70% offloaded** |
-| Revenue trends query | 2700ms | 500ms | 150ms | **94%** |
-| Appointment metrics | 1200ms | 300ms | 80ms | **93%** |
+| Metric                  | Before    | Phase 1-2 | Phase 3 | Total Improvement |
+| ----------------------- | --------- | --------- | ------- | ----------------- |
+| Patient list payload    | 500KB     | 200KB     | 200KB   | **60%**           |
+| Dashboard response time | 450ms     | 50ms      | 50ms    | **89%**           |
+| Analytics query time    | 2.5s      | 350ms     | 150ms   | **94%**           |
+| Page 100 pagination     | 2500ms    | 50ms      | 50ms    | **98%**           |
+| Unchanged data response | 450ms     | 5ms (304) | 5ms     | **99%**           |
+| Invoice list payload    | 15MB      | 4MB       | 4MB     | **73%**           |
+| Monitoring overhead     | 100-200ms | <5ms      | <5ms    | **95%**           |
+| Cache hit rate          | 0%        | 50-70%    | 50-70%  | **+50-70%**       |
+| Primary DB load         | 100%      | 100%      | 30%     | **70% offloaded** |
+| Revenue trends query    | 2700ms    | 500ms     | 150ms   | **94%**           |
+| Appointment metrics     | 1200ms    | 300ms     | 80ms    | **93%**           |
 
 ### Database Load Distribution
 
 **Before**:
+
 ```
 Primary Database: ████████████████████ 100%
 Read Replica:     (not configured)
 ```
 
 **After**:
+
 ```
 Primary Database: ██████ 30% (writes only)
 Read Replica:     ██████████████ 70% (analytics, reports, dashboards)
@@ -369,6 +392,7 @@ Read Replica:     ██████████████ 70% (analytics, rep
 ### Query Optimization
 
 **Offset Pagination (Before):**
+
 ```sql
 -- Page 500 (OFFSET 10000)
 SELECT * FROM patients WHERE clinic_id = 'xxx' LIMIT 20 OFFSET 10000;
@@ -376,6 +400,7 @@ SELECT * FROM patients WHERE clinic_id = 'xxx' LIMIT 20 OFFSET 10000;
 ```
 
 **Cursor Pagination (After):**
+
 ```sql
 -- Any page with cursor
 SELECT * FROM patients WHERE clinic_id = 'xxx' AND id > 'cursor' LIMIT 21;
@@ -387,6 +412,7 @@ SELECT * FROM patients WHERE clinic_id = 'xxx' AND id > 'cursor' LIMIT 21;
 ## Implementation Timeline
 
 ### Week 1 (✅ Completed)
+
 - [x] Select fragments system
 - [x] Applied to 6 services
 - [x] Backend caching (dashboard, analytics, super-admin)
@@ -397,19 +423,22 @@ SELECT * FROM patients WHERE clinic_id = 'xxx' AND id > 'cursor' LIMIT 21;
 - [x] Applied cursor pagination to services
 
 ### Week 2-3 (✅ Completed)
+
 - [x] Configure Prisma read replica
-- [x] Refactor analytics aggregations (Prisma _sum, _count, _avg, parallel queries)
+- [x] Refactor analytics aggregations (Prisma \_sum, \_count, \_avg, parallel queries)
 - [x] Update analytics service to use read replica for all read operations
 - [x] Optimize appointment metrics with count queries instead of fetching all records
 - [x] Admin performance dashboard (already exists at `/admin/dashboard/performance`)
 
 ### Week 2-3 (Remaining)
+
 - [ ] Frontend parallel data fetching
-- [ ] Migrate to Server Components  
+- [ ] Migrate to Server Components
 - [ ] Implement @tanstack/react-virtual for large lists
 - [ ] Add optimistic updates
 
 ### Week 4 (Upcoming)
+
 - [ ] Docker BuildKit cache mounts
 - [ ] Turbo Remote Cache configuration
 - [ ] Enhanced monitoring dashboard metrics
@@ -428,27 +457,32 @@ SELECT * FROM patients WHERE clinic_id = 'xxx' AND id > 'cursor' LIMIT 21;
 All list endpoints now support cursor pagination:
 
 #### Patients
+
 ```bash
 GET /patients?cursor=abc&limit=50&search=john
 ```
 
 #### Appointments
+
 ```bash
 GET /appointments?cursor=abc&limit=50&date=2024-01-15
 GET /appointments?cursor=abc&limit=50&startDate=2024-01-01&endDate=2024-01-31
 ```
 
 #### Invoices
+
 ```bash
 GET /invoices?cursor=abc&limit=50
 ```
 
 #### Super Admin - Clinics
+
 ```bash
 GET /super-admin/clinics?cursor=abc&limit=50
 ```
 
 **Response Format:**
+
 ```json
 {
   "items": [/* array of results */],
@@ -477,6 +511,7 @@ See [CURSOR_PAGINATION_GUIDE.md](./CURSOR_PAGINATION_GUIDE.md) for detailed API 
 **Why**: Balances performance with data freshness requirements.
 
 **Rationale**:
+
 - Dashboard: 60s - Clinics check frequently during workday
 - Analytics: 3600s - Historical trends don't change often
 - Super admin: 300s - Multi-clinic stats updated periodically
@@ -506,14 +541,14 @@ See [CURSOR_PAGINATION_GUIDE.md](./CURSOR_PAGINATION_GUIDE.md) for detailed API 
 ### React Query with Infinite Scroll
 
 ```typescript
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 function useInfinitePatients() {
   return useInfiniteQuery({
-    queryKey: ['patients'],
+    queryKey: ["patients"],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams({
-        limit: '20',
+        limit: "20",
         ...(pageParam && { cursor: pageParam }),
       });
       const response = await fetch(`/api/patients?${params}`);
@@ -533,7 +568,7 @@ export const usePatientsStore = create<PaginationState>((set) => ({
   patients: [],
   cursor: null,
   hasMore: true,
-  
+
   fetchPatients: async (cursor?: string) => {
     const data = await fetchPatientsAPI(cursor);
     set((state) => ({
@@ -575,6 +610,7 @@ See [CURSOR_PAGINATION_GUIDE.md](./CURSOR_PAGINATION_GUIDE.md) for complete fron
 ### Admin Dashboard
 
 Existing performance dashboard at `apps/admin/app/dashboard/performance/page.tsx` shows:
+
 - Uptime
 - Response time
 - Requests/min
@@ -583,6 +619,7 @@ Existing performance dashboard at `apps/admin/app/dashboard/performance/page.tsx
 - Health checks
 
 **Planned Enhancements**:
+
 - API/Database/Frontend sections
 - p50/p95/p99 response times
 - Slow query log
@@ -621,6 +658,7 @@ redis-cli FLUSHDB
 ### Monitoring
 
 Watch for:
+
 - Error rate spike >1%
 - API p95 response time >400ms
 - Cache hit rate drop <30%
@@ -650,19 +688,19 @@ curl -H "If-None-Match: <etag>" https://api.docita.com/patients
 
 ```typescript
 // Test cursor pagination
-it('should paginate with cursor', async () => {
+it("should paginate with cursor", async () => {
   const page1 = await request(app.getHttpServer())
-    .get('/patients?limit=2')
+    .get("/patients?limit=2")
     .expect(200);
-  
-  expect(page1.body).toHaveProperty('items');
-  expect(page1.body).toHaveProperty('nextCursor');
+
+  expect(page1.body).toHaveProperty("items");
+  expect(page1.body).toHaveProperty("nextCursor");
   expect(page1.body.items).toHaveLength(2);
-  
+
   const page2 = await request(app.getHttpServer())
     .get(`/patients?limit=2&cursor=${page1.body.nextCursor}`)
     .expect(200);
-  
+
   expect(page2.body.items[0].id).not.toBe(page1.body.items[0].id);
 });
 ```
@@ -679,7 +717,7 @@ it('should paginate with cursor', async () => {
    - Expected: -50% load on primary database
 
 2. **Aggregation Refactoring**:
-   - Replace findMany + JS calculations with Prisma _sum, _count, _avg
+   - Replace findMany + JS calculations with Prisma \_sum, \_count, \_avg
    - Expected: -95% load on analytics queries
 
 ### Phase 3: Frontend Optimization (✅ Completed)
@@ -698,24 +736,25 @@ const stats = useMemo(
     todayAppointments: data?.todayAppointments || 0,
     // ... other stats
   }),
-  [data]
+  [data],
 );
 
 const castRecentPatients = useMemo(
   () => recentPatients?.filter((p): p is Patient => p !== null) ?? [],
-  [recentPatients]
+  [recentPatients],
 );
 
 const { completedToday, inProgressToday } = useMemo(() => {
   const sorted = [...(appointments || [])].sort(/*...*/);
   return {
-    completedToday: sorted.filter(a => a.status === 'COMPLETED').length,
-    inProgressToday: sorted.filter(a => a.status === 'IN_PROGRESS').length,
+    completedToday: sorted.filter((a) => a.status === "COMPLETED").length,
+    inProgressToday: sorted.filter((a) => a.status === "IN_PROGRESS").length,
   };
 }, [appointments]);
 ```
 
 **Results**:
+
 - **50%** reduction in unnecessary re-renders
 - Dashboard now only recomputes when data actually changes
 - Sorting/filtering operations memoized
@@ -732,16 +771,21 @@ const { completedToday, inProgressToday } = useMemo(() => {
 
 ```typescript
 // apps/app/lib/api-hooks.ts
-export const useInfinitePatients = (params: { limit?: number; search?: string }) => {
+export const useInfinitePatients = (params: {
+  limit?: number;
+  search?: string;
+}) => {
   return useInfiniteQuery({
-    queryKey: ['patients', 'infinite', params.limit, params.search],
+    queryKey: ["patients", "infinite", params.limit, params.search],
     queryFn: async ({ pageParam }) => {
       const searchParams = new URLSearchParams({
         limit: String(params.limit || 50),
         ...(params.search && { search: params.search }),
         ...(pageParam && { cursor: pageParam }),
       });
-      return apiClient.get<PaginatedResponse<Patient>>(`/patients?${searchParams}`);
+      return apiClient.get<PaginatedResponse<Patient>>(
+        `/patients?${searchParams}`,
+      );
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -754,10 +798,10 @@ export const useInfinitePatients = (params: { limit?: number; search?: string })
 
 ```typescript
 // apps/app/components/patients/infinite-patients-list.tsx
-const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = 
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
   apiHooks.useInfinitePatients({ limit: 50, search });
 
-const patients = data?.pages.flatMap(page => page.items) ?? [];
+const patients = data?.pages.flatMap((page) => page.items) ?? [];
 
 // Auto-fetch on scroll with react-intersection-observer
 const { ref, inView } = useInView({ threshold: 0, rootMargin: "100px" });
@@ -769,12 +813,14 @@ useEffect(() => {
 ```
 
 **Results**:
+
 - **O(1)** query performance regardless of offset
 - Loads 50 items at a time instead of 100
 - Seamless infinite scroll UX
 - **75%** less data transferred on initial load
 
 **Files Created**:
+
 - `apps/app/lib/api-hooks.ts` - Added 3 infinite query hooks (130+ lines)
 - `apps/app/components/patients/infinite-patients-list.tsx` - Example component
 
@@ -805,6 +851,7 @@ if (lastItem?.index >= patients.length - 1 && hasNextPage) {
 ```
 
 **Results**:
+
 - **80%** faster rendering: 150ms → 30ms for 100 items
 - **90%** less DOM nodes: 100 → 10 (only visible rows)
 - Smooth scrolling even with 1000+ items
@@ -836,6 +883,7 @@ const handleMouseEnter = () => {
 ```
 
 **Results**:
+
 - **200ms** faster perceived navigation
 - Route data prefetched before click
 - Works with Next.js App Router SSR
@@ -859,6 +907,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 ```
 
 **Results**:
+
 - **92%** faster builds: 60s → 5s with warm cache
 - Reuses downloaded packages across builds
 - CI/CD builds complete in <2 minutes
@@ -878,12 +927,15 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
 
 function sendToAnalytics(metric: Metric) {
-  navigator.sendBeacon("/api/monitoring/web-vitals", JSON.stringify({
-    name: metric.name,
-    value: metric.value,
-    rating: metric.rating,
-    page: pathname,
-  }));
+  navigator.sendBeacon(
+    "/api/monitoring/web-vitals",
+    JSON.stringify({
+      name: metric.name,
+      value: metric.value,
+      rating: metric.rating,
+      page: pathname,
+    }),
+  );
 }
 
 onCLS(sendToAnalytics);
@@ -905,21 +957,23 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 
 **Metrics Tracked**:
 
-| Metric | Good | Needs Improvement | Poor |
-|--------|------|-------------------|------|
-| LCP (Largest Contentful Paint) | < 2.5s | 2.5s - 4s | > 4s |
-| INP (Interaction to Next Paint) | < 200ms | 200ms - 500ms | > 500ms |
-| CLS (Cumulative Layout Shift) | < 0.1 | 0.1 - 0.25 | > 0.25 |
-| FCP (First Contentful Paint) | < 1.8s | 1.8s - 3s | > 3s |
-| TTFB (Time to First Byte) | < 800ms | 800ms - 1.8s | > 1.8s |
+| Metric                          | Good    | Needs Improvement | Poor    |
+| ------------------------------- | ------- | ----------------- | ------- |
+| LCP (Largest Contentful Paint)  | < 2.5s  | 2.5s - 4s         | > 4s    |
+| INP (Interaction to Next Paint) | < 200ms | 200ms - 500ms     | > 500ms |
+| CLS (Cumulative Layout Shift)   | < 0.1   | 0.1 - 0.25        | > 0.25  |
+| FCP (First Contentful Paint)    | < 1.8s  | 1.8s - 3s         | > 3s    |
+| TTFB (Time to First Byte)       | < 800ms | 800ms - 1.8s      | > 1.8s  |
 
 **Results**:
+
 - Real user performance tracking
 - P75/P95 percentile calculations
 - Page-level performance breakdown
 - Alerts for poor Core Web Vitals
 
 **Files Created**:
+
 - `apps/app/components/web-vitals-reporter.tsx`
 - `apps/api/src/monitoring/dto/web-vital.dto.ts`
 - `apps/api/src/monitoring/monitoring.service.ts` - Added recordWebVital, getWebVitals methods
@@ -960,37 +1014,37 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 
 ### Backend Performance
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Patient list payload** | 500KB | 200KB | **60%** ⬇️ |
-| **Invoice list payload** (100 records) | 15MB | 4MB | **73%** ⬇️ |
-| **Analytics query time** | 2700ms | 150ms | **94%** ⬆️ |
-| **Dashboard response time** | 850ms | 95ms | **89%** ⬆️ |
-| **Pagination query time** (offset 1000) | 450ms | 45ms | **90%** ⬆️ |
-| **Database connections** (peak) | 150 | 90 | **40%** ⬇️ |
-| **Database load** (primary) | 100% | 30% | **70%** ⬇️ |
-| **Cache hit rate** | 0% | 50-70% | ✅ NEW |
-| **HTTP 304 responses** | 0% | 40% | ✅ NEW |
+| Metric                                  | Before | After  | Improvement |
+| --------------------------------------- | ------ | ------ | ----------- |
+| **Patient list payload**                | 500KB  | 200KB  | **60%** ⬇️  |
+| **Invoice list payload** (100 records)  | 15MB   | 4MB    | **73%** ⬇️  |
+| **Analytics query time**                | 2700ms | 150ms  | **94%** ⬆️  |
+| **Dashboard response time**             | 850ms  | 95ms   | **89%** ⬆️  |
+| **Pagination query time** (offset 1000) | 450ms  | 45ms   | **90%** ⬆️  |
+| **Database connections** (peak)         | 150    | 90     | **40%** ⬇️  |
+| **Database load** (primary)             | 100%   | 30%    | **70%** ⬇️  |
+| **Cache hit rate**                      | 0%     | 50-70% | ✅ NEW      |
+| **HTTP 304 responses**                  | 0%     | 40%    | ✅ NEW      |
 
 ### Frontend Performance
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Dashboard render time** | 350ms | 175ms | **50%** ⬆️ |
-| **List render time** (100 items) | 150ms | 30ms | **80%** ⬆️ |
-| **DOM nodes** (100 items) | 100 | 10 | **90%** ⬇️ |
-| **Initial data load** | 100 items | 50 items | **50%** ⬇️ |
-| **Navigation time** (with prefetch) | 400ms | 200ms | **50%** ⬆️ |
-| **Unnecessary re-renders** | Many | Memoized | **50%** ⬇️ |
+| Metric                              | Before    | After    | Improvement |
+| ----------------------------------- | --------- | -------- | ----------- |
+| **Dashboard render time**           | 350ms     | 175ms    | **50%** ⬆️  |
+| **List render time** (100 items)    | 150ms     | 30ms     | **80%** ⬆️  |
+| **DOM nodes** (100 items)           | 100       | 10       | **90%** ⬇️  |
+| **Initial data load**               | 100 items | 50 items | **50%** ⬇️  |
+| **Navigation time** (with prefetch) | 400ms     | 200ms    | **50%** ⬆️  |
+| **Unnecessary re-renders**          | Many      | Memoized | **50%** ⬇️  |
 
 ### Infrastructure Performance
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Docker build time** (cold) | 60s | 60s | 0% |
-| **Docker build time** (warm cache) | 60s | 5s | **92%** ⬆️ |
-| **Core Web Vitals tracking** | ❌ | ✅ | ✅ NEW |
-| **Real user monitoring** | ❌ | ✅ | ✅ NEW |
+| Metric                             | Before | After | Improvement |
+| ---------------------------------- | ------ | ----- | ----------- |
+| **Docker build time** (cold)       | 60s    | 60s   | 0%          |
+| **Docker build time** (warm cache) | 60s    | 5s    | **92%** ⬆️  |
+| **Core Web Vitals tracking**       | ❌     | ✅    | ✅ NEW      |
+| **Real user monitoring**           | ❌     | ✅    | ✅ NEW      |
 
 ### Cost Impact
 
@@ -1014,23 +1068,27 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 All 4 phases successfully addressed the core concern of **"unwanted information travelling via apis"**:
 
 ### Phase 1: Backend Optimizations (✅)
+
 - Select fragments reduced payloads by 60%
 - Backend caching reduced DB load by 90%
 - ETag support reduced bandwidth by 40%
 - Cursor pagination improved performance by 98%
 
 ### Phase 2: Database Optimizations (✅)
+
 - Composite indexes improved query performance by 95%
 - Read replica offloaded 70% of DB load
 - Native aggregations reduced analytics time by 94%
 
 ### Phase 3: Frontend Optimizations (✅)
+
 - useMemo prevented unnecessary re-renders
 - Infinite scroll with cursor pagination
 - Virtual scrolling reduced render time by 80%
 - Route prefetching improved navigation by 50%
 
 ### Phase 4: Infrastructure (✅)
+
 - BuildKit cache reduced builds by 92%
 - Web Vitals monitoring for real user performance
 - All metrics tracked and reportable
@@ -1038,6 +1096,7 @@ All 4 phases successfully addressed the core concern of **"unwanted information 
 **Total Impact**: 50-94% performance improvements across all areas, with 60-73% reduction in data transfer—directly solving the original concern.
 
 All changes are:
+
 - ✅ Backward compatible
 - ✅ Feature-flagged for safe rollback
 - ✅ Fully documented
@@ -1064,4 +1123,3 @@ All changes are:
 4. **Turbo Remote Cache**: Share build cache across team (-90% CI time)
 5. **pg_stat_statements**: Track slow queries in production
 6. **Lighthouse CI**: Automated performance regression testing
-

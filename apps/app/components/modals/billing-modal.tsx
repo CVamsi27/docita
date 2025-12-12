@@ -52,9 +52,11 @@ export function BillingModal({
   } = useInvoiceForm({
     appointmentId,
     patientId,
-    onInvoiceCreated: () => {
-      onSaved?.();
-      onOpenChange(false);
+    onInvoiceCreated: async () => {
+      if (onSaved) {
+        await onSaved();
+      }
+      setTimeout(() => onOpenChange(false), 100);
     },
   });
 

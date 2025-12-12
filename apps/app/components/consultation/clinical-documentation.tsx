@@ -41,6 +41,7 @@ import {
   PanelLeft,
   AlertTriangle,
   Info,
+  ExternalLink,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
 import {
@@ -659,7 +660,18 @@ export function ClinicalDocumentation({
     updateItem: updateInvoiceItem,
     calculateTotal: calculateInvTotal,
     handleSubmit: handleInvSubmit,
-  } = useInvoiceForm({ appointmentId, patientId });
+  } = useInvoiceForm({
+    appointmentId,
+    patientId,
+    doctorSpecialization: (appointmentData?.doctor as any)?.specialization,
+    doctorName: appointmentData?.doctor?.name,
+    doctorEmail: (appointmentData?.doctor as any)?.email,
+    doctorPhone: (appointmentData?.doctor as any)?.phoneNumber,
+    doctorRole: (appointmentData?.doctor as any)?.role,
+    doctorRegistrationNumber: (appointmentData?.doctor as any)
+      ?.registrationNumber,
+    doctorLicenseNumber: (appointmentData?.doctor as any)?.licenseNumber,
+  });
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -833,9 +845,9 @@ export function ClinicalDocumentation({
           </TabsList>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto overflow-x-hidden min-h-[400px]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* Chief Complaint Tab */}
-          <TabsContent value="chief-complaint" className="mt-0 h-full">
+          <TabsContent value="chief-complaint" className="mt-0 p-6">
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -930,7 +942,7 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>
           {/* History Tab */}
-          <TabsContent value="history" className="mt-0 h-full">
+          <TabsContent value="history" className="mt-0 p-6">
             <div className="space-y-6">
               {patientData && (
                 <PatientMedicalHistory patient={patientData} readOnly={false} />
@@ -1039,7 +1051,7 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>{" "}
           {/* Vitals Tab - Hospital Grade */}
-          <TabsContent value="vitals" className="mt-0 h-full space-y-4">
+          <TabsContent value="vitals" className="mt-0 p-6 space-y-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1278,7 +1290,7 @@ export function ClinicalDocumentation({
             </form>
           </TabsContent>{" "}
           {/* Examination Tab */}
-          <TabsContent value="examination" className="mt-0 h-full">
+          <TabsContent value="examination" className="mt-0 p-6">
             <div className="space-y-6">
               <ClinicalExamination
                 generalExamination={clinicalNote.generalExamination}
@@ -1293,7 +1305,7 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>{" "}
           {/* Diagnosis Tab */}
-          <TabsContent value="diagnosis" className="mt-0 h-full">
+          <TabsContent value="diagnosis" className="mt-0 p-6">
             <div className="space-y-6">
               {/* ICD-10 Coded Diagnoses - PRIMARY SECTION */}
               <Card className="border-primary/30">
@@ -1380,7 +1392,7 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>
           {/* Investigations & Treatment Plan Tab */}
-          <TabsContent value="treatment" className="mt-0 h-full">
+          <TabsContent value="treatment" className="mt-0 p-6">
             <div className="space-y-6">
               {/* Clinical Investigations */}
               <Card>
@@ -1604,7 +1616,7 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>{" "}
           {/* Prescription Tab */}
-          <TabsContent value="prescription" className="mt-0 h-full space-y-4">
+          <TabsContent value="prescription" className="mt-0 p-6 space-y-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1675,19 +1687,19 @@ export function ClinicalDocumentation({
                       key={index}
                       className="p-4 border rounded-lg bg-card space-y-4 relative group"
                     >
-                      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute right-3 top-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => removeMedication(index)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                         <div className="space-y-2">
                           <Label>Medicine Name</Label>
                           <MedicineAutocomplete
@@ -1828,7 +1840,7 @@ export function ClinicalDocumentation({
             </form>
           </TabsContent>
           {/* Invoice Tab */}
-          <TabsContent value="invoice" className="mt-0 h-full space-y-4">
+          <TabsContent value="invoice" className="mt-0 p-6 space-y-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1837,47 +1849,81 @@ export function ClinicalDocumentation({
               className="h-full flex flex-col"
             >
               <div className="flex-1 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-base font-medium">
-                      Invoice Items
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Add services and costs
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Select value={invStatus} onValueChange={setInvStatus}>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {invoiceStatusOptions
-                          .filter((opt) => opt.value !== "cancelled")
-                          .map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addItem()}
-                      className="gap-2"
-                    >
-                      <Plus className="h-4 w-4" /> Add Item
-                    </Button>
+                <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                        Invoice Items
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add services, procedures, and consultation fees
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Select value={invStatus} onValueChange={setInvStatus}>
+                        <SelectTrigger className="w-[150px] bg-background">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {invoiceStatusOptions
+                            .filter((opt) => opt.value !== "cancelled")
+                            .map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onClick={() => addItem()}
+                        className="gap-2 shadow-sm"
+                      >
+                        <Plus className="h-4 w-4" /> Add Item
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
+                  {invoiceItems.length === 0 && (
+                    <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
+                      <CheckCircle2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                      <p className="text-muted-foreground font-medium mb-1">
+                        {(appointmentData as any)?.invoice
+                          ? "Invoice already created"
+                          : "No items added yet"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {(appointmentData as any)?.invoice
+                          ? "This appointment already has an invoice. You can view it in the Invoices section."
+                          : 'Click "Add Item" to start building the invoice'}
+                      </p>
+                      {(appointmentData as any)?.invoice && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => {
+                            window.location.href = `/invoices`;
+                          }}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View in Invoices
+                        </Button>
+                      )}
+                    </div>
+                  )}
                   {invoiceItems.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-start gap-3 p-3 border rounded-lg bg-card group"
+                      className="flex items-start gap-3 p-4 border rounded-lg bg-card hover:shadow-md transition-shadow group"
                     >
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                         <div className="md:col-span-6 space-y-1">
@@ -1947,20 +1993,51 @@ export function ClinicalDocumentation({
                   ))}
                 </div>
 
-                <div className="flex items-center justify-end gap-4 p-4 bg-muted/10 rounded-lg">
-                  <span className="text-lg font-medium">Total Amount:</span>
-                  <span className="text-2xl font-bold text-primary">
-                    ₹{calculateInvTotal().toFixed(2)}
-                  </span>
+                <div className="bg-linear-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Invoice Summary
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Total Items:
+                        </span>
+                        <span className="font-semibold">
+                          {invoiceItems.length}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Total Amount
+                      </p>
+                      <p className="text-3xl font-bold text-primary">
+                        ₹{calculateInvTotal().toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end pt-4 mt-auto">
-                <Button type="submit" disabled={invLoading} className="gap-2">
+              <div className="flex justify-between items-center pt-4 mt-auto border-t">
+                <p className="text-sm text-muted-foreground">
+                  {invoiceItems.length}{" "}
+                  {invoiceItems.length === 1 ? "item" : "items"} • Total: ₹
+                  {calculateInvTotal().toFixed(2)}
+                </p>
+                <Button
+                  type="submit"
+                  disabled={invLoading || invoiceItems.length === 0}
+                  className="gap-2 px-6"
+                >
                   {invLoading ? (
-                    "Creating..."
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                      Creating...
+                    </>
                   ) : (
                     <>
-                      <CheckCircle2 className="h-4 w-4" /> Create Invoice
+                      <CheckCircle2 className="h-4 w-4" /> Generate Invoice
                     </>
                   )}
                 </Button>

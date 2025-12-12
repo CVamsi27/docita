@@ -145,7 +145,7 @@ export class AppointmentsService {
     });
 
     if (!patientRecord) {
-      throw new Error(`Patient with ID ${rest.patientId} not found`);
+      throw new Error(`Patient with ID ${rest.patientId as string} not found`);
     }
 
     if (patientRecord.clinicId !== rest.clinicId) {
@@ -159,7 +159,7 @@ export class AppointmentsService {
     });
 
     if (!doctorRecord) {
-      throw new Error(`Doctor with ID ${rest.doctorId} not found`);
+      throw new Error(`Doctor with ID ${rest.doctorId as string} not found`);
     }
 
     const appointmentData: Prisma.AppointmentCreateInput = {
@@ -172,7 +172,7 @@ export class AppointmentsService {
       observations: rest.observations as string | undefined,
       patient: { connect: { id: rest.patientId as string } },
       doctor: { connect: { id: rest.doctorId as string } },
-      clinic: { connect: { id: rest.clinicId as string } },
+      clinic: { connect: { id: rest.clinicId } },
     };
 
     const appointment = await this.prisma.appointment.create({

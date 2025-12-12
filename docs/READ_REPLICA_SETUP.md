@@ -41,6 +41,7 @@ If you're using [Neon](https://neon.tech), enable read replicas:
 6. Add to `.env` as `DATABASE_READ_URL`
 
 **Neon Pricing**:
+
 - **Free tier**: No read replicas
 - **Pro tier**: $19/month + usage
 - **Scale tier**: Contact sales
@@ -61,6 +62,7 @@ For AWS RDS PostgreSQL:
 6. Add to `.env` as `DATABASE_READ_URL`
 
 **Connection string format**:
+
 ```
 postgresql://username:password@replica-endpoint.rds.amazonaws.com:5432/docita
 ```
@@ -70,7 +72,7 @@ postgresql://username:password@replica-endpoint.rds.amazonaws.com:5432/docita
 For local development with Docker:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   postgres-primary:
@@ -102,6 +104,7 @@ volumes:
 ```
 
 **.env**:
+
 ```bash
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/docita"
 DATABASE_READ_URL="postgresql://postgres:postgres@localhost:5433/docita"
@@ -116,6 +119,7 @@ DATABASE_READ_URL="postgresql://postgres:postgres@localhost:5433/docita"
 The `PrismaService` automatically routes queries based on the method used:
 
 **Read Replica** (via `getReadClient()`):
+
 - Analytics queries
 - Reporting queries
 - Dashboard statistics
@@ -123,6 +127,7 @@ The `PrismaService` automatically routes queries based on the method used:
 - Count/aggregate operations
 
 **Primary Database** (via `this.prisma`):
+
 - All write operations (INSERT, UPDATE, DELETE)
 - Transactional operations
 - User authentication
@@ -134,12 +139,12 @@ The `PrismaService` automatically routes queries based on the method used:
 // Analytics service uses read replica
 async getRevenueTrends() {
   const readClient = this.getReadClient(); // Routes to replica
-  
+
   const invoices = await readClient.invoice.findMany({
     where: { createdAt: { gte: startDate } },
     select: { total: true, createdAt: true },
   });
-  
+
   return calculateTrends(invoices);
 }
 
@@ -169,6 +174,7 @@ Read replicas may have a small delay (typically <1 second) compared to the prima
 ### Acceptable Use Cases
 
 ✅ **Good for read replica**:
+
 - Historical analytics (last 30 days revenue)
 - Patient demographics
 - Disease trends
@@ -176,6 +182,7 @@ Read replicas may have a small delay (typically <1 second) compared to the prima
 - Audit logs
 
 ❌ **Must use primary**:
+
 - Just-created records (within last second)
 - Critical transactions
 - Real-time notifications
@@ -187,7 +194,7 @@ Read replicas may have a small delay (typically <1 second) compared to the prima
 Check replication lag with this query on the replica:
 
 ```sql
-SELECT 
+SELECT
   now() - pg_last_xact_replay_timestamp() AS replication_lag;
 ```
 
@@ -211,7 +218,7 @@ async getUserSession(userId: string) {
 // Replica is fine for analytics
 async getUserStats(userId: string) {
   const readClient = this.getReadClient(); // Can tolerate slight lag
-  
+
   return readClient.appointment.count({
     where: { doctorId: userId },
   });
@@ -224,23 +231,24 @@ async getUserStats(userId: string) {
 
 ### Before (Primary Only)
 
-| Query Type | Primary Load | Response Time |
-|------------|--------------|---------------|
-| Analytics queries | 100% | 450ms |
-| Dashboard stats | 100% | 250ms |
-| Write operations | 100% | 50ms |
-| **Total load** | **100%** | - |
+| Query Type        | Primary Load | Response Time |
+| ----------------- | ------------ | ------------- |
+| Analytics queries | 100%         | 450ms         |
+| Dashboard stats   | 100%         | 250ms         |
+| Write operations  | 100%         | 50ms          |
+| **Total load**    | **100%**     | -             |
 
 ### After (With Read Replica)
 
-| Query Type | Primary Load | Replica Load | Response Time |
-|------------|--------------|--------------|---------------|
-| Analytics queries | 0% | 100% | 350ms (-22%) |
-| Dashboard stats | 0% | 100% | 200ms (-20%) |
-| Write operations | 100% | 0% | 45ms (-10%) |
-| **Total load** | **30%** | **70%** | - |
+| Query Type        | Primary Load | Replica Load | Response Time |
+| ----------------- | ------------ | ------------ | ------------- |
+| Analytics queries | 0%           | 100%         | 350ms (-22%)  |
+| Dashboard stats   | 0%           | 100%         | 200ms (-20%)  |
+| Write operations  | 100%         | 0%           | 45ms (-10%)   |
+| **Total load**    | **30%**      | **70%**      | -             |
 
 **Key Improvements**:
+
 - **70% load offloaded** from primary to replica
 - **Write operations 10% faster** due to reduced primary load
 - **Read operations 20% faster** on average
@@ -256,7 +264,7 @@ Check active connections:
 
 ```sql
 -- On primary
-SELECT 
+SELECT
   count(*) as connections,
   usename,
   application_name
@@ -264,7 +272,7 @@ FROM pg_stat_activity
 GROUP BY usename, application_name;
 
 -- On replica
-SELECT 
+SELECT
   count(*) as connections,
   usename,
   application_name
@@ -291,6 +299,7 @@ getReadClient(): PrismaClient {
 ### Admin Dashboard
 
 The admin performance dashboard at `/admin/dashboard/performance` shows:
+
 - System uptime
 - Response times
 - Requests per minute
@@ -307,6 +316,7 @@ The admin performance dashboard at `/admin/dashboard/performance` shows:
 **Cause**: Read replica URL is incorrect or replica is not running
 
 **Solution**:
+
 ```bash
 # Test connection
 psql $DATABASE_READ_URL -c "SELECT 1;"
@@ -320,11 +330,13 @@ echo $DATABASE_READ_URL
 ### Issue: High replication lag (>5 seconds)
 
 **Causes**:
+
 - Heavy write load on primary
 - Network latency between primary and replica
 - Replica instance undersized
 
 **Solutions**:
+
 1. Check primary write load: `SELECT * FROM pg_stat_activity WHERE state = 'active';`
 2. Upgrade replica instance size
 3. Check network between primary/replica
@@ -334,7 +346,8 @@ echo $DATABASE_READ_URL
 
 **Cause**: Query executed immediately after write operation
 
-**Solution**: 
+**Solution**:
+
 - Use primary for critical read-after-write
 - Add slight delay before querying replica
 - Use cache for frequently accessed data
@@ -353,6 +366,7 @@ async getLatestRevenue() {
 **Cause**: Connection pool exhausted
 
 **Solution**:
+
 ```typescript
 // Adjust pool size in prisma.service.ts
 this.readReplica = new PrismaClient({
@@ -362,8 +376,8 @@ this.readReplica = new PrismaClient({
     },
   },
   // Increase connection pool for read replica
-  datasourceUrl: process.env.DATABASE_READ_URL + 
-    '?connection_limit=20&pool_timeout=30',
+  datasourceUrl:
+    process.env.DATABASE_READ_URL + "?connection_limit=20&pool_timeout=30",
 });
 ```
 
@@ -373,28 +387,31 @@ this.readReplica = new PrismaClient({
 
 ### Neon Serverless
 
-| Tier | Monthly Cost | Read Replicas | Max Storage |
-|------|--------------|---------------|-------------|
-| Free | $0 | ❌ Not available | 0.5GB |
-| Pro | $19 | ✅ 1 replica included | 10GB |
-| Scale | Custom | ✅ Multiple replicas | Unlimited |
+| Tier  | Monthly Cost | Read Replicas         | Max Storage |
+| ----- | ------------ | --------------------- | ----------- |
+| Free  | $0           | ❌ Not available      | 0.5GB       |
+| Pro   | $19          | ✅ 1 replica included | 10GB        |
+| Scale | Custom       | ✅ Multiple replicas  | Unlimited   |
 
 **Estimated savings**: $50-200/month by preventing primary database upgrades
 
 ### AWS RDS
 
 **Example configuration**:
+
 - Primary: `db.t3.medium` ($73/month)
 - Replica: `db.t3.small` ($37/month)
 - **Total**: $110/month
 
 **Without replica**:
+
 - Primary: `db.t3.large` ($146/month) - needed to handle load
 - **Savings**: $36/month + better performance
 
 ### Self-Hosted
 
 **Hardware requirements**:
+
 - Primary: 4 vCPU, 8GB RAM ($40/month VPS)
 - Replica: 2 vCPU, 4GB RAM ($20/month VPS)
 - **Total**: $60/month

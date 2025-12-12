@@ -81,22 +81,48 @@ export function IcdCodeSearch({
             <CommandEmpty>
               {loading ? (
                 <div className="py-6 text-center text-sm">
-                  <div className="animate-pulse">Searching diagnoses...</div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+                    <p className="font-medium">Searching diagnoses...</p>
+                    <p className="text-xs text-muted-foreground">
+                      This may take a moment
+                    </p>
+                  </div>
                 </div>
               ) : error ? (
-                <div className="py-6 text-center text-sm text-destructive">
-                  <p className="font-medium">Error loading diagnoses</p>
-                  <p className="text-xs mt-1">
-                    Please try again or contact support
-                  </p>
+                <div className="py-6 text-center text-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <span className="text-destructive text-xl">⚠</span>
+                    </div>
+                    <p className="font-medium text-destructive">
+                      Error loading diagnoses
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Please check your connection or try again
+                    </p>
+                  </div>
                 </div>
               ) : searchQuery.length > 0 && searchQuery.length < 2 ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  Type at least 2 characters to search
+                <div className="py-6 text-center text-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="h-8 w-8 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">
+                      Type at least 2 characters to search
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  No diagnosis found. Try a different search term.
+                <div className="py-6 text-center text-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <Search className="h-8 w-8 text-muted-foreground/50" />
+                    <p className="font-medium text-muted-foreground">
+                      No diagnosis found
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Try different keywords or check spelling
+                    </p>
+                  </div>
                 </div>
               )}
             </CommandEmpty>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseObservationsFormProps {
   appointmentId: string;
@@ -13,6 +14,7 @@ export function useObservationsForm({
   initialObservations = "",
   onObservationsSaved,
 }: UseObservationsFormProps) {
+  const queryClient = useQueryClient();
   const updateObservations =
     apiHooks.useUpdateAppointmentObservations(appointmentId);
   const [observations, setObservations] = useState(initialObservations);
@@ -22,8 +24,22 @@ export function useObservationsForm({
 
     try {
       await updateObservations.mutateAsync({ observations });
-      onObservationsSaved?.();
-      onSuccess?.();
+      
+      // Invalidate and refetch queries to refresh data immediately
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", appointmentId],
+      });
+      await queryClient.refetchQueries({
+        queryKey: ["appointments", appointmentId],
+        type: 'active',
+      });
+      
+      if (onObservationsSaved) {
+        await onObservationsSaved();
+      }
+      if (onSuccess) {
+        await onSuccess();
+      }
       toast.success("Observations saved successfully");
     } catch (error) {
       console.error("Failed to save observations:", error);

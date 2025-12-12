@@ -90,7 +90,9 @@ export function AddPatientDialog({
 
   const handleSubmit = async (data: CreatePatientInput) => {
     const finalData = { ...data, customData };
-    await onSubmit(finalData as CreatePatientInput, () => setOpen(false));
+    await onSubmit(finalData as CreatePatientInput, () => {
+      setTimeout(() => setOpen(false), 100);
+    });
   };
 
   return (

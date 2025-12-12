@@ -146,17 +146,24 @@ export const apiHooks = {
     const queryString = params.toString();
     const url = queryString ? `/patients?${queryString}` : "/patients";
 
-    return useAPIQuery<Patient[]>(
+    return useAPIQuery<{
+      items: Patient[];
+      nextCursor?: string;
+      hasMore: boolean;
+      count: number;
+    }>(
       ["patients", options?.limit?.toString() ?? "", options?.search ?? ""],
       url,
       { enabled: options !== null }, // Disable only if explicitly passed null
     );
   },
   useRecentPatients: (limit: number = 5) => {
-    return useAPIQuery<Patient[]>(
-      ["patients", "recent", limit.toString()],
-      `/patients?limit=${limit}`,
-    );
+    return useAPIQuery<{
+      items: Patient[];
+      nextCursor?: string;
+      hasMore: boolean;
+      count: number;
+    }>(["patients", "recent", limit.toString()], `/patients?limit=${limit}`);
   },
   usePatient: (id: string) =>
     useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
@@ -175,11 +182,13 @@ export const apiHooks = {
     ),
 
   // Appointments
-  useAppointments: (options?: {
-    date?: string;
-    startDate?: string;
-    endDate?: string;
-  }) => {
+  useAppointments: (
+    options?: {
+      date?: string;
+      startDate?: string;
+      endDate?: string;
+    } | null,
+  ) => {
     const params = new URLSearchParams();
     if (options?.date) params.append("date", options.date);
     if (options?.startDate) params.append("startDate", options.startDate);
@@ -195,13 +204,15 @@ export const apiHooks = {
         options?.endDate ?? "",
       ],
       url,
+      { enabled: options !== null }, // Disable only if explicitly passed null
     );
   },
-  useTodayAppointments: () => {
+  useTodayAppointments: (enabled: boolean = true) => {
     const today = new Date().toISOString().split("T")[0] ?? "";
     return useAPIQuery<(Appointment & { patient?: Patient })[]>(
       ["appointments", "today", today],
       `/appointments?date=${today}`,
+      { enabled },
     );
   },
   useAppointment: (id: string) =>
@@ -487,7 +498,7 @@ export const apiHooks = {
 
   // Invoice operations
   useUpdateInvoice: (id: string) =>
-    useAPIMutation<Invoice, Partial<Invoice>>(`/invoices/${id}`, "PUT"),
+    useAPIMutation<Invoice, Partial<Invoice>>(`/invoices/${id}`, "PATCH"),
   useDeleteInvoice: (id: string) =>
     useAPIMutation<void, void>(`/invoices/${id}`, "DELETE"),
 
@@ -495,7 +506,7 @@ export const apiHooks = {
   useUpdatePrescription: (id: string) =>
     useAPIMutation<Prescription, Partial<Prescription>>(
       `/prescriptions/${id}`,
-      "PUT",
+      "PATCH",
     ),
   useDeletePrescription: (id: string) =>
     useAPIMutation<void, void>(`/prescriptions/${id}`, "DELETE"),
@@ -1516,7 +1527,7 @@ export const apiHooks = {
 
   // ✅ NEW: Infinite query hooks for cursor pagination
   // These hooks support infinite scrolling with cursor-based pagination
-  
+
   /**
    * Infinite patients query with cursor pagination
    * @example
@@ -1531,13 +1542,13 @@ export const apiHooks = {
           ...(pageParam && { cursor: pageParam }),
           ...(options?.search && { search: options.search }),
         });
-        
+
         const response = await fetch(`${API_URL}/patients?${params}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        
+
         if (!response.ok) throw new Error("Failed to fetch patients");
         return response.json() as Promise<{
           items: Patient[];
@@ -1580,13 +1591,13 @@ export const apiHooks = {
           ...(options?.startDate && { startDate: options.startDate }),
           ...(options?.endDate && { endDate: options.endDate }),
         });
-        
+
         const response = await fetch(`${API_URL}/appointments?${params}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        
+
         if (!response.ok) throw new Error("Failed to fetch appointments");
         return response.json() as Promise<{
           items: Appointment[];
@@ -1614,13 +1625,13 @@ export const apiHooks = {
           limit: (options?.limit || 50).toString(),
           ...(pageParam && { cursor: pageParam }),
         });
-        
+
         const response = await fetch(`${API_URL}/invoices?${params}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        
+
         if (!response.ok) throw new Error("Failed to fetch invoices");
         return response.json() as Promise<{
           items: Invoice[];

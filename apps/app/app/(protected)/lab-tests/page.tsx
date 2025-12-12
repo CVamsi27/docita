@@ -60,7 +60,15 @@ import { z } from "zod";
 import { apiHooks } from "@/lib/api-hooks";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Patient } from "@workspace/types";
 import { toast } from "sonner";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 
 const createLabTestOrderSchema = z.object({
   patientId: z.string().min(1, "Patient is required"),
@@ -86,11 +94,15 @@ export default function LabTestsPage() {
     isFetching,
   } = apiHooks.useLabTestOrders();
   const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
-  const { data: patients = [], isLoading: patientsLoading } =
+  const { data: patientsResponse, isLoading: patientsLoading } =
     apiHooks.usePatients({
       search: patientSearch || undefined,
       limit: patientSearch ? 20 : 5,
     });
+  const paginatedResponse = patientsResponse as
+    | PaginatedResponse<Patient>
+    | undefined;
+  const patients: Patient[] = paginatedResponse?.items || [];
   const { data: testCatalog = [], isLoading: catalogLoading } =
     apiHooks.useLabTestCatalog();
   const { mutateAsync: createOrder, isPending: isCreating } =

@@ -815,9 +815,15 @@ export class AnalyticsService {
     // ✅ OPTIMIZATION: Use Promise.all for parallel count queries
     const [total, booked, completed, cancelled, noShow] = await Promise.all([
       readClient.appointment.count({ where }),
-      readClient.appointment.count({ where: { ...where, status: 'confirmed' } }),
-      readClient.appointment.count({ where: { ...where, status: 'completed' } }),
-      readClient.appointment.count({ where: { ...where, status: 'cancelled' } }),
+      readClient.appointment.count({
+        where: { ...where, status: 'confirmed' },
+      }),
+      readClient.appointment.count({
+        where: { ...where, status: 'completed' },
+      }),
+      readClient.appointment.count({
+        where: { ...where, status: 'cancelled' },
+      }),
       readClient.appointment.count({ where: { ...where, status: 'no_show' } }),
     ]);
 

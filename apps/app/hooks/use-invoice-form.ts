@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { LineItem, type Specialization } from "@workspace/types";
 import { apiFetch } from "@/lib/api-client";
 import { useAppConfig } from "@/lib/app-config-context";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SPECIALTY_CONSULTATION_FEES: Record<Specialization, number> = {
   GENERAL_PRACTICE: 500,
@@ -60,6 +61,7 @@ export function useInvoiceForm({
   doctorLicenseNumber,
   onInvoiceCreated,
 }: UseInvoiceFormProps) {
+  const queryClient = useQueryClient();
   const { config } = useAppConfig();
   const defaultItems = config.defaults.invoiceItems;
 
@@ -157,10 +159,25 @@ export function useInvoiceForm({
         }),
       });
 
+      // Invalidate and refetch queries to refresh data immediately
+      if (appointmentId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["appointments", appointmentId],
+        });
+        await queryClient.refetchQueries({
+          queryKey: ["appointments", appointmentId],
+          type: 'active',
+        });
+      }
+
       resetItems();
       setStatus("pending");
-      onInvoiceCreated?.();
-      onSuccess?.();
+      if (onInvoiceCreated) {
+        await onInvoiceCreated();
+      }
+      if (onSuccess) {
+        await onSuccess();
+      }
       toast.success("Invoice created successfully");
     } catch (error) {
       console.error("Failed to create invoice:", error);

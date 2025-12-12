@@ -83,10 +83,14 @@ export default function ConsultationPage() {
     }
   }, [canGoBack, goBack, router, fallbackRoute]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     // Refetch appointment data after save
-    queryClient.invalidateQueries({
+    await queryClient.invalidateQueries({
       queryKey: ["appointments", appointmentId],
+    });
+    await queryClient.refetchQueries({
+      queryKey: ["appointments", appointmentId],
+      type: 'active',
     });
   }, [queryClient, appointmentId]);
 
@@ -128,16 +132,25 @@ export default function ConsultationPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 py-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" onClick={handleBack}>
+      <header className="sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 py-3 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
+        <div className="flex items-center gap-3 md:gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="hover:bg-accent"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
 
           {/* Mobile sidebar toggle */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden hover:bg-accent"
+              >
                 <PanelLeft className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -149,15 +162,24 @@ export default function ConsultationPage() {
             </SheetContent>
           </Sheet>
 
-          <div>
-            <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
-              <User className="h-5 w-5 text-primary hidden sm:block" />
-              {patientName}
-            </h1>
-            <p className="text-xs md:text-sm text-muted-foreground">
-              Consultation -{" "}
-              {new Date(appointmentData.startTime).toLocaleDateString()}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold">{patientName}</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                {new Date(appointmentData.startTime).toLocaleDateString(
+                  "en-US",
+                  {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  },
+                )}
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -165,8 +187,9 @@ export default function ConsultationPage() {
             variant="outline"
             size="sm"
             onClick={handleBack}
-            className="hidden sm:flex"
+            className="hidden sm:flex gap-2"
           >
+            <ArrowLeft className="h-4 w-4" />
             Close
           </Button>
         </div>

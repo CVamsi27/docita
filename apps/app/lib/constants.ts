@@ -6,7 +6,6 @@ import {
   FileText,
   Receipt,
   MessageSquare,
-  BarChart3,
   Package,
   FlaskConical,
   Sparkles,
@@ -86,15 +85,6 @@ export const sidebarItems: SidebarItem[] = [
     icon: Upload,
     roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
     feature: Feature.EXCEL_IMPORT,
-  },
-
-  // ======= Analytics =======
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    feature: Feature.BASIC_ANALYTICS,
   },
 
   // ======= Tier 2: PLUS =======

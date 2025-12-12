@@ -39,7 +39,7 @@ interface ErrorLogData {
 export class MonitoringService {
   private readonly logger = new Logger(MonitoringService.name);
   private readonly startTime = Date.now();
-  
+
   // Batching buffers
   private requestBuffer: RequestLogData[] = [];
   private errorBuffer: ErrorLogData[] = [];
@@ -146,7 +146,7 @@ export class MonitoringService {
   logRequest(data: RequestLogData): void {
     // Add to buffer instead of immediate database write
     this.requestBuffer.push(data);
-    
+
     // If buffer is full, flush immediately
     if (this.requestBuffer.length >= this.BATCH_SIZE) {
       this.flushBuffers().catch((error) => {
@@ -162,7 +162,7 @@ export class MonitoringService {
   logError(data: ErrorLogData): void {
     // Add to buffer instead of immediate database write
     this.errorBuffer.push(data);
-    
+
     // If buffer is full, flush immediately
     if (this.errorBuffer.length >= this.BATCH_SIZE) {
       this.flushBuffers().catch((error) => {
@@ -860,7 +860,7 @@ export class MonitoringService {
   /**
    * Record Web Vital metric from frontend
    * ✅ OPTIMIZATION: Store Core Web Vitals for real user monitoring (RUM)
-   * 
+   *
    * Web Vitals thresholds:
    * - LCP (Largest Contentful Paint): < 2.5s good, > 4s poor
    * - INP (Interaction to Next Paint): < 200ms good, > 500ms poor
@@ -870,7 +870,7 @@ export class MonitoringService {
    */
   async recordWebVital(vital: WebVitalDto) {
     const rating = this.getRating(vital.name, vital.value);
-    
+
     // Store vital in database using SystemMetric table
     await this.prisma.systemMetric.create({
       data: {

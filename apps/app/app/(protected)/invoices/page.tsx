@@ -48,10 +48,11 @@ type SortDirection = "asc" | "desc";
 
 export default function InvoicesPage() {
   const {
-    data: invoices = [],
+    data: invoicesResponse,
     isLoading: loading,
     refetch,
   } = apiHooks.useInvoices();
+  const invoices = (invoicesResponse as any)?.items || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [editingInvoice, setEditingInvoice] =
     useState<InvoiceWithPatient | null>(null);

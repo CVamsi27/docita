@@ -17,10 +17,10 @@ The API now uses **cursor-based pagination** for list endpoints, replacing the p
 
 All list endpoints support these query parameters:
 
-| Parameter | Type   | Default | Description                                      |
-|-----------|--------|---------|--------------------------------------------------|
-| `limit`   | number | 50      | Maximum items per page (max: 100)               |
-| `cursor`  | string | -       | Opaque cursor string for next page              |
+| Parameter | Type   | Default | Description                        |
+| --------- | ------ | ------- | ---------------------------------- |
+| `limit`   | number | 50      | Maximum items per page (max: 100)  |
+| `cursor`  | string | -       | Opaque cursor string for next page |
 
 ### Response Format
 
@@ -48,6 +48,7 @@ curl "https://api.example.com/patients?limit=20&cursor=Y2xqczBqZDAwMDAwMQ"
 ```
 
 **Query Parameters:**
+
 - `limit`: Number of patients per page
 - `cursor`: Pagination cursor
 - `search`: Search by name, phone, or email
@@ -65,6 +66,7 @@ curl "https://api.example.com/appointments?startDate=2024-01-01&endDate=2024-01-
 ```
 
 **Query Parameters:**
+
 - `limit`: Number of appointments per page
 - `cursor`: Pagination cursor
 - `date`: Specific date (YYYY-MM-DD)
@@ -85,6 +87,7 @@ curl "https://api.example.com/invoices?limit=20&cursor=Y2xqczBqZDAwMDAwMQ"
 ```
 
 **Query Parameters:**
+
 - `limit`: Number of invoices per page
 - `cursor`: Pagination cursor
 
@@ -99,6 +102,7 @@ curl "https://api.example.com/super-admin/clinics?limit=20" \
 ```
 
 **Query Parameters:**
+
 - `limit`: Number of clinics per page
 - `cursor`: Pagination cursor
 
@@ -117,7 +121,7 @@ function useInfinitePatients() {
         limit: '20',
         ...(pageParam && { cursor: pageParam }),
       });
-      
+
       const response = await fetch(`/api/patients?${params}`);
       return response.json();
     },
@@ -142,7 +146,7 @@ function PatientList() {
           <PatientCard key={patient.id} patient={patient} />
         ))
       )}
-      
+
       {hasNextPage && (
         <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
           {isFetchingNextPage ? 'Loading...' : 'Load More'}
@@ -162,7 +166,7 @@ import { useEffect } from 'react';
 
 function InfinitePatientList() {
   const { ref, inView } = useInView();
-  
+
   const {
     data,
     fetchNextPage,
@@ -183,7 +187,7 @@ function InfinitePatientList() {
           <PatientCard key={patient.id} patient={patient} />
         ))
       )}
-      
+
       <div ref={ref}>
         {isFetchingNextPage && <LoadingSpinner />}
       </div>
@@ -195,14 +199,14 @@ function InfinitePatientList() {
 ### Zustand Store Example
 
 ```typescript
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface PaginationState {
   patients: any[];
   cursor: string | null;
   hasMore: boolean;
   isLoading: boolean;
-  
+
   fetchPatients: (cursor?: string) => Promise<void>;
   resetPatients: () => void;
 }
@@ -212,18 +216,18 @@ export const usePatientsStore = create<PaginationState>((set, get) => ({
   cursor: null,
   hasMore: true,
   isLoading: false,
-  
+
   fetchPatients: async (cursor?: string) => {
     set({ isLoading: true });
-    
+
     const params = new URLSearchParams({
-      limit: '20',
+      limit: "20",
       ...(cursor && { cursor }),
     });
-    
+
     const response = await fetch(`/api/patients?${params}`);
     const data = await response.json();
-    
+
     set((state) => ({
       patients: cursor ? [...state.patients, ...data.items] : data.items,
       cursor: data.nextCursor,
@@ -231,7 +235,7 @@ export const usePatientsStore = create<PaginationState>((set, get) => ({
       isLoading: false,
     }));
   },
-  
+
   resetPatients: () => set({ patients: [], cursor: null, hasMore: true }),
 }));
 ```
@@ -260,13 +264,13 @@ SELECT * FROM patients WHERE clinic_id = 'xxx' LIMIT 20 OFFSET 10000;  -- 2500ms
 SELECT * FROM patients WHERE clinic_id = 'xxx' ORDER BY updated_at DESC LIMIT 21;  -- 5ms
 
 -- Page 50: With cursor
-SELECT * FROM patients 
-WHERE clinic_id = 'xxx' AND id > 'cursor_id' 
+SELECT * FROM patients
+WHERE clinic_id = 'xxx' AND id > 'cursor_id'
 ORDER BY updated_at DESC LIMIT 21;  -- 5ms
 
 -- Page 500: With cursor
-SELECT * FROM patients 
-WHERE clinic_id = 'xxx' AND id > 'cursor_id' 
+SELECT * FROM patients
+WHERE clinic_id = 'xxx' AND id > 'cursor_id'
 ORDER BY updated_at DESC LIMIT 21;  -- 5ms
 ```
 
@@ -286,14 +290,16 @@ No migration required - the API is backward compatible:
 #### 1. Update API Calls
 
 **Before:**
+
 ```typescript
-const response = await fetch('/api/patients?page=2&limit=20');
+const response = await fetch("/api/patients?page=2&limit=20");
 const patients = response.json(); // Array
 ```
 
 **After:**
+
 ```typescript
-const response = await fetch('/api/patients?cursor=abc&limit=20');
+const response = await fetch("/api/patients?cursor=abc&limit=20");
 const data = response.json(); // { items, nextCursor, hasMore, count }
 const patients = data.items;
 ```
@@ -301,6 +307,7 @@ const patients = data.items;
 #### 2. Update State Management
 
 **Before:**
+
 ```typescript
 const [page, setPage] = useState(1);
 const [patients, setPatients] = useState([]);
@@ -309,6 +316,7 @@ const loadMore = () => setPage(page + 1);
 ```
 
 **After:**
+
 ```typescript
 const [cursor, setCursor] = useState<string | null>(null);
 const [patients, setPatients] = useState([]);
@@ -351,21 +359,21 @@ useEffect(() => {
 }, [searchQuery]);
 
 // ❌ Don't manipulate cursor strings
-const badCursor = cursor + '123'; // Wrong!
+const badCursor = cursor + "123"; // Wrong!
 
 // ❌ Don't store cursors in localStorage
-localStorage.setItem('cursor', cursor); // Cursors expire!
+localStorage.setItem("cursor", cursor); // Cursors expire!
 ```
 
 ### 3. Optimize with React Query
 
 ```typescript
 useInfiniteQuery({
-  queryKey: ['patients', searchQuery],
+  queryKey: ["patients", searchQuery],
   queryFn: fetchPatients,
   getNextPageParam: (lastPage) => lastPage.nextCursor,
   staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  gcTime: 10 * 60 * 1000,   // Keep in memory for 10 minutes
+  gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
 });
 ```
 
@@ -379,13 +387,13 @@ function PatientList() {
     <>
       {/* Show skeleton on initial load */}
       {!data && <Skeleton count={20} />}
-      
+
       {/* Show content */}
       {data?.pages.map(...)}
-      
+
       {/* Show spinner when loading more */}
       {isFetchingNextPage && <Spinner />}
-      
+
       {/* Show end message */}
       {!hasNextPage && <p>No more results</p>}
     </>
@@ -421,7 +429,7 @@ where: {
 
 ```typescript
 useEffect(() => {
-  queryClient.resetQueries(['patients']); // Clear cache
+  queryClient.resetQueries(["patients"]); // Clear cache
 }, [searchQuery, dateFilter]);
 ```
 
@@ -434,8 +442,8 @@ useEffect(() => {
 ```typescript
 // Lazy load count
 const { data: exactCount } = useQuery({
-  queryKey: ['patients', 'count'],
-  queryFn: () => fetch('/api/patients/count'),
+  queryKey: ["patients", "count"],
+  queryFn: () => fetch("/api/patients/count"),
   enabled: showExactCount, // Only when needed
 });
 ```
@@ -445,10 +453,12 @@ const { data: exactCount } = useQuery({
 ### Cursor Format
 
 Cursors are **base64-encoded** strings containing:
+
 - Record ID (primary key)
 - Sort field value (e.g., updatedAt)
 
 **Example:**
+
 ```
 Original: {"id":"cljs0jd000001","updatedAt":"2024-01-15T10:30:00Z"}
 Encoded:  Y2xqczBqZDAwMDAwMXwyMDI0LTAxLTE1VDEwOjMwOjAwWg==
@@ -460,11 +470,11 @@ The helper uses Prisma's `cursor` option:
 
 ```typescript
 await prisma.patient.findMany({
-  take: limit + 1,              // Fetch one extra to detect hasMore
-  cursor: { id: cursorId },     // Start from cursor
-  skip: 1,                      // Skip the cursor record itself
+  take: limit + 1, // Fetch one extra to detect hasMore
+  cursor: { id: cursorId }, // Start from cursor
+  skip: 1, // Skip the cursor record itself
   where: { clinicId },
-  orderBy: { updatedAt: 'desc' },
+  orderBy: { updatedAt: "desc" },
 });
 ```
 
@@ -488,13 +498,13 @@ model Appointment {
 
 Expected improvements after cursor pagination:
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Page 1 response time | 50ms | 50ms | - |
-| Page 10 response time | 200ms | 50ms | **75%** |
-| Page 100 response time | 2500ms | 50ms | **98%** |
-| Large table scan | O(n) | O(1) | **10-100x** |
-| Memory usage | High | Low | **60%** |
+| Metric                 | Before | After | Improvement |
+| ---------------------- | ------ | ----- | ----------- |
+| Page 1 response time   | 50ms   | 50ms  | -           |
+| Page 10 response time  | 200ms  | 50ms  | **75%**     |
+| Page 100 response time | 2500ms | 50ms  | **98%**     |
+| Large table scan       | O(n)   | O(1)  | **10-100x** |
+| Memory usage           | High   | Low   | **60%**     |
 
 ## Next Steps
 

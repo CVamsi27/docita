@@ -52,8 +52,8 @@ export function QueueSettingsDialog({
       try {
         await updateSettings.mutateAsync(settingsForm);
         toast.success("Queue settings saved");
-        onOpenChange(false);
         onSettingsUpdated();
+        setTimeout(() => onOpenChange(false), 100);
       } catch (error) {
         console.error("Failed to save settings:", error);
         toast.error("Failed to save settings");

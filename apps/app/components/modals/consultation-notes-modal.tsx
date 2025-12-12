@@ -48,13 +48,16 @@ export function ConsultationNotesModal({
   );
 
   // Fetch patient's previous appointments for history
-  const { data: appointments = [] } =
+  const { data: appointmentsResponse } =
     apiHooks.usePatientAppointments(patientId);
+  const appointments = (appointmentsResponse as any)?.items || [];
 
   // Filter past consultations (exclude current appointment)
   const pastConsultations: PastConsultation[] = appointments
-    .filter((apt) => apt.id !== appointmentId && apt.status === "completed")
-    .map((apt) => ({
+    .filter(
+      (apt: any) => apt.id !== appointmentId && apt.status === "completed",
+    )
+    .map((apt: any) => ({
       id: apt.id || "",
       date: new Date(apt.startTime),
       type: apt.type,
@@ -62,15 +65,17 @@ export function ConsultationNotesModal({
       observations: apt.observations,
       chiefComplaint: apt.chiefComplaint,
     }))
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .sort((a: any, b: any) => b.date.getTime() - a.date.getTime())
     .slice(0, 5); // Show last 5 consultations
 
   const { loading, observations, setObservations, handleSubmit } =
     useObservationsForm({
       appointmentId,
-      onObservationsSaved: () => {
-        onSaved?.();
-        onOpenChange(false);
+      onObservationsSaved: async () => {
+        if (onSaved) {
+          await onSaved();
+        }
+        setTimeout(() => onOpenChange(false), 100);
       },
     });
 
@@ -93,7 +98,7 @@ export function ConsultationNotesModal({
       isLoading={loading}
       onSubmit={handleNotesSubmit}
       submitLabel={loading ? "Saving..." : "Save Notes"}
-      contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto"
+      contentClassName="max-w-7xl max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-6 py-4">
         {/* Previous Consultation History */}
@@ -195,7 +200,7 @@ export function ConsultationNotesModal({
         )}
 
         {/* Current Notes Form */}
-        <form className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="observations" className="text-base font-medium">
               Clinical Notes & Observations
@@ -208,7 +213,7 @@ export function ConsultationNotesModal({
               className="min-h-[200px] font-mono text-sm resize-none"
             />
           </div>
-        </form>
+        </div>
       </div>
     </CRUDDialog>
   );

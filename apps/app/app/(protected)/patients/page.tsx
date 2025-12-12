@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 
 import { apiHooks } from "@/lib/api-hooks";
-import { useAuth } from "@/lib/auth-context";
 import { Patient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -42,13 +41,13 @@ import { Suspense } from "react";
 
 function PatientsContent() {
   const {
-    data: patients = [],
+    data: patientsResponse,
     isLoading: loading,
     error: queryError,
     refetch,
   } = apiHooks.usePatients();
-  const { user } = useAuth();
-  const { data: appointments = [] } = apiHooks.useAppointments();
+  // Note: Doctors should see all patients, not filtered by appointments
+  // Appointments API call removed to improve performance
   const error = queryError ? (queryError as Error).message : null;
   const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearchParams();
@@ -95,21 +94,11 @@ function PatientsContent() {
 
   // Filter and sort patients
   const filteredPatients = useMemo(() => {
+    // Extract items from paginated responses
+    const patients = patientsResponse?.items || [];
     let result = [...patients];
 
-    // For doctors, only show patients they have appointments with
-    if (user?.role === "DOCTOR" && user?.id) {
-      const patientIdsWithAppointments = new Set(
-        appointments
-          .filter((apt) => apt.doctorId === user.id)
-          .map((apt) => apt.patientId),
-      );
-      result = result.filter(
-        (patient) => patient.id && patientIdsWithAppointments.has(patient.id),
-      );
-    }
-
-    // Filter
+    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((patient) => {
@@ -154,7 +143,7 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patients, searchQuery, sortConfig, user, appointments]);
+  }, [patientsResponse, searchQuery, sortConfig]);
 
   const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {
@@ -240,7 +229,6 @@ function PatientsContent() {
                     </div>
                   </TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Main Symptom</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleSort("gender")}
@@ -266,7 +254,7 @@ function PatientsContent() {
                 {loading ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={6}
                       className="h-24 text-center text-muted-foreground"
                     >
                       Loading patients...
@@ -275,7 +263,7 @@ function PatientsContent() {
                 ) : filteredPatients.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={6}
                       className="h-24 text-center text-muted-foreground"
                     >
                       {searchQuery
@@ -310,14 +298,6 @@ function PatientsContent() {
                             {patient.email}
                           </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground italic">
-                          {patient.medicalHistory &&
-                          patient.medicalHistory.length > 0
-                            ? patient.medicalHistory[0]
-                            : patient.allergies || "-"}
-                        </span>
                       </TableCell>
                       <TableCell className="capitalize">
                         {patient.gender}

@@ -2,15 +2,24 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/lib/api-hooks";
 import {
   createAppointmentSchema,
   CreateAppointmentInput,
   toLocalISOString,
   DEFAULT_TIMEZONE,
+  Patient,
 } from "@workspace/types";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 
 interface UseAppointmentFormProps {
   onAppointmentAdded: () => void;
@@ -28,11 +37,13 @@ export function useAppointmentForm({
   endHour = 17,
 }: UseAppointmentFormProps) {
   const [patientSearch, setPatientSearch] = useState("");
-  const { data: searchedPatients = [], isLoading: patientsLoading } =
+  const { data: searchedPatientsResponse, isLoading: patientsLoading } =
     apiHooks.usePatients({
       search: patientSearch || undefined,
       limit: patientSearch ? 20 : 10, // Show more results when searching
     });
+  const searchedPatients: Patient[] =
+    (searchedPatientsResponse as any)?.items || [];
 
   // Fetch preselected patient separately to ensure it's available
   const { data: preselectedPatient } = apiHooks.usePatient(
@@ -62,6 +73,7 @@ export function useAppointmentForm({
 
   const { mutateAsync: createAppointment, isPending: loading } =
     apiHooks.useCreateAppointment();
+  const queryClient = useQueryClient();
   const { config } = useAppConfig();
   const { user } = useAuth();
 
@@ -169,9 +181,21 @@ export function useAppointmentForm({
               new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
+        
+        // Invalidate and refetch queries to refresh data immediately
+        await queryClient.invalidateQueries({
+          queryKey: ["appointments"],
+        });
+        await queryClient.refetchQueries({
+          queryKey: ["appointments"],
+          type: 'active',
+        });
+        
         form.reset();
-        onAppointmentAdded();
-        onSuccess?.();
+        await onAppointmentAdded();
+        if (onSuccess) {
+          await onSuccess();
+        }
         toast.success("Appointment scheduled successfully");
       } catch (error) {
         console.error("Failed to create appointment:", error);
@@ -182,7 +206,7 @@ export function useAppointmentForm({
         toast.error(errorMessage);
       }
     },
-    [form, onAppointmentAdded, createAppointment, defaultDuration],
+    [form, onAppointmentAdded, createAppointment, defaultDuration, queryClient],
   );
 
   return {

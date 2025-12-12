@@ -108,7 +108,9 @@ export function AddAppointmentDialog({
 
   const handleSubmit = useCallback(
     async (data: CreateAppointmentInput) => {
-      await onSubmit(data, () => setOpen(false));
+      await onSubmit(data, () => {
+        setTimeout(() => setOpen(false), 100);
+      });
     },
     [onSubmit, setOpen],
   );

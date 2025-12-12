@@ -3,10 +3,7 @@
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { apiHooks } from "@/lib/api-hooks";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Loader2, Users } from "lucide-react";
 import { format } from "date-fns";
@@ -21,12 +18,12 @@ interface VirtualizedPatientsListProps {
  * ✅ OPTIMIZATION: Virtual scrolling - only renders visible rows (80% faster for 100+ items)
  * ✅ OPTIMIZATION: Cursor pagination - O(1) query performance regardless of offset
  * ✅ OPTIMIZATION: Automatic infinite scroll with intersection observer
- * 
+ *
  * Performance:
  * - 100 items without virtualization: ~150ms render time
  * - 100 items with virtualization: ~30ms render time (only renders ~10 visible items)
  * - DOM nodes: 100 → 10 (90% reduction)
- * 
+ *
  * @example
  * <VirtualizedPatientsList searchQuery={search} onPatientSelect={handleSelect} />
  */
@@ -64,7 +61,12 @@ export function VirtualizedPatientsList({
   const virtualItems = rowVirtualizer.getVirtualItems();
   const lastVirtualItem = virtualItems[virtualItems.length - 1];
 
-  if (lastVirtualItem && lastVirtualItem.index >= patients.length - 1 && hasNextPage && !isFetchingNextPage) {
+  if (
+    lastVirtualItem &&
+    lastVirtualItem.index >= patients.length - 1 &&
+    hasNextPage &&
+    !isFetchingNextPage
+  ) {
     fetchNextPage();
   }
 
@@ -94,7 +96,9 @@ export function VirtualizedPatientsList({
         <CardContent className="p-6 text-center">
           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">
-            {searchQuery ? "No patients found matching your search" : "No patients yet"}
+            {searchQuery
+              ? "No patients found matching your search"
+              : "No patients yet"}
           </p>
         </CardContent>
       </Card>
@@ -159,7 +163,7 @@ export function VirtualizedPatientsList({
                             {patient.lastName?.[0]}
                           </AvatarFallback>
                         </Avatar>
-                        
+
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold truncate">
                             {patient.firstName} {patient.lastName}
@@ -167,10 +171,15 @@ export function VirtualizedPatientsList({
                           <div className="flex gap-4 text-sm text-muted-foreground">
                             {patient.dateOfBirth && (
                               <span>
-                                {format(new Date(patient.dateOfBirth), "MMM d, yyyy")}
+                                {format(
+                                  new Date(patient.dateOfBirth),
+                                  "MMM d, yyyy",
+                                )}
                               </span>
                             )}
-                            {patient.phoneNumber && <span>{patient.phoneNumber}</span>}
+                            {patient.phoneNumber && (
+                              <span>{patient.phoneNumber}</span>
+                            )}
                           </div>
                         </div>
 

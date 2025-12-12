@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { Patient } from "@workspace/types";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -39,6 +40,13 @@ import {
 import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { cn } from "@workspace/ui/lib/utils";
 import { apiHooks } from "@/lib/api-hooks";
+
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
 
 const walkInSchemaBase = z.object({
   patientId: z.string().min(1, "Patient is required"),
@@ -94,8 +102,10 @@ export function AddWalkInDialog({
   });
 
   // Fetch patients with search
-  const { data: patients = [], isLoading: patientsLoading } =
+  const { data: patientsResponse = { items: [] }, isLoading: patientsLoading } =
     apiHooks.usePatients({ search: patientSearch });
+  const paginatedResponse = patientsResponse as PaginatedResponse<Patient>;
+  const patients: Patient[] = paginatedResponse?.items || [];
 
   const createQueueToken = apiHooks.useCreateQueueToken();
 

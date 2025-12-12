@@ -24,7 +24,7 @@ export class DashboardService {
 
     // Cache key for this clinic's dashboard stats
     const cacheKey = `dashboard:stats:${clinicId}`;
-    
+
     // Try to get cached data (60 second TTL)
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
@@ -138,7 +138,8 @@ export class DashboardService {
     await this.cacheManager.set(cacheKey, result, 60 * 1000);
 
     return result;
-  }  private formatTimeAgo(date: Date): string {
+  }
+  private formatTimeAgo(date: Date): string {
     const now = new Date();
     const diffInSeconds = Math.floor(
       (now.getTime() - new Date(date).getTime()) / 1000,
