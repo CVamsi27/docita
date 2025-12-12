@@ -90,7 +90,7 @@ export default function ConsultationPage() {
     });
     await queryClient.refetchQueries({
       queryKey: ["appointments", appointmentId],
-      type: 'active',
+      type: "active",
     });
   }, [queryClient, appointmentId]);
 

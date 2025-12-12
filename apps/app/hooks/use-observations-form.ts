@@ -24,16 +24,16 @@ export function useObservationsForm({
 
     try {
       await updateObservations.mutateAsync({ observations });
-      
+
       // Invalidate and refetch queries to refresh data immediately
       await queryClient.invalidateQueries({
         queryKey: ["appointments", appointmentId],
       });
       await queryClient.refetchQueries({
         queryKey: ["appointments", appointmentId],
-        type: 'active',
+        type: "active",
       });
-      
+
       if (onObservationsSaved) {
         await onObservationsSaved();
       }

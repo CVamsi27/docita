@@ -48,19 +48,34 @@ function SettingsContent() {
 
       <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="flex flex-wrap w-full h-auto gap-1 md:gap-0 bg-transparent md:bg-background p-0 md:p-1">
-          <TabsTrigger value="general" className="text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger
+            value="general"
+            className="text-xs md:text-sm whitespace-nowrap"
+          >
             General
           </TabsTrigger>
-          <TabsTrigger value="billing" className="text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger
+            value="billing"
+            className="text-xs md:text-sm whitespace-nowrap"
+          >
             Billing
           </TabsTrigger>
-          <TabsTrigger value="subscription" className="text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger
+            value="subscription"
+            className="text-xs md:text-sm whitespace-nowrap"
+          >
             Subscription
           </TabsTrigger>
-          <TabsTrigger value="members" className="text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger
+            value="members"
+            className="text-xs md:text-sm whitespace-nowrap"
+          >
             Members
           </TabsTrigger>
-          <TabsTrigger value="availability" className="text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger
+            value="availability"
+            className="text-xs md:text-sm whitespace-nowrap"
+          >
             Availability
           </TabsTrigger>
           <TabsTrigger

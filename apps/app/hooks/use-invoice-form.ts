@@ -166,7 +166,7 @@ export function useInvoiceForm({
         });
         await queryClient.refetchQueries({
           queryKey: ["appointments", appointmentId],
-          type: 'active',
+          type: "active",
         });
       }
 

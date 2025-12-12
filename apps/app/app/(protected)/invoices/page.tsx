@@ -52,7 +52,8 @@ export default function InvoicesPage() {
     isLoading: loading,
     refetch,
   } = apiHooks.useInvoices();
-  const invoices = (invoicesResponse as any)?.items || [];
+  const invoices: InvoiceWithPatient[] =
+    (invoicesResponse as { items?: InvoiceWithPatient[] })?.items || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [editingInvoice, setEditingInvoice] =
     useState<InvoiceWithPatient | null>(null);
@@ -149,7 +150,8 @@ export default function InvoicesPage() {
     });
 
     return result;
-  }, [invoices, searchTerm, sortConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoicesResponse, searchTerm, sortConfig]);
 
   const SortableHeader = ({
     column,

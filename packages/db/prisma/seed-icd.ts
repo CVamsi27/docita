@@ -53,7 +53,8 @@ const commonIcdCodes = [
   },
   {
     code: "B16.9",
-    description: "Acute hepatitis B without delta-agent and without hepatic coma",
+    description:
+      "Acute hepatitis B without delta-agent and without hepatic coma",
     category: "Certain infectious and parasitic diseases",
   },
   {
@@ -140,7 +141,8 @@ const commonIcdCodes = [
   },
   {
     code: "C50.919",
-    description: "Malignant neoplasm of unspecified site of unspecified female breast",
+    description:
+      "Malignant neoplasm of unspecified site of unspecified female breast",
     category: "Neoplasms",
   },
   {
@@ -165,7 +167,8 @@ const commonIcdCodes = [
   },
   {
     code: "C64.9",
-    description: "Malignant neoplasm of unspecified kidney, except renal pelvis",
+    description:
+      "Malignant neoplasm of unspecified kidney, except renal pelvis",
     category: "Neoplasms",
   },
   {
@@ -250,7 +253,8 @@ const commonIcdCodes = [
   },
   {
     code: "D48.0",
-    description: "Neoplasm of uncertain behavior of bone and articular cartilage",
+    description:
+      "Neoplasm of uncertain behavior of bone and articular cartilage",
     category: "Neoplasms",
   },
   {
@@ -272,7 +276,8 @@ const commonIcdCodes = [
   },
   {
     code: "D51.0",
-    description: "Vitamin B12 deficiency anemia due to intrinsic factor deficiency",
+    description:
+      "Vitamin B12 deficiency anemia due to intrinsic factor deficiency",
     category: "Diseases of the blood and blood-forming organs",
   },
   {
@@ -329,7 +334,8 @@ const commonIcdCodes = [
   },
   {
     code: "E11.40",
-    description: "Type 2 diabetes mellitus with diabetic neuropathy, unspecified",
+    description:
+      "Type 2 diabetes mellitus with diabetic neuropathy, unspecified",
     category: "Endocrine, nutritional and metabolic diseases",
   },
   {
@@ -426,7 +432,8 @@ const commonIcdCodes = [
   },
   {
     code: "F32.2",
-    description: "Major depressive disorder, single episode, severe without psychotic features",
+    description:
+      "Major depressive disorder, single episode, severe without psychotic features",
     category: "Mental and behavioral disorders",
   },
   {
@@ -506,7 +513,8 @@ const commonIcdCodes = [
   },
   {
     code: "F90.0",
-    description: "Attention-deficit hyperactivity disorder, predominantly inattentive type",
+    description:
+      "Attention-deficit hyperactivity disorder, predominantly inattentive type",
     category: "Mental and behavioral disorders",
   },
   {
@@ -543,12 +551,14 @@ const commonIcdCodes = [
   },
   {
     code: "G40.909",
-    description: "Epilepsy, unspecified, not intractable, without status epilepticus",
+    description:
+      "Epilepsy, unspecified, not intractable, without status epilepticus",
     category: "Diseases of the nervous system",
   },
   {
     code: "G43.909",
-    description: "Migraine, unspecified, not intractable, without status migrainosus",
+    description:
+      "Migraine, unspecified, not intractable, without status migrainosus",
     category: "Diseases of the nervous system",
   },
   {
@@ -665,7 +675,8 @@ const commonIcdCodes = [
   },
   {
     code: "I21.3",
-    description: "ST elevation (STEMI) myocardial infarction of unspecified site",
+    description:
+      "ST elevation (STEMI) myocardial infarction of unspecified site",
     category: "Diseases of the circulatory system",
   },
   {
@@ -680,7 +691,8 @@ const commonIcdCodes = [
   },
   {
     code: "I25.10",
-    description: "Atherosclerotic heart disease of native coronary artery without angina pectoris",
+    description:
+      "Atherosclerotic heart disease of native coronary artery without angina pectoris",
     category: "Diseases of the circulatory system",
   },
   {
@@ -720,7 +732,8 @@ const commonIcdCodes = [
   },
   {
     code: "I80.3",
-    description: "Phlebitis and thrombophlebitis of lower extremities, unspecified",
+    description:
+      "Phlebitis and thrombophlebitis of lower extremities, unspecified",
     category: "Diseases of the circulatory system",
   },
   {
@@ -762,12 +775,14 @@ const commonIcdCodes = [
   },
   {
     code: "J10.1",
-    description: "Influenza due to other identified influenza virus with other respiratory manifestations",
+    description:
+      "Influenza due to other identified influenza virus with other respiratory manifestations",
     category: "Diseases of the respiratory system",
   },
   {
     code: "J11.1",
-    description: "Influenza due to unidentified influenza virus with other respiratory manifestations",
+    description:
+      "Influenza due to unidentified influenza virus with other respiratory manifestations",
     category: "Diseases of the respiratory system",
   },
   {
@@ -802,12 +817,14 @@ const commonIcdCodes = [
   },
   {
     code: "J44.0",
-    description: "Chronic obstructive pulmonary disease with acute lower respiratory infection",
+    description:
+      "Chronic obstructive pulmonary disease with acute lower respiratory infection",
     category: "Diseases of the respiratory system",
   },
   {
     code: "J44.1",
-    description: "Chronic obstructive pulmonary disease with (acute) exacerbation",
+    description:
+      "Chronic obstructive pulmonary disease with (acute) exacerbation",
     category: "Diseases of the respiratory system",
   },
   {
@@ -854,12 +871,14 @@ const commonIcdCodes = [
   },
   {
     code: "K25.9",
-    description: "Gastric ulcer, unspecified as acute or chronic, without hemorrhage or perforation",
+    description:
+      "Gastric ulcer, unspecified as acute or chronic, without hemorrhage or perforation",
     category: "Diseases of the digestive system",
   },
   {
     code: "K26.9",
-    description: "Duodenal ulcer, unspecified as acute or chronic, without hemorrhage or perforation",
+    description:
+      "Duodenal ulcer, unspecified as acute or chronic, without hemorrhage or perforation",
     category: "Diseases of the digestive system",
   },
   {
@@ -884,7 +903,8 @@ const commonIcdCodes = [
   },
   {
     code: "K40.90",
-    description: "Unilateral inguinal hernia, without obstruction or gangrene, not specified as recurrent",
+    description:
+      "Unilateral inguinal hernia, without obstruction or gangrene, not specified as recurrent",
     category: "Diseases of the digestive system",
   },
   {
@@ -934,7 +954,8 @@ const commonIcdCodes = [
   },
   {
     code: "K80.20",
-    description: "Calculus of gallbladder without cholecystitis without obstruction",
+    description:
+      "Calculus of gallbladder without cholecystitis without obstruction",
     category: "Diseases of the digestive system",
   },
 
@@ -1058,7 +1079,8 @@ const commonIcdCodes = [
   },
   {
     code: "M47.816",
-    description: "Spondylosis without myelopathy or radiculopathy, lumbar region",
+    description:
+      "Spondylosis without myelopathy or radiculopathy, lumbar region",
     category: "Diseases of the musculoskeletal system and connective tissue",
   },
   {
@@ -1093,12 +1115,14 @@ const commonIcdCodes = [
   },
   {
     code: "M80.00XA",
-    description: "Age-related osteoporosis with current pathological fracture, unspecified site, initial encounter",
+    description:
+      "Age-related osteoporosis with current pathological fracture, unspecified site, initial encounter",
     category: "Diseases of the musculoskeletal system and connective tissue",
   },
   {
     code: "M81.0",
-    description: "Age-related osteoporosis without current pathological fracture",
+    description:
+      "Age-related osteoporosis without current pathological fracture",
     category: "Diseases of the musculoskeletal system and connective tissue",
   },
 
@@ -1135,7 +1159,8 @@ const commonIcdCodes = [
   },
   {
     code: "N40.0",
-    description: "Benign prostatic hyperplasia without lower urinary tract symptoms",
+    description:
+      "Benign prostatic hyperplasia without lower urinary tract symptoms",
     category: "Diseases of the genitourinary system",
   },
   {
@@ -1172,7 +1197,8 @@ const commonIcdCodes = [
   },
   {
     code: "O09.90",
-    description: "Supervision of high risk pregnancy, unspecified, unspecified trimester",
+    description:
+      "Supervision of high risk pregnancy, unspecified, unspecified trimester",
     category: "Pregnancy, childbirth and the puerperium",
   },
   {
@@ -1182,7 +1208,8 @@ const commonIcdCodes = [
   },
   {
     code: "O24.419",
-    description: "Gestational diabetes mellitus in pregnancy, unspecified control",
+    description:
+      "Gestational diabetes mellitus in pregnancy, unspecified control",
     category: "Pregnancy, childbirth and the puerperium",
   },
   {
@@ -1287,62 +1314,82 @@ const commonIcdCodes = [
   {
     code: "S06.0X0A",
     description: "Concussion without loss of consciousness, initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S13.4XXA",
     description: "Sprain of ligaments of cervical spine, initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S22.32XA",
-    description: "Fracture of one rib, left side, initial encounter for closed fracture",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Fracture of one rib, left side, initial encounter for closed fracture",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S42.001A",
-    description: "Fracture of unspecified part of right clavicle, initial encounter for closed fracture",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Fracture of unspecified part of right clavicle, initial encounter for closed fracture",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S52.501A",
-    description: "Unspecified fracture of the lower end of right radius, initial encounter for closed fracture",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Unspecified fracture of the lower end of right radius, initial encounter for closed fracture",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S72.001A",
-    description: "Fracture of unspecified part of neck of right femur, initial encounter for closed fracture",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Fracture of unspecified part of neck of right femur, initial encounter for closed fracture",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S82.001A",
-    description: "Unspecified fracture of right patella, initial encounter for closed fracture",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Unspecified fracture of right patella, initial encounter for closed fracture",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "S93.401A",
-    description: "Sprain of unspecified ligament of right ankle, initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Sprain of unspecified ligament of right ankle, initial encounter",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "T14.90",
     description: "Injury, unspecified",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "T40.1X1A",
-    description: "Poisoning by heroin, accidental (unintentional), initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Poisoning by heroin, accidental (unintentional), initial encounter",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "T50.901A",
-    description: "Poisoning by unspecified drugs, medicaments and biological substances, accidental (unintentional), initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    description:
+      "Poisoning by unspecified drugs, medicaments and biological substances, accidental (unintentional), initial encounter",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
   {
     code: "T78.40XA",
     description: "Allergy, unspecified, initial encounter",
-    category: "Injury, poisoning and certain other consequences of external causes",
+    category:
+      "Injury, poisoning and certain other consequences of external causes",
   },
 
   // U00-U99: Codes for special purposes
@@ -1355,63 +1402,78 @@ const commonIcdCodes = [
   // Z00-Z99: Factors influencing health status and contact with health services
   {
     code: "Z00.00",
-    description: "Encounter for general adult medical examination without abnormal findings",
-    category: "Factors influencing health status and contact with health services",
+    description:
+      "Encounter for general adult medical examination without abnormal findings",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z01.00",
-    description: "Encounter for examination of eyes and vision without abnormal findings",
-    category: "Factors influencing health status and contact with health services",
+    description:
+      "Encounter for examination of eyes and vision without abnormal findings",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z12.11",
     description: "Encounter for screening for malignant neoplasm of colon",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z13.1",
     description: "Encounter for screening for diabetes mellitus",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z23",
     description: "Encounter for immunization",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z51.11",
     description: "Encounter for antineoplastic chemotherapy",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z51.12",
     description: "Encounter for antineoplastic immunotherapy",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z72.0",
     description: "Tobacco use",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z79.4",
     description: "Long term (current) use of insulin",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z79.84",
     description: "Long term (current) use of oral hypoglycemic drugs",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z86.73",
-    description: "Personal history of transient ischemic attack (TIA), and cerebral infarction without residual deficits",
-    category: "Factors influencing health status and contact with health services",
+    description:
+      "Personal history of transient ischemic attack (TIA), and cerebral infarction without residual deficits",
+    category:
+      "Factors influencing health status and contact with health services",
   },
   {
     code: "Z87.891",
     description: "Personal history of nicotine dependence",
-    category: "Factors influencing health status and contact with health services",
+    category:
+      "Factors influencing health status and contact with health services",
   },
 ];
 

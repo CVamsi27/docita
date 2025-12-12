@@ -34,6 +34,7 @@ interface UsePrescriptionFormProps {
 interface MedicationValidation {
   medicationIndex: number;
   dosageValidation?: DosageValidation;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contraindications?: any[];
   warnings: string[];
 }
@@ -104,6 +105,7 @@ export function usePrescriptionForm({
     }
 
     // Check contraindications
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let contraindications: any[] = [];
     if (med.name) {
       contraindications = checkMedicationContraindications(med.name, {
@@ -122,6 +124,7 @@ export function usePrescriptionForm({
       });
 
       const criticalIssues = contraindications.filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (c: any) => c.severity === "critical",
       );
       if (criticalIssues.length > 0) {
@@ -159,9 +162,9 @@ export function usePrescriptionForm({
 
       // Check for critical validation errors
       const criticalErrors = validations.filter((v) => {
-        const med = medications[v.medicationIndex];
         const hasDosageError =
           v.dosageValidation && !v.dosageValidation.isValid;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const hasCriticalContraindication = v.contraindications?.some(
           (c: any) => c.severity === "critical",
         );
@@ -205,7 +208,7 @@ export function usePrescriptionForm({
       });
       await queryClient.refetchQueries({
         queryKey: ["appointments", appointmentId],
-        type: 'active',
+        type: "active",
       });
 
       setMedications([

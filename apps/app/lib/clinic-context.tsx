@@ -136,12 +136,15 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (clinicData.tier) {
         // Map any custom tier names to standard tier values
         let mappedTier = clinicData.tier;
-        
+
         // Handle custom tier mappings
-        if (clinicData.tier === "code subscription" || clinicData.tier === "CODE_SUBSCRIPTION") {
+        if (
+          clinicData.tier === "code subscription" ||
+          clinicData.tier === "CODE_SUBSCRIPTION"
+        ) {
           mappedTier = "CAPTURE"; // Default to lowest tier for unknown tier values
         }
-        
+
         setTier(mappedTier);
       }
       if (clinicData.intelligenceAddon) {

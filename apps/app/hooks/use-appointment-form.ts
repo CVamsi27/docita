@@ -14,13 +14,6 @@ import {
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
 
-interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
-
 interface UseAppointmentFormProps {
   onAppointmentAdded: () => void;
   selectedDate?: Date;
@@ -42,8 +35,6 @@ export function useAppointmentForm({
       search: patientSearch || undefined,
       limit: patientSearch ? 20 : 10, // Show more results when searching
     });
-  const searchedPatients: Patient[] =
-    (searchedPatientsResponse as any)?.items || [];
 
   // Fetch preselected patient separately to ensure it's available
   const { data: preselectedPatient } = apiHooks.usePatient(
@@ -52,6 +43,8 @@ export function useAppointmentForm({
 
   // Combine preselected patient with search results, avoiding duplicates
   const patients = useMemo(() => {
+    const searchedPatients: Patient[] =
+      (searchedPatientsResponse as any)?.items || [];
     if (preselectedPatient && preselectedPatientId) {
       const hasPreselected = searchedPatients.some(
         (p) => p.id === preselectedPatientId,
@@ -61,7 +54,7 @@ export function useAppointmentForm({
       }
     }
     return searchedPatients;
-  }, [searchedPatients, preselectedPatient, preselectedPatientId]);
+  }, [searchedPatientsResponse, preselectedPatient, preselectedPatientId]);
   const { data: doctors = [], isLoading: doctorsLoading } =
     apiHooks.useDoctors();
 
@@ -181,16 +174,16 @@ export function useAppointmentForm({
               new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
-        
+
         // Invalidate and refetch queries to refresh data immediately
         await queryClient.invalidateQueries({
           queryKey: ["appointments"],
         });
         await queryClient.refetchQueries({
           queryKey: ["appointments"],
-          type: 'active',
+          type: "active",
         });
-        
+
         form.reset();
         await onAppointmentAdded();
         if (onSuccess) {

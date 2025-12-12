@@ -128,7 +128,7 @@ export function useVitalsForm({
       });
       await queryClient.refetchQueries({
         queryKey: ["appointments", appointmentId],
-        type: 'active',
+        type: "active",
       });
 
       if (onVitalsSaved) {

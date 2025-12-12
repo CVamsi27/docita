@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const token =
     request.cookies.get("docita_token")?.value ||
     request.headers.get("Authorization")?.split(" ")[1];
@@ -18,6 +19,7 @@ export function middleware(request: NextRequest) {
   // The best way in Next.js App Router with localStorage is a client-side wrapper.
   // But let's see if we can add a basic check for public paths.
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register");
