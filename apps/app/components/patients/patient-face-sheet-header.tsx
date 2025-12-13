@@ -26,7 +26,7 @@ export function PatientFaceSheetHeader({
     patient.isolationStatus && patient.isolationStatus !== "NONE";
 
   return (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm pb-4 pt-2 -mx-6 px-6">
+    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b shadow-sm pb-4 pt-2 -mx-6 px-6">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         {/* Patient Identity */}
         <div className="flex items-center gap-4">
