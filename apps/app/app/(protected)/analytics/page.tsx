@@ -16,32 +16,32 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import {
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Calendar,
-  DollarSign,
-  ArrowLeft,
   Activity,
-  CheckCircle2,
   AlertCircle,
+  ArrowLeft,
   BarChart3,
+  Calendar,
+  CheckCircle2,
+  DollarSign,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
 import { useClinic } from "@/lib/clinic-context";
 import {
-  BarChart,
   Bar,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
 import { FeatureGate } from "@/components/common/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";

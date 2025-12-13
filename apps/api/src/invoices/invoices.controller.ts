@@ -75,8 +75,14 @@ export class InvoicesController {
   }
 
   @Post()
-  create(@Body() createInvoiceDto: CreateInvoiceDto) {
-    return this.invoicesService.create(createInvoiceDto);
+  create(
+    @Request() req: AuthRequest,
+    @Body() createInvoiceDto: CreateInvoiceDto,
+  ) {
+    return this.invoicesService.create({
+      ...createInvoiceDto,
+      clinicId: req.user.clinicId,
+    });
   }
 
   @Patch(':id')

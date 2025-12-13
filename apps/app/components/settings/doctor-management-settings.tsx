@@ -12,7 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { apiHooks } from "@/lib/api-hooks";
-import { Plus, Edit, Trash2, UserCog, Mail, Eye, EyeOff } from "lucide-react";
+import { Edit, Eye, EyeOff, Mail, Plus, Trash2, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { useQueryClient } from "@tanstack/react-query";

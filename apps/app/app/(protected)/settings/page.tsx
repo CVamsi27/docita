@@ -11,8 +11,8 @@ import { PrescriptionDefaultsSettings } from "@/components/settings/prescription
 import { QueueSettings } from "@/components/settings/queue-settings";
 import { BillingSettings } from "@/components/settings/billing-settings";
 import {
-  SubscriptionSettingsDynamic,
   DoctorAvailabilitySettingsDynamic,
+  SubscriptionSettingsDynamic,
   TemplatesSettingsDynamic,
 } from "@/lib/dynamic-imports";
 import {
@@ -30,7 +30,7 @@ function SettingsContent() {
   const defaultTab = searchParams.get("tab") || "general";
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-8">
+    <div className="container mx-auto p-4 md:p-6 space-y-8 pb-24">
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Button variant="ghost" size="sm" asChild>
@@ -46,119 +46,137 @@ function SettingsContent() {
         </p>
       </div>
 
-      <Tabs defaultValue={defaultTab} className="space-y-6">
-        <TabsList className="flex flex-wrap w-full h-auto gap-1 md:gap-0 bg-transparent md:bg-background p-0 md:p-1">
-          <TabsTrigger
-            value="general"
-            className="text-xs md:text-sm whitespace-nowrap"
-          >
-            General
-          </TabsTrigger>
-          <TabsTrigger
-            value="billing"
-            className="text-xs md:text-sm whitespace-nowrap"
-          >
-            Billing
-          </TabsTrigger>
-          <TabsTrigger
-            value="subscription"
-            className="text-xs md:text-sm whitespace-nowrap"
-          >
-            Subscription
-          </TabsTrigger>
-          <TabsTrigger
-            value="members"
-            className="text-xs md:text-sm whitespace-nowrap"
-          >
-            Members
-          </TabsTrigger>
-          <TabsTrigger
-            value="availability"
-            className="text-xs md:text-sm whitespace-nowrap"
-          >
-            Availability
-          </TabsTrigger>
-          <TabsTrigger
-            value="queue"
-            className="text-xs md:text-sm whitespace-nowrap hidden md:inline-flex"
-          >
-            Queue
-          </TabsTrigger>
-          <TabsTrigger
-            value="prescriptions"
-            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
-          >
-            Prescriptions
-          </TabsTrigger>
-          <TabsTrigger
-            value="templates"
-            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
-          >
-            Templates
-          </TabsTrigger>
-          <TabsTrigger
-            value="custom-fields"
-            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
-          >
-            Custom Fields
-          </TabsTrigger>
-          <TabsTrigger
-            value="reminders"
-            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
-          >
-            Reminders
-          </TabsTrigger>
-          <TabsTrigger
-            value="whatsapp"
-            className="text-xs md:text-sm whitespace-nowrap hidden lg:inline-flex"
-          >
-            WhatsApp
-          </TabsTrigger>
-        </TabsList>
+      <Tabs
+        defaultValue={defaultTab}
+        className="flex flex-col md:flex-row gap-6 lg:gap-10"
+      >
+        <aside className="md:w-56 lg:w-64 shrink-0">
+          <TabsList className="flex flex-col w-full h-auto bg-transparent p-0 gap-1 items-stretch">
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">
+              Practice
+            </div>
+            <TabsTrigger
+              value="general"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              General
+            </TabsTrigger>
+            <TabsTrigger
+              value="members"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Members
+            </TabsTrigger>
+            <TabsTrigger
+              value="billing"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Billing
+            </TabsTrigger>
+            <TabsTrigger
+              value="subscription"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Subscription
+            </TabsTrigger>
 
-        <TabsContent value="general" className="space-y-6">
-          <ClinicGeneralSettings />
-        </TabsContent>
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1 mt-4">
+              Clinical
+            </div>
+            <TabsTrigger
+              value="availability"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Availability
+            </TabsTrigger>
+            <TabsTrigger
+              value="queue"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Queue
+            </TabsTrigger>
+            <TabsTrigger
+              value="prescriptions"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Prescriptions
+            </TabsTrigger>
+            <TabsTrigger
+              value="templates"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Templates
+            </TabsTrigger>
 
-        <TabsContent value="billing" className="space-y-6">
-          <BillingSettings />
-        </TabsContent>
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1 mt-4">
+              Automation
+            </div>
+            <TabsTrigger
+              value="reminders"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Reminders
+            </TabsTrigger>
+            <TabsTrigger
+              value="whatsapp"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              WhatsApp
+            </TabsTrigger>
+            <TabsTrigger
+              value="custom-fields"
+              className="justify-start px-3 data-[state=active]:bg-muted"
+            >
+              Custom Fields
+            </TabsTrigger>
+          </TabsList>
+        </aside>
 
-        <TabsContent value="subscription" className="space-y-6">
-          <SubscriptionSettingsDynamic />
-        </TabsContent>
+        <div className="flex-1 min-w-0">
+          <TabsContent value="general" className="mt-0 space-y-6">
+            <ClinicGeneralSettings />
+          </TabsContent>
 
-        <TabsContent value="members" className="space-y-6">
-          <MemberManagementSettings />
-        </TabsContent>
+          <TabsContent value="billing" className="mt-0 space-y-6">
+            <BillingSettings />
+          </TabsContent>
 
-        <TabsContent value="availability" className="space-y-6">
-          <DoctorAvailabilitySettingsDynamic />
-        </TabsContent>
+          <TabsContent value="subscription" className="mt-0 space-y-6">
+            <SubscriptionSettingsDynamic />
+          </TabsContent>
 
-        <TabsContent value="queue" className="space-y-6">
-          <QueueSettings />
-        </TabsContent>
+          <TabsContent value="members" className="mt-0 space-y-6">
+            <MemberManagementSettings />
+          </TabsContent>
 
-        <TabsContent value="prescriptions" className="space-y-6">
-          <PrescriptionDefaultsSettings />
-        </TabsContent>
+          <TabsContent value="availability" className="mt-0 space-y-6">
+            <DoctorAvailabilitySettingsDynamic />
+          </TabsContent>
 
-        <TabsContent value="templates">
-          <TemplatesSettingsDynamic />
-        </TabsContent>
+          <TabsContent value="queue" className="mt-0 space-y-6">
+            <QueueSettings />
+          </TabsContent>
 
-        <TabsContent value="custom-fields">
-          <CustomFieldsSettings />
-        </TabsContent>
+          <TabsContent value="prescriptions" className="mt-0 space-y-6">
+            <PrescriptionDefaultsSettings />
+          </TabsContent>
 
-        <TabsContent value="reminders">
-          <ReminderSettings />
-        </TabsContent>
+          <TabsContent value="templates" className="mt-0">
+            <TemplatesSettingsDynamic />
+          </TabsContent>
 
-        <TabsContent value="whatsapp">
-          <WhatsAppAutomationSettings />
-        </TabsContent>
+          <TabsContent value="custom-fields" className="mt-0">
+            <CustomFieldsSettings />
+          </TabsContent>
+
+          <TabsContent value="reminders" className="mt-0">
+            <ReminderSettings />
+          </TabsContent>
+
+          <TabsContent value="whatsapp" className="mt-0">
+            <WhatsAppAutomationSettings />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

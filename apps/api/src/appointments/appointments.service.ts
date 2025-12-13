@@ -109,7 +109,7 @@ export class AppointmentsService {
       cursor: options?.cursor,
       limit: options?.limit || 50,
       where,
-      orderBy: { startTime: 'desc' },
+      orderBy: { startTime: 'asc' },
       select: {
         ...APPOINTMENT_CARD_SELECT, // Use optimized card select for lists
       },
@@ -197,7 +197,26 @@ export class AppointmentsService {
   async update(
     id: string,
     data: Partial<Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>>,
+    userClinicId?: string,
   ): Promise<Appointment> {
+    // Validate clinic ownership if clinicId is provided
+    if (userClinicId) {
+      const existingAppointment = await this.prisma.appointment.findUnique({
+        where: { id },
+        select: { clinicId: true },
+      });
+
+      if (!existingAppointment) {
+        throw new Error(`Appointment with ID ${id} not found`);
+      }
+
+      if (existingAppointment.clinicId !== userClinicId) {
+        throw new Error(
+          'Unauthorized: Appointment does not belong to your clinic',
+        );
+      }
+    }
+
     // Extract relational fields and fields needing special handling
     const dataRecord = data as Record<string, unknown>;
     const {

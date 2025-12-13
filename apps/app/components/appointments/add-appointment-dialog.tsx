@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { Plus, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import type { CreateAppointmentInput } from "@workspace/types";
 
 import { Button } from "@workspace/ui/components/button";
@@ -237,7 +237,9 @@ export function AddAppointmentDialog({
               name="doctorId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Doctor</FormLabel>
+                  <FormLabel>
+                    Doctor <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -20,13 +20,13 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import {
-  Search,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Download,
   Eye,
   Pill,
-  Download,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
@@ -53,7 +53,7 @@ export default function PrescriptionsPage() {
   const downloadPDF = async (prescriptionId: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/prescriptions/${prescriptionId}/pdf`,
+        `${process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api"}/prescriptions/${prescriptionId}/pdf`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("docita_token")}`,
@@ -305,7 +305,7 @@ export default function PrescriptionsPage() {
                         {prescription.patient?.phoneNumber && (
                           <WhatsAppButton
                             phoneNumber={prescription.patient.phoneNumber}
-                            message={`Hello ${prescription.patient.firstName}, here is your prescription from ${process.env.NEXT_PUBLIC_CLINIC_NAME || "Docita Clinic"}.`}
+                            message={`Hello ${prescription.patient.firstName}, here is your prescription from ${process.env["NEXT_PUBLIC_CLINIC_NAME"] || "Docita Clinic"}.`}
                             variant="ghost"
                             label=""
                             className="h-8 w-8 p-0"

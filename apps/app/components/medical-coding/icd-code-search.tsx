@@ -73,7 +73,7 @@ export function IcdCodeSearch({
       <PopoverContent className="w-[650px] p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Type 2+ characters to search ICD-10 codes..."
+            placeholder="Search ICD-10 codes (or browse common codes)..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
@@ -132,7 +132,7 @@ export function IcdCodeSearch({
                 {favorites.map((code) => (
                   <CommandItem
                     key={code.id}
-                    value={code.code}
+                    value={`${code.code} ${code.description}`}
                     onSelect={() => {
                       onSelect(code);
                       setValue(`${code.code} - ${code.description}`);
@@ -154,7 +154,7 @@ export function IcdCodeSearch({
                 {codes.map((code: IcdCode) => (
                   <CommandItem
                     key={code.id}
-                    value={code.code}
+                    value={`${code.code} ${code.description}`}
                     onSelect={() => {
                       onSelect(code);
                       setValue(`${code.code} - ${code.description}`);

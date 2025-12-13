@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, ChevronRight } from "lucide-react";
+import { ChevronRight, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Card,

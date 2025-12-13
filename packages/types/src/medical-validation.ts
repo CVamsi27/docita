@@ -235,7 +235,7 @@ export function validateDosage(
 
   // Parse dosage string (e.g., "500mg" or "500 mg")
   const dosageMatch = dosage.match(/(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?/);
-  if (!dosageMatch) {
+  if (!dosageMatch || !dosageMatch[1]) {
     return {
       dosage,
       medication,
@@ -248,7 +248,7 @@ export function validateDosage(
   }
 
   const value = parseFloat(dosageMatch[1]);
-  const unit = dosageMatch[2] || "mg";
+  const unit = dosageMatch[2] ?? "mg";
 
   if (!range) {
     return {
@@ -309,7 +309,7 @@ export function validatePediatricDosage(
 ): PediatricDosageValidation {
   const baseDosageValidation = validateDosage(medication, dosage);
   const dosageMatch = dosage.match(/(\d+(?:\.\d+)?)/);
-  const value = dosageMatch ? parseFloat(dosageMatch[1]) : 0;
+  const value = dosageMatch?.[1] ? parseFloat(dosageMatch[1]) : 0;
 
   const normalizedMed = medication.toLowerCase();
   const dosageCalculator = PEDIATRIC_DOSING_RULES[normalizedMed];
@@ -407,7 +407,7 @@ export function validateRenalDosage(
 
   const adjustmentPercent = adjustments[renalFunction];
   const dosageMatch = dosage.match(/(\d+(?:\.\d+)?)/);
-  const value = dosageMatch ? parseFloat(dosageMatch[1]) : 0;
+  const value = dosageMatch?.[1] ? parseFloat(dosageMatch[1]) : 0;
   const adjustedValue = (value * adjustmentPercent) / 100;
 
   if (adjustmentPercent === 0) {

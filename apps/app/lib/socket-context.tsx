@@ -2,9 +2,9 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
-  useCallback,
   useSyncExternalStore,
 } from "react";
 import { io, Socket } from "socket.io-client";
@@ -31,7 +31,7 @@ function getOrCreateSocket() {
     try {
       const token = localStorage.getItem("docita_token");
       const socketUrl =
-        process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+        process.env["NEXT_PUBLIC_SOCKET_URL"] || "http://localhost:3001";
 
       socketInstance = io(socketUrl, {
         auth: token ? { token } : {},

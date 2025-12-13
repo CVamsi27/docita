@@ -11,17 +11,17 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
-import { FeatureGate, Feature } from "@/components/common/feature-gate";
+import { Feature, FeatureGate } from "@/components/common/feature-gate";
 import { InventoryAddItemDialog } from "@/components/dialogs/inventory-add-item-dialog";
 import {
-  Search,
-  Plus,
-  Package,
   AlertTriangle,
-  TrendingDown,
   BarChart3,
   Filter,
+  Package,
+  Plus,
   RefreshCw,
+  Search,
+  TrendingDown,
 } from "lucide-react";
 import { apiHooks } from "@/lib/api-hooks";
 import { EmptyState, LoadingState } from "@/components/ui/empty-state";

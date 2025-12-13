@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Upload, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Upload } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Progress } from "@workspace/ui/components/progress";
 import {

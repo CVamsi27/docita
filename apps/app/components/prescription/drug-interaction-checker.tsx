@@ -10,14 +10,14 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import {
-  AlertTriangle,
   AlertCircle,
-  Info,
+  AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Shield,
   ExternalLink,
+  Info,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { checkDrugDrugContraindications } from "@workspace/types";

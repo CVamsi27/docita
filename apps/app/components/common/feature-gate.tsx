@@ -4,11 +4,11 @@ import React from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   Feature,
-  Tier,
-  getTierInfo,
   FEATURE_TIER_MAP,
+  getTierInfo,
+  Tier,
 } from "@/lib/tier-config";
-import { Lock, Sparkles, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Lock, Sparkles } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 

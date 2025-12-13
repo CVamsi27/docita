@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,14 +27,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Plus, Trash2, Eye, EyeOff, Upload } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import {
-  SPECIALIZATION_LABELS,
   HOSPITAL_ROLE_LABELS,
-  type Specialization,
   type HospitalRole,
+  type Specialization,
+  SPECIALIZATION_LABELS,
 } from "@workspace/types";
 
 // Generate options from real constants (single source of truth)

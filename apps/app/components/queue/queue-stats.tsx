@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Calendar, UserPlus, UserCheck, Timer } from "lucide-react";
+import { Calendar, Clock, Timer, UserCheck, UserPlus } from "lucide-react";
 import {
   Card,
   CardContent,

@@ -1,10 +1,10 @@
-import { test, expect, APIRequestContext } from "@playwright/test";
+import { APIRequestContext, expect, test } from "@playwright/test";
 
-const API_URL = process.env.API_URL || "http://localhost:3001/api";
+const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
 test.describe("Analytics", () => {
   let authToken: string;
-  let clinicId: string;
+  let _clinicId: string;
   let serverAvailable = true;
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { Clock, Calendar, Play, ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
 import {
   Card,
   CardContent,

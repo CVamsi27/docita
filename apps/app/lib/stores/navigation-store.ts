@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 const MAX_HISTORY_SIZE = 50;
 const STORAGE_KEY = "docita-navigation-history";

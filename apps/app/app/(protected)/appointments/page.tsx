@@ -1,11 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
+import {
+  memo,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 // Prevent static prerendering of this page
 export const dynamic = "force-dynamic";
-
-import { useState, useCallback, useMemo, useEffect, memo } from "react";
 
 import { Calendar } from "@workspace/ui/components/calendar";
 import {
@@ -28,14 +33,14 @@ interface PaginatedResponse<T> {
   count: number;
 }
 import {
-  Clock,
-  User,
-  Stethoscope,
   CalendarDays,
-  UserCheck,
   Check,
+  Clock,
   Loader2,
   MoreVertical,
+  Stethoscope,
+  User,
+  UserCheck,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,7 +48,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FeatureGate } from "@/components/common/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
@@ -65,7 +70,9 @@ function AppointmentsContent() {
     data: appointmentsResponse,
     isLoading: loading,
     refetch,
-  } = apiHooks.useAppointments({ date: selectedDateStr });
+  } = apiHooks.useAppointments({
+    ...(selectedDateStr ? { date: selectedDateStr } : {}),
+  });
 
   // Extract appointments from paginated response
   const appointments = useMemo(() => {
@@ -223,10 +230,10 @@ function AppointmentsContent() {
           </div>
           <AddAppointmentDialog
             onAppointmentAdded={() => refetch()}
-            selectedDate={date}
+            {...(date && { selectedDate: date })}
             open={isAddDialogOpen}
             onOpenChange={handleDialogChange}
-            preselectedPatientId={preselectedPatientId}
+            {...(preselectedPatientId && { preselectedPatientId })}
           />
         </div>
 
@@ -283,7 +290,7 @@ function AppointmentsContent() {
                           setNoShowAptId(id);
                           setNoShowDialogOpen(true);
                         }}
-                        userRole={user?.role}
+                        {...(user?.role && { userRole: user?.role })}
                       />
                     ))}
                   </div>

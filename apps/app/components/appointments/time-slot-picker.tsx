@@ -5,15 +5,15 @@ import { cn } from "@/lib/design-system";
 import { Button } from "@workspace/ui/components/button";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
-  format,
   addMinutes,
-  isSameDay,
+  format,
   isAfter,
   isBefore,
+  isSameDay,
   setHours,
   setMinutes,
 } from "date-fns";
-import { Clock, Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 
 interface TimeSlot {
   time: Date;

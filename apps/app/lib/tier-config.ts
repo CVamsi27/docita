@@ -44,14 +44,14 @@ export {
 // Additional frontend-specific types and utilities
 
 import {
-  Tier,
   Feature,
+  FEATURE_DISPLAY,
   FEATURE_TIER_MAP,
+  getAllFeaturesUpToTier,
+  getFeaturesForTier,
+  Tier,
   TIER_LIMITS,
   TIER_PRICING,
-  FEATURE_DISPLAY,
-  getFeaturesForTier,
-  getAllFeaturesUpToTier,
 } from "@workspace/types";
 
 /**

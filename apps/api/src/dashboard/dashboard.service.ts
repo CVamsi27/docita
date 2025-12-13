@@ -56,7 +56,7 @@ export class DashboardService {
       this.prisma.user.count({
         where: {
           clinicId,
-          role: { in: ['DOCTOR', 'ADMIN'] },
+          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
         },
       }),
       this.prisma.patient.count({

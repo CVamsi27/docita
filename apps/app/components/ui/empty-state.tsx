@@ -2,7 +2,7 @@
 
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
-import { LucideIcon, Loader2 } from "lucide-react";
+import { Loader2, LucideIcon } from "lucide-react";
 
 // =============================================================================
 // EMPTY STATE

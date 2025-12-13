@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,20 +10,20 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { FeatureGate, Feature } from "@/components/common/feature-gate";
+import { Feature, FeatureGate } from "@/components/common/feature-gate";
 import {
-  Search,
-  Plus,
-  FlaskConical,
-  Clock,
-  CheckCircle,
   AlertCircle,
-  Filter,
-  FileText,
-  RefreshCw,
-  Loader2,
-  ChevronsUpDown,
   Check,
+  CheckCircle,
+  ChevronsUpDown,
+  Clock,
+  FileText,
+  Filter,
+  FlaskConical,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
@@ -54,7 +54,7 @@ import {
 } from "@workspace/ui/components/command";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiHooks } from "@/lib/api-hooks";
@@ -96,7 +96,7 @@ export default function LabTestsPage() {
   const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
   const { data: patientsResponse, isLoading: patientsLoading } =
     apiHooks.usePatients({
-      search: patientSearch || undefined,
+      ...(patientSearch && { search: patientSearch }),
       limit: patientSearch ? 20 : 5,
     });
   const paginatedResponse = patientsResponse as
@@ -152,7 +152,7 @@ export default function LabTestsPage() {
   const onSubmitOrder = useCallback(
     async (data: CreateLabTestOrderInput) => {
       try {
-        await createOrder(data);
+        await createOrder(data as any); // eslint-disable-line @typescript-eslint/no-explicit-any
         form.reset();
         setIsOrderDialogOpen(false);
         refetch();

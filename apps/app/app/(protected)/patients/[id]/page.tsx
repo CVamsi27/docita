@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { PatientTagManager } from "@/components/patients/patient-tag-manager";
@@ -21,33 +21,35 @@ import { PatientFaceSheetHeader } from "@/components/patients/patient-face-sheet
 import { PatientStatsCards } from "@/components/patients/patient-stats-cards";
 import { EditPatientDialog } from "@/components/patients/edit-patient-dialog";
 import {
-  VitalsModal,
-  PrescriptionModal,
   BillingModal,
   ConsultationNotesModal,
+  PrescriptionModal,
+  VitalsModal,
 } from "@/components/modals";
 import {
+  Activity,
   ArrowLeft,
   Calendar,
-  FileText,
-  FileJson,
-  Pill,
-  Activity,
-  Stethoscope,
-  Clock,
   CheckCircle2,
+  Clock,
+  FileJson,
+  FileText,
+  HeartPulse,
+  Pill,
   Receipt,
+  Stethoscope,
 } from "lucide-react";
 import { format } from "date-fns";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { PatientMedicalHistory } from "@/components/patients/patient-medical-history";
-import type { PatientWithHistory } from "@/components/patients/patient-medical-history";
+import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 
 export default function PatientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { patient, appointments, documents, loading, refetch } = usePatientData(
-    params.id as string,
+    params["id"] as string,
   );
   const { user } = useAuth();
   const goBack = useSmartBack("/");
@@ -71,12 +73,12 @@ export default function PatientDetailPage() {
     string | null
   >(null);
   const [modalType, setModalType] = useState<
-    "vitals" | "prescription" | "billing" | "notes" | null
+    "vitals" | "prescription" | "billing" | "notes" | "medical-history" | null
   >(null);
 
   const openModal = (
     appointmentId: string,
-    type: "vitals" | "prescription" | "billing" | "notes",
+    type: "vitals" | "prescription" | "billing" | "notes" | "medical-history",
   ) => {
     setSelectedAppointmentId(appointmentId);
     setModalType(type);
@@ -241,9 +243,9 @@ export default function PatientDetailPage() {
       {/* Stats Cards - shifted down */}
       <div className="mt-6">
         <PatientStatsCards
-          appointments={appointments}
-          lastVisit={lastVisit}
-          nextVisit={nextVisit}
+          appointments={appointments as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          lastVisit={lastVisit as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          nextVisit={nextVisit as any} // eslint-disable-line @typescript-eslint/no-explicit-any
         />
       </div>
 
@@ -364,16 +366,98 @@ export default function PatientDetailPage() {
 
                       {/* Clinical Data Grid */}
                       <div className="grid grid-cols-1 gap-4">
-                        {/* Observations */}
-                        {apt.observations && (
-                          <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 space-y-2 border border-amber-200/50 dark:border-amber-800/30">
-                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                              <FileText className="h-3 w-3" /> Clinical
-                              Observations
-                            </div>
-                            <p className="text-sm text-foreground whitespace-pre-wrap">
-                              {apt.observations}
-                            </p>
+                        {/* Clinical Documentation */}
+                        {(apt.chiefComplaint ||
+                          apt.historyOfPresentIllness ||
+                          apt.clinicalImpression ||
+                          apt.finalDiagnosis ||
+                          apt.treatmentPlan ||
+                          apt.observations) && (
+                          <div className="space-y-3">
+                            {/* Chief Complaint */}
+                            {apt.chiefComplaint && (
+                              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 space-y-2 border border-blue-200/50 dark:border-blue-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                                  <FileText className="h-3 w-3" /> Chief
+                                  Complaint
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {apt.chiefComplaint}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* History of Present Illness */}
+                            {apt.historyOfPresentIllness && (
+                              <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 space-y-2 border border-amber-200/50 dark:border-amber-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                                  <FileText className="h-3 w-3" /> History of
+                                  Present Illness
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {typeof apt.historyOfPresentIllness ===
+                                  "string"
+                                    ? apt.historyOfPresentIllness
+                                    : JSON.stringify(
+                                        apt.historyOfPresentIllness,
+                                        null,
+                                        2,
+                                      )}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Clinical Impression */}
+                            {apt.clinicalImpression && (
+                              <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4 space-y-2 border border-purple-200/50 dark:border-purple-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400">
+                                  <Stethoscope className="h-3 w-3" /> Clinical
+                                  Assessment
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {apt.clinicalImpression}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Final Diagnosis */}
+                            {apt.finalDiagnosis && (
+                              <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 space-y-2 border border-green-200/50 dark:border-green-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+                                  <CheckCircle2 className="h-3 w-3" /> Final
+                                  Diagnosis
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {apt.finalDiagnosis}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Treatment Plan */}
+                            {apt.treatmentPlan && (
+                              <div className="bg-teal-50 dark:bg-teal-950/20 rounded-lg p-4 space-y-2 border border-teal-200/50 dark:border-teal-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                                  <HeartPulse className="h-3 w-3" /> Treatment
+                                  Plan
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {apt.treatmentPlan}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Legacy Observations */}
+                            {apt.observations && (
+                              <div className="bg-slate-50 dark:bg-slate-950/20 rounded-lg p-4 space-y-2 border border-slate-200/50 dark:border-slate-800/30">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
+                                  <FileText className="h-3 w-3" /> Additional
+                                  Notes
+                                </div>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">
+                                  {apt.observations}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -634,6 +718,17 @@ export default function PatientDetailPage() {
                           className="gap-1.5"
                           onClick={(e) => {
                             e.stopPropagation();
+                            openModal(apt.id!, "medical-history");
+                          }}
+                        >
+                          <Activity className="h-3.5 w-3.5" /> History
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             openModal(apt.id!, "billing");
                           }}
                         >
@@ -711,13 +806,195 @@ export default function PatientDetailPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="notes">
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Activity className="h-12 w-12 mb-4 opacity-20" />
-              <p>Clinical notes feature coming soon</p>
-            </CardContent>
-          </Card>
+        <TabsContent value="notes" className="space-y-4 mt-0">
+          {appointments.filter(
+            (apt) =>
+              apt.chiefComplaint ||
+              apt.historyOfPresentIllness ||
+              apt.clinicalImpression ||
+              apt.finalDiagnosis ||
+              apt.treatmentPlan ||
+              apt.observations ||
+              apt.reviewOfSystems ||
+              apt.pastMedicalHistory ||
+              apt.provisionalDiagnosis ||
+              apt.differentialDiagnosis,
+          ).length === 0 ? (
+            <Card className="border-dashed bg-muted/30">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <FileText className="h-16 w-16 mb-4 opacity-10" />
+                <p className="text-lg font-medium">No clinical notes yet</p>
+                <p className="text-sm">
+                  Clinical notes from consultations will appear here.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {appointments
+                .filter(
+                  (apt) =>
+                    apt.chiefComplaint ||
+                    apt.historyOfPresentIllness ||
+                    apt.clinicalImpression ||
+                    apt.finalDiagnosis ||
+                    apt.treatmentPlan ||
+                    apt.observations ||
+                    apt.reviewOfSystems ||
+                    apt.pastMedicalHistory ||
+                    apt.provisionalDiagnosis ||
+                    apt.differentialDiagnosis,
+                )
+                .sort(
+                  (a, b) =>
+                    new Date(b.startTime).getTime() -
+                    new Date(a.startTime).getTime(),
+                )
+                .map((apt) => (
+                  <Card key={apt.id} className="overflow-hidden">
+                    <div className="bg-muted/30 px-4 py-3 border-b">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="text-xs">
+                            {format(new Date(apt.startTime), "MMM d, yyyy")}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {apt.doctor?.name}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            router.push(`/consultation/${apt.id}?from=patient`)
+                          }
+                        >
+                          View Full
+                        </Button>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-4 space-y-3">
+                      {apt.chiefComplaint && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Chief Complaint
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.chiefComplaint}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.historyOfPresentIllness && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            History of Present Illness
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {typeof apt.historyOfPresentIllness === "string"
+                              ? apt.historyOfPresentIllness
+                              : JSON.stringify(
+                                  apt.historyOfPresentIllness,
+                                  null,
+                                  2,
+                                )}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.reviewOfSystems && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Review of Systems
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.reviewOfSystems}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.provisionalDiagnosis && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Provisional Diagnosis
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.provisionalDiagnosis}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.clinicalImpression && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Clinical Assessment
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.clinicalImpression}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.differentialDiagnosis && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Differential Diagnosis
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.differentialDiagnosis}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.finalDiagnosis && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Final Diagnosis
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.finalDiagnosis}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.treatmentPlan && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Treatment Plan
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.treatmentPlan}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.pastMedicalHistory && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Past Medical History
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.pastMedicalHistory}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.observations && (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-muted-foreground uppercase">
+                            Additional Notes
+                          </div>
+                          <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 p-3 rounded border">
+                            {apt.observations}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -772,6 +1049,25 @@ export default function PatientDetailPage() {
             onSaved={refetch}
           />
         </>
+      )}
+
+      {/* Medical History Modal */}
+      {modalType === "medical-history" && patient && (
+        <CRUDDialog
+          open={true}
+          onOpenChange={closeModal}
+          title={`Medical History - ${patient.firstName} ${patient.lastName}`}
+          submitLabel="Save & Close"
+          onSubmit={closeModal}
+          contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto"
+        >
+          <div className="py-4">
+            <PatientMedicalHistory
+              patient={patient as PatientWithHistory}
+              readOnly={false}
+            />
+          </div>
+        </CRUDDialog>
       )}
     </div>
   );

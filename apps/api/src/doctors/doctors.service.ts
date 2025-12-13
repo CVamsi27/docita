@@ -100,6 +100,7 @@ export class DoctorsService {
     const allUsers = [
       ...doctorClinics.map((dc) => ({
         id: dc.doctor.id,
+        role: dc.doctor.role,
         email: dc.doctor.email,
         name: dc.doctor.name,
         specialization: dc.doctor.specialization,
@@ -113,6 +114,7 @@ export class DoctorsService {
       })),
       ...directUsers.map((u) => ({
         id: u.id,
+        role: u.role,
         email: u.email,
         name: u.name,
         specialization: u.specialization,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -71,7 +71,7 @@ export function PaymentModal({
   const [error, setError] = useState<string | null>(null);
   const token =
     typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const API_URL = process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001";
 
   // Load Razorpay script
   useEffect(() => {

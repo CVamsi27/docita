@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { useSmartBack } from "@/hooks/use-smart-back";
@@ -14,7 +14,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import { apiHooks } from "@/lib/api-hooks";
 
 interface InvoiceItem {
@@ -27,7 +27,7 @@ interface InvoiceItem {
 export default function InvoiceEditPage() {
   const params = useParams();
   const router = useRouter();
-  const invoiceId = params.id as string;
+  const invoiceId = params["id"] as string;
 
   const { data: invoice, isLoading: loading } = apiHooks.useInvoice(invoiceId);
   const updateInvoice = apiHooks.useUpdateInvoice(invoiceId);
@@ -40,7 +40,7 @@ export default function InvoiceEditPage() {
   const lastInvoiceIdRef = useRef<string | null>(null);
   if (invoice && invoice.id !== lastInvoiceIdRef.current) {
     lastInvoiceIdRef.current = invoice.id ?? null;
-    setItems(invoice.items || []);
+    setItems((invoice.items || []) as InvoiceItem[]);
     setNotes(invoice.notes || "");
   }
 

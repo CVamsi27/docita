@@ -1,21 +1,21 @@
 "use client";
 
+import { useCallback, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft, User, PanelLeft } from "lucide-react";
-import { ClinicalDocumentationDynamic } from "@/lib/dynamic-imports";
-import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
-import { useState, useMemo, useCallback } from "react";
-import { useSmartBack } from "@/hooks/use-smart-back";
-import { useNavigationStore } from "@/lib/stores/navigation-store";
-import { cn } from "@workspace/ui/lib/utils";
-import { apiHooks } from "@/lib/api-hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, PanelLeft, User } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
+import { cn } from "@workspace/ui/lib/utils";
+import { ClinicalDocumentationDynamic } from "@/lib/dynamic-imports";
+import { apiHooks } from "@/lib/api-hooks";
+import { useSmartBack } from "@/hooks/use-smart-back";
+import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
 
 // Map old tab names to new ones
 const TAB_MAPPING: Record<string, string> = {
@@ -30,7 +30,7 @@ export default function ConsultationPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const appointmentId = params.id as string;
+  const appointmentId = params["id"] as string;
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { canGoBack } = useNavigationStore();
@@ -155,10 +155,12 @@ export default function ConsultationPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0">
-              <ConsultationSidebar
-                appointment={appointmentData}
-                pastAppointments={pastAppointments}
-              />
+              {appointmentData && (
+                <ConsultationSidebar
+                  appointment={appointmentData as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                  pastAppointments={pastAppointments as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                />
+              )}
             </SheetContent>
           </Sheet>
 
@@ -205,8 +207,8 @@ export default function ConsultationPage() {
           )}
         >
           <ConsultationSidebar
-            appointment={appointmentData}
-            pastAppointments={pastAppointments}
+            appointment={appointmentData as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+            pastAppointments={pastAppointments as any} // eslint-disable-line @typescript-eslint/no-explicit-any
           />
         </aside>
 

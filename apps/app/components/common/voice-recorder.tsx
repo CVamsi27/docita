@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { Mic, MicOff, Square, Loader2 } from "lucide-react";
+import { Loader2, Mic, MicOff, Square } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 // TypeScript declarations for Web Speech API

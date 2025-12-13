@@ -1,6 +1,6 @@
 "use client";
 
-import { X, DollarSign, Plus } from "lucide-react";
+import { DollarSign, Plus, X } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";

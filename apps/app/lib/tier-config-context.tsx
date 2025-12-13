@@ -2,17 +2,17 @@
 
 import React, {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
 } from "react";
 import {
-  Tier,
   Feature,
   FEATURE_TIER_MAP,
+  Tier,
   TIER_INFO,
 } from "./stores/permission-store";
 
@@ -167,7 +167,7 @@ export function TierConfigProvider({
       setError(null);
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
       const response = await fetch(`${apiUrl}/subscription/config`);
 
       if (!response.ok) {

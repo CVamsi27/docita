@@ -69,8 +69,8 @@ export function ContactSalesModal({
     setIsSubmitting(true);
     try {
       // Call contact endpoint or send email
-      const contactUrl = process.env.NEXT_PUBLIC_API_URL
-        ? `${process.env.NEXT_PUBLIC_API_URL}/contact/inquiry`
+      const contactUrl = process.env["NEXT_PUBLIC_API_URL"]
+        ? `${process.env["NEXT_PUBLIC_API_URL"]}/contact/inquiry`
         : "http://localhost:3001/api/contact/inquiry";
 
       const response = await fetch(contactUrl, {

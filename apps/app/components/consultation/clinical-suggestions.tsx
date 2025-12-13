@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { Lightbulb, X, TrendingUp, AlertCircle } from "lucide-react";
+import { AlertCircle, Lightbulb, TrendingUp, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface Suggestion {

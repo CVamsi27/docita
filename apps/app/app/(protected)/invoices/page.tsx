@@ -1,7 +1,7 @@
 "use client";
 
 import { apiHooks } from "@/lib/api-hooks";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -20,14 +20,14 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import {
-  Search,
-  Download,
-  Receipt,
-  Pencil,
-  Eye,
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Download,
+  Eye,
+  Pencil,
+  Receipt,
+  Search,
 } from "lucide-react";
 import { format } from "date-fns";
 import { WhatsAppButton } from "@/components/common/whatsapp-button";
@@ -66,7 +66,7 @@ export default function InvoicesPage() {
   const downloadPDF = async (invoiceId: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/invoices/${invoiceId}/pdf`,
+        `${process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api"}/invoices/${invoiceId}/pdf`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("docita_token")}`,
@@ -327,7 +327,7 @@ export default function InvoicesPage() {
                         </Button>
                         <WhatsAppButton
                           phoneNumber={invoice.patient?.phoneNumber || ""}
-                          message={`Hello ${invoice.patient?.firstName}, here is your invoice link for ${process.env.NEXT_PUBLIC_CLINIC_NAME || "Docita Clinic"}: ${process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"}/invoices/${invoice.id}`}
+                          message={`Hello ${invoice.patient?.firstName}, here is your invoice link for ${process.env["NEXT_PUBLIC_CLINIC_NAME"] || "Docita Clinic"}: ${process.env["NEXT_PUBLIC_FRONTEND_URL"] || "http://localhost:3000"}/invoices/${invoice.id}`}
                           variant="ghost"
                           label=""
                           className="h-8 w-8 p-0"

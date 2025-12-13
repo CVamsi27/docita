@@ -16,22 +16,22 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
-  AlertTriangle,
-  Heart,
-  Pill,
   Activity,
+  AlertTriangle,
   Calendar,
   ChevronDown,
   ChevronUp,
-  User,
-  Phone,
-  Mail,
   Droplet,
+  Heart,
+  Mail,
+  Phone,
+  Pill,
   ShieldAlert,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { format, differenceInYears } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 
 interface Allergy {
   id: string;

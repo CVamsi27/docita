@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {

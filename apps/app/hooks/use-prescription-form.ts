@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  Medication,
   type DosageValidation,
-  type Specialization,
   type HospitalRole,
+  Medication,
+  type Specialization,
+  checkMedicationContraindications,
+  validateDosage,
 } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  validateDosage,
-  checkMedicationContraindications,
-} from "@workspace/types";
 
 interface UsePrescriptionFormProps {
   appointmentId: string;
@@ -203,13 +201,16 @@ export function usePrescriptionForm({
         doctorLicenseNumber,
       });
 
-      // Invalidate and refetch queries to refresh data immediately
+      // Invalidate queries to refresh all appointment views
       await queryClient.invalidateQueries({
-        queryKey: ["appointments", appointmentId],
+        queryKey: ["appointments"],
+        refetchType: "active",
       });
-      await queryClient.refetchQueries({
-        queryKey: ["appointments", appointmentId],
-        type: "active",
+
+      // Also invalidate patient queries
+      await queryClient.invalidateQueries({
+        queryKey: ["patients"],
+        refetchType: "active",
       });
 
       setMedications([

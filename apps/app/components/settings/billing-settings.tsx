@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,12 +12,12 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   AlertCircle,
+  AlertTriangle,
   Calendar,
+  CheckCircle,
   CreditCard,
   Download,
   RefreshCw,
-  AlertTriangle,
-  CheckCircle,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
@@ -76,7 +76,7 @@ export function BillingSettings() {
   const [success, setSuccess] = useState<string | null>(null);
   const token =
     typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const API_URL = process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001";
 
   // Fetch billing details
   useEffect(() => {

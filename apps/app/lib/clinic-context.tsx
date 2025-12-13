@@ -2,12 +2,12 @@
 
 import React, {
   createContext,
-  useContext,
-  useState,
   useCallback,
-  useSyncExternalStore,
-  useRef,
+  useContext,
   useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
 } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useSocket } from "@/lib/socket-context";
@@ -172,7 +172,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (!token) return;
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
       const response = await fetch(`${apiUrl}/clinic/settings`, {
         headers: {
           Authorization: `Bearer ${token}`,

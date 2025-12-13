@@ -1,17 +1,17 @@
 import {
-  LayoutDashboard,
-  Users,
   Calendar,
   CalendarCheck,
   FileText,
-  Receipt,
+  FlaskConical,
+  LayoutDashboard,
+  LucideIcon,
   MessageSquare,
   Package,
-  FlaskConical,
+  Receipt,
+  Settings,
   Sparkles,
   Upload,
-  Settings,
-  LucideIcon,
+  Users,
 } from "lucide-react";
 import { Feature, Tier } from "./stores/permission-store";
 

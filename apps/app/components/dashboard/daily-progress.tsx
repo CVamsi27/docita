@@ -3,7 +3,7 @@
 import { Sparkles, Zap } from "lucide-react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 
 interface DailyProgressProps {
   completedToday: number;

@@ -11,8 +11,8 @@ import type { DoctorAvailabilitySettingsProps } from "@/components/settings/doct
 import type { TemplatesSettingsProps } from "@/components/settings/templates-settings";
 import type { DrugInteractionCheckerProps } from "@/components/prescription/drug-interaction-checker";
 import type {
-  FeedbackFormProps,
   FeedbackFormDialogProps,
+  FeedbackFormProps,
 } from "@/components/feedback/feedback-form";
 import type { PatientBadgeProps } from "@/components/patients/patient-badge";
 import type { VoiceRecorderProps } from "@/components/common/voice-recorder";

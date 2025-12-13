@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -13,9 +13,9 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { apiHooks } from "@/lib/api-hooks";
-import { Save, Building2, Clock } from "lucide-react";
+import { Building2, Clock, Save } from "lucide-react";
 import { toast } from "sonner";
-import { useFormOptions, useDefaultValue } from "@/lib/app-config-context";
+import { useDefaultValue, useFormOptions } from "@/lib/app-config-context";
 
 export function ClinicGeneralSettings() {
   const { data: clinicData, isLoading: loading } = apiHooks.useClinicSettings();

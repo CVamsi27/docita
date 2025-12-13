@@ -6,19 +6,19 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import {
-  Stethoscope,
-  LogOut,
-  Settings,
-  Sparkles,
   Crown,
-  Sun,
+  LogOut,
   Moon,
   Search,
+  Settings,
+  Sparkles,
+  Stethoscope,
+  Sun,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { useAuth } from "@/lib/auth-context";
-import { usePermissionStore, Tier } from "@/lib/stores/permission-store";
-import { sidebarItems, SidebarItem } from "@/lib/constants";
+import { Tier, usePermissionStore } from "@/lib/stores/permission-store";
+import { SidebarItem, sidebarItems } from "@/lib/constants";
 import { FeedbackFormDialogDynamic } from "@/lib/dynamic-imports";
 
 export function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {

@@ -388,6 +388,12 @@ enum AlcoholUseStatus {
   UNKNOWN
 }
 
+enum AppointmentPriority {
+  ROUTINE
+  URGENT
+  EMERGENCY
+}
+
 model PatientTag {
   id        String  @id @default(cuid())
   patientId String
@@ -441,6 +447,7 @@ model Appointment {
   procedures              Procedure[]
   queueToken              QueueToken?
   vitalSign               VitalSign?
+  priority                AppointmentPriority @default(ROUTINE)
 
   @@index([clinicId])
   @@index([createdAt])
@@ -698,6 +705,7 @@ model Clinic {
   subscriptionStatus      String                   @default("active")
   branding                Json?
   features                Json?
+  whatsappAutomation      Json?                    // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
   intelligenceAddon       IntelligenceAddon        @default(NONE)
   trialEndsAt             DateTime?
   avgConsultationMinutes  Int                      @default(15)
@@ -793,6 +801,8 @@ model WhatsappLog {
   clinicId          String
   patientId         String?
   paymentSessionId  String?
+  invoiceId         String?
+  prescriptionId    String?
   type              String
   provider          String    @default("twilio")
   providerMessageId String?
@@ -811,6 +821,8 @@ model WhatsappLog {
   @@index([clinicId])
   @@index([patientId])
   @@index([paymentSessionId])
+  @@index([invoiceId])
+  @@index([prescriptionId])
   @@index([status])
 }
 
@@ -820,6 +832,7 @@ model IcdCode {
   description String
   category    String
   version     String               @default("ICD-10")
+  isCommon    Boolean              @default(false)
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
   diagnoses   Diagnosis[]
@@ -828,6 +841,7 @@ model IcdCode {
   @@index([code])
   @@index([description])
   @@index([category])
+  @@index([isCommon])
 }
 
 model CptCode {
@@ -835,6 +849,7 @@ model CptCode {
   code        String               @unique
   description String
   category    String
+  isCommon    Boolean              @default(false)
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
   price       Float                @default(0)
@@ -844,6 +859,7 @@ model CptCode {
   @@index([code])
   @@index([description])
   @@index([category])
+  @@index([isCommon])
 }
 
 model Diagnosis {

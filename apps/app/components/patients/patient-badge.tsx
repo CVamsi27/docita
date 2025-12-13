@@ -15,17 +15,17 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
-  User,
-  Phone,
-  Mail,
+  AlertTriangle,
   Calendar,
   Droplets,
-  AlertTriangle,
-  Heart,
   FileText,
+  Heart,
+  Mail,
   MapPin,
+  Phone,
+  User,
 } from "lucide-react";
-import { format, differenceInYears } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 
 interface PatientData {
   id?: string;

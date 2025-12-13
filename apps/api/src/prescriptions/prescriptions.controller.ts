@@ -54,8 +54,14 @@ export class PrescriptionsController {
   }
 
   @Post()
-  create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
-    return this.prescriptionsService.create(createPrescriptionDto);
+  create(
+    @Request() req: AuthRequest,
+    @Body() createPrescriptionDto: CreatePrescriptionDto,
+  ) {
+    return this.prescriptionsService.create({
+      ...createPrescriptionDto,
+      clinicId: req.user.clinicId,
+    });
   }
 
   @Get(':id/pdf')

@@ -11,16 +11,16 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import {
+  ArrowRight,
+  Database,
   FileSpreadsheet,
   ScanLine,
   Upload,
-  ArrowRight,
-  Database,
 } from "lucide-react";
 import {
   FeatureGate,
-  TierBadge,
   FeatureTierBadge,
+  TierBadge,
 } from "@/components/common/feature-gate";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 import { BulkImportDialog } from "@/components/dialogs/bulk-import-dialog";

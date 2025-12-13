@@ -5,11 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/lib/api-hooks";
 import {
-  createAppointmentSchema,
   CreateAppointmentInput,
-  toLocalISOString,
+  createAppointmentSchema,
   DEFAULT_TIMEZONE,
   Patient,
+  toLocalISOString,
 } from "@workspace/types";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
@@ -111,9 +111,19 @@ export function useAppointmentForm({
       defaultStart = localDate.toISOString().slice(0, 16);
     }
 
+    // Determine default doctor
+    let defaultDoctorId = "";
+    if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
+      // If current user is a doctor, use their ID
+      defaultDoctorId = user.id || "";
+    } else if (filteredDoctors.length > 0) {
+      // Otherwise, use the first available doctor
+      defaultDoctorId = filteredDoctors[0]?.id || "";
+    }
+
     return {
       patientId: preselectedPatientId || "",
-      doctorId: user?.id || "", // Default to current user if they are a doctor
+      doctorId: defaultDoctorId,
       clinicId: user?.clinicId || "",
       startTime: defaultStart,
       endTime: "",
@@ -126,6 +136,8 @@ export function useAppointmentForm({
     selectedDate,
     user?.id,
     user?.clinicId,
+    user?.role,
+    filteredDoctors,
     startHour,
     endHour,
   ]);
@@ -144,7 +156,8 @@ export function useAppointmentForm({
     lastSelectedDateRef.current = selectedDate;
     if (selectedDate) {
       const start = new Date(selectedDate);
-      start.setHours(9, 0, 0, 0);
+      // Set to opening time as the starting point
+      start.setHours(startHour, 0, 0, 0);
       // Use timezone-aware conversion
       const localISOTime = toLocalISOString(start, {
         timezone: DEFAULT_TIMEZONE,

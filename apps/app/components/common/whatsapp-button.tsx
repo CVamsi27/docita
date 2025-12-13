@@ -1,6 +1,6 @@
 import { Button } from "@workspace/ui/components/button";
-import { MessageCircle, Lock } from "lucide-react";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Lock, MessageCircle } from "lucide-react";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import {
   Tooltip,
   TooltipContent,

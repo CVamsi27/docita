@@ -12,28 +12,29 @@ import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Separator } from "@workspace/ui/components/separator";
+import { PatientMedicalHistory } from "@/components/patients/patient-medical-history";
 import {
-  Calendar,
-  Clock,
-  User,
-  Phone,
-  Mail,
-  MapPin,
   Activity,
-  Droplet,
-  Stethoscope,
+  Calendar,
   ChevronDown,
   ChevronRight,
+  Clock,
+  Droplet,
   ExternalLink,
   History,
+  Mail,
+  MapPin,
+  Phone,
+  Stethoscope,
+  User,
 } from "lucide-react";
-import { format, differenceInYears } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   CompactAllergyAlert,
-  type PatientMedicalCondition,
   type PatientAllergy,
   type PatientFamilyHistory,
+  type PatientMedicalCondition,
   type PatientSocialHistory,
   type PatientSurgicalHistory,
 } from "./medical-history-summary";
@@ -542,6 +543,19 @@ export function ConsultationSidebar({
             )}
           </CardContent>
         </Card>
+
+        {/* Medical History - Full Component for consistency */}
+        {(patient.medicalConditions?.length || 0) +
+          (patient.patientAllergies?.length || 0) >
+          0 && (
+          <div className="mt-4">
+            <PatientMedicalHistory
+              patient={patient as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+              readOnly={true}
+              className="[&_>div]:space-y-2"
+            />
+          </div>
+        )}
 
         {/* Past Visits - Separate section for detailed history */}
         {pastAppointments.length > 0 && (

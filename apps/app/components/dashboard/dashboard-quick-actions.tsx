@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import {
-  UserPlus,
-  CalendarCheck,
   Calendar,
+  CalendarCheck,
   ClipboardList,
   Receipt,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 
 interface DashboardQuickActionsProps {
   pendingReports: number;
@@ -71,7 +71,7 @@ export function DashboardQuickActions({
             variant="ghost"
             size="sm"
             className={cn(
-              "h-8 gap-1.5 rounded-full text-xs font-medium relative",
+              "h-9 gap-1.5 rounded-full text-xs font-medium relative",
               idx === 0 &&
                 "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
             )}

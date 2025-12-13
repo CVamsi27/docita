@@ -63,7 +63,7 @@ export function ChangePasswordSettings({ onSuccess }: ChangePasswordFormProps) {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/auth/change-password`,
+        `${process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api"}/auth/change-password`,
         {
           method: "POST",
           headers: {

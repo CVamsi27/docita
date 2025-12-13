@@ -19,17 +19,17 @@ import {
 } from "@workspace/ui/components/tabs";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
-  Download,
-  FileJson,
-  Loader2,
-  User,
   Activity,
-  Pill,
-  Stethoscope,
   AlertTriangle,
   CheckCircle2,
   Copy,
+  Download,
   ExternalLink,
+  FileJson,
+  Loader2,
+  Pill,
+  Stethoscope,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/api";

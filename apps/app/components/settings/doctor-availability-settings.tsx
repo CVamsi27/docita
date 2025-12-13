@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { Plus, Trash2, Save, Clock, Calendar, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { Calendar, Clock, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
 import { useAuth } from "@/lib/auth-context";
@@ -165,13 +165,14 @@ export function DoctorAvailabilitySettings() {
   });
 
   // Reset form when schedules change - only reset if schedules data actually loaded
+  const schedulesJson = JSON.stringify(schedules);
   useEffect(() => {
     if (schedules.length >= 0) {
       scheduleForm.reset(defaultScheduleValues);
     }
-    // Only re-run when schedules array changes
+    // Only re-run when schedules content changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schedules]);
+  }, [schedulesJson]);
 
   const timeOffForm = useForm<TimeOffFormData>({
     defaultValues: {

@@ -11,16 +11,16 @@
 // Dynamic environment variable access
 const envApiUrl =
   typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_API_URL
-    : process.env.NEXT_PUBLIC_API_URL;
+    ? process.env["NEXT_PUBLIC_API_URL"]
+    : process.env["NEXT_PUBLIC_API_URL"];
 const envAppUrl =
   typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_APP_URL
-    : process.env.NEXT_PUBLIC_APP_URL;
+    ? process.env["NEXT_PUBLIC_APP_URL"]
+    : process.env["NEXT_PUBLIC_APP_URL"];
 const envSocketUrl =
   typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_SOCKET_URL
-    : process.env.NEXT_PUBLIC_SOCKET_URL;
+    ? process.env["NEXT_PUBLIC_SOCKET_URL"]
+    : process.env["NEXT_PUBLIC_SOCKET_URL"];
 
 /**
  * Get the API base URL from environment or fallback to localhost

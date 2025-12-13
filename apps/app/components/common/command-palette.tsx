@@ -13,22 +13,22 @@ import {
   CommandShortcut,
 } from "@workspace/ui/components/command";
 import {
-  Users,
-  Calendar,
-  FileText,
-  Settings,
-  Receipt,
   Activity,
+  Calendar,
+  CalendarPlus,
   ClipboardList,
+  FileText,
+  FileTextIcon,
   Home,
   Package,
+  Receipt,
+  Settings,
   TestTube2,
   UserPlus,
-  CalendarPlus,
-  FileTextIcon,
+  Users,
 } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 
 interface CommandPaletteProps {
   children?: React.ReactNode;

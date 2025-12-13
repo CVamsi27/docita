@@ -29,6 +29,9 @@ export * from "./contraindication-checker";
 // Team Member Types
 export * from "./members";
 
+// API Response Types, Error Codes, and Routes
+export * from "./api-response";
+
 // ============================================================================
 // User & Auth Schemas
 // ============================================================================
@@ -699,8 +702,7 @@ export const createPatientSchema = patientSchema.extend({
 });
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 
-export const updatePatientSchema = patientSchema.partial();
-export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
+// Moved updatePatientSchema down to use extended schema
 
 // ============================================================================
 // Structured Medical History Schemas
@@ -965,6 +967,9 @@ export const patientWithMedicalHistorySchema = patientSchema.extend({
 export type PatientWithMedicalHistory = z.infer<
   typeof patientWithMedicalHistorySchema
 >;
+
+export const updatePatientSchema = patientWithMedicalHistorySchema.partial();
+export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
 // ============================================================================
 // Vital Signs Schemas
@@ -1410,6 +1415,27 @@ export const appointmentTypeSchema = z.enum([
 ]);
 export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 
+export const appointmentPrioritySchema = z.enum([
+  "ROUTINE",
+  "URGENT",
+  "EMERGENCY",
+]);
+export type AppointmentPriority = z.infer<typeof appointmentPrioritySchema>;
+
+export const APPOINTMENT_PRIORITY_LABELS: Record<AppointmentPriority, string> =
+  {
+    ROUTINE: "Routine",
+    URGENT: "Urgent",
+    EMERGENCY: "Emergency",
+  };
+
+export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
+  {
+    ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
+    URGENT: "bg-orange-100 text-orange-800 border-orange-300",
+    EMERGENCY: "bg-red-100 text-red-800 border-red-300",
+  };
+
 export const appointmentSchema = z.object({
   id: z.string().optional(),
   patientId: z.string().min(1, "Patient is required"),
@@ -1419,6 +1445,7 @@ export const appointmentSchema = z.object({
   endTime: z.string().or(z.date()),
   status: appointmentStatusSchema,
   type: appointmentTypeSchema,
+  priority: appointmentPrioritySchema.default("ROUTINE").optional(),
 
   // Legacy fields (kept for backward compatibility)
   notes: z.string().optional(),
@@ -1980,5 +2007,7 @@ export const whatsappAutomationSchema = z.object({
   followUpReminders: z.boolean(),
   birthdayWishes: z.boolean(),
   customMessages: z.boolean(),
+  prescriptionSent: z.boolean(),
+  invoiceSent: z.boolean(),
 });
 export type WhatsappAutomation = z.infer<typeof whatsappAutomationSchema>;

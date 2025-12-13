@@ -15,30 +15,30 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import {
-  Upload,
-  Scan,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  User,
-  FileText,
   Activity,
-  ArrowLeft,
-  Smartphone,
-  AlertTriangle,
-  Pill,
-  ChevronDown,
-  Lightbulb,
+  AlertCircle,
   AlertOctagon,
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  Lightbulb,
+  Loader2,
+  Pill,
+  Scan,
+  Smartphone,
+  Upload,
+  User,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@workspace/ui/components/dialog";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
@@ -110,13 +110,29 @@ const SectionToggle = ({
 );
 
 export default function OCRPage() {
+  // Helper to safely access Record properties with bracket notation
+  const getScore = (
+    record: Record<string, number>,
+    key: string,
+  ): number | undefined => record[key];
+  const getSection = (
+    record: Record<string, boolean>,
+    key: string,
+  ): boolean => {
+    const value = record[key];
+    return value === undefined ? false : value;
+  };
+  const getCorrection = (
+    record: Record<string, string>,
+    key: string,
+  ): string | undefined => record[key];
   const router = useRouter();
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanned, setScanned] = useState(false);
   const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean | undefined>
+    Record<string, boolean>
   >({
     patient: true,
     clinical: true,
@@ -203,7 +219,7 @@ export default function OCRPage() {
 
   const pollSession = async (id: string) => {
     const API_URL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
     console.log(`[OCR] Starting to poll session: ${id}`);
 
@@ -544,45 +560,45 @@ export default function OCRPage() {
                 <SectionToggle
                   title="Patient Information"
                   icon={User}
-                  isOpen={expandedSections.patient}
+                  isOpen={getSection(expandedSections, "patient")}
                   onToggle={() =>
                     setExpandedSections({
                       ...expandedSections,
-                      patient: !expandedSections.patient,
+                      patient: !getSection(expandedSections, "patient"),
                     })
                   }
-                  badge={
-                    Object.entries(confidenceScores)
-                      .filter(([key]) =>
-                        [
-                          "firstName",
-                          "lastName",
-                          "phoneNumber",
-                          "email",
-                        ].includes(key),
-                      )
-                      .some(([, score]) => score < 0.6)
-                      ? "Check"
-                      : undefined
-                  }
+                  {...(Object.entries(confidenceScores)
+                    .filter(([key]) =>
+                      [
+                        "firstName",
+                        "lastName",
+                        "phoneNumber",
+                        "email",
+                      ].includes(key),
+                    )
+                    .some(([, score]) => score < 0.6)
+                    ? { badge: "Check" }
+                    : {})}
                 />
-                {expandedSections.patient && (
+                {getSection(expandedSections, "patient") && (
                   <div className="space-y-3 bg-muted/30 rounded-lg p-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">First Name</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.firstName}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "firstName"),
+                            )}
                           />
                         </div>
-                        {suggestedCorrections.firstName && (
+                        {getCorrection(suggestedCorrections, "firstName") && (
                           <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
                             <p className="font-medium text-yellow-800 dark:text-yellow-200">
                               Suggestion:
                             </p>
                             <p className="text-yellow-700 dark:text-yellow-300">
-                              {suggestedCorrections.firstName}
+                              {getCorrection(suggestedCorrections, "firstName")}
                             </p>
                           </div>
                         )}
@@ -600,16 +616,18 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Last Name</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.lastName}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "lastName"),
+                            )}
                           />
                         </div>
-                        {suggestedCorrections.lastName && (
+                        {getCorrection(suggestedCorrections, "lastName") && (
                           <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
                             <p className="font-medium text-yellow-800 dark:text-yellow-200">
                               Suggestion:
                             </p>
                             <p className="text-yellow-700 dark:text-yellow-300">
-                              {suggestedCorrections.lastName}
+                              {getCorrection(suggestedCorrections, "lastName")}
                             </p>
                           </div>
                         )}
@@ -629,7 +647,11 @@ export default function OCRPage() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Age</Label>
-                          <ConfidenceIndicator score={confidenceScores.age} />
+                          <ConfidenceIndicator
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "age"),
+                            )}
+                          />
                         </div>
                         <Input
                           value={formData.age}
@@ -642,7 +664,9 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Phone</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.phoneNumber}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "phoneNumber"),
+                            )}
                           />
                         </div>
                         <Input
@@ -691,27 +715,27 @@ export default function OCRPage() {
                 <SectionToggle
                   title="Clinical Findings"
                   icon={FileText}
-                  isOpen={expandedSections.clinical}
+                  isOpen={getSection(expandedSections, "clinical")}
                   onToggle={() =>
                     setExpandedSections({
                       ...expandedSections,
-                      clinical: !expandedSections.clinical,
+                      clinical: !getSection(expandedSections, "clinical"),
                     })
                   }
-                  badge={
-                    confidenceScores.diagnosis &&
-                    confidenceScores.diagnosis < 0.6
-                      ? "Check"
-                      : undefined
-                  }
+                  {...((s: number | undefined) =>
+                    s && s < 0.6 ? { badge: "Check" } : {})(
+                    getScore(confidenceScores, "diagnosis"),
+                  )}
                 />
-                {expandedSections.clinical && (
+                {getSection(expandedSections, "clinical") && (
                   <div className="space-y-3 bg-muted/30 rounded-lg p-3">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs">Diagnosis</Label>
                         <ConfidenceIndicator
-                          score={confidenceScores.diagnosis}
+                          {...((s) => (s != null ? { score: s } : {}))(
+                            getScore(confidenceScores, "diagnosis"),
+                          )}
                         />
                       </div>
                       <Textarea
@@ -768,22 +792,24 @@ export default function OCRPage() {
                 <SectionToggle
                   title="Vitals"
                   icon={Activity}
-                  isOpen={expandedSections.vitals}
+                  isOpen={getSection(expandedSections, "vitals")}
                   onToggle={() =>
                     setExpandedSections({
                       ...expandedSections,
-                      vitals: !expandedSections.vitals,
+                      vitals: !getSection(expandedSections, "vitals"),
                     })
                   }
                 />
-                {expandedSections.vitals && (
+                {getSection(expandedSections, "vitals") && (
                   <div className="space-y-3 bg-muted/30 rounded-lg p-3">
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">BP</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.vitals_bp}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "vitals_bp"),
+                            )}
                           />
                         </div>
                         <Input
@@ -804,7 +830,9 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Temp (°F)</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.vitals_temp}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "vitals_temp"),
+                            )}
                           />
                         </div>
                         <Input
@@ -825,7 +853,9 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Pulse</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.vitals_pulse}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "vitals_pulse"),
+                            )}
                           />
                         </div>
                         <Input
@@ -903,20 +933,18 @@ export default function OCRPage() {
                 <SectionToggle
                   title="Medications"
                   icon={Pill}
-                  isOpen={expandedSections.medications}
+                  isOpen={getSection(expandedSections, "medications")}
                   onToggle={() =>
                     setExpandedSections({
                       ...expandedSections,
-                      medications: !expandedSections.medications,
+                      medications: !getSection(expandedSections, "medications"),
                     })
                   }
-                  badge={
-                    formData.medications.length > 0
-                      ? String(formData.medications.length)
-                      : undefined
-                  }
+                  {...(formData.medications.length > 0
+                    ? { badge: String(formData.medications.length) }
+                    : {})}
                 />
-                {expandedSections.medications && (
+                {getSection(expandedSections, "medications") && (
                   <div className="space-y-3 bg-muted/30 rounded-lg p-3">
                     {formData.medications.length > 0 ? (
                       formData.medications.map((med, idx) => (
@@ -946,22 +974,24 @@ export default function OCRPage() {
                 <SectionToggle
                   title="Lab Values"
                   icon={FileText}
-                  isOpen={expandedSections.labValues}
+                  isOpen={getSection(expandedSections, "labValues")}
                   onToggle={() =>
                     setExpandedSections({
                       ...expandedSections,
-                      labValues: !expandedSections.labValues,
+                      labValues: !getSection(expandedSections, "labValues"),
                     })
                   }
                 />
-                {expandedSections.labValues && (
+                {getSection(expandedSections, "labValues") && (
                   <div className="space-y-3 bg-muted/30 rounded-lg p-3">
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Glucose (mg/dL)</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.labValues_glucose}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(confidenceScores, "labValues_glucose"),
+                            )}
                           />
                         </div>
                         <Input
@@ -982,7 +1012,12 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Hemoglobin (g/dL)</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.labValues_hemoglobin}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(
+                                confidenceScores,
+                                "labValues_hemoglobin",
+                              ),
+                            )}
                           />
                         </div>
                         <Input
@@ -1003,7 +1038,12 @@ export default function OCRPage() {
                         <div className="flex items-center justify-between">
                           <Label className="text-xs">Creatinine (mg/dL)</Label>
                           <ConfidenceIndicator
-                            score={confidenceScores.labValues_creatinine}
+                            {...((s) => (s != null ? { score: s } : {}))(
+                              getScore(
+                                confidenceScores,
+                                "labValues_creatinine",
+                              ),
+                            )}
                           />
                         </div>
                         <Input

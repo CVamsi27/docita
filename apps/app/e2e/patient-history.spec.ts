@@ -1,6 +1,6 @@
-import { test, expect, Page, APIRequestContext } from "@playwright/test";
+import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
-const API_URL = process.env.API_URL || "http://localhost:3001/api";
+const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 const TEST_PASSWORD = "Test@123456";
 
 async function fetchPatientByApi(

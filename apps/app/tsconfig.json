@@ -4,8 +4,15 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@workspace/ui/*": ["../../packages/ui/src/*"]
+      "@/lib/*": ["./lib/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/components/*": ["./components/*"],
+      "@workspace/ui/*": ["../../packages/ui/src/*"],
+      "@workspace/types": ["../../packages/types/src/index.ts"]
     },
+    "exactOptionalPropertyTypes": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
     "plugins": [
       {
         "name": "next"

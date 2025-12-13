@@ -327,6 +327,7 @@ export const APPOINTMENT_DETAIL_SELECT = {
  */
 export const DOCTOR_LIST_SELECT = {
   id: true,
+  role: true,
   name: true,
   email: true,
   specialization: true,
@@ -344,6 +345,7 @@ export const DOCTOR_LIST_SELECT = {
  */
 export const DOCTOR_CARD_SELECT = {
   id: true,
+  role: true,
   name: true,
   email: true,
   specialization: true,

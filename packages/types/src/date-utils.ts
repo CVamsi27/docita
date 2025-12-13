@@ -199,7 +199,7 @@ export function getTimezonesForCurrency(
  */
 export function getDefaultTimezoneForCurrency(currency: string): string {
   const timezones = getTimezonesForCurrency(currency);
-  return timezones.length > 0 ? timezones[0].value : DEFAULT_TIMEZONE;
+  return timezones[0]?.value ?? DEFAULT_TIMEZONE;
 }
 
 // =====================================================
@@ -263,7 +263,7 @@ export function getLocalesForCurrency(
  */
 export function getDefaultLocaleForCurrency(currency: string): string {
   const locales = getLocalesForCurrency(currency);
-  return locales.length > 0 ? locales[0].value : DEFAULT_LOCALE;
+  return locales[0]?.value ?? DEFAULT_LOCALE;
 }
 
 export type LocaleValue = (typeof LOCALE_OPTIONS)[number]["value"];
@@ -360,7 +360,7 @@ export function parseScheduleTime(
   timeString: string,
 ): { hours: number; minutes: number } | null {
   const match = timeString.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return null;
+  if (!match || !match[1] || !match[2]) return null;
 
   const hours = parseInt(match[1], 10);
   const minutes = parseInt(match[2], 10);

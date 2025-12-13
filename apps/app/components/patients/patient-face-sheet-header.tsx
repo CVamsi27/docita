@@ -1,9 +1,12 @@
 "use client";
 
 import { Badge } from "@workspace/ui/components/badge";
-import { AlertTriangle, ShieldAlert, Phone, Building2 } from "lucide-react";
-import type { Patient } from "@workspace/types";
-import { ISOLATION_STATUS_LABELS, CODE_STATUS_LABELS } from "@workspace/types";
+import { AlertTriangle, Building2, Phone, ShieldAlert } from "lucide-react";
+import {
+  CODE_STATUS_LABELS,
+  ISOLATION_STATUS_LABELS,
+  type Patient,
+} from "@workspace/types";
 
 interface PatientFaceSheetHeaderProps {
   patient: Patient;

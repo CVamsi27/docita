@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LineItem, type Specialization } from "@workspace/types";
 import { apiFetch } from "@/lib/api-client";
@@ -159,14 +159,17 @@ export function useInvoiceForm({
         }),
       });
 
-      // Invalidate and refetch queries to refresh data immediately
+      // Invalidate queries to refresh all appointment views
       if (appointmentId) {
         await queryClient.invalidateQueries({
-          queryKey: ["appointments", appointmentId],
+          queryKey: ["appointments"],
+          refetchType: "active",
         });
-        await queryClient.refetchQueries({
-          queryKey: ["appointments", appointmentId],
-          type: "active",
+
+        // Also invalidate patient queries
+        await queryClient.invalidateQueries({
+          queryKey: ["patients"],
+          refetchType: "active",
         });
       }
 

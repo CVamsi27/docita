@@ -2,11 +2,11 @@
 
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
-  Tier,
   Feature,
-  FEATURE_TIER_MAP,
   FEATURE_DISPLAY,
+  FEATURE_TIER_MAP,
   getTierInfo,
+  Tier,
 } from "@/lib/tier-config";
 import {
   Card,
@@ -20,26 +20,26 @@ import { Button } from "@workspace/ui/components/button";
 import { useState } from "react";
 import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
 import {
-  Check,
-  Lock,
-  Sparkles,
   ArrowRight,
-  MessageSquare,
-  Users,
   BarChart3,
-  ScanLine,
-  FileText,
+  Brain,
+  Building2,
   Calendar,
-  Receipt,
-  Package,
+  Check,
+  FileText,
   FlaskConical,
+  Lock,
+  LucideIcon,
+  MessageSquare,
+  Package,
+  Receipt,
+  ScanLine,
+  Shield,
+  Sparkles,
   Ticket,
   Upload,
-  Shield,
+  Users,
   Zap,
-  Building2,
-  Brain,
-  LucideIcon,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import {
@@ -7,6 +7,7 @@ import {
   INVOICE_DETAIL_SELECT,
 } from '../common/select-fragments';
 import { paginateWithCursor } from '../common/pagination.helper';
+import { WhatsappService } from '../modules/whatsapp/whatsapp.service';
 import PDFDocument from 'pdfkit';
 
 interface InvoiceItem {
@@ -17,7 +18,12 @@ interface InvoiceItem {
 
 @Injectable()
 export class InvoicesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(InvoicesService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private whatsapp: WhatsappService,
+  ) {}
 
   async findAll(
     clinicId: string,
@@ -74,8 +80,9 @@ export class InvoicesService {
     doctorRole?: any;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
+    clinicId?: string;
   }) {
-    return this.prisma.invoice.create({
+    const invoice = await this.prisma.invoice.create({
       data: {
         appointmentId: data.appointmentId,
         patientId: data.patientId,
@@ -110,6 +117,113 @@ export class InvoicesService {
         },
       },
     });
+
+    // Send WhatsApp notification if automation is enabled
+    try {
+      await this.sendInvoiceWhatsAppNotification(invoice, data.clinicId);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send invoice WhatsApp notification for invoice ${invoice.id}`,
+        error,
+      );
+      // Don't throw - allow invoice creation to succeed even if WhatsApp fails
+    }
+
+    return invoice;
+  }
+
+  private async sendInvoiceWhatsAppNotification(
+    invoice: {
+      id: string;
+      patient: { firstName: string; lastName: string; phoneNumber: string };
+      total: number;
+      items: any;
+      createdAt: Date;
+    },
+    clinicId?: string,
+  ) {
+    // Check if WhatsApp automation is enabled for invoice sending
+    if (!clinicId || !invoice.patient.phoneNumber) {
+      return;
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: {
+        name: true,
+        whatsappAutomation: true,
+      },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation === 'string'
+    ) {
+      return;
+    }
+
+    const automationConfig = clinic.whatsappAutomation as {
+      invoiceSent?: boolean;
+      enabled?: boolean;
+    };
+
+    if (!automationConfig.enabled || !automationConfig.invoiceSent) {
+      return;
+    }
+
+    // Compose WhatsApp message
+    const message = this.composeInvoiceMessage(invoice, clinic.name);
+
+    // Send WhatsApp message
+    await this.whatsapp.sendMessage({
+      to: invoice.patient.phoneNumber,
+      message,
+    });
+
+    // Log the WhatsApp message
+    await this.prisma.whatsappLog.create({
+      data: {
+        clinicId,
+        patientId: invoice.patient.phoneNumber,
+        invoiceId: invoice.id,
+        type: 'invoice',
+        provider: 'twilio',
+        phoneNumber: invoice.patient.phoneNumber,
+        message,
+        status: 'sent',
+      },
+    });
+
+    this.logger.log(
+      `Sent invoice WhatsApp notification for invoice ${invoice.id}`,
+    );
+  }
+
+  private composeInvoiceMessage(
+    invoice: {
+      id: string;
+      patient: { firstName: string; lastName: string };
+      total: number;
+      items: any;
+      createdAt: Date;
+    },
+    clinicName: string,
+  ): string {
+    const patientName = invoice.patient.firstName;
+    const date = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    let message = `Hello ${patientName}👋\n\n`;
+    message += `Your invoice from *${clinicName}* is ready!\n\n`;
+    message += `📄 Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
+    message += `📅 Date: ${date}\n`;
+    message += `💰 Amount Due: ₹${invoice.total.toFixed(2)}\n\n`;
+    message += `Thank you for choosing our clinic. Get well soon! 🏥`;
+
+    return message;
   }
 
   async update(

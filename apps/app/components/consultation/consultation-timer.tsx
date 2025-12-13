@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
-import { Timer, Play, Pause, RotateCcw, Clock } from "lucide-react";
+import { Clock, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface ConsultationTimerProps {

@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/button";
-import { Stethoscope, Calendar } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { Calendar, Stethoscope } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { apiHooks } from "@/lib/api-hooks";
 import { useMemo } from "react";
 import type { Appointment } from "@workspace/types";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth-context";
 
 interface PaginatedResponse<T> {

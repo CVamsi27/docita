@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -21,14 +21,14 @@ import {
 } from "@workspace/ui/components/select";
 import {
   Activity,
-  Pill,
-  Receipt,
-  FileText,
-  Plus,
-  X,
-  Save,
-  CheckCircle2,
   AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Pill,
+  Plus,
+  Receipt,
+  Save,
+  X,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
 import { useObservationsForm } from "@/hooks/use-observations-form";
@@ -44,12 +44,12 @@ import { PrescriptionTemplateManager } from "@/components/prescription/prescript
 import { VitalSignsValidationPanel } from "@/components/vital-signs/vital-signs-validator";
 import { PrescriptionAnalysisDialog } from "@/components/dialogs/prescription-analysis-dialog";
 import type {
-  PrescriptionTemplate,
-  Medication,
+  CptCode,
   Diagnosis,
   IcdCode,
+  Medication,
+  PrescriptionTemplate,
   Procedure,
-  CptCode,
   VitalSignValidation,
 } from "@/types";
 import { apiHooks } from "@/lib/api-hooks";

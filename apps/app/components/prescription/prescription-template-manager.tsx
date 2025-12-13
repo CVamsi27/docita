@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, memo, useRef } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Plus, X, Save, Trash2, Edit } from "lucide-react";
+import { Edit, Plus, Save, Trash2, X } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import type { Medication, PrescriptionTemplate } from "@/types";
 import { ROUTE_OPTIONS } from "@workspace/types";

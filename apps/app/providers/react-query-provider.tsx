@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 // ✅ OPTIMIZATION: Web Vitals monitoring for performance tracking
 async function reportWebVitals() {
@@ -52,11 +52,11 @@ async function reportWebVitals() {
     // Send vitals to analytics endpoint if available
     setTimeout(() => {
       if (
-        process.env.NEXT_PUBLIC_ANALYTICS_URL &&
+        process.env["NEXT_PUBLIC_ANALYTICS_URL"] &&
         Object.keys(vitals).length > 0
       ) {
         navigator.sendBeacon(
-          `${process.env.NEXT_PUBLIC_ANALYTICS_URL}/vitals`,
+          `${process.env["NEXT_PUBLIC_ANALYTICS_URL"]}/vitals`,
           JSON.stringify(vitals),
         );
       }

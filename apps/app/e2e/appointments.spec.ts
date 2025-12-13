@@ -1,6 +1,6 @@
-import { test, expect, Page, APIRequestContext } from "@playwright/test";
+import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
-const API_URL: string = process.env.API_URL || "http://localhost:3001/api";
+const API_URL: string = process.env["API_URL"] || "http://localhost:3001/api";
 
 test.describe("Appointments", () => {
   let cachedUser: {

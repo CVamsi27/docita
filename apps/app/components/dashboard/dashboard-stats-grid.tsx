@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import {
-  Users,
-  TrendingUp,
   Calendar,
-  FileText,
   ClipboardList,
+  FileText,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 
 interface DashboardStats {
   totalPatients: number;
@@ -43,7 +43,7 @@ export function DashboardStatsGrid({
     >
       {/* Patients Card */}
       <Link href="/patients" className="group">
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-0.5">
+        <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
@@ -69,7 +69,7 @@ export function DashboardStatsGrid({
       {/* Today's Appointments Card */}
       {canAccess(Feature.CALENDAR_SLOTS) && (
         <Link href="/appointments" className="group">
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-0.5">
+          <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -108,7 +108,7 @@ export function DashboardStatsGrid({
       {/* Prescriptions Card */}
       {canAccess(Feature.PRESCRIPTION_TEMPLATES) && (
         <Link href="/prescriptions" className="group">
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300 hover:-translate-y-0.5">
+          <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -134,8 +134,9 @@ export function DashboardStatsGrid({
         <Link href="/coding-queue" className="group">
           <Card
             className={cn(
-              "relative overflow-hidden border-0 bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300 hover:-translate-y-0.5",
-              stats.pendingReports > 0 && "ring-1 ring-orange-500/20",
+              "relative overflow-hidden hover:shadow-md transition-all duration-300",
+              stats.pendingReports > 0 &&
+                "ring-1 ring-orange-500/20 bg-orange-50/50",
             )}
           >
             <CardContent className="p-4">

@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
-import { Stethoscope, Maximize2 } from "lucide-react";
+import { Maximize2, Stethoscope } from "lucide-react";
 import Link from "next/link";
 import { ConsultationContent } from "./consultation-content";
 

@@ -5,9 +5,9 @@ import { format } from "date-fns";
 import {
   ArrowRight,
   Calendar,
-  User,
-  Loader2,
   CheckCircle2,
+  Loader2,
+  User,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -28,7 +28,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
-import { FeatureGate, Feature } from "@/components/common/feature-gate";
+import { Feature, FeatureGate } from "@/components/common/feature-gate";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default function CodingQueuePage() {

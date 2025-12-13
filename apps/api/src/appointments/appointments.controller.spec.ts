@@ -140,12 +140,17 @@ describe('AppointmentsController', () => {
 
       mockAppointmentsService.update.mockResolvedValue(updatedAppointment);
 
-      const result = await controller.update('apt-123', updateDto);
+      const result = await controller.update(
+        'apt-123',
+        updateDto,
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(updatedAppointment);
       expect(mockAppointmentsService.update).toHaveBeenCalledWith(
         'apt-123',
         updateDto,
+        'clinic-123',
       );
     });
   });

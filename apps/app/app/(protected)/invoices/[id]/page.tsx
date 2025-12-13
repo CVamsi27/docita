@@ -6,18 +6,18 @@ import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import {
   ArrowLeft,
-  Printer,
   Download,
-  Share2,
   Edit,
   Loader2,
   Lock,
+  Printer,
+  Share2,
 } from "lucide-react";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { Badge } from "@workspace/ui/components/badge";
 import { apiHooks } from "@/lib/api-hooks";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/clinic-context";
 import {
   Tooltip,
@@ -47,7 +47,7 @@ interface ClinicInfo {
 export default function InvoiceViewPage() {
   const params = useParams();
   const router = useRouter();
-  const invoiceId = params.id as string;
+  const invoiceId = params["id"] as string;
   const { canAccess } = usePermissionStore();
   const { clinic: contextClinic } = useClinic();
   const hasWhatsAppAccess = canAccess(Feature.ONE_WAY_WHATSAPP);

@@ -18,6 +18,7 @@ import {
   GeneralExamination,
   SystemicExamination,
   ClinicalInvestigation,
+  AppointmentPriority,
 } from '@workspace/types';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -64,6 +65,7 @@ interface CreateAppointmentDto {
   endTime: string | Date;
   status: AppointmentStatus;
   type: AppointmentType;
+  priority?: AppointmentPriority;
   notes?: string;
   observations?: string;
 }
@@ -158,16 +160,26 @@ export class AppointmentsController {
   update(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @Request() req: AuthRequest,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.update(
+      id,
+      updateAppointmentDto,
+      req.user.clinicId,
+    );
   }
 
   @Put(':id')
   updateWithPut(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @Request() req: AuthRequest,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.update(
+      id,
+      updateAppointmentDto,
+      req.user.clinicId,
+    );
   }
 
   @Delete(':id')

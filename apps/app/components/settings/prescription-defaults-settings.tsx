@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { API_URL } from "@/lib/api";
-import { Save, FileText } from "lucide-react";
+import { FileText, Save } from "lucide-react";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 
 export function PrescriptionDefaultsSettings() {

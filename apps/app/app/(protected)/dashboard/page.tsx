@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { apiHooks } from "@/lib/api-hooks";
-import { usePermissionStore, Feature } from "@/lib/stores/permission-store";
+import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { cn } from "@workspace/ui/lib/utils";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";

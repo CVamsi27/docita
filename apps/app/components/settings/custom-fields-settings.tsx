@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Plus, Trash2, Save, Loader2, GripVertical } from "lucide-react";
+import { GripVertical, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { useFormOptions } from "@/lib/app-config-context";
 

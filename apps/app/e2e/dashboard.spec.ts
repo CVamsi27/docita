@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const API_URL = process.env.API_URL || "http://localhost:3001/api";
+const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
 test.describe("Dashboard", () => {
   let user: any;

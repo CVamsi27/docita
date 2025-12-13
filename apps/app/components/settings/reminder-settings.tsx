@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Save, Loader2, Bell, Mail, MessageSquare } from "lucide-react";
+import { Bell, Loader2, Mail, MessageSquare, Save } from "lucide-react";
 import { API_URL } from "@/lib/api";
 
 interface ReminderSettings {

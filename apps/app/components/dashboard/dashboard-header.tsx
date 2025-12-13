@@ -1,6 +1,6 @@
 "use client";
 
-import { Stethoscope, Search } from "lucide-react";
+import { Search, Stethoscope } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";

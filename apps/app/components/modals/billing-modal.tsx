@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Receipt, Plus, X, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Plus, Receipt, X } from "lucide-react";
 import { useInvoiceForm } from "@/hooks/use-invoice-form";
 import { useFormOptions } from "@/lib/app-config-context";
 

@@ -3,9 +3,9 @@
 import React, {
   createContext,
   useContext,
-  useState,
-  useRef,
   useEffect,
+  useRef,
+  useState,
 } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

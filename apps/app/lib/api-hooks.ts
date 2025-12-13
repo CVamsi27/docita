@@ -1,37 +1,37 @@
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   useInfiniteQuery,
-  UseQueryOptions,
+  useMutation,
   UseMutationOptions,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
 } from "@tanstack/react-query";
 import { API_URL } from "./api";
 import {
-  Patient,
-  Appointment,
-  CreatePatientInput,
-  CreateAppointmentInput,
-  UpdatePatientInput,
-  UpdateAppointmentInput,
-  Prescription,
-  CreatePrescriptionInput,
-  Invoice,
-  CreateInvoiceInput,
-  Document,
   AnalyticsOverview,
-  DiseaseTrend,
-  RevenueByCPT,
-  ComplianceMetric,
-  IcdCode,
-  CptCode,
-  IcdFavorite,
-  CptFavorite,
-  VitalSign,
+  Appointment,
   Clinic,
-  User,
-  DashboardStats,
   ClinicalTemplate,
+  ComplianceMetric,
+  CptCode,
+  CptFavorite,
+  CreateAppointmentInput,
+  CreateInvoiceInput,
+  CreatePatientInput,
+  CreatePrescriptionInput,
+  DashboardStats,
+  DiseaseTrend,
+  Document,
+  IcdCode,
+  IcdFavorite,
+  Invoice,
+  Patient,
+  Prescription,
+  RevenueByCPT,
+  UpdateAppointmentInput,
+  UpdatePatientInput,
+  User,
+  VitalSign,
 } from "@workspace/types";
 
 function getAuthToken(): string | null {
@@ -450,13 +450,13 @@ export const apiHooks = {
     useAPIQuery<IcdCode[]>(
       ["icd-codes", search],
       `/medical-coding/icd-codes?search=${encodeURIComponent(search || "")}`,
-      { enabled: search.length >= 2 },
+      { enabled: true }, // Always enabled - backend returns common codes for short queries
     ),
   useSearchCptCodes: (search: string) =>
     useAPIQuery<CptCode[]>(
       ["cpt-codes", search],
       `/medical-coding/cpt-codes?search=${encodeURIComponent(search || "")}`,
-      { enabled: search.length >= 2 },
+      { enabled: true }, // Always enabled - backend returns common codes for short queries
     ),
   useUpdateVisitCoding: (appointmentId: string) =>
     useAPIMutation<Appointment, UpdateAppointmentInput>(

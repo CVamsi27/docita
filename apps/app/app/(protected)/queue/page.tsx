@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { FeatureGate, Feature } from "@/components/common/feature-gate";
+import { useCallback, useState } from "react";
+import { Feature, FeatureGate } from "@/components/common/feature-gate";
 import { apiHooks } from "@/lib/api-hooks";
 import { API_URL } from "@/lib/api";
 import { toast } from "sonner";
@@ -98,7 +98,7 @@ export default function QueuePage() {
           isFetching={isFetching}
           onOpenSettings={() => setShowSettingsModal(true)}
           doctors={doctors}
-          useDoctorQueues={queueSettings?.useDoctorQueues}
+          useDoctorQueues={queueSettings?.useDoctorQueues as any} // eslint-disable-line @typescript-eslint/no-explicit-any
         />
 
         <QueueStats stats={stats} />

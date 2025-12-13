@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { WhatsappService } from '../modules/whatsapp/whatsapp.service';
 import PDFDocument from 'pdfkit';
 import {
   formatDate,
@@ -11,7 +12,12 @@ import {
 
 @Injectable()
 export class PrescriptionsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(PrescriptionsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private whatsapp: WhatsappService,
+  ) {}
 
   async findAll(clinicId: string) {
     if (!clinicId) {
@@ -108,6 +114,7 @@ export class PrescriptionsService {
     doctorRole?: any;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
+    clinicId?: string;
   }) {
     const prescription = await this.prisma.prescription.create({
       data: {
@@ -135,11 +142,146 @@ export class PrescriptionsService {
       },
       include: {
         medications: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
       },
     });
 
+    // Send WhatsApp notification if automation is enabled
+    try {
+      await this.sendPrescriptionWhatsAppNotification(
+        prescription,
+        data.clinicId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send prescription WhatsApp notification for prescription ${prescription.id}`,
+        error,
+      );
+      // Don't throw - allow prescription creation to succeed even if WhatsApp fails
+    }
+
     return prescription;
   }
+
+  private async sendPrescriptionWhatsAppNotification(
+    prescription: {
+      id: string;
+      patient: { firstName: string; lastName: string; phoneNumber: string };
+      medications: Array<{
+        name: string;
+        dosage?: string;
+        frequency?: string;
+        [key: string]: unknown;
+      }>;
+      instructions?: string | null;
+      createdAt: Date;
+    },
+    clinicId?: string,
+  ) {
+    // Check if WhatsApp automation is enabled for prescription sending
+    if (!clinicId || !prescription.patient.phoneNumber) {
+      return;
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: {
+        name: true,
+        whatsappAutomation: true,
+      },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation === 'string'
+    ) {
+      return;
+    }
+
+    const automationConfig = clinic.whatsappAutomation as {
+      prescriptionSent?: boolean;
+      enabled?: boolean;
+    };
+
+    if (!automationConfig.enabled || !automationConfig.prescriptionSent) {
+      return;
+    }
+
+    // Compose WhatsApp message
+    const message = this.composePrescriptionMessage(prescription, clinic.name);
+
+    // Send WhatsApp message
+    await this.whatsapp.sendMessage({
+      to: prescription.patient.phoneNumber,
+      message,
+    });
+
+    // Log the WhatsApp message
+    await this.prisma.whatsappLog.create({
+      data: {
+        clinicId,
+        patientId: prescription.patient.phoneNumber,
+        prescriptionId: prescription.id,
+        type: 'prescription',
+        provider: 'twilio',
+        phoneNumber: prescription.patient.phoneNumber,
+        message,
+        status: 'sent',
+      },
+    });
+
+    this.logger.log(
+      `Sent prescription WhatsApp notification for prescription ${prescription.id}`,
+    );
+  }
+
+  private composePrescriptionMessage(
+    prescription: {
+      id: string;
+      patient: { firstName: string };
+      medications: Array<{
+        name: string;
+        dosage?: string;
+        frequency?: string;
+        [key: string]: unknown;
+      }>;
+      instructions?: string | null;
+      createdAt: Date;
+    },
+    clinicName: string,
+  ): string {
+    const patientName = prescription.patient.firstName;
+
+    let message = `Hello ${patientName}👋\n\n`;
+    message += `Your prescription from *${clinicName}* is ready!\n\n`;
+    message += `💊 *Medications:*\n`;
+
+    prescription.medications.forEach((med) => {
+      const dosage = med.dosage || '';
+      const frequency = med.frequency || '';
+      const medicineInfo = [med.name, dosage, frequency]
+        .filter(Boolean)
+        .join(' - ');
+      message += `• ${medicineInfo}\n`;
+    });
+
+    if (prescription.instructions) {
+      message += `\n📋 *Instructions:*\n${prescription.instructions}\n`;
+    }
+
+    message += `\n👨‍⚕️ Please follow the prescription as advised.\n`;
+    message += `For queries, contact us anytime. Get well soon! 🏥`;
+
+    return message;
+  }
+
   async generatePDF(
     id: string,
     timezone: string = DEFAULT_TIMEZONE,

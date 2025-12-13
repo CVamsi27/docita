@@ -1,5 +1,65 @@
 "use client";
 
+/**
+ * MedicalHistorySummary Component
+ *
+ * @description Compact, collapsible medical history summary optimized for clinical consultation.
+ * Designed for quick reference and space-constrained views like sidebars and dashboards.
+ *
+ * @use-cases
+ * - Clinical Documentation Sidebar (quick reference during consultation)
+ * - Consultation View Sidebar (non-intrusive, expandable)
+ * - Dashboard Quick View (space-efficient summary)
+ * - Patient Summary Cards
+ *
+ * @features
+ * - Three display variants: 'full' | 'compact' | 'sidebar'
+ * - Collapsible sections
+ * - Highlights critical information (allergies, active conditions)
+ * - Vital trends visualization
+ * - Past diagnoses summary
+ * - Current medications display
+ * - Backward compatibility with legacy string fields
+ *
+ * @props
+ * - patientId: string - Patient identifier
+ * - medicalConditions: PatientMedicalCondition[] - Structured conditions
+ * - allergies: PatientAllergy[] - Patient allergies
+ * - familyHistory: PatientFamilyHistory[] - Family medical history
+ * - socialHistory: PatientSocialHistory - Social determinants
+ * - surgicalHistory: PatientSurgicalHistory[] - Past surgeries
+ * - legacyMedicalHistory: string[] - Legacy text format (backward compatibility)
+ * - legacyAllergies: string - Legacy text format (backward compatibility)
+ * - variant: 'full' | 'compact' | 'sidebar' - Display mode (default: 'full')
+ * - showExpandButton: boolean - Show expand/collapse controls
+ * - defaultExpanded: boolean - Initial expansion state
+ *
+ * @variants
+ * - 'full': Complete detailed view with all sections expanded
+ * - 'compact': Condensed view showing only critical information
+ * - 'sidebar': Space-efficient sidebar optimized layout
+ *
+ * @example
+ * // Clinical consultation sidebar
+ * <MedicalHistorySummary
+ *   patientId={patient.id}
+ *   medicalConditions={patient.medicalConditions}
+ *   allergies={patient.allergies}
+ *   variant="sidebar"
+ *   showExpandButton={true}
+ *   defaultExpanded={false}
+ * />
+ *
+ * // Dashboard compact view
+ * <MedicalHistorySummary
+ *   patientId={patient.id}
+ *   medicalConditions={patient.medicalConditions}
+ *   variant="compact"
+ * />
+ *
+ * @see PatientMedicalHistory for full editing interface
+ */
+
 import * as React from "react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -10,21 +70,21 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
-  AlertTriangle,
-  Heart,
-  Pill,
   Activity,
-  Stethoscope,
+  AlertTriangle,
   ChevronDown,
   ChevronRight,
+  Cigarette,
+  Heart,
+  Minus,
+  Pill,
+  Scissors,
   Shield,
   ShieldAlert,
-  TrendingUp,
+  Stethoscope,
   TrendingDown,
-  Minus,
-  Scissors,
+  TrendingUp,
   Users,
-  Cigarette,
   Wine,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";

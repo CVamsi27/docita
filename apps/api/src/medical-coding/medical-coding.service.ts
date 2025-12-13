@@ -6,8 +6,13 @@ export class MedicalCodingService {
   constructor(private prisma: PrismaService) {}
 
   async searchIcdCodes(query: string) {
+    // If query is too short, return commonly used codes
     if (!query || query.length < 2) {
-      return [];
+      return this.prisma.icdCode.findMany({
+        where: { isCommon: true },
+        take: 20,
+        orderBy: { code: 'asc' },
+      });
     }
 
     // Handle range searches like "C00-D49" or "C00"
@@ -26,9 +31,10 @@ export class MedicalCodingService {
             },
           },
           take: 50,
-          orderBy: {
-            code: 'asc',
-          },
+          orderBy: [
+            { isCommon: 'desc' }, // Common codes first
+            { code: 'asc' },
+          ],
         });
       } else {
         // Single code or code prefix (e.g., "C00" finds C00, C000, C001, etc.)
@@ -39,9 +45,10 @@ export class MedicalCodingService {
             },
           },
           take: 50,
-          orderBy: {
-            code: 'asc',
-          },
+          orderBy: [
+            { isCommon: 'desc' }, // Common codes first
+            { code: 'asc' },
+          ],
         });
       }
     }
@@ -55,15 +62,21 @@ export class MedicalCodingService {
         ],
       },
       take: 20,
-      orderBy: {
-        code: 'asc',
-      },
+      orderBy: [
+        { isCommon: 'desc' }, // Common codes first
+        { code: 'asc' },
+      ],
     });
   }
 
   async searchCptCodes(query: string) {
+    // If query is too short, return commonly used codes
     if (!query || query.length < 2) {
-      return [];
+      return this.prisma.cptCode.findMany({
+        where: { isCommon: true },
+        take: 20,
+        orderBy: { code: 'asc' },
+      });
     }
 
     // Handle range searches like "00100-01999" or numeric codes
@@ -82,9 +95,10 @@ export class MedicalCodingService {
             },
           },
           take: 50,
-          orderBy: {
-            code: 'asc',
-          },
+          orderBy: [
+            { isCommon: 'desc' }, // Common codes first
+            { code: 'asc' },
+          ],
         });
       } else {
         // Single code or code prefix (e.g., "001" finds 00100, 00101, etc.)
@@ -96,9 +110,10 @@ export class MedicalCodingService {
             },
           },
           take: 50,
-          orderBy: {
-            code: 'asc',
-          },
+          orderBy: [
+            { isCommon: 'desc' }, // Common codes first
+            { code: 'asc' },
+          ],
         });
       }
     }
@@ -112,9 +127,10 @@ export class MedicalCodingService {
         ],
       },
       take: 20,
-      orderBy: {
-        code: 'asc',
-      },
+      orderBy: [
+        { isCommon: 'desc' }, // Common codes first
+        { code: 'asc' },
+      ],
     });
   }
 

@@ -1,27 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PatientsService } from './patients.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PatientsRepository } from '../common/repositories/patients.repository';
 import { NotFoundException } from '@nestjs/common';
 
 describe('PatientsService', () => {
   let service: PatientsService;
-  let prisma: PrismaService;
-
-  const mockPrismaService = {
-    patient: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    appointment: {
-      findMany: jest.fn(),
-    },
-    document: {
-      findMany: jest.fn(),
-    },
-  };
+  let repository: PatientsRepository;
 
   const mockPatient = {
     id: 'patient-123',
@@ -36,19 +20,38 @@ describe('PatientsService', () => {
     updatedAt: new Date(),
   };
 
+  const mockPaginatedResult = {
+    items: [mockPatient],
+    hasMore: false,
+    nextCursor: undefined,
+    count: 1,
+  };
+
+  const mockPatientsRepository = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findOneOrFail: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    getAppointments: jest.fn(),
+    getDocuments: jest.fn(),
+    getTags: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PatientsService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: PatientsRepository,
+          useValue: mockPatientsRepository,
         },
       ],
     }).compile();
 
     service = module.get<PatientsService>(PatientsService);
-    prisma = module.get<PrismaService>(PrismaService);
+    repository = module.get<PatientsRepository>(PatientsRepository);
 
     jest.clearAllMocks();
   });
@@ -59,59 +62,48 @@ describe('PatientsService', () => {
 
   describe('findAll', () => {
     it('should return patients for a clinic', async () => {
-      const paginatedResult = {
-        items: [mockPatient],
-        nextCursor: null,
-        hasMore: false,
-        count: 1,
-      };
-
-      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
+      mockPatientsRepository.findAll.mockResolvedValue(mockPaginatedResult);
 
       const result = await service.findAll('clinic-123');
 
-      expect(result).toEqual(paginatedResult);
+      expect(result).toEqual(mockPaginatedResult);
+      expect(mockPatientsRepository.findAll).toHaveBeenCalledWith(
+        'clinic-123',
+        undefined,
+      );
     });
 
-    it('should return empty pagination result if no clinicId provided', async () => {
-      const result = await service.findAll('');
-      expect(result.items).toEqual([]);
-    });
+    it('should pass options to repository', async () => {
+      mockPatientsRepository.findAll.mockResolvedValue(mockPaginatedResult);
 
-    it('should filter by search query', async () => {
-      const paginatedResult = {
-        items: [mockPatient],
-        nextCursor: null,
-        hasMore: false,
-        count: 1,
-      };
+      const options = { search: 'John', limit: 10 };
+      await service.findAll('clinic-123', options);
 
-      jest.spyOn(service, 'findAll').mockResolvedValue(paginatedResult as any);
-
-      const result = await service.findAll('clinic-123', { search: 'John' });
-
-      expect(result).toEqual(paginatedResult);
+      expect(mockPatientsRepository.findAll).toHaveBeenCalledWith(
+        'clinic-123',
+        options,
+      );
     });
   });
 
   describe('findOne', () => {
     it('should return a patient', async () => {
-      mockPrismaService.patient.findUnique.mockResolvedValue(mockPatient);
+      mockPatientsRepository.findOneOrFail.mockResolvedValue(mockPatient);
 
       const result = await service.findOne('patient-123');
 
       expect(result).toEqual(mockPatient);
-      expect(mockPrismaService.patient.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'patient-123' },
-        }),
+      expect(mockPatientsRepository.findOneOrFail).toHaveBeenCalledWith(
+        'patient-123',
       );
     });
 
     it('should throw NotFoundException if patient not found', async () => {
-      mockPrismaService.patient.findUnique.mockResolvedValue(null);
+      mockPatientsRepository.findOneOrFail.mockRejectedValue(
+        new NotFoundException('Patient with ID patient-123 not found'),
+      );
 
-      await expect(service.findOne('non-existent')).rejects.toThrow(
+      await expect(service.findOne('patient-123')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -128,19 +120,12 @@ describe('PatientsService', () => {
         clinicId: 'clinic-123',
       };
 
-      mockPrismaService.patient.create.mockResolvedValue(mockPatient);
+      mockPatientsRepository.create.mockResolvedValue(mockPatient);
 
       const result = await service.create(createData);
 
       expect(result).toEqual(mockPatient);
-      expect(mockPrismaService.patient.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            firstName: 'John',
-            lastName: 'Doe',
-          }),
-        }),
-      );
+      expect(mockPatientsRepository.create).toHaveBeenCalledWith(createData);
     });
   });
 
@@ -149,42 +134,38 @@ describe('PatientsService', () => {
       const updateData = { firstName: 'Jane' };
       const updatedPatient = { ...mockPatient, ...updateData };
 
-      mockPrismaService.patient.update.mockResolvedValue(updatedPatient);
+      mockPatientsRepository.update.mockResolvedValue(updatedPatient);
 
       const result = await service.update('patient-123', updateData);
 
       expect(result).toEqual(updatedPatient);
-      expect(mockPrismaService.patient.update).toHaveBeenCalledWith({
-        where: { id: 'patient-123' },
-        data: expect.objectContaining(updateData),
-      });
+      expect(mockPatientsRepository.update).toHaveBeenCalledWith(
+        'patient-123',
+        updateData,
+      );
     });
   });
 
   describe('remove', () => {
     it('should delete a patient', async () => {
-      mockPrismaService.patient.delete.mockResolvedValue(mockPatient);
+      mockPatientsRepository.delete.mockResolvedValue(undefined);
 
       await service.remove('patient-123');
 
-      expect(mockPrismaService.patient.delete).toHaveBeenCalledWith({
-        where: { id: 'patient-123' },
-      });
+      expect(mockPatientsRepository.delete).toHaveBeenCalledWith('patient-123');
     });
   });
 
   describe('getAppointments', () => {
     it('should return patient appointments', async () => {
       const appointments = [{ id: 'apt-1' }];
-      mockPrismaService.appointment.findMany.mockResolvedValue(appointments);
+      mockPatientsRepository.getAppointments.mockResolvedValue(appointments);
 
       const result = await service.getAppointments('patient-123');
 
       expect(result).toEqual(appointments);
-      expect(mockPrismaService.appointment.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { patientId: 'patient-123' },
-        }),
+      expect(mockPatientsRepository.getAppointments).toHaveBeenCalledWith(
+        'patient-123',
       );
     });
   });
@@ -192,15 +173,27 @@ describe('PatientsService', () => {
   describe('getDocuments', () => {
     it('should return patient documents', async () => {
       const documents = [{ id: 'doc-1' }];
-      mockPrismaService.document.findMany.mockResolvedValue(documents);
+      mockPatientsRepository.getDocuments.mockResolvedValue(documents);
 
       const result = await service.getDocuments('patient-123');
 
       expect(result).toEqual(documents);
-      expect(mockPrismaService.document.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { patientId: 'patient-123' },
-        }),
+      expect(mockPatientsRepository.getDocuments).toHaveBeenCalledWith(
+        'patient-123',
+      );
+    });
+  });
+
+  describe('getTags', () => {
+    it('should return patient tags', async () => {
+      const tags = [{ id: 'tag-1', tag: 'VIP', color: 'blue' }];
+      mockPatientsRepository.getTags.mockResolvedValue(tags);
+
+      const result = await service.getTags('patient-123');
+
+      expect(result).toEqual(tags);
+      expect(mockPatientsRepository.getTags).toHaveBeenCalledWith(
+        'patient-123',
       );
     });
   });

@@ -30,14 +30,14 @@ import {
 } from "@workspace/ui/components/popover";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import {
-  CalendarPlus,
-  Clock,
   Bell,
-  MessageSquare,
-  Check,
   Calendar as CalendarIcon,
+  CalendarPlus,
+  Check,
+  Clock,
+  MessageSquare,
 } from "lucide-react";
-import { format, addDays, addWeeks, addMonths } from "date-fns";
+import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
 

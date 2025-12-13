@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { apiFetch } from "@/lib/api-client";
 import {
-  PatientWithMedicalHistory,
   Appointment,
   Document,
+  PatientWithMedicalHistory,
 } from "@workspace/types";
 
 interface UsePatientDataReturn {
@@ -55,7 +55,11 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       );
 
       if (Array.isArray(appointmentsData)) {
-        setAppointments(appointmentsData);
+        // Deduplicate by ID
+        const uniqueAppointments = Array.from(
+          new Map(appointmentsData.map((item) => [item.id, item])).values(),
+        );
+        setAppointments(uniqueAppointments);
       } else {
         console.error("Invalid appointments data:", appointmentsData);
         setAppointments([]);

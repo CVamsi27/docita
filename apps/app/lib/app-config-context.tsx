@@ -2,11 +2,11 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useCallback,
   ReactNode,
+  useCallback,
+  useContext,
   useEffect,
+  useState,
 } from "react";
 
 // Types for config options
@@ -222,7 +222,7 @@ export function AppConfigProvider({
       setError(null);
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
       const url = clinicId
         ? `${apiUrl}/config?clinicId=${clinicId}`
         : `${apiUrl}/config`;

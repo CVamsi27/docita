@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -29,31 +29,26 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import {
-  Check,
-  X,
-  Crown,
-  Zap,
-  Building2,
-  Sparkles,
-  FileText,
-  Shield,
-  Brain,
-  Pill,
-  Bot,
-  ArrowRight,
-  Clock,
   AlertCircle,
-  RefreshCw,
-  Loader2,
-  Gift,
-  Copy,
-  Share2,
-  CreditCard,
-  Receipt,
-  Users,
-  CheckCircle2,
-  XCircle,
   AlertTriangle,
+  ArrowRight,
+  Bot,
+  Brain,
+  Building2,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Crown,
+  Gift,
+  Loader2,
+  Pill,
+  RefreshCw,
+  Share2,
+  Sparkles,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -61,10 +56,10 @@ import { useClinic } from "@/lib/clinic-context";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
 import {
-  Tier,
-  getTierInfo,
-  getPlanHighlights,
   getFeatureComparisonData,
+  getPlanHighlights,
+  getTierInfo,
+  Tier,
 } from "@/lib/tier-config";
 import { useTierConfig } from "@/lib/tier-config-context";
 
@@ -155,7 +150,7 @@ export function SubscriptionSettings() {
   // Billing API hooks
   const { data: billingStatus, refetch: refetchBillingStatus } =
     apiHooks.useBillingStatus();
-  const { data: paymentHistory } = apiHooks.usePaymentHistory();
+  const { data: _paymentHistory } = apiHooks.usePaymentHistory();
   const { data: referralCode } = apiHooks.useReferralCode();
   const { data: referralStats } = apiHooks.useReferralStats();
   const { data: referralHistory } = apiHooks.useReferralHistory();
@@ -340,7 +335,7 @@ export function SubscriptionSettings() {
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const _handleCancelSubscription = async () => {
     if (
       !confirm(
         "Are you sure you want to cancel your subscription? You'll have access until the end of your current billing period.",
@@ -434,9 +429,8 @@ export function SubscriptionSettings() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="plans" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
           <TabsTrigger value="plans">Plans</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="features">Features</TabsTrigger>
         </TabsList>
@@ -860,153 +854,6 @@ export function SubscriptionSettings() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Billing Tab */}
-        <TabsContent value="billing" className="space-y-6">
-          {/* Current Subscription */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Current Subscription
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {subscriptionStatus ? (
-                <>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="p-4 bg-muted/50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <p className="font-medium flex items-center gap-2">
-                        {subscriptionStatus.status === "ACTIVE" ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-yellow-600" />
-                        )}
-                        {subscriptionStatus.status}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-muted/50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        Billing Cycle
-                      </p>
-                      <p className="font-medium">
-                        {subscriptionStatus.billingCycle}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-muted/50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        Next Payment
-                      </p>
-                      <p className="font-medium">
-                        {subscriptionStatus.currentPeriodEnd
-                          ? new Date(
-                              subscriptionStatus.currentPeriodEnd,
-                            ).toLocaleDateString()
-                          : "—"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {subscriptionStatus.status === "ACTIVE" &&
-                    !subscriptionStatus.cancelAtPeriodEnd && (
-                      <Button
-                        variant="outline"
-                        className="text-destructive"
-                        onClick={handleCancelSubscription}
-                      >
-                        Cancel Subscription
-                      </Button>
-                    )}
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    No active subscription
-                  </p>
-                  <Button
-                    className="mt-4"
-                    onClick={() => handleUpgrade(Tier.CORE)}
-                  >
-                    Get Started
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Payment History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
-                Payment History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {paymentHistory && paymentHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {paymentHistory.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "p-2 rounded-lg",
-                            payment.status === "SUCCESS"
-                              ? "bg-green-100"
-                              : "bg-yellow-100",
-                          )}
-                        >
-                          {payment.status === "SUCCESS" ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4 text-yellow-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {payment.tier} - {payment.billingCycle}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(payment.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {payment.currency}
-                          {(payment.amount / 100).toFixed(2)}
-                        </p>
-                        {payment.invoiceUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs"
-                            onClick={() =>
-                              window.open(payment.invoiceUrl, "_blank")
-                            }
-                          >
-                            <FileText className="h-3 w-3 mr-1" />
-                            Invoice
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Receipt className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No payment history</p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

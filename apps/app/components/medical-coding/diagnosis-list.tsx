@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, Star, StarOff, AlertCircle } from "lucide-react";
+import { AlertCircle, Star, StarOff, Trash2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 

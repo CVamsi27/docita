@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { apiHooks } from "@/lib/api-hooks";
 import { Patient } from "@workspace/types";
@@ -22,12 +22,12 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import {
-  Search,
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
-  Pencil,
+  ArrowUp,
+  ArrowUpDown,
   Calendar,
+  Pencil,
+  Search,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
@@ -35,9 +35,7 @@ import { format } from "date-fns";
 import { AddPatientDialog } from "@/components/patients/add-patient-dialog";
 import { EditPatientDialog } from "@/components/patients/edit-patient-dialog";
 
-import { useSearchParams, useRouter } from "next/navigation";
-
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function PatientsContent() {
   const {
@@ -165,6 +163,7 @@ function PatientsContent() {
             Manage your patient records and history.
           </p>
         </div>
+
         <AddPatientDialog
           open={isAddDialogOpen}
           onOpenChange={handleDialogChange}
@@ -238,6 +237,7 @@ function PatientsContent() {
                       <SortIcon column="gender" />
                     </div>
                   </TableHead>
+                  <TableHead>Blood Group</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleSort("updatedAt")}
@@ -301,6 +301,17 @@ function PatientsContent() {
                       </TableCell>
                       <TableCell className="capitalize">
                         {patient.gender}
+                      </TableCell>
+                      <TableCell>
+                        {patient.bloodGroup ? (
+                          <span className="font-medium">
+                            {patient.bloodGroup}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            --
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {patient.updatedAt

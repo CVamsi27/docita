@@ -12,6 +12,8 @@
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
     "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,

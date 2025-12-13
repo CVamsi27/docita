@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -12,7 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Pill, Plus, X, Save, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Pill, Plus, Save, X } from "lucide-react";
 import { usePrescriptionForm } from "@/hooks/use-prescription-form";
 import { MedicineAutocomplete } from "@/components/medicines/medicine-autocomplete";
 import { IcdCodeSearch } from "@/components/medical-coding/icd-code-search";
@@ -20,12 +20,12 @@ import { DiagnosisList } from "@/components/medical-coding/diagnosis-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
 import type {
   Diagnosis,
+  HospitalRole,
   IcdCode,
   PrescriptionTemplate,
   Specialization,
-  HospitalRole,
 } from "@/types";
-import { SPECIALIZATION_LABELS, HOSPITAL_ROLE_LABELS } from "@workspace/types";
+import { HOSPITAL_ROLE_LABELS, SPECIALIZATION_LABELS } from "@workspace/types";
 import { api } from "@/lib/api-client";
 import { apiHooks } from "@/lib/api-hooks";
 

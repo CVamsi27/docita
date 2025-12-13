@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { MessageSquare, Bell, CheckCircle } from "lucide-react";
+import { Bell, CheckCircle, MessageSquare } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 
 interface AutomationSettings {

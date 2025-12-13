@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { PrescriptionsService } from './prescriptions.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { WhatsappService } from '../modules/whatsapp/whatsapp.service';
+import { Specialization, Role, HospitalRole } from '@workspace/db';
 
 describe('PrescriptionsService', () => {
   let service: PrescriptionsService;
@@ -13,6 +15,15 @@ describe('PrescriptionsService', () => {
     patientId: 'patient-123',
     doctorId: 'doctor-123',
     instructions: 'Take with food',
+    date: new Date(),
+    doctorName: 'Dr. Smith',
+    doctorEmail: 'doctor@test.com',
+    doctorPhone: '555-0123',
+    doctorSpecialization: Specialization.GENERAL_PRACTICE,
+    doctorRole: HospitalRole.CONSULTANT,
+    doctorRegistrationNumber: 'REG001',
+    doctorLicenseNumber: 'LIC001',
+    clinicId: 'clinic-123',
     createdAt: new Date(),
     updatedAt: new Date(),
     medications: [
@@ -64,6 +75,13 @@ describe('PrescriptionsService', () => {
               findUnique: jest.fn(),
               create: jest.fn(),
             },
+          },
+        },
+        {
+          provide: WhatsappService,
+          useValue: {
+            sendMessage: jest.fn().mockResolvedValue({ success: true }),
+            isConfiguredForClinic: jest.fn().mockReturnValue(false),
           },
         },
       ],
@@ -167,18 +185,28 @@ describe('PrescriptionsService', () => {
           doctorRegistrationNumber: undefined,
           doctorLicenseNumber: undefined,
           medications: {
-            create: expect.arrayContaining([
-              expect.objectContaining({
+            create: [
+              {
                 name: 'Aspirin',
                 dosage: '500mg',
                 frequency: 'Twice daily',
                 duration: '7 days',
                 route: 'PO',
-              }),
-            ]),
+              },
+            ],
           },
         },
-        include: { medications: true },
+        include: {
+          medications: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     });
 

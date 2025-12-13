@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { BookmarkPlus, Trash2, FileText } from "lucide-react";
+import { BookmarkPlus, FileText, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { Medication } from "@workspace/types";
 import { EmptyState } from "@/components/ui/empty-state";

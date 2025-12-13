@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -22,32 +22,29 @@ import {
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Activity,
-  FileText,
-  Plus,
-  X,
-  Save,
+  AlertTriangle,
   CheckCircle2,
-  Stethoscope,
   ClipboardList,
+  ExternalLink,
+  FileText,
   FlaskConical,
   HeartPulse,
-  PanelLeft,
-  AlertTriangle,
   Info,
-  ExternalLink,
+  PanelLeft,
+  Plus,
+  Save,
+  Stethoscope,
+  X,
 } from "lucide-react";
 import { SearchableSelect } from "@/components/common/searchable-select";
-import {
-  PatientMedicalHistory,
-  PatientWithHistory,
-} from "@/components/patients/patient-medical-history";
+import { PatientMedicalHistory } from "@/components/patients/patient-medical-history";
 import { useVitalsForm } from "@/hooks/use-vitals-form";
 import { usePrescriptionForm } from "@/hooks/use-prescription-form";
 import { useInvoiceForm } from "@/hooks/use-invoice-form";
@@ -59,19 +56,30 @@ import { ProcedureList } from "@/components/medical-coding/procedure-list";
 import { PrescriptionTemplateManager } from "@/components/prescription/prescription-template-manager";
 import { ClinicalExamination } from "@/components/consultation/clinical-examination";
 import { ClinicalSuggestions } from "@/components/consultation/clinical-suggestions";
+import { ChiefComplaintEnhanced } from "@/components/consultation/chief-complaint-enhanced";
 import type {
-  PrescriptionTemplate,
-  Medication,
+  CptCode,
   Diagnosis,
   IcdCode,
+  Medication,
+  PrescriptionTemplate,
   Procedure,
-  CptCode,
 } from "@workspace/types";
+// eslint-disable-next-line no-duplicate-imports
 import { ROUTE_OPTIONS } from "@workspace/types";
 import { apiHooks } from "@/lib/api-hooks";
 import { api } from "@/lib/api-client";
 import { useFormOptions } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/use-debounce";
+import { formatDistanceToNow } from "date-fns";
+
+const _APPOINTMENT_PRIORITY_COLORS: Record<string, string> = {
+  ROUTINE: "bg-blue-100",
+  URGENT: "bg-yellow-100",
+  EMERGENCY: "bg-red-100",
+};
 
 // Define types locally since they may not be exported yet
 interface GeneralExamination {
@@ -220,9 +228,7 @@ export function ClinicalDocumentation({
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
 
   // Fetch patient data with full medical history
-  const { data: patientData } = apiHooks.usePatient(patientId) as {
-    data: PatientWithHistory | undefined;
-  };
+  const { data: patientData } = apiHooks.usePatient(patientId);
 
   // Diagnosis State
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
@@ -323,6 +329,11 @@ export function ClinicalDocumentation({
     // Reset form when template changes (will be re-initialized on render)
   };
 
+  const queryClient = useQueryClient();
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const [saveTrigger, setSaveTrigger] = useState(0);
+  const debouncedSaveTrigger = useDebounce(saveTrigger, 2000);
+
   const updateClinicalNote = (
     field: keyof ClinicalNoteData,
     value: unknown,
@@ -331,6 +342,8 @@ export function ClinicalDocumentation({
       ...prev,
       [field]: value,
     }));
+    setDirtyFields((prev) => new Set(prev).add(field));
+    setSaveTrigger((prev) => prev + 1);
   };
 
   // Save clinical note to API
@@ -343,7 +356,8 @@ export function ClinicalDocumentation({
       }
 
       try {
-        await api.patch(`/appointments/${appointmentId}`, {
+        // Prepare payload with observations sync for backward compatibility
+        const payload = {
           chiefComplaint: clinicalNote.chiefComplaint,
           historyOfPresentIllness: clinicalNote.historyOfPresentIllness,
           pastMedicalHistory: clinicalNote.pastMedicalHistory,
@@ -357,9 +371,46 @@ export function ClinicalDocumentation({
           finalDiagnosis: clinicalNote.finalDiagnosis,
           treatmentPlan: clinicalNote.treatmentPlan,
           followUpPlan: clinicalNote.followUpPlan,
+          // Sync chiefComplaint to observations for backward compatibility
+          observations:
+            clinicalNote.chiefComplaint || clinicalNote.clinicalImpression,
+        };
+
+        console.log("💾 Saving clinical note:", {
+          appointmentId,
+          isAutoSave,
+          payload,
         });
 
+        const response = await api.patch(
+          `/appointments/${appointmentId}`,
+          payload,
+        );
+
+        console.log("✅ Save response:", response);
+
+        if (!response || (response as { error?: string }).error) {
+          throw new Error(
+            (response as { error?: string }).error || "Save failed",
+          );
+        }
+
+        // Optimized cache invalidation - broader scope, single operation
+        await queryClient.invalidateQueries({
+          queryKey: ["appointments"],
+          refetchType: isAutoSave ? "none" : "active",
+        });
+
+        // Also invalidate patient queries to update patient view
+        if (patientId) {
+          await queryClient.invalidateQueries({
+            queryKey: ["patients"],
+            refetchType: isAutoSave ? "none" : "active",
+          });
+        }
+
         setLastSaved(new Date());
+        setDirtyFields(new Set());
 
         if (!isAutoSave) {
           toast.success("Clinical documentation saved");
@@ -367,8 +418,17 @@ export function ClinicalDocumentation({
         onSave?.();
       } catch (error) {
         console.error("Failed to save clinical note:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to save";
+
         if (!isAutoSave) {
-          toast.error("Failed to save clinical documentation");
+          toast.error("Failed to save clinical documentation", {
+            description: errorMessage,
+            action: {
+              label: "Retry",
+              onClick: () => saveClinicalNote(false),
+            },
+          });
         }
       } finally {
         if (isAutoSave) {
@@ -378,19 +438,15 @@ export function ClinicalDocumentation({
         }
       }
     },
-    [appointmentId, clinicalNote, onSave],
+    [appointmentId, patientId, clinicalNote, queryClient, onSave],
   );
 
-  // Auto-save interval - saves every 30 seconds if there's content
+  // Debounced auto-save - triggers 2 seconds after last edit
   useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      if (clinicalNote.chiefComplaint || clinicalNote.historyOfPresentIllness) {
-        saveClinicalNote(true);
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(autoSaveInterval);
-  }, [clinicalNote, saveClinicalNote]);
+    if (dirtyFields.size > 0 && debouncedSaveTrigger > 0) {
+      saveClinicalNote(true);
+    }
+  }, [debouncedSaveTrigger, dirtyFields.size, saveClinicalNote]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -832,27 +888,41 @@ export function ClinicalDocumentation({
                 </kbd>
               </div>
 
-              {/* Sticky Save Button */}
-              <Button
-                onClick={() => saveClinicalNote(false)}
-                disabled={
-                  isSaving ||
-                  vitalsLoading ||
-                  rxLoading ||
-                  invLoading ||
-                  isAutoSaving
-                }
-                size="sm"
-                className="gap-2 shadow-sm"
-              >
-                {isSaving || vitalsLoading || rxLoading || invLoading ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" /> Save
-                  </>
+              {/* Sticky Save Button with Status */}
+              <div className="flex items-center gap-3">
+                {isAutoSaving && (
+                  <span className="text-xs text-muted-foreground animate-pulse flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Saving...
+                  </span>
                 )}
-              </Button>
+                {lastSaved && !isAutoSaving && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    Saved {formatDistanceToNow(lastSaved, { addSuffix: true })}
+                  </span>
+                )}
+                <Button
+                  onClick={() => saveClinicalNote(false)}
+                  disabled={
+                    isSaving ||
+                    vitalsLoading ||
+                    rxLoading ||
+                    invLoading ||
+                    isAutoSaving
+                  }
+                  size="sm"
+                  className="gap-2 shadow-sm"
+                >
+                  {isSaving || vitalsLoading || rxLoading || invLoading ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Now
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -912,37 +982,13 @@ export function ClinicalDocumentation({
           {/* Chief Complaint Tab */}
           <TabsContent value="chief-complaint" className="mt-0 p-6">
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    Chief Complaint (CC){" "}
-                    <span className="text-destructive">*</span>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Primary reason for visit - Use patient&apos;s own words when
-                    possible
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="e.g., 'Fever and cough for 3 days' or 'Severe headache since this morning'..."
-                    value={clinicalNote.chiefComplaint}
-                    onChange={(e) =>
-                      updateClinicalNote("chiefComplaint", e.target.value)
-                    }
-                    className="min-h-[120px]"
-                    required
-                  />
-                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
-                    <Info className="h-3 w-3 mt-0.5" />
-                    <span>
-                      Brief, descriptive statement. Include duration when
-                      relevant.
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Enhanced Chief Complaint Component */}
+              <ChiefComplaintEnhanced
+                value={clinicalNote.chiefComplaint}
+                onChange={(value) =>
+                  updateClinicalNote("chiefComplaint", value)
+                }
+              />
 
               {/* Clinical Decision Support - Smart Suggestions */}
               {clinicalNote.chiefComplaint && (
@@ -1356,8 +1402,8 @@ export function ClinicalDocumentation({
           <TabsContent value="examination" className="mt-0 p-6">
             <div className="space-y-6">
               <ClinicalExamination
-                generalExamination={clinicalNote.generalExamination}
-                systemicExamination={clinicalNote.systemicExamination}
+                generalExamination={clinicalNote.generalExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                systemicExamination={clinicalNote.systemicExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
                 onGeneralExaminationChange={(data) =>
                   updateClinicalNote("generalExamination", data)
                 }

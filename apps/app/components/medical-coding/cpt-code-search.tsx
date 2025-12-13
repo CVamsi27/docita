@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Check, Search, Loader2, DollarSign, Star } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  DollarSign,
+  Loader2,
+  Search,
+  Star,
+} from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -41,13 +48,12 @@ export function CptCodeSearch({
   const [results, setResults] = React.useState<CptCode[]>([]);
   const [favorites, setFavorites] = React.useState<CptCode[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
   const { token } = useAuth();
 
-  // Ref to track if favorites have been loaded
-  const hasFetchedFavoritesRef = React.useRef(false);
-
   const loadFavorites = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`${API_URL}/medical-coding/cpt-favorites`, {
         headers: {
@@ -63,21 +69,9 @@ export function CptCodeSearch({
     }
   }, [token]);
 
-  // Load favorites on mount using useSyncExternalStore pattern
-  React.useSyncExternalStore(
-    React.useCallback(
-      (onStoreChange) => {
-        if (!hasFetchedFavoritesRef.current && token) {
-          hasFetchedFavoritesRef.current = true;
-          loadFavorites().then(onStoreChange);
-        }
-        return () => {};
-      },
-      [loadFavorites, token],
-    ),
-    () => favorites,
-    () => [],
-  );
+  React.useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
 
   const toggleFavorite = async (code: CptCode) => {
     const isFavorite = favorites.some((f) => f.id === code.id);
@@ -107,32 +101,34 @@ export function CptCodeSearch({
     }
   };
 
-  // Ref-based sync for search on debouncedQuery change
-  const lastSearchRef = React.useRef("");
-  if (debouncedQuery !== lastSearchRef.current) {
-    lastSearchRef.current = debouncedQuery;
-
-    if (debouncedQuery.length < 2) {
-      if (results.length > 0) setResults([]);
-    } else {
+  React.useEffect(() => {
+    // Always search, even with empty query (backend returns common codes)
+    const search = async () => {
       setLoading(true);
-      fetch(
-        `${API_URL}/medical-coding/cpt-codes?search=${encodeURIComponent(debouncedQuery)}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      )
-        .then((res) => (res.ok ? res.json() : []))
-        .then((data) => {
-          setResults(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Failed to search CPT codes:", error);
-          setLoading(false);
-        });
-    }
-  }
+      setError(null);
+      try {
+        const res = await fetch(
+          `${API_URL}/medical-coding/cpt-codes?search=${encodeURIComponent(debouncedQuery)}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: ${res.statusText}`);
+        }
+        const data = await res.json();
+        setResults(data);
+      } catch (err: unknown) {
+        console.error("Failed to search CPT codes:", err);
+        setError("Failed to fetch codes. Please try again.");
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    search();
+  }, [debouncedQuery, token]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -153,28 +149,40 @@ export function CptCodeSearch({
       <PopoverContent className="w-[650px] p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search procedure codes..."
+            placeholder="Search procedure codes (or browse common codes)..."
             value={query}
             onValueChange={setQuery}
           />
           <CommandList>
             {loading && (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex items-center justify-center p-4 py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             )}
-            {!loading && results.length === 0 && query.length >= 2 && (
-              <CommandEmpty>No procedure codes found.</CommandEmpty>
+
+            {!loading && error && (
+              <div className="py-6 text-center text-sm text-destructive flex flex-col items-center gap-2">
+                <AlertCircle className="h-6 w-6" />
+                <p>{error}</p>
+              </div>
             )}
 
-            {!query && favorites.length > 0 && (
+            {!loading && !error && results.length === 0 && (
+              <CommandEmpty>
+                {query.length > 0
+                  ? "No procedure codes found."
+                  : "Start typing to search or view common codes below."}
+              </CommandEmpty>
+            )}
+
+            {!query && favorites.length > 0 && !loading && !error && (
               <CommandGroup heading="Favorites">
                 {favorites.map((code) => {
                   const isSelected = selectedCodes.includes(code.code);
                   return (
                     <CommandItem
                       key={code.id}
-                      value={code.code}
+                      value={`${code.code} ${code.description}`}
                       onSelect={() => {
                         onSelect(code);
                         setOpen(false);
@@ -227,7 +235,7 @@ export function CptCodeSearch({
                   return (
                     <CommandItem
                       key={code.id}
-                      value={code.code}
+                      value={`${code.code} ${code.description}`}
                       onSelect={() => {
                         onSelect(code);
                         setOpen(false);

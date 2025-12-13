@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Button } from "@workspace/ui/components/button";

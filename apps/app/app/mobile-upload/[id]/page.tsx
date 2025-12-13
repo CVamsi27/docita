@@ -1,27 +1,28 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import {
-  Upload,
-  CheckCircle2,
   Camera,
-  Loader2,
-  X,
-  ImageIcon,
+  CheckCircle2,
   FileText,
+  ImageIcon,
+  Loader2,
   RotateCcw,
   Smartphone,
+  Upload,
+  X,
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL =
+  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
 export default function MobileUploadPage() {
   const params = useParams();
-  const sessionId = params.id as string;
+  const sessionId = params["id"] as string;
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);

@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { Calendar, Mail, Phone, MapPin, Edit, Shield } from "lucide-react";
+import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
 import { format } from "date-fns";
 import type { Patient } from "@workspace/types";
 

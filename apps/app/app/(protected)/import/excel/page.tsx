@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -32,16 +32,16 @@ import {
 import { Progress } from "@workspace/ui/components/progress";
 import { Badge } from "@workspace/ui/components/badge";
 import {
-  Upload,
-  FileSpreadsheet,
+  AlertCircle,
+  AlertTriangle,
   ArrowRight,
   Check,
-  AlertTriangle,
-  Loader2,
-  Users,
   CheckCircle2,
+  FileSpreadsheet,
+  Loader2,
+  Upload,
+  Users,
   XCircle,
-  AlertCircle,
 } from "lucide-react";
 import { FeatureGate } from "@/components/common/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
@@ -151,7 +151,8 @@ export default function ExcelImportPage() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importProgress, setImportProgress] = useState(0);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const apiUrl =
+    process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
   // Handle file selection
   const handleFileChange = useCallback(

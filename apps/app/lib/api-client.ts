@@ -1,4 +1,11 @@
 import { toast } from "sonner";
+import { z } from "zod";
+import {
+  API_ROUTES,
+  AppErrorCode,
+  ERROR_MESSAGES,
+  PaginatedResponse,
+} from "@workspace/types";
 
 /**
  * Configuration for API requests
@@ -10,16 +17,27 @@ interface ApiRequestConfig extends RequestInit {
 }
 
 /**
- * Custom error class for API errors
+ * Custom error class for API errors with error codes
  */
 export class ApiError extends Error {
   constructor(
     message: string,
     public status?: number,
+    public code?: AppErrorCode,
     public data?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
+  }
+
+  /**
+   * Get user-friendly message for this error
+   */
+  getUserMessage(): string {
+    if (this.code && ERROR_MESSAGES[this.code]) {
+      return ERROR_MESSAGES[this.code];
+    }
+    return this.message;
   }
 }
 
@@ -37,7 +55,7 @@ const getAuthToken = (): string | null => {
 };
 
 /**
- * Enhanced fetch with retry logic and error handling
+ * Enhanced fetch with retry logic, error handling, and error code support
  *
  * @param url - API endpoint URL
  * @param config - Request configuration with retry options
@@ -59,7 +77,7 @@ export async function apiFetch<T = unknown>(
   } = config;
 
   const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
   const fullUrl = url.startsWith("http") ? url : `${API_URL}${url}`;
 
   // Add auth token if available
@@ -83,11 +101,15 @@ export async function apiFetch<T = unknown>(
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new ApiError(
-          errorData.message || `Request failed with status ${response.status}`,
-          response.status,
-          errorData,
-        );
+
+        // Extract error code if present (from our standardized error format)
+        const errorCode = errorData.error?.code as AppErrorCode | undefined;
+        const errorMessage =
+          errorData.error?.message ||
+          errorData.message ||
+          `Request failed with status ${response.status}`;
+
+        throw new ApiError(errorMessage, response.status, errorCode, errorData);
       }
 
       const data = await response.json();
@@ -107,13 +129,65 @@ export async function apiFetch<T = unknown>(
   }
 
   // All retries failed
-  const errorMessage = lastError?.message || "An unexpected error occurred";
+  const errorMessage =
+    lastError instanceof ApiError
+      ? lastError.getUserMessage()
+      : lastError?.message || "An unexpected error occurred";
 
   if (showErrorToast) {
     toast.error(errorMessage);
   }
 
   throw lastError || new Error(errorMessage);
+}
+
+/**
+ * Fetch with Zod schema validation
+ *
+ * @param url - API endpoint
+ * @param schema - Zod schema to validate response
+ * @param config - Request config
+ * @returns Validated and typed response
+ *
+ * @example
+ * const patient = await apiFetchWithSchema(
+ *   '/patients/123',
+ *   patientSchema
+ * );
+ */
+export async function apiFetchWithSchema<T>(
+  url: string,
+  schema: z.ZodType<T>,
+  config?: ApiRequestConfig,
+): Promise<T> {
+  const data = await apiFetch(url, config);
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    console.error("API response validation failed:", result.error.format());
+    // In development, throw for awareness; in production, return raw data
+    if (process.env["NODE_ENV"] === "development") {
+      throw new Error(`Response validation failed: ${result.error.message}`);
+    }
+    return data as T;
+  }
+
+  return result.data;
+}
+
+/**
+ * Safe parse wrapper for unknown server responses
+ */
+export function safeParse<T>(
+  schema: z.ZodType<T>,
+  data: unknown,
+): T | undefined {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    console.warn("Parse failed:", result.error.format());
+    return undefined;
+  }
+  return result.data;
 }
 
 /**
@@ -153,6 +227,66 @@ export const api = {
 };
 
 /**
+ * Typed API endpoints
+ *
+ * @example
+ * const patients = await typedApi.patients.list({ search: 'John' });
+ * const patient = await typedApi.patients.get('patient-id');
+ * const newPatient = await typedApi.patients.create({ ... });
+ */
+export const typedApi = {
+  patients: {
+    list: (params?: { limit?: number; cursor?: string; search?: string }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+      if (params?.cursor) searchParams.set("cursor", params.cursor);
+      if (params?.search) searchParams.set("search", params.search);
+      const query = searchParams.toString();
+      return api.get<PaginatedResponse<unknown>>(
+        `${API_ROUTES.patients.list}${query ? `?${query}` : ""}`,
+      );
+    },
+    get: (id: string) => api.get(API_ROUTES.patients.get(id)),
+    create: (data: unknown) => api.post(API_ROUTES.patients.create, data),
+    update: (id: string, data: unknown) =>
+      api.patch(API_ROUTES.patients.update(id), data),
+    delete: (id: string) => api.delete(API_ROUTES.patients.delete(id)),
+  },
+
+  appointments: {
+    list: (params?: {
+      date?: string;
+      startDate?: string;
+      endDate?: string;
+    }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.date) searchParams.set("date", params.date);
+      if (params?.startDate) searchParams.set("startDate", params.startDate);
+      if (params?.endDate) searchParams.set("endDate", params.endDate);
+      const query = searchParams.toString();
+      return api.get(
+        `${API_ROUTES.appointments.list}${query ? `?${query}` : ""}`,
+      );
+    },
+    get: (id: string) => api.get(API_ROUTES.appointments.get(id)),
+    create: (data: unknown) => api.post(API_ROUTES.appointments.create, data),
+    update: (id: string, data: unknown) =>
+      api.patch(API_ROUTES.appointments.update(id), data),
+  },
+
+  doctors: {
+    list: () => api.get(API_ROUTES.doctors.list),
+    get: (id: string) => api.get(API_ROUTES.doctors.get(id)),
+    availability: (id: string, date: string) =>
+      api.get(`${API_ROUTES.doctors.availability(id)}?date=${date}`),
+  },
+
+  dashboard: {
+    stats: () => api.get(API_ROUTES.dashboard.stats),
+  },
+};
+
+/**
  * Handle API errors consistently
  */
 export function handleApiError(
@@ -160,7 +294,7 @@ export function handleApiError(
   fallbackMessage = "An error occurred",
 ): string {
   if (error instanceof ApiError) {
-    return error.message;
+    return error.getUserMessage();
   }
 
   if (error instanceof Error) {
@@ -169,3 +303,6 @@ export function handleApiError(
 
   return fallbackMessage;
 }
+
+// Re-export API_ROUTES for convenience
+export { API_ROUTES };

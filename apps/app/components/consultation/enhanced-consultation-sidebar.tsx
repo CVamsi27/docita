@@ -11,27 +11,27 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import {
+  Activity,
+  AlertTriangle,
   Calendar,
+  CalendarPlus,
   Clock,
-  User,
-  Phone,
   Mail,
   MapPin,
-  Activity,
-  CalendarPlus,
-  AlertTriangle,
   Mic,
+  Phone,
   Pill,
+  User,
 } from "lucide-react";
-import { format, differenceInYears } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 
 // Import new enhanced components
 import { ConsultationTimer } from "@/components/consultation/consultation-timer";
 import { QuickFollowUp } from "@/components/appointments/follow-up-scheduler";
 import {
   AllergyAlert,
-  CodeStatusAlert,
   type CodeStatus,
+  CodeStatusAlert,
 } from "@/components/consultation/patient-summary-card";
 import { VoiceRecorder } from "@/components/common/voice-recorder";
 import { DrugInteractionCheckerDynamic } from "@/lib/dynamic-imports";
@@ -48,6 +48,18 @@ interface PatientInfo {
   medicalHistory?: string | string[];
   allergies?: string | string[];
   bloodGroup?: string;
+  // Structured medical history fields
+  medicalConditions?: Array<{
+    id?: string;
+    conditionName: string;
+    status?: string;
+  }>;
+  patientAllergies?: Array<{
+    id?: string;
+    allergen: string;
+    severity?: string;
+    reaction?: string;
+  }>;
   // Hospital-grade patient safety fields
   codeStatus?: CodeStatus;
   codeStatusUpdatedAt?: string | Date;
@@ -99,24 +111,62 @@ export function EnhancedConsultationSidebar({
   const patientName =
     `${patient.firstName || ""} ${patient.lastName || ""}`.trim();
 
-  // Normalize medicalHistory and allergies to arrays
-  const medicalHistoryArray = patient.medicalHistory
+  // Use structured medical history (medicalConditions, patientAllergies)
+  // Fallback to legacy string fields for backward compatibility
+  const medicalConditions = patient.medicalConditions || [];
+  const patientAllergies = patient.patientAllergies || [];
+
+  // Fallback to legacy format if structured data not available
+  const legacyMedicalHistory = patient.medicalHistory
     ? Array.isArray(patient.medicalHistory)
       ? patient.medicalHistory
       : [patient.medicalHistory]
     : [];
-  const allergiesArray = patient.allergies
+  const legacyAllergies = patient.allergies
     ? Array.isArray(patient.allergies)
       ? patient.allergies
       : [patient.allergies]
     : [];
 
-  // Convert allergies to expected format
-  const formattedAllergies = allergiesArray.map((allergy, index) => ({
-    id: `allergy-${index}`,
-    allergen: allergy,
-    severity: "moderate" as const,
-  }));
+  // Use structured data if available, otherwise use legacy
+  const medicalHistoryArray =
+    medicalConditions.length > 0 ? medicalConditions : legacyMedicalHistory;
+  const allergiesArray =
+    patientAllergies.length > 0 ? patientAllergies : legacyAllergies;
+
+  // Convert allergies to string array for DrugInteractionChecker and format for Allergy type
+  const allergiesAsStrings = allergiesArray.map((allergy: unknown) => {
+    if (typeof allergy === "string") return allergy;
+    const allergyObj = allergy as Record<string, unknown>;
+    return (allergyObj.allergen as string) || "";
+  });
+
+  // Convert allergies to expected format for AllergyAlert
+  const formattedAllergies = allergiesArray.map(
+    (allergy: unknown, index: number) => {
+      const allergyObj = allergy as Record<string, unknown>;
+      const severity =
+        typeof allergy === "string"
+          ? "moderate"
+          : typeof allergyObj.severity === "string"
+            ? allergyObj.severity.toLowerCase()
+            : "moderate";
+
+      return {
+        id:
+          typeof allergyObj.id === "string"
+            ? allergyObj.id
+            : `allergy-${index}`,
+        allergen:
+          typeof allergy === "string"
+            ? allergy
+            : (allergyObj.allergen as string) || "",
+        severity: (["mild", "moderate", "severe"].includes(severity)
+          ? severity
+          : "moderate") as "mild" | "moderate" | "severe",
+      };
+    },
+  );
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-4 bg-muted/30">
@@ -285,7 +335,9 @@ export function EnhancedConsultationSidebar({
                   dosage: "",
                   frequency: "",
                 }))}
-                patientAllergies={allergiesArray}
+                patientAllergies={allergiesAsStrings.filter(
+                  (a: string) => a.length > 0,
+                )}
               />
             </div>
           )}
@@ -310,22 +362,40 @@ export function EnhancedConsultationSidebar({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">
-              Medical History
+              Medical Conditions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1 text-sm text-muted-foreground">
               {medicalHistoryArray
                 .slice(0, 5)
-                .map((item: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-primary mt-1">•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
+                .map((item: unknown, index: number) => {
+                  const itemObj = item as Record<string, unknown>;
+                  const displayName =
+                    typeof item === "string"
+                      ? item
+                      : (itemObj.conditionName as string);
+                  const status =
+                    typeof item !== "string"
+                      ? (itemObj.status as string | undefined)
+                      : undefined;
+                  return (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary mt-1">•</span>
+                      <span>
+                        {displayName}
+                        {status && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {status}
+                          </Badge>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               {medicalHistoryArray.length > 5 && (
                 <li className="text-xs text-muted-foreground">
-                  +{medicalHistoryArray.length - 5} more items
+                  +{medicalHistoryArray.length - 5} more conditions
                 </li>
               )}
             </ul>
@@ -343,13 +413,45 @@ export function EnhancedConsultationSidebar({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-1 text-sm">
-              {allergiesArray.map((allergy: string, index: number) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-destructive mt-1">⚠</span>
-                  <span>{allergy}</span>
-                </li>
-              ))}
+            <ul className="space-y-2 text-sm">
+              {allergiesArray.map((allergy: unknown, index: number) => {
+                const allergyObj = allergy as Record<string, unknown>;
+                const allergyName =
+                  typeof allergy === "string"
+                    ? allergy
+                    : (allergyObj.allergen as string | undefined) || "Unknown";
+                const severity =
+                  typeof allergy !== "string"
+                    ? (allergyObj.severity as string | undefined)
+                    : undefined;
+                const reaction =
+                  typeof allergy !== "string"
+                    ? (allergyObj.reaction as string | undefined)
+                    : undefined;
+                const isSevere =
+                  severity && ["severe"].includes(severity.toLowerCase());
+                return (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-destructive mt-1">⚠</span>
+                    <div className="flex-1">
+                      <span className="font-medium">{allergyName}</span>
+                      {severity && (
+                        <Badge
+                          variant={isSevere ? "destructive" : "secondary"}
+                          className="ml-2 text-xs"
+                        >
+                          {severity}
+                        </Badge>
+                      )}
+                      {reaction && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {reaction}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
