@@ -58,8 +58,12 @@ async function fetchAPI<T>(
   options?: RequestInit,
 ): Promise<T> {
   const token = getAuthToken();
+
+  // Don't set Content-Type for FormData - browser will set it automatically with boundary
   const headers: HeadersInit = {
-    "Content-Type": "application/json",
+    ...(!(options?.body instanceof FormData) && {
+      "Content-Type": "application/json",
+    }),
     ...options?.headers,
   };
 
@@ -120,11 +124,16 @@ export function useAPIMutation<TData, TVariables>(
   const queryClient = useQueryClient();
 
   return useMutation<TData, Error, TVariables>({
-    mutationFn: (variables) =>
-      fetchAPI<TData>(endpoint, {
+    mutationFn: (variables) => {
+      // Handle FormData - don't stringify it
+      const body =
+        variables instanceof FormData ? variables : JSON.stringify(variables);
+
+      return fetchAPI<TData>(endpoint, {
         method,
-        body: JSON.stringify(variables),
-      }),
+        body,
+      });
+    },
     onSuccess: () => {
       // Invalidate all queries but wait for refetch to complete
       void queryClient.invalidateQueries({});
