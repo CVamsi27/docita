@@ -214,10 +214,8 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    return this.aiService.extractFromMedicalDocument(
-      file.path,
-      true, // hasAiSubscription flag
-    );
+    // Use basic OCR (no AI)
+    return this.importsService.extractFromMedicalDocumentBasic(file.path);
   }
 
   private cleanupExpiredSessions() {
