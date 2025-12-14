@@ -441,7 +441,7 @@ export const apiHooks = {
         vitals?: { bp?: string; temp?: string; pulse?: string };
       },
       FormData
-    >("/import/ocr/process", "POST"),
+    >("/imports/ocr/process", "POST"),
 
   // Medical Coding
   useCodingQueue: () =>
