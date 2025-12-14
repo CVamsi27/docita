@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Req, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AIService } from './ai.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
@@ -76,9 +85,7 @@ export class AIController {
       },
     }),
   )
-  async extractWithAI(
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async extractWithAI(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('File is required');
     }

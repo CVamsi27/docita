@@ -105,7 +105,12 @@ interface OcrExtractedFields {
   referralTo?: string;
 
   // Document Analysis
-  documentType?: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'INVOICE' | 'GENERAL';
+  documentType?:
+    | 'PRESCRIPTION'
+    | 'CASE_SHEET'
+    | 'LAB_REPORT'
+    | 'INVOICE'
+    | 'GENERAL';
   notes?: string;
   followUpRecommendations?: string[];
 
@@ -219,7 +224,9 @@ export class AIService {
       }
 
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API is not configured. Cannot analyze prescription.');
+        throw new Error(
+          'OpenAI API is not configured. Cannot analyze prescription.',
+        );
       }
 
       const result = await this.callOpenAIPrescriptionAnalysis(request);
@@ -274,7 +281,9 @@ export class AIService {
       }
 
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API is not configured. Cannot suggest diagnoses.');
+        throw new Error(
+          'OpenAI API is not configured. Cannot suggest diagnoses.',
+        );
       }
 
       const result = await this.callOpenAIDiagnosisSuggestions(
@@ -335,7 +344,9 @@ export class AIService {
       }
 
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API is not configured. Cannot recommend medications.');
+        throw new Error(
+          'OpenAI API is not configured. Cannot recommend medications.',
+        );
       }
 
       const result = await this.callOpenAIMedicationRecommendations(
@@ -733,7 +744,9 @@ Return ONLY valid JSON array, no other text.
    */
   private async extractTextFromImage(imagePath: string): Promise<string> {
     if (!process.env.OPENAI_API_KEY || !this.openai) {
-      throw new Error('OpenAI Vision API is not configured. Cannot extract text from image.');
+      throw new Error(
+        'OpenAI Vision API is not configured. Cannot extract text from image.',
+      );
     }
 
     try {
@@ -791,8 +804,8 @@ Return ONLY the extracted text, no additional commentary.`,
   ): Promise<OcrExtractedFields> {
     const confidenceConfig: FieldConfidenceConfig = {
       medicalFields: 0.85,
-      contactFields: 0.70,
-      vitalFields: 0.80,
+      contactFields: 0.7,
+      vitalFields: 0.8,
     };
 
     if (!this.openai || !process.env.OPENAI_API_KEY || !hasAiSubscription) {
@@ -917,8 +930,10 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       const content = response.choices[0]?.message?.content || '{}';
       const parsed = JSON.parse(content);
       const normalized = this.normalizeOcrFields(parsed, confidenceConfig);
-      
-      this.logger.debug(`Extracted fields: ${JSON.stringify(Object.keys(normalized))}`);
+
+      this.logger.debug(
+        `Extracted fields: ${JSON.stringify(Object.keys(normalized))}`,
+      );
       return normalized;
     } catch (error) {
       this.logger.error(`OCR parsing failed: ${error.message}`);
@@ -1084,7 +1099,12 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
     const assignConfidence = (key: string, hasValue: boolean): number => {
       if (!hasValue) return 0.3;
 
-      const medicalCriticalFields = ['diagnosis', 'allergies', 'medications', 'vitals'];
+      const medicalCriticalFields = [
+        'diagnosis',
+        'allergies',
+        'medications',
+        'vitals',
+      ];
       const contactFields = ['phoneNumber', 'email', 'firstName', 'lastName'];
       const vitalFields = ['bp', 'temp', 'pulse', 'respiratoryRate', 'spO2'];
       const invoiceFields = ['invoiceNumber', 'totalAmount', 'components'];
@@ -1093,7 +1113,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       if (contactFields.includes(key)) return config.contactFields;
       if (vitalFields.includes(key)) return config.vitalFields;
       if (invoiceFields.includes(key)) return 0.8;
-      
+
       return 0.75;
     };
 
@@ -1108,14 +1128,20 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       email: data?.email || '',
       bloodType: data?.bloodType || '',
       patientId: data?.patientId || '',
-      
+
       diagnosis: data?.diagnosis || '',
-      symptoms: Array.isArray(data?.symptoms) ? data.symptoms.filter((s: any) => s) : [],
+      symptoms: Array.isArray(data?.symptoms)
+        ? data.symptoms.filter((s: any) => s)
+        : [],
       complaints: data?.complaints || '',
-      medicalHistory: Array.isArray(data?.medicalHistory) ? data.medicalHistory.filter((m: any) => m) : [],
-      allergies: Array.isArray(data?.allergies) ? data.allergies.filter((a: any) => a) : [],
+      medicalHistory: Array.isArray(data?.medicalHistory)
+        ? data.medicalHistory.filter((m: any) => m)
+        : [],
+      allergies: Array.isArray(data?.allergies)
+        ? data.allergies.filter((a: any) => a)
+        : [],
       physicalExamination: data?.physicalExamination || '',
-      
+
       vitals: {
         bp: data?.vitals?.bp || '',
         temp: data?.vitals?.temp || '',
@@ -1126,27 +1152,29 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
         height: data?.vitals?.height || '',
         bmi: data?.vitals?.bmi || '',
       },
-      
+
       labValues: {
         hemoglobin: data?.labValues?.hemoglobin || '',
         creatinine: data?.labValues?.creatinine || '',
         glucose: data?.labValues?.glucose || '',
         ...data?.labValues,
       },
-      
+
       medications: Array.isArray(data?.medications)
-        ? data.medications.filter((m: any) => m?.name).map((m: any) => ({
-            name: m.name || '',
-            dosage: m.dosage || '',
-            frequency: m.frequency || '',
-            route: m.route || '',
-            duration: m.duration || '',
-            indication: m.indication || '',
-            strength: m.strength || '',
-            quantity: m.quantity || '',
-          }))
+        ? data.medications
+            .filter((m: any) => m?.name)
+            .map((m: any) => ({
+              name: m.name || '',
+              dosage: m.dosage || '',
+              frequency: m.frequency || '',
+              route: m.route || '',
+              duration: m.duration || '',
+              indication: m.indication || '',
+              strength: m.strength || '',
+              quantity: m.quantity || '',
+            }))
         : [],
-      
+
       prescriptionDate: data?.prescriptionDate || '',
       prescriptionId: data?.prescriptionId || '',
       documentDate: data?.documentDate || '',
@@ -1155,7 +1183,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       expiryDate: data?.expiryDate || '',
       nextVisitDate: data?.nextVisitDate || '',
       referralDate: data?.referralDate || '',
-      
+
       doctorName: data?.doctorName || '',
       doctorLicense: data?.doctorLicense || '',
       doctorSpecialization: data?.doctorSpecialization || '',
@@ -1163,48 +1191,51 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       clinicAddress: data?.clinicAddress || '',
       clinicPhone: data?.clinicPhone || '',
       referralTo: data?.referralTo || '',
-      
+
       notes: data?.notes || '',
       followUpRecommendations: Array.isArray(data?.followUpRecommendations)
         ? data.followUpRecommendations.filter((r: any) => r)
         : [],
-      
-      invoice: data?.invoice ? {
-        invoiceNumber: data.invoice.invoiceNumber || '',
-        invoiceDate: data.invoice.invoiceDate || '',
-        totalAmount: data.invoice.totalAmount || '',
-        components: Array.isArray(data.invoice.components)
-          ? data.invoice.components.filter((c: any) => c?.description).map((c: any) => ({
-              description: c.description || '',
-              amount: c.amount || '',
-              quantity: c.quantity || '',
-            }))
-          : [],
-        consultationFee: data.invoice.consultationFee || '',
-        testsFee: data.invoice.testsFee || '',
-        procedureFee: data.invoice.procedureFee || '',
-        medicationFee: data.invoice.medicationFee || '',
-        discount: data.invoice.discount || '',
-        discountPercentage: data.invoice.discountPercentage || '',
-        taxAmount: data.invoice.taxAmount || '',
-        paymentMethod: data.invoice.paymentMethod || '',
-        paymentStatus: data.invoice.paymentStatus || '',
-      } : undefined,
-      
+
+      invoice: data?.invoice
+        ? {
+            invoiceNumber: data.invoice.invoiceNumber || '',
+            invoiceDate: data.invoice.invoiceDate || '',
+            totalAmount: data.invoice.totalAmount || '',
+            components: Array.isArray(data.invoice.components)
+              ? data.invoice.components
+                  .filter((c: any) => c?.description)
+                  .map((c: any) => ({
+                    description: c.description || '',
+                    amount: c.amount || '',
+                    quantity: c.quantity || '',
+                  }))
+              : [],
+            consultationFee: data.invoice.consultationFee || '',
+            testsFee: data.invoice.testsFee || '',
+            procedureFee: data.invoice.procedureFee || '',
+            medicationFee: data.invoice.medicationFee || '',
+            discount: data.invoice.discount || '',
+            discountPercentage: data.invoice.discountPercentage || '',
+            taxAmount: data.invoice.taxAmount || '',
+            paymentMethod: data.invoice.paymentMethod || '',
+            paymentStatus: data.invoice.paymentStatus || '',
+          }
+        : undefined,
+
       fieldConfidence: {},
     };
 
     // Assign confidence scores
     Object.entries(result).forEach(([key, value]) => {
       if (key === 'fieldConfidence') return;
-      
-      const hasValue = value && (
-        typeof value === 'string' ? value.trim() !== '' :
-        Array.isArray(value) ? value.length > 0 :
-        typeof value === 'object' ? Object.values(value as any).some(v => v) :
-        false
-      );
-      
+
+      const isString = typeof value === 'string' && value.trim() !== '';
+      const isArray = Array.isArray(value) && value.length > 0;
+      const isObject =
+        typeof value === 'object' && Object.values(value).some((v) => v);
+      const hasValue = value && (isString || isArray || isObject);
+
       fieldConfidence[key] = assignConfidence(key, hasValue);
     });
 
@@ -1229,7 +1260,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       phoneNumber: /phone[:\s]+([\d\s\-+()]+)/i,
       email: /email[:\s]+([^\s@]+@[^\s@]+)/i,
       bloodType: /blood\s*(?:type|group)[:\s]+([OAB+-]+)/i,
-      
+
       // Vitals patterns
       bp: /(?:bp|blood\s*pressure)[:\s]+(\d+\/\d+)/i,
       temp: /(?:temp|temperature)[:\s]+(\d+\.?\d*)\s*[°c]/i,
@@ -1238,17 +1269,18 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       spO2: /(?:spo2|oxygen\s*sat)[:\s]+(\d+)\s*%/i,
       weight: /weight[:\s]+(\d+\.?\d*)\s*(?:kg|kg|lbs)/i,
       height: /height[:\s]+(\d+\.?\d*)\s*(?:cm|m|inches)/i,
-      
+
       // Medication patterns
       medications: /(?:medication|drug|treatment)[:\s]*([^\n]+(?:\n[^\n]+)*)/i,
-      
+
       // Document info
       diagnosis: /(?:diagnosis|impression)[:\s]*([^\n]+)/i,
       doctorName: /(?:doctor|dr|physician)[:\s]+([^\n,]+)/i,
       clinicName: /(?:clinic|hospital|centre)[:\s]+([^\n,]+)/i,
-      visitDate: /(?:date|visit\s*date|appointment)[:\s]+(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
-      documentDate: /(?:date|issued?)[:\s]+(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
-      
+      visitDate:
+        /(?:date|visit\s*date|appointment)[:\s]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i,
+      documentDate: /(?:date|issued?)[:\s]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i,
+
       // Invoice patterns
       invoiceNumber: /(?:invoice|bill)[:\s]*(?:no|number)[:\s]+([^\n,]+)/i,
       totalAmount: /(?:total|amount)[:\s]+(?:₹|$|rs)?(\d+\.?\d*)/i,
@@ -1267,7 +1299,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
     const phoneNumber = extract(patterns.phoneNumber);
     const email = extract(patterns.email);
     const bloodType = extract(patterns.bloodType);
-    
+
     const bp = extract(patterns.bp);
     const temp = extract(patterns.temp);
     const pulse = extract(patterns.pulse);
@@ -1275,19 +1307,21 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
     const spO2 = extract(patterns.spO2);
     const weight = extract(patterns.weight);
     const height = extract(patterns.height);
-    
+
     const diagnosis = extract(patterns.diagnosis);
     const doctorName = extract(patterns.doctorName);
     const clinicName = extract(patterns.clinicName);
     const visitDate = extract(patterns.visitDate);
     const documentDate = extract(patterns.documentDate);
-    
+
     const invoiceNumber = extract(patterns.invoiceNumber);
     const totalAmount = extract(patterns.totalAmount);
     const consultationFee = extract(patterns.consultationFee);
 
     // Extract medications (split by newlines and common delimiters)
-    const medicationsMatch = ocrText.match(/(?:medication|drug|treatment)[\s:]*([^\n]+(?:\n[^\n]+)*)/i);
+    const medicationsMatch = ocrText.match(
+      /(?:medication|drug|treatment)[\s:]*([^\n]+(?:\n[^\n]+)*)/i,
+    );
     const medications: Array<{
       name: string;
       dosage: string;
@@ -1295,13 +1329,15 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       route?: string;
       duration?: string;
     }> = [];
-    
+
     if (medicationsMatch) {
       const medText = medicationsMatch[1];
-      const medLines = medText.split('\n').filter(line => line.trim());
-      
-      medLines.forEach(line => {
-        const medMatch = line.match(/^([^-\d]+?)(?:[-:\s]+(\d+\s*(?:mg|ml|tabs?|units?)))?(?:[-:\s]+([^-\n]+))?/);
+      const medLines = medText.split('\n').filter((line) => line.trim());
+
+      medLines.forEach((line) => {
+        const medMatch = line.match(
+          /^([^-\d]+?)(?:[-:\s]+(\d+\s*(?:mg|ml|tabs?|units?)))?(?:[-:\s]+([^-\n]+))?/,
+        );
         if (medMatch) {
           medications.push({
             name: medMatch[1]?.trim() || '',
@@ -1336,11 +1372,14 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       clinicName,
       visitDate,
       documentDate,
-      invoice: (invoiceNumber || totalAmount) ? {
-        invoiceNumber,
-        totalAmount,
-        consultationFee,
-      } : undefined,
+      invoice:
+        invoiceNumber || totalAmount
+          ? {
+              invoiceNumber,
+              totalAmount,
+              consultationFee,
+            }
+          : undefined,
       fieldConfidence: {
         firstName: firstName ? config.contactFields : 0.3,
         lastName: lastName ? config.contactFields : 0.3,
@@ -1354,11 +1393,10 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
         medications: medications.length > 0 ? config.medicalFields : 0.3,
         doctorName: doctorName ? 0.7 : 0.3,
         visitDate: visitDate ? 0.75 : 0.3,
-        invoice: (invoiceNumber || totalAmount) ? 0.75 : 0.3,
+        invoice: invoiceNumber || totalAmount ? 0.75 : 0.3,
       },
     };
 
     return result;
   }
-
 }

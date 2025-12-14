@@ -215,7 +215,7 @@ export class ImportsController {
     }
 
     // Use basic OCR (no AI)
-    return this.importsService.extractFromMedicalDocumentBasic(file.path);
+    return await this.importsService.extractFromMedicalDocumentBasic(file.path);
   }
 
   private cleanupExpiredSessions() {
