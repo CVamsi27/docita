@@ -21,12 +21,15 @@ interface OcrExtractedFields {
   phoneNumber?: string;
   email?: string;
   bloodType?: string;
+  patientId?: string;
 
   // Clinical Data
   diagnosis?: string;
   symptoms?: string[];
   medicalHistory?: string[];
   allergies?: string[];
+  complaints?: string[];
+  physicalExamination?: string;
 
   // Vitals
   vitals?: {
@@ -36,20 +39,75 @@ interface OcrExtractedFields {
     respiratoryRate?: string;
     spO2?: string;
     glucose?: string;
+    weight?: string;
+    height?: string;
+    bmi?: string;
   };
 
-  // Medications
+  // Lab Values
+  labValues?: {
+    hemoglobin?: string;
+    creatinine?: string;
+    glucose?: string;
+    [key: string]: string | undefined;
+  };
+
+  // Medications (detailed extraction)
   medications?: Array<{
     name: string;
     dosage: string;
     frequency: string;
-    route: string;
-    duration: string;
+    route?: string;
+    duration?: string;
+    indication?: string;
+    strength?: string;
+    quantity?: string;
   }>;
+
+  // Prescription Information
+  prescriptionDate?: string;
+  prescriptionId?: string;
+  expiryDate?: string;
+  documentDate?: string;
+  referralDate?: string;
+
+  // Invoice/Billing Information
+  invoice?: {
+    invoiceNumber?: string;
+    invoiceDate?: string;
+    totalAmount?: string;
+    components?: Array<{
+      description: string;
+      amount: string;
+      quantity?: string;
+    }>;
+    consultationFee?: string;
+    testsFee?: string;
+    procedureFee?: string;
+    medicationFee?: string;
+    discount?: string;
+    discountPercentage?: string;
+    taxAmount?: string;
+    paymentMethod?: string;
+    paymentStatus?: string;
+  };
 
   // Document Metadata
   doctorName?: string;
+  doctorLicense?: string;
+  doctorSpecialization?: string;
+  clinicName?: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
   visitDate?: string;
+  visitTime?: string;
+  nextVisitDate?: string;
+  referralTo?: string;
+
+  // Document Analysis
+  documentType?: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'INVOICE' | 'GENERAL';
+  notes?: string;
+  followUpRecommendations?: string[];
 
   // Confidence scores per field
   fieldConfidence: Record<string, number>;
@@ -131,7 +189,7 @@ export class AIService {
 
     if (!process.env.OPENAI_API_KEY) {
       this.logger.warn(
-        'OpenAI API key not configured. AI features will use mock data.',
+        'OpenAI API key not configured. AI features will not be available.',
       );
     } else {
       this.openai = new OpenAI({
@@ -160,14 +218,11 @@ export class AIService {
         }
       }
 
-      let result: PrescriptionAnalysisResponse;
-
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        this.logger.warn('Using mock data for prescription analysis');
-        result = this.getMockPrescriptionAnalysis(request);
-      } else {
-        result = await this.callOpenAIPrescriptionAnalysis(request);
+        throw new Error('OpenAI API is not configured. Cannot analyze prescription.');
       }
+
+      const result = await this.callOpenAIPrescriptionAnalysis(request);
 
       // Cache the result
       if (this.cacheEnabled && this.cacheManager) {
@@ -190,8 +245,7 @@ export class AIService {
         metadata: { request },
       });
 
-      // Fallback to mock data on error
-      return this.getMockPrescriptionAnalysis(request);
+      throw error;
     }
   }
 
@@ -219,17 +273,14 @@ export class AIService {
         }
       }
 
-      let result: DiagnosisSuggestion[];
-
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        this.logger.warn('Using mock data for diagnosis suggestions');
-        result = this.getMockDiagnosisSuggestions(symptoms);
-      } else {
-        result = await this.callOpenAIDiagnosisSuggestions(
-          symptoms,
-          findingsNotes,
-        );
+        throw new Error('OpenAI API is not configured. Cannot suggest diagnoses.');
       }
+
+      const result = await this.callOpenAIDiagnosisSuggestions(
+        symptoms,
+        findingsNotes,
+      );
 
       // Cache the result
       if (this.cacheEnabled && this.cacheManager) {
@@ -251,8 +302,7 @@ export class AIService {
         metadata: { symptoms, findingsNotes },
       });
 
-      // Fallback to mock data on error
-      return this.getMockDiagnosisSuggestions(symptoms);
+      throw error;
     }
   }
 
@@ -284,18 +334,15 @@ export class AIService {
         }
       }
 
-      let result: MedicationRecommendation[];
-
       if (!this.openai || !process.env.OPENAI_API_KEY) {
-        this.logger.warn('Using mock data for medication recommendations');
-        result = this.getMockMedicationRecommendations(condition);
-      } else {
-        result = await this.callOpenAIMedicationRecommendations(
-          condition,
-          patientAge,
-          allergies,
-        );
+        throw new Error('OpenAI API is not configured. Cannot recommend medications.');
       }
+
+      const result = await this.callOpenAIMedicationRecommendations(
+        condition,
+        patientAge,
+        allergies,
+      );
 
       // Cache the result
       if (this.cacheEnabled && this.cacheManager) {
@@ -317,8 +364,7 @@ export class AIService {
         metadata: { condition, patientAge, allergies },
       });
 
-      // Fallback to mock data on error
-      return this.getMockMedicationRecommendations(condition);
+      throw error;
     }
   }
 
@@ -611,153 +657,11 @@ Return ONLY valid JSON array, no other text.
   }
 
   /**
-   * Mock data for prescription analysis (fallback)
+   * Normalize diagnosis suggestions response from OpenAI
    */
-  private getMockPrescriptionAnalysis(
-    request: PrescriptionAnalysisRequest,
-  ): PrescriptionAnalysisResponse {
-    return {
-      drugInteractions: [
-        {
-          drug1: request.medications[0]?.name || 'Medication A',
-          drug2: request.medications[1]?.name || 'Medication B',
-          severity: 'mild',
-          description: 'Minor interaction: monitor patient response',
-        },
-      ],
-      contraindications: request.patientAllergies
-        ? request.patientAllergies.map((allergy) => ({
-            medication: request.medications[0]?.name || 'Medication',
-            condition: allergy,
-            description: `Patient has known allergy to ${allergy}. Consider alternative medication.`,
-          }))
-        : [],
-      dosageRecommendations: request.medications.map((med) => ({
-        medication: med.name,
-        status: 'appropriate',
-        recommendation: `${med.dosage} is within normal therapeutic range`,
-      })),
-    };
-  }
-
   /**
-   * Mock data for diagnosis suggestions (fallback)
+   * Normalize medication recommendations response from OpenAI
    */
-  private getMockDiagnosisSuggestions(
-    symptoms: string[],
-  ): DiagnosisSuggestion[] {
-    const mockSuggestions: Record<string, DiagnosisSuggestion[]> = {
-      fever: [
-        {
-          icdCode: 'R50.9',
-          diagnosis: 'Fever, unspecified',
-          confidence: 95,
-          description: 'High body temperature of unknown origin',
-        },
-        {
-          icdCode: 'J06.9',
-          diagnosis: 'Acute upper respiratory infection, unspecified',
-          confidence: 85,
-          description: 'Common viral infection with fever',
-        },
-      ],
-      cough: [
-        {
-          icdCode: 'R05.9',
-          diagnosis: 'Cough, unspecified',
-          confidence: 90,
-          description: 'Persistent cough requiring investigation',
-        },
-        {
-          icdCode: 'J20.9',
-          diagnosis: 'Acute bronchitis, unspecified',
-          confidence: 75,
-          description: 'Inflammation of bronchial tubes',
-        },
-      ],
-      headache: [
-        {
-          icdCode: 'R51.9',
-          diagnosis: 'Headache, unspecified',
-          confidence: 95,
-          description: 'Cephalgia of unknown etiology',
-        },
-        {
-          icdCode: 'G43.909',
-          diagnosis: 'Unspecified migraine',
-          confidence: 70,
-          description: 'Possible migraine headache',
-        },
-      ],
-    };
-
-    const symptom = symptoms[0]?.toLowerCase() || 'fever';
-    return mockSuggestions[symptom] || mockSuggestions.fever;
-  }
-
-  /**
-   * Mock data for medication recommendations (fallback)
-   */
-  private getMockMedicationRecommendations(
-    condition: string,
-  ): MedicationRecommendation[] {
-    const mockRecommendations: Record<string, MedicationRecommendation[]> = {
-      diabetes: [
-        {
-          medicationName: 'Metformin',
-          strength: '500-1000 mg',
-          frequency: 'Twice daily',
-          indication: 'First-line agent for type 2 diabetes',
-          confidence: 95,
-        },
-        {
-          medicationName: 'Glipizide',
-          strength: '5-20 mg',
-          frequency: 'Once or twice daily',
-          indication: 'Sulfonylurea for glycemic control',
-          confidence: 85,
-        },
-      ],
-      hypertension: [
-        {
-          medicationName: 'Amlodipine',
-          strength: '5-10 mg',
-          frequency: 'Once daily',
-          indication: 'Calcium channel blocker for blood pressure control',
-          confidence: 90,
-        },
-        {
-          medicationName: 'Lisinopril',
-          strength: '10-40 mg',
-          frequency: 'Once daily',
-          indication: 'ACE inhibitor for hypertension management',
-          confidence: 88,
-        },
-      ],
-      infection: [
-        {
-          medicationName: 'Amoxicillin',
-          strength: '500 mg',
-          frequency: 'Three times daily',
-          indication: 'First-line antibiotic for bacterial infections',
-          confidence: 85,
-        },
-        {
-          medicationName: 'Azithromycin',
-          strength: '500 mg',
-          frequency: 'Once daily',
-          indication: 'Macrolide antibiotic for respiratory infections',
-          confidence: 80,
-        },
-      ],
-    };
-
-    const conditionLower = condition.toLowerCase();
-    return (
-      mockRecommendations[conditionLower] || mockRecommendations.infection || []
-    );
-  }
-
   /**
    * Generate cache key for requests
    */
@@ -824,26 +728,20 @@ Return ONLY valid JSON array, no other text.
   }
 
   /**
-   * Extract text from image using OpenAI Vision or Google Cloud Vision API
-   * Falls back to mock data if credentials unavailable
+   * Extract text from image using OpenAI Vision API
+   * Requires OpenAI API credentials to be configured
    */
   private async extractTextFromImage(imagePath: string): Promise<string> {
-    // For development: if credentials not available, use mock
-    if (!process.env.OPENAI_API_KEY) {
-      this.logger.warn('Vision API not configured, using mock OCR');
-      return this.getMockOcrText();
+    if (!process.env.OPENAI_API_KEY || !this.openai) {
+      throw new Error('OpenAI Vision API is not configured. Cannot extract text from image.');
     }
 
     try {
-      if (!this.openai) {
-        return this.getMockOcrText();
-      }
-
       // Read image file and convert to base64
       const imageData = fs.readFileSync(imagePath);
       const base64Image = imageData.toString('base64');
 
-      // Use OpenAI Vision for text extraction
+      // Use OpenAI Vision for text extraction with enhanced prompt
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4-vision',
         messages: [
@@ -858,18 +756,29 @@ Return ONLY valid JSON array, no other text.
               },
               {
                 type: 'text',
-                text: 'Extract ALL text from this medical document. Preserve formatting and structure. Return only the extracted text.',
+                text: `Extract ALL text from this medical/healthcare document. Include:
+- Patient demographics (name, age, ID, contact info)
+- Vital signs (BP, temperature, pulse, respiratory rate, SpO2, weight, height)
+- Lab values and test results
+- Medications (name, dosage, frequency, route, duration)
+- Diagnosis, symptoms, complaints, medical history
+- Document dates, visit dates, doctor information
+- Invoice/billing details (amounts, itemized charges, payment info)
+- Any other clinical notes, recommendations, or relevant information
+
+Preserve all formatting, structure, numbers, dates, and special characters.
+Return ONLY the extracted text, no additional commentary.`,
               },
             ] as any,
           },
         ],
-        max_tokens: 2000,
+        max_tokens: 4000,
       });
 
       return response.choices[0]?.message?.content || '';
     } catch (error) {
       this.logger.error(`Vision API extraction failed: ${error.message}`);
-      return this.getMockOcrText();
+      throw error;
     }
   }
 
@@ -881,48 +790,104 @@ Return ONLY valid JSON array, no other text.
     hasAiSubscription: boolean,
   ): Promise<OcrExtractedFields> {
     const confidenceConfig: FieldConfidenceConfig = {
-      medicalFields: 0.8, // Higher threshold for critical medical data
-      contactFields: 0.65, // Lower threshold for contact info
-      vitalFields: 0.75, // Moderate threshold for vitals
+      medicalFields: 0.85,
+      contactFields: 0.70,
+      vitalFields: 0.80,
     };
 
     if (!this.openai || !process.env.OPENAI_API_KEY || !hasAiSubscription) {
-      // Basic extraction without AI
       return this.basicOcrParsing(ocrText, confidenceConfig);
     }
 
-    // AI-powered detailed extraction
-    const prompt = `Extract and structure medical information from this OCR text. Return ONLY valid JSON:
+    // AI-powered detailed extraction with comprehensive field detection
+    const prompt = `Extract and structure ALL medical information from this OCR text. Be thorough and extract every field you can identify.
 
+OCR TEXT:
 ${ocrText}
 
-JSON structure (all fields optional, use null if not found):
+Return ONLY valid JSON (no markdown, no code blocks, just the JSON object):
 {
   "firstName": "string or null",
   "lastName": "string or null",
+  "patientId": "string or null",
   "age": "number as string or null",
+  "dateOfBirth": "YYYY-MM-DD or null",
   "gender": "MALE|FEMALE|OTHER or null",
   "phoneNumber": "string or null",
   "email": "string or null",
   "bloodType": "string or null",
   "diagnosis": "string or null",
-  "symptoms": ["string"] or null,
-  "medicalHistory": ["string"] or null,
-  "allergies": ["string"] or null,
+  "symptoms": ["string"] or null",
+  "complaints": "string or null",
+  "medicalHistory": ["string"] or null",
+  "allergies": ["string"] or null",
+  "physicalExamination": "string or null",
   "vitals": {
-    "bp": "string or null",
-    "temp": "string or null",
-    "pulse": "string or null",
-    "respiratoryRate": "string or null",
-    "spO2": "string or null",
+    "bp": "XXX/YYY or null",
+    "temp": "number or null",
+    "pulse": "number or null",
+    "respiratoryRate": "number or null",
+    "spO2": "percentage or null",
+    "weight": "number or null",
+    "height": "number or null",
+    "bmi": "number or null"
+  },
+  "labValues": {
+    "hemoglobin": "string or null",
+    "creatinine": "string or null",
     "glucose": "string or null"
   },
-  "medications": [{"name": "string", "dosage": "string", "frequency": "string", "route": "string", "duration": "string"}] or null,
+  "medications": [
+    {
+      "name": "string",
+      "dosage": "string (e.g., 500mg, 2 tablets)",
+      "frequency": "string (e.g., twice daily, 8-hourly)",
+      "route": "string (e.g., oral, IV, IM, topical) or null",
+      "duration": "string (e.g., 7 days, 2 weeks) or null",
+      "strength": "string or null",
+      "quantity": "string (number of tablets/units) or null",
+      "indication": "string (reason for medication) or null"
+    }
+  ] or null",
+  "prescriptionDate": "YYYY-MM-DD or null",
+  "prescriptionId": "string or null",
+  "documentDate": "YYYY-MM-DD or null",
+  "visitDate": "YYYY-MM-DD or null",
+  "visitTime": "HH:MM or null",
+  "expiryDate": "YYYY-MM-DD or null",
+  "nextVisitDate": "YYYY-MM-DD or null",
   "doctorName": "string or null",
-  "visitDate": "YYYY-MM-DD or null"
-}
-
-Return ONLY the JSON object, no markdown or extra text.`;
+  "doctorLicense": "string or null",
+  "doctorSpecialization": "string or null",
+  "clinicName": "string or null",
+  "clinicAddress": "string or null",
+  "clinicPhone": "string or null",
+  "referralTo": "string or null",
+  "referralDate": "YYYY-MM-DD or null",
+  "notes": "string or null",
+  "followUpRecommendations": ["string"] or null",
+  "invoice": {
+    "invoiceNumber": "string or null",
+    "invoiceDate": "YYYY-MM-DD or null",
+    "components": [
+      {
+        "description": "string (e.g., Consultation, Lab Test - Hemoglobin, Medication)",
+        "amount": "number or string or null",
+        "quantity": "number or null"
+      }
+    ] or null",
+    "consultationFee": "number or string or null",
+    "testsFee": "number or string or null",
+    "procedureFee": "number or string or null",
+    "medicationFee": "number or string or null",
+    "discount": "number or string or null",
+    "discountPercentage": "number or string or null",
+    "taxAmount": "number or string or null",
+    "totalAmount": "number or string or null",
+    "paymentMethod": "string (e.g., Cash, Card, Bank Transfer) or null",
+    "paymentStatus": "string (e.g., Paid, Pending) or null"
+  } or null"
+}`;
 
     try {
       const response = await this.openai.chat.completions.create({
@@ -930,22 +895,31 @@ Return ONLY the JSON object, no markdown or extra text.`;
         messages: [
           {
             role: 'system',
-            content:
-              'You are a medical document parser. Extract structured data from OCR text. Respond only with valid JSON.',
+            content: `You are a medical document parser expert. Extract ALL structured data from OCR text with high accuracy. 
+Be thorough - extract every field you can identify, even if not all fields are present. 
+Use null for fields that are not found in the text.
+Return ONLY valid JSON, no markdown formatting, no code blocks, no extra text.
+For medication, extract EVERY medication mentioned with all available details.
+For invoice, extract EVERY line item if available.
+Dates should be in YYYY-MM-DD format if possible, otherwise preserve as written.
+Numeric values should be cleaned (remove currency symbols, % signs) and preserved as numbers or strings.`,
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.2,
+        temperature: 0.1,
         response_format: { type: 'json_object' },
+        max_tokens: 4000,
       });
 
       const content = response.choices[0]?.message?.content || '{}';
       const parsed = JSON.parse(content);
-
-      return this.normalizeOcrFields(parsed, confidenceConfig);
+      const normalized = this.normalizeOcrFields(parsed, confidenceConfig);
+      
+      this.logger.debug(`Extracted fields: ${JSON.stringify(Object.keys(normalized))}`);
+      return normalized;
     } catch (error) {
       this.logger.error(`OCR parsing failed: ${error.message}`);
       return this.basicOcrParsing(ocrText, confidenceConfig);
@@ -1106,48 +1080,136 @@ Return ONLY the JSON object, no markdown or extra text.`;
   ): OcrExtractedFields {
     const fieldConfidence: Record<string, number> = {};
 
-    // Assign confidence based on field importance
-    const medicalCriticalFields = ['diagnosis', 'allergies', 'medications'];
-    const contactFields = ['phoneNumber', 'email'];
-    const vitalFields = ['bp', 'temp', 'pulse'];
+    // Helper function to assign confidence based on field type and presence
+    const assignConfidence = (key: string, hasValue: boolean): number => {
+      if (!hasValue) return 0.3;
 
-    // Initialize confidence scores
-    Object.keys(data || {}).forEach((key) => {
-      if (key === 'vitals' && data[key]) {
-        Object.keys(data[key]).forEach((vitalKey) => {
-          if (vitalFields.includes(vitalKey)) {
-            fieldConfidence[`vitals_${vitalKey}`] = config.vitalFields;
-          }
-        });
-      } else if (medicalCriticalFields.includes(key)) {
-        fieldConfidence[key] = config.medicalFields;
-      } else if (contactFields.includes(key)) {
-        fieldConfidence[key] = config.contactFields;
-      } else {
-        fieldConfidence[key] = 0.7;
-      }
-    });
+      const medicalCriticalFields = ['diagnosis', 'allergies', 'medications', 'vitals'];
+      const contactFields = ['phoneNumber', 'email', 'firstName', 'lastName'];
+      const vitalFields = ['bp', 'temp', 'pulse', 'respiratoryRate', 'spO2'];
+      const invoiceFields = ['invoiceNumber', 'totalAmount', 'components'];
 
-    return {
+      if (medicalCriticalFields.includes(key)) return config.medicalFields;
+      if (contactFields.includes(key)) return config.contactFields;
+      if (vitalFields.includes(key)) return config.vitalFields;
+      if (invoiceFields.includes(key)) return 0.8;
+      
+      return 0.75;
+    };
+
+    // Process each field with confidence scoring
+    const result: OcrExtractedFields = {
       firstName: data?.firstName || '',
       lastName: data?.lastName || '',
       age: data?.age || '',
+      dateOfBirth: data?.dateOfBirth || '',
       gender: data?.gender || 'OTHER',
       phoneNumber: data?.phoneNumber || '',
       email: data?.email || '',
       bloodType: data?.bloodType || '',
+      patientId: data?.patientId || '',
+      
       diagnosis: data?.diagnosis || '',
-      symptoms: Array.isArray(data?.symptoms) ? data.symptoms : [],
-      medicalHistory: Array.isArray(data?.medicalHistory)
-        ? data.medicalHistory
+      symptoms: Array.isArray(data?.symptoms) ? data.symptoms.filter((s: any) => s) : [],
+      complaints: data?.complaints || '',
+      medicalHistory: Array.isArray(data?.medicalHistory) ? data.medicalHistory.filter((m: any) => m) : [],
+      allergies: Array.isArray(data?.allergies) ? data.allergies.filter((a: any) => a) : [],
+      physicalExamination: data?.physicalExamination || '',
+      
+      vitals: {
+        bp: data?.vitals?.bp || '',
+        temp: data?.vitals?.temp || '',
+        pulse: data?.vitals?.pulse || '',
+        respiratoryRate: data?.vitals?.respiratoryRate || '',
+        spO2: data?.vitals?.spO2 || '',
+        weight: data?.vitals?.weight || '',
+        height: data?.vitals?.height || '',
+        bmi: data?.vitals?.bmi || '',
+      },
+      
+      labValues: {
+        hemoglobin: data?.labValues?.hemoglobin || '',
+        creatinine: data?.labValues?.creatinine || '',
+        glucose: data?.labValues?.glucose || '',
+        ...data?.labValues,
+      },
+      
+      medications: Array.isArray(data?.medications)
+        ? data.medications.filter((m: any) => m?.name).map((m: any) => ({
+            name: m.name || '',
+            dosage: m.dosage || '',
+            frequency: m.frequency || '',
+            route: m.route || '',
+            duration: m.duration || '',
+            indication: m.indication || '',
+            strength: m.strength || '',
+            quantity: m.quantity || '',
+          }))
         : [],
-      allergies: Array.isArray(data?.allergies) ? data.allergies : [],
-      vitals: data?.vitals || {},
-      medications: Array.isArray(data?.medications) ? data.medications : [],
-      doctorName: data?.doctorName || '',
+      
+      prescriptionDate: data?.prescriptionDate || '',
+      prescriptionId: data?.prescriptionId || '',
+      documentDate: data?.documentDate || '',
       visitDate: data?.visitDate || '',
-      fieldConfidence,
+      visitTime: data?.visitTime || '',
+      expiryDate: data?.expiryDate || '',
+      nextVisitDate: data?.nextVisitDate || '',
+      referralDate: data?.referralDate || '',
+      
+      doctorName: data?.doctorName || '',
+      doctorLicense: data?.doctorLicense || '',
+      doctorSpecialization: data?.doctorSpecialization || '',
+      clinicName: data?.clinicName || '',
+      clinicAddress: data?.clinicAddress || '',
+      clinicPhone: data?.clinicPhone || '',
+      referralTo: data?.referralTo || '',
+      
+      notes: data?.notes || '',
+      followUpRecommendations: Array.isArray(data?.followUpRecommendations)
+        ? data.followUpRecommendations.filter((r: any) => r)
+        : [],
+      
+      invoice: data?.invoice ? {
+        invoiceNumber: data.invoice.invoiceNumber || '',
+        invoiceDate: data.invoice.invoiceDate || '',
+        totalAmount: data.invoice.totalAmount || '',
+        components: Array.isArray(data.invoice.components)
+          ? data.invoice.components.filter((c: any) => c?.description).map((c: any) => ({
+              description: c.description || '',
+              amount: c.amount || '',
+              quantity: c.quantity || '',
+            }))
+          : [],
+        consultationFee: data.invoice.consultationFee || '',
+        testsFee: data.invoice.testsFee || '',
+        procedureFee: data.invoice.procedureFee || '',
+        medicationFee: data.invoice.medicationFee || '',
+        discount: data.invoice.discount || '',
+        discountPercentage: data.invoice.discountPercentage || '',
+        taxAmount: data.invoice.taxAmount || '',
+        paymentMethod: data.invoice.paymentMethod || '',
+        paymentStatus: data.invoice.paymentStatus || '',
+      } : undefined,
+      
+      fieldConfidence: {},
     };
+
+    // Assign confidence scores
+    Object.entries(result).forEach(([key, value]) => {
+      if (key === 'fieldConfidence') return;
+      
+      const hasValue = value && (
+        typeof value === 'string' ? value.trim() !== '' :
+        Array.isArray(value) ? value.length > 0 :
+        typeof value === 'object' ? Object.values(value as any).some(v => v) :
+        false
+      );
+      
+      fieldConfidence[key] = assignConfidence(key, hasValue);
+    });
+
+    result.fieldConfidence = fieldConfidence;
+    return result;
   }
 
   /**
@@ -1159,64 +1221,144 @@ Return ONLY the JSON object, no markdown or extra text.`;
   ): OcrExtractedFields {
     const fieldConfidence: Record<string, number> = {};
 
-    // Simple regex-based extraction
-    const firstNameMatch = ocrText.match(/first\s*name:?\s*([^\n,]+)/i);
-    const lastNameMatch = ocrText.match(/last\s*name:?\s*([^\n,]+)/i);
-    const ageMatch = ocrText.match(/age:?\s*(\d+)/i);
-    const phoneMatch = ocrText.match(/phone:?\s*([\d\s\-+()]+)/i);
-    const bpMatch = ocrText.match(/bp:?\s*(\d+\/\d+)/i);
-    const tempMatch = ocrText.match(/temp:?\s*(\d+\.?\d*)/i);
-    const pulseMatch = ocrText.match(/pulse:?\s*(\d+)/i);
+    // Simple regex-based extraction for various fields
+    const patterns = {
+      firstName: /first\s*name[:\s]+([^\n,]+)/i,
+      lastName: /last\s*name[:\s]+([^\n,]+)/i,
+      age: /age[:\s]+(\d+)/i,
+      phoneNumber: /phone[:\s]+([\d\s\-+()]+)/i,
+      email: /email[:\s]+([^\s@]+@[^\s@]+)/i,
+      bloodType: /blood\s*(?:type|group)[:\s]+([OAB+-]+)/i,
+      
+      // Vitals patterns
+      bp: /(?:bp|blood\s*pressure)[:\s]+(\d+\/\d+)/i,
+      temp: /(?:temp|temperature)[:\s]+(\d+\.?\d*)\s*[°c]/i,
+      pulse: /(?:pulse|heart\s*rate)[:\s]+(\d+)/i,
+      respiratoryRate: /(?:rr|respiratory\s*rate)[:\s]+(\d+)/i,
+      spO2: /(?:spo2|oxygen\s*sat)[:\s]+(\d+)\s*%/i,
+      weight: /weight[:\s]+(\d+\.?\d*)\s*(?:kg|kg|lbs)/i,
+      height: /height[:\s]+(\d+\.?\d*)\s*(?:cm|m|inches)/i,
+      
+      // Medication patterns
+      medications: /(?:medication|drug|treatment)[:\s]*([^\n]+(?:\n[^\n]+)*)/i,
+      
+      // Document info
+      diagnosis: /(?:diagnosis|impression)[:\s]*([^\n]+)/i,
+      doctorName: /(?:doctor|dr|physician)[:\s]+([^\n,]+)/i,
+      clinicName: /(?:clinic|hospital|centre)[:\s]+([^\n,]+)/i,
+      visitDate: /(?:date|visit\s*date|appointment)[:\s]+(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
+      documentDate: /(?:date|issued?)[:\s]+(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i,
+      
+      // Invoice patterns
+      invoiceNumber: /(?:invoice|bill)[:\s]*(?:no|number)[:\s]+([^\n,]+)/i,
+      totalAmount: /(?:total|amount)[:\s]+(?:₹|$|rs)?(\d+\.?\d*)/i,
+      consultationFee: /consultation[:\s]+(?:₹|$|rs)?(\d+\.?\d*)/i,
+    };
 
+    const extract = (pattern: RegExp): string => {
+      const match = ocrText.match(pattern);
+      return match ? match[1]?.trim() || '' : '';
+    };
+
+    // Extract basic fields
+    const firstName = extract(patterns.firstName);
+    const lastName = extract(patterns.lastName);
+    const age = extract(patterns.age);
+    const phoneNumber = extract(patterns.phoneNumber);
+    const email = extract(patterns.email);
+    const bloodType = extract(patterns.bloodType);
+    
+    const bp = extract(patterns.bp);
+    const temp = extract(patterns.temp);
+    const pulse = extract(patterns.pulse);
+    const respiratoryRate = extract(patterns.respiratoryRate);
+    const spO2 = extract(patterns.spO2);
+    const weight = extract(patterns.weight);
+    const height = extract(patterns.height);
+    
+    const diagnosis = extract(patterns.diagnosis);
+    const doctorName = extract(patterns.doctorName);
+    const clinicName = extract(patterns.clinicName);
+    const visitDate = extract(patterns.visitDate);
+    const documentDate = extract(patterns.documentDate);
+    
+    const invoiceNumber = extract(patterns.invoiceNumber);
+    const totalAmount = extract(patterns.totalAmount);
+    const consultationFee = extract(patterns.consultationFee);
+
+    // Extract medications (split by newlines and common delimiters)
+    const medicationsMatch = ocrText.match(/(?:medication|drug|treatment)[\s:]*([^\n]+(?:\n[^\n]+)*)/i);
+    const medications: Array<{
+      name: string;
+      dosage: string;
+      frequency: string;
+      route?: string;
+      duration?: string;
+    }> = [];
+    
+    if (medicationsMatch) {
+      const medText = medicationsMatch[1];
+      const medLines = medText.split('\n').filter(line => line.trim());
+      
+      medLines.forEach(line => {
+        const medMatch = line.match(/^([^-\d]+?)(?:[-:\s]+(\d+\s*(?:mg|ml|tabs?|units?)))?(?:[-:\s]+([^-\n]+))?/);
+        if (medMatch) {
+          medications.push({
+            name: medMatch[1]?.trim() || '',
+            dosage: medMatch[2]?.trim() || '',
+            frequency: medMatch[3]?.trim() || '',
+          });
+        }
+      });
+    }
+
+    // Build result with enhanced fields
     const result: OcrExtractedFields = {
-      firstName: firstNameMatch?.[1]?.trim() || '',
-      lastName: lastNameMatch?.[1]?.trim() || '',
-      age: ageMatch?.[1] || '',
+      firstName,
+      lastName,
+      age,
       gender: 'OTHER',
-      phoneNumber: phoneMatch?.[1]?.trim() || '',
+      phoneNumber,
+      email,
+      bloodType,
+      diagnosis,
       vitals: {
-        bp: bpMatch?.[1] || '',
-        temp: tempMatch?.[1] || '',
-        pulse: pulseMatch?.[1] || '',
+        bp,
+        temp,
+        pulse,
+        respiratoryRate,
+        spO2,
+        weight,
+        height,
       },
+      medications: medications.length > 0 ? medications : [],
+      doctorName,
+      clinicName,
+      visitDate,
+      documentDate,
+      invoice: (invoiceNumber || totalAmount) ? {
+        invoiceNumber,
+        totalAmount,
+        consultationFee,
+      } : undefined,
       fieldConfidence: {
-        firstName: firstNameMatch ? config.contactFields : 0.3,
-        lastName: lastNameMatch ? config.contactFields : 0.3,
-        age: ageMatch ? config.vitalFields : 0.3,
-        phoneNumber: phoneMatch ? config.contactFields : 0.3,
-        vitals_bp: bpMatch ? config.vitalFields : 0.3,
-        vitals_temp: tempMatch ? config.vitalFields : 0.3,
-        vitals_pulse: pulseMatch ? config.vitalFields : 0.3,
+        firstName: firstName ? config.contactFields : 0.3,
+        lastName: lastName ? config.contactFields : 0.3,
+        age: age ? config.vitalFields : 0.3,
+        phoneNumber: phoneNumber ? config.contactFields : 0.3,
+        email: email ? config.contactFields : 0.3,
+        diagnosis: diagnosis ? config.medicalFields : 0.3,
+        vitals_bp: bp ? config.vitalFields : 0.3,
+        vitals_temp: temp ? config.vitalFields : 0.3,
+        vitals_pulse: pulse ? config.vitalFields : 0.3,
+        medications: medications.length > 0 ? config.medicalFields : 0.3,
+        doctorName: doctorName ? 0.7 : 0.3,
+        visitDate: visitDate ? 0.75 : 0.3,
+        invoice: (invoiceNumber || totalAmount) ? 0.75 : 0.3,
       },
     };
 
     return result;
   }
 
-  /**
-   * Mock OCR text for development
-   */
-  private getMockOcrText(): string {
-    return `PATIENT INFORMATION
-Name: John Doe
-Age: 35
-Phone: 9876543210
-DOB: 12/15/1988
-Blood Type: O+
-
-VITALS
-BP: 120/80 mmHg
-Temperature: 98.6°F
-Pulse: 72 bpm
-Respiratory Rate: 16/min
-
-CLINICAL FINDINGS
-Diagnosis: Hypertension Stage 1
-Symptoms: Occasional headaches, no chest pain
-Allergies: Penicillin
-
-MEDICATIONS
-1. Amlodipine 5mg - Once daily
-2. Metoprolol 50mg - Twice daily`;
-  }
 }

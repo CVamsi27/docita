@@ -434,45 +434,46 @@ export class BulkImportService {
   }
 
   /**
-   * Get import template for entity type
+   * Get import template headers for entity type
+   * Returns field names required for the given entity type
    */
   getImportTemplate(entityType: BulkImportEntityType): Record<string, string> {
     const templates: Record<BulkImportEntityType, Record<string, string>> = {
       PATIENT: {
-        firstName: 'John',
-        lastName: 'Doe',
-        phoneNumber: '+919876543210',
-        email: 'john@example.com',
-        dateOfBirth: '1990-01-15',
-        bloodGroup: 'O+',
-        gender: 'M',
-        address: '123 Main St, City',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        email: '',
+        dateOfBirth: '',
+        bloodGroup: '',
+        gender: '',
+        address: '',
       },
       PRESCRIPTION: {
-        patientId: 'patient_id_here',
-        doctorId: 'doctor_id_here',
-        instructions: 'Take with food',
+        patientId: '',
+        doctorId: '',
+        instructions: '',
       },
       DOCTOR: {
-        name: 'Dr. Jane Smith',
-        email: 'jane@hospital.com',
-        phone: '+919876543210',
-        specialization: 'Cardiology',
-        registrationNumber: 'MCI12345',
+        name: '',
+        email: '',
+        phone: '',
+        specialization: '',
+        registrationNumber: '',
       },
       LAB_TEST: {
-        testName: 'Blood Test',
-        testCode: 'BT001',
-        description: 'Complete blood count',
-        cost: '500',
-        turnaroundTime: '24 hours',
+        testName: '',
+        testCode: '',
+        description: '',
+        cost: '',
+        turnaroundTime: '',
       },
       INVENTORY: {
-        itemName: 'Aspirin 500mg',
-        quantity: '100',
-        cost: '50',
-        reorderLevel: '20',
-        category: 'Medicine',
+        itemName: '',
+        quantity: '',
+        cost: '',
+        reorderLevel: '',
+        category: '',
       },
     };
 
@@ -480,13 +481,12 @@ export class BulkImportService {
   }
 
   /**
-   * Generate CSV template
+   * Generate CSV template headers for entity type
+   * Returns only the header row with field names, no example data
    */
   generateCSVTemplate(entityType: BulkImportEntityType): string {
     const template = this.getImportTemplate(entityType);
     const headers = Object.keys(template);
-    const csvContent =
-      headers.join(',') + '\n' + headers.map((h) => template[h]).join(',');
-    return csvContent;
+    return headers.join(',');
   }
 }
