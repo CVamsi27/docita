@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
+import { AIService } from '../modules/ai/ai.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -32,7 +33,10 @@ const pendingImports = new Map<
 @Controller('imports')
 @UseGuards(JwtAuthGuard, TierGuard)
 export class ImportsController {
-  constructor(private readonly importsService: ImportsService) {}
+  constructor(
+    private readonly importsService: ImportsService,
+    private readonly aiService: AIService,
+  ) {}
 
   @Get('fields/patients')
   @RequireFeature(Feature.EXCEL_IMPORT)
@@ -171,6 +175,48 @@ export class ImportsController {
     return this.importsService.processPatientImport(
       file.path,
       req.user.clinicId,
+    );
+  }
+
+  @Post('ocr/process')
+  @RequireFeature(Feature.OCR_BASIC)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/temp',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024,
+      },
+    }),
+  )
+  async processOCR(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: AuthRequest,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    return this.aiService.extractFromMedicalDocument(
+      file.path,
+      true, // hasAiSubscription flag
     );
   }
 

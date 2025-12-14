@@ -5,10 +5,12 @@ import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';
 import { BulkImportService } from './bulk-import.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AIModule } from '../modules/ai/ai.module';
 
 @Module({
   imports: [
     PrismaModule,
+    AIModule,
     BullModule.registerQueue({
       name: 'bulk-import',
       defaultJobOptions: {
