@@ -419,21 +419,48 @@ export class ImportsService {
    */
   async extractFromMedicalDocumentBasic(filePath: string): Promise<any> {
     try {
-      // Clean up temp file
-      await unlink(filePath).catch(() => {});
-
-      // Return basic structure with placeholder for text extraction
-      // In production, you would integrate with Tesseract.js or similar OCR library
+      // For now, return the basic structure - in production use Tesseract.js or similar
+      // This is a placeholder that guides users to the AI-powered endpoint for actual extraction
       return {
         success: true,
         method: 'basic-ocr',
-        message: 'Basic OCR processing (image file received successfully)',
+        message: 'Image received. For extraction, use the AI-powered endpoint.',
+        text: '',
+        documentType: 'GENERAL',
+        confidence: 0.5,
         fields: {
-          medicines: [],
-          invoiceComponents: [],
-          labValues: {},
-          confidence: 0.5,
+          firstName: '',
+          lastName: '',
+          age: '',
+          gender: 'MALE',
+          phoneNumber: '',
+          email: '',
+          bloodType: '',
+          diagnosis: '',
+          symptoms: [],
+          allergies: [],
+          medicalHistory: [],
+          medications: [],
+          vitals: {
+            bp: '',
+            temp: '',
+            pulse: '',
+            respiratoryRate: '',
+            spO2: '',
+            glucose: '',
+          },
+          labValues: {
+            glucose: '',
+            hemoglobin: '',
+            creatinine: '',
+          },
+          fieldConfidence: {
+            firstName: 0,
+            lastName: 0,
+            phoneNumber: 0,
+          },
         },
+        suggestedCorrections: {},
         note: 'For full text extraction with medical field detection, use the AI-powered endpoint: POST /api/ai/ocr/extract',
       };
     } catch (error) {
