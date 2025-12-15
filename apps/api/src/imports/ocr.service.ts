@@ -60,20 +60,37 @@ export class OCRService {
    * Includes preprocessing for better accuracy
    */
   async extractTextFromImage(imagePath: string): Promise<ExtractedText> {
+    let worker: any = null;
     try {
       // Preprocess image for better accuracy
       const processedBuffer = await this.preprocessImage(imagePath);
 
       this.logger.debug(`Starting Tesseract OCR for ${imagePath}`);
 
-      // Create worker for OCR
-      const worker = await Tesseract.createWorker('eng');
+      // Create worker for OCR with timeout
+      worker = await Promise.race([
+        Tesseract.createWorker('eng'),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error('Tesseract worker creation timeout')),
+            30000,
+          ),
+        ),
+      ]);
 
-      // Run OCR on processed image
-      const result = await worker.recognize(processedBuffer);
+      // Run OCR on processed image with timeout
+      const result = await Promise.race([
+        (worker as any).recognize(processedBuffer),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error('Tesseract recognition timeout')),
+            60000,
+          ),
+        ),
+      ]);
 
-      const extractedText = result.data.text;
-      const confidence = result.data.confidence / 100; // Convert to 0-1 scale
+      const extractedText = (result as any).data.text || '';
+      const confidence = ((result as any).data.confidence || 0) / 100; // Convert to 0-1 scale
 
       this.logger.debug(
         `OCR completed with confidence: ${confidence.toFixed(2)} and ${extractedText.length} characters extracted`,
@@ -82,8 +99,6 @@ export class OCRService {
       // Determine document type based on extracted text
       const documentType = this.detectDocumentType(extractedText);
 
-      await worker.terminate();
-
       return {
         text: extractedText,
         confidence: confidence,
@@ -91,7 +106,22 @@ export class OCRService {
       };
     } catch (error) {
       this.logger.error(`Tesseract OCR failed: ${error.message}`, error.stack);
-      throw error;
+      // Return empty text with low confidence instead of throwing
+      // This allows the parseExtractedText to at least attempt basic extraction
+      return {
+        text: '',
+        confidence: 0.2,
+        documentType: 'GENERAL',
+      };
+    } finally {
+      // Ensure worker is cleaned up
+      if (worker) {
+        try {
+          await (worker as any).terminate();
+        } catch (e) {
+          this.logger.warn(`Failed to terminate Tesseract worker: ${e}`);
+        }
+      }
     }
   }
 
