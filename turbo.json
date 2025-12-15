@@ -8,13 +8,14 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
-      "env": ["NODE_ENV"]
+      "env": ["NODE_ENV", "API_URL", "APP_URL", "CI"]
     },
     "db:generate": {
       "cache": false
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": ["API_URL", "APP_URL", "CI"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]
@@ -22,7 +23,8 @@
     "test": {
       "dependsOn": ["build"],
       "outputs": ["coverage/**"],
-      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"],
+      "env": ["API_URL", "APP_URL", "CI"]
     },
     "dev": {
       "cache": false,

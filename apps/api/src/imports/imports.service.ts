@@ -433,7 +433,7 @@ export class ImportsService {
       );
 
       // Parse extracted text into structured fields
-      let fields = this.ocrService.parseExtractedText(ocrResult.text);
+      const fields = this.ocrService.parseExtractedText(ocrResult.text);
 
       // Generate confidence scores for each field
       const fieldConfidence = this.ocrService.generateConfidenceScores(

@@ -99,6 +99,11 @@ export class PatientsController {
     return this.patientsService.getAppointments(id);
   }
 
+  @Get(':id/statistics')
+  getPatientStatistics(@Param('id') id: string) {
+    return this.patientsService.getStatistics(id);
+  }
+
   @Get(':id/documents')
   getPatientDocuments(@Param('id') id: string) {
     return this.patientsService.getDocuments(id);

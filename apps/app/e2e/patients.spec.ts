@@ -23,12 +23,12 @@ test.describe("Patient Management", () => {
       },
     });
 
-    const user = await registerRes.json();
-    const regData = user;
+    const user = (await registerRes.json()) as Record<string, unknown>;
+    const regData = user as Record<string, unknown>;
     // If register didn't create a clinic association, create a clinic and assign
-    let token = null as any;
+    let token: string | null = null;
     try {
-      token = regData.access_token || regData.accessToken;
+      token = (regData?.access_token as string) || (regData?.accessToken as string) || null;
 
       // Create clinic
       const clinicRes = await page.request.post(`${API_URL}/clinics`, {
@@ -42,11 +42,12 @@ test.describe("Patient Management", () => {
       });
 
       if (clinicRes.ok()) {
-        const clinic = await clinicRes.json();
-        clinicId = clinic.id;
+        const clinic = (await clinicRes.json()) as Record<string, unknown>;
+        clinicId = (clinic?.id as string) || "";
 
         // Assign doctor to clinic
-        const doctorId = regData.user?.id || regData.id;
+        const userInfo = (regData?.user as Record<string, unknown>) || regData;
+        const doctorId = (userInfo?.id as string) || (regData?.id as string);
         const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
           headers: { Authorization: `Bearer ${token}` },
           data: { doctorId, clinicId: clinic.id, role: "doctor" },
@@ -58,16 +59,16 @@ test.describe("Patient Management", () => {
             data: { email: userEmail, password: userPassword },
           });
           if (loginRes.ok()) {
-            const loginData = await loginRes.json();
-            authToken = loginData.access_token || loginData.accessToken;
-            clinicId = loginData.user?.clinicId || clinicId;
+            const loginData = (await loginRes.json()) as Record<string, unknown>;
+            authToken = (loginData?.access_token as string) || (loginData?.accessToken as string) || "";
+            clinicId = ((loginData?.user as Record<string, unknown>)?.clinicId as string) || clinicId;
             // keep user info for frontend localStorage
             // store minimal user info to satisfy client checks
-            (regData as any).user = loginData.user || regData.user;
+            (regData as Record<string, unknown>).user = loginData?.user || regData?.user;
           }
         }
       }
-    } catch (err) {
+    } catch (_err) {
       // Fallback to a login if anything fails
       const loginRes = await page.request.post(`${API_URL}/auth/login`, {
         data: {
@@ -76,21 +77,21 @@ test.describe("Patient Management", () => {
         },
       });
 
-      const loginData = await loginRes.json();
-      authToken = loginData.access_token || loginData.accessToken;
-      clinicId = loginData.user?.clinicId || clinicId;
+      const loginData = (await loginRes.json()) as Record<string, unknown>;
+      authToken = (loginData?.access_token as string) || (loginData?.accessToken as string) || "";
+      clinicId = ((loginData?.user as Record<string, unknown>)?.clinicId as string) || clinicId;
     }
 
     // Save minimal user info from registration/login for later localStorage injection
-    const storedUser = regData.user || regData;
+    const storedUser = (regData?.user as Record<string, unknown>) || regData;
     const minimalUser = {
-      id: storedUser?.id || storedUser?.userId || null,
-      email: storedUser?.email || null,
-      clinicId: storedUser?.clinicId || clinicId || null,
-      role: storedUser?.role || "DOCTOR",
+      id: (storedUser?.id as string) || (storedUser?.userId as string) || null,
+      email: (storedUser?.email as string) || null,
+      clinicId: (storedUser?.clinicId as string) || clinicId || null,
+      role: (storedUser?.role as string) || "DOCTOR",
     };
     // store globally so loginAsDoctor can construct docita_user
-    (globalThis as any).__E2E_REG_USER = minimalUser;
+    (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER = minimalUser;
     await context.close();
   });
 
@@ -255,7 +256,7 @@ test.describe("Patient Management", () => {
       },
     );
 
-    const otherUser = await otherRegisterRes.json();
+    const _otherUser = await otherRegisterRes.json();
 
     // Login as other doctor
     const otherLoginRes = await page.request.post(`${API_URL}/auth/login`, {
@@ -281,16 +282,15 @@ test.describe("Patient Management", () => {
   });
 });
 
-async function loginAsDoctor(page: any) {
+async function loginAsDoctor(page: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
   // Try to login or navigate to dashboard
-  const loginUrl = page.url().includes("/login");
   // Prefer injecting token into localStorage for reliable auth during e2e
-  const storedToken = typeof window !== "undefined" ? null : null;
   if (!(await page.url()).includes("/dashboard")) {
     // token variable should be set in the test scope (authToken)
     if (typeof authToken !== "undefined" && authToken) {
       // Construct a minimal user object for the frontend
-      const storedUser = (globalThis as any).__E2E_REG_USER || {
+      const e2eUser = (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER as Record<string, unknown> | undefined;
+      const storedUser = e2eUser || {
         id: null,
         email: null,
         clinicId: clinicId || null,
@@ -298,10 +298,10 @@ async function loginAsDoctor(page: any) {
       };
 
       const userForStorage = JSON.stringify({
-        id: storedUser.id || null,
-        email: storedUser.email || null,
-        clinicId: storedUser.clinicId || clinicId || null,
-        role: storedUser.role || "DOCTOR",
+        id: (storedUser?.id as string) || null,
+        email: (storedUser?.email as string) || null,
+        clinicId: (storedUser?.clinicId as string) || clinicId || null,
+        role: (storedUser?.role as string) || "DOCTOR",
       });
 
       await page.addInitScript(

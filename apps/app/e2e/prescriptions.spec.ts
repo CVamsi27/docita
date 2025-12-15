@@ -52,7 +52,7 @@ test.describe("Prescriptions", () => {
       }
 
       const clinic = await clinicRes.json();
-      clinicId = clinic.id;
+      _clinicId = clinic.id;
 
       // Try to assign doctor to clinic if not already assigned
       if (doctorId && clinic.id) {

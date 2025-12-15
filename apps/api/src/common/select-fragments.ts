@@ -215,6 +215,7 @@ export const APPOINTMENT_DETAIL_SELECT = {
   status: true,
   type: true,
   notes: true,
+  consultationNotes: true,
   chiefComplaint: true,
   clinicalImpression: true,
   differentialDiagnosis: true,

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ClinicsService } from './clinics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ClinicTier, Prisma } from '@workspace/db';
+import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
 
 interface CreateClinicDto {
   name: string;
@@ -23,6 +23,7 @@ interface CreateClinicDto {
   email: string;
   logo?: string;
   tier?: ClinicTier;
+  type?: ClinicType;
   settings?: Prisma.InputJsonValue;
 }
 
@@ -33,6 +34,7 @@ interface UpdateClinicDto {
   email?: string;
   logo?: string;
   tier?: ClinicTier;
+  type?: ClinicType;
   settings?: Prisma.InputJsonValue;
 }
 
@@ -48,6 +50,7 @@ interface ClinicSettingsDto {
   closingTime?: string;
   workingDays?: string[];
   consultationDuration?: number;
+  type?: ClinicType;
 }
 
 interface AuthRequest {

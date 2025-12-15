@@ -50,7 +50,7 @@ test.describe("Invoices", () => {
       }
 
       const clinic = await clinicRes.json();
-      clinicId = clinic.id;
+      _clinicId = clinic.id;
 
       // Try to assign doctor to clinic
       if (doctorId && clinic.id) {

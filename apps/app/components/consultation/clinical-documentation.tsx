@@ -176,6 +176,7 @@ export interface ClinicalDocumentationProps {
   onSave?: () => void;
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
+  clinicType?: string;
 }
 
 type TabValue =
@@ -217,6 +218,7 @@ export function ClinicalDocumentation({
   onSave,
   isFocusMode,
   onToggleFocus,
+  clinicType,
 }: ClinicalDocumentationProps) {
   const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
   const [isSaving, setIsSaving] = useState(false);
@@ -938,25 +940,29 @@ export function ClinicalDocumentation({
                 <span>Chief Complaint</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-            >
-              <div className="flex items-center gap-2 py-2">
-                <FileText className="h-4 w-4" />
-                <span>History</span>
-              </div>
-            </TabsTrigger>
+            {clinicType !== "DENTAL" && (
+              <>
+                <TabsTrigger
+                  value="history"
+                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+                >
+                  <div className="flex items-center gap-2 py-2">
+                    <FileText className="h-4 w-4" />
+                    <span>History</span>
+                  </div>
+                </TabsTrigger>
 
-            <TabsTrigger
-              value="examination"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
-            >
-              <div className="flex items-center gap-2 py-2">
-                <Stethoscope className="h-4 w-4" />
-                <span>Examination</span>
-              </div>
-            </TabsTrigger>
+                <TabsTrigger
+                  value="examination"
+                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
+                >
+                  <div className="flex items-center gap-2 py-2">
+                    <Stethoscope className="h-4 w-4" />
+                    <span>Examination</span>
+                  </div>
+                </TabsTrigger>
+              </>
+            )}
             <TabsTrigger
               value="diagnosis"
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 pb-0"
@@ -1051,114 +1057,116 @@ export function ClinicalDocumentation({
             </div>
           </TabsContent>
           {/* History Tab */}
-          <TabsContent value="history" className="mt-0 p-6">
-            <div className="space-y-6">
-              {patientData && (
-                <PatientMedicalHistory patient={patientData} readOnly={false} />
-              )}
+          {clinicType !== "DENTAL" && (
+            <TabsContent value="history" className="mt-0 p-6">
+              <div className="space-y-6">
+                {patientData && (
+                  <PatientMedicalHistory patient={patientData} readOnly={false} />
+                )}
 
-              {/* History of Present Illness */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    History of Present Illness (HPI){" "}
-                    <span className="text-destructive">*</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Detailed chronological description using OLDCARTS format
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Onset, Location, Duration, Character, Aggravating/Relieving factors, Radiation, Timing, Severity. Include pertinent positives and negatives."
-                    value={clinicalNote.historyOfPresentIllness}
-                    onChange={(e) =>
-                      updateClinicalNote(
-                        "historyOfPresentIllness",
-                        e.target.value,
-                      )
-                    }
-                    className="min-h-[150px]"
-                    required
-                  />
-                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
-                    <Info className="h-3 w-3 mt-0.5" />
-                    <span>
-                      Use OPQRST format: Onset, Provocation/Palliation, Quality,
-                      Region/Radiation, Severity, Timing
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Past Medical History - Free text for additional notes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Past Medical History Notes
-                  </CardTitle>
-                  <CardDescription>
-                    Additional notes about previous illnesses, medications, or
-                    relevant history not captured in structured data
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Additional medical history notes, current medications, previous hospitalizations..."
-                    value={clinicalNote.pastMedicalHistory}
-                    onChange={(e) =>
-                      updateClinicalNote("pastMedicalHistory", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Review of Systems */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-primary" />
-                    Review of Systems (ROS)
-                  </CardTitle>
-                  <CardDescription>
-                    Systematic review of body systems
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
-                    value={clinicalNote.reviewOfSystems}
-                    onChange={(e) =>
-                      updateClinicalNote("reviewOfSystems", e.target.value)
-                    }
-                    className="min-h-[100px]"
-                  />
-                  <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
-                    <p className="text-xs text-muted-foreground font-medium mb-2">
-                      Quick ROS Checklist:
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
-                      <span>• Constitutional</span>
-                      <span>• Eyes/Vision</span>
-                      <span>• ENT</span>
-                      <span>• Cardiovascular</span>
-                      <span>• Respiratory</span>
-                      <span>• GI</span>
-                      <span>• Genitourinary</span>
-                      <span>• Musculoskeletal</span>
-                      <span>• Skin</span>
-                      <span>• Neurological</span>
-                      <span>• Psychiatric</span>
-                      <span>• Endocrine</span>
+                {/* History of Present Illness */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-primary" />
+                      History of Present Illness (HPI){" "}
+                      <span className="text-destructive">*</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Detailed chronological description using OLDCARTS format
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Onset, Location, Duration, Character, Aggravating/Relieving factors, Radiation, Timing, Severity. Include pertinent positives and negatives."
+                      value={clinicalNote.historyOfPresentIllness}
+                      onChange={(e) =>
+                        updateClinicalNote(
+                          "historyOfPresentIllness",
+                          e.target.value,
+                        )
+                      }
+                      className="min-h-[150px]"
+                      required
+                    />
+                    <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                      <Info className="h-3 w-3 mt-0.5" />
+                      <span>
+                        Use OPQRST format: Onset, Provocation/Palliation, Quality,
+                        Region/Radiation, Severity, Timing
+                      </span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>{" "}
+                  </CardContent>
+                </Card>
+
+                {/* Past Medical History - Free text for additional notes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Past Medical History Notes
+                    </CardTitle>
+                    <CardDescription>
+                      Additional notes about previous illnesses, medications, or
+                      relevant history not captured in structured data
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Additional medical history notes, current medications, previous hospitalizations..."
+                      value={clinicalNote.pastMedicalHistory}
+                      onChange={(e) =>
+                        updateClinicalNote("pastMedicalHistory", e.target.value)
+                      }
+                      className="min-h-[100px]"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Review of Systems */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Stethoscope className="h-5 w-5 text-primary" />
+                      Review of Systems (ROS)
+                    </CardTitle>
+                    <CardDescription>
+                      Systematic review of body systems
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Constitutional, Eyes, ENT, Cardiovascular, Respiratory, GI, GU, MSK, Skin, Neurological, Psychiatric..."
+                      value={clinicalNote.reviewOfSystems}
+                      onChange={(e) =>
+                        updateClinicalNote("reviewOfSystems", e.target.value)
+                      }
+                      className="min-h-[100px]"
+                    />
+                    <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-muted">
+                      <p className="text-xs text-muted-foreground font-medium mb-2">
+                        Quick ROS Checklist:
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs text-muted-foreground">
+                        <span>• Constitutional</span>
+                        <span>• Eyes/Vision</span>
+                        <span>• ENT</span>
+                        <span>• Cardiovascular</span>
+                        <span>• Respiratory</span>
+                        <span>• GI</span>
+                        <span>• Genitourinary</span>
+                        <span>• Musculoskeletal</span>
+                        <span>• Skin</span>
+                        <span>• Neurological</span>
+                        <span>• Psychiatric</span>
+                        <span>• Endocrine</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}{" "}
           {/* Vitals Tab - Hospital Grade */}
           <TabsContent value="vitals" className="mt-0 p-6 space-y-4">
             <form
@@ -1399,20 +1407,22 @@ export function ClinicalDocumentation({
             </form>
           </TabsContent>{" "}
           {/* Examination Tab */}
-          <TabsContent value="examination" className="mt-0 p-6">
-            <div className="space-y-6">
-              <ClinicalExamination
-                generalExamination={clinicalNote.generalExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-                systemicExamination={clinicalNote.systemicExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-                onGeneralExaminationChange={(data) =>
-                  updateClinicalNote("generalExamination", data)
-                }
-                onSystemicExaminationChange={(data) =>
-                  updateClinicalNote("systemicExamination", data)
-                }
-              />
-            </div>
-          </TabsContent>{" "}
+          {clinicType !== "DENTAL" && (
+            <TabsContent value="examination" className="mt-0 p-6">
+              <div className="space-y-6">
+                <ClinicalExamination
+                  generalExamination={clinicalNote.generalExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                  systemicExamination={clinicalNote.systemicExamination as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                  onGeneralExaminationChange={(data) =>
+                    updateClinicalNote("generalExamination", data)
+                  }
+                  onSystemicExaminationChange={(data) =>
+                    updateClinicalNote("systemicExamination", data)
+                  }
+                />
+              </div>
+            </TabsContent>
+          )}{" "}
           {/* Diagnosis Tab */}
           <TabsContent value="diagnosis" className="mt-0 p-6">
             <div className="space-y-6">

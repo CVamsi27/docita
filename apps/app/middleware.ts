@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
   // Check for token in localStorage via client-side check is not possible in middleware

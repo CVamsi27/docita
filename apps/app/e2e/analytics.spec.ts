@@ -42,7 +42,7 @@ test.describe("Analytics", () => {
       });
 
       const clinic = await clinicRes.json();
-      clinicId = clinic.id;
+      _clinicId = clinic.id;
     } catch {
       serverAvailable = false;
     }

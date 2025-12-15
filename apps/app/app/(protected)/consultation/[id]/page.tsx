@@ -38,6 +38,9 @@ export default function ConsultationPage() {
   const { data: appointmentData, isLoading: loading } =
     apiHooks.useAppointment(appointmentId);
 
+  // Fetch clinic settings to get clinic type
+  const { data: clinic } = apiHooks.useClinicSettings();
+
   // Fetch past appointments for consultation history
   const { data: patientAppointments = [] } = apiHooks.usePatientAppointments(
     appointmentData?.patientId || "",
@@ -235,6 +238,7 @@ export default function ConsultationPage() {
             onSave={handleSave}
             isFocusMode={!isSidebarOpen}
             onToggleFocus={() => setIsSidebarOpen(!isSidebarOpen)}
+            clinicType={clinic?.type}
           />
         </div>
       </div>

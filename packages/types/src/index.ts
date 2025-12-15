@@ -1447,6 +1447,9 @@ export const appointmentSchema = z.object({
   type: appointmentTypeSchema,
   priority: appointmentPrioritySchema.default("ROUTINE").optional(),
 
+  // Consultation Notes - Doctor's notes saved per consultation
+  consultationNotes: z.string().optional(), // Clinical notes and observations from this consultation
+
   // Legacy fields (kept for backward compatibility)
   notes: z.string().optional(),
   observations: z.string().optional(),
@@ -1612,6 +1615,15 @@ export const clinicTierSchema = z.enum([
 ]);
 export type ClinicTier = z.infer<typeof clinicTierSchema>;
 
+export const clinicTypeSchema = z.enum(["GENERAL", "DENTAL", "SPECIALTY"]);
+export type ClinicType = z.infer<typeof clinicTypeSchema>;
+
+export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
+  GENERAL: "General Practice",
+  DENTAL: "Dental Clinic",
+  SPECIALTY: "Specialty Clinic",
+};
+
 export const clinicSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -1621,6 +1633,7 @@ export const clinicSchema = z.object({
   email: z.string().email().optional(),
   website: z.string().optional(),
   tier: clinicTierSchema,
+  type: clinicTypeSchema.default("GENERAL"),
   logo: z.string().optional(),
   settings: z
     .object({

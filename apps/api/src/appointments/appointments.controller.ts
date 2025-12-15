@@ -66,10 +66,13 @@ interface CreateAppointmentDto {
   status: AppointmentStatus;
   type: AppointmentType;
   priority?: AppointmentPriority;
+  consultationNotes?: string;
   notes?: string;
   observations?: string;
 }
 type UpdateAppointmentDto = Partial<CreateAppointmentDto> & {
+  // Consultation Notes
+  consultationNotes?: string;
   // Clinical Documentation - Subjective
   chiefComplaint?: string;
   historyOfPresentIllness?: string;

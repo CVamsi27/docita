@@ -26,7 +26,7 @@ test.describe("Medical Coding", () => {
 
       const userData = await registerRes.json();
       authToken = userData.access_token;
-      doctorId = userData.user.id;
+      _doctorId = userData.user.id;
     } catch {
       serverAvailable = false;
     }

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
 test.describe("Dashboard", () => {
-  let user: any;
+  let user: Record<string, unknown>;
 
   test.beforeEach(async ({ page, context }) => {
     // Setup: Create user via API
@@ -20,7 +20,7 @@ test.describe("Dashboard", () => {
     });
 
     expect(registerRes.ok()).toBeTruthy();
-    user = await registerRes.json();
+    user = (await registerRes.json()) as Record<string, unknown>;
 
     // Login: navigate and wait for inputs
     await page.goto("/login");
@@ -33,13 +33,13 @@ test.describe("Dashboard", () => {
     }
 
     // Set the frontend's expected keys so the app recognizes the logged-in user
-    const token = user.access_token || user.accessToken;
-    const userObj = user.user || user;
+    const token = (user?.access_token as string) || (user?.accessToken as string);
+    const userObj = (user?.user as Record<string, unknown>) || user;
     const userForStorage = JSON.stringify({
-      id: userObj?.id || userObj?.userId || null,
-      email: userObj?.email || null,
-      clinicId: userObj?.clinicId || null,
-      role: userObj?.role || "DOCTOR",
+      id: (userObj?.id as string) || (userObj?.userId as string) || null,
+      email: (userObj?.email as string) || null,
+      clinicId: (userObj?.clinicId as string) || null,
+      role: (userObj?.role as string) || "DOCTOR",
     });
 
     await page.addInitScript(

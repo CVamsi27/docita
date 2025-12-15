@@ -220,6 +220,10 @@ export class PatientsRepository extends BaseRepository<Patient> {
         type: true,
         notes: true,
         observations: true,
+        consultationNotes: true,
+        chiefComplaint: true,
+        provisionalDiagnosis: true,
+        treatmentPlan: true,
         createdAt: true,
         updatedAt: true,
         doctor: {
@@ -227,6 +231,23 @@ export class PatientsRepository extends BaseRepository<Patient> {
             id: true,
             name: true,
           },
+        },
+        diagnoses: {
+          select: {
+            id: true,
+            icdCodeId: true,
+            notes: true,
+            isPrimary: true,
+            createdAt: true,
+            icdCode: {
+              select: {
+                id: true,
+                code: true,
+                description: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' as const },
         },
         vitalSign: true,
         prescription: {
@@ -249,6 +270,80 @@ export class PatientsRepository extends BaseRepository<Patient> {
       },
       orderBy: { startTime: 'desc' },
     });
+  }
+
+  /**
+   * Get patient statistics including visit counts, adherence, etc.
+   */
+  async getStatistics(patientId: string) {
+    const appointments = await this.prisma.appointment.findMany({
+      where: { patientId },
+      select: {
+        id: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+      },
+      orderBy: { startTime: 'desc' },
+    });
+
+    const now = new Date();
+    const completedAppointments = appointments.filter(
+      (apt) => apt.status === 'completed',
+    );
+    const scheduledAppointments = appointments.filter(
+      (apt) => apt.status === 'scheduled' || apt.status === 'confirmed',
+    );
+
+    // Calculate total visits (completed appointments)
+    const totalVisits = completedAppointments.length;
+
+    // Find last visit (most recent completed appointment)
+    const lastVisit =
+      completedAppointments.length > 0
+        ? completedAppointments[0].startTime
+        : null;
+
+    // Find next visit (next scheduled/confirmed appointment in the future)
+    const upcomingAppointments = scheduledAppointments.filter(
+      (apt) => new Date(apt.startTime) > now,
+    );
+    upcomingAppointments.sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    );
+    const nextVisit =
+      upcomingAppointments.length > 0
+        ? upcomingAppointments[0].startTime
+        : null;
+
+    // Calculate adherence rate
+    // Adherence = completed / (completed + no-show + cancelled)
+    const noShowAppointments = appointments.filter(
+      (apt) => apt.status === 'no-show',
+    ).length;
+    const cancelledAppointments = appointments.filter(
+      (apt) => apt.status === 'cancelled',
+    ).length;
+
+    const totalRelevantAppointments =
+      totalVisits + noShowAppointments + cancelledAppointments;
+
+    const adherenceRate =
+      totalRelevantAppointments > 0
+        ? Math.round((totalVisits / totalRelevantAppointments) * 100)
+        : 0;
+
+    return {
+      totalVisits,
+      lastVisit,
+      nextVisit,
+      adherenceRate,
+      totalAppointments: appointments.length,
+      scheduledAppointments: scheduledAppointments.length,
+      noShowCount: noShowAppointments,
+      cancelledCount: cancelledAppointments,
+    };
   }
 
   /**

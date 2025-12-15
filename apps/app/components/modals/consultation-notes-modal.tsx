@@ -32,6 +32,7 @@ interface PastConsultation {
   type: string;
   doctorName?: string;
   observations?: string;
+  consultationNotes?: string;
   chiefComplaint?: string;
 }
 
@@ -54,28 +55,38 @@ export function ConsultationNotesModal({
   const appointments: Appointment[] =
     ((appointmentsResponse as { items?: Appointment[] }) || {}).items || [];
 
-  // Filter past consultations (exclude current appointment)
+  // Get current appointment data
+  const currentAppointment = appointments.find((apt) => apt.id === appointmentId);
+
+  // Filter past consultations (exclude current appointment, include all completed ones with notes)
   const pastConsultations: PastConsultation[] = appointments
-    .filter((apt) => apt.id !== appointmentId && apt.status === "completed")
+    .filter(
+      (apt) =>
+        apt.id !== appointmentId &&
+        apt.status === "completed" &&
+        (apt.consultationNotes || apt.observations || apt.chiefComplaint),
+    )
     .map((apt) => ({
       id: apt.id || "",
       date: new Date(apt.startTime || ""),
       type: apt.type || "",
       doctorName: apt.doctor?.name,
+      consultationNotes: apt.consultationNotes || "",
       observations: apt.observations || "",
       chiefComplaint: apt.chiefComplaint || "",
     }))
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 5); // Show last 5 consultations
+    .sort((a, b) => b.date.getTime() - a.date.getTime()); // Show all past consultations with notes
 
   const { loading, observations, setObservations, handleSubmit } =
     useObservationsForm({
       appointmentId,
+      initialObservations: currentAppointment?.consultationNotes || "",
+      fieldName: "consultationNotes", // Save to consultationNotes field
       onObservationsSaved: async () => {
         if (onSaved) {
           await onSaved();
         }
-        setTimeout(() => onOpenChange(false), 100);
+        onOpenChange(false);
       },
     });
 
@@ -86,8 +97,8 @@ export function ConsultationNotesModal({
     }));
   };
 
-  const handleNotesSubmit = () => {
-    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  const handleNotesSubmit = async () => {
+    await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
   };
 
   return (
@@ -101,7 +112,7 @@ export function ConsultationNotesModal({
       contentClassName="max-w-7xl max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-6 py-4">
-        {/* Previous Consultation History */}
+        {/* Consultation Notes History */}
         {pastConsultations.length > 0 && (
           <Collapsible open={historyExpanded} onOpenChange={setHistoryExpanded}>
             <CollapsibleTrigger asChild>
@@ -112,7 +123,7 @@ export function ConsultationNotesModal({
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span className="font-medium">
-                    Previous Consultations ({pastConsultations.length})
+                    Consultation History ({pastConsultations.length})
                   </span>
                 </div>
                 <ChevronDown
@@ -123,7 +134,7 @@ export function ConsultationNotesModal({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-2">
-              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                 {pastConsultations.map((consultation) => (
                   <Collapsible
                     key={consultation.id}
@@ -162,9 +173,9 @@ export function ConsultationNotesModal({
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="p-3 pt-0 border-t bg-muted/10">
+                        <div className="p-3 pt-0 border-t bg-muted/10 space-y-3">
                           {consultation.chiefComplaint && (
-                            <div className="mb-2">
+                            <div>
                               <span className="text-xs font-medium text-muted-foreground">
                                 Chief Complaint:
                               </span>
@@ -173,17 +184,20 @@ export function ConsultationNotesModal({
                               </p>
                             </div>
                           )}
-                          {consultation.observations && (
+                          {(consultation.consultationNotes ||
+                            consultation.observations) && (
                             <div>
                               <span className="text-xs font-medium text-muted-foreground">
-                                Observations:
+                                Notes:
                               </span>
                               <p className="text-sm mt-1 whitespace-pre-wrap">
-                                {consultation.observations}
+                                {consultation.consultationNotes ||
+                                  consultation.observations}
                               </p>
                             </div>
                           )}
-                          {!consultation.observations &&
+                          {!consultation.consultationNotes &&
+                            !consultation.observations &&
                             !consultation.chiefComplaint && (
                               <p className="text-sm text-muted-foreground italic">
                                 No notes recorded

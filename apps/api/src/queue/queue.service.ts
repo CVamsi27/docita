@@ -264,6 +264,14 @@ export class QueueService {
       throw new BadRequestException('Cannot check in a cancelled appointment');
     }
 
+    if (appointment.status === 'no-show') {
+      throw new BadRequestException('Cannot check in a no-show appointment');
+    }
+
+    if (appointment.status === 'completed') {
+      throw new BadRequestException('Cannot check in a completed appointment');
+    }
+
     const settings = await this.getQueueSettings(appointment.clinicId);
     const now = new Date();
     const scheduledTime = new Date(appointment.startTime);

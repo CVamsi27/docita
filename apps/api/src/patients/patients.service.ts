@@ -82,6 +82,13 @@ export class PatientsService {
   }
 
   /**
+   * Get patient statistics (visits, adherence, etc.)
+   */
+  async getStatistics(patientId: string) {
+    return this.patientsRepository.getStatistics(patientId);
+  }
+
+  /**
    * Get all documents for a patient
    */
   async getDocuments(patientId: string) {

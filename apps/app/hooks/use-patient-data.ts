@@ -6,10 +6,22 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
+interface PatientStatistics {
+  totalVisits: number;
+  lastVisit: string | null;
+  nextVisit: string | null;
+  adherenceRate: number;
+  totalAppointments: number;
+  scheduledAppointments: number;
+  noShowCount: number;
+  cancelledCount: number;
+}
+
 interface UsePatientDataReturn {
   patient: PatientWithMedicalHistory | null;
   appointments: Appointment[];
   documents: Document[];
+  statistics: PatientStatistics | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -21,6 +33,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
   );
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [statistics, setStatistics] = useState<PatientStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedRef = useRef<string | null>(null);
@@ -76,6 +89,34 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         console.error("Invalid documents data:", documentsData);
         setDocuments([]);
       }
+
+      // Fetch patient statistics
+      const statisticsData = await apiFetch<PatientStatistics>(
+        `/patients/${patientId}/statistics`,
+      );
+
+      if (
+        statisticsData &&
+        typeof statisticsData === 'object' &&
+        !("error" in statisticsData) &&
+        !("statusCode" in statisticsData) &&
+        "totalVisits" in statisticsData
+      ) {
+        setStatistics(statisticsData);
+      } else {
+        console.error("Invalid statistics data:", statisticsData);
+        // Set default statistics instead of null
+        setStatistics({
+          totalVisits: 0,
+          lastVisit: null,
+          nextVisit: null,
+          adherenceRate: 0,
+          totalAppointments: 0,
+          scheduledAppointments: 0,
+          noShowCount: 0,
+          cancelledCount: 0,
+        });
+      }
     } catch (err) {
       console.error("Failed to load patient data:", err);
       const errorMessage =
@@ -105,6 +146,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
     patient,
     appointments,
     documents,
+    statistics,
     loading,
     error,
     refetch: loadPatientData,

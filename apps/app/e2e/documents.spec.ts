@@ -43,7 +43,7 @@ test.describe("Documents", () => {
       });
 
       const clinic = await clinicRes.json();
-      clinicId = clinic.id;
+      _clinicId = clinic.id;
 
       // Create patient
       const patientRes = await request.post(`${API_URL}/patients`, {

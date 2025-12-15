@@ -7,12 +7,14 @@ interface UseObservationsFormProps {
   appointmentId: string;
   initialObservations?: string;
   onObservationsSaved?: () => void;
+  fieldName?: "observations" | "consultationNotes"; // Which field to save to
 }
 
 export function useObservationsForm({
   appointmentId,
   initialObservations = "",
   onObservationsSaved,
+  fieldName = "consultationNotes", // Default to consultationNotes for new implementation
 }: UseObservationsFormProps) {
   const queryClient = useQueryClient();
   const updateObservations =
@@ -23,7 +25,13 @@ export function useObservationsForm({
     e.preventDefault();
 
     try {
-      await updateObservations.mutateAsync({ observations });
+      // Save to the appropriate field (consultationNotes or observations)
+      const payload =
+        fieldName === "consultationNotes"
+          ? { consultationNotes: observations }
+          : { observations };
+
+      await updateObservations.mutateAsync(payload);
 
       // Invalidate and refetch queries to refresh data immediately
       await queryClient.invalidateQueries({
@@ -40,10 +48,10 @@ export function useObservationsForm({
       if (onSuccess) {
         await onSuccess();
       }
-      toast.success("Observations saved successfully");
+      toast.success("Notes saved successfully");
     } catch (error) {
-      console.error("Failed to save observations:", error);
-      toast.error("Failed to save observations");
+      console.error("Failed to save notes:", error);
+      toast.error("Failed to save notes");
     }
   };
 

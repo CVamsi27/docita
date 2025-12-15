@@ -421,6 +421,7 @@ model Appointment {
   status                  String        @default("scheduled")
   type                    String
   notes                   String?
+  consultationNotes       String?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   clinicId                String
@@ -696,6 +697,7 @@ model Clinic {
   logo                    String?
   active                  Boolean                  @default(true)
   tier                    ClinicTier               @default(CAPTURE)
+  type                    ClinicType               @default(GENERAL)
   settings                Json?
   timezone                String                   @default("Asia/Kolkata")
   locale                  String                   @default("en-IN")
@@ -1380,6 +1382,12 @@ enum ClinicTier {
   PLUS
   PRO
   ENTERPRISE
+}
+
+enum ClinicType {
+  GENERAL
+  DENTAL
+  SPECIALTY
 }
 
 enum IntelligenceAddon {

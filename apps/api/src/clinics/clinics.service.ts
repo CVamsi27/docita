@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ClinicTier, Prisma } from '@workspace/db';
+import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 interface CreateClinicData {
@@ -10,6 +10,7 @@ interface CreateClinicData {
   email: string;
   logo?: string;
   tier?: ClinicTier;
+  type?: ClinicType;
   settings?: Prisma.InputJsonValue;
 }
 
@@ -20,6 +21,7 @@ interface UpdateClinicData {
   email?: string;
   logo?: string;
   tier?: ClinicTier;
+  type?: ClinicType;
   settings?: Prisma.InputJsonValue;
 }
 
@@ -35,6 +37,7 @@ interface ClinicSettingsData {
   closingTime?: string;
   workingDays?: string[];
   consultationDuration?: number;
+  type?: ClinicType;
 }
 
 @Injectable()
@@ -50,6 +53,7 @@ export class ClinicsService {
         email: data.email,
         logo: data.logo,
         tier: data.tier || ClinicTier.CORE, // Default to CORE for basic functionality
+        type: data.type,
         settings: data.settings ?? Prisma.JsonNull,
         active: true,
         // For local development/e2e runs, default clinics to a trial subscription
@@ -124,6 +128,7 @@ export class ClinicsService {
         email: data.email,
         logo: data.logo,
         tier: data.tier,
+        type: data.type,
         settings: data.settings,
       },
     });
@@ -138,6 +143,7 @@ export class ClinicsService {
         phone: data.phoneNumber || data.phone,
         email: data.email,
         website: data.website,
+        type: data.type,
         settings: {
           description: data.description,
           openingTime: data.openingTime,

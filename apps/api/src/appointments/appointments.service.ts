@@ -16,6 +16,8 @@ const appointmentFullSelect = {
   // Legacy fields
   notes: true,
   observations: true,
+  // Consultation Notes
+  consultationNotes: true,
   // Clinical Documentation - Subjective
   chiefComplaint: true,
   historyOfPresentIllness: true,
@@ -237,8 +239,20 @@ export class AppointmentsService {
     } = dataRecord;
 
     // Check if clinical documentation fields are being saved
+    // Auto-completion criteria:
+    // 1. Appointment status must be 'in-progress'
+    // 2. At least one clinical documentation field is being saved
+    // 3. Clinical documentation fields include:
+    //    - chiefComplaint
+    //    - consultationNotes
+    //    - historyOfPresentIllness
+    //    - provisionalDiagnosis
+    //    - finalDiagnosis
+    //    - treatmentPlan
+    //    - clinicalImpression
     const clinicalDocFields = [
       'chiefComplaint',
+      'consultationNotes',
       'historyOfPresentIllness',
       'provisionalDiagnosis',
       'finalDiagnosis',

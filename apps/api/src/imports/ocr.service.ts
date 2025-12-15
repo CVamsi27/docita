@@ -61,7 +61,7 @@ export class OCRService {
    */
   async extractTextFromImage(imagePath: string): Promise<ExtractedText> {
     let worker: any = null;
-    
+
     try {
       // First, verify the file exists and is readable
       try {
@@ -111,7 +111,7 @@ export class OCRService {
       let result;
       try {
         result = await Promise.race([
-          (worker as any).recognize(processedBuffer),
+          worker.recognize(processedBuffer),
           new Promise<never>((_, reject) =>
             setTimeout(
               () => reject(new Error('Tesseract recognition timeout')),
@@ -131,11 +131,8 @@ export class OCRService {
         };
       }
 
-      const extractedText = (result as any).data.text || '';
-      const confidence = Math.min(
-        ((result as any).data.confidence || 0) / 100,
-        0.95,
-      ); // Convert to 0-1 scale, cap at 0.95
+      const extractedText = result.data.text || '';
+      const confidence = Math.min((result.data.confidence || 0) / 100, 0.95); // Convert to 0-1 scale, cap at 0.95
 
       this.logger.log(
         `[OCR] Extraction completed - confidence: ${confidence.toFixed(2)}, text length: ${extractedText.length}`,
@@ -164,7 +161,7 @@ export class OCRService {
       // Ensure worker is cleaned up
       if (worker) {
         try {
-          await (worker as any).terminate();
+          await worker.terminate();
           this.logger.debug('[OCR] Worker terminated');
         } catch (e) {
           this.logger.warn(`[OCR] Failed to terminate worker: ${e}`);
