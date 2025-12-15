@@ -4,6 +4,7 @@ import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';
 import { BulkImportService } from './bulk-import.service';
+import { OCRService } from './ocr.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AIModule } from '../modules/ai/ai.module';
 
@@ -20,7 +21,7 @@ import { AIModule } from '../modules/ai/ai.module';
     }),
   ],
   controllers: [ImportsController, BulkImportController],
-  providers: [ImportsService, BulkImportService],
+  providers: [ImportsService, BulkImportService, OCRService],
   exports: [BulkImportService],
 })
 export class ImportsModule {}
