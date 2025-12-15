@@ -31,7 +31,9 @@ export class OCRService {
 
       // If image is too small, upscale it
       if (metadata.width && metadata.width < 800) {
-        const targetWidth = Math.round((metadata.width * 1200) / (metadata.width || 1));
+        const targetWidth = Math.round(
+          (metadata.width * 1200) / (metadata.width || 1),
+        );
         pipeline = pipeline.resize(targetWidth, null, {
           withoutEnlargement: false,
         });
@@ -197,7 +199,7 @@ export class OCRService {
       }
 
       // Extract blood type
-      const bloodMatch = line.match(/(O|A|B|AB)[\s\-]*([\+\-])/i);
+      const bloodMatch = line.match(/(O|A|B|AB)[\s-]*([+-])/i);
       if (bloodMatch && !fields.bloodType) {
         fields.bloodType = `${bloodMatch[1]}${bloodMatch[2]}`;
       }
