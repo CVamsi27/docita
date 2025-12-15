@@ -427,7 +427,7 @@ export class ImportsService {
       const ocrResult = await this.ocrService.extractTextFromImage(filePath);
 
       // Parse extracted text into structured fields
-      const fields = this.ocrService.parseExtractedText(ocrResult.text);
+      let fields = this.ocrService.parseExtractedText(ocrResult.text);
 
       // Generate confidence scores for each field
       const fieldConfidence = this.ocrService.generateConfidenceScores(
@@ -437,6 +437,11 @@ export class ImportsService {
 
       // Clean up temp file
       await unlink(filePath).catch(() => {});
+
+      const message =
+        ocrResult.confidence > 0.3
+          ? 'Document scanned using Tesseract OCR with image preprocessing'
+          : 'Unable to extract text from image. Please manually enter or verify highlighted fields below.';
 
       return {
         success: true,
@@ -473,8 +478,7 @@ export class ImportsService {
           fieldConfidence,
         },
         suggestedCorrections: {},
-        message:
-          'Document scanned using Tesseract OCR with image preprocessing',
+        message,
       };
     } catch (error) {
       await unlink(filePath).catch(() => {});
