@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
@@ -52,6 +52,8 @@ interface MappedPatientData {
 
 @Injectable()
 export class ImportsService {
+  private readonly logger = new Logger(ImportsService.name);
+
   constructor(
     private prisma: PrismaService,
     private ocrService: OCRService,
@@ -422,9 +424,13 @@ export class ImportsService {
    * Includes image preprocessing for better accuracy (75-85%)
    */
   async extractFromMedicalDocumentBasic(filePath: string): Promise<any> {
+    this.logger.log(`[IMPORT] Starting OCR extraction for file: ${filePath}`);
     try {
       // Use Tesseract.js with preprocessing
       const ocrResult = await this.ocrService.extractTextFromImage(filePath);
+      this.logger.log(
+        `[IMPORT] OCR extraction complete - confidence: ${ocrResult.confidence.toFixed(2)}, text length: ${ocrResult.text.length}`,
+      );
 
       // Parse extracted text into structured fields
       let fields = this.ocrService.parseExtractedText(ocrResult.text);
@@ -442,6 +448,10 @@ export class ImportsService {
         ocrResult.confidence > 0.3
           ? 'Document scanned using Tesseract OCR with image preprocessing'
           : 'Unable to extract text from image. Please manually enter or verify highlighted fields below.';
+
+      this.logger.log(
+        `[IMPORT] Returning response with ${Object.keys(fieldConfidence).length} fields`,
+      );
 
       return {
         success: true,
@@ -481,6 +491,10 @@ export class ImportsService {
         message,
       };
     } catch (error) {
+      this.logger.error(
+        `[IMPORT] OCR extraction failed: ${error.message}`,
+        error.stack,
+      );
       await unlink(filePath).catch(() => {});
       throw new BadRequestException(
         `Failed to process image: ${error.message}`,
