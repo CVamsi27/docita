@@ -17,7 +17,8 @@ COPY apps/api ./apps/api
 
 # Install ONLY production dependencies
 # pnpm will fetch from cache if available, or download from registry
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+# Skip optional dependencies (tesseract.js) to keep image lean
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts --no-optional
 
 # Copy pre-built dist from host build (these come from `pnpm build` on host)
 COPY --chown=nodejs:nodejs packages/db/dist ./packages/db/dist

@@ -1,8 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as Tesseract from 'tesseract.js';
 import sharp from 'sharp';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+
+// Dynamically load tesseract.js - it may not be available in slim Docker builds
+let Tesseract: any = null;
+let tesseractAvailable = false;
+
+try {
+  Tesseract = require('tesseract.js');
+  tesseractAvailable = true;
+} catch (e) {
+  // tesseract.js not available - OCR will use fallback mode
+}
 
 interface ExtractedText {
   text: string;
@@ -63,6 +73,18 @@ export class OCRService {
     let worker: any = null;
 
     try {
+      // Check if tesseract is available
+      if (!tesseractAvailable || !Tesseract) {
+        this.logger.warn(
+          '[OCR] Tesseract.js not available in this build. Using fallback extraction.',
+        );
+        return {
+          text: '',
+          confidence: 0.05,
+          documentType: 'GENERAL',
+        };
+      }
+
       // First, verify the file exists and is readable
       try {
         await fs.readFile(imagePath);
@@ -128,6 +150,47 @@ export class OCRService {
           text: '',
           confidence: 0.15,
           documentType: 'GENERAL',
+        };
+      }
+
+      const extractedText = result.data.text || '';
+      const confidence = Math.min((result.data.confidence || 0) / 100, 0.95); // Convert to 0-1 scale, cap at 0.95
+
+      this.logger.log(
+        `[OCR] Extraction completed - confidence: ${confidence.toFixed(2)}, text length: ${extractedText.length}`,
+      );
+
+      // Determine document type based on extracted text
+      const documentType = this.detectDocumentType(extractedText);
+
+      return {
+        text: extractedText,
+        confidence: Math.max(confidence, 0.1), // Ensure minimum 0.1 confidence
+        documentType,
+      };
+    } catch (error) {
+      this.logger.error(
+        `[OCR] Unexpected error: ${error.message}`,
+        error.stack,
+      );
+      // Return empty text with low confidence instead of throwing
+      return {
+        text: '',
+        confidence: 0.1,
+        documentType: 'GENERAL',
+      };
+    } finally {
+      // Ensure worker is cleaned up
+      if (worker) {
+        try {
+          await worker.terminate();
+          this.logger.debug('[OCR] Worker terminated');
+        } catch (e) {
+          this.logger.warn(`[OCR] Failed to terminate worker: ${e}`);
+        }
+      }
+    }
+  }
         };
       }
 

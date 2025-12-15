@@ -22,8 +22,9 @@ COPY packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
 # Install production dependencies with frozen lockfile
 # ✅ OPTIMIZATION: BuildKit cache mount for pnpm store - reuses downloaded packages across builds
 # This expensive operation is cached across source code changes
+# Skip tesseract.js (moved to optional dependencies) to keep image size ~240MB instead of ~360MB
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --ignore-scripts
+    pnpm install --frozen-lockfile --prod --ignore-scripts --no-optional
 
 # Generate Prisma client (required for runtime)
 # Using npx with explicit version since prisma CLI is a dev dependency
