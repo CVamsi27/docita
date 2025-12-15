@@ -4,10 +4,12 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 
 // Dynamically load tesseract.js - it may not be available in slim Docker builds
+
 let Tesseract: any = null;
 let tesseractAvailable = false;
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Tesseract = require('tesseract.js');
   tesseractAvailable = true;
 } catch (e) {
@@ -150,47 +152,6 @@ export class OCRService {
           text: '',
           confidence: 0.15,
           documentType: 'GENERAL',
-        };
-      }
-
-      const extractedText = result.data.text || '';
-      const confidence = Math.min((result.data.confidence || 0) / 100, 0.95); // Convert to 0-1 scale, cap at 0.95
-
-      this.logger.log(
-        `[OCR] Extraction completed - confidence: ${confidence.toFixed(2)}, text length: ${extractedText.length}`,
-      );
-
-      // Determine document type based on extracted text
-      const documentType = this.detectDocumentType(extractedText);
-
-      return {
-        text: extractedText,
-        confidence: Math.max(confidence, 0.1), // Ensure minimum 0.1 confidence
-        documentType,
-      };
-    } catch (error) {
-      this.logger.error(
-        `[OCR] Unexpected error: ${error.message}`,
-        error.stack,
-      );
-      // Return empty text with low confidence instead of throwing
-      return {
-        text: '',
-        confidence: 0.1,
-        documentType: 'GENERAL',
-      };
-    } finally {
-      // Ensure worker is cleaned up
-      if (worker) {
-        try {
-          await worker.terminate();
-          this.logger.debug('[OCR] Worker terminated');
-        } catch (e) {
-          this.logger.warn(`[OCR] Failed to terminate worker: ${e}`);
-        }
-      }
-    }
-  }
         };
       }
 
@@ -442,7 +403,6 @@ export class OCRService {
     fields: Record<string, any>,
   ): Record<string, number> {
     const scores: Record<string, number> = {};
-    const lowerText = extractedText.toLowerCase();
 
     // Default scores based on field presence and text quality
     scores.firstName = fields.firstName ? 0.7 : 0.2;
