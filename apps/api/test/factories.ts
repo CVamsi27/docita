@@ -34,6 +34,7 @@ export const factories = {
         phone: `987654${String(Date.now()).slice(-4)}`,
         email: `clinic${Date.now()}@test.com`,
         tier: 'CORE',
+        type: 'GENERAL',
         ...overrides,
       },
     });
