@@ -50,7 +50,7 @@ Alternative Flows:
 // Line 238
 async checkInAppointment(clinicId: string, appointmentId: string) {
   // ... validation logic ...
-  
+
   // Create queue token
   const queueToken = await this.prisma.queueToken.create({
     data: {
@@ -97,7 +97,7 @@ checkInAppointment(
 
 ### Frontend Implementation
 
-**File**: [`apps/app/app/(protected)/appointments/page.tsx`](../apps/app/app/(protected)/appointments/page.tsx)
+**File**: [`apps/app/app/(protected)/appointments/page.tsx`](<../apps/app/app/(protected)/appointments/page.tsx>)
 
 ```typescript
 // Line 148
@@ -146,7 +146,7 @@ const handleCheckIn = useCallback(
 
 ```typescript
 // Line 345 - When updating queue token status
-if (data.status === 'in-progress') {
+if (data.status === "in-progress") {
   updateData.calledAt = now;
   updateData.consultationStart = now;
 
@@ -154,7 +154,7 @@ if (data.status === 'in-progress') {
   if (token.appointmentId) {
     await this.prisma.appointment.update({
       where: { id: token.appointmentId },
-      data: { status: 'in-progress' },
+      data: { status: "in-progress" },
     });
   }
 }
@@ -166,19 +166,19 @@ if (data.status === 'in-progress') {
 // Line 470 - callNextPatient() method
 async callNextPatient(clinicId: string, doctorId?: string) {
   // ... logic to find next patient ...
-  
+
   if (scheduledToken) {
     return this.update(scheduledToken.id, { status: 'in-progress' });
   }
-  
+
   if (walkInToken) {
     return this.update(walkInToken.id, { status: 'in-progress' });
   }
-  
+
   if (anyWaiting) {
     return this.update(anyWaiting.id, { status: 'in-progress' });
   }
-  
+
   return null;
 }
 ```
@@ -187,7 +187,7 @@ async callNextPatient(clinicId: string, doctorId?: string) {
 
 ### Frontend Implementation
 
-**File**: [`apps/app/app/(protected)/queue/page.tsx`](../apps/app/app/(protected)/queue/page.tsx)
+**File**: [`apps/app/app/(protected)/queue/page.tsx`](<../apps/app/app/(protected)/queue/page.tsx>)
 
 ```typescript
 // Line 57
@@ -270,16 +270,16 @@ const handleUpdateStatus = async (id: string, status: string) => {
 //    - treatmentPlan
 //    - clinicalImpression
 const clinicalDocFields = [
-  'chiefComplaint',
-  'historyOfPresentIllness',
-  'provisionalDiagnosis',
-  'finalDiagnosis',
-  'treatmentPlan',
-  'clinicalImpression',
+  "chiefComplaint",
+  "historyOfPresentIllness",
+  "provisionalDiagnosis",
+  "finalDiagnosis",
+  "treatmentPlan",
+  "clinicalImpression",
 ];
 
 const hasClinicalDoc = clinicalDocFields.some(
-  (field) => dataRecord[field] !== undefined && dataRecord[field] !== '',
+  (field) => dataRecord[field] !== undefined && dataRecord[field] !== "",
 );
 
 // If clinical documentation is being saved, check if we should auto-complete
@@ -289,8 +289,8 @@ if (hasClinicalDoc) {
     where: { id },
     select: { status: true },
   });
-  
-  if (currentAppointment?.status === 'in-progress') {
+
+  if (currentAppointment?.status === "in-progress") {
     shouldAutoComplete = true;
   }
 }
@@ -298,9 +298,9 @@ if (hasClinicalDoc) {
 const updateData: Prisma.AppointmentUpdateInput = {
   ...(rest as object),
   // ... other fields ...
-  
+
   // Auto-complete if saving clinical documentation for in-progress appointment
-  ...(shouldAutoComplete && { status: 'completed' }),
+  ...(shouldAutoComplete && { status: "completed" }),
 };
 
 const appointment = await this.prisma.appointment.update({
@@ -314,10 +314,10 @@ if (shouldAutoComplete) {
   await this.prisma.queueToken.updateMany({
     where: {
       appointmentId: id,
-      status: 'in-progress',
+      status: "in-progress",
     },
     data: {
-      status: 'completed',
+      status: "completed",
       completedAt: new Date(),
     },
   });
@@ -343,7 +343,7 @@ When any clinical documentation form is saved (Chief Complaint, Treatment Plan, 
 **When**: Staff manually cancels an appointment  
 **Where**: Appointments page
 
-**File**: [`apps/app/app/(protected)/appointments/page.tsx`](../apps/app/app/(protected)/appointments/page.tsx)
+**File**: [`apps/app/app/(protected)/appointments/page.tsx`](<../apps/app/app/(protected)/appointments/page.tsx>)
 
 ```typescript
 // Line 178
@@ -390,13 +390,13 @@ const handleNoShowAppointment = async () => {
 
 ## Summary Table
 
-| Transition | Trigger | Location | Automatic/Manual |
-|------------|---------|----------|------------------|
-| scheduled → confirmed | Check-in | Queue check-in | Manual (staff) |
-| confirmed → in-progress | Start consultation | Queue management / Consultation start | Manual (doctor) |
-| in-progress → completed | Save clinical notes | Consultation page | **Automatic** |
-| scheduled → cancelled | Cancel appointment | Appointments page | Manual (staff) |
-| scheduled → no-show | Mark no-show | Appointments page | Manual (staff) |
+| Transition              | Trigger             | Location                              | Automatic/Manual |
+| ----------------------- | ------------------- | ------------------------------------- | ---------------- |
+| scheduled → confirmed   | Check-in            | Queue check-in                        | Manual (staff)   |
+| confirmed → in-progress | Start consultation  | Queue management / Consultation start | Manual (doctor)  |
+| in-progress → completed | Save clinical notes | Consultation page                     | **Automatic**    |
+| scheduled → cancelled   | Cancel appointment  | Appointments page                     | Manual (staff)   |
+| scheduled → no-show     | Mark no-show        | Appointments page                     | Manual (staff)   |
 
 ---
 
