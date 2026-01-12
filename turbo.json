@@ -23,7 +23,12 @@
     "test": {
       "dependsOn": ["build"],
       "outputs": ["coverage/**"],
-      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"],
+      "inputs": [
+        "src/**/*.tsx",
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "test/**/*.tsx"
+      ],
       "env": ["API_URL", "APP_URL", "CI"]
     },
     "dev": {

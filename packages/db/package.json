@@ -9,6 +9,11 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:safe": "bash scripts/safe-migrate.sh deploy",
+    "db:migrate:dry-run": "bash scripts/safe-migrate.sh dry-run",
+    "db:migrate:generate": "bash scripts/safe-migrate.sh generate",
+    "db:check-integrity": "npx ts-node scripts/check-integrity.ts",
+    "db:backup": "bash scripts/safe-migrate.sh backup",
     "db:studio": "prisma studio",
     "seed:cpt": "npx ts-node prisma/seed-cpt.ts",
     "seed:icd": "npx ts-node prisma/seed-icd.ts"

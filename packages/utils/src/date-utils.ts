@@ -7,28 +7,27 @@
  */
 
 import {
-  format,
-  parse,
-  parseISO,
-  isValid,
-  differenceInYears,
-  differenceInMinutes,
   addMinutes,
-  startOfDay,
+  differenceInMinutes,
+  differenceInMonths,
+  differenceInYears,
   endOfDay,
-  startOfMonth,
   endOfMonth,
-  startOfWeek,
   endOfWeek,
-  subDays,
-  subMonths,
-  isSameDay,
+  format,
   isAfter,
   isBefore,
-  addDays,
-  addMonths,
+  isSameDay,
+  isValid,
+  parse,
+  parseISO,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subMonths,
 } from "date-fns";
-import { formatInTimeZone, toZonedTime, fromZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 
 // =====================================================
 // DEFAULT CONFIGURATION
@@ -569,6 +568,49 @@ export function calculateAge(
   if (!dob) return null;
 
   return differenceInYears(new Date(), dob);
+}
+
+/**
+ * Calculate precise medical age string.
+ * < 2 years: "Xm" (e.g. 14m)
+ * < 5 years: "Xy Ym" (e.g. 3y 6m)
+ * >= 5 years: "Xy" (e.g. 24y)
+ */
+export function calculateMedicalAge(
+  dateOfBirth: string | Date | null | undefined,
+): string {
+  const dob = parseDate(dateOfBirth);
+  if (!dob) return "N/A";
+
+  const today = new Date();
+  const years = differenceInYears(today, dob);
+
+  if (years < 2) {
+    const totalMonths = differenceInMonths(today, dob);
+    return `${totalMonths}m`;
+  }
+
+  if (years < 5) {
+    const months = differenceInMonths(today, dob) % 12;
+    return `${years}y ${months}m`;
+  }
+
+  return `${years}y`;
+}
+
+/**
+ * Calculate age in months at a specific date.
+ */
+export function calculateAgeInMonths(
+  dateOfBirth: string | Date | null | undefined,
+  atDate: string | Date = new Date(),
+): number {
+  const dob = parseDate(dateOfBirth);
+  const target = parseDate(atDate);
+
+  if (!dob || !target) return 0;
+
+  return differenceInMonths(target, dob);
 }
 
 /**

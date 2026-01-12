@@ -1,0 +1,19 @@
+{
+    "name": "@workspace/data-access",
+    "version": "0.0.0",
+    "type": "module",
+    "private": true,
+    "exports": {
+        ".": "./src/index.ts",
+        "./client": "./src/lib/api-client.ts"
+    },
+    "dependencies": {
+        "@workspace/types": "workspace:*",
+        "zod": "^3.25.76"
+    },
+    "devDependencies": {
+        "@workspace/typescript-config": "workspace:*",
+        "@types/node": "20.19.9",
+        "typescript": "^5.9.2"
+    }
+}

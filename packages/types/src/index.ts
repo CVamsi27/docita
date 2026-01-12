@@ -9,22 +9,23 @@ import { PaymentMethod, PaymentMode } from "./payments";
 export * from "./tier";
 
 // App Configuration
-export * from "./config";
 
 // Import Types
-export * from "./imports";
 
 // Payment Types
 export * from "./payments";
-
-// Date/Time Utilities
-export * from "./date-utils";
 
 // Medical Validation
 export * from "./medical-validation";
 
 // Contraindication Checking
 export * from "./contraindication-checker";
+
+// Procedure Codes (CDT & CPT)
+export * from "./procedure-codes";
+
+// Document Types (including X-rays)
+export * from "./document-types";
 
 // Team Member Types
 export * from "./members";
@@ -44,6 +45,84 @@ export const userRoleSchema = z.enum([
   "ADMIN_DOCTOR",
 ]);
 export type UserRole = z.infer<typeof userRoleSchema>;
+
+// Gender
+export const genderSchema = z.enum([
+  "MALE",
+  "FEMALE",
+  "OTHER",
+  "INTERSEX",
+  "NON_BINARY",
+  "PREFER_NOT_TO_SAY",
+]);
+export type Gender = z.infer<typeof genderSchema>;
+
+// Blood Group
+export const bloodGroupSchema = z.enum([
+  "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
+]);
+export type BloodGroup = z.infer<typeof bloodGroupSchema>;
+
+// Appointment Status
+export const appointmentStatusSchema = z.enum([
+  "scheduled", "confirmed", "checked-in", "in-progress", "completed", "cancelled", "no-show"
+]);
+export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
+
+// Appointment Type
+export const appointmentTypeSchema = z.enum([
+  "consultation", "follow-up", "check-up", "emergency", "procedure"
+]);
+export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
+
+// Weekday
+export const weekdaySchema = z.enum([
+  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+]);
+export type Weekday = z.infer<typeof weekdaySchema>;
+
+// Invoice Status
+export const invoiceStatusSchema = z.enum([
+  "pending", "paid", "overdue", "cancelled"
+]);
+export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+
+// Payment Status
+export const paymentStatusSchema = z.enum([
+  "created", "pending", "paid", "failed", "expired", "cancelled"
+]);
+export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
+
+// Custom Field & Template Field Types
+export const customFieldTypeSchema = z.enum([
+  "text", "number", "select", "date", "checkbox", "textarea"
+]);
+export type CustomFieldType = z.infer<typeof customFieldTypeSchema>;
+
+export const templateFieldTypeSchema = z.enum([
+  "text", "number", "select", "checkbox", "textarea"
+]);
+export type TemplateFieldType = z.infer<typeof templateFieldTypeSchema>;
+
+// WhatsApp Message Type
+export const whatsappMessageTypeSchema = z.enum([
+  "reminder", "receipt", "payment-link", "general"
+]);
+export type WhatsappMessageType = z.infer<typeof whatsappMessageTypeSchema>;
+
+// Currency
+export const currencySchema = z.enum([
+  "INR", "USD", "GBP", "EUR", "AUD", "CAD", "SGD", "AED", "ZAR"
+]);
+export type Currency = z.infer<typeof currencySchema>;
+
+// Facility Type
+export const facilityTypeSchema = z.enum(["CLINIC", "HOSPITAL"]);
+export type FacilityTypeType = z.infer<typeof facilityTypeSchema>;
+export enum FacilityType {
+  CLINIC = "CLINIC",
+  HOSPITAL = "HOSPITAL",
+}
 
 // Medical Specializations
 export const specializationSchema = z.enum([
@@ -139,6 +218,291 @@ export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
   CHIEF_SURGEON: "Chief Surgeon",
   ATTENDING_PHYSICIAN: "Attending Physician",
   FELLOW: "Fellow",
+};
+
+// Clinic Type Configuration
+export const clinicTypeSchema = z.enum([
+  "GENERAL",
+  "DENTAL",
+  "PEDIATRIC",
+  "ORTHOPEDIC",
+  "CARDIOLOGY",
+  "DERMATOLOGY",
+  "ENT",
+  "GYNECOLOGY",
+  "OPHTHALMOLOGY",
+  "PSYCHIATRY",
+  "SPECIALTY",
+]);
+
+export type ClinicType = z.infer<typeof clinicTypeSchema>;
+
+export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
+  GENERAL: "General Medicine",
+  DENTAL: "Dental Clinic",
+  PEDIATRIC: "Pediatric Care",
+  ORTHOPEDIC: "Orthopedic Center",
+  CARDIOLOGY: "Cardiology Center",
+  DERMATOLOGY: "Dermatology Clinic",
+  ENT: "ENT Specialist",
+  GYNECOLOGY: "Gynecology Clinic",
+  OPHTHALMOLOGY: "Eye Care Center",
+  PSYCHIATRY: "Mental Health Clinic",
+  SPECIALTY: "Specialty Clinic",
+};
+
+// Feature matrix defining available consultation features per clinic type
+export interface ClinicTypeFeatures {
+  // Core consultation features
+  chiefComplaint: boolean;
+  history: boolean;
+  examination: boolean;
+  vitals: boolean;
+  diagnosis: boolean;
+  treatment: boolean;
+  investigations: boolean;
+  prescriptions: boolean;
+  procedures: boolean;
+  followUp: boolean;
+
+  // Specialty-specific features
+  dentalChart?: boolean; // DENTAL: Tooth chart and oral cavity mapping
+  growthChart?: boolean; // PEDIATRIC: Height/weight percentile tracking
+  ophthalmologyExam?: boolean; // OPHTHALMOLOGY: Refraction, visual acuity, IOP, fundoscopy
+  cardiologyExam?: boolean; // CARDIOLOGY: ECG, Echo, Stress test documentation
+  gynecologyExam?: boolean; // GYNECOLOGY: GTPAL, LMP/EDD calculator, antenatal record
+  dermatologyExam?: boolean; // DERMATOLOGY: Lesion tracking, body map, Fitzpatrick scale
+  mentalStatusExam?: boolean; // PSYCHIATRY: Mental state assessment
+  psychiatryExam?: boolean; // PSYCHIATRY: Psychiatry mental status examination
+  visionTest?: boolean; // OPHTHALMOLOGY: Visual acuity and eye tests
+  ecgMonitoring?: boolean; // CARDIOLOGY: ECG and cardiac monitoring
+  imagingReview?: boolean; // ORTHOPEDIC, ENT: X-ray/MRI review interface
+  skinLesionTracking?: boolean; // DERMATOLOGY: Photo documentation of lesions
+  prenatalCare?: boolean; // GYNECOLOGY: Pregnancy tracking and prenatal visits
+
+  // Workflow customizations
+  requiresSpecialtyNotes?: boolean; // Flag for specialty-specific documentation
+  allowsMinorProcedures?: boolean; // For clinics that perform procedures
+  multiVisitTracking?: boolean; // For conditions requiring follow-up series
+
+  // Display preferences
+  description?: string; // Human-readable description of clinic type
+  recommendedDuration?: number; // Suggested appointment duration in minutes
+}
+
+export const CLINIC_TYPE_FEATURES: Record<ClinicType, ClinicTypeFeatures> = {
+  GENERAL: {
+    chiefComplaint: true,
+    history: true,
+    examination: true,
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true,
+    prescriptions: true,
+    procedures: true,
+    followUp: true,
+    requiresSpecialtyNotes: false,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true,
+    description:
+      "Full-featured general practice with all consultation features enabled. Suitable for family medicine, internal medicine, and general practitioners.",
+    recommendedDuration: 15,
+  },
+  DENTAL: {
+    chiefComplaint: true,
+    history: false, // Simplified workflow - dental doesn't need detailed medical history in every visit
+    examination: false, // Dental uses specialized oral examination via dental chart
+    vitals: true, // Basic vitals like BP for sedation/extraction cases
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // X-rays, OPG, CBCT
+    prescriptions: true,
+    procedures: true, // Fillings, extractions, RCT, etc.
+    followUp: true,
+    dentalChart: true, // Interactive tooth chart for documentation
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // For RCT, orthodontics, etc.
+    description:
+      "Streamlined dental workflow with tooth charting. Optimized for oral health, dental procedures, and treatment planning.",
+    recommendedDuration: 30,
+  },
+  PEDIATRIC: {
+    chiefComplaint: true,
+    history: true,
+    examination: true,
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true,
+    prescriptions: true,
+    procedures: true, // Immunizations, minor procedures
+    followUp: true,
+    growthChart: true, // Height, weight, BMI percentiles tracking
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Well-child visits, vaccination schedules
+    description:
+      "Pediatric care with growth tracking and developmental milestones. Includes immunization management and age-appropriate dosing.",
+    recommendedDuration: 20,
+  },
+  ORTHOPEDIC: {
+    chiefComplaint: true,
+    history: true,
+    examination: true, // Musculoskeletal examination
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // X-rays, MRI, CT scans
+    prescriptions: true,
+    procedures: true, // Joint injections, casting, minor procedures
+    followUp: true,
+    imagingReview: true, // Built-in imaging review interface
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Post-op follow-ups, physiotherapy tracking
+    description:
+      "Orthopedic care with imaging review capabilities. Optimized for musculoskeletal conditions, fractures, and joint disorders.",
+    recommendedDuration: 20,
+  },
+  CARDIOLOGY: {
+    chiefComplaint: true,
+    history: true, // Detailed cardiac history crucial
+    examination: true, // Cardiovascular examination
+    vitals: true, // BP, HR, O2 saturation critical
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // ECG, Echo, Stress tests, Angiography
+    prescriptions: true,
+    procedures: true, // Pacemaker checks, cardioversion, etc.
+    followUp: true,
+    ecgMonitoring: true, // ECG documentation and trending
+    cardiologyExam: true, // Dedicated cardiology examination forms
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Chronic heart disease management
+    description:
+      "Cardiology practice with ECG monitoring and cardiac vital tracking. Designed for heart disease management and cardiac procedures.",
+    recommendedDuration: 30,
+  },
+  DERMATOLOGY: {
+    chiefComplaint: true,
+    history: true,
+    examination: true, // Skin examination
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // Biopsy, patch testing
+    prescriptions: true,
+    procedures: true, // Biopsies, excisions, cryotherapy
+    followUp: true,
+    dermatologyExam: true, // Lesion tracking, body map, Fitzpatrick scale
+    skinLesionTracking: true, // Photo documentation with before/after
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Acne treatment, psoriasis management
+    description:
+      "Dermatology clinic with photo documentation for skin lesions. Optimized for skin conditions and cosmetic procedures.",
+    recommendedDuration: 15,
+  },
+  ENT: {
+    chiefComplaint: true,
+    history: true,
+    examination: true, // ENT-specific examination
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // Audiometry, endoscopy, imaging
+    prescriptions: true,
+    procedures: true, // Foreign body removal, cauterization, etc.
+    followUp: true,
+    imagingReview: true, // CT/MRI for sinuses, neck
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Chronic sinusitis, hearing loss management
+    description:
+      "ENT specialist practice with imaging review. Designed for ear, nose, throat conditions and related procedures.",
+    recommendedDuration: 20,
+  },
+  GYNECOLOGY: {
+    chiefComplaint: true,
+    history: true, // Menstrual, obstetric, sexual history
+    examination: true, // Gynecological examination
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // Ultrasound, Pap smear, hormone tests
+    prescriptions: true,
+    procedures: true, // IUD insertion, colposcopy, etc.
+    followUp: true,
+    gynecologyExam: true, // GTPAL, LMP/EDD calculator, antenatal record
+    prenatalCare: true, // Pregnancy tracking and prenatal visits
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Prenatal care, fertility treatment
+    description:
+      "Gynecology and obstetrics practice with prenatal care tracking. Optimized for women's health and pregnancy management.",
+    recommendedDuration: 20,
+  },
+  OPHTHALMOLOGY: {
+    chiefComplaint: true,
+    history: true, // Ocular and systemic history
+    examination: true, // Eye examination
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true, // OCT, fundus photography, visual fields
+    prescriptions: true,
+    procedures: true, // Laser procedures, injections
+    followUp: true,
+    visionTest: true, // Visual acuity, refraction, color vision tests
+    ophthalmologyExam: true, // Dedicated ophthalmology examination form
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true, // Glaucoma, cataract follow-ups
+    description:
+      "Eye care center with vision testing and ocular imaging. Designed for comprehensive eye examinations and treatments.",
+    recommendedDuration: 25,
+  },
+  PSYCHIATRY: {
+    chiefComplaint: true,
+    history: true, // Psychiatric and social history crucial
+    examination: true, // Mental status examination
+    vitals: true, // Some medications require monitoring
+    diagnosis: true,
+    treatment: true, // Therapy notes, treatment plans
+    investigations: true, // Psychological assessments, lab work for medications
+    prescriptions: true, // Psychiatric medications
+    procedures: false, // No physical procedures in psychiatry
+    followUp: true,
+    mentalStatusExam: true, // Structured mental status assessment
+    psychiatryExam: true, // Specialized mental status exam with risk assessment
+    requiresSpecialtyNotes: true,
+    allowsMinorProcedures: false,
+    multiVisitTracking: true, // Therapy sessions, medication management
+    description:
+      "Mental health clinic with mental status examination tools. Optimized for psychiatric consultations and therapy tracking.",
+    recommendedDuration: 45,
+  },
+  SPECIALTY: {
+    chiefComplaint: true,
+    history: true,
+    examination: true,
+    vitals: true,
+    diagnosis: true,
+    treatment: true,
+    investigations: true,
+    prescriptions: true,
+    procedures: true,
+    followUp: true,
+    requiresSpecialtyNotes: false,
+    allowsMinorProcedures: true,
+    multiVisitTracking: true,
+    description:
+      "Flexible specialty clinic configuration with all features enabled. Suitable for any medical specialty not covered by specific types.",
+    recommendedDuration: 20,
+  },
 };
 
 // Doctor Education Schema
@@ -334,18 +698,7 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>;
 
 // ============================================================================
-// Patient Schemas
-// ============================================================================
-
-export const genderSchema = z.enum([
-  "MALE",
-  "FEMALE",
-  "OTHER",
-  "INTERSEX",
-  "NON_BINARY",
-  "PREFER_NOT_TO_SAY",
-]);
-export type Gender = z.infer<typeof genderSchema>;
+// genderSchema consolidated at top
 
 export const GENDER_LABELS: Record<Gender, string> = {
   MALE: "Male",
@@ -686,6 +1039,7 @@ export const patientSchema = z.object({
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
   tags: z.array(patientTagSchema).optional(),
+  customData: z.record(z.any()).optional(),
 });
 export type Patient = z.infer<typeof patientSchema>;
 
@@ -1175,6 +1529,7 @@ export type ClinicalInvestigation = z.infer<typeof clinicalInvestigationSchema>;
 export const clinicalNoteSchema = z.object({
   // Subjective
   chiefComplaint: z.string().optional(),
+  treatmentHistory: z.string().optional(), // Previous treatments attempted for the current condition
   historyOfPresentIllness: z.string().optional(),
   pastMedicalHistory: z.string().optional(),
   familyHistory: z.string().optional(),
@@ -1187,6 +1542,15 @@ export const clinicalNoteSchema = z.object({
   vitalSigns: vitalSignSchema.optional(),
   generalExamination: generalExaminationSchema.optional(),
   systemicExamination: systemicExaminationSchema.optional(),
+
+  // Specialty-specific data
+  dentalChart: z.any().optional(), // DentalChartData - using any for now to avoid circular deps
+  growthData: z.any().optional(), // GrowthChartData - pediatric growth tracking
+  ophthalmologyExam: z.any().optional(), // OphthalmologyExamData - ophthalmology examination
+  cardiologyExam: z.any().optional(), // CardiologyExamData - cardiology examination
+  gynecologyExam: z.any().optional(), // GynecologyExamData - gynecology/obstetrics examination
+  dermatologyExam: z.any().optional(), // DermatologyExamData - dermatology examination
+  psychiatryExam: z.any().optional(), // PsychiatryExamData - psychiatry mental status examination
 
   // Assessment
   provisionalDiagnosis: z.string().optional(),
@@ -1212,6 +1576,468 @@ export const clinicalNoteSchema = z.object({
   patientEducation: z.string().optional(),
 });
 export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
+
+// ============================================================================
+// Dental Chart Schema
+// ============================================================================
+
+export const toothConditionSchema = z.enum([
+  "HEALTHY",
+  "CARIES",
+  "FILLED",
+  "MISSING",
+  "CROWN",
+  "ROOT_CANAL",
+  "IMPLANT",
+  "BRIDGE",
+  "EXTRACTED",
+  "IMPACTED",
+]);
+export type ToothCondition = z.infer<typeof toothConditionSchema>;
+
+export const toothSurfaceSchema = z.enum(["M", "O", "D", "L", "B", "ALL"]);
+export type ToothSurface = z.infer<typeof toothSurfaceSchema>;
+
+export const toothEntrySchema = z.object({
+  toothNumber: z.number(),
+  condition: toothConditionSchema,
+  surface: toothSurfaceSchema.optional(),
+  notes: z.string().optional(),
+  proposedTreatment: z.string().optional(),
+});
+export type ToothEntry = z.infer<typeof toothEntrySchema>;
+
+export const dentalChartSchema = z.object({
+  dentitionType: z.enum(["ADULT", "PRIMARY", "MIXED"]),
+  numberingSystem: z.enum(["FDI", "UNIVERSAL"]),
+  teeth: z.array(toothEntrySchema),
+  generalNotes: z.string().optional(),
+});
+export type DentalChartData = z.infer<typeof dentalChartSchema>;
+
+// ============================================================================
+// Growth Chart Schemas (for Pediatric)
+// ============================================================================
+
+export const growthMeasurementSchema = z.object({
+  id: z.string().optional(),
+  date: z.string(), // ISO date string
+  ageMonths: z.number(), // Age in months at measurement
+  weight: z.number().optional(), // kg
+  height: z.number().optional(), // cm
+  headCircumference: z.number().optional(), // cm (for 0-36 months)
+  bmi: z.number().optional(), // Calculated
+  notes: z.string().optional(),
+});
+export type GrowthMeasurement = z.infer<typeof growthMeasurementSchema>;
+
+export const growthChartDataSchema = z.object({
+  patientGender: z.enum(["MALE", "FEMALE"]),
+  measurements: z.array(growthMeasurementSchema),
+  generalNotes: z.string().optional(),
+});
+export type GrowthChartData = z.infer<typeof growthChartDataSchema>;
+
+// ============================================================================
+// Ophthalmology Exam Schemas
+// ============================================================================
+
+export const refractionEyeDataSchema = z.object({
+  sphere: z.number().optional(), // Diopters
+  cylinder: z.number().optional(), // Diopters
+  axis: z.number().min(0).max(180).optional(), // Degrees
+  add: z.number().optional(), // Addition for near vision
+  prism: z.string().optional(), // Prism correction
+});
+export type RefractionEyeData = z.infer<typeof refractionEyeDataSchema>;
+
+export const refractionDataSchema = z.object({
+  od: refractionEyeDataSchema.optional(), // Oculus Dexter (Right Eye)
+  os: refractionEyeDataSchema.optional(), // Oculus Sinister (Left Eye)
+  pupillaryDistance: z.number().optional(), // PD in mm
+  notes: z.string().optional(),
+});
+export type RefractionData = z.infer<typeof refractionDataSchema>;
+
+export const visualAcuityEyeDataSchema = z.object({
+  uncorrected: z.string().optional(), // e.g., "20/40"
+  corrected: z.string().optional(), // e.g., "20/20"
+  pinhole: z.string().optional(),
+});
+export type VisualAcuityEyeData = z.infer<typeof visualAcuityEyeDataSchema>;
+
+export const visualAcuityBothEyesDataSchema = z.object({
+  uncorrected: z.string().optional(),
+  corrected: z.string().optional(),
+});
+
+export const visualAcuityDataSchema = z.object({
+  od: visualAcuityEyeDataSchema.optional(), // Right Eye
+  os: visualAcuityEyeDataSchema.optional(), // Left Eye
+  ou: visualAcuityBothEyesDataSchema.optional(), // Both Eyes
+  notes: z.string().optional(),
+});
+export type VisualAcuityData = z.infer<typeof visualAcuityDataSchema>;
+
+export const iopDataSchema = z.object({
+  od: z.number().optional(), // mmHg
+  os: z.number().optional(), // mmHg
+  method: z.enum(["NCT", "Applanation", "iCare", "Other"]).optional(),
+  time: z.string().optional(),
+  notes: z.string().optional(),
+});
+export type IOPData = z.infer<typeof iopDataSchema>;
+
+export const ophthalmologyExamDataSchema = z.object({
+  visualAcuity: visualAcuityDataSchema.optional(),
+  refraction: refractionDataSchema.optional(),
+  iop: iopDataSchema.optional(),
+  anteriorSegment: z
+    .object({
+      od: z.string().optional(),
+      os: z.string().optional(),
+    })
+    .optional(),
+  posteriorSegment: z
+    .object({
+      od: z.string().optional(),
+      os: z.string().optional(),
+    })
+    .optional(),
+  diagnosis: z.string().optional(),
+  plan: z.string().optional(),
+  generalNotes: z.string().optional(),
+});
+export type OphthalmologyExamData = z.infer<typeof ophthalmologyExamDataSchema>;
+
+// ============================================================================
+// Cardiology Exam Schemas
+// ============================================================================
+
+export const ecgDataSchema = z.object({
+  heartRate: z.number().optional(), // bpm
+  rhythm: z
+    .enum([
+      "Sinus",
+      "Atrial Fibrillation",
+      "Atrial Flutter",
+      "SVT",
+      "Ventricular Tachycardia",
+      "Other",
+    ])
+    .optional(),
+  prInterval: z.number().optional(), // ms
+  qrsDuration: z.number().optional(), // ms
+  qtInterval: z.number().optional(), // ms
+  qtcInterval: z.number().optional(), // ms (corrected QT)
+  axis: z
+    .enum([
+      "Normal",
+      "Left Axis Deviation",
+      "Right Axis Deviation",
+      "Extreme Axis Deviation",
+    ])
+    .optional(),
+  interpretation: z.string().optional(),
+  findings: z.string().optional(),
+  imageUrl: z.string().optional(),
+  performedAt: z.string().optional(),
+});
+export type ECGData = z.infer<typeof ecgDataSchema>;
+
+export const echoDataSchema = z.object({
+  lvef: z.number().optional(), // %
+  lviddDiastole: z.number().optional(), // mm
+  lvisdSystole: z.number().optional(), // mm
+  septumThickness: z.number().optional(), // mm
+  posteriorWallThickness: z.number().optional(), // mm
+  lvMass: z.number().optional(), // grams
+  mitralValve: z.string().optional(),
+  aorticValve: z.string().optional(),
+  tricuspidValve: z.string().optional(),
+  pulmonicValve: z.string().optional(),
+  leftAtriumSize: z.number().optional(), // mm
+  aorticRoot: z.number().optional(), // mm
+  rightVentricle: z.string().optional(),
+  pericardium: z.string().optional(),
+  dopplerFindings: z.string().optional(),
+  interpretation: z.string().optional(),
+  imageUrl: z.string().optional(),
+  performedAt: z.string().optional(),
+});
+export type EchoData = z.infer<typeof echoDataSchema>;
+
+export const stressTestDataSchema = z.object({
+  testType: z
+    .enum(["Treadmill", "Pharmacological", "Stress Echo", "Nuclear"])
+    .optional(),
+  protocol: z.string().optional(),
+  maxHeartRate: z.number().optional(), // bpm
+  targetHeartRate: z.number().optional(), // bpm
+  duration: z.number().optional(), // minutes
+  mets: z.number().optional(),
+  stSegmentChanges: z.boolean().optional(),
+  symptoms: z.string().optional(),
+  bloodPressureResponse: z.string().optional(),
+  conclusion: z.string().optional(),
+  performedAt: z.string().optional(),
+});
+export type StressTestData = z.infer<typeof stressTestDataSchema>;
+
+export const cardiologyExamDataSchema = z.object({
+  ecg: ecgDataSchema.optional(),
+  echo: echoDataSchema.optional(),
+  stressTest: stressTestDataSchema.optional(),
+  clinicalAssessment: z.string().optional(),
+  riskFactors: z.string().optional(),
+  medications: z.string().optional(),
+  plan: z.string().optional(),
+  generalNotes: z.string().optional(),
+});
+export type CardiologyExamData = z.infer<typeof cardiologyExamDataSchema>;
+
+// ============================================================================
+// Gynecology/Obstetrics Examination Schemas
+// ============================================================================
+
+// Menstrual History
+export const menstrualHistoryDataSchema = z.object({
+  lmp: z.string().optional(), // Last Menstrual Period (ISO date)
+  cycleLength: z.number().optional(), // Days
+  cycleDuration: z.number().optional(), // Days of bleeding
+  regularity: z.enum(["regular", "irregular"]).optional(),
+  flow: z.enum(["scanty", "normal", "heavy"]).optional(),
+  dysmenorrhea: z.enum(["none", "mild", "moderate", "severe"]).optional(),
+  notes: z.string().optional(),
+});
+export type MenstrualHistoryData = z.infer<typeof menstrualHistoryDataSchema>;
+
+// Obstetric History (GTPAL)
+export const obstetricHistoryDataSchema = z.object({
+  gravida: z.number().optional(), // Total pregnancies
+  term: z.number().optional(), // Full-term deliveries (≥37 weeks)
+  preterm: z.number().optional(), // Preterm deliveries (<37 weeks)
+  abortions: z.number().optional(), // Spontaneous + induced abortions
+  living: z.number().optional(), // Living children
+  edd: z.string().optional(), // Expected Date of Delivery (ISO date)
+  gestationalAge: z.string().optional(), // e.g., "28w 3d"
+  previousPregnancyNotes: z.string().optional(),
+});
+export type ObstetricHistoryData = z.infer<typeof obstetricHistoryDataSchema>;
+
+// Antenatal Record
+export const antenatalRecordDataSchema = z.object({
+  fundalHeight: z.number().optional(), // cm
+  fetalHeartRate: z.number().optional(), // bpm
+  presentation: z
+    .enum(["cephalic", "breech", "transverse", "oblique"])
+    .optional(),
+  engagement: z
+    .enum(["not-engaged", "1/5", "2/5", "3/5", "4/5", "5/5"])
+    .optional(),
+  liquorVolume: z
+    .enum(["normal", "oligohydramnios", "polyhydramnios"])
+    .optional(),
+  placentalLocation: z.string().optional(),
+  movements: z.enum(["normal", "reduced", "excessive"]).optional(),
+  cervicalDilation: z.number().optional(), // cm
+  cervicalEffacement: z.number().optional(), // %
+  notes: z.string().optional(),
+});
+export type AntenatalRecordData = z.infer<typeof antenatalRecordDataSchema>;
+
+// Complete Gynecology Examination Data
+export const gynecologyExamDataSchema = z.object({
+  menstrualHistory: menstrualHistoryDataSchema.optional(),
+  obstetricHistory: obstetricHistoryDataSchema.optional(),
+  antenatalRecord: antenatalRecordDataSchema.optional(),
+  clinicalAssessment: z.string().optional(),
+  plan: z.string().optional(),
+});
+export type GynecologyExamData = z.infer<typeof gynecologyExamDataSchema>;
+
+// ============================================================================
+// Dermatology Examination Schemas
+// ============================================================================
+
+// Skin Assessment
+export const skinAssessmentDataSchema = z.object({
+  fitzpatrickType: z.enum(["I", "II", "III", "IV", "V", "VI"]).optional(),
+  skinType: z
+    .enum(["normal", "dry", "oily", "combination", "sensitive"])
+    .optional(),
+  generalCondition: z.string().optional(),
+  notes: z.string().optional(),
+});
+export type SkinAssessmentData = z.infer<typeof skinAssessmentDataSchema>;
+
+// Lesion Data
+export const lesionDataSchema = z.object({
+  id: z.string(),
+  location: z.string(),
+  bodyRegion: z.string().optional(),
+  size: z.number().optional(), // mm
+  shape: z.enum(["round", "oval", "irregular", "linear", "annular"]).optional(),
+  color: z.string().optional(),
+  border: z
+    .enum(["well-defined", "ill-defined", "irregular", "raised"])
+    .optional(),
+  surface: z
+    .enum(["smooth", "rough", "scaly", "crusted", "ulcerated", "vesicular"])
+    .optional(),
+  elevation: z.enum(["flat", "raised", "depressed"]).optional(),
+  consistency: z.enum(["soft", "firm", "hard", "fluctuant"]).optional(),
+  tenderness: z.enum(["none", "mild", "moderate", "severe"]).optional(),
+  description: z.string().optional(),
+  diagnosis: z.string().optional(),
+  treatment: z.string().optional(),
+  followUp: z.string().optional(),
+});
+export type LesionData = z.infer<typeof lesionDataSchema>;
+
+// Complete Dermatology Examination Data
+export const dermatologyExamDataSchema = z.object({
+  skinAssessment: skinAssessmentDataSchema.optional(),
+  lesions: z.array(lesionDataSchema).optional(),
+  clinicalAssessment: z.string().optional(),
+  plan: z.string().optional(),
+});
+export type DermatologyExamData = z.infer<typeof dermatologyExamDataSchema>;
+
+// ============================================================================
+// Psychiatry Examination Schemas
+// ============================================================================
+
+// Mental Status Examination Schema
+export const mseDataSchema = z.object({
+  // Appearance & Behavior
+  appearance: z.string().optional(),
+  behavior: z.string().optional(),
+  eyeContact: z.string().optional(),
+  psychomotorActivity: z.string().optional(),
+
+  // Speech
+  speech: z.string().optional(),
+  speechRate: z.enum(["normal", "slow", "rapid", "pressured"]).optional(),
+  speechVolume: z.enum(["normal", "soft", "loud"]).optional(),
+
+  // Mood & Affect
+  mood: z.string().optional(),
+  affect: z.string().optional(),
+  affectType: z
+    .enum(["full", "restricted", "blunted", "flat", "labile"])
+    .optional(),
+  affectCongruence: z.enum(["congruent", "incongruent"]).optional(),
+
+  // Thought
+  thoughtProcess: z.string().optional(),
+  thoughtProcessType: z
+    .enum([
+      "linear",
+      "circumstantial",
+      "tangential",
+      "loose",
+      "flight-of-ideas",
+      "perseveration",
+    ])
+    .optional(),
+  thoughtContent: z.string().optional(),
+  delusions: z.boolean().optional(),
+  delusionType: z.string().optional(),
+  obsessions: z.boolean().optional(),
+  compulsions: z.boolean().optional(),
+  suicidalIdeation: z.boolean().optional(),
+  homicidalIdeation: z.boolean().optional(),
+
+  // Perception
+  hallucinations: z.boolean().optional(),
+  hallucinationType: z.string().optional(),
+  hallucinationDescription: z.string().optional(),
+  illusions: z.boolean().optional(),
+  depersonalization: z.boolean().optional(),
+  derealization: z.boolean().optional(),
+
+  // Cognition
+  consciousness: z
+    .enum(["alert", "drowsy", "obtunded", "stuporous", "comatose"])
+    .optional(),
+  orientation: z.string().optional(),
+  orientedTo: z.array(z.string()).optional(),
+  attention: z.string().optional(),
+  concentration: z.string().optional(),
+  memory: z.string().optional(),
+  memoryImmediate: z.string().optional(),
+  memoryRecent: z.string().optional(),
+  memoryRemote: z.string().optional(),
+
+  // Insight & Judgment
+  insight: z.enum(["good", "fair", "poor", "absent"]).optional(),
+  insightDescription: z.string().optional(),
+  judgment: z.enum(["good", "fair", "poor", "impaired"]).optional(),
+  judgmentDescription: z.string().optional(),
+
+  // Additional Notes
+  notes: z.string().optional(),
+});
+
+// Risk Assessment Schema
+export const riskAssessmentDataSchema = z.object({
+  // Suicide Risk
+  suicideRisk: z.enum(["low", "moderate", "high", "imminent"]).optional(),
+  suicidalThoughts: z.boolean().optional(),
+  suicidalPlan: z.boolean().optional(),
+  suicidalIntent: z.boolean().optional(),
+  suicidalMeans: z.boolean().optional(),
+  previousAttempts: z.boolean().optional(),
+  previousAttemptsDetails: z.string().optional(),
+  protectiveFactors: z.string().optional(),
+
+  // Homicide Risk
+  homicideRisk: z.enum(["low", "moderate", "high", "imminent"]).optional(),
+  homicidalThoughts: z.boolean().optional(),
+  homicidalPlan: z.boolean().optional(),
+  homicidalIntent: z.boolean().optional(),
+  homicidalMeans: z.boolean().optional(),
+  identifiedTarget: z.boolean().optional(),
+  targetDetails: z.string().optional(),
+
+  // Risk Management
+  riskManagement: z.string().optional(),
+  safetyPlan: z.string().optional(),
+});
+
+// Screening Scales Schema
+export const screeningScalesDataSchema = z.object({
+  // PHQ-9 (Depression)
+  phq9Score: z.number().min(0).max(27).optional(),
+  phq9Severity: z
+    .enum(["minimal", "mild", "moderate", "moderately-severe", "severe"])
+    .optional(),
+
+  // GAD-7 (Anxiety)
+  gad7Score: z.number().min(0).max(21).optional(),
+  gad7Severity: z.enum(["minimal", "mild", "moderate", "severe"]).optional(),
+
+  // YMRS (Mania)
+  ymrsScore: z.number().min(0).max(60).optional(),
+
+  // Other scales
+  otherScales: z.string().optional(),
+});
+
+// Psychiatry Exam Data Schema (Combines all sub-schemas)
+export const psychiatryExamDataSchema = z.object({
+  mse: mseDataSchema.optional(),
+  riskAssessment: riskAssessmentDataSchema.optional(),
+  screeningScales: screeningScalesDataSchema.optional(),
+  clinicalAssessment: z.string().optional(),
+  plan: z.string().optional(),
+});
+
+export type MSEData = z.infer<typeof mseDataSchema>;
+export type RiskAssessmentData = z.infer<typeof riskAssessmentDataSchema>;
+export type ScreeningScalesData = z.infer<typeof screeningScalesDataSchema>;
+export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 
 // ============================================================================
 // Medication & Prescription Schemas
@@ -1336,13 +2162,7 @@ export type PrescriptionTemplate = z.infer<typeof prescriptionTemplateSchema>;
 // Invoice Schemas
 // ============================================================================
 
-export const invoiceStatusSchema = z.enum([
-  "pending",
-  "paid",
-  "overdue",
-  "cancelled",
-]);
-export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+// invoiceStatusSchema consolidated at top
 
 // PaymentMethod and PaymentMode are imported from payments.ts via export *
 
@@ -1395,25 +2215,7 @@ export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 // Appointment Schemas
 // ============================================================================
 
-export const appointmentStatusSchema = z.enum([
-  "scheduled",
-  "confirmed",
-  "checked-in",
-  "cancelled",
-  "completed",
-  "no-show",
-  "in-progress",
-]);
-export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
-
-export const appointmentTypeSchema = z.enum([
-  "consultation",
-  "follow-up",
-  "check-up",
-  "emergency",
-  "procedure",
-]);
-export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
+// appointment schemas consolidated at top
 
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",
@@ -1423,18 +2225,18 @@ export const appointmentPrioritySchema = z.enum([
 export type AppointmentPriority = z.infer<typeof appointmentPrioritySchema>;
 
 export const APPOINTMENT_PRIORITY_LABELS: Record<AppointmentPriority, string> =
-  {
-    ROUTINE: "Routine",
-    URGENT: "Urgent",
-    EMERGENCY: "Emergency",
-  };
+{
+  ROUTINE: "Routine",
+  URGENT: "Urgent",
+  EMERGENCY: "Emergency",
+};
 
 export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
-  {
-    ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
-    URGENT: "bg-orange-100 text-orange-800 border-orange-300",
-    EMERGENCY: "bg-red-100 text-red-800 border-red-300",
-  };
+{
+  ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
+  URGENT: "bg-orange-100 text-orange-800 border-orange-300",
+  EMERGENCY: "bg-red-100 text-red-800 border-red-300",
+};
 
 export const appointmentSchema = z.object({
   id: z.string().optional(),
@@ -1615,15 +2417,6 @@ export const clinicTierSchema = z.enum([
 ]);
 export type ClinicTier = z.infer<typeof clinicTierSchema>;
 
-export const clinicTypeSchema = z.enum(["GENERAL", "DENTAL", "SPECIALTY"]);
-export type ClinicType = z.infer<typeof clinicTypeSchema>;
-
-export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
-  GENERAL: "General Practice",
-  DENTAL: "Dental Clinic",
-  SPECIALTY: "Specialty Clinic",
-};
-
 export const clinicSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -1642,6 +2435,8 @@ export const clinicSchema = z.object({
       closingTime: z.string().optional(),
       workingDays: z.array(z.string()).optional(),
       consultationDuration: z.number().optional(),
+      reminderBefore: z.string().optional(),
+      reminderUnit: z.string().optional(),
     })
     .optional()
     .nullable(),
@@ -1651,6 +2446,8 @@ export const clinicSchema = z.object({
   closingTime: z.string().optional(),
   workingDays: z.array(z.string()).optional(),
   consultationDuration: z.number().optional(),
+  reminderBefore: z.string().optional(),
+  reminderUnit: z.string().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
 });
@@ -1859,13 +2656,7 @@ export type DoctorFavoriteCode = z.infer<typeof doctorFavoriteCodeSchema>;
 // Template Schemas
 // ============================================================================
 
-export const templateFieldTypeSchema = z.enum([
-  "text",
-  "textarea",
-  "number",
-  "select",
-]);
-export type TemplateFieldType = z.infer<typeof templateFieldTypeSchema>;
+// templateFieldTypeSchema consolidated at top
 
 export const templateFieldSchema = z.object({
   label: z.string(),
@@ -2024,3 +2815,151 @@ export const whatsappAutomationSchema = z.object({
   invoiceSent: z.boolean(),
 });
 export type WhatsappAutomation = z.infer<typeof whatsappAutomationSchema>;
+
+// ============================================================================
+// IPD / Bed Management Schemas (Hospital Only)
+// ============================================================================
+
+export const wardSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Ward name is required"),
+  type: z.string(),
+  description: z.string().nullable().optional(),
+  floorNumber: z.string().nullable().optional(),
+  clinicId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Ward = z.infer<typeof wardSchema>;
+
+export const roomSchema = z.object({
+  id: z.string(),
+  wardId: z.string(),
+  roomNumber: z.string().min(1, "Room number is required"),
+  type: z.string().nullable().optional(),
+  charges: z.number().min(0, "Charges cannot be negative"),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Room = z.infer<typeof roomSchema>;
+
+export const bedStatusSchema = z.enum([
+  "AVAILABLE",
+  "OCCUPIED",
+  "MAINTENANCE",
+  "CLEANING",
+  "RESERVED",
+]);
+export type BedStatus = z.infer<typeof bedStatusSchema>;
+
+export const bedSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  bedNumber: z.string().min(1, "Bed number is required"),
+  status: bedStatusSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Bed = z.infer<typeof bedSchema>;
+
+export const admissionStatusSchema = z.enum([
+  "ADMITTED",
+  "DISCHARGED",
+  "TRANSFERRED",
+]);
+export type AdmissionStatus = z.infer<typeof admissionStatusSchema>;
+
+export const admissionSchema = z.object({
+  id: z.string(),
+  patientId: z.string(),
+  bedId: z.string(),
+  admittedAt: z.date(),
+  dischargedAt: z.date().nullable().optional(),
+  status: admissionStatusSchema,
+  reason: z.string().nullable().optional(),
+  diagnosis: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  admittingDoctorId: z.string().nullable().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Admission = z.infer<typeof admissionSchema>;
+
+// ============================================================================
+// Lab Test Schemas
+// ============================================================================
+
+export const labTestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  code: z.string().optional(),
+  category: z.string().optional(),
+  price: z.number(),
+  description: z.string().optional(),
+  tat: z.string().optional(), // Turn around time
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+});
+export type LabTest = z.infer<typeof labTestSchema>;
+
+export const labTestOrderSchema = z.object({
+  id: z.string(),
+  clinicId: z.string(),
+  patientId: z.string(),
+  doctorId: z.string().optional(), // kept for compatibility
+  orderedBy: z.string().optional(),
+  labTestId: z.string(),
+  appointmentId: z.string().optional(),
+  status: z.enum(["pending", "in-progress", "completed", "cancelled"]),
+  priority: z.enum(["normal", "urgent"]).default("normal"),
+  notes: z.string().optional(),
+  result: z.union([z.string(), z.record(z.unknown())]).optional(), // Supports both string and JSON
+  resultUrl: z.string().optional(),
+  collectedAt: z.string().or(z.date()).optional(),
+  completedAt: z.string().or(z.date()).optional(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()).optional(),
+  // Relations
+  patient: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    phoneNumber: z.string().optional(),
+  }).optional(),
+  doctor: z.object({
+    id: z.string(),
+    name: z.string(),
+  }).optional(),
+  labTest: labTestSchema.optional(),
+});
+export type LabTestOrder = z.infer<typeof labTestOrderSchema>;
+
+// ============================================================================
+// Inventory Schemas
+// ============================================================================
+
+export const inventoryItemSchema = z.object({
+  id: z.string(),
+  clinicId: z.string().optional(),
+  name: z.string(),
+  active: z.boolean().default(true),
+  category: z.string(),
+  sku: z.string().optional(),
+  quantity: z.number(),
+  minQuantity: z.number(),
+  unit: z.string(),
+  price: z.number().optional(), // Helper accessor
+  purchasePrice: z.number().optional(),
+  sellingPrice: z.number().optional(),
+  supplier: z.string().optional(),
+  batchNumber: z.string().optional(),
+  expiryDate: z.string().optional(),
+  notes: z.string().optional(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type InventoryItem = z.infer<typeof inventoryItemSchema>;

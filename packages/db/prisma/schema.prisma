@@ -43,6 +43,8 @@ model User {
   prescriptions             Prescription[]
   prescriptionTemplates     PrescriptionTemplate[]
   queueTokens               QueueToken[]
+  staffNotifications        StaffNotification[]
+  admissions                Admission[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId])
@@ -143,66 +145,67 @@ model DoctorTimeOff {
 }
 
 model Patient {
-  id                       String           @id @default(cuid())
+  id             String   @id @default(cuid())
   // Medical Record Number - Clinic-prefixed sequential (e.g., "DOC-00001")
-  mrn                      String?          @unique
-  firstName                String
-  lastName                 String
-  preferredName            String?          // Name patient prefers to be called
-  pronouns                 String?          // e.g., "he/him", "she/her", "they/them"
-  dateOfBirth              DateTime
-  phoneNumber              String
-  email                    String?
-  address                  String?
-  medicalHistory           String[]         // Legacy field - kept for backward compatibility
-  createdAt                DateTime         @default(now())
-  updatedAt                DateTime         @updatedAt
-  allergies                String?          // Legacy field - kept for backward compatibility
-  bloodGroup               String?
-  clinicId                 String
-  customData               Json?            @default("{}")
-  gender                   Gender
-  
+  mrn            String?  @unique
+  firstName      String
+  lastName       String
+  preferredName  String? // Name patient prefers to be called
+  pronouns       String? // e.g., "he/him", "she/her", "they/them"
+  dateOfBirth    DateTime
+  phoneNumber    String
+  email          String?
+  address        String?
+  medicalHistory String[] // Legacy field - kept for backward compatibility
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  allergies      String? // Legacy field - kept for backward compatibility
+  bloodGroup     String?
+  clinicId       String
+  customData     Json?    @default("{}")
+  gender         Gender
+
   // Hospital-Grade Demographics (Compliance: HL7, USCDI, Meaningful Use)
-  race                     String?          // e.g., "White", "Black", "Asian", "Native American", etc.
-  ethnicity                String?          // e.g., "Hispanic or Latino", "Not Hispanic or Latino"
-  preferredLanguage        String?          @default("en") // ISO 639-1 language code
-  maritalStatus            String?          // e.g., "Single", "Married", "Divorced", "Widowed"
-  
+  race              String? // e.g., "White", "Black", "Asian", "Native American", etc.
+  ethnicity         String? // e.g., "Hispanic or Latino", "Not Hispanic or Latino"
+  preferredLanguage String? @default("en") // ISO 639-1 language code
+  maritalStatus     String? // e.g., "Single", "Married", "Divorced", "Widowed"
+
   // Emergency Contact (Critical for hospital settings)
   emergencyContactName     String?
   emergencyContactPhone    String?
-  emergencyContactRelation String?          // e.g., "Spouse", "Parent", "Sibling"
-  
+  emergencyContactRelation String? // e.g., "Spouse", "Parent", "Sibling"
+
   // Patient Safety - Code Status (DNR/Full Code) - CRITICAL
-  codeStatus               CodeStatus       @default(FULL_CODE)
-  codeStatusUpdatedAt      DateTime?
-  codeStatusUpdatedBy      String?          // Doctor ID who updated
-  advanceDirectiveUrl      String?          // Link to advance directive document
-  
+  codeStatus          CodeStatus @default(FULL_CODE)
+  codeStatusUpdatedAt DateTime?
+  codeStatusUpdatedBy String? // Doctor ID who updated
+  advanceDirectiveUrl String? // Link to advance directive document
+
   // Consent tracking
-  whatsappConsent          Boolean          @default(false)
-  whatsappConsentAt        DateTime?
-  
+  whatsappConsent   Boolean   @default(false)
+  whatsappConsentAt DateTime?
+
   // Legacy relations
-  appointments             Appointment[]
-  documents                Document[]
-  invoices                 Invoice[]
-  clinic                   Clinic           @relation(fields: [clinicId], references: [id])
-  tags                     PatientTag[]
-  paymentSessions          PaymentSession[]
-  prescriptions            Prescription[]
-  queueTokens              QueueToken[]
-  whatsappLogs             WhatsappLog[]
-  
+  appointments    Appointment[]
+  documents       Document[]
+  invoices        Invoice[]
+  clinic          Clinic           @relation(fields: [clinicId], references: [id])
+  tags            PatientTag[]
+  paymentSessions PaymentSession[]
+  prescriptions   Prescription[]
+  queueTokens     QueueToken[]
+  whatsappLogs    WhatsappLog[]
+
   // Structured medical data relations
-  medicalConditions        PatientMedicalCondition[]
-  patientAllergies         PatientAllergy[]
-  familyHistory            PatientFamilyHistory[]
-  socialHistory            PatientSocialHistory?
-  surgicalHistory          PatientSurgicalHistory[]
-  immunizations            Immunization[]
-  consents                 Consent[]
+  medicalConditions PatientMedicalCondition[]
+  patientAllergies  PatientAllergy[]
+  familyHistory     PatientFamilyHistory[]
+  socialHistory     PatientSocialHistory?
+  surgicalHistory   PatientSurgicalHistory[]
+  immunizations     Immunization[]
+  consents          Consent[]
+  admissions        Admission[]
 
   @@index([mrn])
   @@index([phoneNumber])
@@ -211,6 +214,8 @@ model Patient {
   @@index([clinicId, phoneNumber])
   @@index([email])
   @@index([codeStatus])
+  @@index([clinicId, lastName, firstName]) // Name search optimization
+  @@index([clinicId, createdAt]) // Recent patients query
 }
 
 // ============================================================================
@@ -219,25 +224,25 @@ model Patient {
 
 // Chronic conditions, past illnesses, and ongoing medical conditions
 model PatientMedicalCondition {
-  id              String                @id @default(cuid())
-  patientId       String
-  conditionName   String                // e.g., "Type 2 Diabetes Mellitus"
-  icdCode         String?               // Optional ICD-10 code reference
-  conditionType   MedicalConditionType  @default(CHRONIC)
-  status          ConditionStatus       @default(ACTIVE)
-  severity        ConditionSeverity?
-  diagnosedDate   DateTime?
-  resolvedDate    DateTime?
-  diagnosedBy     String?               // Doctor who diagnosed
-  notes           String?
+  id                  String               @id @default(cuid())
+  patientId           String
+  conditionName       String // e.g., "Type 2 Diabetes Mellitus"
+  icdCode             String? // Optional ICD-10 code reference
+  conditionType       MedicalConditionType @default(CHRONIC)
+  status              ConditionStatus      @default(ACTIVE)
+  severity            ConditionSeverity?
+  diagnosedDate       DateTime?
+  resolvedDate        DateTime?
+  diagnosedBy         String? // Doctor who diagnosed
+  notes               String?
   // For tracking if this was auto-suggested from appointments
-  sourceType      ConditionSourceType   @default(MANUAL)
-  sourceAppointmentId String?           // If auto-suggested from an appointment diagnosis
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  
-  patient         Patient               @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  sourceType          ConditionSourceType  @default(MANUAL)
+  sourceAppointmentId String? // If auto-suggested from an appointment diagnosis
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
   @@index([conditionType])
   @@index([status])
@@ -246,22 +251,22 @@ model PatientMedicalCondition {
 
 // Detailed allergy tracking with severity and reactions
 model PatientAllergy {
-  id              String            @id @default(cuid())
-  patientId       String
-  allergen        String            // e.g., "Penicillin", "Peanuts"
-  allergyType     AllergyType       @default(DRUG)
-  severity        AllergySeverity   @default(MODERATE)
-  reaction        String?           // e.g., "Anaphylaxis", "Rash", "Hives"
-  onsetDate       DateTime?
-  verifiedBy      String?           // Doctor who verified
-  verifiedAt      DateTime?
-  isVerified      Boolean           @default(false)
-  notes           String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  
-  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  id          String          @id @default(cuid())
+  patientId   String
+  allergen    String // e.g., "Penicillin", "Peanuts"
+  allergyType AllergyType     @default(DRUG)
+  severity    AllergySeverity @default(MODERATE)
+  reaction    String? // e.g., "Anaphylaxis", "Rash", "Hives"
+  onsetDate   DateTime?
+  verifiedBy  String? // Doctor who verified
+  verifiedAt  DateTime?
+  isVerified  Boolean         @default(false)
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
   @@index([allergyType])
   @@index([severity])
@@ -269,56 +274,56 @@ model PatientAllergy {
 
 // Family medical history
 model PatientFamilyHistory {
-  id              String    @id @default(cuid())
-  patientId       String
-  condition       String    // e.g., "Diabetes", "Heart Disease"
-  relationship    String    // e.g., "Father", "Mother", "Sibling"
-  ageAtOnset      Int?      // Age when the relative was diagnosed
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(cuid())
+  patientId    String
+  condition    String // e.g., "Diabetes", "Heart Disease"
+  relationship String // e.g., "Father", "Mother", "Sibling"
+  ageAtOnset   Int? // Age when the relative was diagnosed
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
 }
 
 // Social history (smoking, alcohol, occupation, etc.)
 model PatientSocialHistory {
-  id                String    @id @default(cuid())
-  patientId         String    @unique
-  smokingStatus     SmokingStatus?
-  smokingPackYears  Float?    // Pack-years for smokers
-  smokingQuitDate   DateTime?
-  alcoholUse        AlcoholUseStatus?
-  alcoholFrequency  String?   // e.g., "2-3 drinks per week"
-  substanceUse      String?
-  occupation        String?
+  id                  String            @id @default(cuid())
+  patientId           String            @unique
+  smokingStatus       SmokingStatus?
+  smokingPackYears    Float? // Pack-years for smokers
+  smokingQuitDate     DateTime?
+  alcoholUse          AlcoholUseStatus?
+  alcoholFrequency    String? // e.g., "2-3 drinks per week"
+  substanceUse        String?
+  occupation          String?
   occupationalHazards String?
-  exerciseFrequency String?
+  exerciseFrequency   String?
   dietaryRestrictions String?
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  notes               String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 // Surgical history
 model PatientSurgicalHistory {
-  id              String    @id @default(cuid())
-  patientId       String
-  procedureName   String    // e.g., "Appendectomy", "CABG"
-  procedureDate   DateTime?
-  hospital        String?
-  surgeon         String?
-  complications   String?
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  id            String    @id @default(cuid())
+  patientId     String
+  procedureName String // e.g., "Appendectomy", "CABG"
+  procedureDate DateTime?
+  hospital      String?
+  surgeon       String?
+  complications String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
 }
 
@@ -327,20 +332,20 @@ model PatientSurgicalHistory {
 // ============================================================================
 
 enum MedicalConditionType {
-  CHRONIC           // Ongoing conditions like Diabetes, Hypertension
-  ACUTE             // Short-term conditions
-  CONGENITAL        // Present from birth
-  INFECTIOUS        // Infectious diseases
-  AUTOIMMUNE        // Autoimmune conditions
-  PSYCHIATRIC       // Mental health conditions
+  CHRONIC // Ongoing conditions like Diabetes, Hypertension
+  ACUTE // Short-term conditions
+  CONGENITAL // Present from birth
+  INFECTIOUS // Infectious diseases
+  AUTOIMMUNE // Autoimmune conditions
+  PSYCHIATRIC // Mental health conditions
   OTHER
 }
 
 enum ConditionStatus {
-  ACTIVE            // Currently ongoing
-  MANAGED           // Under control with treatment
-  RESOLVED          // No longer present
-  IN_REMISSION      // For conditions like cancer
+  ACTIVE // Currently ongoing
+  MANAGED // Under control with treatment
+  RESOLVED // No longer present
+  IN_REMISSION // For conditions like cancer
 }
 
 enum ConditionSeverity {
@@ -351,26 +356,26 @@ enum ConditionSeverity {
 }
 
 enum ConditionSourceType {
-  MANUAL            // Manually entered by staff
-  AUTO_SUGGESTED    // Auto-suggested from recurring diagnoses
-  IMPORTED          // Imported from external records
+  MANUAL // Manually entered by staff
+  AUTO_SUGGESTED // Auto-suggested from recurring diagnoses
+  IMPORTED // Imported from external records
 }
 
 enum AllergyType {
-  DRUG              // Medication allergies
-  FOOD              // Food allergies
-  ENVIRONMENTAL     // Pollen, dust, etc.
-  LATEX             // Latex allergy
-  INSECT            // Insect stings/bites
-  CONTRAST          // Contrast dye
+  DRUG // Medication allergies
+  FOOD // Food allergies
+  ENVIRONMENTAL // Pollen, dust, etc.
+  LATEX // Latex allergy
+  INSECT // Insect stings/bites
+  CONTRAST // Contrast dye
   OTHER
 }
 
 enum AllergySeverity {
-  MILD              // Minor symptoms
-  MODERATE          // Significant symptoms
-  SEVERE            // Serious reactions
-  LIFE_THREATENING  // Anaphylaxis risk
+  MILD // Minor symptoms
+  MODERATE // Significant symptoms
+  SEVERE // Serious reactions
+  LIFE_THREATENING // Anaphylaxis risk
 }
 
 enum SmokingStatus {
@@ -413,20 +418,21 @@ model UploadSession {
 }
 
 model Appointment {
-  id                      String        @id @default(cuid())
+  id                      String                @id @default(cuid())
   patientId               String
   doctorId                String
   startTime               DateTime
   endTime                 DateTime
-  status                  String        @default("scheduled")
+  status                  String                @default("scheduled")
   type                    String
   notes                   String?
   consultationNotes       String?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
   clinicId                String
   observations            String?
   chiefComplaint          String?
+  treatmentHistory        String? // Previous treatments attempted for the current condition
   clinicalImpression      String?
   differentialDiagnosis   String?
   finalDiagnosis          String?
@@ -439,16 +445,27 @@ model Appointment {
   reviewOfSystems         String?
   systemicExamination     Json?
   treatmentPlan           String?
-  clinic                  Clinic        @relation(fields: [clinicId], references: [id])
-  doctor                  User          @relation(fields: [doctorId], references: [id])
-  patient                 Patient       @relation(fields: [patientId], references: [id])
+  dentalChart             Json? // Dental chart data for DENTAL clinic type
+  growthData              Json? // Growth chart data for PEDIATRIC clinic type
+  ophthalmologyExam       Json? // Ophthalmology exam data for OPHTHALMOLOGY clinic type
+  cardiologyExam          Json? // Cardiology exam data for CARDIOLOGY clinic type
+  gynecologyExam          Json? // Gynecology/Obstetrics exam data for GYNECOLOGY clinic type
+  dermatologyExam         Json? // Dermatology exam data for DERMATOLOGY clinic type
+  psychiatryExam          Json? // Psychiatry exam data for PSYCHIATRY clinic type
+  // Encounter summary - concise summary of the visit for timeline display
+  // Auto-generated from chiefComplaint + finalDiagnosis or clinician-entered
+  encounterSummary        String?
+  clinic                  Clinic                @relation(fields: [clinicId], references: [id])
+  doctor                  User                  @relation(fields: [doctorId], references: [id])
+  patient                 Patient               @relation(fields: [patientId], references: [id])
   diagnoses               Diagnosis[]
   invoice                 Invoice?
   prescription            Prescription?
   procedures              Procedure[]
   queueToken              QueueToken?
   vitalSign               VitalSign?
-  priority                AppointmentPriority @default(ROUTINE)
+  priority                AppointmentPriority   @default(ROUTINE)
+  responses               AppointmentResponse[]
 
   @@index([clinicId])
   @@index([createdAt])
@@ -462,66 +479,73 @@ model Appointment {
 }
 
 model VitalSign {
-  id              String            @id @default(cuid())
-  appointmentId   String            @unique
-  height          Float?            // in cm
-  weight          Float?            // in kg
-  
+  id            String @id @default(cuid())
+  appointmentId String @unique
+  height        Float? // in cm
+  weight        Float? // in kg
+
   // Legacy blood pressure field - kept for backward compatibility
-  bloodPressure   String?           // Legacy format "120/80"
-  
+  bloodPressure String? // Legacy format "120/80"
+
   // Structured blood pressure fields (Hospital-Grade)
-  systolicBP      Int?              // Systolic blood pressure (mmHg) - normal range 90-120
-  diastolicBP     Int?              // Diastolic blood pressure (mmHg) - normal range 60-80
-  bpPosition      BpPosition?       // Patient position when BP was taken
+  systolicBP        Int? // Systolic blood pressure (mmHg) - normal range 90-120
+  diastolicBP       Int? // Diastolic blood pressure (mmHg) - normal range 60-80
+  bpPosition        BpPosition? // Patient position when BP was taken
   bpMigrationStatus BpMigrationStatus? // Status of legacy BP migration
-  
-  pulse           Int?              // Heart rate (bpm)
-  temperature     Float?            // Body temperature (Celsius)
-  
+
+  pulse       Int? // Heart rate (bpm)
+  temperature Float? // Body temperature (Celsius)
+
   // Oxygen saturation with delivery context
-  spo2            Int?              // SpO2 percentage (%)
-  oxygenDelivery  OxygenDelivery?   // How oxygen is being delivered
-  oxygenFlowRate  Float?            // Flow rate in L/min (if applicable)
-  
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  bloodGlucose    Float?            // Blood glucose (mg/dL)
-  bmi             Float?            // Calculated BMI
+  spo2           Int? // SpO2 percentage (%)
+  oxygenDelivery OxygenDelivery? // How oxygen is being delivered
+  oxygenFlowRate Float? // Flow rate in L/min (if applicable)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  bloodGlucose    Float? // Blood glucose (mg/dL)
+  bmi             Float? // Calculated BMI
   notes           String?
-  painScore       Int?              // Pain score 0-10
-  respiratoryRate Int?              // Breaths per minute
-  
+  painScore       Int? // Pain score 0-10
+  respiratoryRate Int? // Breaths per minute
+
   // Additional pediatric/specialty vitals
-  headCircumference Float?          // For pediatrics (cm)
-  waistCircumference Float?         // For metabolic assessments (cm)
-  
-  appointment     Appointment       @relation(fields: [appointmentId], references: [id])
-  
+  headCircumference  Float? // For pediatrics (cm)
+  waistCircumference Float? // For metabolic assessments (cm)
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
   @@index([bpMigrationStatus])
 }
 
 model Prescription {
-  id            String       @id @default(cuid())
-  appointmentId String       @unique
-  patientId     String
-  doctorId      String
-  instructions  String?
-  date          DateTime     @default(now())
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id                       String          @id @default(cuid())
+  appointmentId            String          @unique
+  patientId                String
+  doctorId                 String
+  instructions             String?
+  date                     DateTime        @default(now())
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  // WhatsApp sharing approval workflow
+  approvalStatus           ApprovalStatus  @default(PENDING)
+  approvedById             String?
+  approvedAt               DateTime?
+  whatsappSentAt           DateTime?
+  whatsappMessageId        String?
+  whatsappStatus           String?
   // Doctor context snapshot for audit trail (Phase 5)
-  doctorName    String?
-  doctorEmail   String?
-  doctorPhone   String?
-  doctorSpecialization Specialization?
-  doctorRole    HospitalRole?
+  doctorName               String?
+  doctorEmail              String?
+  doctorPhone              String?
+  doctorSpecialization     Specialization?
+  doctorRole               HospitalRole?
   doctorRegistrationNumber String?
-  doctorLicenseNumber String?
-  medications   Medication[]
-  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
-  doctor        User         @relation(fields: [doctorId], references: [id])
-  patient       Patient      @relation(fields: [patientId], references: [id])
+  doctorLicenseNumber      String?
+  medications              Medication[]
+  appointment              Appointment     @relation(fields: [appointmentId], references: [id])
+  doctor                   User            @relation(fields: [doctorId], references: [id])
+  patient                  Patient         @relation(fields: [patientId], references: [id])
 
   @@index([patientId])
   @@index([createdAt])
@@ -530,69 +554,76 @@ model Prescription {
 }
 
 model Medication {
-  id             String       @id @default(cuid())
+  id             String @id @default(cuid())
   prescriptionId String
-  name           String       // Drug name (generic or brand)
-  
+  name           String // Drug name (generic or brand)
+
   // Legacy fields - kept for backward compatibility
-  dosage         String       // Legacy: combined strength like "500mg"
-  frequency      String       // Legacy: free text like "twice daily"
-  duration       String       // Legacy: free text like "7 days"
-  route          String       @default("PO")
-  
+  dosage    String // Legacy: combined strength like "500mg"
+  frequency String // Legacy: free text like "twice daily"
+  duration  String // Legacy: free text like "7 days"
+  route     String @default("PO")
+
   // Structured pharmacy fields (Hospital-Grade)
-  ndcCode        String?      // National Drug Code - precise drug identification
-  rxNormCui      String?      // RxNorm Concept Unique Identifier
-  dosageForm     DosageForm?  // Tablet, Capsule, Injection, etc.
-  strengthValue  Float?       // Numeric strength value (e.g., 500)
-  strengthUnit   String?      // Unit of strength (e.g., "mg", "mcg", "mL")
-  
+  ndcCode       String? // National Drug Code - precise drug identification
+  rxNormCui     String? // RxNorm Concept Unique Identifier
+  dosageForm    DosageForm? // Tablet, Capsule, Injection, etc.
+  strengthValue Float? // Numeric strength value (e.g., 500)
+  strengthUnit  String? // Unit of strength (e.g., "mg", "mcg", "mL")
+
   // Dispensing information
-  quantity       Int?         // Number of units to dispense
-  refillsAllowed Int?         @default(0) // Number of refills allowed
-  dispenseAsWritten Boolean   @default(false) // DAW - no generic substitution
-  
+  quantity          Int? // Number of units to dispense
+  refillsAllowed    Int?    @default(0) // Number of refills allowed
+  dispenseAsWritten Boolean @default(false) // DAW - no generic substitution
+
   // Timing
-  sigCode        SigCode?     // Standardized frequency code
-  startDate      DateTime?    // When to start medication
-  endDate        DateTime?    // When to stop medication
-  
+  sigCode   SigCode? // Standardized frequency code
+  startDate DateTime? // When to start medication
+  endDate   DateTime? // When to stop medication
+
   // PRN (as needed) medications
-  isPRN          Boolean      @default(false)
-  prnInstructions String?     // When to take PRN medication
-  prnMaxDose     String?      // Maximum dose for PRN
-  
+  isPRN           Boolean @default(false)
+  prnInstructions String? // When to take PRN medication
+  prnMaxDose      String? // Maximum dose for PRN
+
   // Special instructions
   specialInstructions String? // Additional instructions
-  indication     String?      // Why this medication is prescribed
-  
-  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
-  
+  indication          String? // Why this medication is prescribed
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id])
+
   @@index([ndcCode])
   @@index([rxNormCui])
 }
 
 model Invoice {
-  id              String           @id @default(cuid())
-  appointmentId   String?          @unique
-  patientId       String
-  total           Float
-  status          String           @default("pending")
-  items           Json
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                       String           @id @default(cuid())
+  appointmentId            String?          @unique
+  patientId                String
+  total                    Float
+  status                   String           @default("pending")
+  items                    Json
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  // WhatsApp sharing approval workflow
+  approvalStatus           ApprovalStatus   @default(PENDING)
+  approvedById             String?
+  approvedAt               DateTime?
+  whatsappSentAt           DateTime?
+  whatsappMessageId        String?
+  whatsappStatus           String?
   // Doctor context snapshot for audit trail (Phase 5)
-  doctorName      String?
-  doctorEmail     String?
-  doctorPhone     String?
-  doctorSpecialization Specialization?
-  doctorRole      HospitalRole?
+  doctorName               String?
+  doctorEmail              String?
+  doctorPhone              String?
+  doctorSpecialization     Specialization?
+  doctorRole               HospitalRole?
   doctorRegistrationNumber String?
-  doctorLicenseNumber String?
-  appointment     Appointment?     @relation(fields: [appointmentId], references: [id])
-  patient         Patient          @relation(fields: [patientId], references: [id])
-  paymentSessions PaymentSession[]
-  paymentRetries  PaymentRetry[]
+  doctorLicenseNumber      String?
+  appointment              Appointment?     @relation(fields: [appointmentId], references: [id])
+  patient                  Patient          @relation(fields: [patientId], references: [id])
+  paymentSessions          PaymentSession[]
+  paymentRetries           PaymentRetry[]
 
   @@index([createdAt])
   @@index([patientId])
@@ -659,18 +690,21 @@ model CustomField {
 }
 
 model ReminderSettings {
-  id              String   @id @default(cuid())
-  enabled         Boolean  @default(true)
-  smsEnabled      Boolean  @default(false)
-  emailEnabled    Boolean  @default(true)
-  hoursBeforeAppt Int      @default(24)
-  smsTemplate     String?
-  emailTemplate   String?
-  emailSubject    String   @default("Appointment Reminder")
-  clinicId        String?  @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  clinic          Clinic?  @relation(fields: [clinicId], references: [id])
+  id               String   @id @default(cuid())
+  enabled          Boolean  @default(true)
+  smsEnabled       Boolean  @default(false)
+  emailEnabled     Boolean  @default(true)
+  whatsappEnabled  Boolean  @default(false)
+  hoursBeforeAppt  Int      @default(24)
+  minutesBefore30  Boolean  @default(true) // Send 30-min reminder
+  smsTemplate      String?
+  emailTemplate    String?
+  whatsappTemplate String? // Template ID for WhatsApp reminder
+  emailSubject     String   @default("Appointment Reminder")
+  clinicId         String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  clinic           Clinic?  @relation(fields: [clinicId], references: [id])
 }
 
 model AppointmentReminder {
@@ -688,67 +722,101 @@ model AppointmentReminder {
 }
 
 model Clinic {
-  id                      String                   @id @default(cuid())
+  id                      String            @id @default(cuid())
   name                    String
   address                 String
   phone                   String
   email                   String
   website                 String?
   logo                    String?
-  active                  Boolean                  @default(true)
-  tier                    ClinicTier               @default(CAPTURE)
-  type                    ClinicType               @default(GENERAL)
+  active                  Boolean           @default(true)
+  tier                    ClinicTier        @default(CAPTURE)
+  type                    ClinicType        @default(GENERAL)
   settings                Json?
-  timezone                String                   @default("Asia/Kolkata")
-  locale                  String                   @default("en-IN")
-  currency                String                   @default("INR")
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  subscriptionStatus      String                   @default("active")
+  timezone                String            @default("Asia/Kolkata")
+  locale                  String            @default("en-IN")
+  currency                String            @default("INR")
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  subscriptionStatus      String            @default("active")
   branding                Json?
   features                Json?
-  whatsappAutomation      Json?                    // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
-  intelligenceAddon       IntelligenceAddon        @default(NONE)
+  whatsappAutomation      Json? // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
+  intelligenceAddon       IntelligenceAddon @default(NONE)
   trialEndsAt             DateTime?
-  avgConsultationMinutes  Int                      @default(15)
-  lateArrivalGraceMinutes Int                      @default(30)
-  queueBufferMinutes      Int                      @default(10)
-  useDoctorQueues         Boolean                  @default(false)
-  
+  avgConsultationMinutes  Int               @default(15)
+  lateArrivalGraceMinutes Int               @default(30)
+  queueBufferMinutes      Int               @default(10)
+  useDoctorQueues         Boolean           @default(false)
+
   // MRN Configuration
-  mrnPrefix               String?                  // Prefix for MRN (e.g., "DOC", "CLI")
-  
+  mrnPrefix String? // Prefix for MRN (e.g., "DOC", "CLI")
+
   // Billing-related fields
-  razorpayCustomerId      String?                  // Razorpay customer ID for subscriptions
-  referralCode            String?                  @unique // Unique referral code for this clinic
-  domain                  String?                  // Email domain for referral anti-abuse
-  referralCreditsMonths   Int                      @default(0) // Free months earned from referrals (max 12/year)
+  razorpayCustomerId    String? // Razorpay customer ID for subscriptions
+  referralCode          String?                @unique // Unique referral code for this clinic
+  domain                String? // Email domain for referral anti-abuse
+  referralCreditsMonths Int                    @default(0) // Free months earned from referrals (max 12/year)
   // Relations
-  appointments            Appointment[]
-  auditLogs               AuditLog[]
-  analyticsSnapshots      AnalyticsSnapshot[]
-  paymentRetries          PaymentRetry[]
-  bulkImportJobs          BulkImportJob[]
-  clinicalTemplates       ClinicalTemplate[]
-  customFields            CustomField[]
-  doctorClinics           DoctorClinic[]
-  doctorSchedules         DoctorSchedule[]
-  doctorTimeOffs          DoctorTimeOff[]
-  feedbacks               Feedback[]
-  importJobs              ImportJob[]
-  patients                Patient[]
-  paymentSessions         PaymentSession[]
-  queueTokens             QueueToken[]
-  reminderSettings        ReminderSettings?
-  users                   User[]
-  whatsappLogs            WhatsappLog[]
-  subscription            Subscription?
-  subscriptionPayments    SubscriptionPayment[]
-  subscriptionReminders   SubscriptionReminder[]
-  referralsGiven          Referral[]               @relation("ReferrerClinic")
-  referralsReceived       Referral[]               @relation("ReferredClinic")
-  referralCredits         ReferralCredit[]
-  mrnSequence             MrnSequence?
+  appointments          Appointment[]
+  auditLogs             AuditLog[]
+  analyticsSnapshots    AnalyticsSnapshot[]
+  paymentRetries        PaymentRetry[]
+  bulkImportJobs        BulkImportJob[]
+  clinicalTemplates     ClinicalTemplate[]
+  customFields          CustomField[]
+  doctorClinics         DoctorClinic[]
+  doctorSchedules       DoctorSchedule[]
+  doctorTimeOffs        DoctorTimeOff[]
+  feedbacks             Feedback[]
+  featureFlags          FeatureFlag[]
+  importJobs            ImportJob[]
+  patients              Patient[]
+  paymentSessions       PaymentSession[]
+  queueTokens           QueueToken[]
+  reminderSettings      ReminderSettings?
+  users                 User[]
+  whatsappLogs          WhatsappLog[]
+  subscription          Subscription?
+  subscriptionPayments  SubscriptionPayment[]
+  subscriptionReminders SubscriptionReminder[]
+  referralsGiven        Referral[]             @relation("ReferrerClinic")
+  referralsReceived     Referral[]             @relation("ReferredClinic")
+  referralCredits       ReferralCredit[]
+  mrnSequence           MrnSequence?
+  whatsappTemplates     WhatsappTemplate[]
+  staffNotifications    StaffNotification[]
+  // Usage-based billing relations
+  clinicAddOns          ClinicAddOn[]
+  usageRecords          UsageRecord[]
+  usageEvents           UsageEvent[]
+  wards                 Ward[]
+  facilityType          FacilityType      @default(CLINIC)
+}
+
+enum FacilityType {
+  CLINIC
+  HOSPITAL
+}
+
+// ============================================================================
+// Feature Flags for Extensibility
+// ============================================================================
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String
+  value       Json     // Can store boolean, number, string, or object
+  description String?
+  clinicId    String?  // null = global, specific = per-clinic override
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clinic Clinic? @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([key, clinicId])
+  @@index([key])
+  @@index([clinicId])
 }
 
 model DoctorClinic {
@@ -806,7 +874,7 @@ model WhatsappLog {
   invoiceId         String?
   prescriptionId    String?
   type              String
-  provider          String    @default("twilio")
+  provider          String    @default("meta")
   providerMessageId String?
   phoneNumber       String
   message           String
@@ -826,6 +894,133 @@ model WhatsappLog {
   @@index([invoiceId])
   @@index([prescriptionId])
   @@index([status])
+}
+
+// WhatsApp Message Templates (for button-first approach)
+model WhatsappTemplate {
+  id               String                   @id @default(cuid())
+  clinicId         String?
+  name             String // e.g., "appointment_reminder_30min"
+  category         WhatsappTemplateCategory
+  content          String // Template text with {{variables}}
+  variables        Json? // Array of variable names
+  buttonType       WhatsappButtonType       @default(NONE)
+  buttons          Json? // Button configuration
+  status           WhatsappTemplateStatus   @default(DRAFT)
+  metaTemplateId   String? // Meta WhatsApp template ID (for production)
+  version          Int                      @default(1)
+  isActive         Boolean                  @default(true)
+  isDefault        Boolean                  @default(false) // System default template
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  clinic           Clinic?                  @relation(fields: [clinicId], references: [id])
+
+  @@unique([clinicId, name, version])
+  @@index([clinicId])
+  @@index([category])
+  @@index([status])
+  @@index([isActive])
+}
+
+// Patient responses to appointment reminders
+model AppointmentResponse {
+  id              String              @id @default(cuid())
+  appointmentId   String
+  responseType    PatientResponseType
+  responseTime    DateTime            @default(now())
+  patientMessage  String? // Original message if text response
+  delayMinutes    Int? // If DELAY, how many minutes
+  staffNotified   Boolean             @default(false)
+  staffNotifiedAt DateTime?
+  handledById     String? // Staff member who handled
+  handledAt       DateTime?
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  appointment     Appointment         @relation(fields: [appointmentId], references: [id])
+
+  @@index([appointmentId])
+  @@index([responseType])
+  @@index([staffNotified])
+  @@index([createdAt])
+}
+
+// In-app notifications for staff
+model StaffNotification {
+  id        String                @id @default(cuid())
+  clinicId  String
+  userId    String? // Target staff member (null = all staff)
+  type      StaffNotificationType
+  title     String
+  message   String
+  data      Json? // Additional context (appointmentId, patientId, etc.)
+  priority  NotificationPriority  @default(NORMAL)
+  isRead    Boolean               @default(false)
+  readAt    DateTime?
+  createdAt DateTime              @default(now())
+  clinic    Clinic                @relation(fields: [clinicId], references: [id])
+  user      User?                 @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+enum WhatsappTemplateCategory {
+  APPOINTMENT
+  PRESCRIPTION
+  INVOICE
+  PAYMENT
+  FOLLOW_UP
+  MARKETING
+  STAFF_NOTIFICATION
+}
+
+enum WhatsappButtonType {
+  NONE
+  QUICK_REPLY // Up to 3 buttons with text
+  CALL_TO_ACTION // URL or phone number buttons
+}
+
+enum WhatsappTemplateStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum PatientResponseType {
+  CONFIRM // Patient confirms they're coming
+  ON_THE_WAY // Patient is on their way
+  DELAY // Patient will be late
+  RESCHEDULE // Patient wants to reschedule
+  CANCEL // Patient wants to cancel
+  UNKNOWN // Unrecognized response
+}
+
+enum StaffNotificationType {
+  PATIENT_RESPONSE // Patient responded to reminder
+  APPOINTMENT_CANCEL // Patient cancelled
+  APPOINTMENT_DELAY // Patient running late
+  PRESCRIPTION_PENDING // Prescription needs approval
+  INVOICE_PENDING // Invoice needs approval
+  SYSTEM_ALERT // System notification
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPROVED // Auto-approved (sent by doctor)
 }
 
 model IcdCode {
@@ -943,17 +1138,17 @@ model OcrDocument {
   ocrText               String?
   extractedData         Json?
   confidence            Float?
-  fieldConfidenceScores Json?     // Per-field confidence scores
-  suggestedCorrections  Json?     // AI-suggested corrections
+  fieldConfidenceScores Json? // Per-field confidence scores
+  suggestedCorrections  Json? // AI-suggested corrections
   status                String    @default("pending")
   reviewedBy            String?
   reviewedAt            DateTime?
   corrections           Json?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-  
+
   // Relationship to feedback for learning
-  feedbacks             OcrFeedback[]
+  feedbacks OcrFeedback[]
 
   @@index([clinicId])
   @@index([patientId])
@@ -962,18 +1157,18 @@ model OcrDocument {
 }
 
 model OcrFeedback {
-  id              String        @id @default(cuid())
-  ocrDocumentId   String
-  ocrDocument     OcrDocument   @relation(fields: [ocrDocumentId], references: [id], onDelete: Cascade)
-  clinicId        String
-  providedBy      String        // Staff member who made correction
-  fieldName       String        // Which field was corrected
-  originalValue   String
-  correctedValue  String
-  confidence      Float?        // Original confidence score
-  helpful         Boolean       @default(true)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             String      @id @default(cuid())
+  ocrDocumentId  String
+  ocrDocument    OcrDocument @relation(fields: [ocrDocumentId], references: [id], onDelete: Cascade)
+  clinicId       String
+  providedBy     String // Staff member who made correction
+  fieldName      String // Which field was corrected
+  originalValue  String
+  correctedValue String
+  confidence     Float? // Original confidence score
+  helpful        Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@index([ocrDocumentId])
   @@index([clinicId])
@@ -1074,30 +1269,30 @@ model InventoryMovement {
 }
 
 model LabTest {
-  id          String         @id @default(cuid())
+  id          String  @id @default(cuid())
   clinicId    String
   name        String
-  code        String?        // Internal lab code
-  loincCode   String?        // LOINC code for interoperability
+  code        String? // Internal lab code
+  loincCode   String? // LOINC code for interoperability
   category    String
   price       Float?
   description String?
-  
+
   // Reference ranges for result interpretation
-  referenceRangeLow   Float?
-  referenceRangeHigh  Float?
-  referenceRangeUnit  String?
-  referenceRangeText  String? // For non-numeric ranges like "Negative"
-  
+  referenceRangeLow  Float?
+  referenceRangeHigh Float?
+  referenceRangeUnit String?
+  referenceRangeText String? // For non-numeric ranges like "Negative"
+
   // Specimen and collection requirements
-  specimenType        String? // Blood, Urine, Tissue, etc.
+  specimenType           String? // Blood, Urine, Tissue, etc.
   collectionRequirements String? // Fasting, timing, etc.
-  
-  active      Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  orders      LabTestOrder[]
-  loincRef    LoincCode?     @relation(fields: [loincCode], references: [code])
+
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  orders    LabTestOrder[]
+  loincRef  LoincCode?     @relation(fields: [loincCode], references: [code])
 
   @@index([clinicId])
   @@index([category])
@@ -1196,11 +1391,11 @@ enum Gender {
 
 // Code Status - Critical patient safety information (DNR/Full Code)
 enum CodeStatus {
-  FULL_CODE           // Full resuscitation efforts
-  DNR                 // Do Not Resuscitate
-  DNI                 // Do Not Intubate
-  DNR_DNI             // Do Not Resuscitate or Intubate
-  COMFORT_CARE        // Comfort measures only
+  FULL_CODE // Full resuscitation efforts
+  DNR // Do Not Resuscitate
+  DNI // Do Not Intubate
+  DNR_DNI // Do Not Resuscitate or Intubate
+  COMFORT_CARE // Comfort measures only
 }
 
 // Blood Pressure Position - Clinical context for BP readings
@@ -1213,24 +1408,24 @@ enum BpPosition {
 
 // Oxygen Delivery Method - Required when recording SpO2
 enum OxygenDelivery {
-  ROOM_AIR            // No supplemental oxygen
-  NASAL_CANNULA       // Low-flow nasal oxygen
-  SIMPLE_MASK         // Simple face mask
-  NON_REBREATHER      // Non-rebreather mask
-  VENTURI_MASK        // Venturi mask for precise FiO2
-  HIGH_FLOW           // High-flow nasal cannula
-  CPAP                // Continuous positive airway pressure
-  BIPAP               // Bilevel positive airway pressure
-  VENTILATOR          // Mechanical ventilation
+  ROOM_AIR // No supplemental oxygen
+  NASAL_CANNULA // Low-flow nasal oxygen
+  SIMPLE_MASK // Simple face mask
+  NON_REBREATHER // Non-rebreather mask
+  VENTURI_MASK // Venturi mask for precise FiO2
+  HIGH_FLOW // High-flow nasal cannula
+  CPAP // Continuous positive airway pressure
+  BIPAP // Bilevel positive airway pressure
+  VENTILATOR // Mechanical ventilation
   OTHER
 }
 
 // Blood Pressure Migration Status - For legacy data migration
 enum BpMigrationStatus {
-  PENDING             // Not yet migrated
-  MIGRATED            // Successfully parsed and migrated
-  FLAGGED             // Non-standard format, needs manual review
-  MANUAL              // Manually corrected
+  PENDING // Not yet migrated
+  MIGRATED // Successfully parsed and migrated
+  FLAGGED // Non-standard format, needs manual review
+  MANUAL // Manually corrected
 }
 
 // Dosage Form - Pharmaceutical dosage forms
@@ -1257,56 +1452,56 @@ enum DosageForm {
 
 // Standardized Frequency Codes (SIG codes)
 enum SigCode {
-  QD                  // Once daily
-  BID                 // Twice daily
-  TID                 // Three times daily
-  QID                 // Four times daily
-  Q4H                 // Every 4 hours
-  Q6H                 // Every 6 hours
-  Q8H                 // Every 8 hours
-  Q12H                // Every 12 hours
-  QHS                 // At bedtime
-  QAM                 // Every morning
-  QPM                 // Every evening
-  QOD                 // Every other day
-  QWK                 // Once weekly
-  PRN                 // As needed
-  STAT                // Immediately
-  AC                  // Before meals
-  PC                  // After meals
+  QD // Once daily
+  BID // Twice daily
+  TID // Three times daily
+  QID // Four times daily
+  Q4H // Every 4 hours
+  Q6H // Every 6 hours
+  Q8H // Every 8 hours
+  Q12H // Every 12 hours
+  QHS // At bedtime
+  QAM // Every morning
+  QPM // Every evening
+  QOD // Every other day
+  QWK // Once weekly
+  PRN // As needed
+  STAT // Immediately
+  AC // Before meals
+  PC // After meals
   OTHER
 }
 
 // Consent Types - For legal and compliance tracking
 enum ConsentType {
-  TREATMENT           // General treatment consent
-  PROCEDURE           // Procedure-specific consent
-  SURGERY             // Surgical consent
-  ANESTHESIA          // Anesthesia consent
-  HIPAA_RELEASE       // HIPAA information release
-  RESEARCH            // Research participation
-  PHOTO_VIDEO         // Photo/video consent
-  TELEHEALTH          // Telemedicine consent
-  MINOR_GUARDIAN      // Guardian consent for minor
-  BLOOD_TRANSFUSION   // Blood transfusion consent
-  VACCINATION         // Vaccination consent
+  TREATMENT // General treatment consent
+  PROCEDURE // Procedure-specific consent
+  SURGERY // Surgical consent
+  ANESTHESIA // Anesthesia consent
+  HIPAA_RELEASE // HIPAA information release
+  RESEARCH // Research participation
+  PHOTO_VIDEO // Photo/video consent
+  TELEHEALTH // Telemedicine consent
+  MINOR_GUARDIAN // Guardian consent for minor
+  BLOOD_TRANSFUSION // Blood transfusion consent
+  VACCINATION // Vaccination consent
 }
 
 // Consent Status
 enum ConsentStatus {
-  ACTIVE              // Currently valid
-  REVOKED             // Patient revoked consent
-  EXPIRED             // Consent period ended
-  PENDING             // Awaiting signature
+  ACTIVE // Currently valid
+  REVOKED // Patient revoked consent
+  EXPIRED // Consent period ended
+  PENDING // Awaiting signature
 }
 
 // Immunization Route
 enum ImmunizationRoute {
-  IM                  // Intramuscular
-  SC                  // Subcutaneous
-  ID                  // Intradermal
-  PO                  // Oral
-  IN                  // Intranasal
+  IM // Intramuscular
+  SC // Subcutaneous
+  ID // Intradermal
+  PO // Oral
+  IN // Intranasal
   OTHER
 }
 
@@ -1385,9 +1580,17 @@ enum ClinicTier {
 }
 
 enum ClinicType {
-  GENERAL
-  DENTAL
-  SPECIALTY
+  GENERAL       // General Medicine/Multi-specialty
+  DENTAL        // Dental/Orthodontics
+  PEDIATRIC     // Pediatrics/Child Health
+  ORTHOPEDIC    // Orthopedics/Bone & Joint
+  CARDIOLOGY    // Cardiology/Heart Specialist
+  DERMATOLOGY   // Dermatology/Skin Care
+  ENT           // ENT/Ear, Nose, Throat
+  GYNECOLOGY    // Gynecology/Women's Health
+  OPHTHALMOLOGY // Ophthalmology/Eye Care
+  PSYCHIATRY    // Psychiatry/Mental Health
+  SPECIALTY     // Other Specialty
 }
 
 enum IntelligenceAddon {
@@ -1415,21 +1618,21 @@ enum ImportJobStatus {
 // ============================================================================
 
 model LoincCode {
-  id          String    @id @default(cuid())
-  code        String    @unique  // LOINC code (e.g., "2345-7")
-  longName    String              // Full descriptive name
-  shortName   String?             // Abbreviated name
-  component   String?             // What is being measured
-  property    String?             // Type of property (e.g., "Mass concentration")
-  timeAspect  String?             // Point in time vs. over time
-  system      String?             // System/specimen type
-  scale       String?             // Quantitative, Ordinal, Nominal
-  method      String?             // Method of measurement
-  classType   String?             // Class/category
-  status      String?             @default("ACTIVE") // Active, Deprecated, etc.
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  labTests    LabTest[]
+  id         String    @id @default(cuid())
+  code       String    @unique // LOINC code (e.g., "2345-7")
+  longName   String // Full descriptive name
+  shortName  String? // Abbreviated name
+  component  String? // What is being measured
+  property   String? // Type of property (e.g., "Mass concentration")
+  timeAspect String? // Point in time vs. over time
+  system     String? // System/specimen type
+  scale      String? // Quantitative, Ordinal, Nominal
+  method     String? // Method of measurement
+  classType  String? // Class/category
+  status     String?   @default("ACTIVE") // Active, Deprecated, etc.
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  labTests   LabTest[]
 
   @@index([code])
   @@index([component])
@@ -1441,43 +1644,43 @@ model LoincCode {
 // ============================================================================
 
 model Immunization {
-  id                String            @id @default(cuid())
-  patientId         String
-  
+  id        String @id @default(cuid())
+  patientId String
+
   // Vaccine identification
-  vaccineName       String            // Common name (e.g., "COVID-19 Vaccine")
-  cvxCode           String?           // CDC CVX code
-  mvxCode           String?           // Manufacturer MVX code
-  ndcCode           String?           // National Drug Code
-  
+  vaccineName String // Common name (e.g., "COVID-19 Vaccine")
+  cvxCode     String? // CDC CVX code
+  mvxCode     String? // Manufacturer MVX code
+  ndcCode     String? // National Drug Code
+
   // Vaccine details
-  manufacturer      String?
-  lotNumber         String?
-  expirationDate    DateTime?
-  
+  manufacturer   String?
+  lotNumber      String?
+  expirationDate DateTime?
+
   // Administration details
-  administeredDate  DateTime
-  administeredBy    String?           // Provider who administered
-  administeredAt    String?           // Location/facility
-  site              ImmunizationSite?
-  route             ImmunizationRoute?
-  doseNumber        Int?              // e.g., 1st dose, 2nd dose
-  seriesComplete    Boolean?          // Is series complete?
-  
+  administeredDate DateTime
+  administeredBy   String? // Provider who administered
+  administeredAt   String? // Location/facility
+  site             ImmunizationSite?
+  route            ImmunizationRoute?
+  doseNumber       Int? // e.g., 1st dose, 2nd dose
+  seriesComplete   Boolean? // Is series complete?
+
   // Documentation
-  informationSource String?           // e.g., "Historical", "Administered"
+  informationSource String? // e.g., "Historical", "Administered"
   notes             String?
-  documentUrl       String?           // Link to immunization record
-  
+  documentUrl       String? // Link to immunization record
+
   // Reactions (if any)
-  hadReaction       Boolean           @default(false)
-  reactionDetails   String?
-  
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  
-  patient           Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  hadReaction     Boolean @default(false)
+  reactionDetails String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
   @@index([cvxCode])
   @@index([administeredDate])
@@ -1488,48 +1691,48 @@ model Immunization {
 // ============================================================================
 
 model Consent {
-  id                String        @id @default(cuid())
-  patientId         String
-  clinicId          String
-  
+  id        String @id @default(cuid())
+  patientId String
+  clinicId  String
+
   // Consent details
-  consentType       ConsentType
-  status            ConsentStatus @default(PENDING)
-  
+  consentType ConsentType
+  status      ConsentStatus @default(PENDING)
+
   // Who gave consent
-  givenBy           String?       // Name of person giving consent
-  givenByRelation   String?       // If not patient (e.g., "Parent", "Guardian")
-  givenAt           DateTime?
-  
+  givenBy         String? // Name of person giving consent
+  givenByRelation String? // If not patient (e.g., "Parent", "Guardian")
+  givenAt         DateTime?
+
   // Witness information
-  witnessedBy       String?       // Name of witness
-  witnessedAt       DateTime?
-  
+  witnessedBy String? // Name of witness
+  witnessedAt DateTime?
+
   // Validity period
-  validFrom         DateTime?
-  validUntil        DateTime?
-  
+  validFrom  DateTime?
+  validUntil DateTime?
+
   // Revocation tracking
-  revokedAt         DateTime?
-  revokedBy         String?
-  revokedReason     String?
-  
+  revokedAt     DateTime?
+  revokedBy     String?
+  revokedReason String?
+
   // Associated procedure (for procedure-specific consent)
-  procedureId       String?       // Link to Procedure if applicable
-  procedureName     String?       // Description of procedure
-  
+  procedureId   String? // Link to Procedure if applicable
+  procedureName String? // Description of procedure
+
   // Documentation
-  documentUrl       String?       // Signed consent form
-  templateVersion   String?       // Version of consent template used
-  notes             String?
-  
+  documentUrl     String? // Signed consent form
+  templateVersion String? // Version of consent template used
+  notes           String?
+
   // Audit trail
-  createdBy         String?       // Staff who created record
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  patient           Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  
+  createdBy String? // Staff who created record
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
   @@index([patientId])
   @@index([clinicId])
   @@index([consentType])
@@ -1542,15 +1745,15 @@ model Consent {
 // ============================================================================
 
 model MrnSequence {
-  id          String   @id @default(cuid())
-  clinicId    String   @unique
-  prefix      String   // e.g., "DOC", "CLI"
-  lastNumber  Int      @default(0) // Last used sequence number
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  clinic      Clinic   @relation(fields: [clinicId], references: [id])
-  
+  id         String   @id @default(cuid())
+  clinicId   String   @unique
+  prefix     String // e.g., "DOC", "CLI"
+  lastNumber Int      @default(0) // Last used sequence number
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id])
+
   @@index([clinicId])
 }
 
@@ -1559,40 +1762,40 @@ model MrnSequence {
 // ============================================================================
 
 model Feedback {
-  id                 String           @id @default(cuid())
-  clinicId           String
-  userId             String
-  
+  id       String @id @default(cuid())
+  clinicId String
+  userId   String
+
   // Rating (1-5 stars)
-  overallRating      Int              @default(3)
-  
+  overallRating Int @default(3)
+
   // Feature feedback
-  goodFeatures       String[]         // List of features user likes
-  goodFeaturesReason String?          // Why they like these features
-  
-  badFeatures        String[]         // List of features user dislikes
-  badFeaturesReason  String?          // Why they dislike these features
-  
-  improvementAreas   String[]         // Features that need improvement
-  improvementReason  String?          // How to improve them
-  
-  featureRequests    String?          // New feature requests
-  
+  goodFeatures       String[] // List of features user likes
+  goodFeaturesReason String? // Why they like these features
+
+  badFeatures       String[] // List of features user dislikes
+  badFeaturesReason String? // Why they dislike these features
+
+  improvementAreas  String[] // Features that need improvement
+  improvementReason String? // How to improve them
+
+  featureRequests String? // New feature requests
+
   // Additional feedback
-  generalComments    String?          // Any other comments
-  
+  generalComments String? // Any other comments
+
   // Metadata
-  category           FeedbackCategory @default(GENERAL)
-  status             FeedbackStatus   @default(NEW)
-  adminNotes         String?          // Notes from admin reviewing feedback
-  
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  
+  category   FeedbackCategory @default(GENERAL)
+  status     FeedbackStatus   @default(NEW)
+  adminNotes String? // Notes from admin reviewing feedback
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  clinic             Clinic           @relation(fields: [clinicId], references: [id])
-  user               User             @relation(fields: [userId], references: [id])
-  
+  clinic Clinic @relation(fields: [clinicId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
   @@index([clinicId])
   @@index([userId])
   @@index([status])
@@ -1629,9 +1832,9 @@ model ApiRequest {
   method       String
   path         String
   statusCode   Int
-  duration     Int      // in milliseconds
-  requestSize  Int?     // in bytes
-  responseSize Int?     // in bytes
+  duration     Int // in milliseconds
+  requestSize  Int? // in bytes
+  responseSize Int? // in bytes
   userAgent    String?
   ip           String?
   error        String?
@@ -1648,24 +1851,24 @@ model ApiRequest {
 }
 
 model ErrorLog {
-  id           String          @id @default(cuid())
-  clinicId     String?
-  userId       String?
-  type         String          // HttpException, PrismaError, UnhandledError, etc.
-  message      String
-  stack        String?
-  path         String?
-  method       String?
-  statusCode   Int?
-  userAgent    String?
-  ip           String?
-  requestBody  Json?
-  metadata     Json?
-  severity     ErrorSeverity   @default(ERROR)
-  resolved     Boolean         @default(false)
-  resolvedBy   String?
-  resolvedAt   DateTime?
-  createdAt    DateTime        @default(now())
+  id          String        @id @default(cuid())
+  clinicId    String?
+  userId      String?
+  type        String // HttpException, PrismaError, UnhandledError, etc.
+  message     String
+  stack       String?
+  path        String?
+  method      String?
+  statusCode  Int?
+  userAgent   String?
+  ip          String?
+  requestBody Json?
+  metadata    Json?
+  severity    ErrorSeverity @default(ERROR)
+  resolved    Boolean       @default(false)
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
 
   @@index([clinicId])
   @@index([type])
@@ -1675,33 +1878,33 @@ model ErrorLog {
 }
 
 model SystemMetric {
-  id             String       @id @default(cuid())
-  metricType     MetricType
-  value          Float
-  unit           String?
-  metadata       Json?
-  recordedAt     DateTime     @default(now())
+  id         String     @id @default(cuid())
+  metricType MetricType
+  value      Float
+  unit       String?
+  metadata   Json?
+  recordedAt DateTime   @default(now())
 
   @@index([metricType])
   @@index([recordedAt])
 }
 
 model PerformanceAggregate {
-  id               String   @id @default(cuid())
-  path             String
-  method           String
-  period           String   // hourly, daily
-  periodStart      DateTime
-  totalRequests    Int
-  successCount     Int
-  errorCount       Int
-  avgDuration      Float
-  minDuration      Int
-  maxDuration      Int
-  p50Duration      Int?
-  p95Duration      Int?
-  p99Duration      Int?
-  createdAt        DateTime @default(now())
+  id            String   @id @default(cuid())
+  path          String
+  method        String
+  period        String // hourly, daily
+  periodStart   DateTime
+  totalRequests Int
+  successCount  Int
+  errorCount    Int
+  avgDuration   Float
+  minDuration   Int
+  maxDuration   Int
+  p50Duration   Int?
+  p95Duration   Int?
+  p99Duration   Int?
+  createdAt     DateTime @default(now())
 
   @@unique([path, method, period, periodStart])
   @@index([period])
@@ -1731,50 +1934,260 @@ enum MetricType {
 }
 
 // ============================================================================
+// Usage-Based Pricing & Add-ons System
+// ============================================================================
+
+// Tier pricing configuration (base prices and included quotas)
+model TierPricing {
+  id   String     @id @default(cuid())
+  tier ClinicTier @unique
+
+  // Base pricing (in paise/cents)
+  monthlyBasePriceCents Int
+  currency              String @default("INR")
+
+  // Included quotas (usage within these limits is free)
+  includedPatients     Int // Active patients per month
+  includedAppointments Int // Appointments per month
+  includedStorageGB    Int // Storage in GB
+  includedUsers        Int // Number of users (doctors/staff)
+
+  // Overage rates (in paise per unit)
+  overagePatientCents     Int // Per additional active patient
+  overageAppointmentCents Int // Per additional appointment
+  overageStorageCents     Int // Per additional GB
+  overageUserCents        Int // Per additional user
+
+  // Tier features (JSON array of feature keys)
+  features Json @default("[]")
+
+  // Display info
+  name         String
+  description  String
+  tagline      String?
+  color        String  @default("blue")
+  displayOrder Int     @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// Add-on products (WhatsApp, Intelligence, etc.)
+model AddOn {
+  id   String    @id @default(cuid())
+  type AddOnType @unique
+
+  // Base pricing per tier (in paise)
+  pricingByTier Json // { "CORE": 49900, "PLUS": 79900, "PRO": 149900 }
+
+  // Included quotas per tier
+  includedQuotaByTier Json // { "CORE": 500, "PLUS": 1500, "PRO": 5000 }
+
+  // Overage rates per tier (in paise per unit)
+  overageRateByTier Json // { "CORE": 50, "PLUS": 40, "PRO": 30 }
+
+  // Display info
+  name        String
+  description String
+  icon        String?
+  features    Json    @default("[]") // Array of feature strings
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  clinicAddOns ClinicAddOn[]
+
+  @@index([isActive])
+}
+
+// Clinic's active add-ons
+model ClinicAddOn {
+  id        String    @id @default(cuid())
+  clinicId  String
+  addOnId   String
+  addOnType AddOnType
+
+  // Status
+  status AddOnStatus @default(ACTIVE)
+
+  // Billing
+  priceCents   Int // Current price in paise
+  billingCycle BillingCycle @default(MONTHLY)
+
+  // Period tracking
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+
+  // Razorpay
+  razorpaySubscriptionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  addOn  AddOn  @relation(fields: [addOnId], references: [id])
+
+  @@unique([clinicId, addOnType])
+  @@index([clinicId])
+  @@index([addOnId])
+  @@index([status])
+}
+
+// Usage tracking for billing calculations
+model UsageRecord {
+  id       String    @id @default(cuid())
+  clinicId String
+  type     UsageType
+
+  // Period this usage belongs to
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Quantities
+  quantity      Int // Total units used
+  includedQuota Int // What was included in plan
+  overageUnits  Int // Units over the included quota
+
+  // Calculated charges (in paise)
+  overageChargeCents Int @default(0)
+
+  // For audit/debugging
+  metadata Json? // Additional context
+
+  createdAt DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, type, periodStart])
+  @@index([clinicId])
+  @@index([type])
+  @@index([periodStart])
+  @@index([clinicId, periodStart])
+}
+
+// Real-time usage events (for tracking before aggregation)
+model UsageEvent {
+  id       String    @id @default(cuid())
+  clinicId String
+  type     UsageType
+
+  // Event details
+  quantity  Int      @default(1)
+  timestamp DateTime @default(now())
+
+  // Reference to what generated the event
+  entityType String? // Patient, Appointment, WhatsappLog, etc.
+  entityId   String?
+
+  // For deduplication
+  eventKey String? // Unique key to prevent double counting
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+
+  @@unique([eventKey])
+  @@index([clinicId])
+  @@index([type])
+  @@index([timestamp])
+  @@index([clinicId, type, timestamp])
+}
+
+// Discount configurations
+model Discount {
+  id   String       @id @default(cuid())
+  type DiscountType @unique
+
+  // Discount values
+  percentOff         Int // Percentage discount (10 = 10%)
+  maxCombinedPercent Int? // Max when stacking with other discounts
+
+  // Applicability
+  appliesToBase    Boolean @default(true)
+  appliesToAddOns  Boolean @default(true)
+  appliesToOverage Boolean @default(false)
+
+  // Requirements
+  minCommitmentMonths Int? // For commitment discounts
+  minTenureMonths     Int? // For loyalty discounts
+
+  // Display
+  name        String
+  description String?
+  badgeText   String? // e.g., "Save 10%"
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([type])
+}
+
+// ============================================================================
 // Subscription & Billing System
 // ============================================================================
 
 model Subscription {
-  id                     String             @id @default(cuid())
-  clinicId               String             @unique
-  plan                   ClinicTier         @default(CORE)
-  billingCycle           BillingCycle       @default(MONTHLY)
-  priceCents             Int                // Price in paise (INR cents)
-  currency               String             @default("INR")
-  status                 SubscriptionStatus @default(ACTIVE)
+  id             String             @id @default(cuid())
+  clinicId       String             @unique
+  plan           ClinicTier         @default(CORE)
+  billingCycle   BillingCycle       @default(MONTHLY)
+  basePriceCents Int // Base tier price in paise
+  currency       String             @default("INR")
+  status         SubscriptionStatus @default(ACTIVE)
+
+  // Discounts applied
+  discountsApplied     Json? // Array of { type: DiscountType, percentOff: number }
+  totalDiscountPercent Int   @default(0) // Combined discount percentage
+
+  // Usage limits from tier (cached for billing)
+  includedPatients     Int @default(300)
+  includedAppointments Int @default(500)
+  includedStorageGB    Int @default(5)
+  includedUsers        Int @default(1)
 
   // Razorpay integration
-  razorpaySubscriptionId String?            // Razorpay subscription ID
-  razorpayPlanId         String?            // Razorpay plan ID
-  razorpayTokenId        String?            // Razorpay customer token for autopay
-  razorpayCustomerId     String?            // Razorpay customer ID
+  razorpaySubscriptionId String? // Razorpay subscription ID
+  razorpayPlanId         String? // Razorpay plan ID
+  razorpayTokenId        String? // Razorpay customer token for autopay
+  razorpayCustomerId     String? // Razorpay customer ID
 
   // Period tracking
-  currentPeriodStart     DateTime
-  currentPeriodEnd       DateTime
-  trialEnd               DateTime?
-  cancelledAt            DateTime?
-  cancelAtPeriodEnd      Boolean            @default(false)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  trialEnd           DateTime?
+  cancelledAt        DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
 
   // Credits & proration
-  creditsCents           Int                @default(0) // Monetary credits from proration/referrals
+  creditsCents Int @default(0) // Monetary credits from proration/referrals
 
   // Auto-pay configuration
-  autoPayEnabled         Boolean            @default(false)
-  paymentMethodType      String?            // CARD | BANK_TRANSFER
-  lastFailedPaymentDate  DateTime?
-  failureRetryCount      Int                @default(0)
-  graceUntil             DateTime?          // 3-day grace period end date if payment fails
+  autoPayEnabled        Boolean   @default(false)
+  paymentMethodType     String? // CARD | BANK_TRANSFER
+  lastFailedPaymentDate DateTime?
+  failureRetryCount     Int       @default(0)
+  graceUntil            DateTime? // 3-day grace period end date if payment fails
 
   // Scheduled changes (for downgrades or cycle switches)
-  scheduledChange        Json?              // {plan, billingCycle, effectiveAt}
+  scheduledChange Json? // {plan, billingCycle, effectiveAt}
 
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  clinic                 Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  payments               SubscriptionPayment[]
-  reminders              SubscriptionReminder[]
+  clinic    Clinic                 @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  payments  SubscriptionPayment[]
+  reminders SubscriptionReminder[]
 
   @@index([status])
   @@index([currentPeriodEnd])
@@ -1782,40 +2195,40 @@ model Subscription {
 }
 
 model SubscriptionPayment {
-  id                  String        @id @default(cuid())
-  clinicId            String
-  subscriptionId      String?
+  id             String  @id @default(cuid())
+  clinicId       String
+  subscriptionId String?
 
-  amountCents         Int           // Amount in paise
-  currency            String        @default("INR")
-  status              String        // pending, paid, failed, refunded
+  amountCents Int // Amount in paise
+  currency    String @default("INR")
+  status      String // pending, paid, failed, refunded
 
   // Razorpay details
-  razorpayPaymentId   String?
-  razorpayOrderId     String?
-  razorpaySignature   String?
+  razorpayPaymentId String?
+  razorpayOrderId   String?
+  razorpaySignature String?
 
   // Invoice details
-  invoiceUrl          String?
-  invoiceNumber       String?
+  invoiceUrl    String?
+  invoiceNumber String?
 
   // Proration info
-  isProrated          Boolean       @default(false)
+  isProrated          Boolean @default(false)
   proratedDays        Int?
   originalAmountCents Int?
 
   // Credits applied
-  creditsApplied      Int           @default(0)
+  creditsApplied Int @default(0)
 
-  description         String?
-  failureReason       String?
+  description   String?
+  failureReason String?
 
-  paidAt              DateTime?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  clinic              Clinic        @relation(fields: [clinicId], references: [id])
-  subscription        Subscription? @relation(fields: [subscriptionId], references: [id])
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
 
   @@index([clinicId])
   @@index([subscriptionId])
@@ -1824,21 +2237,21 @@ model SubscriptionPayment {
 }
 
 model SubscriptionReminder {
-  id             String        @id @default(cuid())
+  id             String  @id @default(cuid())
   clinicId       String
   subscriptionId String?
 
-  type           String        // expiry_7d, expiry_3d, expiry_1d, expired, grace_1d, grace_2d, grace_3d
-  channel        String        // email, whatsapp, in_app
-  status         String        @default("pending") // pending, sent, failed
+  type    String // expiry_7d, expiry_3d, expiry_1d, expired, grace_1d, grace_2d, grace_3d
+  channel String // email, whatsapp, in_app
+  status  String @default("pending") // pending, sent, failed
 
-  sentAt         DateTime?
-  errorMessage   String?
+  sentAt       DateTime?
+  errorMessage String?
 
-  createdAt      DateTime      @default(now())
+  createdAt DateTime @default(now())
 
-  clinic         Clinic        @relation(fields: [clinicId], references: [id])
-  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
 
   @@unique([clinicId, type, createdAt])
   @@index([clinicId])
@@ -1851,35 +2264,35 @@ model SubscriptionReminder {
 // ============================================================================
 
 model Referral {
-  id               String         @id @default(cuid())
+  id               String  @id @default(cuid())
   referrerClinicId String
-  referredClinicId String?        // null until referred clinic signs up
+  referredClinicId String? // null until referred clinic signs up
 
-  referredEmail    String         // Email used for invitation
-  referredDomain   String?        // Domain extracted from email for anti-abuse
-  referralCode     String         // The referral code used
+  referredEmail  String // Email used for invitation
+  referredDomain String? // Domain extracted from email for anti-abuse
+  referralCode   String // The referral code used
 
-  status           ReferralStatus @default(PENDING)
+  status ReferralStatus @default(PENDING)
 
   // Discount for referred clinic
-  discountPercent  Int            @default(25) // 25% off first month
-  discountApplied  Boolean        @default(false)
+  discountPercent Int     @default(25) // 25% off first month
+  discountApplied Boolean @default(false)
 
   // Credit for referrer
-  creditMonths     Int            @default(1) // 1 free month per successful referral
-  creditApplied    Boolean        @default(false)
+  creditMonths  Int     @default(1) // 1 free month per successful referral
+  creditApplied Boolean @default(false)
 
-  inviteSentAt     DateTime?
-  signedUpAt       DateTime?
-  convertedAt      DateTime?      // When first payment completed
-  rejectedAt       DateTime?
-  rejectionReason  String?
+  inviteSentAt    DateTime?
+  signedUpAt      DateTime?
+  convertedAt     DateTime? // When first payment completed
+  rejectedAt      DateTime?
+  rejectionReason String?
 
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  referrerClinic   Clinic         @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
-  referredClinic   Clinic?        @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrerClinic Clinic  @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referredClinic Clinic? @relation("ReferredClinic", fields: [referredClinicId], references: [id])
 
   @@index([referrerClinicId])
   @@index([referredClinicId])
@@ -1889,21 +2302,45 @@ model Referral {
 }
 
 model ReferralCredit {
-  id           String    @id @default(cuid())
-  clinicId     String
-  referralId   String
+  id         String @id @default(cuid())
+  clinicId   String
+  referralId String
 
-  creditMonths Int       // Months credited
+  creditMonths Int // Months credited
   appliedAt    DateTime  @default(now())
   expiresAt    DateTime? // Credits may expire
   usedAt       DateTime? // When credit was consumed
 
-  createdAt    DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  clinic       Clinic    @relation(fields: [clinicId], references: [id])
+  clinic Clinic @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId])
   @@index([referralId])
+}
+
+// ============================================================================
+// Device Tokens for Push Notifications
+// ============================================================================
+
+model DeviceToken {
+  id         String   @id @default(cuid())
+  patientId  String? // For patient app users
+  userId     String? // For staff/doctor app users  
+  token      String
+  platform   String // ios, android, web
+  deviceId   String?
+  isActive   Boolean  @default(true)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([token])
+  @@index([patientId])
+  @@index([userId])
+  @@index([patientId, isActive])
+  @@index([userId, isActive])
+  @@index([token])
 }
 
 // ============================================================================
@@ -1911,23 +2348,23 @@ model ReferralCredit {
 // ============================================================================
 
 model AuditLog {
-  id             String    @id @default(cuid())
-  clinicId       String
-  userId         String
-  action         String    // PRESCRIPTION_CREATED, PATIENT_UPDATED, INVOICE_PAID, etc.
-  entityType     String    // PRESCRIPTION, PATIENT, INVOICE, APPOINTMENT, etc.
-  entityId       String
-  oldValue       Json?
-  newValue       Json?
-  ipAddress      String?
-  userAgent      String?
-  status         String    @default("SUCCESS") // SUCCESS, FAILED, PENDING
-  errorMessage   String?
-  metadata       Json?
-  createdAt      DateTime  @default(now())
+  id           String   @id @default(cuid())
+  clinicId     String
+  userId       String
+  action       String // PRESCRIPTION_CREATED, PATIENT_UPDATED, INVOICE_PAID, etc.
+  entityType   String // PRESCRIPTION, PATIENT, INVOICE, APPOINTMENT, etc.
+  entityId     String
+  oldValue     Json?
+  newValue     Json?
+  ipAddress    String?
+  userAgent    String?
+  status       String   @default("SUCCESS") // SUCCESS, FAILED, PENDING
+  errorMessage String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
 
-  clinic         Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  user           User      @relation(fields: [userId], references: [id])
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([clinicId])
   @@index([userId])
@@ -1938,69 +2375,69 @@ model AuditLog {
 }
 
 model AnalyticsSnapshot {
-  id                  String    @id @default(cuid())
-  clinicId            String
-  period              String    // "daily", "weekly", "monthly"
-  snapshotDate        DateTime
+  id           String   @id @default(cuid())
+  clinicId     String
+  period       String // "daily", "weekly", "monthly"
+  snapshotDate DateTime
 
   // Revenue Metrics
-  totalRevenue        Decimal   @db.Decimal(12, 2) @default(0)
-  invoiceCount        Int       @default(0)
-  avgInvoiceAmount    Decimal   @db.Decimal(12, 2) @default(0)
+  totalRevenue     Decimal @default(0) @db.Decimal(12, 2)
+  invoiceCount     Int     @default(0)
+  avgInvoiceAmount Decimal @default(0) @db.Decimal(12, 2)
 
   // Appointment Metrics
-  totalAppointments   Int       @default(0)
-  completedAppts      Int       @default(0)
-  cancelledAppts      Int       @default(0)
-  appointmentFillRate Decimal   @db.Decimal(5, 2) @default(0)
+  totalAppointments   Int     @default(0)
+  completedAppts      Int     @default(0)
+  cancelledAppts      Int     @default(0)
+  appointmentFillRate Decimal @default(0) @db.Decimal(5, 2)
 
   // Patient Metrics
-  newPatients         Int       @default(0)
-  activePatients      Int       @default(0)
-  appointmentRate     Decimal   @db.Decimal(5, 2) @default(0)
+  newPatients     Int     @default(0)
+  activePatients  Int     @default(0)
+  appointmentRate Decimal @default(0) @db.Decimal(5, 2)
 
   // Condition Metrics
-  topConditions       Json      @default("[]") // Array of {condition, count, percentage}
+  topConditions Json @default("[]") // Array of {condition, count, percentage}
 
-  createdAt           DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  clinic              Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
 
+  @@unique([clinicId, period, snapshotDate])
   @@index([clinicId])
   @@index([period])
   @@index([snapshotDate])
-  @@unique([clinicId, period, snapshotDate])
 }
 
 model PaymentRetry {
-  id                String    @id @default(cuid())
-  clinicId          String
-  invoiceId         String
-  razorpayOrderId   String?
-  razorpayLinkId    String?
+  id              String  @id @default(cuid())
+  clinicId        String
+  invoiceId       String
+  razorpayOrderId String?
+  razorpayLinkId  String?
 
   // Retry Strategy
-  attemptCount      Int       @default(0)
-  maxRetries        Int       @default(3)
-  nextRetryAt       DateTime
-  retryIntervals    Int[]     @default([3600, 86400, 259200]) // 1h, 24h, 72h
+  attemptCount   Int      @default(0)
+  maxRetries     Int      @default(3)
+  nextRetryAt    DateTime
+  retryIntervals Int[]    @default([3600, 86400, 259200]) // 1h, 24h, 72h
 
   // Status
-  status            String    @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED_EXHAUSTED
-  lastError         String?
-  lastAttemptAt     DateTime?
-  completedAt       DateTime?
+  status        String    @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED_EXHAUSTED
+  lastError     String?
+  lastAttemptAt DateTime?
+  completedAt   DateTime?
 
   // Context
-  paymentMethod     String?
-  amount            Decimal   @db.Decimal(12, 2)
-  phoneNumber       String?   // For WhatsApp reminders
+  paymentMethod String?
+  amount        Decimal @db.Decimal(12, 2)
+  phoneNumber   String? // For WhatsApp reminders
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  clinic            Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  invoice           Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([clinicId])
   @@index([status])
@@ -2010,42 +2447,42 @@ model PaymentRetry {
 }
 
 model BulkImportJob {
-  id              String    @id @default(cuid())
-  clinicId        String
-  userId          String
+  id       String @id @default(cuid())
+  clinicId String
+  userId   String
 
   // Job Details
-  entityType      String    // PATIENT, PRESCRIPTION, DOCTOR, LAB_TEST, INVENTORY
-  fileName        String
-  fileSize        Int       // Bytes
-  originalKey     String    // S3 key for file storage
+  entityType  String // PATIENT, PRESCRIPTION, DOCTOR, LAB_TEST, INVENTORY
+  fileName    String
+  fileSize    Int // Bytes
+  originalKey String // S3 key for file storage
 
   // Progress
-  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  totalRows       Int
-  processedRows   Int       @default(0)
-  successRows     Int       @default(0)
-  failedRows      Int       @default(0)
-  skippedRows     Int       @default(0)
+  status        String @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  totalRows     Int
+  processedRows Int    @default(0)
+  successRows   Int    @default(0)
+  failedRows    Int    @default(0)
+  skippedRows   Int    @default(0)
 
   // Error Tracking
-  errors          Json      @default("[]") // [{rowNumber, error, field}]
-  errorSummary    String?   // Aggregated error summary
+  errors       Json    @default("[]") // [{rowNumber, error, field}]
+  errorSummary String? // Aggregated error summary
 
   // Timing
-  startedAt       DateTime?
-  completedAt     DateTime?
-  duration        Int?      // Milliseconds
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int? // Milliseconds
 
   // Results
-  importedIds     String[]  @default([])
-  resultKey       String?   // S3 key for result CSV
+  importedIds String[] @default([])
+  resultKey   String? // S3 key for result CSV
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  clinic          Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  user            User      @relation(fields: [userId], references: [id])
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([clinicId])
   @@index([status])
@@ -2071,13 +2508,135 @@ enum SubscriptionStatus {
 
 enum BillingCycle {
   MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
   YEARLY
 }
 
+enum AddOnType {
+  WHATSAPP
+  INTELLIGENCE
+}
+
+enum AddOnStatus {
+  ACTIVE
+  TRIALING
+  CANCELLED
+  EXPIRED
+}
+
+enum UsageType {
+  ACTIVE_PATIENTS
+  APPOINTMENTS
+  STORAGE_GB
+  USERS
+  WHATSAPP_MESSAGES
+  AI_CREDITS
+}
+
+enum DiscountType {
+  ANNUAL_COMMITMENT // 10% for yearly billing
+  SEMI_ANNUAL_COMMITMENT // 5% for 6-month billing
+  LOYALTY_1_YEAR // 5% after 1 year
+  LOYALTY_2_YEARS // 7% after 2 years
+  LOYALTY_3_YEARS // 10% after 3 years
+  REFERRAL_NEW_CUSTOMER // 1 month free for referred
+  GOVERNMENT // 30% for govt hospitals
+  NGO // 40% for non-profits
+  MEDICAL_COLLEGE // 50% for teaching hospitals
+  RURAL_HEALTH // 40% for rural centers
+  STARTUP_CLINIC // 25% for clinics < 1 year old
+}
+
 enum ReferralStatus {
-  PENDING      // Invite sent, waiting for signup
-  SIGNED_UP    // Referred clinic created account
-  CONVERTED    // First payment completed - credits applied
-  REJECTED     // Failed validation (same domain, abuse, etc.)
-  EXPIRED      // Invite expired without signup
+  PENDING // Invite sent, waiting for signup
+  SIGNED_UP // Referred clinic created account
+  CONVERTED // First payment completed - credits applied
+  REJECTED // Failed validation (same domain, abuse, etc.)
+  EXPIRED // Invite expired without signup
+}
+
+// ============================================================================
+// IPD / Bed Management Models (Hospital Only)
+// ============================================================================
+
+model Ward {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "ICU", "General Ward", "Private"
+  type        String   // e.g., "INTENSIVE_CARE", "GENERAL", "PRIVATE", "OXYGEN"
+  description String?
+  floorNumber String?
+  clinicId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  clinic      Clinic   @relation(fields: [clinicId], references: [id])
+  rooms       Room[]
+  
+  @@index([clinicId])
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  wardId      String
+  roomNumber  String
+  type        String?  // e.g., "SINGLE", "DOUBLE", "SHARED"
+  charges     Float    @default(0) // Daily charges
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ward        Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
+  beds        Bed[]
+
+  @@index([wardId])
+}
+
+enum BedStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  CLEANING
+  RESERVED
+}
+
+model Bed {
+  id          String     @id @default(cuid())
+  roomId      String
+  bedNumber   String
+  status      BedStatus  @default(AVAILABLE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  room        Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  admissions  Admission[]
+
+  @@index([roomId])
+  @@index([status])
+}
+
+enum AdmissionStatus {
+  ADMITTED
+  DISCHARGED
+  TRANSFERRED
+}
+
+model Admission {
+  id             String          @id @default(cuid())
+  patientId      String
+  bedId          String
+  admittedAt     DateTime        @default(now())
+  dischargedAt   DateTime?
+  status         AdmissionStatus @default(ADMITTED)
+  reason         String?
+  diagnosis      String?
+  notes          String?
+  admittingDoctorId String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  patient        Patient         @relation(fields: [patientId], references: [id])
+  bed            Bed             @relation(fields: [bedId], references: [id])
+  admittingDoctor User?          @relation(fields: [admittingDoctorId], references: [id])
+
+  @@index([patientId])
+  @@index([bedId])
+  @@index([status])
 }

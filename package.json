@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "pnpm exec prettier . --write && turbo build",
+    "build": "turbo build",
     "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --filter=@docita/landing",
     "dev:app": "turbo dev --filter=@docita/app --filter=@docita/api",

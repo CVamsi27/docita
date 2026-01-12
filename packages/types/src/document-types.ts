@@ -1,0 +1,206 @@
+import { z } from "zod";
+
+/**
+ * Document Types for Patient Documents
+ * Includes general documents and specific X-ray categories
+ */
+
+export const documentTypeSchema = z.enum([
+  // General Documents
+  "PRESCRIPTION",
+  "LAB_REPORT",
+  "INVOICE",
+  "CONSENT_FORM",
+  "MEDICAL_RECORD",
+  "INSURANCE_CARD",
+  "ID_PROOF",
+  "REFERRAL_LETTER",
+  "DISCHARGE_SUMMARY",
+
+  // X-ray - Dental (Intraoral)
+  "XRAY_INTRAORAL_PERIAPICAL",
+  "XRAY_INTRAORAL_BITEWING",
+  "XRAY_INTRAORAL_OCCLUSAL",
+
+  // X-ray - Dental (Extraoral)
+  "XRAY_PANORAMIC",
+  "XRAY_CEPHALOMETRIC",
+  "XRAY_CBCT",
+
+  // X-ray - Medical
+  "XRAY_CHEST",
+  "XRAY_SKELETAL",
+  "XRAY_SPINE",
+  "XRAY_ABDOMEN",
+  "XRAY_OTHER",
+
+  // Other
+  "OTHER",
+]);
+
+export type DocumentType = z.infer<typeof documentTypeSchema>;
+
+export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  // General
+  PRESCRIPTION: "Prescription",
+  LAB_REPORT: "Lab Report",
+  INVOICE: "Invoice",
+  CONSENT_FORM: "Consent Form",
+  MEDICAL_RECORD: "Medical Record",
+  INSURANCE_CARD: "Insurance Card",
+  ID_PROOF: "ID Proof",
+  REFERRAL_LETTER: "Referral Letter",
+  DISCHARGE_SUMMARY: "Discharge Summary",
+
+  // Dental X-rays (Intraoral)
+  XRAY_INTRAORAL_PERIAPICAL: "X-ray - Periapical",
+  XRAY_INTRAORAL_BITEWING: "X-ray - Bitewing",
+  XRAY_INTRAORAL_OCCLUSAL: "X-ray - Occlusal",
+
+  // Dental X-rays (Extraoral)
+  XRAY_PANORAMIC: "X-ray - Panoramic (OPG)",
+  XRAY_CEPHALOMETRIC: "X-ray - Cephalometric (Ceph)",
+  XRAY_CBCT: "X-ray - CBCT Scan",
+
+  // Medical X-rays
+  XRAY_CHEST: "X-ray - Chest",
+  XRAY_SKELETAL: "X-ray - Skeletal",
+  XRAY_SPINE: "X-ray - Spine",
+  XRAY_ABDOMEN: "X-ray - Abdomen",
+  XRAY_OTHER: "X-ray - Other",
+
+  // Other
+  OTHER: "Other Document",
+};
+
+/**
+ * Document type categories for filtering/grouping
+ */
+export const DOCUMENT_TYPE_CATEGORIES = {
+  ALL_XRAYS: [
+    "XRAY_INTRAORAL_PERIAPICAL",
+    "XRAY_INTRAORAL_BITEWING",
+    "XRAY_INTRAORAL_OCCLUSAL",
+    "XRAY_PANORAMIC",
+    "XRAY_CEPHALOMETRIC",
+    "XRAY_CBCT",
+    "XRAY_CHEST",
+    "XRAY_SKELETAL",
+    "XRAY_SPINE",
+    "XRAY_ABDOMEN",
+    "XRAY_OTHER",
+  ] as const,
+
+  DENTAL_XRAYS: [
+    "XRAY_INTRAORAL_PERIAPICAL",
+    "XRAY_INTRAORAL_BITEWING",
+    "XRAY_INTRAORAL_OCCLUSAL",
+    "XRAY_PANORAMIC",
+    "XRAY_CEPHALOMETRIC",
+    "XRAY_CBCT",
+  ] as const,
+
+  INTRAORAL_XRAYS: [
+    "XRAY_INTRAORAL_PERIAPICAL",
+    "XRAY_INTRAORAL_BITEWING",
+    "XRAY_INTRAORAL_OCCLUSAL",
+  ] as const,
+
+  EXTRAORAL_XRAYS: [
+    "XRAY_PANORAMIC",
+    "XRAY_CEPHALOMETRIC",
+    "XRAY_CBCT",
+  ] as const,
+
+  MEDICAL_XRAYS: [
+    "XRAY_CHEST",
+    "XRAY_SKELETAL",
+    "XRAY_SPINE",
+    "XRAY_ABDOMEN",
+    "XRAY_OTHER",
+  ] as const,
+
+  GENERAL_DOCUMENTS: [
+    "PRESCRIPTION",
+    "LAB_REPORT",
+    "INVOICE",
+    "CONSENT_FORM",
+    "MEDICAL_RECORD",
+    "INSURANCE_CARD",
+    "ID_PROOF",
+    "REFERRAL_LETTER",
+    "DISCHARGE_SUMMARY",
+    "OTHER",
+  ] as const,
+};
+
+/**
+ * Document type descriptions for user guidance
+ */
+export const DOCUMENT_TYPE_DESCRIPTIONS: Record<DocumentType, string> = {
+  PRESCRIPTION: "Prescription documents and medication orders",
+  LAB_REPORT: "Laboratory test results and reports",
+  INVOICE: "Billing invoices and receipts",
+  CONSENT_FORM: "Signed consent forms for procedures",
+  MEDICAL_RECORD: "General medical records and history",
+  INSURANCE_CARD: "Insurance cards and policy documents",
+  ID_PROOF: "Government ID proofs and identification",
+  REFERRAL_LETTER: "Referral letters from other physicians",
+  DISCHARGE_SUMMARY: "Hospital discharge summaries",
+
+  XRAY_INTRAORAL_PERIAPICAL:
+    "Periapical radiographs showing entire tooth and surrounding bone",
+  XRAY_INTRAORAL_BITEWING:
+    "Bitewing radiographs showing crowns of upper and lower teeth",
+  XRAY_INTRAORAL_OCCLUSAL: "Occlusal radiographs showing roof/floor of mouth",
+
+  XRAY_PANORAMIC:
+    "Panoramic radiographs (OPG) showing entire mouth in single image",
+  XRAY_CEPHALOMETRIC: "Cephalometric radiographs for orthodontic analysis",
+  XRAY_CBCT: "Cone Beam CT scans for 3D dental imaging",
+
+  XRAY_CHEST: "Chest X-rays for respiratory and cardiac assessment",
+  XRAY_SKELETAL: "Skeletal X-rays for bone structure evaluation",
+  XRAY_SPINE: "Spine X-rays for spinal column assessment",
+  XRAY_ABDOMEN: "Abdominal X-rays for internal organ visualization",
+  XRAY_OTHER: "Other types of radiographic images",
+
+  OTHER: "Other document types not categorized above",
+};
+
+/**
+ * Check if a document type is an X-ray
+ */
+export function isXRayDocument(type: DocumentType): boolean {
+  return DOCUMENT_TYPE_CATEGORIES.ALL_XRAYS.includes(type as any);
+}
+
+/**
+ * Check if a document type is a dental X-ray
+ */
+export function isDentalXRay(type: DocumentType): boolean {
+  return DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS.includes(type as any);
+}
+
+/**
+ * Check if a document type is a medical X-ray
+ */
+export function isMedicalXRay(type: DocumentType): boolean {
+  return DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS.includes(type as any);
+}
+
+/**
+ * Get category for a document type
+ */
+export function getDocumentCategory(type: DocumentType): string {
+  if (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS.includes(type as any)) {
+    return "Dental X-rays";
+  }
+  if (DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS.includes(type as any)) {
+    return "Medical X-rays";
+  }
+  if (DOCUMENT_TYPE_CATEGORIES.GENERAL_DOCUMENTS.includes(type as any)) {
+    return "General Documents";
+  }
+  return "Other";
+}

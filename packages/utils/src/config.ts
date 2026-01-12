@@ -1,19 +1,34 @@
 import { z } from "zod";
 import {
-  DEFAULT_TIMEZONE,
-  DEFAULT_LOCALE,
-  LOCALE_OPTIONS,
-  TIMEZONE_OPTIONS,
   CURRENCY_SYMBOLS,
-  SUPPORTED_CURRENCIES,
-  type TimezoneValue,
   type CurrencyCode,
-  type LocaleValue,
-  getTimezonesForCurrency,
+  DEFAULT_LOCALE,
+  DEFAULT_TIMEZONE,
+  getDefaultLocaleForCurrency,
   getDefaultTimezoneForCurrency,
   getLocalesForCurrency,
-  getDefaultLocaleForCurrency,
-} from "./date-utils";
+  getTimezonesForCurrency,
+  LOCALE_OPTIONS,
+  type LocaleValue,
+  SUPPORTED_CURRENCIES,
+  TIMEZONE_OPTIONS,
+  type TimezoneValue,
+} from "./date-utils.js";
+import {
+  genderSchema,
+  bloodGroupSchema,
+  appointmentStatusSchema,
+  appointmentTypeSchema,
+  weekdaySchema,
+  invoiceStatusSchema,
+  paymentStatusSchema,
+  customFieldTypeSchema,
+  templateFieldTypeSchema,
+  specializationSchema,
+  documentTypeSchema,
+  whatsappMessageTypeSchema,
+  currencySchema,
+} from "@workspace/types";
 
 // Re-export for backward compatibility
 export {
@@ -80,7 +95,7 @@ export const GENDER_OPTIONS = [
   { value: "OTHER", label: "Other" },
 ] as const;
 
-export const genderValueSchema = z.enum(["MALE", "FEMALE", "OTHER"]);
+export const genderValueSchema = genderSchema;
 export type GenderValue = z.infer<typeof genderValueSchema>;
 
 // =====================================================
@@ -98,16 +113,7 @@ export const BLOOD_GROUP_OPTIONS = [
   { value: "O-", label: "O-" },
 ] as const;
 
-export const bloodGroupValueSchema = z.enum([
-  "A+",
-  "A-",
-  "B+",
-  "B-",
-  "AB+",
-  "AB-",
-  "O+",
-  "O-",
-]);
+export const bloodGroupValueSchema = bloodGroupSchema;
 export type BloodGroupValue = z.infer<typeof bloodGroupValueSchema>;
 
 // =====================================================
@@ -122,13 +128,7 @@ export const APPOINTMENT_TYPE_OPTIONS = [
   { value: "procedure", label: "Procedure" },
 ] as const;
 
-export const appointmentTypeValueSchema = z.enum([
-  "consultation",
-  "follow-up",
-  "check-up",
-  "emergency",
-  "procedure",
-]);
+export const appointmentTypeValueSchema = appointmentTypeSchema;
 export type AppointmentTypeValue = z.infer<typeof appointmentTypeValueSchema>;
 
 export const APPOINTMENT_STATUS_OPTIONS = [
@@ -141,15 +141,7 @@ export const APPOINTMENT_STATUS_OPTIONS = [
   { value: "no-show", label: "No Show", color: "gray" },
 ] as const;
 
-export const appointmentStatusValueSchema = z.enum([
-  "scheduled",
-  "confirmed",
-  "checked-in",
-  "in-progress",
-  "completed",
-  "cancelled",
-  "no-show",
-]);
+export const appointmentStatusValueSchema = appointmentStatusSchema;
 export type AppointmentStatusValue = z.infer<
   typeof appointmentStatusValueSchema
 >;
@@ -174,12 +166,7 @@ export const INVOICE_STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled", color: "gray" },
 ] as const;
 
-export const invoiceStatusValueSchema = z.enum([
-  "pending",
-  "paid",
-  "overdue",
-  "cancelled",
-]);
+export const invoiceStatusValueSchema = invoiceStatusSchema;
 export type InvoiceStatusValue = z.infer<typeof invoiceStatusValueSchema>;
 
 export const PAYMENT_STATUS_OPTIONS = [
@@ -191,14 +178,7 @@ export const PAYMENT_STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled", color: "gray" },
 ] as const;
 
-export const paymentStatusValueSchema = z.enum([
-  "created",
-  "pending",
-  "paid",
-  "failed",
-  "expired",
-  "cancelled",
-]);
+export const paymentStatusValueSchema = paymentStatusSchema;
 export type PaymentStatusValue = z.infer<typeof paymentStatusValueSchema>;
 
 // Note: PaymentMode and PaymentMethod enums are defined in payments.ts
@@ -239,15 +219,7 @@ export const WEEKDAY_OPTIONS = [
   { value: "sunday", label: "Sunday", short: "Sun" },
 ] as const;
 
-export const weekdayValueSchema = z.enum([
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-]);
+export const weekdayValueSchema = weekdaySchema;
 export type WeekdayValue = z.infer<typeof weekdayValueSchema>;
 
 // =====================================================
@@ -263,14 +235,7 @@ export const CUSTOM_FIELD_TYPE_OPTIONS = [
   { value: "textarea", label: "Text Area" },
 ] as const;
 
-export const customFieldTypeValueSchema = z.enum([
-  "text",
-  "number",
-  "select",
-  "date",
-  "checkbox",
-  "textarea",
-]);
+export const customFieldTypeValueSchema = customFieldTypeSchema;
 export type CustomFieldTypeValue = z.infer<typeof customFieldTypeValueSchema>;
 
 export const TEMPLATE_FIELD_TYPE_OPTIONS = [
@@ -280,13 +245,7 @@ export const TEMPLATE_FIELD_TYPE_OPTIONS = [
   { value: "checkbox", label: "Checkbox" },
 ] as const;
 
-export const templateFieldTypeValueSchema = z.enum([
-  "text",
-  "number",
-  "select",
-  "checkbox",
-  "textarea",
-]);
+export const templateFieldTypeValueSchema = templateFieldTypeSchema;
 export type TemplateFieldTypeValue = z.infer<
   typeof templateFieldTypeValueSchema
 >;
@@ -313,23 +272,7 @@ export const SPECIALTY_OPTIONS = [
   { value: "Other", label: "Other" },
 ] as const;
 
-export const specialtyValueSchema = z.enum([
-  "General",
-  "Dental",
-  "Cardiology",
-  "Pediatrics",
-  "Ophthalmology",
-  "Dermatology",
-  "Orthopedics",
-  "Neurology",
-  "Gynecology",
-  "ENT",
-  "Psychiatry",
-  "Urology",
-  "Pulmonology",
-  "Gastroenterology",
-  "Other",
-]);
+export const specialtyValueSchema = specializationSchema;
 export type SpecialtyValue = z.infer<typeof specialtyValueSchema>;
 
 // =====================================================
@@ -346,20 +289,20 @@ export const DOCUMENT_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ] as const;
 
-export const documentTypeValueSchema = z.enum([
-  "prescription",
-  "lab_report",
-  "scan",
-  "consent_form",
-  "insurance",
-  "id_proof",
-  "other",
-]);
+export const documentTypeValueSchema = documentTypeSchema;
 export type DocumentTypeValue = z.infer<typeof documentTypeValueSchema>;
 
 // =====================================================
 // WHATSAPP OPTIONS
 // =====================================================
+
+export const FACILITY_TYPE_OPTIONS = [
+  { value: "CLINIC", label: "Clinic (Outpatient Only)" },
+  { value: "HOSPITAL", label: "Hospital (In-patient/Multi-dept)" },
+] as const;
+
+export const facilityTypeValueSchema = z.enum(["CLINIC", "HOSPITAL"]);
+export type FacilityTypeValue = z.infer<typeof facilityTypeValueSchema>;
 
 export const WHATSAPP_MESSAGE_TYPE_OPTIONS = [
   { value: "reminder", label: "Appointment Reminder" },
@@ -368,12 +311,7 @@ export const WHATSAPP_MESSAGE_TYPE_OPTIONS = [
   { value: "general", label: "General Message" },
 ] as const;
 
-export const whatsappMessageTypeValueSchema = z.enum([
-  "reminder",
-  "receipt",
-  "payment-link",
-  "general",
-]);
+export const whatsappMessageTypeValueSchema = whatsappMessageTypeSchema;
 export type WhatsappMessageTypeValue = z.infer<
   typeof whatsappMessageTypeValueSchema
 >;
@@ -394,17 +332,7 @@ export const CURRENCY_OPTIONS = [
   { value: "ZAR", label: "South African Rand", symbol: "R" },
 ] as const;
 
-export const currencyValueSchema = z.enum([
-  "INR",
-  "USD",
-  "GBP",
-  "EUR",
-  "AUD",
-  "CAD",
-  "SGD",
-  "AED",
-  "ZAR",
-]);
+export const currencyValueSchema = currencySchema;
 export type CurrencyValue = z.infer<typeof currencyValueSchema>;
 
 // Note: TIMEZONE_OPTIONS is imported and re-exported from date-utils.ts
@@ -424,6 +352,55 @@ export const DEFAULT_CURRENCY = "INR";
 
 export const DEFAULT_INVOICE_ITEMS = [
   { description: "Consultation Fee", quantity: 1, price: 800 },
+] as const;
+
+// =====================================================
+// EXTENDED APP CONSTANTS
+// =====================================================
+
+export const FOLLOW_UP_TYPES = [
+  { value: "follow_up", label: "Follow-up Visit" },
+  { value: "checkup", label: "Routine Checkup" },
+  { value: "lab_review", label: "Lab Results Review" },
+  { value: "medication_review", label: "Medication Review" },
+  { value: "procedure", label: "Procedure" },
+] as const;
+
+export const REMINDER_DAYS_OPTIONS = [
+  { value: 1, label: "1 day before" },
+  { value: 2, label: "2 days before" },
+  { value: 3, label: "3 days before" },
+  { value: 7, label: "1 week before" },
+] as const;
+
+export const INVENTORY_CATEGORY_OPTIONS = [
+  { value: "medicine", label: "Medicine" },
+  { value: "medical-supply", label: "Medical Supply" },
+  { value: "equipment", label: "Equipment" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const QUEUE_STATUS_OPTIONS = [
+  { value: "waiting", label: "Waiting" },
+  { value: "in-progress", label: "In Progress" },
+  { value: "completed", label: "Completed" },
+  { value: "no-show", label: "No Show" },
+  { value: "cancelled", label: "Cancelled" },
+] as const;
+
+export const WARD_TYPE_OPTIONS = [
+  { value: "general", label: "General Ward" },
+  { value: "icu", label: "ICU" },
+  { value: "private", label: "Private Room" },
+  { value: "emergency", label: "Emergency" },
+] as const;
+
+export const BED_NUMBER_OPTIONS = [
+  { value: "101", label: "Bed 101" },
+  { value: "102", label: "Bed 102" },
+  { value: "103", label: "Bed 103" },
+  { value: "201", label: "Bed 201" },
+  { value: "202", label: "Bed 202" },
 ] as const;
 
 // Note: PATIENT_IMPORT_FIELDS is defined in imports.ts with Zod schema support

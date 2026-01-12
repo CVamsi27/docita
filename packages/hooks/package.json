@@ -1,0 +1,38 @@
+{
+  "name": "@workspace/hooks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc -w",
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9.17.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@workspace/utils": "workspace:*"
+  }
+}
