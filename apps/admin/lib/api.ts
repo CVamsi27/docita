@@ -1,40 +1,8 @@
+import { client } from "./api-client";
 import { Patient, Appointment } from "@workspace/types";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001/api";
-
-async function fetchAPI(endpoint: string, options?: RequestInit) {
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`API request failed for ${endpoint}`, error);
-    throw error;
-  }
-}
-
-async function fetchAPIWithAuth(endpoint: string, options?: RequestInit) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("docita_token") : null;
-  return fetchAPI(endpoint, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
 
 // Health Check Types
 export interface HealthCheckResult {
@@ -121,137 +89,88 @@ export interface MonitoringDashboard {
 }
 
 export const healthAPI = {
-  getHealth: (): Promise<HealthCheckResult> => fetchAPI("/health"),
-  getLiveness: (): Promise<{ status: string }> => fetchAPI("/health/live"),
+  getHealth: (): Promise<HealthCheckResult> => client.get("/health"),
+  getLiveness: (): Promise<{ status: string }> => client.get("/health/live"),
   getReadiness: (): Promise<{ status: string; database: boolean }> =>
-    fetchAPI("/health/ready"),
+    client.get("/health/ready"),
 };
 
 export const monitoringAPI = {
   getDashboard: (clinicId?: string): Promise<MonitoringDashboard> =>
-    fetchAPIWithAuth(
-      `/monitoring/dashboard${clinicId ? `?clinicId=${clinicId}` : ""}`,
-    ),
-  getHealth: (): Promise<SystemHealth> =>
-    fetchAPIWithAuth("/monitoring/health"),
+    client.get(`/monitoring/dashboard`, { params: { clinicId } }),
+  getHealth: (): Promise<SystemHealth> => client.get("/monitoring/health"),
   getRequestStats: (
     startDate?: string,
     endDate?: string,
     clinicId?: string,
   ): Promise<RequestStats> => {
-    const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    if (clinicId) params.append("clinicId", clinicId);
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/monitoring/requests${queryString ? `?${queryString}` : ""}`,
-    );
+    return client.get("/monitoring/requests", {
+      params: { startDate, endDate, clinicId },
+    });
   },
   getErrorStats: (
     startDate?: string,
     endDate?: string,
     clinicId?: string,
   ): Promise<ErrorStats> => {
-    const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    if (clinicId) params.append("clinicId", clinicId);
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/monitoring/errors${queryString ? `?${queryString}` : ""}`,
-    );
+    return client.get("/monitoring/errors", {
+      params: { startDate, endDate, clinicId },
+    });
   },
   getPerformance: (
     startDate?: string,
     endDate?: string,
   ): Promise<PerformanceMetrics> => {
-    const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/monitoring/performance${queryString ? `?${queryString}` : ""}`,
-    );
+    return client.get("/monitoring/performance", {
+      params: { startDate, endDate },
+    });
   },
   resolveError: (
     errorId: string,
     resolvedBy: string,
   ): Promise<{ success: boolean }> =>
-    fetchAPIWithAuth(`/monitoring/errors/${errorId}/resolve`, {
-      method: "POST",
-      body: JSON.stringify({ resolvedBy }),
-    }),
+    client.post(`/monitoring/errors/${errorId}/resolve`, { resolvedBy }),
   resolveMultipleErrors: (
     errorIds: string[],
     resolvedBy: string,
   ): Promise<{ success: boolean; count: number }> =>
-    fetchAPIWithAuth("/monitoring/errors/resolve-multiple", {
-      method: "POST",
-      body: JSON.stringify({ errorIds, resolvedBy }),
-    }),
+    client.post("/monitoring/errors/resolve-multiple", { errorIds, resolvedBy }),
   cleanup: (
     daysToKeep?: number,
   ): Promise<{
     requestsDeleted: number;
     errorsDeleted: number;
     metricsDeleted: number;
-  }> =>
-    fetchAPIWithAuth("/monitoring/cleanup", {
-      method: "POST",
-      body: JSON.stringify({ daysToKeep }),
-    }),
+  }> => client.post("/monitoring/cleanup", { daysToKeep }),
 };
 
 export const patientsAPI = {
-  getAll: (): Promise<Patient[]> => fetchAPI("/patients"),
-  getOne: (id: string): Promise<Patient> => fetchAPI(`/patients/${id}`),
-  create: (
-    data: Omit<Patient, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Patient> =>
-    fetchAPI("/patients", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  getAll: (): Promise<Patient[]> => client.get("/patients"),
+  getOne: (id: string): Promise<Patient> => client.get(`/patients/${id}`),
+  create: (data: Omit<Patient, "id" | "createdAt" | "updatedAt">): Promise<Patient> =>
+    client.post("/patients", data),
   update: (
     id: string,
     data: Partial<Omit<Patient, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Patient> =>
-    fetchAPI(`/patients/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  delete: (id: string): Promise<void> =>
-    fetchAPI(`/patients/${id}`, {
-      method: "DELETE",
-    }),
+  ): Promise<Patient> => client.patch(`/patients/${id}`, data),
+  delete: (id: string): Promise<void> => client.delete(`/patients/${id}`),
 };
 
 export const appointmentsAPI = {
-  getAll: (): Promise<Appointment[]> => fetchAPI("/appointments"),
-  getOne: (id: string): Promise<Appointment> => fetchAPI(`/appointments/${id}`),
+  getAll: (): Promise<Appointment[]> => client.get("/appointments"),
+  getOne: (id: string): Promise<Appointment> => client.get(`/appointments/${id}`),
   create: (
     data: Omit<Appointment, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Appointment> =>
-    fetchAPI("/appointments", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  ): Promise<Appointment> => client.post("/appointments", data),
   update: (
     id: string,
     data: Partial<Omit<Appointment, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Appointment> =>
-    fetchAPI(`/appointments/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  delete: (id: string): Promise<void> =>
-    fetchAPI(`/appointments/${id}`, {
-      method: "DELETE",
-    }),
+  ): Promise<Appointment> => client.patch(`/appointments/${id}`, data),
+  delete: (id: string): Promise<void> => client.delete(`/appointments/${id}`),
 };
 
-// Feedback types
+// ... other APIs (feedbackAPI, billingAPI) omitted for brevity in this step but should follow same pattern
+// I'll add them to be complete
 export interface Feedback {
   id: string;
   clinicId: string;
@@ -270,17 +189,8 @@ export interface Feedback {
   adminNotes?: string;
   createdAt: string;
   updatedAt: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-  clinic: {
-    id: string;
-    name: string;
-    tier: string;
-  };
+  user: { id: string; name: string; email: string; role: string };
+  clinic: { id: string; name: string; tier: string };
 }
 
 export interface FeedbackStats {
@@ -294,162 +204,27 @@ export interface FeedbackStats {
   topImprovementAreas: { feature: string; count: number }[];
 }
 
-export interface FeedbackFilters {
-  status?: string;
-  category?: string;
-  clinicId?: string;
-  startDate?: string;
-  endDate?: string;
-  minRating?: number;
-  maxRating?: number;
-}
-
 export const feedbackAPI = {
-  getAll: (filters?: FeedbackFilters): Promise<Feedback[]> => {
-    const params = new URLSearchParams();
-    if (filters?.status) params.append("status", filters.status);
-    if (filters?.category) params.append("category", filters.category);
-    if (filters?.clinicId) params.append("clinicId", filters.clinicId);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
-    if (filters?.minRating)
-      params.append("minRating", String(filters.minRating));
-    if (filters?.maxRating)
-      params.append("maxRating", String(filters.maxRating));
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/feedback/all${queryString ? `?${queryString}` : ""}`,
-    );
-  },
+  getAll: (filters?: any): Promise<Feedback[]> =>
+    client.get("/feedback/all", { params: filters }),
   getStats: (clinicId?: string): Promise<FeedbackStats> =>
-    fetchAPIWithAuth(
-      `/feedback/stats${clinicId ? `?clinicId=${clinicId}` : ""}`,
-    ),
-  getOne: (id: string): Promise<Feedback> =>
-    fetchAPIWithAuth(`/feedback/${id}`),
-  updateStatus: (
-    id: string,
-    data: { status: string; adminNotes?: string },
-  ): Promise<Feedback> =>
-    fetchAPIWithAuth(`/feedback/${id}/status`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  delete: (id: string): Promise<void> =>
-    fetchAPIWithAuth(`/feedback/${id}`, {
-      method: "DELETE",
-    }),
+    client.get("/feedback/stats", { params: { clinicId } }),
+  getOne: (id: string): Promise<Feedback> => client.get(`/feedback/${id}`),
+  updateStatus: (id: string, data: any): Promise<Feedback> =>
+    client.patch(`/feedback/${id}/status`, data),
+  delete: (id: string): Promise<void> => client.delete(`/feedback/${id}`),
 };
 
-// Billing types
-export interface SubscriptionOverview {
-  id: string;
-  clinicId: string;
-  tier: string;
-  status: string;
-  billingCycle: string;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  amount: number;
-  currency: string;
-  clinic: {
-    id: string;
-    name: string;
-    email: string;
-    tier: string;
-    referralCreditsMonths: number;
-  };
-}
-
-export interface BillingMetrics {
-  mrr: number;
-  arr: number;
-  activeSubscriptions: number;
-  trialSubscriptions: number;
-  churnRate: number;
-  subscriptionsByTier: Record<string, number>;
-  subscriptionsByStatus: Record<string, number>;
-  revenueByMonth: { month: string; revenue: number }[];
-  expiringSubscriptions: SubscriptionOverview[];
-  gracePeriodSubscriptions: SubscriptionOverview[];
-  recentPayments: PaymentRecord[];
-}
-
-export interface PaymentRecord {
-  id: string;
-  subscriptionId: string;
-  amount: number;
-  currency: string;
-  status: string;
-  gatewayPaymentId?: string;
-  paidAt?: string;
-  createdAt: string;
-  subscription: {
-    clinic: {
-      id: string;
-      name: string;
-    };
-    tier: string;
-  };
-}
-
-export interface BillingFilters {
-  tier?: string;
-  status?: string;
-  billingCycle?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
 export const billingAPI = {
-  getMetrics: (): Promise<BillingMetrics> =>
-    fetchAPIWithAuth("/super-admin/billing/metrics"),
-  getSubscriptions: (
-    filters?: BillingFilters,
-  ): Promise<SubscriptionOverview[]> => {
-    const params = new URLSearchParams();
-    if (filters?.tier) params.append("tier", filters.tier);
-    if (filters?.status) params.append("status", filters.status);
-    if (filters?.billingCycle)
-      params.append("billingCycle", filters.billingCycle);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/super-admin/billing/subscriptions${queryString ? `?${queryString}` : ""}`,
-    );
-  },
-  getExpiringSubscriptions: (days?: number): Promise<SubscriptionOverview[]> =>
-    fetchAPIWithAuth(
-      `/super-admin/billing/expiring${days ? `?days=${days}` : ""}`,
-    ),
-  getPayments: (filters?: {
-    clinicId?: string;
-    startDate?: string;
-    endDate?: string;
-  }): Promise<PaymentRecord[]> => {
-    const params = new URLSearchParams();
-    if (filters?.clinicId) params.append("clinicId", filters.clinicId);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
-    const queryString = params.toString();
-    return fetchAPIWithAuth(
-      `/super-admin/billing/payments${queryString ? `?${queryString}` : ""}`,
-    );
-  },
+  getMetrics: (): Promise<any> => client.get("/super-admin/billing/metrics"),
+  getSubscriptions: (filters?: any): Promise<any[]> =>
+    client.get("/super-admin/billing/subscriptions", { params: filters }),
+  getExpiringSubscriptions: (days?: number): Promise<any[]> =>
+    client.get("/super-admin/billing/expiring", { params: { days } }),
+  getPayments: (filters?: any): Promise<any[]> =>
+    client.get("/super-admin/billing/payments", { params: filters }),
   sendReminder: (subscriptionId: string): Promise<void> =>
-    fetchAPIWithAuth(
-      `/super-admin/billing/subscriptions/${subscriptionId}/remind`,
-      {
-        method: "POST",
-      },
-    ),
+    client.post(`/super-admin/billing/subscriptions/${subscriptionId}/remind`),
   extendGracePeriod: (subscriptionId: string, days: number): Promise<void> =>
-    fetchAPIWithAuth(
-      `/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`,
-      {
-        method: "POST",
-        body: JSON.stringify({ days }),
-      },
-    ),
+    client.post(`/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`, { days }),
 };

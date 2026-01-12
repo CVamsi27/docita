@@ -193,18 +193,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
         tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.CALENDAR_SLOTS]]),
       ) as Record<Tier, boolean>,
     },
-    {
-      name: "WhatsApp",
-      category: "feature",
-      values: Object.fromEntries(
-        tiers.map((t) => {
-          if (t >= FEATURE_TIER_MAP[Feature.WHATSAPP_API]) return [t, "Full"];
-          if (t >= FEATURE_TIER_MAP[Feature.ONE_WAY_WHATSAPP])
-            return [t, "Basic"];
-          return [t, false];
-        }),
-      ) as Record<Tier, string | boolean>,
-    },
+    // WhatsApp removed - now available as add-on for all tiers
     {
       name: "OCR Scanning",
       category: "feature",

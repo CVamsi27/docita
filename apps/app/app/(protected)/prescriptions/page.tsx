@@ -30,9 +30,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
-import { FeatureGate } from "@/components/common/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
-import { WhatsAppButton } from "@/components/common/whatsapp-button";
+import { WhatsAppButton } from "@/features/_shared/components/whatsapp-button";
 import { format } from "date-fns";
 
 type SortKey = "date" | "patient" | "diagnosis" | "medications";

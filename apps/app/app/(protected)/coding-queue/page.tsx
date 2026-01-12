@@ -28,8 +28,11 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
-import { Feature, FeatureGate } from "@/components/common/feature-gate";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Feature,
+  FeatureGate,
+} from "@/features/_shared/components/feature-gate";
+import { EmptyState } from "@workspace/ui/components/empty-state";
 
 export default function CodingQueuePage() {
   const { data: visits = [], isLoading, error } = apiHooks.useCodingQueue();

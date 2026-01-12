@@ -13,7 +13,7 @@ import { Label } from "@workspace/ui/components/label";
 import { useAuth } from "@/lib/auth-context";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
-import { ChangePasswordSettings } from "@/components/settings/change-password-settings";
+import { ChangePasswordSettings } from "@/features/settings/stubs";
 
 export default function ProfilePage() {
   const { user } = useAuth();

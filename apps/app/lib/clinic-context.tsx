@@ -20,6 +20,20 @@ interface Clinic {
   email?: string;
   logo?: string;
   tier?: "CAPTURE" | "CORE" | "PLUS" | "PRO" | "ENTERPRISE" | string;
+  type?:
+    | "GENERAL"
+    | "DENTAL"
+    | "PEDIATRIC"
+    | "ORTHOPEDIC"
+    | "CARDIOLOGY"
+    | "DERMATOLOGY"
+    | "ENT"
+    | "GYNECOLOGY"
+    | "OPHTHALMOLOGY"
+    | "PSYCHIATRY"
+    | "SPECIALTY"
+    | string;
+  facilityType?: "CLINIC" | "HOSPITAL";
   intelligenceAddon?: "NONE" | "ACTIVE";
   features?: Record<string, boolean>;
   trialEndsAt?: string;
@@ -124,8 +138,13 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [clinic, setClinicState] = useState<Clinic | null>(null);
   const [userClinics, setUserClinics] = useState<Clinic[]>([]);
   const [mounted, setMounted] = useState(false);
-  const { setTier, setIntelligence, setFeatureOverrides } =
-    usePermissionStore();
+  const {
+    setTier,
+    setIntelligence,
+    setFeatureOverrides,
+    setClinicType,
+    setFacilityType,
+  } = usePermissionStore();
   const { socket, isConnected } = useSocket();
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
@@ -153,8 +172,22 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (clinicData.features) {
         setFeatureOverrides(clinicData.features);
       }
+      // Sync clinic type for specialty feature filtering
+      if (clinicData.type) {
+        setClinicType(clinicData.type);
+      }
+      // Sync facility type for CLINIC vs HOSPITAL distinction
+      if (clinicData.facilityType) {
+        setFacilityType(clinicData.facilityType);
+      }
     },
-    [setTier, setIntelligence, setFeatureOverrides],
+    [
+      setTier,
+      setIntelligence,
+      setFeatureOverrides,
+      setClinicType,
+      setFacilityType,
+    ],
   );
 
   const fetchClinicFromAPI = useCallback(async () => {

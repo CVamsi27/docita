@@ -7,10 +7,9 @@ import { apiHooks } from "@/lib/api-hooks";
 import {
   CreateAppointmentInput,
   createAppointmentSchema,
-  DEFAULT_TIMEZONE,
   Patient,
-  toLocalISOString,
 } from "@workspace/types";
+import { DEFAULT_TIMEZONE, toLocalISOString } from "@workspace/utils";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
 
@@ -55,12 +54,18 @@ export function useAppointmentForm({
     }
     return searchedPatients;
   }, [searchedPatientsResponse, preselectedPatient, preselectedPatientId]);
+
+  // Track if we've auto-selected a single patient
+  const lastSinglePatientIdRef = useRef<string | null>(null);
   const { data: doctors = [], isLoading: doctorsLoading } =
     apiHooks.useDoctors();
 
-  // Filter doctors to only include actual doctors (exclude admins)
+  // Filter doctors to include both DOCTOR and ADMIN_DOCTOR roles
   const filteredDoctors = useMemo(
-    () => doctors.filter((doc) => doc.role === "DOCTOR"),
+    () =>
+      doctors.filter(
+        (doc) => doc.role === "DOCTOR" || doc.role === "ADMIN_DOCTOR",
+      ),
     [doctors],
   );
 
@@ -82,24 +87,28 @@ export function useAppointmentForm({
       // Logic for next available slot
       const now = new Date();
 
-      // Check if we are past closing time
-      if (now.getHours() >= endHour) {
-        // Move to tomorrow at opening time
+      // Check if we are before opening time (e.g. early morning)
+      if (now.getHours() < startHour) {
+        now.setHours(startHour, 0, 0, 0);
+      } else if (now.getHours() >= endHour) {
+        // Move to tomorrow at opening time if past closing
         now.setDate(now.getDate() + 1);
         now.setHours(startHour, 0, 0, 0);
       } else {
-        // Round to next 15 minutes
-        const remainder = 15 - (now.getMinutes() % 15);
-        now.setMinutes(now.getMinutes() + remainder);
+        // Round to next 30 minutes (half-hour intervals) for working hours
+        const remainder = 30 - (now.getMinutes() % 30);
+        if (remainder === 0) {
+          // Already on a 30-minute mark, add 30 minutes to be in future
+          now.setMinutes(now.getMinutes() + 30);
+        } else {
+          now.setMinutes(now.getMinutes() + remainder);
+        }
         now.setSeconds(0);
         now.setMilliseconds(0);
 
         // If rounding pushed us past closing time, move to tomorrow
         if (now.getHours() >= endHour) {
           now.setDate(now.getDate() + 1);
-          now.setHours(startHour, 0, 0, 0);
-        } else if (now.getHours() < startHour) {
-          // If we are before opening time (e.g. early morning), set to opening time
           now.setHours(startHour, 0, 0, 0);
         }
       }
@@ -172,6 +181,19 @@ export function useAppointmentForm({
     if (preselectedPatientId) {
       form.setValue("patientId", preselectedPatientId);
     }
+  }
+
+  // Auto-select patient if only 1 is available and no preselection
+  const currentPatientId = form.watch("patientId");
+  if (
+    !preselectedPatientId &&
+    !currentPatientId &&
+    patients.length === 1 &&
+    patients[0]?.id &&
+    lastSinglePatientIdRef.current !== patients[0].id
+  ) {
+    lastSinglePatientIdRef.current = patients[0].id;
+    form.setValue("patientId", patients[0].id);
   }
 
   const onSubmit = useCallback(

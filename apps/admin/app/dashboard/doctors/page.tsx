@@ -144,10 +144,12 @@ export default function DoctorsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setClinics(data);
+        // Ensure data is an array
+        const clinicsArray = Array.isArray(data) ? data : [];
+        setClinics(clinicsArray);
         // Fetch doctors for the first clinic
-        if (data.length > 0) {
-          const firstClinicId = data[0].id;
+        if (clinicsArray.length > 0) {
+          const firstClinicId = clinicsArray[0].id;
           setSelectedClinic(firstClinicId);
           // Fetch doctors for first clinic
           try {
@@ -316,11 +318,13 @@ export default function DoctorsPage() {
                 <SelectValue placeholder="Select clinic" />
               </SelectTrigger>
               <SelectContent>
-                {clinics.map((clinic) => (
-                  <SelectItem key={clinic.id} value={clinic.id}>
-                    {clinic.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Clinics</SelectItem>
+                {Array.isArray(clinics) &&
+                  clinics.map((clinic) => (
+                    <SelectItem key={clinic.id} value={clinic.id}>
+                      {clinic.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

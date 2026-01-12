@@ -221,8 +221,6 @@ export default function OCRPage() {
     const API_URL =
       process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
-    console.log(`[OCR] Starting to poll session: ${id}`);
-
     const interval = setInterval(async () => {
       try {
         // Add cache-busting timestamp to prevent caching
@@ -244,10 +242,8 @@ export default function OCRPage() {
         }
 
         const data = await response.json();
-        console.log(`[OCR] Poll response:`, data);
 
         if (data.status === "uploaded" && data.fileUrl) {
-          console.log(`[OCR] Upload detected! File: ${data.fileUrl}`);
           clearInterval(interval);
           setShowQr(false);
 
@@ -260,8 +256,6 @@ export default function OCRPage() {
           // Remove /api suffix from API_URL if present for static file serving
           const baseUrl = API_URL.replace(/\/api\/?$/, "");
           const realUrl = `${baseUrl}/uploads/temp/${filename}`;
-
-          console.log(`[OCR] Fetching file from: ${realUrl}`);
           setPreviewUrl(realUrl);
 
           // Convert URL to File object for the form
@@ -276,14 +270,13 @@ export default function OCRPage() {
             })
             .catch((err) => console.error("[OCR] Failed to fetch file:", err));
         }
-      } catch (e) {
-        console.error("[OCR] Polling error:", e);
+      } catch (_e) {
+        console.error("[OCR] Polling error:", _e);
       }
     }, 2000);
 
     // Stop polling after 2 minutes
     setTimeout(() => {
-      console.log("[OCR] Polling timeout reached, stopping");
       clearInterval(interval);
     }, 120000);
   };

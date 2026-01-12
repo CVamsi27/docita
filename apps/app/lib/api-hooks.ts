@@ -6,7 +6,7 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { API_URL } from "./api";
+import { API_URL } from "./api-config";
 import {
   AnalyticsOverview,
   Appointment,
@@ -24,7 +24,10 @@ import {
   Document,
   IcdCode,
   IcdFavorite,
+  InventoryItem,
   Invoice,
+  LabTest,
+  LabTestOrder,
   Patient,
   Prescription,
   RevenueByCPT,
@@ -33,6 +36,105 @@ import {
   User,
   VitalSign,
 } from "@workspace/types";
+
+/**
+ * Global App Constants
+ */
+export interface AppConstants {
+  followUpTypes: Array<{ value: string; label: string }>;
+  reminderDays: Array<{ value: number; label: string }>;
+  inventoryCategories: Array<{ value: string; label: string }>;
+  queueStatuses: Array<{ value: string; label: string }>;
+  wardTypes: Array<{ value: string; label: string }>;
+  availableBeds: Array<{ value: string; label: string }>;
+}
+
+export interface FormOptions {
+  gender: { value: string; label: string }[];
+  bloodGroup: { value: string; label: string }[];
+  appointmentType: { value: string; label: string }[];
+  appointmentStatus: { value: string; label: string }[];
+  invoiceStatus: { value: string; label: string }[];
+  paymentStatus: { value: string; label: string }[];
+  userRole: { value: string; label: string }[];
+  weekday: { value: string; label: string }[];
+  customFieldType: { value: string; label: string }[];
+  templateFieldType: { value: string; label: string }[];
+  specialty: { value: string; label: string }[];
+  documentType: { value: string; label: string }[];
+  appointmentDuration: { value: number; label: string }[];
+  whatsappMessageType: { value: string; label: string }[];
+  currency: { value: string; label: string }[];
+  timezone: { value: string; label: string }[];
+}
+
+/**
+ * Medical History Timeline Item - represents a single appointment in the patient's medical history
+ */
+export interface MedicalHistoryTimelineItem {
+  id: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  type: string;
+  chiefComplaint: string | null;
+  encounterSummary: string | null;
+  provisionalDiagnosis: string | null;
+  finalDiagnosis: string | null;
+  clinicalImpression: string | null;
+  treatmentPlan: string | null;
+  observations: string | null;
+  notes: string | null;
+  doctor: {
+    id: string;
+    name: string;
+    specialization: string | null;
+  } | null;
+  diagnoses: Array<{
+    id: string;
+    isPrimary: boolean;
+    notes: string | null;
+    icdCode: {
+      id: string;
+      code: string;
+      description: string;
+    } | null;
+  }>;
+  vitalSign: {
+    id: string;
+    systolicBP: number | null;
+    diastolicBP: number | null;
+    bloodPressure: string | null;
+    pulse: number | null;
+    temperature: number | null;
+    spo2: number | null;
+    weight: number | null;
+    height: number | null;
+  } | null;
+  prescription: {
+    id: string;
+    medications: Array<{
+      id: string;
+      name: string;
+      dosage: string;
+      frequency: string;
+      duration: string;
+    }>;
+  } | null;
+  // Computed fields from backend
+  issueSummary: string;
+  primaryDiagnosis: {
+    id: string;
+    isPrimary: boolean;
+    notes: string | null;
+    icdCode: {
+      id: string;
+      code: string;
+      description: string;
+    } | null;
+  } | null;
+  yearMonth: string;
+}
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -117,7 +219,7 @@ export function useAPIQuery<T>(
 }
 
 export function useAPIMutation<TData, TVariables>(
-  endpoint: string,
+  endpoint: string | ((variables: TVariables) => string),
   method: "POST" | "PUT" | "DELETE" | "PATCH" = "POST",
   options?: UseMutationOptions<TData, Error, TVariables>,
 ) {
@@ -125,11 +227,13 @@ export function useAPIMutation<TData, TVariables>(
 
   return useMutation<TData, Error, TVariables>({
     mutationFn: (variables) => {
+      const url = typeof endpoint === "function" ? endpoint(variables) : endpoint;
+
       // Handle FormData - don't stringify it
       const body =
         variables instanceof FormData ? variables : JSON.stringify(variables);
 
-      return fetchAPI<TData>(endpoint, {
+      return fetchAPI<TData>(url, {
         method,
         body,
       });
@@ -140,6 +244,22 @@ export function useAPIMutation<TData, TVariables>(
     },
     ...options,
   });
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
+
+export interface AppConstants {
+  FOLLOW_UP_TYPES: { value: string; label: string }[];
+  REMINDER_DAYS_OPTIONS: { value: number; label: string }[];
+  INVENTORY_CATEGORY_OPTIONS: { value: string; label: string }[];
+  QUEUE_STATUS_OPTIONS: { value: string; label: string }[];
+  WARD_TYPE_OPTIONS: { value: string; label: string }[];
+  BED_NUMBER_OPTIONS: { value: string; label: string }[];
 }
 
 export const apiHooks = {
@@ -166,6 +286,26 @@ export const apiHooks = {
       { enabled: options !== null }, // Disable only if explicitly passed null
     );
   },
+  useInfinitePatients: (options?: { limit?: number; search?: string }) => {
+    return useInfiniteQuery({
+      queryKey: ["patients", "infinite", options?.search ?? ""],
+      queryFn: ({ pageParam }) => {
+        const params = new URLSearchParams();
+        if (options?.limit) params.append("limit", options.limit.toString());
+        if (options?.search) params.append("search", options.search);
+        if (pageParam) params.append("cursor", pageParam as string);
+        const queryString = params.toString();
+        return fetchAPI<{
+          items: Patient[];
+          nextCursor?: string;
+          hasMore: boolean;
+          count: number;
+        }>(`/patients?${queryString}`);
+      },
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialPageParam: undefined as string | undefined,
+    });
+  },
   useRecentPatients: (limit: number = 5) => {
     return useAPIQuery<{
       items: Patient[];
@@ -178,6 +318,12 @@ export const apiHooks = {
     useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
       enabled: !!id,
     }),
+  usePatientMedicalHistoryTimeline: (patientId: string) =>
+    useAPIQuery<MedicalHistoryTimelineItem[]>(
+      ["patients", patientId, "medical-history-timeline"],
+      `/patients/${patientId}/medical-history-timeline`,
+      { enabled: !!patientId },
+    ),
   useCreatePatient: () =>
     useAPIMutation<Patient, CreatePatientInput>("/patients", "POST"),
   useUpdatePatient: (id: string) =>
@@ -196,21 +342,24 @@ export const apiHooks = {
       date?: string;
       startDate?: string;
       endDate?: string;
+      doctorId?: string;
     } | null,
   ) => {
     const params = new URLSearchParams();
     if (options?.date) params.append("date", options.date);
     if (options?.startDate) params.append("startDate", options.startDate);
     if (options?.endDate) params.append("endDate", options.endDate);
+    if (options?.doctorId) params.append("doctorId", options.doctorId);
     const queryString = params.toString();
     const url = queryString ? `/appointments?${queryString}` : "/appointments";
 
-    return useAPIQuery<(Appointment & { patient?: Patient })[]>(
+    return useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
       [
         "appointments",
         options?.date ?? "",
         options?.startDate ?? "",
         options?.endDate ?? "",
+        options?.doctorId ?? "",
       ],
       url,
       { enabled: options !== null }, // Disable only if explicitly passed null
@@ -218,7 +367,7 @@ export const apiHooks = {
   },
   useTodayAppointments: (enabled: boolean = true) => {
     const today = new Date().toISOString().split("T")[0] ?? "";
-    return useAPIQuery<(Appointment & { patient?: Patient })[]>(
+    return useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
       ["appointments", "today", today],
       `/appointments?date=${today}`,
       { enabled },
@@ -230,7 +379,7 @@ export const apiHooks = {
       `/appointments/${id}`,
     ),
   usePatientAppointments: (patientId: string) =>
-    useAPIQuery<(Appointment & { patient?: Patient })[]>(
+    useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
       ["appointments", "patient", patientId],
       `/appointments?patientId=${patientId}`,
       { enabled: !!patientId },
@@ -244,6 +393,20 @@ export const apiHooks = {
     useAPIMutation<Appointment, UpdateAppointmentInput>(
       `/appointments/${id}`,
       "PUT",
+    ),
+  useCheckInAppointment: () =>
+    useAPIMutation<unknown, string>(
+      (id) => `/queue/check-in/${id}`,
+      "POST",
+    ),
+
+  // Vitals
+  useVitalSigns: (patientId: string) =>
+    useAPIQuery<VitalSign[]>(["vitals", patientId], `/patients/${patientId}/vitals`, { enabled: !!patientId }),
+  useSaveVitals: (appointmentId: string) =>
+    useAPIMutation<VitalSign, Partial<VitalSign>>(
+      `/appointments/${appointmentId}/vitals`,
+      "POST",
     ),
 
   // Prescriptions
@@ -365,17 +528,29 @@ export const apiHooks = {
       `/appointments/${id}`,
       "PATCH",
     ),
-  useSaveVitals: (appointmentId: string) =>
-    useAPIMutation<VitalSign, VitalSign>(
-      `/appointments/${appointmentId}/vitals`,
-      "POST",
-    ),
 
   // Settings - Clinic
   useClinicSettings: () =>
     useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings"),
   useUpdateClinicSettings: () =>
     useAPIMutation<Clinic, Partial<Clinic>>("/clinic/settings", "PUT"),
+  usePrescriptionDefaults: () =>
+    useAPIQuery<{
+      defaultInstructions: string;
+      defaultFooterText: string;
+      includeClinicHeader: boolean;
+      includeDoctorSignature: boolean;
+      includeQRCode: boolean;
+    }>(["clinic", "prescription-defaults"], "/clinic/prescription-defaults"),
+  useUpdatePrescriptionDefaults: () =>
+    useAPIMutation<unknown, {
+      defaultInstructions?: string;
+      defaultFooterText?: string;
+      includeClinicHeader?: boolean;
+      includeDoctorSignature?: boolean;
+      includeQRCode?: boolean;
+    }>("/clinic/prescription-defaults", "PUT"),
+
 
   // Settings - Doctors
   useDoctors: () => useAPIQuery<User[]>(["doctors"], "/doctors"),
@@ -523,6 +698,31 @@ export const apiHooks = {
   // Templates
   useTemplates: () =>
     useAPIQuery<ClinicalTemplate[]>(["templates"], "/templates"),
+  useCreateTemplate: () =>
+    useAPIMutation<ClinicalTemplate, Partial<ClinicalTemplate>>("/templates", "POST"),
+  useUpdateTemplate: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: ({ id, ...data }: ClinicalTemplate) =>
+        fetchAPI<ClinicalTemplate>(`/templates/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["templates"] });
+      },
+    });
+  },
+  useDeleteTemplate: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: (id: string) =>
+        fetchAPI<void>(`/templates/${id}`, { method: "DELETE" }),
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ["templates"] });
+      },
+    });
+  },
 
   // Subscription & Tier Config
   useTierConfig: () =>
@@ -745,13 +945,16 @@ export const apiHooks = {
         notes?: string;
       }
     >("/queue", "POST"),
-  useCheckInAppointment: (appointmentId: string) =>
-    useAPIMutation<unknown, void>(`/queue/check-in/${appointmentId}`, "POST"),
-  useUpdateQueueToken: (id: string) =>
+  useUpdateQueue: (id: string) =>
     useAPIMutation<
       unknown,
       { status?: string; priority?: number; notes?: string }
     >(`/queue/${id}`, "PATCH"),
+  useCreateWalkIn: () =>
+    useAPIMutation<unknown, { patientName: string; phoneNumber: string; reason?: string }>(
+      "/queue/walk-in",
+      "POST",
+    ),
   useCallNextInQueue: (doctorId?: string) =>
     useAPIMutation<unknown, void>(
       `/queue/call-next${doctorId ? `?doctorId=${doctorId}` : ""}`,
@@ -766,37 +969,7 @@ export const apiHooks = {
 
   // Lab Tests
   useLabTestOrders: () =>
-    useAPIQuery<
-      {
-        id: string;
-        clinicId: string;
-        patientId: string;
-        appointmentId?: string;
-        labTestId: string;
-        status: string;
-        result?: Record<string, unknown>;
-        resultUrl?: string;
-        notes?: string;
-        orderedBy: string;
-        collectedAt?: string;
-        completedAt?: string;
-        createdAt: string;
-        labTest: {
-          id: string;
-          name: string;
-          code?: string;
-          category: string;
-          price?: number;
-        };
-        patient?: {
-          id: string;
-          firstName: string;
-          lastName: string;
-          phoneNumber: string;
-        };
-        doctor?: { id: string; name: string };
-      }[]
-    >(["lab-test-orders"], "/lab-tests/orders"),
+    useAPIQuery<LabTestOrder[]>(["lab-test-orders"], "/lab-tests/orders"),
   useLabTestStats: () =>
     useAPIQuery<{
       pending: number;
@@ -806,40 +979,11 @@ export const apiHooks = {
       total: number;
     }>(["lab-test-stats"], "/lab-tests/orders/stats"),
   useLabTestCatalog: () =>
-    useAPIQuery<
-      {
-        id: string;
-        clinicId: string;
-        name: string;
-        code?: string;
-        category: string;
-        price?: number;
-        description?: string;
-        active: boolean;
-      }[]
-    >(["lab-test-catalog"], "/lab-tests/catalog"),
+    useAPIQuery<LabTest[]>(["lab-test-catalog"], "/lab-tests/catalog"),
 
   // Inventory
   useInventory: () =>
-    useAPIQuery<
-      {
-        id: string;
-        clinicId: string;
-        name: string;
-        category: string;
-        sku?: string;
-        quantity: number;
-        minQuantity: number;
-        unit: string;
-        purchasePrice?: number;
-        sellingPrice?: number;
-        expiryDate?: string;
-        batchNumber?: string;
-        supplier?: string;
-        active: boolean;
-        createdAt: string;
-      }[]
-    >(["inventory"], "/inventory"),
+    useAPIQuery<InventoryItem[]>(["inventory"], "/inventory"),
   useInventoryStats: () =>
     useAPIQuery<{
       totalItems: number;
@@ -849,14 +993,7 @@ export const apiHooks = {
       expiringSoon: number;
     }>(["inventory-stats"], "/inventory/stats"),
   useInventoryItem: (id: string) =>
-    useAPIQuery<{
-      id: string;
-      name: string;
-      category: string;
-      quantity: number;
-      minQuantity: number;
-      unit: string;
-      expiryDate?: string;
+    useAPIQuery<InventoryItem & {
       movements: {
         id: string;
         type: string;
@@ -865,35 +1002,11 @@ export const apiHooks = {
       }[];
     }>(["inventory", id], `/inventory/${id}`),
   useCreateInventoryItem: () =>
-    useAPIMutation<
-      unknown,
-      {
-        name: string;
-        category: string;
-        sku?: string;
-        quantity?: number;
-        minQuantity?: number;
-        unit?: string;
-        purchasePrice?: number;
-        sellingPrice?: number;
-        expiryDate?: Date;
-        batchNumber?: string;
-        supplier?: string;
-      }
-    >("/inventory", "POST"),
+    useAPIMutation<InventoryItem, Partial<InventoryItem>>("/inventory", "POST"),
   useUpdateInventoryItem: (id: string) =>
-    useAPIMutation<
-      unknown,
-      {
-        name?: string;
-        category?: string;
-        quantity?: number;
-        minQuantity?: number;
-        unit?: string;
-        expiryDate?: Date;
-        active?: boolean;
-      }
-    >(`/inventory/${id}`, "PATCH"),
+    useAPIMutation<InventoryItem, Partial<InventoryItem>>(`/inventory/${id}`, "PATCH"),
+  useDeleteInventoryItem: (id: string) =>
+    useAPIMutation<void, void>(`/inventory/${id}`, "DELETE"),
   useAddInventoryMovement: (itemId: string) =>
     useAPIMutation<
       unknown,
@@ -905,6 +1018,51 @@ export const apiHooks = {
         notes?: string;
       }
     >(`/inventory/${itemId}/movements`, "POST"),
+
+  // WhatsApp
+  useWhatsAppSettings: () =>
+    useAPIQuery<{
+      appointmentReminders: boolean;
+      followUpMessages: boolean;
+      birthdayWishes: boolean;
+      medicineReminders: boolean;
+      labReportNotifications: boolean;
+      emergencyAlerts: boolean;
+    }>(["whatsapp", "settings"], "/whatsapp/settings"),
+  useUpdateWhatsAppSettings: () =>
+    useAPIMutation<unknown, {
+      appointmentReminders?: boolean;
+      followUpMessages?: boolean;
+      birthdayWishes?: boolean;
+      medicineReminders?: boolean;
+      labReportNotifications?: boolean;
+      emergencyAlerts?: boolean;
+    }>("/whatsapp/settings", "PUT"),
+  useCreateMedicineReminder: () =>
+    useAPIMutation<unknown, {
+      medicineName: string;
+      dosage: string;
+      frequency: string;
+      reminderTime: string;
+      patientPhone: string;
+    }>("/whatsapp/medicine-reminder", "POST"),
+  useCreateWhatsAppBroadcast: () =>
+    useAPIMutation<unknown, {
+      campaignName: string;
+      message: string;
+      sendToAllPatients: boolean;
+      sendToSpecificPatients: boolean;
+      scheduleTime?: string;
+    }>("/whatsapp/broadcast", "POST"),
+
+  // Contact / Sales
+  useCreateContactInquiry: () =>
+    useAPIMutation<unknown, {
+      name: string;
+      email: string;
+      clinic?: string;
+      message: string;
+    }>("/contact/inquiry", "POST"),
 
   // Doctor Availability
   useDoctorSchedules: (doctorId?: string) =>
@@ -1294,6 +1452,20 @@ export const apiHooks = {
       staleTime: 1000 * 60 * 60, // 1 hour
     }),
 
+  // ==========================================================================
+  // Config & System
+  // ==========================================================================
+
+  useConstants: () =>
+    useAPIQuery<AppConstants>(["constants"], "/config/constants", {
+      staleTime: 1000 * 60 * 60, // 1 hour
+    }),
+
+  useFormOptions: () =>
+    useAPIQuery<FormOptions>(["form-options"], "/config/form-options", {
+      staleTime: 1000 * 60 * 60, // 1 hour
+    }),
+
   useReferralStats: () =>
     useAPIQuery<{
       totalReferrals: number;
@@ -1534,43 +1706,7 @@ export const apiHooks = {
       { staleTime: 1000 * 60, ...options },
     ),
 
-  // ✅ NEW: Infinite query hooks for cursor pagination
-  // These hooks support infinite scrolling with cursor-based pagination
 
-  /**
-   * Infinite patients query with cursor pagination
-   * @example
-   * const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = apiHooks.useInfinitePatients({ limit: 50 });
-   */
-  useInfinitePatients: (options?: { limit?: number; search?: string }) => {
-    return useInfiniteQuery({
-      queryKey: ["patients", "infinite", options?.limit, options?.search],
-      queryFn: async ({ pageParam }) => {
-        const params = new URLSearchParams({
-          limit: (options?.limit || 50).toString(),
-          ...(pageParam && { cursor: pageParam }),
-          ...(options?.search && { search: options.search }),
-        });
-
-        const response = await fetch(`${API_URL}/patients?${params}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch patients");
-        return response.json() as Promise<{
-          items: Patient[];
-          nextCursor: string | null;
-          hasMore: boolean;
-          count: number;
-        }>;
-      },
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      initialPageParam: undefined as string | undefined,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    });
-  },
 
   /**
    * Infinite appointments query with cursor pagination

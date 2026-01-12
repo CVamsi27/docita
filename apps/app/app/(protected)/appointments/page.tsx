@@ -1,205 +1,58 @@
 "use client";
 
-import {
-  memo,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Suspense } from "react";
+import Link from "next/link";
+import { CalendarDays } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { Feature } from "@/lib/stores/permission-store";
+
+// Logic and Styles
+import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
+import { AppointmentsPageHeaderUI } from "@/features/appointments/components/AppointmentsPageHeaderUI";
+import { AppointmentsCalendarUI } from "@/features/appointments/components/AppointmentsCalendarUI";
+import { AppointmentsListUI } from "@/features/appointments/components/AppointmentsListUI";
 
 // Prevent static prerendering of this page
 export const dynamic = "force-dynamic";
 
-import { Calendar } from "@workspace/ui/components/calendar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
-import { format } from "date-fns";
-import { apiHooks } from "@/lib/api-hooks";
-import { Appointment, Patient } from "@workspace/types";
-import { AddAppointmentDialog } from "@/components/appointments/add-appointment-dialog";
-
-interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
-import {
-  CalendarDays,
-  Check,
-  Clock,
-  Loader2,
-  MoreVertical,
-  Stethoscope,
-  User,
-  UserCheck,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { useRouter, useSearchParams } from "next/navigation";
-import { EmptyState } from "@/components/ui/empty-state";
-import { FeatureGate } from "@/components/common/feature-gate";
-import { Feature } from "@/lib/stores/permission-store";
-import Link from "next/link";
-import { toast } from "sonner";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { useAuth } from "@/lib/auth-context";
-
 function AppointmentsContent() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [checkingIn, setCheckingIn] = useState<string | null>(null);
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancellingAptId, setCancellingAptId] = useState<string | null>(null);
-  const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
-  const [noShowAptId, setNoShowAptId] = useState<string | null>(null);
-  const { user } = useAuth();
-  const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
+  const { state, handlers } = useAppointmentsLogic();
+
   const {
-    data: appointmentsResponse,
-    isLoading: loading,
+    date,
+    setDate,
+    checkingIn,
+    cancelDialogOpen,
+    setCancelDialogOpen,
+    noShowDialogOpen,
+    setNoShowDialogOpen,
+    isAddDialogOpen,
+    handleDialogChange,
+    selectedDoctorId,
+    setSelectedDoctorId,
+    canViewAllDoctors,
+    doctorsList,
+    loading,
+    filteredAppointments,
+    currentTimeSlot,
+    isToday,
+    currentTimeSlotRef,
+    preselectedPatientId,
+    user,
+    isPendingMutation,
+  } = state;
+
+  const {
+    handleCheckIn,
+    handleStartConsultation,
+    handleCancelAppointment,
+    handleNoShowAppointment,
+    setCancellingAptId,
+    setNoShowAptId,
     refetch,
-  } = apiHooks.useAppointments({
-    ...(selectedDateStr ? { date: selectedDateStr } : {}),
-  });
-
-  // Extract appointments from paginated response
-  const appointments = useMemo(() => {
-    const paginatedResponse =
-      appointmentsResponse as unknown as PaginatedResponse<
-        Appointment & { patient?: Patient }
-      >;
-    return paginatedResponse?.items || [];
-  }, [appointmentsResponse]);
-  const updateAppointmentMutation = apiHooks.useUpdateAppointment(
-    cancellingAptId || noShowAptId || "",
-  );
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
-  // Open dialog from URL params
-  const currentAction = searchParams.get("action");
-  useEffect(() => {
-    if (currentAction === "new") {
-      setIsAddDialogOpen(true);
-    }
-  }, [currentAction]);
-
-  const handleDialogChange = useCallback(
-    (open: boolean) => {
-      setIsAddDialogOpen(open);
-      if (!open) {
-        // Remove the query param when dialog closes
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete("action");
-        newParams.delete("patientId");
-        router.replace(`/appointments?${newParams.toString()}`);
-      }
-    },
-    [searchParams, router],
-  );
-
-  // Deduplicate appointments by id to prevent double display
-  const uniqueAppointments = useMemo(() => {
-    const seen = new Set<string>();
-    return appointments.filter((apt) => {
-      if (!apt.id || seen.has(apt.id)) return false;
-      seen.add(apt.id);
-      return true;
-    });
-  }, [appointments]);
-
-  // Sort appointments by time (already filtered by date from API)
-  const filteredAppointments = useMemo(
-    () =>
-      [...uniqueAppointments]
-        .filter((apt) => apt.status !== "cancelled")
-        .sort(
-          (a, b) =>
-            new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-        ),
-    [uniqueAppointments],
-  );
-
-  const preselectedPatientId = useMemo(
-    () => searchParams.get("patientId") || undefined,
-    [searchParams],
-  );
-
-  const handleStartConsultation = useCallback(
-    (appointmentId: string) => {
-      router.push(`/consultation/${appointmentId}`);
-    },
-    [router],
-  );
-
-  const handleCheckIn = useCallback(
-    async (appointmentId: string) => {
-      setCheckingIn(appointmentId);
-      try {
-        const response = await fetch(`/api/queue/check-in/${appointmentId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to check in");
-        }
-
-        toast.success("Patient checked in to queue");
-        // Optimistic update - refetch to get latest data
-        await refetch();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to check in",
-        );
-      } finally {
-        setCheckingIn(null);
-      }
-    },
-    [refetch],
-  );
-
-  const handleCancelAppointment = async () => {
-    if (!cancellingAptId) return;
-    try {
-      await updateAppointmentMutation.mutateAsync({
-        status: "cancelled",
-      });
-      toast.success("Appointment cancelled successfully");
-      refetch();
-    } catch {
-      toast.error("Failed to cancel appointment");
-    }
-  };
-
-  const handleNoShowAppointment = async () => {
-    if (!noShowAptId) return;
-    try {
-      await updateAppointmentMutation.mutateAsync({
-        status: "no-show",
-      });
-      toast.success("Appointment marked as no-show");
-      refetch();
-    } catch {
-      toast.error("Failed to mark appointment as no-show");
-    }
-  };
+  } = handlers;
 
   return (
     <FeatureGate
@@ -221,83 +74,46 @@ function AppointmentsContent() {
       }
     >
       <div className="flex flex-col gap-6 p-4 md:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
-            <p className="text-muted-foreground">
-              Schedule and manage patient appointments.
-            </p>
-          </div>
-          <AddAppointmentDialog
-            onAppointmentAdded={() => refetch()}
-            {...(date && { selectedDate: date })}
-            open={isAddDialogOpen}
-            onOpenChange={handleDialogChange}
-            {...(preselectedPatientId && { preselectedPatientId })}
-          />
-        </div>
+        <AppointmentsPageHeaderUI
+          onAppointmentAdded={() => refetch()}
+          selectedDate={date}
+          isAddDialogOpen={isAddDialogOpen}
+          onOpenChange={handleDialogChange}
+          preselectedPatientId={preselectedPatientId}
+        />
 
         <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-          <Card className="h-fit border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Calendar</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 flex justify-center">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md border border-border"
-              />
-            </CardContent>
-          </Card>
+          <AppointmentsCalendarUI
+            date={date}
+            onDateSelect={setDate}
+            canViewAllDoctors={canViewAllDoctors || false}
+            doctorsList={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            onDoctorSelect={setSelectedDoctorId}
+          />
 
-          <Card className="border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>
-                Schedule for{" "}
-                {date ? format(date, "MMMM d, yyyy") : "Selected Date"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-4">
-                {loading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Loading appointments...
-                  </div>
-                ) : filteredAppointments.length === 0 ? (
-                  <EmptyState
-                    icon={CalendarDays}
-                    title="No appointments scheduled"
-                    description="No appointments scheduled for this day."
-                    className="h-[300px] border-2 border-dashed border-border rounded-lg bg-muted/10"
-                  />
-                ) : (
-                  <div className="space-y-4">
-                    {filteredAppointments.map((apt) => (
-                      <AppointmentCard
-                        key={apt.id}
-                        appointment={apt}
-                        allAppointments={filteredAppointments}
-                        checkingIn={checkingIn}
-                        onCheckIn={handleCheckIn}
-                        onStartConsultation={handleStartConsultation}
-                        onCancelClick={(id) => {
-                          setCancellingAptId(id);
-                          setCancelDialogOpen(true);
-                        }}
-                        onNoShowClick={(id) => {
-                          setNoShowAptId(id);
-                          setNoShowDialogOpen(true);
-                        }}
-                        {...(user?.role && { userRole: user?.role })}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <AppointmentsListUI
+            date={date}
+            loading={loading}
+            doctorsList={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            filteredAppointments={filteredAppointments}
+            isToday={isToday}
+            currentTimeSlot={currentTimeSlot}
+            currentTimeSlotRef={currentTimeSlotRef}
+            checkingIn={checkingIn}
+            onCheckIn={handleCheckIn}
+            onStartConsultation={handleStartConsultation}
+            onCancelClick={(id) => {
+              setCancellingAptId(id);
+              setCancelDialogOpen(true);
+            }}
+            onNoShowClick={(id) => {
+              setNoShowAptId(id);
+              setNoShowDialogOpen(true);
+            }}
+            userRole={user?.role}
+          />
         </div>
       </div>
 
@@ -309,8 +125,8 @@ function AppointmentsContent() {
         description="Are you sure you want to cancel this appointment? The patient will not be notified automatically."
         confirmText="Cancel Appointment"
         cancelText="Keep Appointment"
-        isDestructive={true}
-        isLoading={updateAppointmentMutation.isPending}
+        type="danger"
+        isLoading={isPendingMutation}
         onConfirm={handleCancelAppointment}
       />
 
@@ -321,165 +137,13 @@ function AppointmentsContent() {
         description="Are you sure you want to mark this appointment as no-show?"
         confirmText="Mark as No Show"
         cancelText="Cancel"
-        isDestructive={true}
-        isLoading={updateAppointmentMutation.isPending}
+        type="danger"
+        isLoading={isPendingMutation}
         onConfirm={handleNoShowAppointment}
       />
     </FeatureGate>
   );
 }
-
-// Memoized appointment card component to prevent unnecessary re-renders
-const AppointmentCard = memo<{
-  appointment: Appointment;
-  allAppointments: Appointment[];
-  checkingIn: string | null;
-  onCheckIn: (id: string) => void;
-  onStartConsultation: (id: string) => void;
-  onCancelClick: (id: string) => void;
-  onNoShowClick: (id: string) => void;
-  userRole?: string;
-}>(
-  ({
-    appointment: apt,
-    allAppointments,
-    checkingIn,
-    onCheckIn,
-    onStartConsultation,
-    onCancelClick,
-    onNoShowClick,
-    userRole,
-  }) => {
-    // Determine if this is the "Next Up" appointment
-    const isNextUp = useMemo(() => {
-      return (
-        apt.status !== "completed" &&
-        apt.status !== "cancelled" &&
-        new Date(apt.startTime) > new Date() &&
-        allAppointments
-          .filter(
-            (a) =>
-              a.status !== "completed" &&
-              a.status !== "cancelled" &&
-              new Date(a.startTime) > new Date(),
-          )
-          .sort(
-            (a, b) =>
-              new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-          )[0]?.id === apt.id
-      );
-    }, [apt, allAppointments]);
-
-    return (
-      <div
-        className={`flex items-center justify-between p-4 border rounded-lg transition-all bg-card ${
-          isNextUp
-            ? "border-primary/50 shadow-md ring-1 ring-primary/20 bg-primary/5"
-            : "border-border hover:bg-muted/50"
-        }`}
-      >
-        <div className="flex items-center gap-4 flex-1">
-          <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-md text-primary">
-            <span className="text-lg font-bold">
-              {format(new Date(apt.startTime), "HH:mm")}
-            </span>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold flex items-center gap-2 text-foreground">
-              <User className="h-4 w-4 text-muted-foreground" />
-              {apt.patient
-                ? `${apt.patient.firstName} ${apt.patient.lastName}`
-                : `Patient ID: ${apt.patientId}`}
-            </h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <Clock className="h-3 w-3" />
-              {format(new Date(apt.startTime), "h:mm a")} -{" "}
-              {format(new Date(apt.endTime), "h:mm a")}
-              <span className="capitalize px-2 py-0.5 bg-muted rounded-full text-xs text-muted-foreground">
-                {apt.type}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={apt.status === "confirmed" ? "default" : "secondary"}>
-            {apt.status}
-          </Badge>
-          {/* Check-in button for confirmed appointments */}
-          {apt.status === "confirmed" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onCheckIn(apt.id!)}
-              disabled={checkingIn === apt.id}
-              className="gap-1"
-            >
-              {checkingIn === apt.id ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserCheck className="h-4 w-4" />
-              )}
-              Check-in
-            </Button>
-          )}
-          {/* Show checked-in badge */}
-          {apt.status === "checked-in" && (
-            <Badge
-              variant="secondary"
-              className="gap-1 bg-green-50 text-green-700"
-            >
-              <Check className="h-3 w-3" />
-              In Queue
-            </Badge>
-          )}
-          <Button
-            size="sm"
-            variant={apt.status === "completed" ? "outline" : "default"}
-            onClick={() => onStartConsultation(apt.id!)}
-            style={{
-              display:
-                userRole &&
-                ["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"].includes(userRole)
-                  ? "none"
-                  : "inline-flex",
-            }}
-          >
-            <Stethoscope className="mr-2 h-4 w-4" />
-            {apt.status === "completed" ? "View" : "Start"}
-          </Button>
-
-          {/* More Actions Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  onCancelClick(apt.id || "");
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                Cancel Appointment
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  onNoShowClick(apt.id || "");
-                }}
-              >
-                Mark as No Show
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
-  },
-);
-
-AppointmentCard.displayName = "AppointmentCard";
 
 export default function AppointmentsPage() {
   return (

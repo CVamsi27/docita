@@ -1,3 +1,9 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/db", "@workspace/types"],
@@ -20,14 +26,13 @@ const nextConfig = {
       "lucide-react",
       "recharts",
       "date-fns",
+      "framer-motion",
+      "@tanstack/react-query",
     ],
   },
 
   // Production source maps (disabled for smaller builds)
   productionBrowserSourceMaps: false,
-
-  // Bundle analyzer disabled in favor of Next.js built-in analysis
-  // To enable: install @next/bundle-analyzer and use with ANALYZE=true environment variable
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

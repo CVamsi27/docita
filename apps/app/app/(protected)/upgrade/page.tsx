@@ -18,7 +18,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { useState } from "react";
-import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
+import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import {
   ArrowRight,
   BarChart3,
@@ -60,15 +60,12 @@ const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.MEDICINES_LIST]: Package,
   [Feature.INVOICING]: Receipt,
   [Feature.DIGITAL_PRESCRIPTIONS]: FileText,
-  [Feature.ONE_WAY_WHATSAPP]: MessageSquare,
   [Feature.BASIC_ANALYTICS]: BarChart3,
   [Feature.MEDICAL_CODING]: FileText,
 
   // Tier 2: PLUS
-  [Feature.WHATSAPP_API]: MessageSquare,
   [Feature.AUTO_REMINDERS]: Calendar,
   [Feature.PAYMENT_LINKS]: Receipt,
-  [Feature.TWO_WAY_WHATSAPP]: MessageSquare,
   [Feature.PRESCRIPTION_TEMPLATES]: FileText,
   [Feature.MULTI_DEVICE]: Shield,
   [Feature.ROLE_MANAGEMENT]: Users,
@@ -95,7 +92,6 @@ const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.CUSTOM_BRANDING]: Building2,
   [Feature.DATA_WAREHOUSE_EXPORT]: Upload,
   [Feature.SSO]: Shield,
-  [Feature.WHATSAPP_CHATBOTS]: MessageSquare,
   [Feature.BULK_IMPORT_SUITE]: Upload,
 
   // Tier 5: INTELLIGENCE

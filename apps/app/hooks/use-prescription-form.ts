@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  checkMedicationContraindications,
   type DosageValidation,
   type HospitalRole,
   Medication,
   type Specialization,
-  validateDosage,
 } from "@workspace/types";
+import {
+  checkMedicationContraindications,
+  validateDosage,
+} from "@workspace/utils";
 import { apiHooks } from "@/lib/api-hooks";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -227,6 +229,28 @@ export function usePrescriptionForm({
       toast.success("Prescription saved successfully");
     } catch (error) {
       console.error("Failed to save prescription:", error);
+
+      // Handle allergy-related errors from the API
+      if (error && typeof error === "object" && "response" in error) {
+        const apiError = error as {
+          response?: { data?: { allergies?: string[]; message?: string } };
+        };
+        const errorData = apiError.response?.data;
+
+        if (errorData?.allergies && errorData.allergies.length > 0) {
+          toast.error("Cannot prescribe medication due to patient allergies", {
+            description: errorData.allergies.join("\n"),
+            duration: 10000,
+          });
+          return;
+        }
+
+        if (errorData?.message) {
+          toast.error(errorData.message);
+          return;
+        }
+      }
+
       toast.error("Failed to save prescription");
     }
   };

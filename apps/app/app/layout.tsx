@@ -1,10 +1,10 @@
 import { Outfit } from "next/font/google";
 import "@workspace/ui/globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-import { Providers } from "@/components/providers";
+import { Providers } from "@/features/_shared/components/providers";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
-import { ToasterWrapper } from "@/components/toaster-wrapper";
-import { LoginLayout } from "@/components/layout/login-layout";
+import { ToasterWrapper } from "@/features/_shared/components/toaster-wrapper";
+import { LoginLayout } from "@/features/_shared/components/login-layout";
 
 // Disable static generation for this route
 export const dynamic = "force-dynamic";

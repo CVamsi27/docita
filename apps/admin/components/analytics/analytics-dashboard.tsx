@@ -124,7 +124,7 @@ export function AnalyticsDashboard() {
   const metrics: MetricCard[] = [
     {
       title: "Total Revenue",
-      value: data ? `$${(data.revenue / 1000).toFixed(1)}K` : "$0",
+      value: data ? `$${((data.revenue || 0) / 1000).toFixed(1)}K` : "$0",
       change: data?.revenueChange
         ? `${data.revenueChange > 0 ? "+" : ""}${data.revenueChange.toFixed(1)}%`
         : undefined,
@@ -166,7 +166,7 @@ export function AnalyticsDashboard() {
     },
     {
       title: "Avg Invoice Value",
-      value: data ? `$${data.avgInvoiceValue.toFixed(2)}` : "$0.00",
+      value: data ? `$${(data.avgInvoiceValue || 0).toFixed(2)}` : "$0.00",
       change: data?.invoiceValueChange
         ? `${data.invoiceValueChange > 0 ? "+" : ""}${data.invoiceValueChange.toFixed(1)}%`
         : undefined,
@@ -302,7 +302,7 @@ export function AnalyticsDashboard() {
               <div className="text-center text-muted-foreground">
                 <p className="text-sm">Revenue chart implementation pending</p>
                 <p className="text-xs mt-2">
-                  Current revenue: ${(data.revenue / 1000).toFixed(1)}K
+                  Current revenue: ${((data.revenue || 0) / 1000).toFixed(1)}K
                 </p>
               </div>
             </div>
@@ -400,7 +400,7 @@ export function AnalyticsDashboard() {
                       {row.invoices}
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground">
-                      ${row.avgAmount.toFixed(2)}
+                      ${(row.avgAmount || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground">
                       {row.appointments}

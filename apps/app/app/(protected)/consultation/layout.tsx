@@ -1,7 +1,7 @@
 "use client";
 
 import { ClinicProvider } from "@/lib/clinic-context";
-import { AuthGuard } from "@/components/auth/auth-guard";
+import { AuthGuard } from "@/features/_shared/components/auth-guard";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 
 export default function ConsultationLayout({

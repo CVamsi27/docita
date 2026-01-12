@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { apiHooks } from "@/lib/api-hooks";
 import { Patient } from "@workspace/types";
@@ -26,14 +27,24 @@ import {
   ArrowUp,
   ArrowUpDown,
   Calendar,
+  FileText,
   Pencil,
   Search,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 
-import { AddPatientDialog } from "@/components/patients/add-patient-dialog";
-import { EditPatientDialog } from "@/components/patients/edit-patient-dialog";
+import {
+  AddPatientDialog,
+  EditPatientDialog,
+} from "@/features/patients/components";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -54,6 +65,7 @@ function PatientsContent() {
     key: keyof Patient | "fullName";
     direction: "asc" | "desc";
   } | null>(null);
+  const [filterType, setFilterType] = useState<"all" | "recent" | "new">("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
@@ -96,7 +108,24 @@ function PatientsContent() {
     const patients = patientsResponse?.items || [];
     let result = [...patients];
 
-    // Filter by search query
+    // 1. Smart Filters (Pre-sort/Filter)
+    if (filterType === "recent") {
+      // Sort by updatedAt desc
+      result.sort((a, b) => {
+        const da = new Date(a.updatedAt || 0).getTime();
+        const db = new Date(b.updatedAt || 0).getTime();
+        return db - da;
+      });
+    } else if (filterType === "new") {
+      // Sort by createdAt desc
+      result.sort((a, b) => {
+        const da = new Date(a.createdAt || 0).getTime();
+        const db = new Date(b.createdAt || 0).getTime();
+        return db - da;
+      });
+    }
+
+    // 2. Search Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((patient) => {
@@ -107,7 +136,7 @@ function PatientsContent() {
       });
     }
 
-    // Sort
+    // 3. Column Sort (Overrides Smart Filter sort if active)
     if (sortConfig) {
       result.sort((a, b) => {
         let aValue: string | number | Date | undefined;
@@ -141,7 +170,7 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patientsResponse, searchQuery, sortConfig]);
+  }, [patientsResponse, searchQuery, sortConfig, filterType]);
 
   const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {
@@ -172,18 +201,29 @@ function PatientsContent() {
         <EditPatientDialog
           patient={editingPatient}
           open={!!editingPatient}
-          onOpenChange={(open) => !open && setEditingPatient(null)}
+          onOpenChange={(open: boolean) => !open && setEditingPatient(null)}
           onPatientUpdated={() => refetch()}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Patients</CardTitle>
-          <CardDescription>
-            A list of all patients in your practice including their name,
-            contact, and medical history.
-          </CardDescription>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <CardTitle>All Patients</CardTitle>
+              <CardDescription>
+                A list of all patients in your practice including their name,
+                contact, and medical history.
+              </CardDescription>
+            </div>
+             <Tabs value={filterType} onValueChange={(v) => setFilterType(v as "all" | "recent" | "new")} className="w-[400px]">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="recent">Recently Active</TabsTrigger>
+                <TabsTrigger value="new">New Patients</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
@@ -214,6 +254,7 @@ function PatientsContent() {
           )}
 
           <div className="rounded-md border border-border overflow-hidden">
+            <TooltipProvider>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-muted/50">
@@ -275,10 +316,8 @@ function PatientsContent() {
                   filteredPatients.map((patient) => (
                     <TableRow
                       key={patient.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (window.location.href = `/patients/${patient.id}`)
-                      }
+                      className="hover:bg-muted/50 cursor-pointer group"
+                      onClick={() => router.push(`/patients/${patient.id}`)}
                     >
                       <TableCell>
                         <Avatar className="h-8 w-8 bg-primary/10 text-primary">
@@ -318,34 +357,60 @@ function PatientsContent() {
                           ? format(new Date(patient.updatedAt), "MMM d, yyyy")
                           : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(
-                                `/appointments?action=new&patientId=${patient.id}`,
-                              );
-                            }}
-                          >
-                            <Calendar className="h-4 w-4" />
-                            Schedule
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingPatient(patient);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </Button>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toast.info("Quick Note implementation coming soon");
+                                }}
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Quick Note (Stub)</TooltipContent>
+                           </Tooltip>
+
+                           <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPatient(patient);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit Patient</TooltipContent>
+                           </Tooltip>
+                          
+                           <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                className="h-8 w-8 ml-1 rounded-full shadow-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(
+                                    `/appointments?action=new&patientId=${patient.id}`,
+                                  );
+                                }}
+                              >
+                                <Calendar className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Schedule Visit</TooltipContent>
+                           </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -353,6 +418,7 @@ function PatientsContent() {
                 )}
               </TableBody>
             </Table>
+            </TooltipProvider>
           </div>
         </CardContent>
       </Card>

@@ -10,7 +10,7 @@ import React, {
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;

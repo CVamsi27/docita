@@ -16,17 +16,17 @@ interface SortConfig {
   direction: "asc" | "desc";
 }
 
-interface Patient {
+export interface Patient {
   firstName: string;
   lastName: string;
   phoneNumber?: string;
 }
 
-interface Doctor {
+export interface Doctor {
   name: string;
 }
 
-interface QueueItem {
+export interface QueueItem {
   id: string;
   tokenNumber: number;
   tokenType: string;
@@ -138,3 +138,5 @@ export function useQueueFiltering(queue: QueueItem[]) {
     filteredQueue,
   };
 }
+
+export type { SortKey, SortConfig };

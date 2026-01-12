@@ -1,19 +1,26 @@
 import {
+  Baby,
+  Bed,
+  Brain,
   Calendar,
   CalendarCheck,
+  Eye,
   FileText,
   FlaskConical,
+  Heart,
   LayoutDashboard,
   LucideIcon,
   MessageSquare,
   Package,
   Receipt,
   Settings,
+  Smile,
   Sparkles,
   Upload,
   Users,
 } from "lucide-react";
 import { Feature, Tier } from "./stores/permission-store";
+import type { ClinicType } from "@workspace/types";
 
 export interface SidebarItem {
   title: string;
@@ -23,6 +30,8 @@ export interface SidebarItem {
   feature?: Feature;
   tier?: Tier;
   badge?: string;
+  facilityType?: "CLINIC" | "HOSPITAL";
+  clinicTypes?: ClinicType[]; // If specified, only show for these clinic types
 }
 
 export const sidebarItems: SidebarItem[] = [
@@ -32,6 +41,13 @@ export const sidebarItems: SidebarItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
+  },
+  {
+    title: "Bed Management",
+    href: "/hospital/beds",
+    icon: Bed,
+    roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
+    facilityType: "HOSPITAL",
   },
 
   // ======= Core Workflow =======
@@ -87,14 +103,8 @@ export const sidebarItems: SidebarItem[] = [
     feature: Feature.EXCEL_IMPORT,
   },
 
-  // ======= Tier 2: PLUS =======
-  {
-    title: "WhatsApp",
-    href: "/whatsapp",
-    icon: MessageSquare,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    feature: Feature.WHATSAPP_API,
-  },
+  // WhatsApp removed - now requires add-on, not tier feature
+  // Access controlled via add-on check in the WhatsApp page itself
 
   // ======= Tier 3: PRO =======
   {
@@ -117,6 +127,56 @@ export const sidebarItems: SidebarItem[] = [
     icon: FileText,
     roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
     feature: Feature.MEDICAL_CODING,
+  },
+
+  // ======= Specialty Features (Clinic-Type Specific) =======
+  {
+    title: "Dental Charts",
+    href: "/specialty/dental-charts",
+    icon: Smile,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["DENTAL"],
+    badge: "Dental",
+  },
+  {
+    title: "Growth Charts",
+    href: "/specialty/growth-charts",
+    icon: Baby,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["PEDIATRIC"],
+    badge: "Pediatric",
+  },
+  {
+    title: "ECG Monitoring",
+    href: "/specialty/ecg-monitoring",
+    icon: Heart,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["CARDIOLOGY"],
+    badge: "Cardio",
+  },
+  {
+    title: "Vision Tests",
+    href: "/specialty/vision-tests",
+    icon: Eye,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["OPHTHALMOLOGY"],
+    badge: "Eye",
+  },
+  {
+    title: "Prenatal Care",
+    href: "/specialty/prenatal-care",
+    icon: Baby,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["GYNECOLOGY"],
+    badge: "OB/GYN",
+  },
+  {
+    title: "Mental Health",
+    href: "/specialty/mental-health",
+    icon: Brain,
+    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
+    clinicTypes: ["PSYCHIATRY"],
+    badge: "Psych",
   },
 
   // ======= Tier 5: INTELLIGENCE =======

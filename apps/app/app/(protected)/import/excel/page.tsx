@@ -43,7 +43,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import { FeatureGate } from "@/components/common/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@workspace/ui/lib/utils";

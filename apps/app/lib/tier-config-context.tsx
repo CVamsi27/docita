@@ -9,12 +9,8 @@ import React, {
   useState,
   useSyncExternalStore,
 } from "react";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  Tier,
-  TIER_INFO,
-} from "./stores/permission-store";
+import { Tier, TIER_INFO, TIER_LIMITS, TIER_PRICING } from "@workspace/types";
+import { Feature, FEATURE_TIER_MAP } from "./stores/permission-store";
 
 /**
  * Types for tier configuration from backend
@@ -90,33 +86,47 @@ const TierConfigContext = createContext<TierConfigContextType | undefined>(
   undefined,
 );
 
-// Default fallback values (used while loading or if fetch fails)
+// Use single source of truth from @workspace/types
 const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
-  [Tier.CAPTURE]: { monthly: 0, yearly: 0, currency: "₹" },
-  [Tier.CORE]: { monthly: 999, yearly: 9990, currency: "₹" },
-  [Tier.PLUS]: { monthly: 2499, yearly: 24990, currency: "₹" },
-  [Tier.PRO]: { monthly: 4999, yearly: 49990, currency: "₹" },
-  [Tier.ENTERPRISE]: { monthly: "custom", yearly: "custom", currency: "₹" },
-  [Tier.INTELLIGENCE]: { monthly: 2999, yearly: 29990, currency: "₹" },
+  [Tier.CAPTURE]: {
+    monthly: TIER_PRICING.CAPTURE.monthly,
+    yearly: TIER_PRICING.CAPTURE.yearly,
+    currency: "₹",
+  },
+  [Tier.CORE]: {
+    monthly: TIER_PRICING.CORE.monthly,
+    yearly: TIER_PRICING.CORE.yearly,
+    currency: "₹",
+  },
+  [Tier.PLUS]: {
+    monthly: TIER_PRICING.PLUS.monthly,
+    yearly: TIER_PRICING.PLUS.yearly,
+    currency: "₹",
+  },
+  [Tier.PRO]: {
+    monthly: TIER_PRICING.PRO.monthly,
+    yearly: TIER_PRICING.PRO.yearly,
+    currency: "₹",
+  },
+  [Tier.ENTERPRISE]: {
+    monthly: TIER_PRICING.ENTERPRISE.monthly,
+    yearly: TIER_PRICING.ENTERPRISE.yearly,
+    currency: "₹",
+  },
+  [Tier.INTELLIGENCE]: {
+    monthly: TIER_PRICING.INTELLIGENCE.monthly,
+    yearly: TIER_PRICING.INTELLIGENCE.yearly,
+    currency: "₹",
+  },
 };
 
 const DEFAULT_LIMITS: Record<Tier, PlanLimits> = {
-  [Tier.CAPTURE]: { patients: 100, doctors: 1, storageGB: 1, branches: 1 },
-  [Tier.CORE]: { patients: 500, doctors: 1, storageGB: 2, branches: 1 },
-  [Tier.PLUS]: { patients: 2000, doctors: 3, storageGB: 5, branches: 1 },
-  [Tier.PRO]: { patients: 10000, doctors: 999, storageGB: 20, branches: 3 },
-  [Tier.ENTERPRISE]: {
-    patients: 999999,
-    doctors: 999,
-    storageGB: 100,
-    branches: 999,
-  },
-  [Tier.INTELLIGENCE]: {
-    patients: 999999,
-    doctors: 999,
-    storageGB: 100,
-    branches: 999,
-  },
+  [Tier.CAPTURE]: TIER_LIMITS.CAPTURE,
+  [Tier.CORE]: TIER_LIMITS.CORE,
+  [Tier.PLUS]: TIER_LIMITS.PLUS,
+  [Tier.PRO]: TIER_LIMITS.PRO,
+  [Tier.ENTERPRISE]: TIER_LIMITS.ENTERPRISE,
+  [Tier.INTELLIGENCE]: TIER_LIMITS.INTELLIGENCE,
 };
 
 const DEFAULT_DESCRIPTIONS: Record<
@@ -124,28 +134,28 @@ const DEFAULT_DESCRIPTIONS: Record<
   { tagline: string; description: string }
 > = {
   [Tier.CAPTURE]: {
-    tagline: "Free forever",
-    description: "Perfect for getting started with digitization",
+    tagline: TIER_INFO.CAPTURE.tagline,
+    description: TIER_INFO.CAPTURE.description,
   },
   [Tier.CORE]: {
-    tagline: "Solo Clinic Essentials",
-    description: "Essential features for small clinics",
+    tagline: TIER_INFO.CORE.tagline,
+    description: TIER_INFO.CORE.description,
   },
   [Tier.PLUS]: {
-    tagline: "WhatsApp Automation",
-    description: "Advanced features for growing clinics",
+    tagline: TIER_INFO.PLUS.tagline,
+    description: TIER_INFO.PLUS.description,
   },
   [Tier.PRO]: {
-    tagline: "Multi-Doctor Clinics",
-    description: "Full-featured solution for professional clinics",
+    tagline: TIER_INFO.PRO.tagline,
+    description: TIER_INFO.PRO.description,
   },
   [Tier.ENTERPRISE]: {
-    tagline: "Hospital-Grade System",
-    description: "Hospital-grade solution with full customization",
+    tagline: TIER_INFO.ENTERPRISE.tagline,
+    description: TIER_INFO.ENTERPRISE.description,
   },
   [Tier.INTELLIGENCE]: {
-    tagline: "AI-Powered Add-on",
-    description: "Enhance your clinic with AI-powered features",
+    tagline: TIER_INFO.INTELLIGENCE.tagline,
+    description: TIER_INFO.INTELLIGENCE.description,
   },
 };
 

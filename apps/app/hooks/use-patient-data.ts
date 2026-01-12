@@ -6,7 +6,7 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
-interface PatientStatistics {
+export interface PatientStatistics {
   totalVisits: number;
   lastVisit: string | null;
   nextVisit: string | null;
@@ -97,7 +97,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
 
       if (
         statisticsData &&
-        typeof statisticsData === 'object' &&
+        typeof statisticsData === "object" &&
         !("error" in statisticsData) &&
         !("statusCode" in statisticsData) &&
         "totalVisits" in statisticsData
@@ -136,7 +136,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         hasFetchedRef.current = patientId;
         loadPatientData();
       }
-      return () => {};
+      return () => { };
     }, [patientId, loadPatientData]),
     () => patient,
     () => null,

@@ -28,7 +28,10 @@ test.describe("Patient Management", () => {
     // If register didn't create a clinic association, create a clinic and assign
     let token: string | null = null;
     try {
-      token = (regData?.access_token as string) || (regData?.accessToken as string) || null;
+      token =
+        (regData?.access_token as string) ||
+        (regData?.accessToken as string) ||
+        null;
 
       // Create clinic
       const clinicRes = await page.request.post(`${API_URL}/clinics`, {
@@ -59,12 +62,21 @@ test.describe("Patient Management", () => {
             data: { email: userEmail, password: userPassword },
           });
           if (loginRes.ok()) {
-            const loginData = (await loginRes.json()) as Record<string, unknown>;
-            authToken = (loginData?.access_token as string) || (loginData?.accessToken as string) || "";
-            clinicId = ((loginData?.user as Record<string, unknown>)?.clinicId as string) || clinicId;
+            const loginData = (await loginRes.json()) as Record<
+              string,
+              unknown
+            >;
+            authToken =
+              (loginData?.access_token as string) ||
+              (loginData?.accessToken as string) ||
+              "";
+            clinicId =
+              ((loginData?.user as Record<string, unknown>)
+                ?.clinicId as string) || clinicId;
             // keep user info for frontend localStorage
             // store minimal user info to satisfy client checks
-            (regData as Record<string, unknown>).user = loginData?.user || regData?.user;
+            (regData as Record<string, unknown>).user =
+              loginData?.user || regData?.user;
           }
         }
       }
@@ -78,8 +90,13 @@ test.describe("Patient Management", () => {
       });
 
       const loginData = (await loginRes.json()) as Record<string, unknown>;
-      authToken = (loginData?.access_token as string) || (loginData?.accessToken as string) || "";
-      clinicId = ((loginData?.user as Record<string, unknown>)?.clinicId as string) || clinicId;
+      authToken =
+        (loginData?.access_token as string) ||
+        (loginData?.accessToken as string) ||
+        "";
+      clinicId =
+        ((loginData?.user as Record<string, unknown>)?.clinicId as string) ||
+        clinicId;
     }
 
     // Save minimal user info from registration/login for later localStorage injection
@@ -91,7 +108,8 @@ test.describe("Patient Management", () => {
       role: (storedUser?.role as string) || "DOCTOR",
     };
     // store globally so loginAsDoctor can construct docita_user
-    (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER = minimalUser;
+    (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER =
+      minimalUser;
     await context.close();
   });
 
@@ -282,14 +300,16 @@ test.describe("Patient Management", () => {
   });
 });
 
-async function loginAsDoctor(page: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+async function loginAsDoctor(page: any) {
+  // eslint-disable-line @typescript-eslint/no-explicit-any
   // Try to login or navigate to dashboard
   // Prefer injecting token into localStorage for reliable auth during e2e
   if (!(await page.url()).includes("/dashboard")) {
     // token variable should be set in the test scope (authToken)
     if (typeof authToken !== "undefined" && authToken) {
       // Construct a minimal user object for the frontend
-      const e2eUser = (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER as Record<string, unknown> | undefined;
+      const e2eUser = (globalThis as unknown as Record<string, unknown>)
+        .__E2E_REG_USER as Record<string, unknown> | undefined;
       const storedUser = e2eUser || {
         id: null,
         email: null,

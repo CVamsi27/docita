@@ -21,9 +21,9 @@ import {
   FeatureGate,
   FeatureTierBadge,
   TierBadge,
-} from "@/components/common/feature-gate";
+} from "@/features/_shared/components/feature-gate";
 import { Feature, Tier } from "@/lib/stores/permission-store";
-import { BulkImportDialog } from "@/components/dialogs/bulk-import-dialog";
+import { BulkImportDialog } from "@/features/dialogs/components/BulkImportDialogContainer";
 
 export default function ImportPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);

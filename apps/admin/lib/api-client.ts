@@ -1,4 +1,4 @@
-import { API_URL } from "./api";
+import { getAPIClient } from "@workspace/data-access";
 
 let authLogoutCallback: ((reason: string) => void) | null = null;
 
@@ -6,60 +6,51 @@ export function setAuthLogoutCallback(callback: (reason: string) => void) {
   authLogoutCallback = callback;
 }
 
-export async function fetchWithAuth(
-  endpoint: string,
-  options: RequestInit & { skipAuthCheck?: boolean } = {},
-) {
-  const { skipAuthCheck = false, ...fetchOptions } = options;
-
-  const token = localStorage.getItem("docita_admin_token");
-
-  const headers = new Headers(fetchOptions.headers || {});
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...fetchOptions,
-    headers,
-  });
-
-  if (!skipAuthCheck) {
-    if (response.status === 401) {
+/**
+ * Admin portal API client
+ */
+export const client = getAPIClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+  getToken: () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("docita_admin_token");
+  },
+  onError: async (error) => {
+    if (error.status === 401 || error.status === 403) {
       localStorage.removeItem("docita_admin_token");
       localStorage.removeItem("docita_admin_user");
-      authLogoutCallback?.("Your session has expired. Please log in again.");
-      return response;
+
+      const reason = error.status === 401
+        ? "Your session has expired. Please log in again."
+        : "You no longer have access to this resource. Please log in again.";
+
+      authLogoutCallback?.(reason);
     }
 
-    if (response.status === 404) {
-      try {
-        const data = await response.clone().json();
-        if (
-          data.message?.toLowerCase().includes("user") ||
-          data.message?.toLowerCase().includes("not found")
-        ) {
-          localStorage.removeItem("docita_admin_token");
-          localStorage.removeItem("docita_admin_user");
-          authLogoutCallback?.(
-            "Your account has been deleted. Please contact support.",
-          );
-          return response;
-        }
-      } catch {
-        // Not a JSON response, continue normally
+    // Check for 404 account deletion case (from original admin client)
+    if (error.status === 404) {
+      const data = error.data as any;
+      if (
+        data?.message?.toLowerCase().includes("user") ||
+        data?.message?.toLowerCase().includes("not found")
+      ) {
+        localStorage.removeItem("docita_admin_token");
+        localStorage.removeItem("docita_admin_user");
+        authLogoutCallback?.("Your account has been deleted. Please contact support.");
       }
     }
+  },
+});
 
-    if (response.status === 403) {
-      localStorage.removeItem("docita_admin_token");
-      localStorage.removeItem("docita_admin_user");
-      authLogoutCallback?.(
-        "You no longer have access to this resource. Please log in again.",
-      );
-      return response;
-    }
-  }
-
-  return response;
-}
+/**
+ * Legacy support for fetchWithAuth
+ */
+export const fetchWithAuth = async (
+  endpoint: string,
+  options: any = {},
+) => {
+  const { skipAuthCheck, ...rest } = options;
+  // Note: we're ignoring skipAuthCheck for now as the factory handles 401/403 globally
+  // and legacy code didn't use it much.
+  return client.request(endpoint, { ...rest, skipAuth: options.skipAuth });
+};

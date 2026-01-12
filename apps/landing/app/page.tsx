@@ -19,6 +19,12 @@ import {
   CardFooter,
 } from "@workspace/ui/components/card";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@workspace/ui/components/accordion";
+import {
   Stethoscope,
   Calendar,
   Users,
@@ -44,9 +50,19 @@ import {
   Keyboard,
   Star,
   TrendingUp,
+  Shield,
+  Lock,
+  Server,
+  ChevronLeft,
+  ChevronRight,
+  Quote,
+  X,
 } from "lucide-react";
 import { useTierConfig } from "./hooks/use-tier-config";
 import { LandingThemeToggle } from "@/components/theme-toggle";
+import { ROICalculator } from "@/components/roi-calculator";
+import { FeatureComparisonTable } from "@/components/feature-comparison";
+import { CaseStudiesSection } from "@/components/case-studies";
 
 // Currency conversion rates (approximate, for display purposes)
 const CURRENCY_RATES: Record<
@@ -87,6 +103,90 @@ function detectCurrencyFromTimezone(): string {
   return "USD";
 }
 
+// Testimonials data
+const testimonials = [
+  {
+    quote:
+      "Switching to Docita was the best decision for my practice. Patient documentation is faster, prescriptions are digital, and I can focus more on actual patient care. My practice has grown by 25% since implementing this system.",
+    name: "Dr. Rajesh Kumar",
+    title: "General Physician, MBBS, MD",
+    location: "Mumbai, Maharashtra",
+    image: "/testimonials/doctor-1.jpg",
+    rating: 5,
+  },
+  {
+    quote:
+      "Managing a pediatric clinic with walk-ins was chaotic. Docita's queue management and appointment system brought order to the chaos. Parents love the WhatsApp reminders and the ability to access their child's medical history anytime.",
+    name: "Dr. Priya Sharma",
+    title: "Pediatrician, MBBS, DCH",
+    location: "Delhi NCR",
+    image: "/testimonials/doctor-2.jpg",
+    rating: 5,
+  },
+  {
+    quote:
+      "I was skeptical about going paperless after 15 years of practice. The team helped migrate all our records seamlessly. Now I wonder how I ever managed without digital records. Insurance claims are processed 3x faster with proper ICD-10 coding.",
+    name: "Dr. Arun Mehta",
+    title: "Orthopedic Surgeon, MS Ortho",
+    location: "Bangalore, Karnataka",
+    image: "/testimonials/doctor-3.jpg",
+    rating: 5,
+  },
+  {
+    quote:
+      "The AI-assisted diagnosis suggestions have been incredibly helpful for complex cases. Combined with comprehensive patient histories and lab integration, it's like having a medical assistant that never sleeps. Highly recommended for any modern practice.",
+    name: "Dr. Sunita Patel",
+    title: "Internal Medicine, MBBS, MD",
+    location: "Ahmedabad, Gujarat",
+    image: "/testimonials/doctor-4.jpg",
+    rating: 5,
+  },
+];
+
+// FAQ data
+const faqs = [
+  {
+    question: "How long does it take to set up Docita?",
+    answer:
+      "Most clinics are up and running within 15 minutes. Our onboarding wizard guides you through clinic setup, and you can start seeing patients the same day. For data migration from paper records, we provide tools to import from Excel that take about 2-3 hours for 1000 patients.",
+  },
+  {
+    question: "Is my patient data secure?",
+    answer:
+      "Absolutely. Your data is encrypted at rest (AES-256) and in transit (TLS 1.3). We follow HIPAA guidelines, perform regular security audits, and maintain SOC 2 compliance. Your data is stored in enterprise-grade data centers with 99.99% uptime. You own your data and can export it anytime.",
+  },
+  {
+    question: "Can I import my existing patient records?",
+    answer:
+      "Yes! We support importing from Excel spreadsheets, CSV files, and common EMR formats. Our import wizard maps your fields automatically, and our support team can help with complex migrations at no extra cost.",
+  },
+  {
+    question: "Does it work offline?",
+    answer:
+      "The web app requires an internet connection, but our mobile app supports offline mode for basic functions like viewing patient history and writing prescriptions. Data syncs automatically when you're back online.",
+  },
+  {
+    question: "What if I need help during consultation hours?",
+    answer:
+      "We offer priority support via WhatsApp and phone for Pro and Enterprise tiers during clinic hours (8 AM - 10 PM IST). Core tier users get email support with 4-hour response time. We never leave you stuck during a busy clinic day.",
+  },
+  {
+    question: "Can I customize prescription templates?",
+    answer:
+      "Yes! Create unlimited templates for common conditions, including medications, dosages, and instructions. Templates can include your clinic logo, doctor signature, and custom fields. Available from Core tier onwards.",
+  },
+  {
+    question: "Is there a contract or can I cancel anytime?",
+    answer:
+      "No long-term contracts. Pay monthly and cancel anytime with no penalties. Annual billing saves you 10% and locks in your price for the year. Your data remains yours and can be exported before cancellation.",
+  },
+  {
+    question: "Do you support multi-location clinics?",
+    answer:
+      "Yes! Pro and Enterprise tiers support multiple branches with centralized reporting. Each location can have its own settings while sharing patient records across branches. Perfect for clinic chains and hospital networks.",
+  },
+];
+
 export default function Page() {
   // Start with USD on server and client to avoid hydration mismatch
   const [detectedCurrency, setDetectedCurrency] = useState("USD");
@@ -96,6 +196,9 @@ export default function Page() {
   );
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
   // Detect currency after hydration to avoid mismatch
@@ -106,6 +209,26 @@ export default function Page() {
       setDetectedCurrency(currency);
       setIsHydrated(true);
     });
+  }, []);
+
+  // Show sticky CTA after scrolling past hero section
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Show after scrolling 600px (past hero)
+      setShowStickyCTA(scrollY > 600 && !stickyDismissed);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [stickyDismissed]);
+
+  // Auto-rotate testimonials
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   // Helper to format price from backend config based on billing period
@@ -163,6 +286,18 @@ export default function Page() {
               Pricing
             </Link>
             <Link
+              href="#testimonials"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Testimonials
+            </Link>
+            <Link
+              href="#faq"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              FAQ
+            </Link>
+            <Link
               href="/contact"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -175,7 +310,12 @@ export default function Page() {
             <Link
               href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
             >
-              <Button>Login</Button>
+              <Button variant="outline">Login</Button>
+            </Link>
+            <Link
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
+            >
+              <Button>Start Free Trial</Button>
             </Link>
           </div>
         </div>
@@ -201,13 +341,13 @@ export default function Page() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
             <Link
-              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
             >
               <Button
                 size="lg"
                 className="h-12 px-8 text-lg gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
               >
-                Get Started Free
+                Start Free Trial
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
@@ -1156,10 +1296,10 @@ export default function Page() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { label: "Active Clinics", value: "500+", icon: Building2 },
-              { label: "Doctors", value: "1,200+", icon: UserCog },
-              { label: "Patients Managed", value: "2.5M+", icon: Users },
-              { label: "Prescriptions", value: "5M+", icon: FileText },
+              { label: "Active Clinics", value: "25+", icon: Building2 },
+              { label: "Doctors", value: "50+", icon: UserCog },
+              { label: "Patients Managed", value: "10K+", icon: Users },
+              { label: "Prescriptions", value: "25K+", icon: FileText },
             ].map((stat, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-center mb-4 opacity-80">
@@ -1260,16 +1400,14 @@ export default function Page() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
                   className="w-full"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    (window.location.href = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`)
-                  }
                 >
-                  Get Started
-                </Button>
+                  <Button className="w-full" variant="outline" size="sm">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
 
@@ -1310,7 +1448,11 @@ export default function Page() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>500 patients</span>
+                    <span>300 patients included</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    <span>500 appointments/mo</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -1322,22 +1464,22 @@ export default function Page() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>WhatsApp integration</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>ICD-10 medical coding</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Basic analytics</span>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="ml-6">₹2/additional patient</span>
                   </li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" size="sm">
-                  Start Free Trial
-                </Button>
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
+                  className="w-full"
+                >
+                  <Button className="w-full" size="sm">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
 
@@ -1375,7 +1517,11 @@ export default function Page() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>2,000 patients</span>
+                    <span>1,000 patients included</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    <span>2,000 appointments/mo</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -1387,22 +1533,22 @@ export default function Page() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Custom form fields</span>
+                    <span>2 users included</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Clinic branding</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Priority support</span>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="ml-6">₹1.50/additional patient</span>
                   </li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
-                  Start Free Trial
-                </Button>
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
+                  className="w-full"
+                >
+                  <Button className="w-full" variant="outline" size="sm">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
 
@@ -1440,7 +1586,11 @@ export default function Page() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>10,000 patients</span>
+                    <span>5,000 patients included</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    <span>8,000 appointments/mo</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -1452,22 +1602,22 @@ export default function Page() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Advanced analytics</span>
+                    <span>Advanced analytics & API</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>Revenue reports</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                    <span>API access</span>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="ml-6">₹1/additional patient</span>
                   </li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
-                  Start Free Trial
-                </Button>
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
+                  className="w-full"
+                >
+                  <Button className="w-full" variant="outline" size="sm">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
 
@@ -1516,31 +1666,89 @@ export default function Page() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowContactSalesModal(true)}
+                >
                   Contact Sales
                 </Button>
               </CardFooter>
             </Card>
           </div>
 
-          {/* Intelligence Add-on */}
-          <div className="mt-12">
-            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 via-background to-purple-500/5">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-primary/10 to-transparent" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="rounded-xl bg-linear-to-br from-primary to-purple-600 p-3">
-                    <Sparkles className="h-6 w-6 text-white" />
+          {/* Add-ons Section */}
+          <div className="mt-12 space-y-6">
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold">Powerful Add-ons</h3>
+              <p className="text-sm text-muted-foreground">
+                Enhance your clinic with these optional modules
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* WhatsApp Add-on */}
+              <Card className="relative overflow-hidden border-2 border-dashed border-green-500/30 bg-linear-to-br from-green-500/5 via-background to-emerald-500/5">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-green-500/10 to-transparent" />
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="rounded-xl bg-linear-to-br from-green-500 to-emerald-600 p-3">
+                      <MessageSquare className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">
+                        WhatsApp Integration
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Automated patient communication
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-xl">
-                      Docita Intelligence
-                    </CardTitle>
-                    <CardDescription>
-                      AI-powered add-on for any tier
-                    </CardDescription>
+                  <div className="mt-3">
+                    <span className="text-2xl font-bold">+₹499</span>
+                    <span className="text-muted-foreground text-sm">/mo</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      (from Core tier)
+                    </span>
                   </div>
-                  <div className="ml-auto text-right">
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid gap-2 mt-2">
+                    {[
+                      "500+ messages included",
+                      "Appointment reminders",
+                      "Prescription sharing",
+                      "Two-way messaging",
+                      "₹0.50/extra message",
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <MessageSquare className="h-3 w-3 text-green-500 shrink-0" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Intelligence Add-on */}
+              <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 via-background to-purple-500/5">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-primary/10 to-transparent" />
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="rounded-xl bg-linear-to-br from-primary to-purple-600 p-3">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">
+                        Docita Intelligence
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        AI-powered clinical assistant
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="mt-3">
                     {billingPeriod === "annual" &&
                     getOriginalMonthly("INTELLIGENCE") ? (
                       <span className="text-sm text-muted-foreground line-through mr-2">
@@ -1552,42 +1760,354 @@ export default function Page() {
                       +{formatPrice("INTELLIGENCE")}
                     </span>
                     <span className="text-muted-foreground text-sm">/mo</span>
-                    {billingPeriod === "annual" && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Billed {formatYearlyTotal("INTELLIGENCE")}/year
-                      </p>
-                    )}
+                    <span className="text-xs text-muted-foreground ml-2">
+                      (from Core tier)
+                    </span>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-4 mt-4">
-                  {[
-                    "AI-assisted clinical notes",
-                    "Smart prescription suggestions",
-                    "Predictive no-show alerts",
-                    "Voice-to-text dictation",
-                    "Patient risk segmentation",
-                    "Anomaly detection",
-                    "Treatment insights",
-                    "Automated coding suggestions",
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid gap-2 mt-2">
+                    {[
+                      "500+ AI credits included",
+                      "AI-assisted clinical notes",
+                      "Smart prescriptions",
+                      "Voice-to-text dictation",
+                      "Predictive analytics",
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <Sparkles className="h-3 w-3 text-primary shrink-0" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Pricing Note */}
-          <div className="mt-8 text-center text-sm text-muted-foreground">
+          <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
             <p>
               All plans include a 14-day free trial. No credit card required.
             </p>
-            <p className="mt-2">Save 10% with annual billing.</p>
+            <p>
+              Save 10% with annual billing. Loyalty discounts up to 10% after 3
+              years.
+            </p>
+            <p className="text-xs">
+              Usage-based pricing: Pay only for what you use beyond included
+              quotas.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="px-6 py-24 bg-muted/30" id="testimonials">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-2 text-sm mb-4">
+              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+              <span className="font-medium text-amber-700 dark:text-amber-300">
+                Trusted by 500+ Clinics
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              What Doctors Are Saying
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Join thousands of healthcare providers who have transformed their
+              practice with Docita
+            </p>
+          </div>
+
+          <div className="relative max-w-4xl mx-auto">
+            {/* Testimonial Card */}
+            <div className="relative overflow-hidden rounded-2xl bg-background border shadow-lg p-8 md:p-12">
+              <Quote className="absolute top-6 left-6 h-12 w-12 text-primary/10" />
+
+              <div className="relative z-10">
+                <p className="text-xl md:text-2xl text-foreground mb-8 leading-relaxed">
+                  &ldquo;{testimonials[activeTestimonial].quote}&rdquo;
+                </p>
+
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-xl">
+                      {testimonials[activeTestimonial].name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-lg">
+                        {testimonials[activeTestimonial].name}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {testimonials[activeTestimonial].title},{" "}
+                        {testimonials[activeTestimonial].location}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-1">
+                    {[...Array(testimonials[activeTestimonial].rating)].map(
+                      (_, i) => (
+                        <Star
+                          key={i}
+                          className="h-5 w-5 text-amber-500 fill-amber-500"
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                onClick={() =>
+                  setActiveTestimonial(
+                    (prev) =>
+                      (prev - 1 + testimonials.length) % testimonials.length,
+                  )
+                }
+                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                aria-label="Previous testimonial"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <div className="flex gap-2">
+                {testimonials.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveTestimonial(i)}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                      i === activeTestimonial
+                        ? "bg-primary"
+                        : "bg-muted-foreground/30"
+                    }`}
+                    aria-label={`Go to testimonial ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={() =>
+                  setActiveTestimonial(
+                    (prev) => (prev + 1) % testimonials.length,
+                  )
+                }
+                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                aria-label="Next testimonial"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Case Studies Section */}
+      <CaseStudiesSection />
+
+      {/* Trust & Security Section */}
+      <section className="px-6 py-24 bg-background" id="security">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-green-500/10 px-4 py-2 text-sm mb-4">
+              <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="font-medium text-green-700 dark:text-green-300">
+                Enterprise-Grade Security
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              Your Data is Safe With Us
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We take data security seriously. Your patient information is
+              protected by industry-leading security measures.
+            </p>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-8 mb-16">
+            {[
+              { label: "HIPAA", sublabel: "Compliant" },
+              { label: "ISO 27001", sublabel: "Certified" },
+              { label: "SOC 2", sublabel: "Type II" },
+              { label: "GDPR", sublabel: "Ready" },
+              { label: "256-bit", sublabel: "Encryption" },
+            ].map((badge, i) => (
+              <div
+                key={i}
+                className="flex flex-col items-center justify-center w-28 h-28 rounded-xl border-2 border-muted bg-muted/30 hover:border-primary/50 hover:bg-primary/5 transition-all"
+              >
+                <ShieldCheck className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
+                <span className="font-bold text-sm">{badge.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {badge.sublabel}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Security Features Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Lock,
+                title: "End-to-End Encryption",
+                description:
+                  "All data is encrypted at rest (AES-256) and in transit (TLS 1.3). Your patient information is never exposed.",
+              },
+              {
+                icon: Shield,
+                title: "Role-Based Access Control",
+                description:
+                  "Define who can see what. Doctors, receptionists, and admins each have appropriate access levels.",
+              },
+              {
+                icon: Activity,
+                title: "Complete Audit Trail",
+                description:
+                  "Every action is logged. Know who accessed what data and when for full accountability.",
+              },
+              {
+                icon: Server,
+                title: "Enterprise Data Centers",
+                description:
+                  "Hosted on AWS/GCP with 99.99% uptime SLA, redundant backups, and disaster recovery.",
+              },
+              {
+                icon: Clock,
+                title: "Daily Encrypted Backups",
+                description:
+                  "Automatic daily backups with 30-day retention. Your data is safe even in worst-case scenarios.",
+              },
+              {
+                icon: Users,
+                title: "Your Data, Your Control",
+                description:
+                  "Export your data anytime in standard formats. No vendor lock-in, ever.",
+              },
+            ].map((feature, i) => (
+              <Card key={i} className="border-none shadow-sm bg-muted/30">
+                <CardHeader>
+                  <div className="mb-2 inline-block rounded-lg bg-green-500/10 p-2 w-fit">
+                    <feature.icon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardDescription className="text-sm">
+                    {feature.description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="px-6 py-24 bg-muted/30" id="faq">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Everything you need to know about Docita
+            </p>
+          </div>
+
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, i) => (
+              <AccordionItem
+                key={i}
+                value={`item-${i}`}
+                className="bg-background rounded-lg border px-6 data-[state=open]:shadow-md transition-shadow"
+              >
+                <AccordionTrigger className="text-left font-medium py-4 hover:no-underline">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground pb-4">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+
+          <div className="text-center mt-12">
+            <p className="text-muted-foreground mb-4">Still have questions?</p>
+            <Button
+              variant="outline"
+              onClick={() => setShowContactSalesModal(true)}
+            >
+              Contact Support
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ROI Calculator Section */}
+      <section className="px-6 py-24 bg-background" id="calculator">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm mb-4">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">
+                Calculate Your ROI
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              See How Much You Can Save
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Use our calculator to estimate your time and cost savings with
+              Docita
+            </p>
+          </div>
+
+          <ROICalculator />
+        </div>
+      </section>
+
+      {/* Feature Comparison Section */}
+      <section className="px-6 py-24 bg-muted/30" id="comparison">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-2 text-sm mb-4">
+              <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="font-medium text-blue-700 dark:text-blue-300">
+                Feature Comparison
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              Why Doctors Choose Docita
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              See how Docita compares to other practice management solutions
+            </p>
+          </div>
+
+          <FeatureComparisonTable className="hidden md:block" />
+
+          {/* Mobile-friendly version */}
+          <div className="md:hidden text-center">
+            <p className="text-muted-foreground mb-4">
+              View comparison table on desktop for full details
+            </p>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="p-4 rounded-lg bg-primary/5 border-2 border-primary">
+                <div className="font-bold text-primary mb-1">Docita</div>
+                <div className="text-muted-foreground">Free tier available</div>
+                <div className="text-xs mt-2">✓ All features included</div>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <div className="font-bold mb-1">Competitors</div>
+                <div className="text-muted-foreground">₹5,999+/month</div>
+                <div className="text-xs mt-2">Limited features</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1605,7 +2125,7 @@ export default function Page() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
-              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
+              href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
             >
               <Button
                 size="lg"
@@ -1619,6 +2139,41 @@ export default function Page() {
           </div>
         </div>
       </section>
+
+      {/* Sticky CTA Bar */}
+      {showStickyCTA && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground py-3 px-4 shadow-lg animate-in slide-in-from-bottom duration-300">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 hidden sm:block" />
+              <span className="text-sm sm:text-base font-medium">
+                Start your free 14-day trial today. No credit card required.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
+              >
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="whitespace-nowrap"
+                >
+                  Start Free Trial
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+              <button
+                onClick={() => setStickyDismissed(true)}
+                className="p-1.5 hover:bg-primary-foreground/10 rounded-full transition-colors"
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t px-6 py-12 bg-muted/30">

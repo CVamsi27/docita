@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { FloatingStartConsultation } from "@/components/layout/floating-start-consultation";
-import { CommandPalette } from "@/components/common/command-palette";
+import { Sidebar } from "@/features/_shared/components/sidebar";
+import { MobileNav } from "@/features/_shared/components/mobile-nav";
+import { FloatingStartConsultation } from "@/features/_shared/components/floating-start-consultation";
+import { CommandPalette } from "@/features/_shared/components/command-palette";
 import { ClinicProvider } from "@/lib/clinic-context";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "@workspace/ui/components/resizable";
 
 export default function ProtectedLayout({
   children,

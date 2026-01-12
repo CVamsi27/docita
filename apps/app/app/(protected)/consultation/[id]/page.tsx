@@ -1,102 +1,34 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, PanelLeft, User } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@workspace/ui/components/sheet";
-import { cn } from "@workspace/ui/lib/utils";
-import { ClinicalDocumentationDynamic } from "@/lib/dynamic-imports";
-import { apiHooks } from "@/lib/api-hooks";
-import { useSmartBack } from "@/hooks/use-smart-back";
-import { useNavigationStore } from "@/lib/stores/navigation-store";
-import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
-
-// Map old tab names to new ones
-const TAB_MAPPING: Record<string, string> = {
-  observations: "chief-complaint",
-  vitals: "vitals",
-  prescription: "prescription",
-  invoice: "invoice",
-  diagnosis: "diagnosis",
-};
+  ClinicalDocumentationDynamic,
+  ConsultationSidebarUI as ConsultationSidebar,
+} from "@/features/consultation/components";
+import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
+import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
+import { ConsultationLayoutUI } from "@/features/consultation/components/ConsultationLayoutUI";
 
 export default function ConsultationPage() {
   const params = useParams();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const appointmentId = params["id"] as string;
-  const queryClient = useQueryClient();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { canGoBack } = useNavigationStore();
 
-  const { data: appointmentData, isLoading: loading } =
-    apiHooks.useAppointment(appointmentId);
+  // Utilize the custom hook for logic
+  const { state, handlers } = useConsultationLogic(appointmentId);
 
-  // Fetch clinic settings to get clinic type
-  const { data: clinic } = apiHooks.useClinicSettings();
+  const {
+    appointmentData,
+    loading,
+    clinic,
+    pastAppointments,
+    isSidebarOpen,
+    defaultTab,
+  } = state;
 
-  // Fetch past appointments for consultation history
-  const { data: patientAppointments = [] } = apiHooks.usePatientAppointments(
-    appointmentData?.patientId || "",
-  );
+  const { handleBack, handleSave, toggleSidebar } = handlers;
 
-  // Filter past appointments (exclude current, only completed)
-  const pastAppointments = useMemo(() => {
-    return patientAppointments
-      .filter((apt) => apt.id !== appointmentId && apt.status === "completed")
-      .map((apt) => ({
-        id: apt.id || "",
-        date: apt.startTime,
-        chiefComplaint: apt.chiefComplaint,
-        finalDiagnosis: apt.finalDiagnosis,
-        diagnoses: apt.diagnoses,
-      }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10);
-  }, [patientAppointments, appointmentId]);
-
-  // Compute fallback route based on 'from' query parameter
-  const fromPage = searchParams.get("from");
-  const fallbackRoute = useMemo(() => {
-    if (fromPage === "patient" && appointmentData?.patientId) {
-      return `/patients/${appointmentData.patientId}`;
-    }
-    if (fromPage === "patient") {
-      return "/patients";
-    }
-    // Default to queue for 'from=queue' or when 'from' is not specified
-    return "/queue";
-  }, [fromPage, appointmentData?.patientId]);
-
-  const goBack = useSmartBack(fallbackRoute);
-
-  // Hybrid back navigation: use history if available, otherwise use computed fallback
-  const handleBack = useCallback(() => {
-    if (canGoBack()) {
-      goBack();
-    } else {
-      // No history available, use the fallback route based on 'from' parameter
-      router.push(fallbackRoute);
-    }
-  }, [canGoBack, goBack, router, fallbackRoute]);
-
-  const handleSave = useCallback(async () => {
-    // Refetch appointment data after save
-    await queryClient.invalidateQueries({
-      queryKey: ["appointments", appointmentId],
-    });
-    await queryClient.refetchQueries({
-      queryKey: ["appointments", appointmentId],
-      type: "active",
-    });
-  }, [queryClient, appointmentId]);
-
+  // Loading State
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -108,11 +40,12 @@ export default function ConsultationPage() {
     );
   }
 
+  // Not Found State
   if (!appointmentData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
         <p className="text-muted-foreground">Appointment not found</p>
-        <Button onClick={() => router.push("/appointments")}>
+        <Button onClick={handleBack}>
           Back to Appointments
         </Button>
       </div>
@@ -123,113 +56,30 @@ export default function ConsultationPage() {
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
     : "Patient";
 
-  // Get default tab from query params and map to new tab names
-  const rawTab = searchParams.get("tab") || "chief-complaint";
-  const defaultTab = (TAB_MAPPING[rawTab] || rawTab) as
-    | "chief-complaint"
-    | "history"
-    | "examination"
-    | "diagnosis"
-    | "treatment";
+  // Sidebar Component (Passed to Header for Mobile and Layout for Desktop)
+  const SidebarComponent = (
+    <ConsultationSidebar
+      appointment={appointmentData}
+      pastAppointments={pastAppointments}
+    />
+  );
 
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 py-3 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
-        <div className="flex items-center gap-3 md:gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="hover:bg-accent"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+      <ConsultationPageHeaderUI
+        patientName={patientName}
+        appointmentDate={appointmentData.startTime}
+        onBack={handleBack}
+        MobileSidebarContent={SidebarComponent}
+      />
 
-          {/* Mobile sidebar toggle */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden hover:bg-accent"
-              >
-                <PanelLeft className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
-              {appointmentData && (
-                <ConsultationSidebar
-                  appointment={appointmentData as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-                  pastAppointments={pastAppointments as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-                />
-              )}
-            </SheetContent>
-          </Sheet>
-
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold">{patientName}</h1>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                {new Date(appointmentData.startTime).toLocaleDateString(
-                  "en-US",
-                  {
-                    weekday: "short",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  },
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBack}
-            className="hidden sm:flex gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Close
-          </Button>
-        </div>
-      </header>
-
-      {/* Main Content with Sidebar */}
-      <div className="flex-1 overflow-hidden flex overflow-x-hidden">
-        {/* Sidebar - Desktop only */}
-        <aside
-          className={cn(
-            "hidden md:block border-r overflow-y-auto shrink-0 transition-all duration-300 ease-in-out",
-            isSidebarOpen ? "w-80 opacity-100" : "w-0 opacity-0 border-none",
-          )}
-        >
-          <ConsultationSidebar
-            appointment={appointmentData as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-            pastAppointments={pastAppointments as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-          />
-        </aside>
-
-        {/* Clinical Documentation */}
-        <div className="flex-1 overflow-hidden overflow-x-hidden flex flex-col">
-          {/* Focus Mode Toggle (Floating if sidebar is closed, or in header) */}
-          {!isSidebarOpen && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute left-4 top-[72px] z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
-              title="Show Sidebar"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </Button>
-          )}
-
+      {/* Main Layout */}
+      <ConsultationLayoutUI
+        Sidebar={SidebarComponent}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={toggleSidebar}
+        MainContent={
           <ClinicalDocumentationDynamic
             appointmentId={appointmentId}
             patientId={appointmentData.patientId}
@@ -237,11 +87,12 @@ export default function ConsultationPage() {
             defaultTab={defaultTab}
             onSave={handleSave}
             isFocusMode={!isSidebarOpen}
-            onToggleFocus={() => setIsSidebarOpen(!isSidebarOpen)}
+            onToggleFocus={toggleSidebar}
             clinicType={clinic?.type}
+            appointmentData={appointmentData}
           />
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 }

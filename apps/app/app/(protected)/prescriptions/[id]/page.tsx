@@ -8,7 +8,7 @@ import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
-import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
+import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -40,10 +40,10 @@ export default function PrescriptionViewPage() {
   const params = useParams();
   const router = useRouter();
   const prescriptionId = params["id"] as string;
-  const { canAccess } = usePermissionStore();
+  const { canAccess } = useFeatureAccess();
   const { clinic: contextClinic } = useClinic();
   const { user } = useAuth();
-  const hasWhatsAppAccess = canAccess(Feature.ONE_WAY_WHATSAPP);
+  const hasWhatsAppAccess = canAccess("WHATSAPP_MESSAGING"); // Add-on based
   const goBack = useSmartBack("/patients");
 
   const {

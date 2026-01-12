@@ -33,7 +33,8 @@ test.describe("Dashboard", () => {
     }
 
     // Set the frontend's expected keys so the app recognizes the logged-in user
-    const token = (user?.access_token as string) || (user?.accessToken as string);
+    const token =
+      (user?.access_token as string) || (user?.accessToken as string);
     const userObj = (user?.user as Record<string, unknown>) || user;
     const userForStorage = JSON.stringify({
       id: (userObj?.id as string) || (userObj?.userId as string) || null,

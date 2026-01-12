@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useAuth } from "./auth-context";
-import { API_URL } from "./api";
+import { API_URL } from "./api-config";
 
 // Re-export all types from api-hooks
 export * from "./api-hooks";

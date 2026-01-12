@@ -1,0 +1,34 @@
+/**
+ * Invoice Business Rules
+ */
+
+export const calculateTax = (subtotal: number, taxRate: number = 0): number => {
+  return subtotal * (taxRate / 100);
+};
+
+export const calculateTotal = (
+  subtotal: number,
+  taxRate: number = 0,
+  discount: number = 0,
+): number => {
+  const tax = calculateTax(subtotal, taxRate);
+  return subtotal + tax - discount;
+};
+
+export const isInvoiceOverdue = (invoice: { status: string; dueDate?: string | Date }): boolean => {
+  if (invoice.status === "paid") return false;
+  if (!invoice.dueDate) return false;
+  return new Date(invoice.dueDate) < new Date();
+};
+
+export const canEditInvoice = (invoice: { status: string }): boolean => {
+  return invoice.status !== "paid" && invoice.status !== "cancelled";
+};
+
+export const validateInvoiceItems = (
+  items: { description?: string; quantity: number; unitPrice: number }[],
+): boolean => {
+  return items.every(
+    (item) => item.description && item.quantity > 0 && item.unitPrice >= 0,
+  );
+};

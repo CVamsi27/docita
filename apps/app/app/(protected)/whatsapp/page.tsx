@@ -1,7 +1,6 @@
 "use client";
 
-import { FeatureGuard } from "@/components/auth/feature-guard";
-import { Feature } from "@/lib/stores/permission-store";
+import { FeatureGuard } from "@/features/_shared/components/feature-guard";
 import {
   Card,
   CardContent,
@@ -14,8 +13,8 @@ import { Button } from "@workspace/ui/components/button";
 import { apiHooks } from "@/lib/api-hooks";
 import { Patient } from "@workspace/types";
 import { useState } from "react";
-import { WhatsAppBroadcastDialog } from "@/components/dialogs/whatsapp-broadcast-dialog";
-import { WhatsAppSettingsDialog } from "@/components/dialogs/whatsapp-settings-dialog";
+import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
+import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 
 interface PaginatedResponse<T> {
   items: T[];
@@ -44,7 +43,8 @@ export default function WhatsAppPage() {
       : 0;
 
   return (
-    <FeatureGuard feature={Feature.WHATSAPP_API}>
+    <FeatureGuard feature="WHATSAPP_MESSAGING">
+      {/* Add-on based */}
       <div className="flex-1 space-y-6 max-w-4xl mx-auto p-4 md:p-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">

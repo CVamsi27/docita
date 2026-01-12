@@ -1,0 +1,111 @@
+
+import { useCallback, useEffect, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { apiHooks } from "@/lib/api-hooks";
+import { useRouter } from "next/navigation";
+import { Invoice } from "@workspace/types";
+
+// Schema definition
+export const invoiceItemSchema = z.object({
+    id: z.string().optional(),
+    description: z.string().min(1, "Description is required"),
+    quantity: z.number().min(1, "Quantity must be at least 1"),
+    price: z.number().min(0, "Price must be positive"),
+});
+
+export const invoiceSchema = z.object({
+    status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+    discount: z.number().min(0),
+    notes: z.string().optional(),
+    items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+});
+
+export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+
+export const useInvoiceEditLogic = (invoiceId: string) => {
+    const router = useRouter();
+    const [isSaving, setIsSaving] = useState(false);
+
+    const {
+        data: invoice,
+        isLoading,
+        error
+    } = apiHooks.useInvoice(invoiceId);
+
+    const updateInvoice = apiHooks.useUpdateInvoice(invoiceId);
+
+    const form = useForm<InvoiceFormValues>({
+        resolver: zodResolver(invoiceSchema),
+        defaultValues: {
+            status: "pending",
+            discount: 0,
+            notes: "",
+            items: [{ description: "", quantity: 1, price: 0 }],
+        },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "items",
+    });
+
+    // Load data into form when invoice fetch completes
+    useEffect(() => {
+        if (invoice) {
+            // Safe casting to ensure type compatibility if API returns slightly different structure
+            const safeInvoice = invoice as unknown as Invoice;
+
+            form.reset({
+                status: ((safeInvoice.status as string) === "created" ? "pending" : safeInvoice.status) as any,
+                discount: (safeInvoice as any).discount || 0,
+                notes: safeInvoice.notes || "",
+                items: safeInvoice.items?.map(item => ({
+                    id: item.id,
+                    description: item.description,
+                    quantity: item.quantity,
+                    price: item.price
+                })) || [{ description: "", quantity: 1, price: 0 }],
+            });
+        }
+    }, [invoice, form]);
+
+    const calculateTotal = useCallback((values: InvoiceFormValues) => {
+        const subtotal = values.items.reduce(
+            (sum, item) => sum + (item.quantity * item.price),
+            0
+        );
+        return Math.max(0, subtotal - (values.discount || 0));
+    }, []);
+
+    const totalAmount = calculateTotal(form.watch());
+
+    const onSubmit = async (data: InvoiceFormValues) => {
+        try {
+            setIsSaving(true);
+            await updateInvoice.mutateAsync(data);
+            toast.success("Invoice updated successfully");
+            router.push(`/invoices/${invoiceId}`);
+        } catch (error) {
+            toast.error("Failed to update invoice");
+            console.error(error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return {
+        form,
+        fields,
+        append,
+        remove,
+        onSubmit,
+        invoice,
+        isLoading,
+        isSaving,
+        totalAmount,
+        router
+    };
+};

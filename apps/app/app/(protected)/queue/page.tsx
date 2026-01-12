@@ -1,84 +1,41 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Feature, FeatureGate } from "@/components/common/feature-gate";
-import { apiHooks } from "@/lib/api-hooks";
-import { API_URL } from "@/lib/api";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-
-import { QueueHeader } from "@/components/queue/queue-header";
-import { QueueStats } from "@/components/queue/queue-stats";
-import { QueueFilters } from "@/components/queue/queue-filters";
-import { QueueTable } from "@/components/queue/queue-table";
-import { QueueSettingsDialog } from "@/components/queue/queue-settings-dialog";
-import { useQueueFiltering } from "@/hooks/use-queue-filtering";
+import { Feature, FeatureGate } from "@/features/_shared/components/feature-gate";
+import {
+  QueueFilters,
+  QueueHeader,
+  QueueSettingsDialog,
+  QueueStats,
+  QueueTable,
+} from "@/features/queue/components/exports";
+import { useQueueLogic } from "@/features/queue/hooks/use-queue-logic";
 
 export default function QueuePage() {
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const queryClient = useQueryClient();
-
-  const { data: queueSettings, refetch: refetchSettings } =
-    apiHooks.useQueueSettings();
+  const { state, handlers } = useQueueLogic();
 
   const {
-    data: queue = [],
-    isLoading,
-    refetch,
-    isFetching,
-  } = apiHooks.useQueueByDoctor(
-    queueSettings?.useDoctorQueues && selectedDoctor
-      ? selectedDoctor
-      : undefined,
-  );
+      queue,
+      stats,
+      doctors,
+      isLoading,
+      isFetching,
+      queueSettings,
+      selectedDoctor,
+      showSettingsModal,
+      searchQuery,
+      sortConfig,
+      useDoctorQueues,
+  } = state;
 
-  const { data: stats, refetch: refetchStats } = apiHooks.useQueueStats(
-    queueSettings?.useDoctorQueues && selectedDoctor
-      ? selectedDoctor
-      : undefined,
-  );
-
-  const { data: doctors = [] } = apiHooks.useDoctors();
-
-  const { searchQuery, setSearchQuery, sortConfig, handleSort, filteredQueue } =
-    useQueueFiltering(queue);
-
-  const handleRefresh = useCallback(() => {
-    refetch();
-    refetchStats();
-    queryClient.invalidateQueries({ queryKey: ["queue"] });
-  }, [refetch, refetchStats, queryClient]);
-
-  const handleUpdateStatus = async (id: string, status: string) => {
-    try {
-      const response = await fetch(`${API_URL}/queue/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("docita_token")}`,
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      if (response.ok) {
-        const statusMessages: Record<string, string> = {
-          "in-progress": "Patient called for consultation",
-          completed: "Consultation marked as completed",
-          "no-show": "Patient marked as no-show",
-          cancelled: "Appointment cancelled",
-        };
-        toast.success(statusMessages[status] || "Status updated");
-        handleRefresh();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to update status");
-      }
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      toast.error("Failed to update status");
-    }
-  };
+  const {
+      setSelectedDoctor,
+      setShowSettingsModal,
+      setSearchQuery,
+      handleSort,
+      handleRefresh,
+      handleUpdateStatus,
+      refetchSettings,
+  } = handlers;
 
   return (
     <FeatureGate
@@ -98,7 +55,7 @@ export default function QueuePage() {
           isFetching={isFetching}
           onOpenSettings={() => setShowSettingsModal(true)}
           doctors={doctors}
-          useDoctorQueues={queueSettings?.useDoctorQueues as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          useDoctorQueues={useDoctorQueues}
         />
 
         <QueueStats stats={stats} />
@@ -109,11 +66,11 @@ export default function QueuePage() {
           selectedDoctor={selectedDoctor}
           onDoctorChange={setSelectedDoctor}
           doctors={doctors}
-          showDoctorFilter={!!queueSettings?.useDoctorQueues}
+          showDoctorFilter={!!useDoctorQueues}
         />
 
         <QueueTable
-          queue={filteredQueue}
+          queue={queue}
           isLoading={isLoading}
           sortConfig={sortConfig}
           onSort={handleSort}

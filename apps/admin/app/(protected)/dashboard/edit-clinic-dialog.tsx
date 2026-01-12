@@ -1,0 +1,330 @@
+"use client";
+
+import { useState } from "react";
+import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Pencil } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { API_URL } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { toast } from "sonner";
+import { TIER_INFO, type TierName } from "@workspace/types";
+
+// Available tiers for clinic editing (excluding INTELLIGENCE which is an add-on)
+const AVAILABLE_TIERS: TierName[] = [
+  "CAPTURE",
+  "CORE",
+  "PLUS",
+  "PRO",
+  "ENTERPRISE",
+];
+
+// Clinic types with descriptions
+const CLINIC_TYPES = [
+  {
+    value: "GENERAL",
+    label: "General Medicine",
+    description: "Multi-specialty clinic",
+  },
+  {
+    value: "DENTAL",
+    label: "Dental Clinic",
+    description: "Dentistry & Orthodontics",
+  },
+  {
+    value: "PEDIATRIC",
+    label: "Pediatric Clinic",
+    description: "Child Health",
+  },
+  {
+    value: "ORTHOPEDIC",
+    label: "Orthopedic Clinic",
+    description: "Bone & Joint Specialist",
+  },
+  {
+    value: "CARDIOLOGY",
+    label: "Cardiology Clinic",
+    description: "Heart Specialist",
+  },
+  {
+    value: "DERMATOLOGY",
+    label: "Dermatology Clinic",
+    description: "Skin Care",
+  },
+  { value: "ENT", label: "ENT Clinic", description: "Ear, Nose & Throat" },
+  {
+    value: "GYNECOLOGY",
+    label: "Gynecology Clinic",
+    description: "Women's Health",
+  },
+  {
+    value: "OPHTHALMOLOGY",
+    label: "Ophthalmology Clinic",
+    description: "Eye Care",
+  },
+  {
+    value: "PSYCHIATRY",
+    label: "Psychiatry Clinic",
+    description: "Mental Health",
+  },
+  {
+    value: "SPECIALTY",
+    label: "Other Specialty",
+    description: "Custom specialty clinic",
+  },
+] as const;
+
+type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
+
+// Helper to normalize legacy tier names to new tier names
+function normalizeTierName(tier: string): TierName {
+  const legacyMapping: Record<string, TierName> = {
+    FREE: "CAPTURE",
+    STARTER: "CORE",
+    PROFESSIONAL: "PRO",
+  };
+  return (legacyMapping[tier] || tier) as TierName;
+}
+
+function getInitialFormData(clinic: Clinic | null) {
+  if (!clinic) {
+    return {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      tier: "CAPTURE",
+      type: "GENERAL" as ClinicType,
+      active: true,
+    };
+  }
+  return {
+    name: clinic.name,
+    email: clinic.email,
+    phone: clinic.phone,
+    address: clinic.address,
+    tier: normalizeTierName(clinic.tier),
+    type: (clinic.type || "GENERAL") as ClinicType,
+    active: clinic.active,
+  };
+}
+
+interface Clinic {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier: string;
+  type?: string;
+  active: boolean;
+}
+
+export function EditClinicDialog({
+  clinic,
+  onClinicUpdated,
+}: {
+  clinic: Clinic;
+  onClinicUpdated: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { logout } = useAuth();
+  const [formData, setFormData] = useState(() => getInitialFormData(clinic));
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setFormData(getInitialFormData(clinic));
+    }
+    setOpen(newOpen);
+  };
+
+  const handleSubmit = () => {
+    setLoading(true);
+    (async () => {
+      try {
+        const token = localStorage.getItem("docita_admin_token");
+        const res = await fetch(`${API_URL}/super-admin/clinics/${clinic.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
+
+        // Handle auth errors
+        if (res.status === 401) {
+          logout("Your session has expired. Please log in again.");
+          return;
+        }
+
+        if (res.status === 404) {
+          logout("Your account has been deleted. Please contact support.");
+          return;
+        }
+
+        if (res.status === 403) {
+          logout("You no longer have permission to update clinics.");
+          return;
+        }
+
+        if (res.ok) {
+          setOpen(false);
+          onClinicUpdated();
+          toast.success("Clinic updated successfully");
+        } else {
+          const error = await res.json();
+          toast.error(error.message || "Failed to update clinic");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Error updating clinic");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  };
+
+  return (
+    <>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <CRUDDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        title="Edit Clinic"
+        description="Update clinic details and status."
+        isLoading={loading}
+        onSubmit={handleSubmit}
+        submitLabel={loading ? "Updating..." : "Update Clinic"}
+      >
+        <form className="space-y-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Clinic Name</Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-tier">Subscription Tier</Label>
+                <Select
+                  value={formData.tier}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, tier: val })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_TIERS.map((tier) => (
+                      <SelectItem key={tier} value={tier}>
+                        {TIER_INFO[tier].name.replace("Docita ", "")} (
+                        {TIER_INFO[tier].tagline})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-type">Clinic Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, type: val as ClinicType })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select clinic type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLINIC_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{type.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {type.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <Input
+                id="edit-address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-active">Status</Label>
+              <Select
+                value={formData.active ? "active" : "inactive"}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, active: val === "active" })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </form>
+      </CRUDDialog>
+    </>
+  );
+}
