@@ -129,10 +129,10 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ## 📚 Documentation
 
-- [Quick Deployment Guide](docs/QUICK_DEPLOY.md) - Fast-track production deployment (~45 min)
-- [Full Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Comprehensive deployment instructions
+- [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment guide
 - [User Manual](docs/USER_MANUAL.md) - How to use Docita
 - [API Documentation](docs/API_DOCUMENTATION.md) - API reference
+- [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
 
 ## 🚀 Deployment
 
@@ -142,7 +142,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 2. **Backend**: Deploy to EC2 with Docker
 3. **Frontend**: Connect to Vercel → Auto-deploy from Git
 
-See [Quick Deployment Guide](docs/QUICK_DEPLOY.md) for step-by-step instructions.
+See [Deployment Guide](docs/DEPLOYMENT.md) for step-by-step instructions.
 
 ### Estimated Costs
 
