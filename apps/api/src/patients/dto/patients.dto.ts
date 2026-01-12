@@ -1,0 +1,16 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { patientSchema } from '@workspace/types';
+
+// Extend/Refine schema from workspace/types if needed, or use directly
+const CreatePatientSchema = patientSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export class CreatePatientDto extends createZodDto(CreatePatientSchema) {}
+
+const UpdatePatientSchema = patientSchema
+  .partial()
+  .omit({ id: true, createdAt: true, updatedAt: true });
+export class UpdatePatientDto extends createZodDto(UpdatePatientSchema) {}

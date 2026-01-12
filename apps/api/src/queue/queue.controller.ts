@@ -14,32 +14,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
+import {
+  CreateQueueTokenDto,
+  UpdateQueueTokenDto,
+  UpdateQueueSettingsDto,
+} from './dto/queue.dto';
+
 interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
   };
-}
-
-interface CreateQueueTokenDto {
-  patientId: string;
-  appointmentId?: string;
-  doctorId?: string;
-  priority?: number;
-  notes?: string;
-}
-
-interface UpdateQueueTokenDto {
-  status?: string;
-  priority?: number;
-  notes?: string;
-}
-
-interface UpdateQueueSettingsDto {
-  queueBufferMinutes?: number;
-  useDoctorQueues?: boolean;
-  lateArrivalGraceMinutes?: number;
-  avgConsultationMinutes?: number;
 }
 
 @Controller('queue')
@@ -71,12 +56,15 @@ export class QueueController {
   /**
    * Update queue settings for the clinic
    */
+  /**
+   * Update queue settings for the clinic
+   */
   @Patch('settings')
   updateQueueSettings(
     @Request() req: AuthRequest,
-    @Body() updateDto: UpdateQueueSettingsDto,
+    @Body() dto: UpdateQueueSettingsDto,
   ) {
-    return this.queueService.updateQueueSettings(req.user.clinicId, updateDto);
+    return this.queueService.updateQueueSettings(req.user.clinicId, dto);
   }
 
   /**
@@ -115,8 +103,8 @@ export class QueueController {
    * Create a walk-in queue token
    */
   @Post()
-  create(@Request() req: AuthRequest, @Body() createDto: CreateQueueTokenDto) {
-    return this.queueService.create(req.user.clinicId, createDto);
+  create(@Request() req: AuthRequest, @Body() dto: CreateQueueTokenDto) {
+    return this.queueService.create(req.user.clinicId, dto);
   }
 
   /**
@@ -146,7 +134,7 @@ export class QueueController {
    * Update a queue token (status, priority, notes)
    */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateQueueTokenDto) {
-    return this.queueService.update(id, updateDto);
+  update(@Param('id') id: string, @Body() dto: UpdateQueueTokenDto) {
+    return this.queueService.update(id, dto);
   }
 }

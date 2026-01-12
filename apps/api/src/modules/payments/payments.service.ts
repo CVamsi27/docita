@@ -1,6 +1,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { WhatsappTemplatesService } from '../whatsapp/templates.service';
+import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentGateway } from '../../gateways/payment.gateway';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
@@ -52,6 +54,8 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private whatsapp: WhatsappService,
+    private whatsappTemplates: WhatsappTemplatesService,
+    private pushNotifications: PushNotificationService,
     private paymentGateway: PaymentGateway,
   ) {
     this.razorpay = new Razorpay({
@@ -108,7 +112,7 @@ export class PaymentsService {
       return session;
     }
 
-    let paymentLink: { id: string; short_url: string };
+    let paymentLink: any;
     try {
       paymentLink = await this.razorpay.paymentLink.create({
         amount: amountInPaise,
@@ -156,6 +160,34 @@ export class PaymentsService {
     );
 
     return session;
+  }
+
+  /**
+   * Orchestrated method to create a payment link and optionally send WhatsApp
+   */
+  async createPaymentLink(dto: {
+    invoiceId: string;
+    amount: number;
+    currency: string;
+    patientId: string;
+    clinicId: string;
+    description?: string;
+    paymentMode?: 'ONLINE' | 'CASH';
+    sendWhatsApp?: boolean;
+  }) {
+    const session = await this.createPaymentSession(dto);
+
+    if (dto.sendWhatsApp) {
+      await this.sendPaymentLinkWhatsApp(session.id);
+    }
+
+    return {
+      id: session.id,
+      link: session.paymentLink,
+      shortUrl: session.shortUrl,
+      status: session.status,
+      expiresAt: session.expiresAt,
+    };
   }
 
   async sendPaymentLinkWhatsApp(sessionId: string) {
@@ -218,7 +250,7 @@ export class PaymentsService {
         patientId: session.patientId,
         paymentSessionId: sessionId,
         type: 'payment-link',
-        provider: 'twilio',
+        provider: 'meta',
         providerMessageId: result.messageId,
         phoneNumber: session.patient.phoneNumber,
         message,
@@ -265,7 +297,23 @@ export class PaymentsService {
         id: true,
         clinicId: true,
         invoiceId: true,
+        patientId: true,
         status: true,
+        amount: true,
+        shortUrl: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        clinic: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -297,6 +345,12 @@ export class PaymentsService {
             data: { status: 'paid' },
           });
         }
+
+        // Send payment confirmation notifications
+        await this.sendPaymentConfirmationNotifications(
+          session,
+          paymentLinkData.id,
+        );
         break;
 
       case 'payment_link.expired':
@@ -326,6 +380,99 @@ export class PaymentsService {
     this.logger.log(
       `Updated payment session ${session.id} to status: ${updateData.status}`,
     );
+  }
+
+  /**
+   * Send payment confirmation via WhatsApp and Push Notification
+   */
+  private async sendPaymentConfirmationNotifications(
+    session: {
+      id: string;
+      clinicId: string;
+      invoiceId: string | null;
+      patientId: string | null;
+      amount: number;
+      shortUrl: string | null;
+      patient: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber: string;
+      } | null;
+      clinic: {
+        name: string;
+      } | null;
+    },
+    paymentId: string,
+  ): Promise<void> {
+    if (!session.patient || !session.clinic || !session.patientId) return;
+
+    const amountInRupees = session.amount / 100;
+    const invoiceNumber = session.invoiceId?.slice(0, 8).toUpperCase() || 'N/A';
+    const date = new Date().toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    // Send push notification
+    try {
+      await this.pushNotifications.sendPaymentConfirmation(
+        session.patientId,
+        amountInRupees,
+        invoiceNumber,
+        session.clinic.name,
+      );
+      this.logger.log(`Sent push notification for payment ${session.id}`);
+    } catch (error) {
+      this.logger.error('Failed to send push notification', error);
+    }
+
+    // Send WhatsApp confirmation
+    try {
+      const resolvedTemplate = await this.whatsappTemplates.resolveTemplate(
+        'payment_confirmation',
+        {
+          patientName: session.patient.firstName,
+          clinicName: session.clinic.name,
+          amount: `₹${amountInRupees.toFixed(2)}`,
+          invoiceNumber,
+          date,
+          paymentId: paymentId.slice(0, 12),
+        },
+        session.clinicId,
+      );
+
+      if (resolvedTemplate) {
+        const message =
+          this.whatsappTemplates.getMessageForMode(resolvedTemplate);
+        await this.whatsapp.sendMessage({
+          to: session.patient.phoneNumber,
+          message,
+        });
+
+        // Log WhatsApp message
+        await this.prisma.whatsappLog.create({
+          data: {
+            clinicId: session.clinicId,
+            patientId: session.patientId,
+            paymentSessionId: session.id,
+            invoiceId: session.invoiceId,
+            type: 'payment-confirmation',
+            provider: 'meta',
+            phoneNumber: session.patient.phoneNumber,
+            message,
+            status: 'sent',
+          },
+        });
+
+        this.logger.log(
+          `Sent WhatsApp payment confirmation for session ${session.id}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to send WhatsApp payment confirmation', error);
+    }
   }
 
   private verifyRazorpaySignature(

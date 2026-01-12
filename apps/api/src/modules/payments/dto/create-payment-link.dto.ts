@@ -1,41 +1,18 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsBoolean,
-  IsEnum,
-} from 'class-validator';
-import { PaymentMode } from '@workspace/types';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { paymentModeSchema, PaymentMode } from '@workspace/types';
 
-// Re-export for backward compatibility
-export { PaymentMode };
+export const createPaymentLinkSchema = z.object({
+  invoiceId: z.string(),
+  amount: z.number(), // in rupees (will convert to paise)
+  currency: z.string().default('INR'),
+  paymentMode: paymentModeSchema.optional().default(PaymentMode.ONLINE),
+  patientId: z.string(),
+  clinicId: z.string(),
+  sendWhatsApp: z.boolean().optional().default(true),
+  description: z.string().optional(),
+});
 
-export class CreatePaymentLinkDto {
-  @IsString()
-  invoiceId: string;
-
-  @IsNumber()
-  amount: number; // in rupees (will convert to paise)
-
-  @IsString()
-  @IsOptional()
-  currency?: string = 'INR';
-
-  @IsEnum(PaymentMode)
-  @IsOptional()
-  paymentMode?: PaymentMode = PaymentMode.ONLINE;
-
-  @IsString()
-  patientId: string;
-
-  @IsString()
-  clinicId: string;
-
-  @IsBoolean()
-  @IsOptional()
-  sendWhatsApp?: boolean = true;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-}
+export class CreatePaymentLinkDto extends createZodDto(
+  createPaymentLinkSchema,
+) {}

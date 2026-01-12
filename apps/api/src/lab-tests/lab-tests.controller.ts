@@ -13,33 +13,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
+import {
+  CreateLabTestDto,
+  CreateLabTestOrderDto,
+  UpdateLabTestOrderDto,
+} from './dto/lab-tests.dto';
+
 interface AuthRequest {
   user: {
     id: string;
     clinicId: string;
   };
-}
-
-interface CreateLabTestOrderDto {
-  patientId: string;
-  labTestId: string;
-  appointmentId?: string;
-  notes?: string;
-}
-
-interface UpdateLabTestOrderDto {
-  status?: string;
-  result?: Record<string, unknown>;
-  resultUrl?: string;
-  notes?: string;
-}
-
-interface CreateLabTestDto {
-  name: string;
-  code?: string;
-  category: string;
-  price?: number;
-  description?: string;
 }
 
 @Controller('lab-tests')
@@ -55,8 +39,8 @@ export class LabTestsController {
   }
 
   @Post('catalog')
-  createTest(@Request() req: AuthRequest, @Body() createDto: CreateLabTestDto) {
-    return this.labTestsService.createTest(req.user.clinicId, createDto);
+  createTest(@Request() req: AuthRequest, @Body() dto: CreateLabTestDto) {
+    return this.labTestsService.createTest(req.user.clinicId, dto);
   }
 
   // Lab Test Orders
@@ -76,22 +60,16 @@ export class LabTestsController {
   }
 
   @Post('orders')
-  createOrder(
-    @Request() req: AuthRequest,
-    @Body() createDto: CreateLabTestOrderDto,
-  ) {
+  createOrder(@Request() req: AuthRequest, @Body() dto: CreateLabTestOrderDto) {
     return this.labTestsService.createOrder(
       req.user.clinicId,
       req.user.id,
-      createDto,
+      dto,
     );
   }
 
   @Patch('orders/:id')
-  updateOrder(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateLabTestOrderDto,
-  ) {
-    return this.labTestsService.updateOrder(id, updateDto);
+  updateOrder(@Param('id') id: string, @Body() dto: UpdateLabTestOrderDto) {
+    return this.labTestsService.updateOrder(id, dto);
   }
 }

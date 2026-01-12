@@ -5,20 +5,33 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import type { JwtSignOptions } from '@nestjs/jwt';
+
+// Validate JWT_SECRET is set in production
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable must be set in production');
+}
 
 @Module({
   imports: [
     PrismaModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-prod',
+      secret: jwtSecret || 'dev-only-secret-do-not-use-in-prod',
       signOptions: {
         expiresIn: process.env.JWT_EXPIRATION || '7d',
       } as JwtSignOptions,
     }),
   ],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthGuard,
+    ClinicTypeGuard,
+    FacilityTypeGuard,
+  ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, ClinicTypeGuard, FacilityTypeGuard],
 })
 export class AuthModule {}

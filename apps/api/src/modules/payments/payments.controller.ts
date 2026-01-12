@@ -8,23 +8,10 @@ export class PaymentsController {
 
   @Post('link')
   async createPaymentLink(@Body() dto: CreatePaymentLinkDto) {
-    const session = await this.paymentsService.createPaymentSession({
+    return this.paymentsService.createPaymentLink({
       ...dto,
       currency: dto.currency || 'INR',
     });
-
-    // Optionally auto-send WhatsApp
-    if (dto.sendWhatsApp) {
-      await this.paymentsService.sendPaymentLinkWhatsApp(session.id);
-    }
-
-    return {
-      id: session.id,
-      link: session.paymentLink,
-      shortUrl: session.shortUrl,
-      status: session.status,
-      expiresAt: session.expiresAt,
-    };
   }
 
   @Post(':id/send-whatsapp')

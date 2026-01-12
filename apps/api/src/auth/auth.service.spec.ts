@@ -21,6 +21,18 @@ describe('AuthService', () => {
     clinicId: 'clinic-123',
     createdAt: new Date(),
     updatedAt: new Date(),
+    qualification: null,
+    registrationNumber: null,
+    signatureUrl: null,
+    bio: null,
+    consultationFee: null,
+    hospitalRole: null,
+    licenseExpiry: null,
+    licenseNumber: null,
+    phoneNumber: null,
+    profilePhotoUrl: null,
+    specialization: null,
+    yearsOfExperience: null,
   };
 
   const mockUserWithoutPassword = {
@@ -29,8 +41,20 @@ describe('AuthService', () => {
     name: 'Test User',
     role: 'DOCTOR' as const,
     clinicId: 'clinic-123',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: mockUser.createdAt,
+    updatedAt: mockUser.updatedAt,
+    qualification: null,
+    registrationNumber: null,
+    signatureUrl: null,
+    bio: null,
+    consultationFee: null,
+    hospitalRole: null,
+    licenseExpiry: null,
+    licenseNumber: null,
+    phoneNumber: null,
+    profilePhotoUrl: null,
+    specialization: null,
+    yearsOfExperience: null,
   };
 
   beforeEach(async () => {
@@ -131,7 +155,7 @@ describe('AuthService', () => {
     it('should create user with hashed password and return login response', async () => {
       const registerData = {
         email: 'new@example.com',
-        password: 'password123',
+        password: 'ValidPass123!',
         name: 'New User',
         role: 'DOCTOR' as const,
       };
@@ -143,7 +167,7 @@ describe('AuthService', () => {
 
       const result = await service.register(registerData);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
+      expect(bcrypt.hash).toHaveBeenCalledWith('ValidPass123!', 10);
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: {
           ...registerData,
@@ -168,13 +192,15 @@ describe('AuthService', () => {
     it('should change password successfully', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true) // current password match
+        .mockResolvedValueOnce(false); // new password different
       (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
 
       const result = await service.changePassword({
         userId: 'user-123',
-        currentPassword: 'currentPass',
-        newPassword: 'newPass',
+        currentPassword: 'OldPass123!',
+        newPassword: 'NewPass456!',
       });
 
       expect(result).toEqual({ message: 'Password changed successfully' });
@@ -190,8 +216,8 @@ describe('AuthService', () => {
       await expect(
         service.changePassword({
           userId: 'non-existent',
-          currentPassword: 'currentPass',
-          newPassword: 'newPass',
+          currentPassword: 'OldPass123!',
+          newPassword: 'NewPass456!',
         }),
       ).rejects.toThrow(UnauthorizedException);
     });
@@ -204,9 +230,138 @@ describe('AuthService', () => {
         service.changePassword({
           userId: 'user-123',
           currentPassword: 'wrongPassword',
-          newPassword: 'newPass',
+          newPassword: 'NewPass456!',
         }),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException when new password is same as current', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true); // Both comparisons return true
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'SamePass123!',
+          newPassword: 'SamePass123!',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw BadRequestException when password is too short', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true) // current password match
+        .mockResolvedValueOnce(false); // new password different
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'Sh0rt!',
+        }),
+      ).rejects.toThrow('Password must be at least 8 characters long');
+    });
+
+    it('should throw BadRequestException when password is too long', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      const longPassword = 'A1!' + 'a'.repeat(130);
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: longPassword,
+        }),
+      ).rejects.toThrow('Password must not exceed 128 characters');
+    });
+
+    it('should throw BadRequestException when password lacks uppercase', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'newpass123!',
+        }),
+      ).rejects.toThrow(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      );
+    });
+
+    it('should throw BadRequestException when password lacks lowercase', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'NEWPASS123!',
+        }),
+      ).rejects.toThrow(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      );
+    });
+
+    it('should throw BadRequestException when password lacks number', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'NewPassword!',
+        }),
+      ).rejects.toThrow(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      );
+    });
+
+    it('should throw BadRequestException when password lacks special character', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'NewPassword123',
+        }),
+      ).rejects.toThrow(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      );
+    });
+
+    it('should throw BadRequestException when password is too common', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        service.changePassword({
+          userId: 'user-123',
+          currentPassword: 'OldPass123!',
+          newPassword: 'Password1!',
+        }),
+      ).rejects.toThrow(
+        'Password is too common. Please choose a stronger password',
+      );
     });
   });
 });

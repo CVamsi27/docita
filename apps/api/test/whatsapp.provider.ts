@@ -3,13 +3,19 @@ import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
 
 export const mockWhatsappService = {
   sendMessage: jest.fn().mockResolvedValue({
-    sid: 'SM1234567890abcdef1234567890abcdef',
-    status: 'queued',
+    success: true,
+    messageId: 'wamid.HBgLMTIzNDU2Nzg5MFUGAhEJAgQ=',
   }),
   sendTemplate: jest.fn().mockResolvedValue({
-    sid: 'SM1234567890abcdef1234567890abcdef',
-    status: 'queued',
+    success: true,
+    messageId: 'wamid.HBgLMTIzNDU2Nzg5MFUGAhEJAgQ=',
   }),
+  sendInteractiveButtons: jest.fn().mockResolvedValue({
+    success: true,
+    messageId: 'wamid.HBgLMTIzNDU2Nzg5MFUGAhEJAgQ=',
+  }),
+  validateWebhookSignature: jest.fn().mockReturnValue(true),
+  getVerifyToken: jest.fn().mockReturnValue('test_verify_token'),
 };
 
 export const WhatsappServiceProvider: Provider = {

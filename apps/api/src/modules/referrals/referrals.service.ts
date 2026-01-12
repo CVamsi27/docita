@@ -36,26 +36,38 @@ export class ReferralsService {
   async getOrCreateReferralCode(clinicId: string): Promise<string> {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: { referralCode: true, name: true },
     });
 
     if (!clinic) {
-      throw new NotFoundException('Clinic not found');
+      throw new NotFoundException(`Clinic with ID ${clinicId} not found`);
     }
 
     if (clinic.referralCode) {
       return clinic.referralCode;
     }
 
-    // Generate new referral code
-    const code = this.generateReferralCode(clinic.name);
-
+    const newCode = this.generateReferralCode(clinic.name);
     await this.prisma.clinic.update({
       where: { id: clinicId },
-      data: { referralCode: code },
+      data: { referralCode: newCode },
     });
 
-    return code;
+    return newCode;
+  }
+
+  /**
+   * Get referral code data including formatted links and descriptions
+   */
+  async getReferralLinkData(clinicId: string) {
+    const code = await this.getOrCreateReferralCode(clinicId);
+    const baseUrl = process.env.FRONTEND_URL || 'https://app.docita.in';
+
+    return {
+      code,
+      referralLink: `${baseUrl}/signup?ref=${code}`,
+      rewardDescription: 'Get 1 free month for each clinic that subscribes',
+      discountDescription: 'Your referrals get 25% off their first month',
+    };
   }
 
   /**

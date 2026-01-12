@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Appointment } from '@workspace/types';
 import { Prisma } from '@workspace/db';
@@ -20,12 +24,21 @@ const appointmentFullSelect = {
   consultationNotes: true,
   // Clinical Documentation - Subjective
   chiefComplaint: true,
+  treatmentHistory: true,
   historyOfPresentIllness: true,
   pastMedicalHistory: true,
   reviewOfSystems: true,
   // Clinical Documentation - Objective
   generalExamination: true,
   systemicExamination: true,
+  // Specialty-specific
+  dentalChart: true,
+  growthData: true,
+  ophthalmologyExam: true,
+  cardiologyExam: true,
+  gynecologyExam: true,
+  dermatologyExam: true,
+  psychiatryExam: true,
   // Clinical Documentation - Assessment
   provisionalDiagnosis: true,
   differentialDiagnosis: true,
@@ -51,6 +64,7 @@ export class AppointmentsService {
       startDate?: string;
       endDate?: string;
       patientId?: string;
+      doctorId?: string;
       cursor?: string;
       limit?: number;
       userId?: string;
@@ -73,8 +87,12 @@ export class AppointmentsService {
       where.patientId = options.patientId;
     }
 
+    // Filter by specific doctor if provided (for admin/receptionist viewing specific doctor's calendar)
+    if (options?.doctorId) {
+      where.doctorId = options.doctorId;
+    }
     // If user is a doctor (not admin or admin_doctor), only show their appointments
-    if (options?.userRole === 'DOCTOR' && options?.userId) {
+    else if (options?.userRole === 'DOCTOR' && options?.userId) {
       where.doctorId = options.userId;
     }
 
@@ -157,17 +175,70 @@ export class AppointmentsService {
     // Validate that doctor exists (clinicId may be NULL for doctors)
     const doctorRecord = await this.prisma.user.findUnique({
       where: { id: rest.doctorId as string },
-      select: { id: true, role: true },
+      select: { id: true, role: true, name: true },
     });
 
     if (!doctorRecord) {
       throw new Error(`Doctor with ID ${rest.doctorId as string} not found`);
     }
 
+    // Check for appointment conflicts with the same doctor
+    const startTime = new Date(data.startTime);
+    const endTime = new Date(data.endTime);
+
+    const conflictingAppointment = await this.prisma.appointment.findFirst({
+      where: {
+        doctorId: rest.doctorId as string,
+        status: {
+          notIn: ['cancelled', 'no-show'],
+        },
+        OR: [
+          // New appointment starts during an existing appointment
+          {
+            startTime: { lte: startTime },
+            endTime: { gt: startTime },
+          },
+          // New appointment ends during an existing appointment
+          {
+            startTime: { lt: endTime },
+            endTime: { gte: endTime },
+          },
+          // New appointment completely contains an existing appointment
+          {
+            startTime: { gte: startTime },
+            endTime: { lte: endTime },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        patient: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (conflictingAppointment) {
+      const conflictStart = new Date(conflictingAppointment.startTime);
+      const conflictEnd = new Date(conflictingAppointment.endTime);
+      const patientName = conflictingAppointment.patient
+        ? `${conflictingAppointment.patient.firstName} ${conflictingAppointment.patient.lastName}`
+        : 'another patient';
+
+      throw new ConflictException(
+        `Schedule conflict: Dr. ${doctorRecord.name} already has an appointment with ${patientName} from ${conflictStart.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} to ${conflictEnd.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
+      );
+    }
+
     const appointmentData: Prisma.AppointmentCreateInput = {
       id: undefined,
-      startTime: new Date(data.startTime),
-      endTime: new Date(data.endTime),
+      startTime: startTime,
+      endTime: endTime,
       status: rest.status as string,
       type: rest.type as string,
       notes: rest.notes as string | undefined,

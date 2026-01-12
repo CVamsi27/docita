@@ -8,7 +8,7 @@ import {
   getLastNDaysRange,
   toISODateString,
   DEFAULT_TIMEZONE,
-} from '@workspace/types';
+} from '@workspace/utils';
 import {
   INVOICE_ANALYTICS_SELECT,
   PATIENT_ANALYTICS_SELECT,

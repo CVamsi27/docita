@@ -14,48 +14,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
+import {
+  CreateInventoryItemDto,
+  UpdateInventoryItemDto,
+  CreateMovementDto,
+} from './dto/inventory.dto';
+
 interface AuthRequest {
   user: {
     id: string;
     clinicId: string;
   };
-}
-
-interface CreateInventoryItemDto {
-  name: string;
-  category: string;
-  sku?: string;
-  quantity?: number;
-  minQuantity?: number;
-  unit?: string;
-  purchasePrice?: number;
-  sellingPrice?: number;
-  expiryDate?: Date;
-  batchNumber?: string;
-  supplier?: string;
-}
-
-interface UpdateInventoryItemDto {
-  name?: string;
-  category?: string;
-  sku?: string;
-  quantity?: number;
-  minQuantity?: number;
-  unit?: string;
-  purchasePrice?: number;
-  sellingPrice?: number;
-  expiryDate?: Date;
-  batchNumber?: string;
-  supplier?: string;
-  active?: boolean;
-}
-
-interface CreateMovementDto {
-  type: string;
-  quantity: number;
-  referenceType?: string;
-  referenceId?: string;
-  notes?: string;
 }
 
 @Controller('inventory')
@@ -93,24 +62,21 @@ export class InventoryController {
   }
 
   @Post()
-  create(
-    @Request() req: AuthRequest,
-    @Body() createDto: CreateInventoryItemDto,
-  ) {
-    return this.inventoryService.create(req.user.clinicId, createDto);
+  create(@Request() req: AuthRequest, @Body() dto: CreateInventoryItemDto) {
+    return this.inventoryService.create(req.user.clinicId, dto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateInventoryItemDto) {
-    return this.inventoryService.update(id, updateDto);
+  update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto) {
+    return this.inventoryService.update(id, dto);
   }
 
   @Post(':id/movements')
   addMovement(
     @Request() req: AuthRequest,
     @Param('id') id: string,
-    @Body() createDto: CreateMovementDto,
+    @Body() dto: CreateMovementDto,
   ) {
-    return this.inventoryService.addMovement(id, req.user.id, createDto);
+    return this.inventoryService.addMovement(id, req.user.id, dto);
   }
 }

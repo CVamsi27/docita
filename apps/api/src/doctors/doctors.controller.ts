@@ -14,73 +14,20 @@ import { DoctorsService } from './doctors.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Specialization, HospitalRole } from '@workspace/db';
 
+import {
+  CreateDoctorDto,
+  UpdateDoctorDto,
+  CreateEducationDto,
+  CreateCertificationDto,
+  AddSpecializationDto,
+} from './dto/doctors.dto';
+
 interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
     role: string;
   };
-}
-
-interface CreateDoctorDto {
-  email: string;
-  password: string;
-  name: string;
-  role?: string;
-  specialization?: Specialization;
-  hospitalRole?: HospitalRole;
-  qualification?: string;
-  registrationNumber?: string;
-  licenseNumber?: string;
-  phoneNumber?: string;
-  bio?: string;
-  yearsOfExperience?: number;
-  consultationFee?: number;
-}
-
-interface UpdateDoctorDto {
-  name?: string;
-  email?: string;
-  specialization?: Specialization;
-  hospitalRole?: HospitalRole;
-  qualification?: string;
-  registrationNumber?: string;
-  licenseNumber?: string;
-  licenseExpiry?: Date;
-  signatureUrl?: string;
-  profilePhotoUrl?: string;
-  phoneNumber?: string;
-  bio?: string;
-  yearsOfExperience?: number;
-  consultationFee?: number;
-  role?: string;
-}
-
-interface CreateEducationDto {
-  degree: string;
-  fieldOfStudy?: string;
-  institution: string;
-  location?: string;
-  startYear?: number;
-  endYear?: number;
-  isOngoing?: boolean;
-  grade?: string;
-  thesis?: string;
-  order?: number;
-}
-
-interface CreateCertificationDto {
-  name: string;
-  issuingBody: string;
-  issueDate: Date;
-  expiryDate?: Date;
-  credentialId?: string;
-  credentialUrl?: string;
-}
-
-interface AddSpecializationDto {
-  specialization: Specialization;
-  yearsOfPractice?: number;
 }
 
 @Controller('doctors')
@@ -109,25 +56,25 @@ export class DoctorsController {
   }
 
   @Post()
-  async create(@Request() req: AuthRequest, @Body() data: CreateDoctorDto) {
+  async create(@Request() req: AuthRequest, @Body() dto: CreateDoctorDto) {
     // Only ADMIN and ADMIN_DOCTOR can create members
     if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
       throw new ForbiddenException('Only admins can create members');
     }
-    return this.doctorsService.create(req.user.clinicId, data);
+    return this.doctorsService.create(req.user.clinicId, dto);
   }
 
   @Put(':id')
   async update(
     @Request() req: AuthRequest,
     @Param('id') id: string,
-    @Body() data: UpdateDoctorDto,
+    @Body() dto: UpdateDoctorDto,
   ) {
     // Only ADMIN and ADMIN_DOCTOR can update members
     if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
       throw new ForbiddenException('Only admins can update members');
     }
-    return this.doctorsService.update(id, data);
+    return this.doctorsService.update(id, dto);
   }
 
   @Delete(':id')
@@ -149,19 +96,16 @@ export class DoctorsController {
   }
 
   @Post(':id/education')
-  async addEducation(
-    @Param('id') id: string,
-    @Body() data: CreateEducationDto,
-  ) {
-    return this.doctorsService.addEducation(id, data);
+  async addEducation(@Param('id') id: string, @Body() dto: CreateEducationDto) {
+    return this.doctorsService.addEducation(id, dto);
   }
 
   @Put(':id/education/:educationId')
   async updateEducation(
     @Param('educationId') educationId: string,
-    @Body() data: Partial<CreateEducationDto>,
+    @Body() dto: Partial<CreateEducationDto>,
   ) {
-    return this.doctorsService.updateEducation(educationId, data);
+    return this.doctorsService.updateEducation(educationId, dto);
   }
 
   @Delete(':id/education/:educationId')
@@ -181,17 +125,17 @@ export class DoctorsController {
   @Post(':id/certifications')
   async addCertification(
     @Param('id') id: string,
-    @Body() data: CreateCertificationDto,
+    @Body() dto: CreateCertificationDto,
   ) {
-    return this.doctorsService.addCertification(id, data);
+    return this.doctorsService.addCertification(id, dto);
   }
 
   @Put(':id/certifications/:certificationId')
   async updateCertification(
     @Param('certificationId') certificationId: string,
-    @Body() data: Partial<CreateCertificationDto>,
+    @Body() dto: Partial<CreateCertificationDto>,
   ) {
-    return this.doctorsService.updateCertification(certificationId, data);
+    return this.doctorsService.updateCertification(certificationId, dto);
   }
 
   @Delete(':id/certifications/:certificationId')
@@ -211,12 +155,12 @@ export class DoctorsController {
   @Post(':id/specializations')
   async addSpecialization(
     @Param('id') id: string,
-    @Body() data: AddSpecializationDto,
+    @Body() dto: AddSpecializationDto,
   ) {
     return this.doctorsService.addSpecialization(
       id,
-      data.specialization,
-      data.yearsOfPractice,
+      dto.specialization,
+      dto.yearsOfPractice,
     );
   }
 

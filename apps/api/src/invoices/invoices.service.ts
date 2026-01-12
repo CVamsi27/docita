@@ -1,70 +1,67 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, Invoice } from '@workspace/db';
 import {
-  INVOICE_LIST_SELECT,
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
 } from '../common/select-fragments';
-import { paginateWithCursor } from '../common/pagination.helper';
-import { WhatsappService } from '../modules/whatsapp/whatsapp.service';
-import PDFDocument from 'pdfkit';
+import { BaseService } from '../common/services/base.service';
+import { WhatsAppNotificationService } from '../common/services/whatsapp-notification.service';
+import { PDFGeneratorService } from '../common/services/pdf-generator.service';
+import { PaymentsService } from '../modules/payments/payments.service';
 
+/**
+ * Invoice item structure
+ */
 interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
 }
 
+/**
+ * InvoicesService extends BaseService to leverage standardized CRUD patterns
+ * while providing invoice-specific functionality like PDF generation and
+ * WhatsApp notifications.
+ *
+ * Key patterns used:
+ * - Template Method: BaseService provides findAll/findOne structure
+ * - Strategy: WhatsAppNotificationService handles notification logic
+ * - Factory: PDFGeneratorService creates PDF documents
+ */
 @Injectable()
-export class InvoicesService {
-  private readonly logger = new Logger(InvoicesService.name);
-
+export class InvoicesService extends BaseService<Invoice> {
   constructor(
-    private prisma: PrismaService,
-    private whatsapp: WhatsappService,
-  ) {}
-
-  async findAll(
-    clinicId: string,
-    options?: {
-      cursor?: string;
-      limit?: number;
-    },
+    prisma: PrismaService,
+    private readonly whatsappNotificationService: WhatsAppNotificationService,
+    private readonly pdfGenerator: PDFGeneratorService,
+    private readonly paymentsService: PaymentsService,
   ) {
-    if (!clinicId) {
-      return {
-        items: [],
-        nextCursor: undefined,
-        hasMore: false,
-        count: 0,
-      };
-    }
-
-    return paginateWithCursor({
-      model: this.prisma.invoice,
-      cursor: options?.cursor,
-      limit: options?.limit || 50,
-      where: { patient: { clinicId } },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        ...INVOICE_CARD_SELECT, // Use optimized card select (excludes binary data)
-      },
-    });
+    super(prisma, 'invoice', 'Invoice');
   }
 
-  async findOne(id: string) {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id },
-      select: INVOICE_DETAIL_SELECT, // Use optimized detail select (excludes binary data)
-    });
+  // ============================================================================
+  // BaseService Template Method Implementations
+  // ============================================================================
 
-    if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
-    }
-
-    return invoice;
+  protected getListSelect() {
+    return INVOICE_CARD_SELECT;
   }
+
+  protected getDetailSelect() {
+    return INVOICE_DETAIL_SELECT;
+  }
+
+  /**
+   * Invoices don't have direct clinicId - they're linked via patient
+   */
+  protected buildClinicWhereClause(clinicId: string) {
+    return { patient: { clinicId } };
+  }
+
+  // ============================================================================
+  // Create Invoice with WhatsApp Notification
+  // ============================================================================
 
   async create(data: {
     appointmentId?: string;
@@ -119,22 +116,19 @@ export class InvoicesService {
     });
 
     // Send WhatsApp notification if automation is enabled
-    try {
-      await this.sendInvoiceWhatsAppNotification(invoice, data.clinicId);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send invoice WhatsApp notification for invoice ${invoice.id}`,
-        error,
-      );
-      // Don't throw - allow invoice creation to succeed even if WhatsApp fails
-    }
+    await this.sendInvoiceNotification(invoice, data.clinicId);
 
     return invoice;
   }
 
-  private async sendInvoiceWhatsAppNotification(
+  // ============================================================================
+  // WhatsApp Notification (uses WhatsAppNotificationService)
+  // ============================================================================
+
+  private async sendInvoiceNotification(
     invoice: {
       id: string;
+      patientId: string;
       patient: { firstName: string; lastName: string; phoneNumber: string };
       total: number;
       items: any;
@@ -142,72 +136,69 @@ export class InvoicesService {
     },
     clinicId?: string,
   ) {
-    // Check if WhatsApp automation is enabled for invoice sending
-    if (!clinicId || !invoice.patient.phoneNumber) {
-      return;
+    if (!clinicId || !invoice.patient.phoneNumber) return;
+
+    // Create payment link via Razorpay before sending WhatsApp
+    let paymentLink: string | undefined;
+    try {
+      const paymentSession = await this.paymentsService.createPaymentSession({
+        invoiceId: invoice.id,
+        amount: invoice.total,
+        currency: 'INR',
+        patientId: invoice.patientId,
+        clinicId,
+        description: `Invoice #${invoice.id.slice(0, 8).toUpperCase()}`,
+      });
+      paymentLink =
+        paymentSession.shortUrl || paymentSession.paymentLink || undefined;
+      this.logger.log(
+        `Created payment link for invoice ${invoice.id}: ${paymentLink}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create payment link for invoice ${invoice.id}`,
+        error,
+      );
     }
 
+    // Format date and amount for template
+    const date = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    const amount = `₹${invoice.total.toFixed(2)}`;
+
+    // Get clinic info for the fallback message
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
-      select: {
-        name: true,
-        whatsappAutomation: true,
-      },
+      select: { name: true },
     });
 
-    if (
-      !clinic?.whatsappAutomation ||
-      typeof clinic.whatsappAutomation === 'string'
-    ) {
-      return;
-    }
-
-    const automationConfig = clinic.whatsappAutomation as {
-      invoiceSent?: boolean;
-      enabled?: boolean;
-    };
-
-    if (!automationConfig.enabled || !automationConfig.invoiceSent) {
-      return;
-    }
-
-    // Compose WhatsApp message
-    const message = this.composeInvoiceMessage(invoice, clinic.name);
-
-    // Send WhatsApp message
-    await this.whatsapp.sendMessage({
-      to: invoice.patient.phoneNumber,
-      message,
-    });
-
-    // Log the WhatsApp message
-    await this.prisma.whatsappLog.create({
-      data: {
-        clinicId,
-        patientId: invoice.patient.phoneNumber,
-        invoiceId: invoice.id,
-        type: 'invoice',
-        provider: 'twilio',
-        phoneNumber: invoice.patient.phoneNumber,
-        message,
-        status: 'sent',
-      },
-    });
-
-    this.logger.log(
-      `Sent invoice WhatsApp notification for invoice ${invoice.id}`,
+    const message = this.buildFallbackMessage(
+      invoice,
+      clinic?.name || 'Our Clinic',
+      paymentLink,
     );
+
+    await this.whatsappNotificationService.sendNotification({
+      type: 'invoice',
+      clinicId,
+      phoneNumber: invoice.patient.phoneNumber,
+      message,
+      entityId: invoice.id,
+    });
   }
 
-  private composeInvoiceMessage(
+  private buildFallbackMessage(
     invoice: {
       id: string;
       patient: { firstName: string; lastName: string };
       total: number;
-      items: any;
       createdAt: Date;
     },
     clinicName: string,
+    paymentLink?: string,
   ): string {
     const patientName = invoice.patient.firstName;
     const date = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
@@ -221,15 +212,25 @@ export class InvoicesService {
     message += `📄 Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
     message += `📅 Date: ${date}\n`;
     message += `💰 Amount Due: ₹${invoice.total.toFixed(2)}\n\n`;
+    if (paymentLink) {
+      message += `💳 Pay online: ${paymentLink}\n\n`;
+    }
     message += `Thank you for choosing our clinic. Get well soon! 🏥`;
 
     return message;
   }
 
+  // ============================================================================
+  // Update Invoice
+  // ============================================================================
+
   async update(
     id: string,
     data: { status?: string; total?: number; items?: InvoiceItem[] },
   ) {
+    // Verify invoice exists first using BaseService
+    await this.findOne(id);
+
     return this.prisma.invoice.update({
       where: { id },
       data: {
@@ -259,132 +260,60 @@ export class InvoicesService {
     });
   }
 
+  // ============================================================================
+  // PDF Generation (uses PDFGeneratorService)
+  // ============================================================================
+
   async generatePDF(id: string): Promise<Buffer> {
-    const invoice = await this.findOne(id);
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id },
+      select: INVOICE_DETAIL_SELECT,
+    });
 
-    return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50 });
-      const buffers: Buffer[] = [];
+    if (!invoice) {
+      throw new Error(`Invoice ${id} not found`);
+    }
 
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', reject);
+    const items = invoice.items as unknown as Array<InvoiceItem>;
 
-      doc
-        .fontSize(24)
-        .font('Helvetica-Bold')
-        .text(process.env.CLINIC_NAME || 'Docita Clinic', { align: 'center' });
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(
-          process.env.CLINIC_ADDRESS || '123 Health Avenue, Medical District',
-          { align: 'center' },
-        );
-      doc.text(process.env.CLINIC_CITY || 'Bangalore, Karnataka - 560001', {
-        align: 'center',
-      });
-      doc.text(
-        `Phone: ${process.env.CLINIC_PHONE || '+91 98765 43210'} | Email: ${process.env.CLINIC_EMAIL || 'contact@docita.com'}`,
-        { align: 'center' },
-      );
-      doc.moveDown(2);
+    // Get clinic info from patient relation
+    const clinic = invoice.patient.clinic;
 
-      doc
-        .fontSize(18)
-        .font('Helvetica-Bold')
-        .text('INVOICE', { align: 'right' });
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(`Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}`, {
-          align: 'right',
-        });
-      doc.text(
-        `Date: ${new Date(invoice.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}`,
-        { align: 'right' },
-      );
-      doc.text(`Status: ${invoice.status.toUpperCase()}`, { align: 'right' });
-      doc.moveDown();
-
-      const startY = doc.y;
-
-      doc.fontSize(12).font('Helvetica-Bold').text('Bill To:', 50, startY);
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(`${invoice.patient.firstName} ${invoice.patient.lastName}`);
-      doc.text(`Phone: ${invoice.patient.phoneNumber}`);
-      if (invoice.patient.email) doc.text(`Email: ${invoice.patient.email}`);
-      if (invoice.patient.address)
-        doc.text(`Address: ${invoice.patient.address}`);
-
-      if (invoice.appointment?.doctor) {
-        doc.fontSize(12).font('Helvetica-Bold').text('Doctor:', 350, startY);
-        doc
-          .fontSize(10)
-          .font('Helvetica')
-          .text(invoice.appointment.doctor.name);
-        doc.text(`Email: ${invoice.appointment.doctor.email}`);
-      }
-
-      doc.moveDown(4);
-
-      const tableTop = doc.y + 20;
-      doc.font('Helvetica-Bold');
-      doc.text('Description', 50, tableTop, { width: 250 });
-      doc.text('Qty', 300, tableTop, { width: 50 });
-      doc.text('Price', 350, tableTop, { width: 80 });
-      doc.text('Amount', 430, tableTop, { width: 100, align: 'right' });
-
-      doc
-        .moveTo(50, tableTop + 15)
-        .lineTo(550, tableTop + 15)
-        .stroke();
-      doc.font('Helvetica');
-      doc.moveDown();
-
-      let yPosition = tableTop + 25;
-      const items = invoice.items as Array<{
-        description: string;
-        quantity: number;
-        price: number;
-      }>;
-
-      items.forEach((item) => {
-        doc.text(item.description, 50, yPosition, { width: 250 });
-        doc.text(item.quantity.toString(), 300, yPosition, { width: 50 });
-        doc.text(`₹${item.price.toFixed(2)}`, 350, yPosition, { width: 80 });
-        doc.text(
-          `₹${(item.quantity * item.price).toFixed(2)}`,
-          430,
-          yPosition,
-          { width: 100, align: 'right' },
-        );
-        yPosition += 20;
-      });
-
-      // Total
-      doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
-      yPosition += 10;
-      doc.fontSize(12).font('Helvetica-Bold').text('Total:', 350, yPosition);
-      doc.text(`₹${invoice.total.toFixed(2)}`, 430, yPosition, {
-        width: 100,
-        align: 'right',
-      });
-
-      // Footer
-      doc
-        .fontSize(8)
-        .font('Helvetica')
-        .text(
-          `Thank you for choosing ${process.env.CLINIC_NAME || 'Docita Clinic'}. Get well soon!`,
-          50,
-          doc.page.height - 50,
-          { align: 'center' },
-        );
-
-      doc.end();
+    return this.pdfGenerator.generateInvoice({
+      invoiceId: invoice.id.slice(0, 8).toUpperCase(),
+      clinic: {
+        name: clinic?.name || process.env.CLINIC_NAME || 'Docita Clinic',
+        address: clinic?.address || process.env.CLINIC_ADDRESS,
+        phone: clinic?.phone || process.env.CLINIC_PHONE,
+        email: clinic?.email || process.env.CLINIC_EMAIL,
+        gstin: (clinic as any)?.gstin,
+      },
+      patient: {
+        name: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
+        phoneNumber: invoice.patient.phoneNumber,
+        email: invoice.patient.email || undefined,
+        address: invoice.patient.address || undefined,
+        patientId: invoice.patient.id.slice(0, 8).toUpperCase(),
+      },
+      doctor: invoice.appointment?.doctor
+        ? {
+            name: invoice.appointment.doctor.name,
+            qualification:
+              invoice.appointment.doctor.qualification || undefined,
+            registrationNumber:
+              invoice.appointment.doctor.registrationNumber || undefined,
+          }
+        : undefined,
+      items: items.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        amount: item.quantity * item.price,
+      })),
+      subtotal: invoice.total,
+      total: invoice.total,
+      status: invoice.status.toUpperCase(),
+      date: new Date(invoice.createdAt),
     });
   }
 }

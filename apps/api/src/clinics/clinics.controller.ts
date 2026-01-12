@@ -14,44 +14,13 @@ import {
 } from '@nestjs/common';
 import { ClinicsService } from './clinics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
-
-interface CreateClinicDto {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
-}
-
-interface UpdateClinicDto {
-  name?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
-}
-
-interface ClinicSettingsDto {
-  name?: string;
-  address?: string;
-  phone?: string;
-  phoneNumber?: string;
-  email?: string;
-  website?: string;
-  description?: string;
-  openingTime?: string;
-  closingTime?: string;
-  workingDays?: string[];
-  consultationDuration?: number;
-  type?: ClinicType;
-}
+import {
+  CreateClinicDto,
+  UpdateClinicDto,
+  CreateDoctorDto,
+  CreateReceptionistDto,
+  ClinicSettingsDto,
+} from './dto/clinics.dto';
 
 interface AuthRequest {
   user?: {
@@ -61,30 +30,13 @@ interface AuthRequest {
   };
 }
 
-interface CreateDoctorDto {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  specialization?: string;
-  qualification?: string;
-  registrationNumber?: string;
-}
-
-interface CreateReceptionistDto {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-}
-
 @Controller('clinics')
 export class ClinicsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 
   @Post()
-  create(@Body() data: CreateClinicDto) {
-    return this.clinicsService.create(data);
+  create(@Body() dto: CreateClinicDto) {
+    return this.clinicsService.create(dto);
   }
 
   @Get()
@@ -98,8 +50,8 @@ export class ClinicsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: UpdateClinicDto) {
-    return this.clinicsService.update(id, data);
+  update(@Param('id') id: string, @Body() dto: UpdateClinicDto) {
+    return this.clinicsService.update(id, dto);
   }
 
   @Delete(':id')
@@ -121,7 +73,7 @@ export class ClinicsController {
   @Post(':clinicId/doctors')
   async createDoctor(
     @Param('clinicId') clinicId: string,
-    @Body() data: CreateDoctorDto,
+    @Body() dto: CreateDoctorDto,
     @Request() req: AuthRequest,
   ) {
     // Only clinic admins can create doctors
@@ -130,7 +82,7 @@ export class ClinicsController {
         'You can only create doctors in your own clinic',
       );
     }
-    return this.clinicsService.createDoctor(clinicId, data);
+    return this.clinicsService.createDoctor(clinicId, dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -143,7 +95,7 @@ export class ClinicsController {
   @Post(':clinicId/receptionists')
   async createReceptionist(
     @Param('clinicId') clinicId: string,
-    @Body() data: CreateReceptionistDto,
+    @Body() dto: CreateReceptionistDto,
     @Request() req: AuthRequest,
   ) {
     // Only clinic admins can create receptionists
@@ -152,7 +104,7 @@ export class ClinicsController {
         'You can only create receptionists in your own clinic',
       );
     }
-    return this.clinicsService.createReceptionist(clinicId, data);
+    return this.clinicsService.createReceptionist(clinicId, dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -183,12 +135,12 @@ export class ClinicSettingsController {
   @Put('settings')
   async updateSettings(
     @Request() req: AuthRequest,
-    @Body() data: ClinicSettingsDto,
+    @Body() dto: ClinicSettingsDto,
   ) {
     const clinicId = req.user?.clinicId;
     if (!clinicId) {
       throw new ForbiddenException('No clinic assigned to this user');
     }
-    return this.clinicsService.updateSettings(clinicId, data);
+    return this.clinicsService.updateSettings(clinicId, dto);
   }
 }

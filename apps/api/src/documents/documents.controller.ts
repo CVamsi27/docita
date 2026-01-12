@@ -16,6 +16,7 @@ import { DocumentsService } from './documents.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UploadDocumentDto } from './dto/upload-document.dto';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard)
@@ -28,8 +29,8 @@ export class DocumentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.documentsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.documentsService.findOne(id, req.user.clinicId);
   }
 
   @Post('upload')
@@ -52,24 +53,28 @@ export class DocumentsController {
   )
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: { patientId: string; type: string; description?: string },
+    @Body() body: UploadDocumentDto,
+    @Request() req,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.documentsService.create({
-      patientId: body.patientId,
-      type: body.type,
-      fileName: file.originalname,
-      filePath: file.path,
-      fileSize: file.size,
-      mimeType: file.mimetype,
-      description: body.description,
-    });
+    return this.documentsService.create(
+      {
+        patientId: body.patientId,
+        type: body.type,
+        fileName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        description: body.description,
+      },
+      req.user.clinicId,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.documentsService.remove(id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.documentsService.remove(id, req.user.clinicId);
   }
 }

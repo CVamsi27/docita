@@ -1,24 +1,13 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class WebVitalDto {
-  @IsString()
-  name: string; // 'CLS' | 'FID' | 'FCP' | 'LCP' | 'TTFB' | 'INP'
+export const webVitalSchema = z.object({
+  name: z.string(), // 'CLS' | 'FID' | 'FCP' | 'LCP' | 'TTFB' | 'INP'
+  value: z.number(),
+  rating: z.number(), // 0-100
+  page: z.string().optional(),
+  userId: z.string().optional(),
+  sessionId: z.string().optional(),
+});
 
-  @IsNumber()
-  value: number;
-
-  @IsNumber()
-  rating: number; // 0-100
-
-  @IsString()
-  @IsOptional()
-  page?: string;
-
-  @IsString()
-  @IsOptional()
-  userId?: string;
-
-  @IsString()
-  @IsOptional()
-  sessionId?: string;
-}
+export class WebVitalDto extends createZodDto(webVitalSchema) {}

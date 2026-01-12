@@ -14,30 +14,14 @@ import {
 import { FeedbackService } from './feedback.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+import { CreateFeedbackDto, UpdateFeedbackStatusDto } from './dto/feedback.dto';
+
 interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
     role: string;
   };
-}
-
-interface CreateFeedbackDto {
-  overallRating: number;
-  goodFeatures?: string[];
-  goodFeaturesReason?: string;
-  badFeatures?: string[];
-  badFeaturesReason?: string;
-  improvementAreas?: string[];
-  improvementReason?: string;
-  featureRequests?: string;
-  generalComments?: string;
-  category?: string;
-}
-
-interface UpdateFeedbackStatusDto {
-  status: string;
-  adminNotes?: string;
 }
 
 interface FeedbackFiltersQuery {
@@ -59,12 +43,8 @@ export class FeedbackController {
    * Submit feedback
    */
   @Post()
-  create(@Request() req: AuthRequest, @Body() createDto: CreateFeedbackDto) {
-    return this.feedbackService.create(
-      req.user.clinicId,
-      req.user.userId,
-      createDto,
-    );
+  create(@Request() req: AuthRequest, @Body() dto: CreateFeedbackDto) {
+    return this.feedbackService.create(req.user.clinicId, req.user.userId, dto);
   }
 
   /**
@@ -153,13 +133,13 @@ export class FeedbackController {
   updateStatus(
     @Request() req: AuthRequest,
     @Param('id') id: string,
-    @Body() updateDto: UpdateFeedbackStatusDto,
+    @Body() dto: UpdateFeedbackStatusDto,
   ) {
     if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can update feedback status');
     }
 
-    return this.feedbackService.updateStatus(id, updateDto);
+    return this.feedbackService.updateStatus(id, dto);
   }
 
   /**

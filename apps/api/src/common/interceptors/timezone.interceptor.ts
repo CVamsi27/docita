@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import { DEFAULT_TIMEZONE, DEFAULT_LOCALE } from '@workspace/types';
+import { DEFAULT_TIMEZONE, DEFAULT_LOCALE } from '@workspace/utils';
 
 /**
  * Extended Request interface with timezone context

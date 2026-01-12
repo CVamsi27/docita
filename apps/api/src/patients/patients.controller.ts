@@ -6,30 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
   UseGuards,
   Request,
   Query,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
-import { patientSchema } from '@workspace/types';
-import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { CreatePatientDto, UpdatePatientDto } from './dto/patients.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-interface CreatePatientDto {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string | Date;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
-  phoneNumber: string;
-  email?: string;
-  address?: string;
-  medicalHistory?: string[];
-  bloodGroup?: string;
-  allergies?: string;
-  clinicId?: string;
-}
-type UpdatePatientDto = Partial<CreatePatientDto>;
 
 interface AuthRequest {
   user: {
@@ -62,11 +45,6 @@ export class PatientsController {
   }
 
   @Post()
-  @UsePipes(
-    new ZodValidationPipe(
-      patientSchema.omit({ id: true, createdAt: true, updatedAt: true }),
-    ),
-  )
   create(
     @Request() req: AuthRequest,
     @Body() createPatientDto: CreatePatientDto,
@@ -78,13 +56,6 @@ export class PatientsController {
   }
 
   @Patch(':id')
-  @UsePipes(
-    new ZodValidationPipe(
-      patientSchema
-        .partial()
-        .omit({ id: true, createdAt: true, updatedAt: true }),
-    ),
-  )
   update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientsService.update(id, updatePatientDto);
   }
@@ -108,8 +79,14 @@ export class PatientsController {
   getPatientDocuments(@Param('id') id: string) {
     return this.patientsService.getDocuments(id);
   }
+
   @Get(':id/tags')
   getPatientTags(@Param('id') id: string) {
     return this.patientsService.getTags(id);
+  }
+
+  @Get(':id/medical-history-timeline')
+  getMedicalHistoryTimeline(@Param('id') id: string) {
+    return this.patientsService.getMedicalHistoryTimeline(id);
   }
 }

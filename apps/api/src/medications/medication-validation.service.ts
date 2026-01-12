@@ -4,7 +4,7 @@ import {
   validatePediatricDosage,
   validateRenalDosage,
   checkMedicationContraindications,
-} from '@workspace/types';
+} from '@workspace/utils';
 
 @Injectable()
 export class MedicationValidationService {

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -43,6 +45,13 @@ import { UsersModule } from './users/users.module';
 import { ContactModule } from './contact/contact.module';
 import { AIModule } from './modules/ai/ai.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { IpdModule } from './ipd/ipd.module';
+import { PerformanceModule } from './performance/performance.module';
+
+// Extensibility Infrastructure
+import { EventsModule } from './common/events';
+import { CommonServicesModule } from './common/services';
 
 @Module({
   imports: [
@@ -50,6 +59,27 @@ import { AuditModule } from './modules/audit/audit.module';
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
+    // Rate limiting: 100 requests per minute per IP
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1 second
+        limit: 10, // 10 requests per second
+      },
+      {
+        name: 'medium',
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+      {
+        name: 'long',
+        ttl: 3600000, // 1 hour
+        limit: 1000, // 1000 requests per hour
+      },
+    ]),
+    // Extensibility Infrastructure (must be early in the import list)
+    EventsModule,
+    CommonServicesModule,
     CacheConfigModule,
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
@@ -91,8 +121,19 @@ import { AuditModule } from './modules/audit/audit.module';
     ContactModule,
     AIModule,
     AuditModule,
+    OnboardingModule,
+    IpdModule,
+    PerformanceModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PaymentGateway],
+  providers: [
+    AppService,
+    PaymentGateway,
+    // Apply rate limiting globally
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

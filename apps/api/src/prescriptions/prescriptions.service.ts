@@ -1,14 +1,23 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { WhatsappService } from '../modules/whatsapp/whatsapp.service';
-import PDFDocument from 'pdfkit';
+import { PDFGeneratorService } from '../common/services/pdf-generator.service';
 import {
   formatDate,
   calculateAge,
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
   DEFAULT_LOCALE,
-} from '@workspace/types';
+  checkPrescriptionAllergies,
+  validateDosage,
+} from '@workspace/utils';
+
+import { Specialization, HospitalRole } from '@workspace/types';
 
 @Injectable()
 export class PrescriptionsService {
@@ -17,6 +26,7 @@ export class PrescriptionsService {
   constructor(
     private prisma: PrismaService,
     private whatsapp: WhatsappService,
+    private pdfGenerator: PDFGeneratorService,
   ) {}
 
   async findAll(clinicId: string) {
@@ -110,12 +120,77 @@ export class PrescriptionsService {
     doctorName?: string;
     doctorEmail?: string;
     doctorPhone?: string;
-    doctorSpecialization?: any;
-    doctorRole?: any;
+    doctorSpecialization?: Specialization;
+    doctorRole?: HospitalRole;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
     clinicId?: string;
   }) {
+    // Fetch patient with allergies for validation
+    const patient = await this.prisma.patient.findUnique({
+      where: { id: data.patientId },
+      include: {
+        patientAllergies: {
+          where: { allergyType: 'DRUG' },
+          select: {
+            allergen: true,
+            allergyType: true,
+            severity: true,
+            reaction: true,
+          },
+        },
+      },
+    });
+
+    if (!patient) {
+      throw new NotFoundException(
+        `Patient with ID ${data.patientId} not found`,
+      );
+    }
+
+    // Check for drug allergies
+    if (patient.patientAllergies && patient.patientAllergies.length > 0) {
+      const allergyCheck = checkPrescriptionAllergies(
+        data.medications,
+        patient.patientAllergies,
+      );
+
+      // If critical allergies found, block prescription
+      if (allergyCheck.criticalWarnings.length > 0) {
+        throw new BadRequestException({
+          message: 'Cannot prescribe medications due to critical allergies',
+          allergies: allergyCheck.criticalWarnings,
+          medicationChecks: allergyCheck.medicationChecks,
+        });
+      }
+
+      // Log warnings for moderate allergies (allow but warn)
+      if (allergyCheck.allWarnings.length > 0) {
+        this.logger.warn(
+          `Prescription created with allergy warnings for patient ${data.patientId}:`,
+          allergyCheck.allWarnings,
+        );
+      }
+    }
+
+    // Validate dosages
+    for (const med of data.medications) {
+      const dosageValidation = validateDosage(med.name, med.dosage);
+      if (
+        dosageValidation.severity === 'critical' &&
+        !dosageValidation.isValid
+      ) {
+        throw new BadRequestException({
+          message: `Invalid dosage for ${med.name}`,
+          validation: dosageValidation,
+        });
+      } else if (dosageValidation.severity === 'warning') {
+        this.logger.warn(
+          `Dosage warning for ${med.name}: ${dosageValidation.message}`,
+        );
+      }
+    }
+
     const prescription = await this.prisma.prescription.create({
       data: {
         appointmentId: data.appointmentId,
@@ -230,7 +305,7 @@ export class PrescriptionsService {
         patientId: prescription.patient.phoneNumber,
         prescriptionId: prescription.id,
         type: 'prescription',
-        provider: 'twilio',
+        provider: 'meta',
         phoneNumber: prescription.patient.phoneNumber,
         message,
         status: 'sent',
@@ -288,115 +363,41 @@ export class PrescriptionsService {
     locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
     const prescription = await this.findOne(id);
+    const patientAge = calculateAge(prescription.patient.dateOfBirth);
+    const clinic = prescription.patient.clinic;
 
-    return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50 });
-      const buffers: Buffer[] = [];
-
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', reject);
-
-      doc
-        .fontSize(24)
-        .font('Helvetica-Bold')
-        .text(process.env.CLINIC_NAME || 'Docita Clinic', { align: 'center' });
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(
-          process.env.CLINIC_ADDRESS || '123 Health Avenue, Medical District',
-          { align: 'center' },
-        );
-      doc.text(process.env.CLINIC_CITY || 'Bangalore, Karnataka - 560001', {
-        align: 'center',
-      });
-      doc.text(
-        `Phone: ${process.env.CLINIC_PHONE || '+91 98765 43210'} | Email: ${process.env.CLINIC_EMAIL || 'contact@docita.com'}`,
-        { align: 'center' },
-      );
-      doc.moveDown(2);
-
-      doc
-        .fontSize(18)
-        .font('Helvetica-Bold')
-        .text('PRESCRIPTION', { align: 'center' });
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(
-          `Date: ${formatDate(prescription.createdAt, DATE_FORMATS.DATE_LONG, { timezone })}`,
-          { align: 'right' },
-        );
-      doc.moveDown();
-
-      const startY = doc.y;
-
-      doc.fontSize(12).font('Helvetica-Bold').text('Doctor:', 50, startY);
-      doc.fontSize(10).font('Helvetica').text(prescription.doctor.name);
-      doc.text(`Email: ${prescription.doctor.email}`);
-
-      doc.fontSize(12).font('Helvetica-Bold').text('Patient:', 350, startY);
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .text(
-          `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-        );
-
-      // Use timezone-aware age calculation
-      const patientAge = calculateAge(prescription.patient.dateOfBirth);
-      doc.text(`Age: ${patientAge ?? 'N/A'} Years`);
-      doc.text(`Gender: ${prescription.patient.gender}`);
-
-      doc.moveDown(4);
-
-      const tableTop = doc.y + 20;
-      doc.font('Helvetica-Bold');
-      doc.text('Medication', 50, tableTop, { width: 150 });
-      doc.text('Route', 200, tableTop, { width: 50 });
-      doc.text('Dosage', 250, tableTop, { width: 80 });
-      doc.text('Frequency', 330, tableTop, { width: 100 });
-      doc.text('Duration', 430, tableTop, { width: 100 });
-
-      doc
-        .moveTo(50, tableTop + 15)
-        .lineTo(550, tableTop + 15)
-        .stroke();
-      doc.font('Helvetica');
-      doc.moveDown();
-
-      let yPosition = tableTop + 25;
-      prescription.medications.forEach((med) => {
-        doc.text(med.name, 50, yPosition, { width: 150 });
-        doc.text(med.route || 'PO', 200, yPosition, { width: 50 });
-        doc.text(med.dosage, 250, yPosition, { width: 80 });
-        doc.text(med.frequency, 330, yPosition, { width: 100 });
-        doc.text(med.duration, 430, yPosition, { width: 100 });
-        yPosition += 20;
-      });
-
-      doc.moveDown(2);
-
-      if (prescription.instructions) {
-        doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('Instructions:', 50, doc.y);
-        doc.fontSize(10).font('Helvetica').text(prescription.instructions);
-      }
-
-      doc
-        .fontSize(8)
-        .font('Helvetica')
-        .text(
-          'This is a computer generated prescription.',
-          50,
-          doc.page.height - 50,
-          { align: 'center' },
-        );
-
-      doc.end();
+    return this.pdfGenerator.generatePrescription({
+      prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
+      clinic: {
+        name: clinic?.name || process.env.CLINIC_NAME || 'Docita Clinic',
+        address: clinic?.address || process.env.CLINIC_ADDRESS,
+        phone: clinic?.phone || process.env.CLINIC_PHONE,
+        email: clinic?.email || process.env.CLINIC_EMAIL,
+      },
+      doctor: {
+        name: prescription.doctor.name,
+        qualification: prescription.doctor.qualification || undefined,
+        registrationNumber: prescription.doctor.registrationNumber || undefined,
+        signatureUrl: prescription.doctor.signatureUrl || undefined,
+      },
+      patient: {
+        name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
+        phoneNumber: prescription.patient.phoneNumber,
+        email: prescription.patient.email || undefined,
+        gender: prescription.patient.gender || undefined,
+        age: patientAge ?? undefined,
+        patientId: prescription.patient.id.slice(0, 8).toUpperCase(),
+      },
+      medications: prescription.medications.map((med) => ({
+        name: med.name,
+        dosage: med.dosage,
+        route: med.route || 'PO',
+        frequency: med.frequency,
+        duration: med.duration,
+      })),
+      instructions: prescription.instructions || undefined,
+      date: new Date(prescription.createdAt),
+      validityDays: 30,
     });
   }
 }

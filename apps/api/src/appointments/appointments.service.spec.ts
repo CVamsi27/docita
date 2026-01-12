@@ -11,6 +11,7 @@ describe('AppointmentsService', () => {
     appointment: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -18,6 +19,12 @@ describe('AppointmentsService', () => {
     vitalSign: {
       create: jest.fn(),
       upsert: jest.fn(),
+    },
+    patient: {
+      findUnique: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
     },
   };
 
@@ -154,6 +161,9 @@ describe('AppointmentsService', () => {
           role: 'DOCTOR',
         }),
       };
+
+      // Mock no conflicting appointment
+      mockPrismaService.appointment.findFirst.mockResolvedValue(null);
 
       mockPrismaService.appointment.create.mockResolvedValue(mockAppointment);
 

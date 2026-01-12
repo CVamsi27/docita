@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -27,6 +27,7 @@ describe('DocumentsService', () => {
       firstName: 'John',
       lastName: 'Doe',
       phoneNumber: '1234567890',
+      clinicId: 'clinic-123',
     },
   };
 
@@ -42,6 +43,9 @@ describe('DocumentsService', () => {
               findUnique: jest.fn(),
               create: jest.fn(),
               delete: jest.fn(),
+            },
+            patient: {
+              findUnique: jest.fn(),
             },
           },
         },
@@ -88,7 +92,7 @@ describe('DocumentsService', () => {
         .spyOn(prismaService.document, 'findUnique')
         .mockResolvedValue(mockDocument);
 
-      const result = await service.findOne('doc-123');
+      const result = await service.findOne('doc-123', 'clinic-123');
 
       expect(result).toEqual(mockDocument);
       expect(prismaService.document.findUnique).toHaveBeenCalledWith({
@@ -100,8 +104,18 @@ describe('DocumentsService', () => {
     it('should throw NotFoundException if document not found', async () => {
       jest.spyOn(prismaService.document, 'findUnique').mockResolvedValue(null);
 
-      await expect(service.findOne('non-existent')).rejects.toThrow(
-        NotFoundException,
+      await expect(
+        service.findOne('non-existent', 'clinic-123'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if clinic does not match', async () => {
+      jest
+        .spyOn(prismaService.document, 'findUnique')
+        .mockResolvedValue(mockDocument);
+
+      await expect(service.findOne('doc-123', 'wrong-clinic')).rejects.toThrow(
+        ForbiddenException,
       );
     });
   });
@@ -118,11 +132,16 @@ describe('DocumentsService', () => {
         description: 'Lab test results',
       };
 
+      jest.spyOn(prismaService.patient, 'findUnique').mockResolvedValue({
+        id: 'patient-123',
+        clinicId: 'clinic-123',
+      } as any);
+
       jest
         .spyOn(prismaService.document, 'create')
         .mockResolvedValue(mockDocument);
 
-      const result = await service.create(createData);
+      const result = await service.create(createData, 'clinic-123');
 
       expect(result).toEqual(mockDocument);
       expect(prismaService.document.create).toHaveBeenCalledWith({
@@ -138,6 +157,26 @@ describe('DocumentsService', () => {
         select: expect.any(Object),
       });
     });
+
+    it('should throw ForbiddenException if patient is from another clinic', async () => {
+      const createData = {
+        patientId: 'patient-123',
+        type: 'LAB_REPORT',
+        fileName: 'test-document.pdf',
+        filePath: '/uploads/test-document.pdf',
+        fileSize: 1024,
+        mimeType: 'application/pdf',
+      };
+
+      jest.spyOn(prismaService.patient, 'findUnique').mockResolvedValue({
+        id: 'patient-123',
+        clinicId: 'different-clinic',
+      } as any);
+
+      await expect(service.create(createData, 'clinic-123')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
   });
 
   describe('remove', () => {
@@ -149,7 +188,7 @@ describe('DocumentsService', () => {
         .spyOn(prismaService.document, 'delete')
         .mockResolvedValue(mockDocument);
 
-      const result = await service.remove('doc-123');
+      const result = await service.remove('doc-123', 'clinic-123');
 
       expect(result).toEqual({ message: 'Document deleted successfully' });
       expect(prismaService.document.delete).toHaveBeenCalledWith({
@@ -160,9 +199,9 @@ describe('DocumentsService', () => {
     it('should throw NotFoundException if document not found', async () => {
       jest.spyOn(prismaService.document, 'findUnique').mockResolvedValue(null);
 
-      await expect(service.remove('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.remove('non-existent', 'clinic-123'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

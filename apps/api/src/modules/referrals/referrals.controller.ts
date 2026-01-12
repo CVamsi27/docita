@@ -15,17 +15,13 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { ReferralsService } from './referrals.service';
+import { ApplyReferralDto } from './dto/referrals.dto';
 
 interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
   };
-}
-
-interface ApplyReferralDto {
-  referralCode: string;
-  email?: string;
 }
 
 @Controller('referrals')
@@ -36,23 +32,11 @@ export class ReferralsController {
   constructor(private referralsService: ReferralsService) {}
 
   /**
-   * Get or generate referral code for current clinic
+   * Get referral code data for current clinic
    */
   @Get('code')
   async getMyReferralCode(@Request() req: AuthRequest) {
-    const code = await this.referralsService.getOrCreateReferralCode(
-      req.user.clinicId,
-    );
-
-    const baseUrl = process.env.FRONTEND_URL || 'https://app.docita.in';
-    const referralLink = `${baseUrl}/signup?ref=${code}`;
-
-    return {
-      code,
-      referralLink,
-      rewardDescription: 'Get 1 free month for each clinic that subscribes',
-      discountDescription: 'Your referrals get 25% off their first month',
-    };
+    return this.referralsService.getReferralLinkData(req.user.clinicId);
   }
 
   /**

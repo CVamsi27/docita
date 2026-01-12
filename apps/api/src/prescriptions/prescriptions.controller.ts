@@ -13,28 +13,13 @@ import { PrescriptionsService } from './prescriptions.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
-import type { Medication } from '@workspace/types';
+
+import { CreatePrescriptionDto } from './dto/prescriptions.dto';
 
 interface AuthRequest {
   user: {
     clinicId: string;
   };
-}
-
-interface CreatePrescriptionDto {
-  appointmentId: string;
-  patientId: string;
-  doctorId: string;
-  instructions?: string;
-  medications: Medication[];
-  // Doctor context for audit trail (Phase 5)
-  doctorName?: string;
-  doctorEmail?: string;
-  doctorPhone?: string;
-  doctorSpecialization?: string;
-  doctorRole?: string;
-  doctorRegistrationNumber?: string;
-  doctorLicenseNumber?: string;
 }
 
 @Controller('prescriptions')
@@ -54,12 +39,9 @@ export class PrescriptionsController {
   }
 
   @Post()
-  create(
-    @Request() req: AuthRequest,
-    @Body() createPrescriptionDto: CreatePrescriptionDto,
-  ) {
+  create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({
-      ...createPrescriptionDto,
+      ...dto,
       clinicId: req.user.clinicId,
     });
   }

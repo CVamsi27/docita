@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { unlink } from 'fs/promises';
 
@@ -35,7 +39,7 @@ export class DocumentsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const document = await this.prisma.document.findUnique({
       where: { id },
       select: {
@@ -55,6 +59,7 @@ export class DocumentsService {
             firstName: true,
             lastName: true,
             phoneNumber: true,
+            clinicId: true,
           },
         },
       },
@@ -64,18 +69,42 @@ export class DocumentsService {
       throw new NotFoundException(`Document with ID ${id} not found`);
     }
 
+    // Verify clinic access if clinicId is provided
+    if (clinicId && document.patient.clinicId !== clinicId) {
+      throw new ForbiddenException('You do not have access to this document');
+    }
+
     return document;
   }
 
-  async create(data: {
-    patientId: string;
-    type: string;
-    fileName: string;
-    filePath: string;
-    fileSize: number;
-    mimeType: string;
-    description?: string;
-  }) {
+  async create(
+    data: {
+      patientId: string;
+      type: string;
+      fileName: string;
+      filePath: string;
+      fileSize: number;
+      mimeType: string;
+      description?: string;
+    },
+    clinicId: string,
+  ) {
+    // Verify the patient belongs to the clinic
+    const patient = await this.prisma.patient.findUnique({
+      where: { id: data.patientId },
+      select: { clinicId: true },
+    });
+
+    if (!patient) {
+      throw new NotFoundException(
+        `Patient with ID ${data.patientId} not found`,
+      );
+    }
+
+    if (patient.clinicId !== clinicId) {
+      throw new ForbiddenException('You do not have access to this patient');
+    }
+
     return this.prisma.document.create({
       data: {
         patientId: data.patientId,
@@ -108,13 +137,15 @@ export class DocumentsService {
     });
   }
 
-  async remove(id: string) {
-    const document = await this.findOne(id);
+  async remove(id: string, clinicId: string) {
+    // findOne will verify access to the document
+    const document = await this.findOne(id, clinicId);
 
     try {
       await unlink(document.url);
     } catch (error) {
-      console.error('Failed to delete file:', error);
+      // Log but don't fail if file deletion fails (file might not exist on disk)
+      console.error('Failed to delete file from disk:', error);
     }
 
     await this.prisma.document.delete({

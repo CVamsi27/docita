@@ -23,9 +23,15 @@ import {
   DEFAULT_TIMEZONE,
   DEFAULT_INVOICE_ITEMS,
   PATIENT_IMPORT_FIELDS,
+  FOLLOW_UP_TYPES,
+  REMINDER_DAYS_OPTIONS,
+  INVENTORY_CATEGORY_OPTIONS,
+  QUEUE_STATUS_OPTIONS,
+  WARD_TYPE_OPTIONS,
+  BED_NUMBER_OPTIONS,
   getFormOptions,
   getDefaults,
-} from '@workspace/types';
+} from '@workspace/utils';
 
 // Re-export all configuration constants for backward compatibility
 export {
@@ -51,6 +57,12 @@ export {
   DEFAULT_TIMEZONE,
   DEFAULT_INVOICE_ITEMS,
   PATIENT_IMPORT_FIELDS,
+  FOLLOW_UP_TYPES,
+  REMINDER_DAYS_OPTIONS,
+  INVENTORY_CATEGORY_OPTIONS,
+  QUEUE_STATUS_OPTIONS,
+  WARD_TYPE_OPTIONS,
+  BED_NUMBER_OPTIONS,
 };
 
 @Injectable()
@@ -99,6 +111,20 @@ export class ConfigService {
       currency: DEFAULT_CURRENCY,
       timezone: DEFAULT_TIMEZONE,
       invoiceItems: DEFAULT_INVOICE_ITEMS,
+    };
+  }
+
+  /**
+   * Get all global app constants
+   */
+  getConstants() {
+    return {
+      followUpTypes: FOLLOW_UP_TYPES,
+      reminderDays: REMINDER_DAYS_OPTIONS,
+      inventoryCategories: INVENTORY_CATEGORY_OPTIONS,
+      queueStatuses: QUEUE_STATUS_OPTIONS,
+      wardTypes: WARD_TYPE_OPTIONS,
+      availableBeds: BED_NUMBER_OPTIONS,
     };
   }
 

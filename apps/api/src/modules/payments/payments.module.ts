@@ -7,12 +7,14 @@ import { WebhooksController } from './webhooks.controller';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { AuditModule } from '../audit/audit.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentGateway } from '../../gateways/payment.gateway';
 
 @Module({
   imports: [
     WhatsappModule,
     AuditModule,
+    NotificationsModule,
     BullModule.registerQueue({
       name: 'payment-retry',
       defaultJobOptions: {

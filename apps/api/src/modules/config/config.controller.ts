@@ -17,6 +17,15 @@ export class ConfigController {
   }
 
   /**
+   * Get global app constants - PUBLIC endpoint
+   */
+  @Public()
+  @Get('constants')
+  getConstants() {
+    return this.configService.getConstants();
+  }
+
+  /**
    * Get patient import field definitions - PUBLIC endpoint
    */
   @Public()

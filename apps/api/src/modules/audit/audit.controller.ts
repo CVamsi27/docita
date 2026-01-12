@@ -10,6 +10,13 @@ export class AuditController {
   @Get()
   async getAuditLogs(@Req() req: any, @Query() filter: AuditLogFilter) {
     const userRole = req.user?.role || 'DOCTOR';
+    const userClinicId = req.user?.clinicId;
+
+    // Enforce clinic scope for non-SUPER_ADMIN users
+    if (userRole !== 'SUPER_ADMIN' && userClinicId) {
+      filter.clinicId = userClinicId;
+    }
+
     return this.auditService.getAuditLogs(filter, userRole);
   }
 }

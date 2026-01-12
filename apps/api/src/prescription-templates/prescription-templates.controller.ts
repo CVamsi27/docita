@@ -14,29 +14,15 @@ import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
 
+import {
+  CreatePrescriptionTemplateDto,
+  UpdatePrescriptionTemplateDto,
+} from './dto/prescription-templates.dto';
+
 interface AuthRequest {
   user: {
     userId: string;
   };
-}
-
-interface MedicationData {
-  name: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-}
-
-interface CreatePrescriptionTemplateDto {
-  name: string;
-  medications: MedicationData[];
-  instructions?: string;
-}
-
-interface UpdatePrescriptionTemplateDto {
-  name?: string;
-  medications?: MedicationData[];
-  instructions?: string;
 }
 
 @Controller('prescription-templates')
@@ -60,17 +46,17 @@ export class PrescriptionTemplatesController {
   @Post()
   async create(
     @Request() req: AuthRequest,
-    @Body() createDto: CreatePrescriptionTemplateDto,
+    @Body() dto: CreatePrescriptionTemplateDto,
   ) {
-    return this.prescriptionTemplatesService.create(req.user.userId, createDto);
+    return this.prescriptionTemplatesService.create(req.user.userId, dto);
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateDto: UpdatePrescriptionTemplateDto,
+    @Body() dto: UpdatePrescriptionTemplateDto,
   ) {
-    return this.prescriptionTemplatesService.update(id, updateDto);
+    return this.prescriptionTemplatesService.update(id, dto);
   }
 
   @Delete(':id')

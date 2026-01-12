@@ -200,8 +200,9 @@ export class SubscriptionService {
 
   /**
    * Start a trial for a clinic
+   * Default 30 days for "1st month free" promotion
    */
-  async startTrial(clinicId: string, tier: string, daysLength: number = 14) {
+  async startTrial(clinicId: string, tier: string, daysLength: number = 30) {
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + daysLength);
 

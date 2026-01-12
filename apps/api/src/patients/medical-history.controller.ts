@@ -11,75 +11,13 @@ import {
 import { MedicalHistoryService } from './medical-history.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-// DTOs for Medical Conditions
-interface CreateMedicalConditionDto {
-  conditionName: string;
-  icdCode?: string;
-  conditionType?:
-    | 'CHRONIC'
-    | 'ACUTE'
-    | 'CONGENITAL'
-    | 'INFECTIOUS'
-    | 'AUTOIMMUNE'
-    | 'PSYCHIATRIC'
-    | 'OTHER';
-  status?: 'ACTIVE' | 'MANAGED' | 'RESOLVED' | 'IN_REMISSION';
-  severity?: 'MILD' | 'MODERATE' | 'SEVERE' | 'CRITICAL';
-  diagnosedDate?: string;
-  resolvedDate?: string;
-  notes?: string;
-  diagnosedBy?: string;
-}
-
-// DTOs for Allergies
-interface CreateAllergyDto {
-  allergen: string;
-  allergyType?:
-    | 'DRUG'
-    | 'FOOD'
-    | 'ENVIRONMENTAL'
-    | 'LATEX'
-    | 'INSECT'
-    | 'CONTRAST'
-    | 'OTHER';
-  severity?: 'MILD' | 'MODERATE' | 'SEVERE' | 'LIFE_THREATENING';
-  reaction?: string;
-  notes?: string;
-  onsetDate?: string;
-}
-
-// DTOs for Family History
-interface CreateFamilyHistoryDto {
-  relationship: string;
-  condition: string;
-  ageAtOnset?: number;
-  notes?: string;
-}
-
-// DTOs for Social History
-interface CreateSocialHistoryDto {
-  smokingStatus?: 'NEVER' | 'FORMER' | 'CURRENT' | 'UNKNOWN';
-  smokingPackYears?: number;
-  smokingQuitDate?: string;
-  alcoholUse?: 'NONE' | 'OCCASIONAL' | 'MODERATE' | 'HEAVY' | 'UNKNOWN';
-  alcoholFrequency?: string;
-  substanceUse?: string;
-  occupation?: string;
-  occupationalHazards?: string;
-  exerciseFrequency?: string;
-  dietaryRestrictions?: string;
-  notes?: string;
-}
-
-// DTOs for Surgical History
-interface CreateSurgicalHistoryDto {
-  procedureName: string;
-  procedureDate?: string;
-  hospital?: string;
-  surgeon?: string;
-  complications?: string;
-  notes?: string;
-}
+import {
+  CreateMedicalConditionDto,
+  CreateAllergyDto,
+  CreateFamilyHistoryDto,
+  CreateSocialHistoryDto,
+  CreateSurgicalHistoryDto,
+} from './dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
 @UseGuards(JwtAuthGuard)

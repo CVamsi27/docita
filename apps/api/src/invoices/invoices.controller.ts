@@ -17,38 +17,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
+import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/invoices.dto';
+
 interface AuthRequest {
   user: {
     clinicId: string;
   };
-}
-
-interface InvoiceItem {
-  description: string;
-  quantity: number;
-  price: number;
-}
-
-interface CreateInvoiceDto {
-  appointmentId?: string;
-  patientId: string;
-  total: number;
-  status: string;
-  items: InvoiceItem[];
-  // Doctor context for audit trail (Phase 5)
-  doctorName?: string;
-  doctorEmail?: string;
-  doctorPhone?: string;
-  doctorSpecialization?: string;
-  doctorRole?: string;
-  doctorRegistrationNumber?: string;
-  doctorLicenseNumber?: string;
-}
-
-interface UpdateInvoiceDto {
-  status?: string;
-  total?: number;
-  items?: InvoiceItem[];
 }
 
 @Controller('invoices')
@@ -75,19 +49,16 @@ export class InvoicesController {
   }
 
   @Post()
-  create(
-    @Request() req: AuthRequest,
-    @Body() createInvoiceDto: CreateInvoiceDto,
-  ) {
+  create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
-      ...createInvoiceDto,
+      ...dto,
       clinicId: req.user.clinicId,
     });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
-    return this.invoicesService.update(id, updateInvoiceDto);
+  update(@Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
+    return this.invoicesService.update(id, dto);
   }
 
   @Get(':id/pdf')

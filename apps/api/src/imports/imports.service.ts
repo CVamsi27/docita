@@ -10,7 +10,7 @@ import {
   ImportPreview,
   ImportResult,
   PatientFieldKey,
-} from '@workspace/types';
+} from '@workspace/utils';
 
 export {
   PATIENT_FIELD_MAPPINGS,

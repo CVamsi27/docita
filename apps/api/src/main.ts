@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ZodValidationPipe } from 'nestjs-zod';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
@@ -28,6 +29,9 @@ async function bootstrap() {
 
   // Global exception filter for better error messages and error logging
   app.useGlobalFilters(new AllExceptionsFilter(monitoringService));
+
+  // Global Zod Validation Pipe
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // Global interceptor for request logging and performance monitoring
   app.useGlobalInterceptors(new RequestLoggingInterceptor(monitoringService));

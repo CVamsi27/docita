@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
   UseGuards,
   Request,
   Query,
@@ -14,83 +13,13 @@ import {
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import {
-  appointmentSchema,
-  GeneralExamination,
-  SystemicExamination,
-  ClinicalInvestigation,
-  AppointmentPriority,
-} from '@workspace/types';
-import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+  CreateAppointmentDto,
+  UpdateAppointmentDto,
+  VitalsDto,
+} from './dto/appointments.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
-
-// Create schema for API input - clinicId is optional as it's added from auth
-const createAppointmentApiSchema = appointmentSchema
-  .omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    patient: true,
-    doctor: true,
-    vitalSign: true,
-    prescription: true,
-    invoice: true,
-    diagnoses: true,
-    procedures: true,
-  })
-  .extend({
-    clinicId: appointmentSchema.shape.clinicId.optional(),
-  });
-
-type AppointmentStatus =
-  | 'scheduled'
-  | 'confirmed'
-  | 'cancelled'
-  | 'completed'
-  | 'no-show'
-  | 'in-progress';
-type AppointmentType =
-  | 'consultation'
-  | 'follow-up'
-  | 'check-up'
-  | 'emergency'
-  | 'procedure';
-
-interface CreateAppointmentDto {
-  patientId: string;
-  doctorId: string;
-  clinicId?: string;
-  startTime: string | Date;
-  endTime: string | Date;
-  status: AppointmentStatus;
-  type: AppointmentType;
-  priority?: AppointmentPriority;
-  consultationNotes?: string;
-  notes?: string;
-  observations?: string;
-}
-type UpdateAppointmentDto = Partial<CreateAppointmentDto> & {
-  // Consultation Notes
-  consultationNotes?: string;
-  // Clinical Documentation - Subjective
-  chiefComplaint?: string;
-  historyOfPresentIllness?: string;
-  pastMedicalHistory?: string;
-  reviewOfSystems?: string;
-  // Clinical Documentation - Objective
-  generalExamination?: GeneralExamination;
-  systemicExamination?: SystemicExamination;
-  // Clinical Documentation - Assessment
-  provisionalDiagnosis?: string;
-  differentialDiagnosis?: string;
-  clinicalImpression?: string;
-  // Clinical Documentation - Plan
-  investigations?: ClinicalInvestigation[];
-  finalDiagnosis?: string;
-  treatmentPlan?: string;
-  followUpPlan?: string;
-};
 
 interface AuthRequest {
   user: {
@@ -98,20 +27,6 @@ interface AuthRequest {
     clinicId: string;
     role: string;
   };
-}
-
-interface VitalsDto {
-  height?: number;
-  weight?: number;
-  bmi?: number;
-  bloodPressure?: string;
-  pulse?: number;
-  respiratoryRate?: number;
-  temperature?: number;
-  spo2?: number;
-  painScore?: number;
-  bloodGlucose?: number;
-  notes?: string;
 }
 
 @Controller('appointments')
@@ -127,6 +42,7 @@ export class AppointmentsController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('patientId') patientId?: string,
+    @Query('doctorId') doctorId?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
@@ -135,6 +51,7 @@ export class AppointmentsController {
       startDate,
       endDate,
       patientId,
+      doctorId,
       cursor,
       limit: limit ? parseInt(limit, 10) : undefined,
       userId: req.user.id,
@@ -148,7 +65,6 @@ export class AppointmentsController {
   }
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createAppointmentApiSchema))
   create(
     @Request() req: AuthRequest,
     @Body() createAppointmentDto: CreateAppointmentDto,

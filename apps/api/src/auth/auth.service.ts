@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -35,6 +39,46 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  private validatePasswordStrength(password: string): void {
+    if (password.length < 8) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
+    }
+
+    if (password.length > 128) {
+      throw new BadRequestException('Password must not exceed 128 characters');
+    }
+
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[@$!%*?&]/.test(password);
+
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
+      );
+    }
+
+    // Check for common weak passwords
+    const commonPasswords = [
+      'password',
+      'Password1!',
+      'Qwerty123!',
+      'Admin123!',
+    ];
+    if (
+      commonPasswords.some((cp) =>
+        password.toLowerCase().includes(cp.toLowerCase()),
+      )
+    ) {
+      throw new BadRequestException(
+        'Password is too common. Please choose a stronger password',
+      );
+    }
+  }
+
   async validateUser(
     email: string,
     pass: string,
@@ -68,6 +112,9 @@ export class AuthService {
   }
 
   async register(data: RegisterData) {
+    // Validate password strength
+    this.validatePasswordStrength(data.password);
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
@@ -105,6 +152,17 @@ export class AuthService {
     if (!passwordMatch) {
       throw new UnauthorizedException('Current password is incorrect');
     }
+
+    // Prevent using the same password
+    const samePassword = await bcrypt.compare(data.newPassword, user.password);
+    if (samePassword) {
+      throw new UnauthorizedException(
+        'New password must be different from current password',
+      );
+    }
+
+    // Validate new password strength
+    this.validatePasswordStrength(data.newPassword);
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);

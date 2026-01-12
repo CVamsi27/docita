@@ -15,15 +15,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
-// DayOfWeek type matching schema
-type DayOfWeek =
-  | 'SUNDAY'
-  | 'MONDAY'
-  | 'TUESDAY'
-  | 'WEDNESDAY'
-  | 'THURSDAY'
-  | 'FRIDAY'
-  | 'SATURDAY';
+import {
+  CreateScheduleDto,
+  UpdateScheduleDto,
+  BulkScheduleDto,
+  CreateTimeOffDto,
+} from './dto/doctor-availability.dto';
 
 interface AuthRequest {
   user: {
@@ -31,43 +28,6 @@ interface AuthRequest {
     clinicId: string;
     role: string;
   };
-}
-
-interface CreateScheduleDto {
-  doctorId?: string;
-  dayOfWeek: DayOfWeek;
-  startTime: string;
-  endTime: string;
-  slotDuration?: number;
-  isActive?: boolean;
-}
-
-interface UpdateScheduleDto {
-  startTime?: string;
-  endTime?: string;
-  slotDuration?: number;
-  isActive?: boolean;
-}
-
-interface BulkScheduleDto {
-  doctorId?: string;
-  schedules: Array<{
-    dayOfWeek: DayOfWeek;
-    startTime: string;
-    endTime: string;
-    slotDuration?: number;
-    isActive?: boolean;
-  }>;
-}
-
-interface CreateTimeOffDto {
-  doctorId?: string;
-  startDate: string;
-  endDate: string;
-  reason?: string;
-  isFullDay?: boolean;
-  startTime?: string;
-  endTime?: string;
 }
 
 @Controller('doctor-availability')

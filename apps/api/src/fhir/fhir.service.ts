@@ -1308,44 +1308,40 @@ export class FhirService {
     patientId: string,
     clinicId: string,
   ): Promise<FhirBundle> {
-    const [patient, observations, medicationRequests, conditions, allergies] =
-      await Promise.all([
-        this.getPatientResource(patientId, clinicId),
-        this.getVitalSignObservations(patientId, clinicId),
-        this.getMedicationRequests(patientId, clinicId),
-        this.getConditions(patientId, clinicId),
-        this.getAllergyIntolerances(patientId, clinicId),
-      ]);
+    const patient = await this.getPatientResource(patientId, clinicId);
+    const observations = await this.getVitalSignObservations(
+      patientId,
+      clinicId,
+    );
+    const medicationRequests = await this.getMedicationRequests(
+      patientId,
+      clinicId,
+    );
+    const conditions = await this.getConditions(patientId, clinicId);
+    const allergies = await this.getAllergyIntolerances(patientId, clinicId);
 
     const entries: Array<{ fullUrl: string; resource: FhirResource }> = [
-      { fullUrl: `Patient/${patient.id}`, resource: patient },
+      {
+        fullUrl: `Patient/${patientId}`,
+        resource: patient,
+      },
     ];
 
-    // Add observations
-    for (const obs of observations) {
+    observations.forEach((obs) => {
       entries.push({ fullUrl: `Observation/${obs.id}`, resource: obs });
-    }
+    });
 
-    // Add medication requests
-    for (const med of medicationRequests) {
-      entries.push({ fullUrl: `MedicationRequest/${med.id}`, resource: med });
-    }
+    medicationRequests.forEach((req) => {
+      entries.push({ fullUrl: `MedicationRequest/${req.id}`, resource: req });
+    });
 
-    // Add conditions
-    for (const condition of conditions) {
-      entries.push({
-        fullUrl: `Condition/${condition.id}`,
-        resource: condition,
-      });
-    }
+    conditions.forEach((cond) => {
+      entries.push({ fullUrl: `Condition/${cond.id}`, resource: cond });
+    });
 
-    // Add allergies
-    for (const allergy of allergies) {
-      entries.push({
-        fullUrl: `AllergyIntolerance/${allergy.id}`,
-        resource: allergy,
-      });
-    }
+    allergies.forEach((alg) => {
+      entries.push({ fullUrl: `AllergyIntolerance/${alg.id}`, resource: alg });
+    });
 
     return {
       resourceType: 'Bundle',
@@ -1354,6 +1350,116 @@ export class FhirService {
       timestamp: new Date().toISOString(),
       total: entries.length,
       entry: entries,
+    };
+  }
+
+  /**
+   * Export patient data as CCD (Continuity of Care Document)
+   */
+  async getCCDExport(patientId: string, clinicId: string) {
+    const bundle = await this.getPatientBundle(patientId, clinicId);
+
+    return {
+      ...bundle,
+      type: 'document',
+      meta: {
+        profile: [
+          'http://hl7.org/fhir/us/ccda/StructureDefinition/CCDA-on-FHIR-Continuity-of-Care-Document',
+        ],
+      },
+      identifier: {
+        system: 'urn:ietf:rfc:3986',
+        value: `urn:uuid:${patientId}-ccd-${Date.now()}`,
+      },
+    };
+  }
+
+  /**
+   * Get FHIR Capability Statement
+   */
+  getCapabilityStatement() {
+    return {
+      resourceType: 'CapabilityStatement',
+      id: 'docita-fhir-server',
+      name: 'DocitaFHIRServer',
+      title: 'Docita FHIR R4 Server',
+      status: 'active',
+      experimental: false,
+      date: new Date().toISOString(),
+      publisher: 'Docita',
+      description: 'FHIR R4 API for Docita Healthcare Platform',
+      kind: 'instance',
+      software: {
+        name: 'Docita',
+        version: '1.0.0',
+      },
+      fhirVersion: '4.0.1',
+      format: ['json'],
+      rest: [
+        {
+          mode: 'server',
+          security: {
+            cors: true,
+            service: [
+              {
+                coding: [
+                  {
+                    system:
+                      'http://terminology.hl7.org/CodeSystem/restful-security-service',
+                    code: 'OAuth',
+                    display: 'OAuth',
+                  },
+                ],
+              },
+            ],
+            description: 'JWT Bearer token authentication required',
+          },
+          resource: [
+            {
+              type: 'Patient',
+              profile:
+                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient',
+              interaction: [{ code: 'read' }],
+              searchParam: [{ name: '_id', type: 'token' }],
+            },
+            {
+              type: 'Observation',
+              profile:
+                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs',
+              interaction: [{ code: 'search-type' }],
+              searchParam: [
+                { name: 'patient', type: 'reference' },
+                { name: 'encounter', type: 'reference' },
+              ],
+            },
+            {
+              type: 'MedicationRequest',
+              profile:
+                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest',
+              interaction: [{ code: 'search-type' }],
+              searchParam: [{ name: 'patient', type: 'reference' }],
+            },
+            {
+              type: 'Condition',
+              profile:
+                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition',
+              interaction: [{ code: 'search-type' }],
+              searchParam: [{ name: 'patient', type: 'reference' }],
+            },
+            {
+              type: 'AllergyIntolerance',
+              profile:
+                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance',
+              interaction: [{ code: 'search-type' }],
+              searchParam: [{ name: 'patient', type: 'reference' }],
+            },
+            {
+              type: 'Bundle',
+              interaction: [{ code: 'read' }],
+            },
+          ],
+        },
+      ],
     };
   }
 

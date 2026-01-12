@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
-import { AIService } from '../modules/ai/ai.service';
+import { ImportSessionService } from './import-session.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -25,17 +25,12 @@ interface AuthRequest {
   };
 }
 
-const pendingImports = new Map<
-  string,
-  { filePath: string; expiresAt: number }
->();
-
 @Controller('imports')
 @UseGuards(JwtAuthGuard, TierGuard)
 export class ImportsController {
   constructor(
     private readonly importsService: ImportsService,
-    private readonly aiService: AIService,
+    private readonly sessionService: ImportSessionService,
   ) {}
 
   @Get('fields/patients')
@@ -88,18 +83,7 @@ export class ImportsController {
     }
 
     const preview = this.importsService.previewImport(file.path);
-
-    const sessionId = Array(16)
-      .fill(null)
-      .map(() => Math.round(Math.random() * 16).toString(16))
-      .join('');
-
-    pendingImports.set(sessionId, {
-      filePath: file.path,
-      expiresAt: Date.now() + 30 * 60 * 1000,
-    });
-
-    this.cleanupExpiredSessions();
+    const sessionId = this.sessionService.createSession(file.path);
 
     return {
       sessionId,
@@ -114,28 +98,19 @@ export class ImportsController {
     @Body() body: { columnMapping?: Record<string, string> },
     @Request() req: AuthRequest,
   ) {
-    const session = pendingImports.get(sessionId);
+    const session = this.sessionService.getSession(sessionId);
 
-    if (!session) {
-      throw new BadRequestException(
-        'Import session not found or expired. Please upload the file again.',
-      );
-    }
-
-    if (session.expiresAt < Date.now()) {
-      pendingImports.delete(sessionId);
-      throw new BadRequestException(
-        'Import session expired. Please upload the file again.',
-      );
-    }
-
-    pendingImports.delete(sessionId);
-
-    return this.importsService.processPatientImport(
+    // If getSession returns, it's valid and not expired
+    const result = await this.importsService.processPatientImport(
       session.filePath,
       req.user.clinicId,
       body.columnMapping,
     );
+
+    // Cleanup session after successful import
+    this.sessionService.deleteSession(sessionId);
+
+    return result;
   }
 
   @Post('patients')
@@ -216,14 +191,5 @@ export class ImportsController {
 
     // Use basic OCR (no AI)
     return await this.importsService.extractFromMedicalDocumentBasic(file.path);
-  }
-
-  private cleanupExpiredSessions() {
-    const now = Date.now();
-    for (const [sessionId, session] of pendingImports.entries()) {
-      if (session.expiresAt < now) {
-        pendingImports.delete(sessionId);
-      }
-    }
   }
 }

@@ -146,7 +146,7 @@ export class SubscriptionBillingService {
       Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
     );
 
-    const currentPriceCents = subscription.priceCents;
+    const currentPriceCents = subscription.basePriceCents;
     const newPriceCents = this.getPriceCents(newTier, currentCycle);
 
     const proration = this.calculateProration(
@@ -350,7 +350,7 @@ export class SubscriptionBillingService {
         clinicId,
         plan: tier,
         billingCycle: cycle,
-        priceCents,
+        basePriceCents: priceCents,
         currency: 'INR',
         status: 'ACTIVE',
         currentPeriodStart: now,
@@ -359,7 +359,7 @@ export class SubscriptionBillingService {
       update: {
         plan: tier,
         billingCycle: cycle,
-        priceCents,
+        basePriceCents: priceCents,
         status: 'ACTIVE',
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
@@ -777,7 +777,7 @@ export class SubscriptionBillingService {
             status: subscription.status,
             currentPeriodStart: subscription.currentPeriodStart,
             currentPeriodEnd: subscription.currentPeriodEnd,
-            priceCents: subscription.priceCents,
+            basePriceCents: subscription.basePriceCents,
             currency: subscription.currency,
             cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
             scheduledChange: subscription.scheduledChange,
@@ -827,7 +827,7 @@ export class SubscriptionBillingService {
       nextBillingDate: subscription.currentPeriodEnd,
       plan: subscription.plan,
       billingCycle: subscription.billingCycle,
-      amountCents: subscription.priceCents,
+      amountCents: subscription.basePriceCents,
       currency: subscription.currency,
       isChanged: false,
     };
@@ -996,7 +996,7 @@ export class SubscriptionBillingService {
       const payment = await (gateway as any).chargeWithToken(
         subscription.razorpayCustomerId,
         subscription.razorpayTokenId,
-        subscription.priceCents,
+        subscription.basePriceCents,
         subscription.currency,
         `Auto-pay renewal for ${subscription.clinic.name}`,
       );

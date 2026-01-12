@@ -4,6 +4,7 @@ import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { SubscriptionWebhooksController } from './subscription-webhooks.controller';
+import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
@@ -17,6 +18,7 @@ import { ReferralsModule } from '../referrals/referrals.module';
   providers: [
     SubscriptionService,
     SubscriptionBillingService,
+    SubscriptionWebhookService,
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,

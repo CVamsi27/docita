@@ -389,4 +389,100 @@ export class PatientsRepository extends BaseRepository<Patient> {
 
     return patient.tags;
   }
+
+  /**
+   * Get complete medical history timeline for a patient
+   * Returns all appointments with issue summaries (chiefComplaint/encounterSummary/finalDiagnosis),
+   * ICD-10 diagnoses, doctor info, and dates - ordered chronologically
+   */
+  async getMedicalHistoryTimeline(patientId: string) {
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        patientId,
+        status: { in: ['completed', 'in-progress', 'checked-in'] },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        type: true,
+        chiefComplaint: true,
+        encounterSummary: true,
+        provisionalDiagnosis: true,
+        finalDiagnosis: true,
+        clinicalImpression: true,
+        treatmentPlan: true,
+        observations: true,
+        notes: true,
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+          },
+        },
+        diagnoses: {
+          select: {
+            id: true,
+            isPrimary: true,
+            notes: true,
+            icdCode: {
+              select: {
+                id: true,
+                code: true,
+                description: true,
+              },
+            },
+          },
+          orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+        },
+        vitalSign: {
+          select: {
+            id: true,
+            systolicBP: true,
+            diastolicBP: true,
+            bloodPressure: true,
+            pulse: true,
+            temperature: true,
+            spo2: true,
+            weight: true,
+            height: true,
+          },
+        },
+        prescription: {
+          select: {
+            id: true,
+            medications: {
+              select: {
+                id: true,
+                name: true,
+                dosage: true,
+                frequency: true,
+                duration: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { startTime: 'desc' },
+    });
+
+    // Transform to include computed summary
+    return appointments.map((apt) => ({
+      ...apt,
+      // Computed summary: prefer encounterSummary, then chiefComplaint, then finalDiagnosis
+      issueSummary:
+        apt.encounterSummary ||
+        apt.chiefComplaint ||
+        apt.finalDiagnosis ||
+        apt.provisionalDiagnosis ||
+        'General consultation',
+      // Primary diagnosis for quick display
+      primaryDiagnosis:
+        apt.diagnoses.find((d) => d.isPrimary) || apt.diagnoses[0] || null,
+      // Year-month grouping key
+      yearMonth: new Date(apt.startTime).toISOString().slice(0, 7),
+    }));
+  }
 }

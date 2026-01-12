@@ -8,80 +8,41 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { SuperAdminService } from './super-admin.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../auth/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { ClinicTier } from '@workspace/db';
-
-interface CreateClinicDto {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
-  tier?: ClinicTier;
-}
-
-interface UpdateClinicDto {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  tier?: ClinicTier;
-  active?: boolean;
-}
-
-interface CreateAdminDto {
-  clinicId: string;
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  adminType: 'admin' | 'admin_doctor'; // admin for clinics with multiple doctors, admin_doctor for single-doctor clinics
-}
-
-interface UpdateAdminDto {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  adminType?: 'admin' | 'admin_doctor';
-}
-
-interface UpdateAIFeaturesDto {
-  enabled: boolean;
-  features?: {
-    predictiveAnalytics?: boolean;
-    automatedDiagnosis?: boolean;
-    patientInsights?: boolean;
-    appointmentOptimization?: boolean;
-    prescriptionAssistant?: boolean;
-  };
-}
-
-interface ProcessPaymentDto {
-  paymentId: string;
-  amount: number;
-  currency: string;
-  newTier: ClinicTier;
-  paymentMethod: 'razorpay' | 'stripe' | 'bank_transfer' | 'manual';
-  notes?: string;
-}
+import { ClinicManagementService } from './clinic-management.service';
+import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
+import { SuperAdminLogService } from './super-admin-log.service';
+import { SuperAdminAiService } from './super-admin-ai.service';
+import { SuperAdminBillingService } from './super-admin-billing.service';
+import {
+  CreateClinicDto,
+  UpdateClinicDto,
+  CreateAdminDto,
+  UpdateAdminDto,
+} from './dto/clinic-management.dto';
+import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
 
 @Controller('super-admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('SUPER_ADMIN')
 export class SuperAdminController {
-  constructor(private readonly superAdminService: SuperAdminService) {}
+  constructor(
+    private readonly clinicService: ClinicManagementService,
+    private readonly analyticsService: SuperAdminAnalyticsService,
+    private readonly logService: SuperAdminLogService,
+    private readonly aiService: SuperAdminAiService,
+    private readonly billingService: SuperAdminBillingService,
+  ) {}
 
   @Get('clinics')
   async getAllClinics(
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.superAdminService.getAllClinics({
+    return this.clinicService.getAllClinics({
       cursor,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
@@ -89,12 +50,12 @@ export class SuperAdminController {
 
   @Get('clinics/:id/doctors')
   async getClinicDoctors(@Param('id') id: string) {
-    return this.superAdminService.getClinicDoctors(id);
+    return this.clinicService.getClinicDoctors(id);
   }
 
   @Post('clinics')
   async createClinic(@Body() data: CreateClinicDto) {
-    return this.superAdminService.createClinic(data);
+    return this.clinicService.createClinic(data);
   }
 
   @Patch('clinics/:id/tier')
@@ -102,7 +63,7 @@ export class SuperAdminController {
     @Param('id') id: string,
     @Body('tier') tier: ClinicTier,
   ) {
-    return this.superAdminService.updateClinicTier(id, tier);
+    return this.clinicService.updateClinicTier(id, tier);
   }
 
   @Patch('clinics/:id/status')
@@ -110,41 +71,51 @@ export class SuperAdminController {
     @Param('id') id: string,
     @Body('active') active: boolean,
   ) {
-    return this.superAdminService.updateClinicStatus(id, active);
+    return this.clinicService.updateClinicStatus(id, active);
   }
 
   @Patch('clinics/:id')
   async updateClinic(@Param('id') id: string, @Body() data: UpdateClinicDto) {
-    return this.superAdminService.updateClinic(id, data);
+    return this.clinicService.updateClinic(id, data);
   }
 
   @Get('stats')
   async getGlobalStats() {
-    return this.superAdminService.getGlobalStats();
+    return this.analyticsService.getGlobalStats();
   }
 
   @Get('analytics')
-  async getAnalytics(@Query('period') period: 'week' | 'month' | 'year') {
-    return this.superAdminService.getAnalytics(period);
+  async getAnalytics(
+    @Query('period') period?: 'daily' | 'weekly' | 'monthly' | 'yearly',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.analyticsService.getAnalytics(
+      period || 'monthly',
+      startDate,
+      endDate,
+    );
   }
 
   @Get('logs')
   async getLogs(
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.superAdminService.getLogs(limit, offset);
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    return this.logService.getLogs(parsedLimit, parsedOffset);
   }
 
   @Get('performance')
   async getPerformanceMetrics() {
-    return this.superAdminService.getPerformanceMetrics();
+    return this.analyticsService.getPerformanceMetrics();
   }
 
   // Admin Management Endpoints
   @Get('clinics/:id/admins')
   async getClinicAdmins(@Param('id') id: string) {
-    return this.superAdminService.getClinicAdmins(id);
+    return this.clinicService.getClinicAdmins(id);
   }
 
   @Post('clinics/:id/admins')
@@ -152,33 +123,33 @@ export class SuperAdminController {
     @Param('id') clinicId: string,
     @Body() data: CreateAdminDto,
   ) {
-    return this.superAdminService.createAdmin(clinicId, data);
+    return this.clinicService.createAdmin(clinicId, data);
   }
 
   @Get('admins/:id')
   async getAdminDetails(@Param('id') id: string) {
-    return this.superAdminService.getAdminDetails(id);
+    return this.clinicService.getAdminDetails(id);
   }
 
   @Patch('admins/:id')
   async updateAdmin(@Param('id') id: string, @Body() data: UpdateAdminDto) {
-    return this.superAdminService.updateAdmin(id, data);
+    return this.clinicService.updateAdmin(id, data);
   }
 
   @Patch('admins/:id/deactivate')
   async deactivateAdmin(@Param('id') id: string) {
-    return this.superAdminService.deactivateAdmin(id);
+    return this.clinicService.deactivateAdmin(id);
   }
 
   @Patch('admins/:id/activate')
   async activateAdmin(@Param('id') id: string) {
-    return this.superAdminService.activateAdmin(id);
+    return this.clinicService.activateAdmin(id);
   }
 
   // AI Features Management
   @Get('clinics/:id/ai-features')
   async getClinicAIFeatures(@Param('id') id: string) {
-    return this.superAdminService.getClinicAIFeatures(id);
+    return this.aiService.getClinicAIFeatures(id);
   }
 
   @Patch('clinics/:id/ai-features')
@@ -186,31 +157,31 @@ export class SuperAdminController {
     @Param('id') id: string,
     @Body() data: UpdateAIFeaturesDto,
   ) {
-    return this.superAdminService.updateClinicAIFeatures(id, data);
+    return this.aiService.updateClinicAIFeatures(id, data);
   }
 
   @Patch('clinics/:id/enable-ai')
   async enableAIFeatures(@Param('id') id: string) {
-    return this.superAdminService.enableAIFeatures(id);
+    return this.aiService.enableAIFeatures(id);
   }
 
   @Patch('clinics/:id/disable-ai')
   async disableAIFeatures(@Param('id') id: string) {
-    return this.superAdminService.disableAIFeatures(id);
+    return this.aiService.disableAIFeatures(id);
   }
 
   // Payment & Tier Management
   @Post('clinics/:id/process-payment')
   async processPaymentAndUpdateTier(
     @Param('id') id: string,
-    @Body() data: ProcessPaymentDto,
+    @Body() data: any,
   ) {
-    return this.superAdminService.processPaymentAndUpdateTier(id, data);
+    return this.billingService.processPaymentAndUpdateTier(id, data);
   }
 
   @Get('clinics/:id/tier-info')
   async getClinicTierInfo(@Param('id') id: string) {
-    return this.superAdminService.getClinicTierInfo(id);
+    return this.billingService.getClinicTierInfo(id);
   }
 
   @Post('clinics/:id/upgrade-tier')
@@ -218,7 +189,7 @@ export class SuperAdminController {
     @Param('id') id: string,
     @Body('newTier') newTier: ClinicTier,
   ) {
-    return this.superAdminService.upgradeTier(id, newTier);
+    return this.billingService.upgradeTier(id, newTier);
   }
 
   @Post('clinics/:id/downgrade-tier')
@@ -226,16 +197,16 @@ export class SuperAdminController {
     @Param('id') id: string,
     @Body('newTier') newTier: ClinicTier,
   ) {
-    return this.superAdminService.downgradeTier(id, newTier);
+    return this.billingService.downgradeTier(id, newTier);
   }
 
   @Get('tier-pricing')
   getTierPricingInfo() {
-    return this.superAdminService.getTierPricingInfo();
+    return this.billingService.getTierPricingInfo();
   }
 
   @Get('ai-features-catalog')
   getAIFeaturesCatalog() {
-    return this.superAdminService.getAIFeaturesCatalog();
+    return this.aiService.getAIFeaturesCatalog();
   }
 }

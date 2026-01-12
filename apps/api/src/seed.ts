@@ -574,6 +574,622 @@ async function main() {
 
     console.log('✅ Documents created');
 
+    // Seed structured medical history for patients
+    console.log('🏥 Seeding structured medical history...');
+
+    // Add medical conditions
+    await prisma.patientMedicalCondition.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          conditionName: 'Type 2 Diabetes Mellitus',
+          icdCode: 'E11',
+          conditionType: 'CHRONIC',
+          status: 'MANAGED',
+          severity: 'MODERATE',
+          diagnosedDate: new Date('2018-03-15'),
+          notes: 'Well controlled with Metformin',
+          sourceType: 'MANUAL',
+        },
+        {
+          patientId: patients[0].id,
+          conditionName: 'Essential Hypertension',
+          icdCode: 'I10',
+          conditionType: 'CHRONIC',
+          status: 'MANAGED',
+          severity: 'MILD',
+          diagnosedDate: new Date('2020-07-22'),
+          notes: 'Controlled with Amlodipine 5mg',
+          sourceType: 'MANUAL',
+        },
+        {
+          patientId: patients[1].id,
+          conditionName: 'Bronchial Asthma',
+          icdCode: 'J45',
+          conditionType: 'CHRONIC',
+          status: 'ACTIVE',
+          severity: 'MODERATE',
+          diagnosedDate: new Date('2015-05-10'),
+          notes: 'Uses inhaler as needed',
+          sourceType: 'MANUAL',
+        },
+        {
+          patientId: patients[2].id,
+          conditionName: 'Rheumatoid Arthritis',
+          icdCode: 'M06',
+          conditionType: 'AUTOIMMUNE',
+          status: 'ACTIVE',
+          severity: 'MODERATE',
+          diagnosedDate: new Date('2019-11-20'),
+          sourceType: 'MANUAL',
+        },
+        {
+          patientId: patients[4].id,
+          conditionName: 'Migraine without aura',
+          icdCode: 'G43',
+          conditionType: 'CHRONIC',
+          status: 'ACTIVE',
+          severity: 'MODERATE',
+          diagnosedDate: new Date('2021-02-14'),
+          sourceType: 'MANUAL',
+        },
+      ],
+    });
+
+    // Add patient allergies with severity
+    await prisma.patientAllergy.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          allergen: 'Penicillin',
+          allergyType: 'DRUG',
+          severity: 'SEVERE',
+          reaction: 'Anaphylaxis, severe rash',
+          isVerified: true,
+          verifiedAt: new Date('2020-01-15'),
+        },
+        {
+          patientId: patients[2].id,
+          allergen: 'Sulfonamides',
+          allergyType: 'DRUG',
+          severity: 'MODERATE',
+          reaction: 'Skin rash, itching',
+          isVerified: true,
+        },
+        {
+          patientId: patients[4].id,
+          allergen: 'Latex',
+          allergyType: 'LATEX',
+          severity: 'MODERATE',
+          reaction: 'Contact dermatitis',
+          isVerified: true,
+        },
+        {
+          patientId: patients[1].id,
+          allergen: 'Peanuts',
+          allergyType: 'FOOD',
+          severity: 'LIFE_THREATENING',
+          reaction: 'Anaphylaxis',
+          isVerified: true,
+        },
+      ],
+    });
+
+    // Add family history
+    await prisma.patientFamilyHistory.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          condition: 'Type 2 Diabetes',
+          relationship: 'Father',
+          ageAtOnset: 55,
+        },
+        {
+          patientId: patients[0].id,
+          condition: 'Hypertension',
+          relationship: 'Mother',
+          ageAtOnset: 50,
+        },
+        {
+          patientId: patients[0].id,
+          condition: 'Heart Disease',
+          relationship: 'Grandfather (Paternal)',
+          ageAtOnset: 65,
+        },
+        {
+          patientId: patients[1].id,
+          condition: 'Asthma',
+          relationship: 'Mother',
+          ageAtOnset: 30,
+        },
+        {
+          patientId: patients[2].id,
+          condition: 'Rheumatoid Arthritis',
+          relationship: 'Sister',
+          ageAtOnset: 45,
+        },
+      ],
+    });
+
+    // Add social history
+    await prisma.patientSocialHistory.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          smokingStatus: 'FORMER',
+          smokingPackYears: 10,
+          smokingQuitDate: new Date('2015-06-01'),
+          alcoholUse: 'OCCASIONAL',
+          alcoholFrequency: '1-2 drinks per week',
+          occupation: 'Software Engineer',
+          exerciseFrequency: '3-4 times per week',
+          dietaryRestrictions: 'Low sugar diet',
+        },
+        {
+          patientId: patients[1].id,
+          smokingStatus: 'NEVER',
+          alcoholUse: 'NONE',
+          occupation: 'Teacher',
+          exerciseFrequency: 'Daily yoga',
+        },
+        {
+          patientId: patients[2].id,
+          smokingStatus: 'CURRENT',
+          smokingPackYears: 15,
+          alcoholUse: 'MODERATE',
+          alcoholFrequency: '3-4 drinks per week',
+          occupation: 'Business Owner',
+          occupationalHazards: 'Prolonged sitting',
+        },
+        {
+          patientId: patients[3].id,
+          smokingStatus: 'NEVER',
+          alcoholUse: 'OCCASIONAL',
+          occupation: 'Graphic Designer',
+          exerciseFrequency: 'Gym 2-3 times per week',
+        },
+        {
+          patientId: patients[4].id,
+          smokingStatus: 'NEVER',
+          alcoholUse: 'NONE',
+          occupation: 'Accountant',
+          exerciseFrequency: 'Walking daily',
+          dietaryRestrictions: 'Vegetarian',
+        },
+      ],
+    });
+
+    // Add surgical history
+    await prisma.patientSurgicalHistory.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          procedureName: 'Appendectomy',
+          procedureDate: new Date('2010-08-15'),
+          hospital: 'Apollo Hospital, Bangalore',
+          complications: 'None',
+        },
+        {
+          patientId: patients[2].id,
+          procedureName: 'Knee Arthroscopy',
+          procedureDate: new Date('2020-03-20'),
+          hospital: 'Manipal Hospital, Bangalore',
+          surgeon: 'Dr. Suresh Orthopedics',
+          notes: 'For meniscus tear repair',
+        },
+      ],
+    });
+
+    // Add immunizations
+    await prisma.immunization.createMany({
+      data: [
+        {
+          patientId: patients[0].id,
+          vaccineName: 'COVID-19 Vaccine (Covishield)',
+          manufacturer: 'Serum Institute of India',
+          administeredDate: new Date('2021-05-15'),
+          site: 'LEFT_ARM',
+          route: 'IM',
+          doseNumber: 1,
+          lotNumber: 'COV-21-0515-A',
+        },
+        {
+          patientId: patients[0].id,
+          vaccineName: 'COVID-19 Vaccine (Covishield)',
+          manufacturer: 'Serum Institute of India',
+          administeredDate: new Date('2021-07-15'),
+          site: 'LEFT_ARM',
+          route: 'IM',
+          doseNumber: 2,
+          seriesComplete: true,
+          lotNumber: 'COV-21-0715-B',
+        },
+        {
+          patientId: patients[1].id,
+          vaccineName: 'Influenza Vaccine 2024-25',
+          manufacturer: 'Sanofi',
+          administeredDate: new Date('2024-10-01'),
+          site: 'RIGHT_ARM',
+          route: 'IM',
+          doseNumber: 1,
+          lotNumber: 'FLU-24-001',
+        },
+        {
+          patientId: patients[3].id,
+          vaccineName: 'Hepatitis B Vaccine',
+          manufacturer: 'Bharat Biotech',
+          administeredDate: new Date('2023-01-10'),
+          site: 'LEFT_ARM',
+          route: 'IM',
+          doseNumber: 3,
+          seriesComplete: true,
+        },
+      ],
+    });
+
+    console.log('✅ Structured medical history created');
+
+    // Add reminder settings for the clinic (upsert for idempotency)
+    await prisma.reminderSettings.upsert({
+      where: { clinicId: defaultClinic.id },
+      update: {},
+      create: {
+        clinicId: defaultClinic.id,
+        enabled: true,
+        smsEnabled: false,
+        emailEnabled: true,
+        whatsappEnabled: true,
+        hoursBeforeAppt: 24,
+        minutesBefore30: true,
+        emailSubject: 'Appointment Reminder - Docita Health Clinic',
+        emailTemplate:
+          'Dear {{patientName}}, this is a reminder for your appointment with {{doctorName}} on {{date}} at {{time}}.',
+        whatsappTemplate: 'appointment_reminder_24hr',
+      },
+    });
+
+    console.log('✅ Reminder settings created');
+
+    // Initialize MRN sequence for the clinic (upsert for idempotency)
+    await prisma.mrnSequence.upsert({
+      where: { clinicId: defaultClinic.id },
+      update: {},
+      create: {
+        clinicId: defaultClinic.id,
+        prefix: 'DOC',
+        lastNumber: 5, // Since we created 5 patients
+      },
+    });
+
+    // Update patients with MRN
+    await Promise.all(
+      patients.map((patient, index) =>
+        prisma.patient.update({
+          where: { id: patient.id },
+          data: { mrn: `DOC-${String(index + 1).padStart(5, '0')}` },
+        }),
+      ),
+    );
+
+    console.log('✅ MRN sequence and patient MRNs created');
+
+    // Delete existing whatsapp templates and recreate
+    await prisma.whatsappTemplate.deleteMany({
+      where: { clinicId: defaultClinic.id },
+    });
+
+    // Add WhatsApp templates for the clinic
+    await prisma.whatsappTemplate.createMany({
+      data: [
+        {
+          clinicId: defaultClinic.id,
+          name: 'appointment_reminder_24hr',
+          category: 'APPOINTMENT',
+          content:
+            'Hi {{patientName}}! 🏥\n\nThis is a reminder for your appointment tomorrow:\n\n📅 Date: {{date}}\n⏰ Time: {{time}}\n👨‍⚕️ Doctor: {{doctorName}}\n📍 Docita Health Clinic\n\nReply with:\n✅ CONFIRM to confirm\n❌ CANCEL to cancel\n⏰ DELAY if running late',
+          variables: ['patientName', 'date', 'time', 'doctorName'],
+          buttonType: 'QUICK_REPLY',
+          buttons: [
+            { id: 'confirm', title: '✅ Confirm' },
+            { id: 'cancel', title: '❌ Cancel' },
+            { id: 'delay', title: '⏰ Delay' },
+          ],
+          status: 'APPROVED',
+          isActive: true,
+          isDefault: true,
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'appointment_reminder_30min',
+          category: 'APPOINTMENT',
+          content:
+            'Hi {{patientName}}! ⏰\n\nYour appointment is in 30 minutes:\n\n👨‍⚕️ Doctor: {{doctorName}}\n📍 Docita Health Clinic\n\nPlease arrive 10 minutes early. See you soon!',
+          variables: ['patientName', 'doctorName'],
+          buttonType: 'NONE',
+          status: 'APPROVED',
+          isActive: true,
+          isDefault: true,
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'prescription_sent',
+          category: 'PRESCRIPTION',
+          content:
+            'Hi {{patientName}}! 💊\n\nYour prescription from Dr. {{doctorName}} is ready.\n\n📋 View your prescription here:\n{{prescriptionUrl}}\n\nGet well soon! 🙏',
+          variables: ['patientName', 'doctorName', 'prescriptionUrl'],
+          buttonType: 'CALL_TO_ACTION',
+          buttons: [
+            {
+              type: 'URL',
+              title: 'View Prescription',
+              url: '{{prescriptionUrl}}',
+            },
+          ],
+          status: 'APPROVED',
+          isActive: true,
+          isDefault: true,
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'invoice_payment',
+          category: 'INVOICE',
+          content:
+            'Hi {{patientName}}! 🧾\n\nYour invoice #{{invoiceNumber}} for ₹{{amount}} is ready.\n\n💳 Pay online:\n{{paymentUrl}}\n\nThank you for choosing Docita Health Clinic!',
+          variables: ['patientName', 'invoiceNumber', 'amount', 'paymentUrl'],
+          buttonType: 'CALL_TO_ACTION',
+          buttons: [{ type: 'URL', title: 'Pay Now', url: '{{paymentUrl}}' }],
+          status: 'APPROVED',
+          isActive: true,
+          isDefault: true,
+        },
+      ],
+    });
+
+    console.log('✅ WhatsApp templates created');
+
+    // Delete existing prescription templates and recreate
+    await prisma.prescriptionTemplate.deleteMany({
+      where: { userId: { in: [doctor1.id, doctor2.id, doctor3.id] } },
+    });
+
+    // Add prescription templates
+    await prisma.prescriptionTemplate.createMany({
+      data: [
+        {
+          name: 'Common Cold Treatment',
+          userId: doctor1.id,
+          medications: [
+            {
+              name: 'Paracetamol',
+              dosage: '500mg',
+              frequency: 'Three times daily',
+              duration: '5 days',
+            },
+            {
+              name: 'Cetirizine',
+              dosage: '10mg',
+              frequency: 'Once daily at night',
+              duration: '5 days',
+            },
+            {
+              name: 'Vitamin C',
+              dosage: '500mg',
+              frequency: 'Once daily',
+              duration: '10 days',
+            },
+          ],
+          instructions:
+            'Rest well, stay hydrated. Avoid cold foods and drinks. Return if symptoms persist beyond 5 days.',
+        },
+        {
+          name: 'Hypertension Management',
+          userId: doctor1.id,
+          medications: [
+            {
+              name: 'Amlodipine',
+              dosage: '5mg',
+              frequency: 'Once daily morning',
+              duration: '30 days',
+            },
+            {
+              name: 'Telmisartan',
+              dosage: '40mg',
+              frequency: 'Once daily morning',
+              duration: '30 days',
+            },
+          ],
+          instructions:
+            'Monitor BP daily. Low sodium diet. Regular exercise. Review in 4 weeks.',
+        },
+        {
+          name: 'Pediatric Fever',
+          userId: doctor2.id,
+          medications: [
+            {
+              name: 'Paracetamol Syrup',
+              dosage: '5ml',
+              frequency: 'Every 6 hours if fever',
+              duration: '3 days',
+            },
+            {
+              name: 'ORS',
+              dosage: '100ml',
+              frequency: 'After each loose motion',
+              duration: 'As needed',
+            },
+          ],
+          instructions:
+            'Give plenty of fluids. Sponge with lukewarm water if fever > 101°F. Return immediately if fever persists beyond 3 days or child becomes lethargic.',
+        },
+        {
+          name: 'Dental Pain Relief',
+          userId: doctor3.id,
+          medications: [
+            {
+              name: 'Ibuprofen',
+              dosage: '400mg',
+              frequency: 'Three times daily after food',
+              duration: '5 days',
+            },
+            {
+              name: 'Amoxicillin',
+              dosage: '500mg',
+              frequency: 'Three times daily',
+              duration: '5 days',
+            },
+            {
+              name: 'Chlorhexidine Mouthwash',
+              dosage: '10ml',
+              frequency: 'Twice daily',
+              duration: '7 days',
+            },
+          ],
+          instructions:
+            'Avoid chewing on the affected side. Rinse mouth after meals. Follow up in 1 week.',
+        },
+      ],
+    });
+
+    console.log('✅ Prescription templates created');
+
+    // Add doctor schedules (one schedule per day per doctor per clinic due to unique constraint)
+    const daysOfWeek = [
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+      'SATURDAY',
+    ] as const;
+
+    // Delete existing schedules for these doctors to avoid conflicts
+    await prisma.doctorSchedule.deleteMany({
+      where: { doctorId: { in: [doctor1.id, doctor2.id, doctor3.id] } },
+    });
+
+    await prisma.doctorSchedule.createMany({
+      data: [
+        // Dr. Vamsi Krishna - Cardiologist (Mon-Sat, full day schedule)
+        ...daysOfWeek.map((day) => ({
+          doctorId: doctor1.id,
+          clinicId: defaultClinic.id,
+          dayOfWeek: day,
+          startTime: '09:00',
+          endTime: day === 'SATURDAY' ? '13:00' : '20:00',
+          slotDuration: 30,
+          isActive: true,
+        })),
+        // Dr. Priya Sharma - Pediatrician (Mon-Fri, morning only)
+        ...daysOfWeek.slice(0, 5).map((day) => ({
+          doctorId: doctor2.id,
+          clinicId: defaultClinic.id,
+          dayOfWeek: day,
+          startTime: '10:00',
+          endTime: '14:00',
+          slotDuration: 20,
+          isActive: true,
+        })),
+        // Dr. Arun Menon - Dentist (Mon, Wed, Fri)
+        ...(['MONDAY', 'WEDNESDAY', 'FRIDAY'] as const).map((day) => ({
+          doctorId: doctor3.id,
+          clinicId: defaultClinic.id,
+          dayOfWeek: day,
+          startTime: '11:00',
+          endTime: '18:00',
+          slotDuration: 45,
+          isActive: true,
+        })),
+      ],
+    });
+
+    console.log('✅ Doctor schedules created');
+
+    // Add some lab tests (without loincCode foreign key reference)
+    await prisma.labTest.createMany({
+      data: [
+        {
+          clinicId: defaultClinic.id,
+          name: 'Complete Blood Count (CBC)',
+          code: 'LAB001',
+          category: 'Hematology',
+          price: 350,
+          specimenType: 'Blood',
+          collectionRequirements: 'No fasting required',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Lipid Profile',
+          code: 'LAB002',
+          category: 'Biochemistry',
+          price: 600,
+          specimenType: 'Blood',
+          collectionRequirements: '12 hours fasting required',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Blood Glucose Fasting',
+          code: 'LAB003',
+          category: 'Biochemistry',
+          price: 100,
+          specimenType: 'Blood',
+          collectionRequirements: '8-12 hours fasting required',
+          referenceRangeLow: 70,
+          referenceRangeHigh: 100,
+          referenceRangeUnit: 'mg/dL',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'HbA1c',
+          code: 'LAB004',
+          category: 'Biochemistry',
+          price: 500,
+          specimenType: 'Blood',
+          collectionRequirements: 'No fasting required',
+          referenceRangeLow: 4,
+          referenceRangeHigh: 5.6,
+          referenceRangeUnit: '%',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Thyroid Profile (T3, T4, TSH)',
+          code: 'LAB005',
+          category: 'Endocrinology',
+          price: 800,
+          specimenType: 'Blood',
+          collectionRequirements: 'No fasting required',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Urine Routine',
+          code: 'LAB006',
+          category: 'Urinalysis',
+          price: 150,
+          specimenType: 'Urine',
+          collectionRequirements: 'Mid-stream clean catch sample',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Liver Function Test (LFT)',
+          code: 'LAB007',
+          category: 'Biochemistry',
+          price: 700,
+          specimenType: 'Blood',
+          collectionRequirements: '10-12 hours fasting preferred',
+        },
+        {
+          clinicId: defaultClinic.id,
+          name: 'Kidney Function Test (KFT)',
+          code: 'LAB008',
+          category: 'Biochemistry',
+          price: 650,
+          specimenType: 'Blood',
+          collectionRequirements: 'No fasting required',
+        },
+      ],
+    });
+
+    console.log('✅ Lab tests created');
+
     // Seed ICD-10 codes
     const icdCodes = [
       // Infectious diseases
@@ -2433,13 +3049,24 @@ async function main() {
     console.log(
       `   - Users: 6 (1 super admin, 1 clinic admin, 3 doctors, 1 receptionist)`,
     );
-    console.log(`   - Patients: ${patients.length}`);
+    console.log(
+      `   - Patients: ${patients.length} (with structured medical history)`,
+    );
     console.log(`   - Appointments: 5`);
     console.log(`   - Prescriptions: 1`);
     console.log(`   - Invoices: 1`);
     console.log(`   - Documents: 2`);
     console.log(`   - Doctor Education Records: 8`);
     console.log(`   - Doctor Certifications: 6`);
+    console.log(`   - Doctor Schedules: Created for all doctors`);
+    console.log(`   - Prescription Templates: 4`);
+    console.log(`   - WhatsApp Templates: 4`);
+    console.log(`   - Lab Tests: 8`);
+    console.log(`   - Patient Medical Conditions: 5`);
+    console.log(`   - Patient Allergies: 4`);
+    console.log(`   - Patient Family History: 5`);
+    console.log(`   - Patient Social History: 5`);
+    console.log(`   - Immunizations: 4`);
     console.log(`   - ICD-10 Codes: ${icdCodes.length}`);
     console.log('\n🔑 Login credentials:');
     console.log('\n   📱 Main App (http://localhost:3000):');
