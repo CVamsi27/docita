@@ -3,6 +3,8 @@
  * File validation, categorization, and metadata handling
  */
 
+import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "@workspace/utils";
+
 export type DocumentType =
     | "lab_report"
     | "prescription"
@@ -31,25 +33,7 @@ export interface Document {
     extractedText?: string;
 }
 
-/**
- * Allowed file extensions
- */
-export const ALLOWED_EXTENSIONS = [
-    ".pdf",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-];
 
-/**
- * Maximum file size in bytes (10MB)
- */
-export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /**
  * Validate file extension

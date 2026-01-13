@@ -19,6 +19,8 @@ export interface AppConstants {
     queueStatuses: Array<{ value: string; label: string }>;
     wardTypes: Array<{ value: string; label: string }>;
     availableBeds: Array<{ value: string; label: string }>;
+    teethQuadrants: Record<string, number[]>;
+    toothConditions: Array<{ value: string; label: string; color: string }>;
 }
 
 export interface FormOptions {

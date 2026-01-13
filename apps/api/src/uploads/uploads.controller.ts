@@ -11,10 +11,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from './uploads.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { MAX_FILE_SIZE } from '@workspace/utils';
 
 @Controller('uploads')
 export class UploadsController {
-  constructor(private readonly uploadsService: UploadsService) {}
+  constructor(private readonly uploadsService: UploadsService) { }
 
   @Post('session')
   async createSession() {
@@ -40,7 +41,7 @@ export class UploadsController {
         },
       }),
       limits: {
-        fileSize: 20 * 1024 * 1024, // 20MB limit for phone photos
+        fileSize: MAX_FILE_SIZE, // Shared limit
       },
       fileFilter: (req, file, cb) => {
         // Accept images only

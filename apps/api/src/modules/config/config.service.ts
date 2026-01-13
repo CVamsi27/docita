@@ -29,6 +29,8 @@ import {
   QUEUE_STATUS_OPTIONS,
   WARD_TYPE_OPTIONS,
   BED_NUMBER_OPTIONS,
+  TEETH_QUADRANTS,
+  TOOTH_CONDITIONS,
   getFormOptions,
   getDefaults,
 } from '@workspace/utils';
@@ -63,11 +65,13 @@ export {
   QUEUE_STATUS_OPTIONS,
   WARD_TYPE_OPTIONS,
   BED_NUMBER_OPTIONS,
+  TEETH_QUADRANTS,
+  TOOTH_CONDITIONS,
 };
 
 @Injectable()
 export class ConfigService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Get all form options and configuration
@@ -125,6 +129,8 @@ export class ConfigService {
       queueStatuses: QUEUE_STATUS_OPTIONS,
       wardTypes: WARD_TYPE_OPTIONS,
       availableBeds: BED_NUMBER_OPTIONS,
+      teethQuadrants: TEETH_QUADRANTS,
+      toothConditions: TOOTH_CONDITIONS,
     };
   }
 
