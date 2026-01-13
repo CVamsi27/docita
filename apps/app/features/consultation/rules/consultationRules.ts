@@ -76,7 +76,7 @@ export const calculateBMIFromVitals = (vitals: VitalSign): number | null => {
  * Validate consultation can be completed
  */
 export const canCompleteConsultation = (
-  consultation: Pick<Appointment, "chiefComplaint" | "diagnoses" | "vitalSign">
+  consultation: Pick<Appointment, "chiefComplaint" | "diagnoses" | "vitalSign">,
 ): boolean => {
   return !!(
     consultation.chiefComplaint &&

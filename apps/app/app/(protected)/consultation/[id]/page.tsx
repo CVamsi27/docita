@@ -45,9 +45,7 @@ export default function ConsultationPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
         <p className="text-muted-foreground">Appointment not found</p>
-        <Button onClick={handleBack}>
-          Back to Appointments
-        </Button>
+        <Button onClick={handleBack}>Back to Appointments</Button>
       </div>
     );
   }

@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
 import { Card, CardContent } from "@workspace/ui/components/card";
@@ -21,7 +20,11 @@ export function PatientDocumentsTabUI({
   loading,
 }: PatientDocumentsTabUIProps) {
   if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading documents...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        Loading documents...
+      </div>
+    );
   }
 
   return (

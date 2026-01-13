@@ -123,7 +123,11 @@ export function AddAppointmentDialogUI({
             />
 
             {/* Time Slots */}
-            <TimeSlotPicker form={form} startHour={startHour} endHour={endHour} />
+            <TimeSlotPicker
+              form={form}
+              startHour={startHour}
+              endHour={endHour}
+            />
 
             {/* Extracted Type and Notes */}
             <AppointmentFormFields

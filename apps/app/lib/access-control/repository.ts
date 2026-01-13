@@ -95,7 +95,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       throw new Error(`Failed to fetch subscription: ${response.statusText}`);
     }
 
-    const data = await response.json() as RawSubscriptionData;
+    const data = (await response.json()) as RawSubscriptionData;
     const subscription = this.normalizeSubscription(data);
 
     // Cache the result
@@ -134,7 +134,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       throw new Error(`Failed to fetch add-ons: ${response.statusText}`);
     }
 
-    const data = await response.json() as IAddOn[];
+    const data = (await response.json()) as IAddOn[];
     const addOns = Array.isArray(data) ? data : [];
 
     // Cache the result
@@ -167,7 +167,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       throw new Error(`Failed to fetch overrides: ${response.statusText}`);
     }
 
-    const data = await response.json() as RawOverrideData[];
+    const data = (await response.json()) as RawOverrideData[];
     const overrides = Array.isArray(data)
       ? data.map(this.normalizeOverride)
       : [];
@@ -227,15 +227,17 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
     return {
       tier,
-      status: (this.isValidStatus(raw.status) ? raw.status : "active"),
+      status: this.isValidStatus(raw.status) ? raw.status : "active",
       features: Array.isArray(raw.features)
         ? raw.features
-          .filter((f): f is string => typeof f === "string")
-          .filter((f): f is Feature => Object.values(Feature).includes(f as Feature))
+            .filter((f): f is string => typeof f === "string")
+            .filter((f): f is Feature =>
+              Object.values(Feature).includes(f as Feature),
+            )
         : [],
       startDate: new Date(raw.startDate || Date.now()),
       endDate: raw.endDate ? new Date(raw.endDate) : undefined,
-      billingCycle: (raw.billingCycle === "yearly" ? "yearly" : "monthly"),
+      billingCycle: raw.billingCycle === "yearly" ? "yearly" : "monthly",
     };
   }
 
@@ -254,7 +256,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   }
 
   private isValidStatus(status?: string): status is ISubscription["status"] {
-    return ["active", "past_due", "canceled", "trialing"].includes(status || "");
+    return ["active", "past_due", "canceled", "trialing"].includes(
+      status || "",
+    );
   }
 
   private createDefaultSubscription(): ISubscription {

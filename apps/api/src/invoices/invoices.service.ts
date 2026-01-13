@@ -52,7 +52,7 @@ export class InvoicesService extends BaseService<Invoice> {
     return INVOICE_DETAIL_SELECT;
   }
 
-  // @ts-ignore
+  // @ts-expect-error - Method signature mismatch with base class unrelated to functional usage in this service context
   async findAll(
     clinicId: string,
     params?: {
@@ -371,12 +371,12 @@ export class InvoicesService extends BaseService<Invoice> {
       },
       doctor: invoice.appointment?.doctor
         ? {
-          name: invoice.appointment.doctor.name,
-          qualification:
-            invoice.appointment.doctor.qualification || undefined,
-          registrationNumber:
-            invoice.appointment.doctor.registrationNumber || undefined,
-        }
+            name: invoice.appointment.doctor.name,
+            qualification:
+              invoice.appointment.doctor.qualification || undefined,
+            registrationNumber:
+              invoice.appointment.doctor.registrationNumber || undefined,
+          }
         : undefined,
       items: items.map((item) => ({
         description: item.description,

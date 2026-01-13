@@ -1,7 +1,12 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -52,20 +57,23 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
       return;
     }
 
-    addWalkIn({
-      patientName: patient.name,
-      phoneNumber: patient.phone,
-      reason: patient.reason,
-    }, {
-      onSuccess: () => {
-        toast.success("Walk-in patient added to queue");
-        onSuccess?.();
-        handleClose();
+    addWalkIn(
+      {
+        patientName: patient.name,
+        phoneNumber: patient.phone,
+        reason: patient.reason,
       },
-      onError: (error: Error) => {
-        toast.error(error.message || "Failed to add walk-in patient");
-      }
-    });
+      {
+        onSuccess: () => {
+          toast.success("Walk-in patient added to queue");
+          onSuccess?.();
+          handleClose();
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || "Failed to add walk-in patient");
+        },
+      },
+    );
   };
 
   return (
@@ -90,7 +98,9 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
               className="w-full p-2 mt-1 rounded border bg-background"
               placeholder="Enter phone number"
               value={patient.phone}
-              onChange={(e) => setPatient({ ...patient, phone: e.target.value })}
+              onChange={(e) =>
+                setPatient({ ...patient, phone: e.target.value })
+              }
             />
           </div>
           <div>
@@ -99,7 +109,9 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
               className="w-full p-2 mt-1 rounded border bg-background"
               placeholder="Brief reason for visit"
               value={patient.reason}
-              onChange={(e) => setPatient({ ...patient, reason: e.target.value })}
+              onChange={(e) =>
+                setPatient({ ...patient, reason: e.target.value })
+              }
             />
           </div>
           <div className="flex gap-2 justify-end">

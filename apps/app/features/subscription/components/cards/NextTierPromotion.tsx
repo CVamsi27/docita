@@ -1,4 +1,3 @@
-
 import { ArrowRight } from "lucide-react";
 import {
   Card,
@@ -15,7 +14,10 @@ interface NextTierPromotionProps {
   nextTier: number;
   featuresByTier: Array<{
     tier: number;
-    features: Array<{ feature: Feature; details: ReturnType<typeof getFeatureDetails> }>;
+    features: Array<{
+      feature: Feature;
+      details: ReturnType<typeof getFeatureDetails>;
+    }>;
   }>;
   onContactSales: () => void;
 }
@@ -46,15 +48,17 @@ export function NextTierPromotion({
       </CardHeader>
       <CardContent>
         <div className="grid gap-2 md:grid-cols-2">
-          {nextTierFeatures?.features.slice(0, 6).map(({ feature, details }) => {
-            const Icon = details.icon;
-            return (
-              <div key={feature} className="flex items-center gap-2 text-sm">
-                <Icon className="h-4 w-4 text-primary" />
-                <span>{details.name}</span>
-              </div>
-            );
-          })}
+          {nextTierFeatures?.features
+            .slice(0, 6)
+            .map(({ feature, details }) => {
+              const Icon = details.icon;
+              return (
+                <div key={feature} className="flex items-center gap-2 text-sm">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span>{details.name}</span>
+                </div>
+              );
+            })}
         </div>
       </CardContent>
     </Card>

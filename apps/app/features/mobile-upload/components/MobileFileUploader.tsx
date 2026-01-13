@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@workspace/ui/components/card";

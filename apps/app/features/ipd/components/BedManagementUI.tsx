@@ -1,4 +1,3 @@
-
 import { Bed, CheckCircle2, Search, Users } from "lucide-react";
 import {
   Card,

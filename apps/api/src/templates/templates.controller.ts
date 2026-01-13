@@ -34,7 +34,7 @@ interface UpdateTemplateDto {
 
 @Controller('templates')
 export class TemplatesController {
-  constructor(private readonly templatesService: TemplatesService) { }
+  constructor(private readonly templatesService: TemplatesService) {}
 
   @Post()
   create(@Body() createTemplateDto: CreateTemplateDto) {

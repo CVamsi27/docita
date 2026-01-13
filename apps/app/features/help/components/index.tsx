@@ -1,7 +1,13 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -17,8 +23,18 @@ import {
 
 // Help categories
 const HELP_CATEGORIES = [
-  { id: "getting-started", title: "Getting Started", icon: BookOpen, articles: 5 },
-  { id: "patients", title: "Patient Management", icon: HelpCircle, articles: 8 },
+  {
+    id: "getting-started",
+    title: "Getting Started",
+    icon: BookOpen,
+    articles: 5,
+  },
+  {
+    id: "patients",
+    title: "Patient Management",
+    icon: HelpCircle,
+    articles: 8,
+  },
   { id: "appointments", title: "Appointments", icon: HelpCircle, articles: 6 },
   { id: "billing", title: "Billing & Invoices", icon: HelpCircle, articles: 4 },
   { id: "settings", title: "Settings & Config", icon: HelpCircle, articles: 7 },
@@ -56,7 +72,9 @@ export const HelpCenter: FC = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">{cat.title}</h3>
-                  <p className="text-sm text-muted-foreground">{cat.articles} articles</p>
+                  <p className="text-sm text-muted-foreground">
+                    {cat.articles} articles
+                  </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
@@ -127,9 +145,18 @@ export const FAQSection: FC<{
   faqs?: Array<{ question: string; answer: string }>;
 }> = ({ faqs = [] }) => {
   const defaultFaqs = [
-    { question: "How do I add a new patient?", answer: "Navigate to Patients and click 'Add Patient'" },
-    { question: "How do I schedule an appointment?", answer: "Go to Appointments and click 'Schedule'" },
-    { question: "How do I generate an invoice?", answer: "After a consultation, click 'Generate Invoice'" },
+    {
+      question: "How do I add a new patient?",
+      answer: "Navigate to Patients and click 'Add Patient'",
+    },
+    {
+      question: "How do I schedule an appointment?",
+      answer: "Go to Appointments and click 'Schedule'",
+    },
+    {
+      question: "How do I generate an invoice?",
+      answer: "After a consultation, click 'Generate Invoice'",
+    },
   ];
 
   const displayFaqs = faqs.length > 0 ? faqs : defaultFaqs;

@@ -1,4 +1,3 @@
-
 import { ArrowLeft, User, PanelLeft } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -35,20 +34,20 @@ export function ConsultationPageHeaderUI({
 
         {/* Mobile sidebar toggle */}
         {MobileSidebarContent && (
-            <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
-                <Button
+              <Button
                 variant="ghost"
                 size="icon"
                 className="md:hidden hover:bg-accent"
-                >
+              >
                 <PanelLeft className="h-5 w-5" />
-                </Button>
+              </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0">
-                {MobileSidebarContent}
+              {MobileSidebarContent}
             </SheetContent>
-            </Sheet>
+          </Sheet>
         )}
 
         <div className="flex items-center gap-3">

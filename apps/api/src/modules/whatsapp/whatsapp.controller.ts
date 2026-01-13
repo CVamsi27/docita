@@ -41,7 +41,7 @@ import { Request } from 'express';
 export class WhatsappController {
   private readonly logger = new Logger(WhatsappController.name);
 
-  constructor(private readonly whatsappService: WhatsappService) { }
+  constructor(private readonly whatsappService: WhatsappService) {}
 
   // ==========================================================================
   // Template Management

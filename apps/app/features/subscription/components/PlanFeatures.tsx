@@ -1,4 +1,3 @@
-
 import { Check, Lock } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Feature } from "@/lib/tier-config";

@@ -6,10 +6,5 @@ import { AIAssistantUI } from "@/features/ai-assistant/components/AIAssistantUI"
 export default function AIAssistantPage() {
   const { state, handlers } = useAIAssistantLogic();
 
-  return (
-    <AIAssistantUI
-      state={state}
-      handlers={handlers}
-    />
-  );
+  return <AIAssistantUI state={state} handlers={handlers} />;
 }

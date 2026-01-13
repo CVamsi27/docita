@@ -27,12 +27,9 @@ export class PrescriptionsService {
     private prisma: PrismaService,
     private whatsapp: WhatsappService,
     private pdfGenerator: PDFGeneratorService,
-  ) { }
+  ) {}
 
-  async findAll(
-    clinicId: string,
-    params?: { search?: string; date?: string },
-  ) {
+  async findAll(clinicId: string, params?: { search?: string; date?: string }) {
     if (!clinicId) {
       return [];
     }

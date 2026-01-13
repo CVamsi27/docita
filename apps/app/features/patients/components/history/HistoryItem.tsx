@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -72,15 +71,15 @@ export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
         <HistoryVitals vitalSign={appointment.vitalSign} />
         <HistoryPrescription prescription={appointment.prescription} />
         <HistoryInvoice invoice={appointment.invoice} />
-        
+
         {/* Notes */}
         {appointment.notes && (
           <div className="space-y-2">
-             <div className="flex items-center gap-2 text-sm font-medium">
-                {/* Re-using FileText icon implicity or import if needed, but context is clear */}
-               Clinical Notes
-             </div>
-             <p className="text-sm text-muted-foreground">{appointment.notes}</p>
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {/* Re-using FileText icon implicity or import if needed, but context is clear */}
+              Clinical Notes
+            </div>
+            <p className="text-sm text-muted-foreground">{appointment.notes}</p>
           </div>
         )}
 

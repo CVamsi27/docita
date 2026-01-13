@@ -134,7 +134,10 @@ export const monitoringAPI = {
     errorIds: string[],
     resolvedBy: string,
   ): Promise<{ success: boolean; count: number }> =>
-    client.post("/monitoring/errors/resolve-multiple", { errorIds, resolvedBy }),
+    client.post("/monitoring/errors/resolve-multiple", {
+      errorIds,
+      resolvedBy,
+    }),
   cleanup: (
     daysToKeep?: number,
   ): Promise<{
@@ -147,8 +150,9 @@ export const monitoringAPI = {
 export const patientsAPI = {
   getAll: (): Promise<Patient[]> => client.get("/patients"),
   getOne: (id: string): Promise<Patient> => client.get(`/patients/${id}`),
-  create: (data: Omit<Patient, "id" | "createdAt" | "updatedAt">): Promise<Patient> =>
-    client.post("/patients", data),
+  create: (
+    data: Omit<Patient, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Patient> => client.post("/patients", data),
   update: (
     id: string,
     data: Partial<Omit<Patient, "id" | "createdAt" | "updatedAt">>,
@@ -158,7 +162,8 @@ export const patientsAPI = {
 
 export const appointmentsAPI = {
   getAll: (): Promise<Appointment[]> => client.get("/appointments"),
-  getOne: (id: string): Promise<Appointment> => client.get(`/appointments/${id}`),
+  getOne: (id: string): Promise<Appointment> =>
+    client.get(`/appointments/${id}`),
   create: (
     data: Omit<Appointment, "id" | "createdAt" | "updatedAt">,
   ): Promise<Appointment> => client.post("/appointments", data),
@@ -193,6 +198,16 @@ export interface Feedback {
   clinic: { id: string; name: string; tier: string };
 }
 
+export interface FeedbackFilters {
+  status?: string;
+  category?: string;
+  clinicId?: string;
+  startDate?: string;
+  endDate?: string;
+  minRating?: number;
+  maxRating?: number;
+}
+
 export interface FeedbackStats {
   total: number;
   byStatus: Record<string, number>;
@@ -205,26 +220,78 @@ export interface FeedbackStats {
 }
 
 export const feedbackAPI = {
-  getAll: (filters?: any): Promise<Feedback[]> =>
-    client.get("/feedback/all", { params: filters }),
+  getAll: (
+    filters?: Record<string, string | number | boolean | undefined>,
+  ): Promise<Feedback[]> => client.get("/feedback/all", { params: filters }),
   getStats: (clinicId?: string): Promise<FeedbackStats> =>
     client.get("/feedback/stats", { params: { clinicId } }),
   getOne: (id: string): Promise<Feedback> => client.get(`/feedback/${id}`),
-  updateStatus: (id: string, data: any): Promise<Feedback> =>
+  updateStatus: (id: string, data: Record<string, unknown>): Promise<Feedback> =>
     client.patch(`/feedback/${id}/status`, data),
   delete: (id: string): Promise<void> => client.delete(`/feedback/${id}`),
 };
 
+// Billing Types
+export interface SubscriptionOverview {
+  id: string;
+  clinic: {
+    name: string;
+    email: string;
+    referralCreditsMonths: number;
+  };
+  tier: string;
+  status: string;
+  billingCycle: string;
+  amount: number;
+  currency: string;
+  currentPeriodEnd: string;
+}
+
+export interface PaymentRecord {
+  id: string;
+  amount: number;
+  currency: string;
+  status: "SUCCESS" | "PENDING" | "FAILED";
+  gatewayPaymentId?: string;
+  paidAt?: string;
+  createdAt: string;
+  subscription: {
+    clinic: { name: string };
+    tier: string;
+  };
+}
+
+export interface BillingMetrics {
+  mrr: number;
+  arr: number;
+  activeSubscriptions: number;
+  trialSubscriptions: number;
+  churnRate: number;
+  expiringSubscriptions: SubscriptionOverview[];
+  gracePeriodSubscriptions: SubscriptionOverview[];
+  subscriptionsByTier: Record<string, number>;
+  subscriptionsByStatus: Record<string, number>;
+  revenueByMonth: { month: string; revenue: number }[];
+}
+
 export const billingAPI = {
-  getMetrics: (): Promise<any> => client.get("/super-admin/billing/metrics"),
-  getSubscriptions: (filters?: any): Promise<any[]> =>
+  getMetrics: (): Promise<BillingMetrics> =>
+    client.get("/super-admin/billing/metrics"),
+  getSubscriptions: (
+    filters?: Record<string, string | number | boolean | undefined>,
+  ): Promise<SubscriptionOverview[]> =>
     client.get("/super-admin/billing/subscriptions", { params: filters }),
-  getExpiringSubscriptions: (days?: number): Promise<any[]> =>
+  getExpiringSubscriptions: (days?: number): Promise<SubscriptionOverview[]> =>
     client.get("/super-admin/billing/expiring", { params: { days } }),
-  getPayments: (filters?: any): Promise<any[]> =>
+  getPayments: (
+    filters?: Record<string, string | number | boolean | undefined>,
+  ): Promise<PaymentRecord[]> =>
     client.get("/super-admin/billing/payments", { params: filters }),
   sendReminder: (subscriptionId: string): Promise<void> =>
     client.post(`/super-admin/billing/subscriptions/${subscriptionId}/remind`),
   extendGracePeriod: (subscriptionId: string, days: number): Promise<void> =>
-    client.post(`/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`, { days }),
+    client.post(
+      `/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`,
+      { days },
+    ),
 };

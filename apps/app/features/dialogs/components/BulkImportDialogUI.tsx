@@ -126,7 +126,9 @@ export function BulkImportDialogUI({
             />
           )}
 
-          {step === "progress" && <BulkImportStepProgress progress={progress} />}
+          {step === "progress" && (
+            <BulkImportStepProgress progress={progress} />
+          )}
 
           {step === "result" && (
             <BulkImportStepResult

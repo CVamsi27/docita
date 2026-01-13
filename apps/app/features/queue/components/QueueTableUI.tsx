@@ -1,12 +1,22 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Play, CheckCircle } from "lucide-react";
 
-type QueueItemStatus = "waiting" | "in-progress" | "completed" | "no-show" | "cancelled";
+type QueueItemStatus =
+  | "waiting"
+  | "in-progress"
+  | "completed"
+  | "no-show"
+  | "cancelled";
 
 interface Patient {
   id?: string;
@@ -49,7 +59,14 @@ interface QueueItem {
 }
 
 // Use the SortKey type from the hook for type safety
-type SortKey = "token" | "type" | "patient" | "doctor" | "time" | "wait" | "status";
+type SortKey =
+  | "token"
+  | "type"
+  | "patient"
+  | "doctor"
+  | "time"
+  | "wait"
+  | "status";
 
 interface SortConfig {
   key: SortKey;
@@ -123,18 +140,24 @@ export const QueueTable: FC<QueueTableProps> = ({
                     {item.patient?.firstName} {item.patient?.lastName}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Wait: {item.waitTime ?? 0} min • {item.appointment?.type ?? "Consultation"}
+                    Wait: {item.waitTime ?? 0} min •{" "}
+                    {item.appointment?.type ?? "Consultation"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={getStatusBadgeVariant(item.status)} className="capitalize">
+                <Badge
+                  variant={getStatusBadgeVariant(item.status)}
+                  className="capitalize"
+                >
                   {item.status?.replace("-", " ") ?? "waiting"}
                 </Badge>
                 {item.status === "waiting" && (
                   <Button
                     size="sm"
-                    onClick={() => item.id && onUpdateStatus?.(item.id, "in-progress")}
+                    onClick={() =>
+                      item.id && onUpdateStatus?.(item.id, "in-progress")
+                    }
                   >
                     <Play className="h-4 w-4 mr-1" />
                     Start
@@ -144,7 +167,9 @@ export const QueueTable: FC<QueueTableProps> = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => item.id && onUpdateStatus?.(item.id, "completed")}
+                    onClick={() =>
+                      item.id && onUpdateStatus?.(item.id, "completed")
+                    }
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Complete

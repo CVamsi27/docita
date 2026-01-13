@@ -1,44 +1,43 @@
-
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import { useSocket } from "@/lib/socket-context";
 
 export interface ClinicUpdateData {
-    clinicId: string;
-    tier?: string;
-    intelligenceAddon?: string;
-    subscriptionStatus?: string;
+  clinicId: string;
+  tier?: string;
+  intelligenceAddon?: string;
+  subscriptionStatus?: string;
 }
 
 export function useClinicSocket(
-    clinicId: string | null,
-    onUpdate: (data: ClinicUpdateData) => void
+  clinicId: string | null,
+  onUpdate: (data: ClinicUpdateData) => void,
 ) {
-    const { socket, isConnected } = useSocket();
+  const { socket, isConnected } = useSocket();
 
-    const callbackRef = useRef(onUpdate);
-    callbackRef.current = onUpdate;
+  const callbackRef = useRef(onUpdate);
+  callbackRef.current = onUpdate;
 
-    useSyncExternalStore(
-        useCallback(
-            (notify) => {
-                if (!socket || !isConnected || !clinicId) return () => { };
+  useSyncExternalStore(
+    useCallback(
+      (notify) => {
+        if (!socket || !isConnected || !clinicId) return () => {};
 
-                socket.emit("subscribe:clinic", clinicId);
+        socket.emit("subscribe:clinic", clinicId);
 
-                const handleClinicUpdate = (data: ClinicUpdateData) => {
-                    callbackRef.current(data);
-                    notify();
-                };
+        const handleClinicUpdate = (data: ClinicUpdateData) => {
+          callbackRef.current(data);
+          notify();
+        };
 
-                socket.on("clinic:update", handleClinicUpdate);
+        socket.on("clinic:update", handleClinicUpdate);
 
-                return () => {
-                    socket.off("clinic:update", handleClinicUpdate);
-                };
-            },
-            [socket, isConnected, clinicId]
-        ),
-        () => null,
-        () => null
-    );
+        return () => {
+          socket.off("clinic:update", handleClinicUpdate);
+        };
+      },
+      [socket, isConnected, clinicId],
+    ),
+    () => null,
+    () => null,
+  );
 }

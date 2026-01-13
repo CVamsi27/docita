@@ -6,15 +6,15 @@ import { SettingsPageUI } from "@/features/settings/components/SettingsPageUI";
 
 function SettingsContent() {
   const { state, handlers } = useSettingsLogic();
-  
+
   return (
-      <SettingsPageUI
-          filteredTabs={state.filteredTabs}
-          searchQuery={state.searchQuery}
-          setSearchQuery={handlers.setSearchQuery}
-          defaultTab={state.defaultTab}
-          firstMatchingTab={state.firstMatchingTab}
-      />
+    <SettingsPageUI
+      filteredTabs={state.filteredTabs}
+      searchQuery={state.searchQuery}
+      setSearchQuery={handlers.setSearchQuery}
+      defaultTab={state.defaultTab}
+      firstMatchingTab={state.firstMatchingTab}
+    />
   );
 }
 

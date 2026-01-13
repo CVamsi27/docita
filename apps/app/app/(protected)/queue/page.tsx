@@ -1,6 +1,9 @@
 "use client";
 
-import { Feature, FeatureGate } from "@/features/_shared/components/feature-gate";
+import {
+  Feature,
+  FeatureGate,
+} from "@/features/_shared/components/feature-gate";
 import {
   QueueFilters,
   QueueHeader,
@@ -14,27 +17,27 @@ export default function QueuePage() {
   const { state, handlers } = useQueueLogic();
 
   const {
-      queue,
-      stats,
-      doctors,
-      isLoading,
-      isFetching,
-      queueSettings,
-      selectedDoctor,
-      showSettingsModal,
-      searchQuery,
-      sortConfig,
-      useDoctorQueues,
+    queue,
+    stats,
+    doctors,
+    isLoading,
+    isFetching,
+    queueSettings,
+    selectedDoctor,
+    showSettingsModal,
+    searchQuery,
+    sortConfig,
+    useDoctorQueues,
   } = state;
 
   const {
-      setSelectedDoctor,
-      setShowSettingsModal,
-      setSearchQuery,
-      handleSort,
-      handleRefresh,
-      handleUpdateStatus,
-      refetchSettings,
+    setSelectedDoctor,
+    setShowSettingsModal,
+    setSearchQuery,
+    handleSort,
+    handleRefresh,
+    handleUpdateStatus,
+    refetchSettings,
   } = handlers;
 
   return (

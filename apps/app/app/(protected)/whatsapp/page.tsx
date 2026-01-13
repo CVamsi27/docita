@@ -15,7 +15,6 @@ import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 
-
 export default function WhatsAppPage() {
   const { data: stats } = apiHooks.useWhatsappStats();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
@@ -24,9 +23,7 @@ export default function WhatsAppPage() {
   const subscriberCount = stats?.subscribers || 0;
   const totalPatients = stats?.totalPatients || 0;
   const optInRate =
-    totalPatients > 0
-      ? Math.round((subscriberCount / totalPatients) * 100)
-      : 0;
+    totalPatients > 0 ? Math.round((subscriberCount / totalPatients) * 100) : 0;
 
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">

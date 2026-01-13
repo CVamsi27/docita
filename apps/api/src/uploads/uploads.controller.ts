@@ -15,7 +15,7 @@ import { MAX_FILE_SIZE } from '@workspace/utils';
 
 @Controller('uploads')
 export class UploadsController {
-  constructor(private readonly uploadsService: UploadsService) { }
+  constructor(private readonly uploadsService: UploadsService) {}
 
   @Post('session')
   async createSession() {

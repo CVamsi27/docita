@@ -37,7 +37,11 @@ const navigationItems = [
 
 const quickActions = [
   { label: "New Patient", action: "/patients?new=true", icon: PlusCircle },
-  { label: "New Appointment", action: "/appointments?new=true", icon: PlusCircle },
+  {
+    label: "New Appointment",
+    action: "/appointments?new=true",
+    icon: PlusCircle,
+  },
   { label: "Start Consultation", action: "/consultation", icon: Stethoscope },
 ];
 

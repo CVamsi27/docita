@@ -1,7 +1,13 @@
 "use client";
 
 import { FC, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
@@ -29,11 +35,20 @@ export const QueueSettingsDialog: FC<QueueSettingsDialogProps> = ({
   settings,
   onSettingsUpdated,
 }) => {
-  const { mutate: updateSettings, isPending: saving } = apiHooks.useUpdateQueueSettings();
-  const [queueBuffer, setQueueBuffer] = useState(settings?.queueBufferMinutes ?? 10);
-  const [useDoctorQueues, setUseDoctorQueues] = useState(settings?.useDoctorQueues ?? false);
-  const [lateGrace, setLateGrace] = useState(settings?.lateArrivalGraceMinutes ?? 30);
-  const [avgConsultation, setAvgConsultation] = useState(settings?.avgConsultationMinutes ?? 15);
+  const { mutate: updateSettings, isPending: saving } =
+    apiHooks.useUpdateQueueSettings();
+  const [queueBuffer, setQueueBuffer] = useState(
+    settings?.queueBufferMinutes ?? 10,
+  );
+  const [useDoctorQueues, setUseDoctorQueues] = useState(
+    settings?.useDoctorQueues ?? false,
+  );
+  const [lateGrace, setLateGrace] = useState(
+    settings?.lateArrivalGraceMinutes ?? 30,
+  );
+  const [avgConsultation, setAvgConsultation] = useState(
+    settings?.avgConsultationMinutes ?? 15,
+  );
 
   useEffect(() => {
     if (settings) {
@@ -47,21 +62,24 @@ export const QueueSettingsDialog: FC<QueueSettingsDialogProps> = ({
   if (!open) return null;
 
   const handleSave = () => {
-    updateSettings({
-      queueBufferMinutes: queueBuffer,
-      useDoctorQueues,
-      lateArrivalGraceMinutes: lateGrace,
-      avgConsultationMinutes: avgConsultation,
-    }, {
-      onSuccess: () => {
-        toast.success("Queue settings saved");
-        onSettingsUpdated?.();
-        onOpenChange(false);
+    updateSettings(
+      {
+        queueBufferMinutes: queueBuffer,
+        useDoctorQueues,
+        lateArrivalGraceMinutes: lateGrace,
+        avgConsultationMinutes: avgConsultation,
       },
-      onError: (error: Error) => {
-        toast.error(error.message || "Failed to save queue settings");
-      }
-    });
+      {
+        onSuccess: () => {
+          toast.success("Queue settings saved");
+          onSettingsUpdated?.();
+          onOpenChange(false);
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || "Failed to save queue settings");
+        },
+      },
+    );
   };
 
   return (

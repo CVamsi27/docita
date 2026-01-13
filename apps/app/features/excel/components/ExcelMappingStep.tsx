@@ -23,11 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Users,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, Users } from "lucide-react";
 import { ImportPreview } from "../hooks/use-excel-import";
 
 interface ExcelMappingStepProps {

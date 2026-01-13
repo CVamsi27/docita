@@ -1,11 +1,26 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
-import { FileText, Upload, Search, Eye, Download, Trash2, Image, File } from "lucide-react";
+import {
+  FileText,
+  Upload,
+  Search,
+  Eye,
+  Download,
+  Trash2,
+  Image,
+  File,
+} from "lucide-react";
 
 // Document List Component
 export const DocumentList: FC<{
@@ -57,20 +72,34 @@ export const DocumentList: FC<{
                       <Icon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="font-medium truncate max-w-[200px]">{doc.name}</p>
+                      <p className="font-medium truncate max-w-[200px]">
+                        {doc.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {doc.type} • {doc.size} • {doc.uploadedAt}
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => onView?.(doc.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onView?.(doc.id)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDownload?.(doc.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDownload?.(doc.id)}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDelete?.(doc.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete?.(doc.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -99,9 +128,14 @@ export const DocumentUpload: FC<{
       <CardContent>
         <div
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-            dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/20"
+            dragOver
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/20"
           }`}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => {
             e.preventDefault();

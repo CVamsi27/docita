@@ -36,7 +36,7 @@ interface FeedbackFilters {
 
 @Injectable()
 export class FeedbackService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Submit feedback from a user
@@ -137,9 +137,15 @@ export class FeedbackService {
       where.OR = [
         { featureRequests: { contains: filters.search, mode: 'insensitive' } },
         { generalComments: { contains: filters.search, mode: 'insensitive' } },
-        { goodFeaturesReason: { contains: filters.search, mode: 'insensitive' } },
-        { badFeaturesReason: { contains: filters.search, mode: 'insensitive' } },
-        { improvementReason: { contains: filters.search, mode: 'insensitive' } },
+        {
+          goodFeaturesReason: { contains: filters.search, mode: 'insensitive' },
+        },
+        {
+          badFeaturesReason: { contains: filters.search, mode: 'insensitive' },
+        },
+        {
+          improvementReason: { contains: filters.search, mode: 'insensitive' },
+        },
       ];
     }
 

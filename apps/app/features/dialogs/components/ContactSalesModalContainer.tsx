@@ -23,7 +23,8 @@ export function ContactSalesModalContainer({
 }: ContactSalesModalContainerProps) {
   const [formData, setFormData] =
     useState<ContactSalesFormData>(initialFormData);
-  const { mutate: createInquiry, isPending: isSubmitting } = apiHooks.useCreateContactInquiry();
+  const { mutate: createInquiry, isPending: isSubmitting } =
+    apiHooks.useCreateContactInquiry();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +61,7 @@ export function ContactSalesModalContainer({
         const errorMessage = err.message || "Failed to send inquiry";
         setError(errorMessage);
         toast.error(errorMessage);
-      }
+      },
     });
   };
   const handleClose = () => {

@@ -1,4 +1,3 @@
-
 import React, { FC } from "react";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -7,13 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import {
-  Brain,
-  FileText,
-  Pill,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { Brain, FileText, Pill, Sparkles, TrendingUp } from "lucide-react";
 import { FeatureGuard } from "@/features/_shared/components/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";

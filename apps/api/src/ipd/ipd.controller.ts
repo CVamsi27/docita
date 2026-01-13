@@ -32,13 +32,10 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, FacilityTypeGuard)
 @RequireFacilityType(FacilityType.HOSPITAL)
 export class IpdController {
-  constructor(private readonly ipdService: IpdService) { }
+  constructor(private readonly ipdService: IpdService) {}
 
   @Get('wards')
-  findAllWards(
-    @Request() req: AuthRequest,
-    @Query('search') search?: string,
-  ) {
+  findAllWards(@Request() req: AuthRequest, @Query('search') search?: string) {
     return this.ipdService.findAllWards(req.user.clinicId, search);
   }
 

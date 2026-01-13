@@ -26,7 +26,7 @@ interface UpdateTemplateData {
 
 @Injectable()
 export class TemplatesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   create(data: CreateTemplateData) {
     return this.prisma.clinicalTemplate.create({

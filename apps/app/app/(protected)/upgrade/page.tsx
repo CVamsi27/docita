@@ -18,9 +18,7 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { useState } from "react";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
-import {
-  Sparkles,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { TierCard } from "@/features/subscription/components/TierCard";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";

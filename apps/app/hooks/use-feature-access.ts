@@ -67,15 +67,15 @@ export function useFeatureAccess() {
           // NOTE: Detailed add-ons not yet in store. Inferring from flags.
           ...(hasIntelligence
             ? [
-              {
-                type: AddOnType.INTELLIGENCE,
-                status: "active" as const,
-                baseQuota: 500,
-                usedQuota: 0,
-                overageRate: 3,
-                billingCycle: "monthly" as const,
-              },
-            ]
+                {
+                  type: AddOnType.INTELLIGENCE,
+                  status: "active" as const,
+                  baseQuota: 500,
+                  usedQuota: 0,
+                  overageRate: 3,
+                  billingCycle: "monthly" as const,
+                },
+              ]
             : []),
         ],
         overrides: [],
@@ -133,15 +133,15 @@ export function useFeatureAccess() {
         },
         addOns: hasIntelligence
           ? [
-            {
-              type: AddOnType.INTELLIGENCE,
-              status: "active",
-              baseQuota: 500,
-              usedQuota: 0,
-              overageRate: 3,
-              billingCycle: "monthly",
-            },
-          ]
+              {
+                type: AddOnType.INTELLIGENCE,
+                status: "active",
+                baseQuota: 500,
+                usedQuota: 0,
+                overageRate: 3,
+                billingCycle: "monthly",
+              },
+            ]
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
@@ -170,15 +170,15 @@ export function useFeatureAccess() {
         },
         addOns: hasIntelligence
           ? [
-            {
-              type: AddOnType.INTELLIGENCE,
-              status: "active",
-              baseQuota: 500,
-              usedQuota: 0,
-              overageRate: 3,
-              billingCycle: "monthly",
-            },
-          ]
+              {
+                type: AddOnType.INTELLIGENCE,
+                status: "active",
+                baseQuota: 500,
+                usedQuota: 0,
+                overageRate: 3,
+                billingCycle: "monthly",
+              },
+            ]
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
@@ -207,15 +207,15 @@ export function useFeatureAccess() {
         },
         addOns: hasIntelligence
           ? [
-            {
-              type: AddOnType.INTELLIGENCE,
-              status: "active",
-              baseQuota: 500,
-              usedQuota: 0,
-              overageRate: 3,
-              billingCycle: "monthly",
-            },
-          ]
+              {
+                type: AddOnType.INTELLIGENCE,
+                status: "active",
+                baseQuota: 500,
+                usedQuota: 0,
+                overageRate: 3,
+                billingCycle: "monthly",
+              },
+            ]
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",

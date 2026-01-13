@@ -73,7 +73,9 @@ export const PatientTimelineCompact: React.FC<PatientTimelineCompactProps> = ({
         <Card
           key={apt.id}
           className={`border transition-all duration-200 overflow-hidden ${
-            expandedId === apt.id ? "shadow-md ring-1 ring-primary/20" : "hover:bg-accent/50"
+            expandedId === apt.id
+              ? "shadow-md ring-1 ring-primary/20"
+              : "hover:bg-accent/50"
           }`}
         >
           {/* Header Row */}
@@ -115,8 +117,8 @@ export const PatientTimelineCompact: React.FC<PatientTimelineCompactProps> = ({
                   apt.status === "completed"
                     ? "default"
                     : apt.status === "cancelled"
-                    ? "destructive"
-                    : "secondary"
+                      ? "destructive"
+                      : "secondary"
                 }
                 className="capitalize h-6"
               >
@@ -144,96 +146,134 @@ export const PatientTimelineCompact: React.FC<PatientTimelineCompactProps> = ({
                 <div className="space-y-4">
                   <div>
                     <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                       <FileText className="h-4 w-4" /> Clinical Summary
+                      <FileText className="h-4 w-4" /> Clinical Summary
                     </h4>
                     <div className="text-sm space-y-2 bg-background p-3 rounded-md border">
-                        {apt.chiefComplaint && (
-                            <div>
-                                <span className="font-medium text-xs text-muted-foreground uppercase">Chief Complaint</span>
-                                <p>{apt.chiefComplaint}</p>
-                            </div>
-                        )}
-                        {apt.finalDiagnosis && (
-                            <div className="mt-2">
-                                <span className="font-medium text-xs text-muted-foreground uppercase">Diagnosis</span>
-                                <p>{apt.finalDiagnosis}</p>
-                            </div>
-                        )}
-                         {apt.treatmentPlan && (
-                            <div className="mt-2">
-                                <span className="font-medium text-xs text-muted-foreground uppercase">Plan</span>
-                                <p>{apt.treatmentPlan}</p>
-                            </div>
-                        )}
+                      {apt.chiefComplaint && (
+                        <div>
+                          <span className="font-medium text-xs text-muted-foreground uppercase">
+                            Chief Complaint
+                          </span>
+                          <p>{apt.chiefComplaint}</p>
+                        </div>
+                      )}
+                      {apt.finalDiagnosis && (
+                        <div className="mt-2">
+                          <span className="font-medium text-xs text-muted-foreground uppercase">
+                            Diagnosis
+                          </span>
+                          <p>{apt.finalDiagnosis}</p>
+                        </div>
+                      )}
+                      {apt.treatmentPlan && (
+                        <div className="mt-2">
+                          <span className="font-medium text-xs text-muted-foreground uppercase">
+                            Plan
+                          </span>
+                          <p>{apt.treatmentPlan}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                   {/* Vitals Summary */}
-                   {apt.vitalSign && (
+                  {/* Vitals Summary */}
+                  {apt.vitalSign && (
                     <div>
-                        <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                            <Activity className="h-4 w-4" /> Vitals
-                        </h4>
-                         <div className="grid grid-cols-2 gap-2 text-sm bg-background p-3 rounded-md border">
-                            {apt.vitalSign.bloodPressure && (
-                                <div><span className="text-muted-foreground">BP:</span> {apt.vitalSign.bloodPressure}</div>
-                            )}
-                             {apt.vitalSign.pulse && (
-                                <div><span className="text-muted-foreground">HR:</span> {apt.vitalSign.pulse}</div>
-                            )}
-                             {apt.vitalSign.weight && (
-                                <div><span className="text-muted-foreground">Wt:</span> {apt.vitalSign.weight} kg</div>
-                            )}
-                             {apt.vitalSign.temperature && (
-                                <div><span className="text-muted-foreground">Temp:</span> {apt.vitalSign.temperature}°C</div>
-                            )}
-                         </div>
+                      <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
+                        <Activity className="h-4 w-4" /> Vitals
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm bg-background p-3 rounded-md border">
+                        {apt.vitalSign.bloodPressure && (
+                          <div>
+                            <span className="text-muted-foreground">BP:</span>{" "}
+                            {apt.vitalSign.bloodPressure}
+                          </div>
+                        )}
+                        {apt.vitalSign.pulse && (
+                          <div>
+                            <span className="text-muted-foreground">HR:</span>{" "}
+                            {apt.vitalSign.pulse}
+                          </div>
+                        )}
+                        {apt.vitalSign.weight && (
+                          <div>
+                            <span className="text-muted-foreground">Wt:</span>{" "}
+                            {apt.vitalSign.weight} kg
+                          </div>
+                        )}
+                        {apt.vitalSign.temperature && (
+                          <div>
+                            <span className="text-muted-foreground">Temp:</span>{" "}
+                            {apt.vitalSign.temperature}°C
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
 
                 {/* Right Column: Actions & Rx */}
                 <div className="space-y-4">
-                   {/* Prescription Preview */}
-                   {apt.prescription && (
+                  {/* Prescription Preview */}
+                  {apt.prescription && (
                     <div>
-                         <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                            <Pill className="h-4 w-4" /> Prescription
-                        </h4>
-                        <div className="bg-background p-3 rounded-md border text-sm">
-                             <div className="space-y-1">
-                                {apt.prescription.medications?.slice(0, 3).map((med, i) => (
-                                    <div key={i} className="flex justify-between items-center text-xs">
-                                        <span className="font-medium">{med.name}</span>
-                                        <span className="text-muted-foreground">{med.dosage}</span>
-                                    </div>
-                                ))}
-                                {(apt.prescription.medications?.length || 0) > 3 && (
-                                    <div className="text-xs text-muted-foreground pt-1 italic">
-                                        + {(apt.prescription.medications?.length || 0) - 3} more
-                                    </div>
-                                )}
-                             </div>
-                             {apt.status === "completed" && (
-                                <Button size="sm" variant="outline" className="w-full mt-2 h-7 text-xs" onClick={() => apt.id && onRepeatPrescription?.(apt.id)}>
-                                    Repeat Prescription
-                                </Button>
-                             )}
+                      <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
+                        <Pill className="h-4 w-4" /> Prescription
+                      </h4>
+                      <div className="bg-background p-3 rounded-md border text-sm">
+                        <div className="space-y-1">
+                          {apt.prescription.medications
+                            ?.slice(0, 3)
+                            .map((med, i) => (
+                              <div
+                                key={i}
+                                className="flex justify-between items-center text-xs"
+                              >
+                                <span className="font-medium">{med.name}</span>
+                                <span className="text-muted-foreground">
+                                  {med.dosage}
+                                </span>
+                              </div>
+                            ))}
+                          {(apt.prescription.medications?.length || 0) > 3 && (
+                            <div className="text-xs text-muted-foreground pt-1 italic">
+                              +{" "}
+                              {(apt.prescription.medications?.length || 0) - 3}{" "}
+                              more
+                            </div>
+                          )}
                         </div>
+                        {apt.status === "completed" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full mt-2 h-7 text-xs"
+                            onClick={() =>
+                              apt.id && onRepeatPrescription?.(apt.id)
+                            }
+                          >
+                            Repeat Prescription
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                   )}
+                  )}
 
-                   {/* Actions */}
-                   <div>
-                       <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                            Actions
-                        </h4>
-                        <div className="flex gap-2">
-                             <Button size="sm" className="flex-1" onClick={() => apt.id && onViewDetails?.(apt.id)}>
-                                View Details <ArrowRight className="h-4 w-4 ml-1" />
-                             </Button>
-                        </div>
-                   </div>
+                  {/* Actions */}
+                  <div>
+                    <h4 className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
+                      Actions
+                    </h4>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => apt.id && onViewDetails?.(apt.id)}
+                      >
+                        View Details <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

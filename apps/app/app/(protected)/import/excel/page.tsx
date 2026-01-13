@@ -58,8 +58,9 @@ export default function ExcelImportPage() {
                   "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium",
                   step === s
                     ? "bg-primary text-primary-foreground"
-                    : ["upload", "mapping", "importing", "results"].indexOf(step) >
-                      i
+                    : ["upload", "mapping", "importing", "results"].indexOf(
+                          step,
+                        ) > i
                       ? "bg-primary/20 text-primary"
                       : "bg-muted text-muted-foreground",
                 )}

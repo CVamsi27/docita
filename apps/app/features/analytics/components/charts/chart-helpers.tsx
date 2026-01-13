@@ -1,4 +1,3 @@
-
 import { cn } from "@workspace/ui/lib/utils";
 
 export const LoadingSpinner = ({ className }: { className?: string }) => (

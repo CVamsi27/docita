@@ -15,7 +15,10 @@ export const calculateTotal = (
   return subtotal + tax - discount;
 };
 
-export const isInvoiceOverdue = (invoice: { status: string; dueDate?: string | Date }): boolean => {
+export const isInvoiceOverdue = (invoice: {
+  status: string;
+  dueDate?: string | Date;
+}): boolean => {
   if (invoice.status === "paid") return false;
   if (!invoice.dueDate) return false;
   return new Date(invoice.dueDate) < new Date();

@@ -59,7 +59,9 @@ export const OCRClinicalFindings = ({
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  allergies: e.target.value.split(",").map((a: string) => a.trim()),
+                  allergies: e.target.value
+                    .split(",")
+                    .map((a: string) => a.trim()),
                 })
               }
               placeholder="Separated by commas"

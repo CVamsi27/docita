@@ -1,4 +1,3 @@
-
 interface InvoiceItem {
   description: string;
   quantity: number;

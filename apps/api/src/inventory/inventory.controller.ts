@@ -31,7 +31,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.INVENTORY)
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) { }
+  constructor(private readonly inventoryService: InventoryService) {}
 
   @Get()
   findAll(

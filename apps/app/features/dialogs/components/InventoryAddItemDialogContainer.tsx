@@ -42,25 +42,28 @@ export function InventoryAddItemDialogContainer({
       return;
     }
 
-    createItem({
-      name: formData.name,
-      category: formData.category,
-      quantity: parseInt(formData.quantity),
-      expiryDate: formData.expiryDate
-        ? new Date(formData.expiryDate).toISOString()
-        : undefined,
-      minQuantity: parseInt(formData.minStock),
-    }, {
-      onSuccess: () => {
-        toast.success("Item added successfully");
-        resetForm();
-        onClose();
-        onSuccess();
+    createItem(
+      {
+        name: formData.name,
+        category: formData.category,
+        quantity: parseInt(formData.quantity),
+        expiryDate: formData.expiryDate
+          ? new Date(formData.expiryDate).toISOString()
+          : undefined,
+        minQuantity: parseInt(formData.minStock),
       },
-      onError: () => {
-        toast.error("Failed to add item");
-      }
-    });
+      {
+        onSuccess: () => {
+          toast.success("Item added successfully");
+          resetForm();
+          onClose();
+          onSuccess();
+        },
+        onError: () => {
+          toast.error("Failed to add item");
+        },
+      },
+    );
   };
   const handleClose = () => {
     resetForm();

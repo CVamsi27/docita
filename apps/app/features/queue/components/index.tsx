@@ -1,10 +1,22 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Clock, Users, CheckCircle2, Play, RefreshCw, Settings } from "lucide-react";
+import {
+  Clock,
+  Users,
+  CheckCircle2,
+  Play,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 
 // Type definitions
 interface QueueStats {
@@ -30,7 +42,10 @@ interface QueueDashboardProps {
   queue?: QueueItem[];
 }
 
-export const QueueDashboard: FC<QueueDashboardProps> = ({ stats, queue = [] }) => {
+export const QueueDashboard: FC<QueueDashboardProps> = ({
+  stats,
+  queue = [],
+}) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -113,7 +128,9 @@ export const QueueDashboard: FC<QueueDashboardProps> = ({ stats, queue = [] }) =
                       {i + 1}
                     </div>
                     <div>
-                      <p className="font-medium">{item.patientName ?? "Patient"}</p>
+                      <p className="font-medium">
+                        {item.patientName ?? "Patient"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {item.checkInTime ?? "Just now"}
                       </p>
@@ -121,7 +138,9 @@ export const QueueDashboard: FC<QueueDashboardProps> = ({ stats, queue = [] }) =
                   </div>
                   <div className="flex items-center gap-4">
                     <Badge
-                      variant={item.status === "in-progress" ? "default" : "outline"}
+                      variant={
+                        item.status === "in-progress" ? "default" : "outline"
+                      }
                       className="capitalize"
                     >
                       {item.status ?? "waiting"}

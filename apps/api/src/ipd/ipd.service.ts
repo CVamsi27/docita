@@ -11,7 +11,7 @@ import {
 
 @Injectable()
 export class IpdService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // Wards
   async findAllWards(clinicId: string, search?: string): Promise<Ward[]> {
@@ -30,15 +30,30 @@ export class IpdService {
                       beds: {
                         some: {
                           OR: [
-                            { bedNumber: { contains: search, mode: 'insensitive' } },
+                            {
+                              bedNumber: {
+                                contains: search,
+                                mode: 'insensitive',
+                              },
+                            },
                             {
                               admissions: {
                                 some: {
                                   status: 'ADMITTED',
                                   patient: {
                                     OR: [
-                                      { firstName: { contains: search, mode: 'insensitive' } },
-                                      { lastName: { contains: search, mode: 'insensitive' } },
+                                      {
+                                        firstName: {
+                                          contains: search,
+                                          mode: 'insensitive',
+                                        },
+                                      },
+                                      {
+                                        lastName: {
+                                          contains: search,
+                                          mode: 'insensitive',
+                                        },
+                                      },
                                     ],
                                   },
                                 },

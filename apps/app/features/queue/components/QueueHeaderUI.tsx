@@ -35,7 +35,9 @@ export const QueueHeader: FC<QueueHeaderProps> = ({
           disabled={isFetching}
           className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
         <Button variant="outline" onClick={onOpenSettings} className="gap-2">

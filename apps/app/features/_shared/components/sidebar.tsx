@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  Home, 
-  Users, 
-  Calendar, 
-  Settings, 
-  FileText, 
-  Package, 
+import {
+  Home,
+  Users,
+  Calendar,
+  Settings,
+  FileText,
+  Package,
   Receipt,
   ClipboardList,
   Stethoscope,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
@@ -35,14 +35,17 @@ const navItems = [
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
-export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps) {
+export function Sidebar({
+  isCollapsed = false,
+  onCollapsedChange,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <aside
       className={cn(
         "hidden lg:flex flex-col h-screen bg-background border-r transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64",
       )}
     >
       <div className="flex items-center justify-between p-4 border-b">
@@ -66,7 +69,8 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
@@ -76,7 +80,7 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isCollapsed && "justify-center px-2"
+                isCollapsed && "justify-center px-2",
               )}
               title={isCollapsed ? item.label : undefined}
             >

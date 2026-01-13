@@ -50,25 +50,25 @@ export { PatientBadgeUI } from "./PatientBadgeUI";
 
 // Patient UI Components (Moved from misc-stubs)
 export {
-    PatientFaceSheetHeader,
-    PatientStatsCards,
-    PatientMedicalHistory,
-    PatientVitalsBanner,
-    PatientAllergyAlert,
-    AppointmentHistoryTimeline,
-    type PatientFaceSheetHeaderProps,
-    type PatientStatsCardsProps,
-    type PatientMedicalHistoryProps,
-    type PatientVitalsBannerProps,
-    type PatientAllergyAlertProps,
-    type AppointmentHistoryTimelineProps,
+  PatientFaceSheetHeader,
+  PatientStatsCards,
+  PatientMedicalHistory,
+  PatientVitalsBanner,
+  PatientAllergyAlert,
+  AppointmentHistoryTimeline,
+  type PatientFaceSheetHeaderProps,
+  type PatientStatsCardsProps,
+  type PatientMedicalHistoryProps,
+  type PatientVitalsBannerProps,
+  type PatientAllergyAlertProps,
+  type AppointmentHistoryTimelineProps,
 } from "./PatientUIComponents";
 
 // Patient Dialogs
 export {
-    AddPatientDialog,
-    EditPatientDialog,
-    PatientFormDialog,
-    FhirExportDialog,
+  AddPatientDialog,
+  EditPatientDialog,
+  PatientFormDialog,
+  FhirExportDialog,
 } from "./PatientDialogs";
 export * from "./PatientTimelineCompact";

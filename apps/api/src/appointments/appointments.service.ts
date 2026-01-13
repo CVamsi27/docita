@@ -55,7 +55,7 @@ const appointmentFullSelect = {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(
     clinicId: string,

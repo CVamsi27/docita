@@ -16,8 +16,13 @@ export function WhatsAppSettingsDialogContainer({
   onClose,
   onSuccess,
 }: WhatsAppSettingsDialogContainerProps) {
-  const { data: initialSettings, isLoading: loading, refetch } = apiHooks.useWhatsAppSettings();
-  const { mutate: updateSettings, isPending: isSaving } = apiHooks.useUpdateWhatsAppSettings();
+  const {
+    data: initialSettings,
+    isLoading: loading,
+    refetch,
+  } = apiHooks.useWhatsAppSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    apiHooks.useUpdateWhatsAppSettings();
 
   const [settings, setSettings] = useState<WhatsAppSettings>({
     appointmentReminders: true,
@@ -44,7 +49,7 @@ export function WhatsAppSettingsDialogContainer({
       },
       onError: () => {
         toast.error("Failed to update settings");
-      }
+      },
     });
   };
   return (

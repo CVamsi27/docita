@@ -228,8 +228,8 @@ export function createAPIClient(config: APIClientConfig) {
 
           const error = new APIRequestError(
             (errorData as { message?: string })?.message ||
-            response.statusText ||
-            "Request failed",
+              response.statusText ||
+              "Request failed",
             {
               status: response.status,
               statusText: response.statusText,
@@ -388,7 +388,7 @@ export function createAPIClient(config: APIClientConfig) {
 
       if (!result.success) {
         // In development, throw for awareness; in production, return raw data
-        if (process.env['NODE_ENV'] === 'development') {
+        if (process.env["NODE_ENV"] === "development") {
           console.error(
             "API response validation failed:",
             result.error.format(),
@@ -504,7 +504,10 @@ export function createCRUDResource<T extends { id?: string }>(
       params?: Record<string, string | number | boolean | undefined | null>,
     ): Promise<T[] | PaginatedResponse<T>> {
       return client.get(basePath, {
-        params: params as Record<string, string | number | boolean | undefined | null>
+        params: params as Record<
+          string,
+          string | number | boolean | undefined | null
+        >,
       });
     },
 

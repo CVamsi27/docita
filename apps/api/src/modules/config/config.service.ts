@@ -71,7 +71,7 @@ export {
 
 @Injectable()
 export class ConfigService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Get all form options and configuration

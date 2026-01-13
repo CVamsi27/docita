@@ -1,4 +1,3 @@
-
 import { Patient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -172,7 +171,9 @@ export function PatientsTable({
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toast.info("Quick Note implementation coming soon");
+                              toast.info(
+                                "Quick Note implementation coming soon",
+                              );
                             }}
                           >
                             <FileText className="h-4 w-4" />

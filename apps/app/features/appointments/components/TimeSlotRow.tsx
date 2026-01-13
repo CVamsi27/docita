@@ -1,4 +1,3 @@
-
 import { memo, useMemo } from "react";
 import { format } from "date-fns";
 import {
@@ -25,21 +24,21 @@ import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic
 
 // Helper to check if a time slot overlaps with an appointment
 const isAppointmentInSlot = (
-    appointment: Appointment,
-    slotTime: string,
-    selectedDate: Date,
+  appointment: Appointment,
+  slotTime: string,
+  selectedDate: Date,
 ) => {
-    const [slotHour, slotMinute] = slotTime.split(":").map(Number);
-    const slotStart = new Date(selectedDate);
-    slotStart.setHours(slotHour, slotMinute, 0, 0);
-    const slotEnd = new Date(slotStart);
-    slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+  const [slotHour, slotMinute] = slotTime.split(":").map(Number);
+  const slotStart = new Date(selectedDate);
+  slotStart.setHours(slotHour, slotMinute, 0, 0);
+  const slotEnd = new Date(slotStart);
+  slotEnd.setMinutes(slotEnd.getMinutes() + 30);
 
-    const aptStart = new Date(appointment.startTime);
-    const aptEnd = new Date(appointment.endTime);
+  const aptStart = new Date(appointment.startTime);
+  const aptEnd = new Date(appointment.endTime);
 
-    // Check if appointment overlaps with this slot
-    return aptStart < slotEnd && aptEnd > slotStart;
+  // Check if appointment overlaps with this slot
+  return aptStart < slotEnd && aptEnd > slotStart;
 };
 
 interface TimeSlotRowProps {

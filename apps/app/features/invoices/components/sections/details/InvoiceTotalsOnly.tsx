@@ -1,4 +1,3 @@
-
 import { Separator } from "@workspace/ui/components/separator";
 import { Invoice } from "@workspace/types";
 
@@ -40,9 +39,7 @@ export function InvoiceTotalsOnly({
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Discount</span>
-          <span>
-            -{formatCurrency((invoice as any).discount || 0)}
-          </span>
+          <span>-{formatCurrency((invoice as any).discount || 0)}</span>
         </div>
         <Separator />
         <div className="flex justify-between font-bold text-lg">

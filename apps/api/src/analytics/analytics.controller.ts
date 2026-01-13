@@ -14,7 +14,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.BASIC_ANALYTICS)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
   getOverview(@Request() req: AuthRequest) {
@@ -35,8 +35,14 @@ export class AnalyticsController {
   }
 
   @Get('patients')
-  getPatientGrowth(@Request() req: AuthRequest, @Query('days') days: string = '30') {
-    return this.analyticsService.getPatientGrowth(req.user.clinicId, parseInt(days));
+  getPatientGrowth(
+    @Request() req: AuthRequest,
+    @Query('days') days: string = '30',
+  ) {
+    return this.analyticsService.getPatientGrowth(
+      req.user.clinicId,
+      parseInt(days),
+    );
   }
 
   @Get('appointments')
@@ -45,8 +51,14 @@ export class AnalyticsController {
   }
 
   @Get('top-diagnoses')
-  getTopDiagnoses(@Request() req: AuthRequest, @Query('limit') limit: string = '10') {
-    return this.analyticsService.getTopDiagnoses(req.user.clinicId, parseInt(limit));
+  getTopDiagnoses(
+    @Request() req: AuthRequest,
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.analyticsService.getTopDiagnoses(
+      req.user.clinicId,
+      parseInt(limit),
+    );
   }
 
   @Get('disease-trends')
@@ -212,6 +224,9 @@ export class AnalyticsController {
     @Request() req: AuthRequest,
     @Query('limit') limit: string = '10',
   ) {
-    return this.analyticsService.getTopConditions(req.user.clinicId, parseInt(limit));
+    return this.analyticsService.getTopConditions(
+      req.user.clinicId,
+      parseInt(limit),
+    );
   }
 }

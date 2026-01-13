@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Calendar } from "lucide-react";
 import { HistoryItem } from "./HistoryItem";
@@ -7,7 +6,9 @@ interface DetailedHistoryListProps {
   appointments: any[];
 }
 
-export function DetailedHistoryList({ appointments }: DetailedHistoryListProps) {
+export function DetailedHistoryList({
+  appointments,
+}: DetailedHistoryListProps) {
   if (appointments.length === 0) {
     return (
       <Card>

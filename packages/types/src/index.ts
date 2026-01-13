@@ -59,60 +59,111 @@ export type Gender = z.infer<typeof genderSchema>;
 
 // Blood Group
 export const bloodGroupSchema = z.enum([
-  "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
+  "A+",
+  "A-",
+  "B+",
+  "B-",
+  "AB+",
+  "AB-",
+  "O+",
+  "O-",
 ]);
 export type BloodGroup = z.infer<typeof bloodGroupSchema>;
 
 // Appointment Status
 export const appointmentStatusSchema = z.enum([
-  "scheduled", "confirmed", "checked-in", "in-progress", "completed", "cancelled", "no-show"
+  "scheduled",
+  "confirmed",
+  "checked-in",
+  "in-progress",
+  "completed",
+  "cancelled",
+  "no-show",
 ]);
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 
 // Appointment Type
 export const appointmentTypeSchema = z.enum([
-  "consultation", "follow-up", "check-up", "emergency", "procedure"
+  "consultation",
+  "follow-up",
+  "check-up",
+  "emergency",
+  "procedure",
 ]);
 export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 
 // Weekday
 export const weekdaySchema = z.enum([
-  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
 ]);
 export type Weekday = z.infer<typeof weekdaySchema>;
 
 // Invoice Status
 export const invoiceStatusSchema = z.enum([
-  "pending", "paid", "overdue", "cancelled"
+  "pending",
+  "paid",
+  "overdue",
+  "cancelled",
 ]);
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
 
 // Payment Status
 export const paymentStatusSchema = z.enum([
-  "created", "pending", "paid", "failed", "expired", "cancelled"
+  "created",
+  "pending",
+  "paid",
+  "failed",
+  "expired",
+  "cancelled",
 ]);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
 // Custom Field & Template Field Types
 export const customFieldTypeSchema = z.enum([
-  "text", "number", "select", "date", "checkbox", "textarea"
+  "text",
+  "number",
+  "select",
+  "date",
+  "checkbox",
+  "textarea",
 ]);
 export type CustomFieldType = z.infer<typeof customFieldTypeSchema>;
 
 export const templateFieldTypeSchema = z.enum([
-  "text", "number", "select", "checkbox", "textarea"
+  "text",
+  "number",
+  "select",
+  "checkbox",
+  "textarea",
 ]);
 export type TemplateFieldType = z.infer<typeof templateFieldTypeSchema>;
 
 // WhatsApp Message Type
 export const whatsappMessageTypeSchema = z.enum([
-  "reminder", "receipt", "payment-link", "general"
+  "reminder",
+  "receipt",
+  "payment-link",
+  "general",
 ]);
 export type WhatsappMessageType = z.infer<typeof whatsappMessageTypeSchema>;
 
 // Currency
 export const currencySchema = z.enum([
-  "INR", "USD", "GBP", "EUR", "AUD", "CAD", "SGD", "AED", "ZAR"
+  "INR",
+  "USD",
+  "GBP",
+  "EUR",
+  "AUD",
+  "CAD",
+  "SGD",
+  "AED",
+  "ZAR",
 ]);
 export type Currency = z.infer<typeof currencySchema>;
 
@@ -2225,18 +2276,18 @@ export const appointmentPrioritySchema = z.enum([
 export type AppointmentPriority = z.infer<typeof appointmentPrioritySchema>;
 
 export const APPOINTMENT_PRIORITY_LABELS: Record<AppointmentPriority, string> =
-{
-  ROUTINE: "Routine",
-  URGENT: "Urgent",
-  EMERGENCY: "Emergency",
-};
+  {
+    ROUTINE: "Routine",
+    URGENT: "Urgent",
+    EMERGENCY: "Emergency",
+  };
 
 export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
-{
-  ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
-  URGENT: "bg-orange-100 text-orange-800 border-orange-300",
-  EMERGENCY: "bg-red-100 text-red-800 border-red-300",
-};
+  {
+    ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
+    URGENT: "bg-orange-100 text-orange-800 border-orange-300",
+    EMERGENCY: "bg-red-100 text-red-800 border-red-300",
+  };
 
 export const appointmentSchema = z.object({
   id: z.string().optional(),
@@ -2924,16 +2975,20 @@ export const labTestOrderSchema = z.object({
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()).optional(),
   // Relations
-  patient: z.object({
-    id: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    phoneNumber: z.string().optional(),
-  }).optional(),
-  doctor: z.object({
-    id: z.string(),
-    name: z.string(),
-  }).optional(),
+  patient: z
+    .object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      phoneNumber: z.string().optional(),
+    })
+    .optional(),
+  doctor: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .optional(),
   labTest: labTestSchema.optional(),
 });
 export type LabTestOrder = z.infer<typeof labTestOrderSchema>;

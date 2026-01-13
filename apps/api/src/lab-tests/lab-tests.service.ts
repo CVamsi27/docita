@@ -17,7 +17,7 @@ interface UpdateLabTestOrderDto {
 
 @Injectable()
 export class LabTestsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // Lab Test Types/Catalog
   async findAllTests(clinicId: string) {

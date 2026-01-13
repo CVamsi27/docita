@@ -1,10 +1,5 @@
-
 import { Button } from "@workspace/ui/components/button";
-import {
-  Check,
-  ChevronsUpDown,
-  Loader2,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -89,10 +84,7 @@ export function OrderLabTestDialog({
           </DialogDescription>
         </DialogHeader>
         <FormProvider {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="patientId"

@@ -29,7 +29,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.INVOICING)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) { }
+  constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
   findAll(

@@ -14,20 +14,20 @@ export { ConsultationModalContainer } from "./ConsultationModalContainer";
 
 // Clinical Modals (API-connected)
 export {
-    PrescriptionModal,
-    VitalsModal,
-    BillingModal,
-    ConsultationNotesModal,
-    type ModalProps,
-    type Medication,
-    type VitalsFormData,
-    type LineItem,
+  PrescriptionModal,
+  VitalsModal,
+  BillingModal,
+  ConsultationNotesModal,
+  type ModalProps,
+  type Medication,
+  type VitalsFormData,
+  type LineItem,
 } from "./ClinicalModals";
 
 export { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
 // Dynamic Consultation Components
 export {
-    ClinicalDocumentationDynamic,
-    ClinicalExaminationDynamic,
+  ClinicalDocumentationDynamic,
+  ClinicalExaminationDynamic,
 } from "./ConsultationDynamic";

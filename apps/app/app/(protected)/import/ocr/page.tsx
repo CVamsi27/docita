@@ -28,17 +28,12 @@ export default function OCRPage() {
     toggleSection,
   } = useOCR();
 
-  const {
-    showQr,
-    setShowQr,
-    qrUrl,
-    startMobileUpload,
-  } = useMobileUpload();
+  const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
 
   const handleMobileUploadStart = () => {
     startMobileUpload((file, _url) => {
-        // We can pass the file directly to the OCR hook's handleFileChange
-        handleFileChange(file);
+      // We can pass the file directly to the OCR hook's handleFileChange
+      handleFileChange(file);
     });
   };
 
@@ -76,25 +71,21 @@ export default function OCRPage() {
 
         {/* Right Column: Correction Panel */}
         <OCRResults
-            scanned={scanned}
-            documentType={documentType}
-            confidenceScores={confidenceScores}
-            suggestedCorrections={suggestedCorrections}
-            formData={formData}
-            setFormData={setFormData}
-            expandedSections={expandedSections}
-            onToggleSection={toggleSection}
-            isSaving={isSaving}
-            onSave={handleSave}
+          scanned={scanned}
+          documentType={documentType}
+          confidenceScores={confidenceScores}
+          suggestedCorrections={suggestedCorrections}
+          formData={formData}
+          setFormData={setFormData}
+          expandedSections={expandedSections}
+          onToggleSection={toggleSection}
+          isSaving={isSaving}
+          onSave={handleSave}
         />
       </div>
 
       {/* QR Code Dialog */}
-      <OCRMobileDialog
-        open={showQr}
-        onOpenChange={setShowQr}
-        qrUrl={qrUrl}
-      />
+      <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -47,9 +46,7 @@ export function ConfirmDialog({
             {options.icon}
             {options.title}
           </DialogTitle>
-          <DialogDescription>
-            {options.description || ""}
-          </DialogDescription>
+          <DialogDescription>{options.description || ""}</DialogDescription>
         </DialogHeader>
 
         {requiresTypedConfirmation && (

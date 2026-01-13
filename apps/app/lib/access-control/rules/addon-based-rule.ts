@@ -3,9 +3,12 @@
  * Single Responsibility: Evaluate add-on based feature access
  */
 
-
-
-import { type AddOnType, AddOnType as AddOnTypeEnum, type IAccessContext, type IAccessRule } from "../interfaces";
+import {
+  type AddOnType,
+  AddOnType as AddOnTypeEnum,
+  type IAccessContext,
+  type IAccessRule,
+} from "../interfaces";
 
 /**
  * Feature to add-on mapping

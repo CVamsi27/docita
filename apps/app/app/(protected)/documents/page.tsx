@@ -13,7 +13,7 @@ export default function DocumentsPage() {
     sortConfig,
     handleSort,
     handleView,
-    handleDownload
+    handleDownload,
   } = useDocumentsLogic();
 
   return (

@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -73,7 +72,9 @@ export const ComplianceDashboard = ({
       <Card>
         <CardHeader>
           <CardTitle>Compliance Metrics Overview</CardTitle>
-          <CardDescription>Coding quality and timeliness metrics</CardDescription>
+          <CardDescription>
+            Coding quality and timeliness metrics
+          </CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">

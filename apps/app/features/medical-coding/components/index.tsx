@@ -1,11 +1,23 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
-import { Search, FileText, AlertCircle, CheckCircle2, BookOpen } from "lucide-react";
+import {
+  Search,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  BookOpen,
+} from "lucide-react";
 
 // Medical Coding Search Component
 export const MedicalCodingSearch: FC<{
@@ -20,7 +32,9 @@ export const MedicalCodingSearch: FC<{
           <BookOpen className="h-5 w-5 text-primary" />
           <div>
             <CardTitle>Medical Coding</CardTitle>
-            <CardDescription>Search ICD-10, CPT, and other codes</CardDescription>
+            <CardDescription>
+              Search ICD-10, CPT, and other codes
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -42,10 +56,14 @@ export const MedicalCodingSearch: FC<{
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="font-mono">{result.code}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {result.code}
+                  </Badge>
                   <span className="text-sm">{result.description}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{result.category}</span>
+                <span className="text-xs text-muted-foreground">
+                  {result.category}
+                </span>
               </div>
             ))}
           </div>
@@ -61,7 +79,12 @@ export const MedicalCodingSearch: FC<{
 
 // Coding Queue Component
 export const CodingQueue: FC<{
-  items?: Array<{ id: string; patientName: string; date: string; status: string }>;
+  items?: Array<{
+    id: string;
+    patientName: string;
+    date: string;
+    status: string;
+  }>;
 }> = ({ items = [] }) => {
   return (
     <Card className="border-none shadow-lg">

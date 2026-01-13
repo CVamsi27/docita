@@ -20,23 +20,26 @@ export const client = getAPIClient({
       localStorage.removeItem("docita_admin_token");
       localStorage.removeItem("docita_admin_user");
 
-      const reason = error.status === 401
-        ? "Your session has expired. Please log in again."
-        : "You no longer have access to this resource. Please log in again.";
+      const reason =
+        error.status === 401
+          ? "Your session has expired. Please log in again."
+          : "You no longer have access to this resource. Please log in again.";
 
       authLogoutCallback?.(reason);
     }
 
     // Check for 404 account deletion case (from original admin client)
     if (error.status === 404) {
-      const data = error.data as any;
+      const data = error.data as { message?: string };
       if (
         data?.message?.toLowerCase().includes("user") ||
         data?.message?.toLowerCase().includes("not found")
       ) {
         localStorage.removeItem("docita_admin_token");
         localStorage.removeItem("docita_admin_user");
-        authLogoutCallback?.("Your account has been deleted. Please contact support.");
+        authLogoutCallback?.(
+          "Your account has been deleted. Please contact support.",
+        );
       }
     }
   },
@@ -47,10 +50,8 @@ export const client = getAPIClient({
  */
 export const fetchWithAuth = async (
   endpoint: string,
-  options: any = {},
+  options: RequestInit & { skipAuth?: boolean } = {},
 ) => {
-  const { skipAuthCheck, ...rest } = options;
-  // Note: we're ignoring skipAuthCheck for now as the factory handles 401/403 globally
-  // and legacy code didn't use it much.
+  const { ...rest } = options;
   return client.request(endpoint, { ...rest, skipAuth: options.skipAuth });
 };

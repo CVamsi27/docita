@@ -19,12 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import {
-  Activity,
-  Calendar,
-  Clock,
-  FileText,
-} from "lucide-react";
+import { Activity, Calendar, Clock, FileText } from "lucide-react";
 import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 
@@ -36,27 +31,27 @@ import { PatientDocumentsTabUI } from "@/features/patients/components/PatientDoc
 export default function PatientDetailPage() {
   const params = useParams();
   const router = useRouter(); // needed for fallback redirects in logic? No, logic handles it mostly but hook returns handlers.
-  
+
   // Use the new hook
   const { state, handlers } = usePatientDetailLogic(params["id"] as string);
-  
-  const { 
-    patient, 
-    appointments, 
-    documents, 
-    statistics, 
-    loading, 
-    canAccessPatient, 
-    isEditDialogOpen, 
+
+  const {
+    patient,
+    appointments,
+    documents,
+    statistics,
+    loading,
+    canAccessPatient,
+    isEditDialogOpen,
     setIsEditDialogOpen,
-    canAccess 
+    canAccess,
   } = state;
 
-  const { 
-    handleBackToPatients, 
-    handleScheduleVisit, 
-    handleRepeatPrescription, 
-    handleRefetch 
+  const {
+    handleBackToPatients,
+    handleScheduleVisit,
+    handleRepeatPrescription,
+    handleRefetch,
   } = handlers;
 
   // Conditional returns
@@ -75,9 +70,7 @@ export default function PatientDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <p className="text-muted-foreground">Patient not found</p>
-        <Button onClick={handleBackToPatients}>
-          Back to Patients
-        </Button>
+        <Button onClick={handleBackToPatients}>Back to Patients</Button>
       </div>
     );
   }
@@ -88,9 +81,7 @@ export default function PatientDetailPage() {
         <p className="text-muted-foreground">
           You do not have access to this patient
         </p>
-        <Button onClick={handleBackToPatients}>
-          Back to Patients
-        </Button>
+        <Button onClick={handleBackToPatients}>Back to Patients</Button>
       </div>
     );
   }
@@ -98,7 +89,7 @@ export default function PatientDetailPage() {
   return (
     <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full p-6">
       {/* Top Navigation & Header */}
-      <PatientPageHeaderUI 
+      <PatientPageHeaderUI
         patient={{
           id: patient.id,
           firstName: patient.firstName,
@@ -189,7 +180,9 @@ export default function PatientDetailPage() {
           ) : (
             <PatientTimelineCompact
               appointments={appointments}
-              onViewDetails={(id) => router.push(`/consultation/${id}?from=patient`)}
+              onViewDetails={(id) =>
+                router.push(`/consultation/${id}?from=patient`)
+              }
               onRepeatPrescription={(id) => handleRepeatPrescription(id)}
             />
           )}

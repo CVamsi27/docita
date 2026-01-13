@@ -38,7 +38,7 @@ interface FeedbackFiltersQuery {
 @Controller('feedback')
 @UseGuards(JwtAuthGuard)
 export class FeedbackController {
-  constructor(private readonly feedbackService: FeedbackService) { }
+  constructor(private readonly feedbackService: FeedbackService) {}
 
   /**
    * Submit feedback

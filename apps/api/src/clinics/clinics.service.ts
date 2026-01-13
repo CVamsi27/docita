@@ -42,7 +42,7 @@ interface ClinicSettingsData {
 
 @Injectable()
 export class ClinicsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(data: CreateClinicData) {
     return this.prisma.clinic.create({

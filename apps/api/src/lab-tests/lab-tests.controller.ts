@@ -31,7 +31,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.LAB_TESTS)
 export class LabTestsController {
-  constructor(private readonly labTestsService: LabTestsService) { }
+  constructor(private readonly labTestsService: LabTestsService) {}
 
   // Lab Test Catalog
   @Get('catalog')

@@ -3,10 +3,7 @@
 import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Loader2,
-  Upload,
-} from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
@@ -126,7 +123,7 @@ export default function MobileUploadPage() {
             Given the instruction "Extract components", I'll keep it simple and just leave it here or inline it if it's small. 
             It's small.
         */}
-        
+
         {/* Upload Button */}
         <Button
           className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${

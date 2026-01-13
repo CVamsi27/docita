@@ -152,7 +152,7 @@ export function PatientSummaryCardUI({
           {hasSevereAllergy && (
             <TooltipProvider>
               <Tooltip>
-              <TooltipTrigger asChild>
+                <TooltipTrigger asChild>
                   <div className="flex items-center gap-1 text-red-600 animate-pulse">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-xs font-medium">ALERT</span>
@@ -209,11 +209,11 @@ export function PatientSummaryCardUI({
         {/* Main Grid Columns */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-             {/* Detailed Alerts */}
-             <div className="space-y-2">
-                <AllergyAlertUI allergies={allergies} />
-             </div>
-             {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
+            {/* Detailed Alerts */}
+            <div className="space-y-2">
+              <AllergyAlertUI allergies={allergies} />
+            </div>
+            {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
           </div>
 
           {/* Conditions Column */}
@@ -225,31 +225,35 @@ export function PatientSummaryCardUI({
           {/* Vitals Column */}
           <SummaryVitals vitals={latestVitals} />
         </div>
-         
-          {/* Expanded Content */}
-          {expanded && (
-            <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
-               <div>
-                  <h4 className="text-sm font-medium mb-2">Contact Information</h4>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {patient.phone && <div>📞 {patient.phone}</div>}
-                    {patient.email && <div>✉️ {patient.email}</div>}
-                    {patient.emergencyContact && <div>🚑 Emergency: {patient.emergencyContact}</div>}
-                  </div>
-               </div>
-               
-                <div>
-                   <h4 className="text-sm font-medium mb-2">Last Visit</h4>
-                   {lastVisit ? (
-                     <div className="text-sm text-muted-foreground">
-                       {format(lastVisit, "PPP")}
-                     </div>
-                   ) : (
-                     <div className="text-sm text-muted-foreground">No previous visits</div>
-                   )}
-                </div>
+
+        {/* Expanded Content */}
+        {expanded && (
+          <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Contact Information</h4>
+              <div className="space-y-1 text-sm text-muted-foreground">
+                {patient.phone && <div>📞 {patient.phone}</div>}
+                {patient.email && <div>✉️ {patient.email}</div>}
+                {patient.emergencyContact && (
+                  <div>🚑 Emergency: {patient.emergencyContact}</div>
+                )}
+              </div>
             </div>
-          )}
+
+            <div>
+              <h4 className="text-sm font-medium mb-2">Last Visit</h4>
+              {lastVisit ? (
+                <div className="text-sm text-muted-foreground">
+                  {format(lastVisit, "PPP")}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  No previous visits
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -258,4 +262,7 @@ export function PatientSummaryCardUI({
 // Re-export for backward compatibility
 export { AllergyAlertUI, CodeStatusAlertUI };
 export type { CodeStatus } from "./summary/CodeStatusAlertUI";
-export { CODE_STATUS_LABELS, CODE_STATUS_COLORS } from "./summary/CodeStatusAlertUI";
+export {
+  CODE_STATUS_LABELS,
+  CODE_STATUS_COLORS,
+} from "./summary/CodeStatusAlertUI";

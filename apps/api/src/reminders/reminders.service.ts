@@ -55,7 +55,7 @@ export class RemindersService {
     private whatsappService: WhatsappService,
     @Inject(forwardRef(() => WhatsappTemplatesService))
     private templatesService: WhatsappTemplatesService,
-  ) { }
+  ) {}
 
   async getSettings() {
     let settings = await this.prisma.reminderSettings.findFirst();

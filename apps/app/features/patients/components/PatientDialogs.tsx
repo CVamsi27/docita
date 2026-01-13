@@ -25,13 +25,23 @@ interface EditPatientDialogProps {
   onPatientUpdated?: () => void;
 }
 
-
 // Add Patient Dialog
-export const AddPatientDialog: FC<AddPatientDialogProps> = ({ open, onOpenChange, onPatientAdded }) => {
-  const [patient, setPatient] = useState({ firstName: '', lastName: '', phone: '', email: '', gender: '', dob: '' });
-  
+export const AddPatientDialog: FC<AddPatientDialogProps> = ({
+  open,
+  onOpenChange,
+  onPatientAdded,
+}) => {
+  const [patient, setPatient] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    gender: "",
+    dob: "",
+  });
+
   if (!open) return null;
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <Card className="w-full max-w-lg m-4">
@@ -40,27 +50,78 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({ open, onOpenChange
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-sm font-medium">First Name *</label>
-              <input className="w-full p-2 mt-1 rounded border bg-background" value={patient.firstName} onChange={(e) => setPatient({...patient, firstName: e.target.value})} /></div>
-            <div><label className="text-sm font-medium">Last Name *</label>
-              <input className="w-full p-2 mt-1 rounded border bg-background" value={patient.lastName} onChange={(e) => setPatient({...patient, lastName: e.target.value})} /></div>
-            <div><label className="text-sm font-medium">Phone *</label>
-              <input className="w-full p-2 mt-1 rounded border bg-background" value={patient.phone} onChange={(e) => setPatient({...patient, phone: e.target.value})} /></div>
-            <div><label className="text-sm font-medium">Email</label>
-              <input className="w-full p-2 mt-1 rounded border bg-background" type="email" value={patient.email} onChange={(e) => setPatient({...patient, email: e.target.value})} /></div>
-            <div><label className="text-sm font-medium">Gender</label>
-              <select className="w-full p-2 mt-1 rounded border bg-background" value={patient.gender} onChange={(e) => setPatient({...patient, gender: e.target.value})}>
+            <div>
+              <label className="text-sm font-medium">First Name *</label>
+              <input
+                className="w-full p-2 mt-1 rounded border bg-background"
+                value={patient.firstName}
+                onChange={(e) =>
+                  setPatient({ ...patient, firstName: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Last Name *</label>
+              <input
+                className="w-full p-2 mt-1 rounded border bg-background"
+                value={patient.lastName}
+                onChange={(e) =>
+                  setPatient({ ...patient, lastName: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Phone *</label>
+              <input
+                className="w-full p-2 mt-1 rounded border bg-background"
+                value={patient.phone}
+                onChange={(e) =>
+                  setPatient({ ...patient, phone: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Email</label>
+              <input
+                className="w-full p-2 mt-1 rounded border bg-background"
+                type="email"
+                value={patient.email}
+                onChange={(e) =>
+                  setPatient({ ...patient, email: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Gender</label>
+              <select
+                className="w-full p-2 mt-1 rounded border bg-background"
+                value={patient.gender}
+                onChange={(e) =>
+                  setPatient({ ...patient, gender: e.target.value })
+                }
+              >
                 <option value="">Select</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="other">Other</option>
               </select>
             </div>
-            <div><label className="text-sm font-medium">Date of Birth</label>
-              <input className="w-full p-2 mt-1 rounded border bg-background" type="date" value={patient.dob} onChange={(e) => setPatient({...patient, dob: e.target.value})} /></div>
+            <div>
+              <label className="text-sm font-medium">Date of Birth</label>
+              <input
+                className="w-full p-2 mt-1 rounded border bg-background"
+                type="date"
+                value={patient.dob}
+                onChange={(e) =>
+                  setPatient({ ...patient, dob: e.target.value })
+                }
+              />
+            </div>
           </div>
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange?.(false)}>
+              Cancel
+            </Button>
             <Button onClick={() => onOpenChange?.(false)}>Add Patient</Button>
           </div>
         </CardContent>

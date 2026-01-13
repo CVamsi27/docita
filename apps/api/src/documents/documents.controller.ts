@@ -22,7 +22,7 @@ import { UploadDocumentDto } from './dto/upload-document.dto';
 @Controller('documents')
 @UseGuards(JwtAuthGuard)
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) { }
+  constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
   findAll(

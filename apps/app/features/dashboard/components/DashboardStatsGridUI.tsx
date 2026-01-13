@@ -6,12 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import {
-  CalendarCheck2,
-  CheckCircle2,
-  Clock,
-  Users,
-} from "lucide-react";
+import { CalendarCheck2, CheckCircle2, Clock, Users } from "lucide-react";
 
 interface DashboardStatsGridProps {
   stats: {

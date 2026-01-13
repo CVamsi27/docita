@@ -6,12 +6,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  Baby,
-  Eye,
-  History,
-  Smile,
-} from "lucide-react";
+import { Baby, Eye, History, Smile } from "lucide-react";
 import {
   PatientAllergy,
   PatientSocialHistory,
@@ -185,7 +180,8 @@ export function PatientMedicalHistoryUI({
           </div>
           {!readOnly && (
             <CardDescription>
-              Add or remove conditions directly. Changes are saved automatically.
+              Add or remove conditions directly. Changes are saved
+              automatically.
             </CardDescription>
           )}
         </CardHeader>

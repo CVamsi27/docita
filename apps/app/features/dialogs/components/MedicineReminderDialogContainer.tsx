@@ -29,7 +29,8 @@ export function MedicineReminderDialogContainer({
 }: MedicineReminderDialogContainerProps) {
   const [formData, setFormData] =
     useState<MedicineReminderFormData>(initialFormData);
-  const { mutate: createReminder, isPending } = apiHooks.useCreateMedicineReminder();
+  const { mutate: createReminder, isPending } =
+    apiHooks.useCreateMedicineReminder();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,7 +56,7 @@ export function MedicineReminderDialogContainer({
       },
       onError: (error: Error) => {
         toast.error(error.message || "Failed to create reminder");
-      }
+      },
     });
   };
 

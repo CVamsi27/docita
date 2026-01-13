@@ -4,112 +4,112 @@ export const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 export const TEST_PASSWORD = "Test@123456";
 
 export interface UserData {
-    id: string;
-    email: string;
-    clinicId: string;
-    accessToken: string;
+  id: string;
+  email: string;
+  clinicId: string;
+  accessToken: string;
 }
 
 export async function fetchPatientByApi(
-    request: APIRequestContext,
-    id: string,
-    token: string,
+  request: APIRequestContext,
+  id: string,
+  token: string,
 ) {
-    try {
-        const res = await request.get(`${API_URL}/patients/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok()) {
-            console.log("fetchPatientByApi failed:", res.status(), await res.text());
-            return null;
-        }
-        return await res.json();
-    } catch (err) {
-        console.log("fetchPatientByApi error:", err);
-        return null;
+  try {
+    const res = await request.get(`${API_URL}/patients/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok()) {
+      console.log("fetchPatientByApi failed:", res.status(), await res.text());
+      return null;
     }
+    return await res.json();
+  } catch (err) {
+    console.log("fetchPatientByApi error:", err);
+    return null;
+  }
 }
 
 export async function setupTestUser(
-    request: APIRequestContext,
+  request: APIRequestContext,
 ): Promise<UserData> {
-    const uniqueEmail = `doctor${Date.now()}@test.com`;
-    const password = TEST_PASSWORD;
+  const uniqueEmail = `doctor${Date.now()}@test.com`;
+  const password = TEST_PASSWORD;
 
-    // Register user
-    const registerRes = await request.post(`${API_URL}/auth/register`, {
-        data: {
-            email: uniqueEmail,
-            password,
-            name: "Dr. History",
-            role: "DOCTOR",
-        },
+  // Register user
+  const registerRes = await request.post(`${API_URL}/auth/register`, {
+    data: {
+      email: uniqueEmail,
+      password,
+      name: "Dr. History",
+      role: "DOCTOR",
+    },
+  });
+
+  if (!registerRes.ok()) {
+    throw new Error(`User registration failed: ${await registerRes.text()}`);
+  }
+
+  const registerData = await registerRes.json();
+  const token = registerData.access_token || registerData.accessToken;
+
+  let userData: UserData = {
+    id: registerData.user.id,
+    email: registerData.user.email,
+    clinicId: registerData.user.clinicId,
+    accessToken: token,
+  };
+
+  // Create clinic and assign
+  try {
+    const clinicRes = await request.post(`${API_URL}/clinics`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        name: "History Clinic",
+        email: `clinic${Date.now()}@test.com`,
+        phone: "1234567890",
+        address: "123 History St",
+      },
     });
 
-    if (!registerRes.ok()) {
-        throw new Error(`User registration failed: ${await registerRes.text()}`);
-    }
+    if (clinicRes.ok()) {
+      const clinic = await clinicRes.json();
+      const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          doctorId: userData.id,
+          clinicId: clinic.id,
+          role: "doctor",
+        },
+      });
 
-    const registerData = await registerRes.json();
-    const token = registerData.access_token || registerData.accessToken;
-
-    let userData: UserData = {
-        id: registerData.user.id,
-        email: registerData.user.email,
-        clinicId: registerData.user.clinicId,
-        accessToken: token,
-    };
-
-    // Create clinic and assign
-    try {
-        const clinicRes = await request.post(`${API_URL}/clinics`, {
-            headers: { Authorization: `Bearer ${token}` },
-            data: {
-                name: "History Clinic",
-                email: `clinic${Date.now()}@test.com`,
-                phone: "1234567890",
-                address: "123 History St",
-            },
+      if (assignRes.ok()) {
+        const loginRes = await request.post(`${API_URL}/auth/login`, {
+          data: { email: userData.email, password },
         });
-
-        if (clinicRes.ok()) {
-            const clinic = await clinicRes.json();
-            const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
-                headers: { Authorization: `Bearer ${token}` },
-                data: {
-                    doctorId: userData.id,
-                    clinicId: clinic.id,
-                    role: "doctor",
-                },
-            });
-
-            if (assignRes.ok()) {
-                const loginRes = await request.post(`${API_URL}/auth/login`, {
-                    data: { email: userData.email, password },
-                });
-                if (loginRes.ok()) {
-                    const loginData = await loginRes.json();
-                    userData.accessToken =
-                        loginData.access_token || loginData.accessToken;
-                    userData.clinicId = loginData.user?.clinicId || userData.clinicId;
-                }
-            }
+        if (loginRes.ok()) {
+          const loginData = await loginRes.json();
+          userData.accessToken =
+            loginData.access_token || loginData.accessToken;
+          userData.clinicId = loginData.user?.clinicId || userData.clinicId;
         }
-    } catch (err) {
-        console.log("Clinic setup error:", err);
+      }
     }
+  } catch (err) {
+    console.log("Clinic setup error:", err);
+  }
 
-    return userData;
+  return userData;
 }
 
 export async function loginUser(page: Page, user: UserData) {
-    await page.goto("/login");
-    await page.fill('input[type="email"]', user.email);
-    await page.fill('input[type="password"]', TEST_PASSWORD);
-    await page.click('button[type="submit"]');
-    try {
-        await page.waitForURL("/dashboard", { timeout: 5000 });
-    } catch {
-        console.log("Redirected to a different page after login");
-    }
+  await page.goto("/login");
+  await page.fill('input[type="email"]', user.email);
+  await page.fill('input[type="password"]', TEST_PASSWORD);
+  await page.click('button[type="submit"]');
+  try {
+    await page.waitForURL("/dashboard", { timeout: 5000 });
+  } catch {
+    console.log("Redirected to a different page after login");
+  }
 }

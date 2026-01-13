@@ -1,9 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Pill,
-} from "lucide-react";
+import { Pill } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
@@ -11,9 +9,7 @@ import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@/hooks/use-debounce";
 
-import {
-  PrescriptionsFilters,
-} from "@/features/prescriptions/components/list/PrescriptionsFilters";
+import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {
   PrescriptionsTable,
   SortDirection,

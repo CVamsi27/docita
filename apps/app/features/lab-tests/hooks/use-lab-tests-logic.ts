@@ -1,4 +1,3 @@
-
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,137 +8,137 @@ import { Patient, LabTest, Doctor } from "@workspace/types";
 import { useDebounce } from "@/hooks/use-debounce";
 
 export interface PaginatedResponse<T> {
-    items: T[];
-    nextCursor?: string;
-    hasMore: boolean;
-    count: number;
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
 }
 
 export const createLabTestOrderSchema = z.object({
-    patientId: z.string().min(1, "Patient is required"),
-    labTestId: z.string().min(1, "Test is required"),
-    appointmentId: z.string().optional(),
-    notes: z.string().optional(),
+  patientId: z.string().min(1, "Patient is required"),
+  labTestId: z.string().min(1, "Test is required"),
+  appointmentId: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export type CreateLabTestOrderInput = z.infer<typeof createLabTestOrderSchema>;
 
 export const useLabTestsLogic = () => {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-    const [patientSearch, setPatientSearch] = useState("");
-    const [testSearch, setTestSearch] = useState("");
-    const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
-    const [testComboboxOpen, setTestComboboxOpen] = useState(false);
-    const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [testSearch, setTestSearch] = useState("");
+  const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
+  const [testComboboxOpen, setTestComboboxOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-    const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
-    const {
-        data: labTests = [],
-        isLoading,
-        refetch,
-        isFetching,
-    } = apiHooks.useLabTestOrders({
-        search: debouncedSearch,
-        status: statusFilter !== "all" ? statusFilter : undefined,
+  const {
+    data: labTests = [],
+    isLoading,
+    refetch,
+    isFetching,
+  } = apiHooks.useLabTestOrders({
+    search: debouncedSearch,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  });
+
+  const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
+
+  // Search logic for patients for sorting/dropdown
+  const { data: patientsResponse, isLoading: patientsLoading } =
+    apiHooks.usePatients({
+      ...(patientSearch && { search: patientSearch }),
+      limit: patientSearch ? 20 : 5,
     });
 
-    const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
+  const paginatedResponse = patientsResponse as
+    | PaginatedResponse<Patient>
+    | undefined;
+  const patients: Patient[] = paginatedResponse?.items || [];
 
-    // Search logic for patients for sorting/dropdown
-    const { data: patientsResponse, isLoading: patientsLoading } =
-        apiHooks.usePatients({
-            ...(patientSearch && { search: patientSearch }),
-            limit: patientSearch ? 20 : 5,
-        });
+  const { data: testCatalog = [], isLoading: catalogLoading } =
+    apiHooks.useLabTestCatalog();
 
-    const paginatedResponse = patientsResponse as
-        | PaginatedResponse<Patient>
-        | undefined;
-    const patients: Patient[] = paginatedResponse?.items || [];
+  const { mutateAsync: createOrder, isPending: isCreating } =
+    apiHooks.useCreateLabTestOrder();
 
-    const { data: testCatalog = [], isLoading: catalogLoading } =
-        apiHooks.useLabTestCatalog();
+  const form = useForm<CreateLabTestOrderInput>({
+    resolver: zodResolver(createLabTestOrderSchema),
+    defaultValues: {
+      patientId: "",
+      labTestId: "",
+      appointmentId: undefined,
+      notes: "",
+    },
+  });
 
-    const { mutateAsync: createOrder, isPending: isCreating } =
-        apiHooks.useCreateLabTestOrder();
+  // Get selected patient and test for display
+  const selectedPatient = patients.find(
+    (p) => p.id === form.watch("patientId"),
+  );
+  const selectedTest = testCatalog.find(
+    (t: any) => t.id === form.watch("labTestId"),
+  );
 
-    const form = useForm<CreateLabTestOrderInput>({
-        resolver: zodResolver(createLabTestOrderSchema),
-        defaultValues: {
-            patientId: "",
-            labTestId: "",
-            appointmentId: undefined,
-            notes: "",
-        },
-    });
+  // Backend-driven filtering
+  const filteredTests = labTests;
 
-    // Get selected patient and test for display
-    const selectedPatient = patients.find(
-        (p) => p.id === form.watch("patientId"),
-    );
-    const selectedTest = testCatalog.find(
-        (t: any) => t.id === form.watch("labTestId"),
-    );
-
-    // Backend-driven filtering
-    const filteredTests = labTests;
-
-    const onSubmitOrder = useCallback(
-        async (data: CreateLabTestOrderInput) => {
-            try {
-                await createOrder(data);
-                form.reset();
-                setIsOrderDialogOpen(false);
-                refetch();
-                toast.success("Lab test order created successfully");
-            } catch (error) {
-                console.error("Failed to create lab test order:", error);
-                const errorMessage =
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to create lab test order. Please try again.";
-                toast.error(errorMessage);
-            }
-        },
-        [createOrder, form, refetch],
-    );
-
-    const handleRefresh = () => {
+  const onSubmitOrder = useCallback(
+    async (data: CreateLabTestOrderInput) => {
+      try {
+        await createOrder(data);
+        form.reset();
+        setIsOrderDialogOpen(false);
         refetch();
-        refetchStats();
-    };
+        toast.success("Lab test order created successfully");
+      } catch (error) {
+        console.error("Failed to create lab test order:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to create lab test order. Please try again.";
+        toast.error(errorMessage);
+      }
+    },
+    [createOrder, form, refetch],
+  );
 
-    return {
-        labTests,
-        filteredTests,
-        stats,
-        isLoading,
-        isFetching,
-        searchQuery,
-        setSearchQuery,
-        isOrderDialogOpen,
-        setIsOrderDialogOpen,
-        form,
-        onSubmitOrder,
-        patients,
-        patientsLoading,
-        testCatalog,
-        catalogLoading,
-        isCreating,
-        patientSearch,
-        setPatientSearch,
-        testSearch,
-        setTestSearch,
-        patientComboboxOpen,
-        setPatientComboboxOpen,
-        testComboboxOpen,
-        setTestComboboxOpen,
-        selectedPatient,
-        selectedTest,
-        statusFilter,
-        setStatusFilter,
-        handleRefresh,
-    };
+  const handleRefresh = () => {
+    refetch();
+    refetchStats();
+  };
+
+  return {
+    labTests,
+    filteredTests,
+    stats,
+    isLoading,
+    isFetching,
+    searchQuery,
+    setSearchQuery,
+    isOrderDialogOpen,
+    setIsOrderDialogOpen,
+    form,
+    onSubmitOrder,
+    patients,
+    patientsLoading,
+    testCatalog,
+    catalogLoading,
+    isCreating,
+    patientSearch,
+    setPatientSearch,
+    testSearch,
+    setTestSearch,
+    patientComboboxOpen,
+    setPatientComboboxOpen,
+    testComboboxOpen,
+    setTestComboboxOpen,
+    selectedPatient,
+    selectedTest,
+    statusFilter,
+    setStatusFilter,
+    handleRefresh,
+  };
 };

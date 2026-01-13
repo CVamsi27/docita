@@ -62,7 +62,9 @@ export function DoctorDashboardCardsUI({
                   {currentPatient ? "Current Patient" : "No Active Session"}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {currentPatient ? "In consultation" : "Start your next patient"}
+                  {currentPatient
+                    ? "In consultation"
+                    : "Start your next patient"}
                 </p>
               </div>
             </div>
@@ -92,7 +94,11 @@ export function DoctorDashboardCardsUI({
                   {format(new Date(currentPatient.startTime), "h:mm a")}
                 </p>
               </div>
-              <Button asChild size="lg" className="gap-2 shadow-lg shadow-primary/20">
+              <Button
+                asChild
+                size="lg"
+                className="gap-2 shadow-lg shadow-primary/20"
+              >
                 <Link href={`/consultation/${currentPatient.id}`}>
                   <Play className="h-4 w-4" />
                   Continue
@@ -127,7 +133,9 @@ export function DoctorDashboardCardsUI({
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold">Queue Status</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                Queue Status
+              </CardTitle>
               <p className="text-xs text-muted-foreground">
                 {estimatedWaitTime > 0
                   ? `~${estimatedWaitTime} min wait`
@@ -139,19 +147,25 @@ export function DoctorDashboardCardsUI({
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20">
-              <p className="text-2xl font-bold text-amber-600">{queueStats.waiting}</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {queueStats.waiting}
+              </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Waiting
               </p>
             </div>
             <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20">
-              <p className="text-2xl font-bold text-blue-600">{queueStats.inProgress}</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {queueStats.inProgress}
+              </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Active
               </p>
             </div>
             <div className="p-3 rounded-xl bg-green-50 dark:bg-green-950/20">
-              <p className="text-2xl font-bold text-green-600">{queueStats.completed}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {queueStats.completed}
+              </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Done
               </p>

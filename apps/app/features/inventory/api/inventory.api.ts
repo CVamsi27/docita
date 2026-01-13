@@ -1,7 +1,10 @@
 import { api } from "@/lib/api-client";
 import { InventoryItem } from "@workspace/types";
 
-export type CreateInventoryItemInput = Omit<InventoryItem, "id" | "createdAt" | "updatedAt">;
+export type CreateInventoryItemInput = Omit<
+  InventoryItem,
+  "id" | "createdAt" | "updatedAt"
+>;
 export type UpdateInventoryItemInput = Partial<CreateInventoryItemInput>;
 
 /**
@@ -17,9 +20,11 @@ export const inventoryApi = {
 
   getById: (id: string) => api.get<InventoryItem>(`/inventory/${id}`),
 
-  create: (data: CreateInventoryItemInput) => api.post<InventoryItem>("/inventory", data),
+  create: (data: CreateInventoryItemInput) =>
+    api.post<InventoryItem>("/inventory", data),
 
-  update: (id: string, data: UpdateInventoryItemInput) => api.patch<InventoryItem>(`/inventory/${id}`, data),
+  update: (id: string, data: UpdateInventoryItemInput) =>
+    api.patch<InventoryItem>(`/inventory/${id}`, data),
 
   updateStock: (id: string, quantity: number, type: "add" | "subtract") =>
     api.post<InventoryItem>(`/inventory/${id}/stock`, { quantity, type }),

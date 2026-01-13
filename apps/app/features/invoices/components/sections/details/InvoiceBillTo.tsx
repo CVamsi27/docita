@@ -1,4 +1,3 @@
-
 import { Invoice } from "@workspace/types";
 
 interface InvoiceBillToProps {

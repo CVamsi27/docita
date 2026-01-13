@@ -1,27 +1,46 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
-import { MessageSquare, Star, Send, ThumbsUp, ThumbsDown, Smile, Meh, Frown } from "lucide-react";
+import {
+  MessageSquare,
+  Star,
+  Send,
+  ThumbsUp,
+  ThumbsDown,
+  Smile,
+  Meh,
+  Frown,
+} from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 // Feedback Form Component
 import { useFeedbackLogic, FeedbackType } from "../hooks/use-feedback-logic";
 
 export const FeedbackForm: FC<{
-  onSubmit?: (feedback: { rating: number; message: string; type: string }) => void;
+  onSubmit?: (feedback: {
+    rating: number;
+    message: string;
+    type: string;
+  }) => void;
 }> = ({ onSubmit }) => {
   const {
-      rating,
-      setRating,
-      message,
-      setMessage,
-      type,
-      setType,
-      handleSubmit
+    rating,
+    setRating,
+    message,
+    setMessage,
+    type,
+    setType,
+    handleSubmit,
   } = useFeedbackLogic(onSubmit);
 
   return (
@@ -48,7 +67,9 @@ export const FeedbackForm: FC<{
                 <Star
                   className={cn(
                     "h-8 w-8 transition-colors",
-                    star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+                    star <= rating
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground",
                   )}
                 />
               </button>

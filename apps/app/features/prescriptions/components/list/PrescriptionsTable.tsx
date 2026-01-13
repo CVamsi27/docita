@@ -1,4 +1,3 @@
-
 import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -20,7 +19,13 @@ import {
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp-button";
 import type { Prescription } from "@workspace/types";
 
@@ -150,12 +155,7 @@ export function PrescriptionsTable({
                     {format(new Date(prescription.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                      className="gap-2"
-                    >
+                    <Button variant="ghost" size="sm" asChild className="gap-2">
                       <Link href={`/prescriptions/${prescription.id}`}>
                         <Eye className="h-4 w-4" />
                         View

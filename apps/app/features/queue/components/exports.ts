@@ -15,4 +15,8 @@ export { QueueDashboard } from "./index";
 // Types
 export type { QueueStatsData, QueueStatsProps } from "./QueueStatsUI";
 export type { QueueFiltersProps } from "./QueueFiltersUI";
-export type { QueueItem, QueueItemStatus, QueueTableProps } from "./QueueTableUI";
+export type {
+  QueueItem,
+  QueueItemStatus,
+  QueueTableProps,
+} from "./QueueTableUI";

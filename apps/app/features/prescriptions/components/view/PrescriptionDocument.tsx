@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import { format } from "date-fns";
 import Image from "next/image";

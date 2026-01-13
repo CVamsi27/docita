@@ -86,7 +86,10 @@ export function BillingModal({
     }
   };
 
-  const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  const total = items.reduce(
+    (sum, item) => sum + item.quantity * item.price,
+    0,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,7 +139,11 @@ export function BillingModal({
                     min="1"
                     value={item.quantity}
                     onChange={(e) =>
-                      updateItem(index, "quantity", parseInt(e.target.value) || 1)
+                      updateItem(
+                        index,
+                        "quantity",
+                        parseInt(e.target.value) || 1,
+                      )
                     }
                   />
                 </div>
@@ -147,7 +154,11 @@ export function BillingModal({
                     step="0.01"
                     value={item.price}
                     onChange={(e) =>
-                      updateItem(index, "price", parseFloat(e.target.value) || 0)
+                      updateItem(
+                        index,
+                        "price",
+                        parseFloat(e.target.value) || 0,
+                      )
                     }
                   />
                 </div>
@@ -178,7 +189,9 @@ export function BillingModal({
 
           <div className="flex justify-end pt-4 border-t">
             <div className="text-right">
-              <span className="text-sm text-muted-foreground mr-4">Total Amount:</span>
+              <span className="text-sm text-muted-foreground mr-4">
+                Total Amount:
+              </span>
               <span className="text-xl font-bold">${total.toFixed(2)}</span>
             </div>
           </div>

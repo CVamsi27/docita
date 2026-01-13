@@ -1,4 +1,3 @@
-
 import React from "react";
 import { CheckCircle2, FileText, Smartphone } from "lucide-react";
 

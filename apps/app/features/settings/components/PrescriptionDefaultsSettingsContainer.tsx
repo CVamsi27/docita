@@ -7,8 +7,13 @@ import {
 } from "./PrescriptionDefaultsSettingsUI";
 
 export function PrescriptionDefaultsSettingsContainer() {
-  const { data: initialSettings, isLoading: loading, refetch } = apiHooks.usePrescriptionDefaults();
-  const { mutate: updateSettings, isPending: saving } = apiHooks.useUpdatePrescriptionDefaults();
+  const {
+    data: initialSettings,
+    isLoading: loading,
+    refetch,
+  } = apiHooks.usePrescriptionDefaults();
+  const { mutate: updateSettings, isPending: saving } =
+    apiHooks.useUpdatePrescriptionDefaults();
   const [settings, setSettings] = useState<PrescriptionDefaultsSettings>({
     defaultInstructions: "",
     defaultFooterText: "",
@@ -31,7 +36,7 @@ export function PrescriptionDefaultsSettingsContainer() {
       },
       onError: (error) => {
         toast.error(error.message || "Failed to save prescription defaults.");
-      }
+      },
     });
   };
 

@@ -8,7 +8,7 @@ import { unlink } from 'fs/promises';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(
     clinicId: string,

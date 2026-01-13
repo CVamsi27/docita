@@ -5,12 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  FlaskConical,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, FlaskConical } from "lucide-react";
 
 interface LabTestsOverviewProps {
   stats: {
@@ -31,9 +26,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.pending ?? 0}</div>
-          <p className="text-xs text-muted-foreground">
-            Awaiting processing
-          </p>
+          <p className="text-xs text-muted-foreground">Awaiting processing</p>
         </CardContent>
       </Card>
       <Card>
@@ -45,9 +38,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <div className="text-2xl font-bold text-blue-500">
             {stats?.inProgress ?? 0}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Currently processing
-          </p>
+          <p className="text-xs text-muted-foreground">Currently processing</p>
         </CardContent>
       </Card>
       <Card>
@@ -71,9 +62,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <div className="text-2xl font-bold text-red-500">
             {stats?.urgent ?? 0}
           </div>
-          <p className="text-xs text-muted-foreground">
-            High priority tests
-          </p>
+          <p className="text-xs text-muted-foreground">High priority tests</p>
         </CardContent>
       </Card>
     </div>

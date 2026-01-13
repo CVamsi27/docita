@@ -12,10 +12,19 @@ import type {
 } from "../interfaces";
 
 // Define analytics interface locally since it's an external script
-type StrictAnalyticsProperty = string | number | boolean | null | undefined | Date;
+type StrictAnalyticsProperty =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Date;
 
 interface Analytics {
-  track: (event: string, properties?: Record<string, StrictAnalyticsProperty>) => void;
+  track: (
+    event: string,
+    properties?: Record<string, StrictAnalyticsProperty>,
+  ) => void;
 }
 
 interface FeatureLockProperties {
@@ -49,7 +58,7 @@ declare global {
 }
 
 export class AnalyticsAccessControlDecorator implements IAccessControlService {
-  constructor(private wrapped: IAccessControlService) { }
+  constructor(private wrapped: IAccessControlService) {}
 
   async canAccess(context: IAccessContext): Promise<IAccessDecision> {
     const decision = await this.wrapped.canAccess(context);

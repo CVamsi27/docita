@@ -32,7 +32,7 @@ interface AuthRequest {
 
 @Controller('clinics')
 export class ClinicsController {
-  constructor(private readonly clinicsService: ClinicsService) { }
+  constructor(private readonly clinicsService: ClinicsService) {}
 
   @Post()
   create(@Body() dto: CreateClinicDto) {
@@ -117,7 +117,7 @@ export class ClinicsController {
 @Controller('clinic')
 @UseGuards(JwtAuthGuard)
 export class ClinicSettingsController {
-  constructor(private readonly clinicsService: ClinicsService) { }
+  constructor(private readonly clinicsService: ClinicsService) {}
 
   @Get('settings')
   async getSettings(@Request() req: AuthRequest) {

@@ -24,25 +24,25 @@ features/
 
 ## Available Features
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **patients** | Patient management, medical history | ✅ Complete |
-| **appointments** | Scheduling and calendar | ✅ Complete |
-| **consultation** | Clinical documentation | ✅ Complete |
-| **dashboard** | Analytics and overview | ✅ Complete |
-| **invoices** | Billing and payments | ✅ Complete |
-| **inventory** | Stock management | ✅ Complete |
-| **settings** | Configuration and preferences | ✅ Complete |
-| **dialogs** | Shared modal components | ✅ Complete |
-| **queue** | Patient queue management | ✅ Complete |
-| **medical-coding** | ICD-10, CPT codes | ✅ Complete |
-| **lab-tests** | Laboratory testing | ✅ Complete |
-| **documents** | File management, OCR | ✅ Complete |
-| **feedback** | User feedback | ✅ Complete |
-| **help** | Help center, FAQ | ✅ Complete |
-| **ipd** | Inpatient department | ✅ Complete |
-| **onboarding** | New user setup | ✅ Complete |
-| **_shared** | Shared utilities, guards | ✅ Complete |
+| Feature            | Description                         | Status      |
+| ------------------ | ----------------------------------- | ----------- |
+| **patients**       | Patient management, medical history | ✅ Complete |
+| **appointments**   | Scheduling and calendar             | ✅ Complete |
+| **consultation**   | Clinical documentation              | ✅ Complete |
+| **dashboard**      | Analytics and overview              | ✅ Complete |
+| **invoices**       | Billing and payments                | ✅ Complete |
+| **inventory**      | Stock management                    | ✅ Complete |
+| **settings**       | Configuration and preferences       | ✅ Complete |
+| **dialogs**        | Shared modal components             | ✅ Complete |
+| **queue**          | Patient queue management            | ✅ Complete |
+| **medical-coding** | ICD-10, CPT codes                   | ✅ Complete |
+| **lab-tests**      | Laboratory testing                  | ✅ Complete |
+| **documents**      | File management, OCR                | ✅ Complete |
+| **feedback**       | User feedback                       | ✅ Complete |
+| **help**           | Help center, FAQ                    | ✅ Complete |
+| **ipd**            | Inpatient department                | ✅ Complete |
+| **onboarding**     | New user setup                      | ✅ Complete |
+| **\_shared**       | Shared utilities, guards            | ✅ Complete |
 
 ## Business Rules
 
@@ -54,9 +54,13 @@ Each feature contains a `rules/` directory with pure functions for business logi
 - Type-safe
 
 Example:
+
 ```typescript
 // features/queue/rules/queueRules.ts
-export function calculateEstimatedWaitTime(position: number, avgTime: number): number {
+export function calculateEstimatedWaitTime(
+  position: number,
+  avgTime: number,
+): number {
   return position * avgTime;
 }
 ```
@@ -69,6 +73,7 @@ Components follow the Container/Presentational pattern:
 - **UI**: Pure presentation component, receives props
 
 Example:
+
 ```typescript
 // Container
 export function PatientListContainer() {

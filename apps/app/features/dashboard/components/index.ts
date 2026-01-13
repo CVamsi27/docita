@@ -9,10 +9,16 @@ export { DashboardQuickActionsContainer as DashboardQuickActions } from "./Dashb
 export { DashboardQuickActionsUI } from "./DashboardQuickActionsUI";
 
 // Stats grid
-export { DashboardStatsGridUI, DashboardStatsGrid } from "./DashboardStatsGridUI";
+export {
+  DashboardStatsGridUI,
+  DashboardStatsGrid,
+} from "./DashboardStatsGridUI";
 
 // Doctor dashboard cards
-export { DoctorDashboardCardsUI, DoctorDashboardCards } from "./DoctorDashboardCardsUI";
+export {
+  DoctorDashboardCardsUI,
+  DoctorDashboardCards,
+} from "./DoctorDashboardCardsUI";
 
 // Today's schedule
 export { TodayScheduleUI as TodaySchedule } from "./TodayScheduleUI";

@@ -37,7 +37,7 @@ export function TimeSlotPickerContainer({
           doctorId,
         });
         const response = await api.get<TimeSlot[]>(
-          `/appointments/time-slots?${queryParams.toString()}`
+          `/appointments/time-slots?${queryParams.toString()}`,
         );
         setTimeSlots(response);
       } catch (error) {

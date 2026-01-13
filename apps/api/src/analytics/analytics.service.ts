@@ -22,7 +22,7 @@ export class AnalyticsService {
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) { }
+  ) {}
 
   /**
    * Get read-optimized Prisma client (read replica if available)
@@ -74,7 +74,10 @@ export class AnalyticsService {
         where: { clinicId, createdAt: { gte: thisMonthRange.start } },
       }),
       readClient.invoice.aggregate({
-        where: { patient: { clinicId }, createdAt: { gte: thisMonthRange.start } },
+        where: {
+          patient: { clinicId },
+          createdAt: { gte: thisMonthRange.start },
+        },
         _sum: { total: true },
       }),
       readClient.invoice.aggregate({
@@ -93,8 +96,8 @@ export class AnalyticsService {
     const patientGrowth =
       newPatientsLastMonth > 0
         ? ((newPatientsThisMonth - newPatientsLastMonth) /
-          newPatientsLastMonth) *
-        100
+            newPatientsLastMonth) *
+          100
         : 0;
 
     const revenueGrowth =
@@ -203,7 +206,10 @@ export class AnalyticsService {
     return data;
   }
 
-  async getAppointmentStats(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
+  async getAppointmentStats(
+    clinicId: string,
+    timezone: string = DEFAULT_TIMEZONE,
+  ) {
     const monthRange = getMonthRange(new Date(), { timezone });
     const readClient = this.getReadClient();
 
@@ -986,7 +992,7 @@ export class AnalyticsService {
           avgInvoiceAmount:
             revenue.length > 0
               ? revenue.reduce((sum, r) => sum + r.totalRevenue, 0) /
-              revenue.length
+                revenue.length
               : 0,
           totalAppointments,
           completedAppts: completedAppointments,

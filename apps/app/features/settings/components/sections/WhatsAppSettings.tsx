@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
@@ -23,7 +29,9 @@ export function WhatsAppAutomationSettings() {
             <MessageSquare className="h-5 w-5 text-green-600" />
             <div>
               <CardTitle>WhatsApp Automation</CardTitle>
-              <CardDescription>Configure automated patient messaging</CardDescription>
+              <CardDescription>
+                Configure automated patient messaging
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -31,41 +39,57 @@ export function WhatsAppAutomationSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>Appointment Reminders</Label>
-              <p className="text-sm text-muted-foreground">Send reminders before appointments</p>
+              <p className="text-sm text-muted-foreground">
+                Send reminders before appointments
+              </p>
             </div>
             <Switch
               checked={settings.appointmentReminders}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, appointmentReminders: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, appointmentReminders: checked }))
+              }
             />
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>Follow-up Messages</Label>
-              <p className="text-sm text-muted-foreground">Send follow-up reminders after visits</p>
+              <p className="text-sm text-muted-foreground">
+                Send follow-up reminders after visits
+              </p>
             </div>
             <Switch
               checked={settings.followUpMessages}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, followUpMessages: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, followUpMessages: checked }))
+              }
             />
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>Birthday Wishes</Label>
-              <p className="text-sm text-muted-foreground">Send birthday greetings to patients</p>
+              <p className="text-sm text-muted-foreground">
+                Send birthday greetings to patients
+              </p>
             </div>
             <Switch
               checked={settings.birthdayWishes}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, birthdayWishes: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, birthdayWishes: checked }))
+              }
             />
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>Medicine Reminders</Label>
-              <p className="text-sm text-muted-foreground">Send medication reminders to patients</p>
+              <p className="text-sm text-muted-foreground">
+                Send medication reminders to patients
+              </p>
             </div>
             <Switch
               checked={settings.medicineReminders}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, medicineReminders: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, medicineReminders: checked }))
+              }
             />
           </div>
           <Button className="w-full">Save Changes</Button>

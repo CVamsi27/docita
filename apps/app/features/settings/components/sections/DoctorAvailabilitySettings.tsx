@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -15,7 +21,9 @@ export function DoctorAvailabilitySettings() {
             <Calendar className="h-5 w-5 text-blue-600" />
             <div>
               <CardTitle>Doctor Availability</CardTitle>
-              <CardDescription>Configure working hours and availability</CardDescription>
+              <CardDescription>
+                Configure working hours and availability
+              </CardDescription>
             </div>
           </div>
         </CardHeader>

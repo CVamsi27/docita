@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
@@ -29,7 +35,9 @@ export function BillingSettings() {
         <div className="flex items-center justify-between">
           <div>
             <Label>Enable Online Payments</Label>
-            <p className="text-sm text-muted-foreground">Accept payments via Razorpay</p>
+            <p className="text-sm text-muted-foreground">
+              Accept payments via Razorpay
+            </p>
           </div>
           <Switch defaultChecked />
         </div>

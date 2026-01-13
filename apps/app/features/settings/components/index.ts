@@ -35,7 +35,6 @@ export {
   TemplatesSettings,
   AppearanceSettings,
   DoctorProfileModal,
-
   PaymentModal,
 } from "./SettingsComponents";
 

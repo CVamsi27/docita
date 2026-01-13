@@ -1,4 +1,3 @@
-
 import { Activity } from "lucide-react";
 import { smartTemperatureToFahrenheit } from "@workspace/utils";
 

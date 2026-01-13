@@ -1,13 +1,16 @@
 "use client";
 
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "@workspace/ui/components/card";
+import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft, Download, Edit, FileText, Printer, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  Edit,
+  FileText,
+  Printer,
+  Share2,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -134,7 +137,8 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           <CardFooter className="flex-col items-center justify-center border-t py-6 text-center text-sm text-muted-foreground bg-muted/10 print:bg-transparent">
             <p className="mb-1">Thank you for your business!</p>
             <p className="text-xs">
-              This is a computer generated invoice and does not require a signature.
+              This is a computer generated invoice and does not require a
+              signature.
             </p>
           </CardFooter>
         </Card>

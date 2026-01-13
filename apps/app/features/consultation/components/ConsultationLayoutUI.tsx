@@ -1,4 +1,3 @@
-
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { PanelLeft } from "lucide-react";
@@ -42,7 +41,7 @@ export function ConsultationLayoutUI({
             <PanelLeft className="h-4 w-4" />
           </Button>
         )}
-        
+
         {MainContent}
       </div>
     </div>

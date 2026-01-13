@@ -1,4 +1,3 @@
-
 import React from "react";
 import { DentalChartUI } from "./specialty/DentalChartUI";
 import { VisionExamUI } from "./specialty/VisionExamUI";

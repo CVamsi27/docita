@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -87,14 +86,20 @@ export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
               dataKey="count"
             >
               {data.slice(0, 8).map((_entry: any, index: number) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
               ))}
             </Pie>
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
       ) : (
-        <EmptyState icon={Activity} label="No procedure volume data available" />
+        <EmptyState
+          icon={Activity}
+          label="No procedure volume data available"
+        />
       )}
     </CardContent>
   </Card>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Table,
@@ -12,7 +11,13 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Eye, Package } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import type { InventoryItem } from "@workspace/types";
 import type { StockStatus } from "../../../hooks/use-inventory-logic";
 
@@ -65,7 +70,10 @@ export function InventoryTable({
               </TableHeader>
               <TableBody>
                 {items.map((item) => {
-                  const status = getStockStatus(item.quantity, item.minQuantity);
+                  const status = getStockStatus(
+                    item.quantity,
+                    item.minQuantity,
+                  );
                   return (
                     <TableRow
                       key={item.id}

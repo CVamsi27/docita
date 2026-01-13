@@ -62,7 +62,12 @@ export function EditInvoiceDialogContainer({
       try {
         await updateInvoiceMutation.mutateAsync({
           items,
-          status: status as "pending" | "paid" | "cancelled" | "overdue" | undefined,
+          status: status as
+            | "pending"
+            | "paid"
+            | "cancelled"
+            | "overdue"
+            | undefined,
           total: calculateTotal(),
         });
         toast.success("Invoice updated successfully");

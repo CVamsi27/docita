@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -9,13 +8,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  Brain,
-  Loader2,
-  Shield,
-  Sparkles,
-  Stethoscope,
-} from "lucide-react";
+import { Brain, Loader2, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "../../hooks/use-ai-assistant-logic";
 import { EmptyState } from "../AIAssistantUI";

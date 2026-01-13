@@ -1,4 +1,3 @@
-
 import { FC } from "react";
 import {
   Card,
@@ -105,11 +104,7 @@ export const InvoicesPageUI: FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleRefresh}
-            >
+            <Button variant="outline" className="gap-2" onClick={handleRefresh}>
               <RefreshCw
                 className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
               />
@@ -127,9 +122,7 @@ export const InvoicesPageUI: FC = () => {
         {/* Filters and Controls */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-medium">
-              Filter & Sort
-            </CardTitle>
+            <CardTitle className="text-lg font-medium">Filter & Sort</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4">
@@ -224,10 +217,7 @@ export const InvoicesPageUI: FC = () => {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                              >
+                              <Button variant="ghost" className="h-8 w-8 p-0">
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -244,7 +234,9 @@ export const InvoicesPageUI: FC = () => {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleDownloadPdf(invoice.id || "")}
+                                onClick={() =>
+                                  handleDownloadPdf(invoice.id || "")
+                                }
                                 className="cursor-pointer"
                               >
                                 <Download className="mr-2 h-4 w-4" />

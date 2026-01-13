@@ -100,9 +100,7 @@ export const OCRPatientInfo = ({
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Age</Label>
                 <ConfidenceIndicator
-                  {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("age"),
-                  )}
+                  {...((s) => (s != null ? { score: s } : {}))(getScore("age"))}
                 />
               </div>
               <Input

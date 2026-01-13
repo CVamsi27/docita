@@ -7,30 +7,30 @@ export default function DashboardPage() {
   const { state } = useDashboardLogic();
 
   const {
-      stats,
-      castRecentPatients,
-      todayAppointments,
-      completedToday,
-      inProgressToday,
-      currentPatient,
-      nextPatients,
-      waitingCount,
-      isLoading,
-      canAccess
+    stats,
+    castRecentPatients,
+    todayAppointments,
+    completedToday,
+    inProgressToday,
+    currentPatient,
+    nextPatients,
+    waitingCount,
+    isLoading,
+    canAccess,
   } = state;
 
   return (
-    <DashboardUI 
-        stats={stats}
-        recentPatients={castRecentPatients}
-        todayAppointments={todayAppointments}
-        completedToday={completedToday}
-        inProgressToday={inProgressToday}
-        currentPatient={currentPatient}
-        nextPatients={nextPatients}
-        waitingCount={waitingCount}
-        isLoading={isLoading}
-        canAccess={canAccess}
+    <DashboardUI
+      stats={stats}
+      recentPatients={castRecentPatients}
+      todayAppointments={todayAppointments}
+      completedToday={completedToday}
+      inProgressToday={inProgressToday}
+      currentPatient={currentPatient}
+      nextPatients={nextPatients}
+      waitingCount={waitingCount}
+      isLoading={isLoading}
+      canAccess={canAccess}
     />
   );
 }

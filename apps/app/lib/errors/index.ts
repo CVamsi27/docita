@@ -57,7 +57,14 @@ export class RateLimitError extends AppError {
 /**
  * Error Handler Utilities
  */
-export type LogContextValue = string | number | boolean | null | undefined | Date | object;
+export type LogContextValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Date
+  | object;
 
 export const errorHandler = {
   getErrorMessage: (error: Error | unknown): string => {
@@ -71,9 +78,11 @@ export const errorHandler = {
     return false;
   },
 
-  logError: <T extends Record<string, LogContextValue> = Record<string, LogContextValue>>(
+  logError: <
+    T extends Record<string, LogContextValue> = Record<string, LogContextValue>,
+  >(
     error: Error | unknown,
-    context?: T
+    context?: T,
   ) => {
     console.error("Error occurred:", {
       error: error instanceof Error ? error.message : error,

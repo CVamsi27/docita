@@ -26,7 +26,7 @@ interface AuthRequest {
 @Controller('reminders')
 @UseGuards(JwtAuthGuard)
 export class RemindersController {
-  constructor(private readonly remindersService: RemindersService) { }
+  constructor(private readonly remindersService: RemindersService) {}
 
   @Get('settings')
   getSettings() {

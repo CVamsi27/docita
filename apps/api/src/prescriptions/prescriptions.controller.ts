@@ -27,7 +27,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 export class PrescriptionsController {
-  constructor(private readonly prescriptionsService: PrescriptionsService) { }
+  constructor(private readonly prescriptionsService: PrescriptionsService) {}
 
   @Get()
   findAll(

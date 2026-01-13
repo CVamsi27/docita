@@ -3,7 +3,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
 import { Gender } from '@workspace/db';
-import { OCRService } from './ocr.service';
+import { OCRService, ParsedMedicalFields } from './ocr.service';
+
+interface OcrExtractionResult {
+  success: boolean;
+  method: string;
+  text: string;
+  documentType: string;
+  confidence: number;
+  fields: ParsedMedicalFields & { fieldConfidence: Record<string, number> };
+  suggestedCorrections: Record<string, any>;
+  message: string;
+}
 import {
   PATIENT_FIELD_MAPPINGS,
   ColumnMapping,
@@ -423,7 +434,14 @@ export class ImportsService {
    * Extract text from medical document image using Tesseract.js
    * Includes image preprocessing for better accuracy (75-85%)
    */
-  async extractFromMedicalDocumentBasic(filePath: string): Promise<any> {
+
+  /**
+   * Extract text from medical document image using Tesseract.js
+   * Includes image preprocessing for better accuracy (75-85%)
+   */
+  async extractFromMedicalDocumentBasic(
+    filePath: string,
+  ): Promise<OcrExtractionResult> {
     this.logger.log(`[IMPORT] Starting OCR extraction for file: ${filePath}`);
     try {
       // Use Tesseract.js with preprocessing
@@ -460,37 +478,13 @@ export class ImportsService {
         documentType: ocrResult.documentType,
         confidence: ocrResult.confidence,
         fields: {
-          firstName: fields.firstName || '',
-          lastName: fields.lastName || '',
-          age: fields.age || '',
-          gender: fields.gender || 'MALE',
-          phoneNumber: fields.phoneNumber || '',
-          email: fields.email || '',
-          bloodType: fields.bloodType || '',
-          diagnosis: fields.diagnosis || '',
-          symptoms: fields.symptoms || [],
-          allergies: fields.allergies || [],
-          medicalHistory: fields.medicalHistory || [],
-          medications: fields.medications || [],
-          vitals: {
-            bp: fields.vitals?.bp || '',
-            temp: fields.vitals?.temp || '',
-            pulse: fields.vitals?.pulse || '',
-            respiratoryRate: fields.vitals?.respiratoryRate || '',
-            spO2: fields.vitals?.spO2 || '',
-            glucose: fields.vitals?.glucose || '',
-          },
-          labValues: {
-            glucose: fields.labValues?.glucose || '',
-            hemoglobin: fields.labValues?.hemoglobin || '',
-            creatinine: fields.labValues?.creatinine || '',
-          },
+          ...fields,
           fieldConfidence,
         },
         suggestedCorrections: {},
         message,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `[IMPORT] OCR extraction failed: ${error.message}`,
         error.stack,

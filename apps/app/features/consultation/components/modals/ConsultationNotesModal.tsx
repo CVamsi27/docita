@@ -14,7 +14,10 @@ import { apiHooks } from "@/lib/api-hooks";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 
-export interface ConsultationNotesModalProps extends Omit<ModalProps, 'onSaved'> {
+export interface ConsultationNotesModalProps extends Omit<
+  ModalProps,
+  "onSaved"
+> {
   onSaved?: () => Promise<void>;
 }
 

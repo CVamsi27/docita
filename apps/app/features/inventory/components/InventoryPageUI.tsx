@@ -1,4 +1,3 @@
-
 import { FC } from "react";
 import {
   Card,
@@ -96,11 +95,7 @@ export const InventoryPageUI: FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleRefresh}
-            >
+            <Button variant="outline" className="gap-2" onClick={handleRefresh}>
               <RefreshCw
                 className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
               />

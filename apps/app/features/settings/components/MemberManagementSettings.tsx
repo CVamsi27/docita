@@ -8,10 +8,6 @@ export const MemberManagementSettings: FC = () => {
   const { members, isLoading, error } = useMemberManagementLogic();
 
   return (
-    <MemberManagementUI
-      members={members}
-      isLoading={isLoading}
-      error={error}
-    />
+    <MemberManagementUI members={members} isLoading={isLoading} error={error} />
   );
 };

@@ -22,16 +22,11 @@ export function InfinitePatientsListContainer({
   const router = useRouter();
 
   // Use infinite patients query
-  const { 
-    data, 
-    isLoading, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
-  } = apiHooks.useInfinitePatients({
-    search: searchQuery,
-    limit,
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    apiHooks.useInfinitePatients({
+      search: searchQuery,
+      limit,
+    });
 
   const patients = data?.pages.flatMap((page) => page.items) || [];
   const hasMore = !!hasNextPage;

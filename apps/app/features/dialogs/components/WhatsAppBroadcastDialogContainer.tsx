@@ -26,7 +26,8 @@ export function WhatsAppBroadcastDialogContainer({
 }: WhatsAppBroadcastDialogContainerProps) {
   const [formData, setFormData] =
     useState<WhatsAppBroadcastFormData>(initialFormData);
-  const { mutate: createBroadcast, isPending: isLoading } = apiHooks.useCreateWhatsAppBroadcast();
+  const { mutate: createBroadcast, isPending: isLoading } =
+    apiHooks.useCreateWhatsAppBroadcast();
 
   const resetForm = () => setFormData(initialFormData);
   const handleFormChange = (data: Partial<WhatsAppBroadcastFormData>) => {
@@ -48,7 +49,7 @@ export function WhatsAppBroadcastDialogContainer({
       },
       onError: (error: Error) => {
         toast.error(error.message || "Failed to create campaign");
-      }
+      },
     });
   };
   const handleClose = () => {

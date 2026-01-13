@@ -23,12 +23,12 @@ export function WhatsAppButton({
 }: WhatsAppButtonProps) {
   const handleClick = () => {
     if (!phoneNumber) return;
-    
+
     // Format phone number (remove non-digits)
     const formattedPhone = phoneNumber.replace(/\D/g, "");
     const encodedMessage = message ? encodeURIComponent(message) : "";
     const whatsappUrl = `https://wa.me/${formattedPhone}${encodedMessage ? `?text=${encodedMessage}` : ""}`;
-    
+
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 

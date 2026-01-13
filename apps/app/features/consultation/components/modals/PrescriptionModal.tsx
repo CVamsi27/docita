@@ -52,14 +52,11 @@ export function PrescriptionModal({
     { limit: 1 },
     { enabled: !!patientId },
   );
-  
+
   const lastRx = lastRxData?.items?.[0];
 
   const handleRepeatLastRx = () => {
-    if (
-      lastRx &&
-      lastRx.medications
-    ) {
+    if (lastRx && lastRx.medications) {
       const medicationsFromLastRx = lastRx.medications.map((m) => ({
         name: m.name,
         dosage: m.dosage,

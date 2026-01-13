@@ -146,11 +146,11 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                     (form.watch(`items.${index}.price`) || 0),
                 }))}
                 onUpdateItem={(index, key, value) => {
-                   const fieldName = key === "unitPrice" ? "price" : key;
-                   form.setValue(
-                     `items.${index}.${fieldName}` as any, // dynamic path
-                     value
-                   );
+                  const fieldName = key === "unitPrice" ? "price" : key;
+                  form.setValue(
+                    `items.${index}.${fieldName}` as any, // dynamic path
+                    value,
+                  );
                 }}
                 onRemoveItem={remove}
                 formatCurrency={formatCurrency}

@@ -200,7 +200,7 @@ export function useAppointmentForm({
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
             data.endTime ||
-            new Date(new Date(data.startTime).getTime() + durationMs),
+              new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
 

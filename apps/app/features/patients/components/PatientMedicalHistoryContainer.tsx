@@ -50,13 +50,13 @@ export function PatientMedicalHistoryContainer({
   };
 
   const handleCustomDataUpdate = (key: string, value: unknown) => {
-      const currentCustomData = patient.customData || {};
-      handleUpdate({
-          customData: {
-              ...currentCustomData,
-              [key]: value
-          }
-      });
+    const currentCustomData = patient.customData || {};
+    handleUpdate({
+      customData: {
+        ...currentCustomData,
+        [key]: value,
+      },
+    });
   };
 
   const addCondition = () => {
@@ -75,7 +75,6 @@ export function PatientMedicalHistoryContainer({
     });
     setNewCondition("");
   };
-
 
   const removeCondition = (id: string) => {
     const currentConditions = patient.medicalConditions || [];

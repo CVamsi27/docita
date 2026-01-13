@@ -31,7 +31,8 @@ export function useUpdateConsultation(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) => consultationApi.update(id, data),
+    mutationFn: (data: Record<string, unknown>) =>
+      consultationApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["consultations"] });
       toast.success("Consultation updated");

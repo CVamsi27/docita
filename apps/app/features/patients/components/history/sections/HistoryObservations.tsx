@@ -1,7 +1,10 @@
-
 import { FileText } from "lucide-react";
 
-export function HistoryObservations({ observations }: { observations: string }) {
+export function HistoryObservations({
+  observations,
+}: {
+  observations: string;
+}) {
   if (!observations) return null;
 
   return (

@@ -1,10 +1,22 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { TestTube, Clock, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
+import {
+  TestTube,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
+} from "lucide-react";
 
 // Lab Order Card
 export const LabOrderCard: FC<{
@@ -38,7 +50,9 @@ export const LabOrderCard: FC<{
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">{order.orderedAt}</span>
+          <span className="text-sm text-muted-foreground">
+            {order.orderedAt}
+          </span>
           <Badge className={statusColors[order.status]}>{order.status}</Badge>
         </div>
       </CardContent>
@@ -91,7 +105,9 @@ export const LabResultsSummary: FC<{
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono">{result.value}</span>
-                  <span className="text-sm text-muted-foreground">{result.unit}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {result.unit}
+                  </span>
                 </div>
               </div>
             ))}
@@ -117,16 +133,17 @@ export const LabOrderForm: FC<{
   const [searchTerm, setSearchTerm] = useState("");
 
   const toggleTest = (testId: string) => {
-    setSelectedTests((prev: string[]) => 
-      prev.includes(testId) 
+    setSelectedTests((prev: string[]) =>
+      prev.includes(testId)
         ? prev.filter((id: string) => id !== testId)
-        : [...prev, testId]
+        : [...prev, testId],
     );
   };
 
-  const filteredTests = availableTests.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTests = availableTests.filter(
+    (t) =>
+      t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -144,12 +161,12 @@ export const LabOrderForm: FC<{
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="max-h-[300px] overflow-y-auto space-y-2 border rounded-md p-2">
           {filteredTests.map((test) => (
             <div
               key={test.id}
-              className={`flex items-center justify-between p-2 rounded cursor-pointer border ${selectedTests.includes(test.id) ? 'bg-primary/5 border-primary/20' : 'hover:bg-muted/50 border-transparent'}`}
+              className={`flex items-center justify-between p-2 rounded cursor-pointer border ${selectedTests.includes(test.id) ? "bg-primary/5 border-primary/20" : "hover:bg-muted/50 border-transparent"}`}
               onClick={() => toggleTest(test.id)}
             >
               <div>
@@ -157,15 +174,19 @@ export const LabOrderForm: FC<{
                 <p className="text-xs text-muted-foreground">{test.category}</p>
               </div>
               {selectedTests.includes(test.id) && (
-                <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px]">✓</div>
+                <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px]">
+                  ✓
+                </div>
               )}
             </div>
           ))}
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t">
-          <p className="text-sm text-muted-foreground">{selectedTests.length} tests selected</p>
-          <Button 
+          <p className="text-sm text-muted-foreground">
+            {selectedTests.length} tests selected
+          </p>
+          <Button
             disabled={selectedTests.length === 0}
             onClick={() => onSubmit?.({ tests: selectedTests })}
           >

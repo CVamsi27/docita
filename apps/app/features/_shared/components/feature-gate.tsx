@@ -37,7 +37,10 @@ export function FeatureGate({ children }: FeatureGateProps) {
 }
 
 // Feature Tier Badge - shows which tier a feature requires
-export function FeatureTierBadge({ feature, className }: FeatureTierBadgeProps) {
+export function FeatureTierBadge({
+  feature,
+  className,
+}: FeatureTierBadgeProps) {
   if (!feature) return null;
   return (
     <Badge variant="outline" className={className}>
@@ -49,7 +52,7 @@ export function FeatureTierBadge({ feature, className }: FeatureTierBadgeProps) 
 // Tier Badge - shows current subscription tier
 export function TierBadge({ tier, className }: TierBadgeProps) {
   if (tier === undefined || tier === null) return null;
-  
+
   const tierColors: Record<Tier, string> = {
     [Tier.CAPTURE]: "bg-gray-100 text-gray-700",
     [Tier.CORE]: "bg-blue-100 text-blue-700",
@@ -88,4 +91,9 @@ export function useTier(): Tier {
 }
 
 // Export types
-export type { FeatureGateProps, TierGateProps, FeatureTierBadgeProps, TierBadgeProps };
+export type {
+  FeatureGateProps,
+  TierGateProps,
+  FeatureTierBadgeProps,
+  TierBadgeProps,
+};

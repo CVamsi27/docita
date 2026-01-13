@@ -1,4 +1,3 @@
-
 import { Pill } from "lucide-react";
 
 interface Medication {

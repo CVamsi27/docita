@@ -1,19 +1,22 @@
-import { Button } from '@workspace/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
-import { Label } from '@workspace/ui/components/label';
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@workspace/ui/components/select';
-import { cn } from '@workspace/ui/lib/utils';
-import { useState } from 'react';
-import { useConstants } from '../../../../hooks/api/use-common';
-import { Skeleton } from '@workspace/ui/components/skeleton';
-
-
+} from "@workspace/ui/components/select";
+import { cn } from "@workspace/ui/lib/utils";
+import { useState } from "react";
+import { useConstants } from "../../../../hooks/api/use-common";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 
 interface ToothData {
   condition: string;
@@ -28,7 +31,11 @@ interface DentalChartUIProps {
   readOnly?: boolean;
 }
 
-export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps) {
+export function DentalChartUI({
+  value,
+  onChange,
+  readOnly,
+}: DentalChartUIProps) {
   const { data: constants, isLoading } = useConstants();
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
 
@@ -36,11 +43,12 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
     return <Skeleton className="h-[400px] w-full rounded-xl" />;
   }
 
-  const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } = constants;
-  
+  const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } =
+    constants;
+
   // Helper to safely get tooth data
   const getToothData = (toothId: number) => {
-    return value?.[toothId] || { condition: 'HEALTHY', notes: '' };
+    return value?.[toothId] || { condition: "HEALTHY", notes: "" };
   };
 
   const handleToothClick = (toothId: number) => {
@@ -74,7 +82,9 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
 
   const renderTooth = (toothId: number) => {
     const data = getToothData(toothId);
-    const condition = TOOTH_CONDITIONS.find((c) => c.value === data.condition) || TOOTH_CONDITIONS[0];
+    const condition =
+      TOOTH_CONDITIONS.find((c) => c.value === data.condition) ||
+      TOOTH_CONDITIONS[0];
     const isSelected = selectedTooth === toothId;
 
     return (
@@ -83,28 +93,37 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
         type="button"
         onClick={() => handleToothClick(toothId)}
         className={cn(
-          'h-12 w-10 flex flex-col items-center justify-center border rounded-md text-xs font-medium transition-all',
+          "h-12 w-10 flex flex-col items-center justify-center border rounded-md text-xs font-medium transition-all",
           condition.color,
-          isSelected ? 'ring-2 ring-primary ring-offset-2' : '',
-          readOnly ? 'cursor-default' : 'cursor-pointer hover:shadow-sm'
+          isSelected ? "ring-2 ring-primary ring-offset-2" : "",
+          readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm",
         )}
         title={`Tooth ${toothId}: ${condition.label}`}
       >
         <span className="text-[10px] text-slate-500">{toothId}</span>
-        <div className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`} />
+        <div
+          className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
+        />
       </button>
     );
   };
 
   const getConditionColor = (code: string) => {
     switch (code) {
-      case 'CARIES': return 'bg-red-500';
-      case 'FILLED': return 'bg-blue-500';
-      case 'CROWN': return 'bg-yellow-500';
-      case 'ROOT_CANAL': return 'bg-purple-500';
-      case 'IMPLANT': return 'bg-green-500';
-      case 'MISSING': return 'bg-slate-400';
-      default: return 'bg-slate-200';
+      case "CARIES":
+        return "bg-red-500";
+      case "FILLED":
+        return "bg-blue-500";
+      case "CROWN":
+        return "bg-yellow-500";
+      case "ROOT_CANAL":
+        return "bg-purple-500";
+      case "IMPLANT":
+        return "bg-green-500";
+      case "MISSING":
+        return "bg-slate-400";
+      default:
+        return "bg-slate-200";
     }
   };
 
@@ -113,10 +132,14 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
       <div className="flex flex-col gap-4 items-center p-6 bg-slate-50 rounded-xl border border-slate-100">
         {/* Upper Arch */}
         <div className="flex gap-8">
-          <div className="flex gap-1">{TEETH_QUADRANTS.UR.map(renderTooth)}</div>
-          <div className="flex gap-1">{TEETH_QUADRANTS.UL.map(renderTooth)}</div>
+          <div className="flex gap-1">
+            {TEETH_QUADRANTS.UR.map(renderTooth)}
+          </div>
+          <div className="flex gap-1">
+            {TEETH_QUADRANTS.UL.map(renderTooth)}
+          </div>
         </div>
-        
+
         {/* Divider */}
         <div className="w-full h-px bg-slate-200 relative">
           <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-slate-50 px-2 text-xs text-slate-400 font-medium tracking-widest">
@@ -126,8 +149,12 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
 
         {/* Lower Arch */}
         <div className="flex gap-8">
-          <div className="flex gap-1">{TEETH_QUADRANTS.LR.map(renderTooth)}</div>
-          <div className="flex gap-1">{TEETH_QUADRANTS.LL.map(renderTooth)}</div>
+          <div className="flex gap-1">
+            {TEETH_QUADRANTS.LR.map(renderTooth)}
+          </div>
+          <div className="flex gap-1">
+            {TEETH_QUADRANTS.LL.map(renderTooth)}
+          </div>
         </div>
       </div>
 
@@ -148,17 +175,23 @@ export function DentalChartUI({ value, onChange, readOnly }: DentalChartUIProps)
                 <Button
                   key={cond.value}
                   type="button"
-                  variant={getToothData(selectedTooth).condition === cond.value ? 'default' : 'outline'}
+                  variant={
+                    getToothData(selectedTooth).condition === cond.value
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
                   onClick={() => updateToothCondition(cond.value)}
                   className="w-full justify-start"
                 >
-                  <div className={`w-2 h-2 rounded-full mr-2 ${getConditionColor(cond.value)}`} />
+                  <div
+                    className={`w-2 h-2 rounded-full mr-2 ${getConditionColor(cond.value)}`}
+                  />
                   {cond.label}
                 </Button>
               ))}
             </div>
-            
+
             <div className="space-y-2">
               <Label>Notes</Label>
               <textarea

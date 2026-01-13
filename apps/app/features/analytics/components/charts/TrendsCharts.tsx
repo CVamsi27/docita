@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -81,13 +80,18 @@ export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ payload }) => `${payload.disease}: ${payload.percentage}%`}
+              label={({ payload }) =>
+                `${payload.disease}: ${payload.percentage}%`
+              }
               outerRadius={120}
               fill="#8884d8"
               dataKey="count"
             >
               {data.slice(0, 8).map((_entry, index: number) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
               ))}
             </Pie>
             <Tooltip />

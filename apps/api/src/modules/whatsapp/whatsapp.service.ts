@@ -103,12 +103,12 @@ export class WhatsappService {
       type: 'header' | 'body' | 'button';
       parameters?: Array<{
         type:
-        | 'text'
-        | 'currency'
-        | 'date_time'
-        | 'image'
-        | 'document'
-        | 'video';
+          | 'text'
+          | 'currency'
+          | 'date_time'
+          | 'image'
+          | 'document'
+          | 'video';
         text?: string;
         currency?: {
           fallback_value: string;

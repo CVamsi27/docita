@@ -75,7 +75,7 @@ export const getPatientAgeDisplay = (patient: Patient): string => {
   if (age === 0) {
     const months = Math.floor(
       (new Date().getTime() - new Date(patient.dateOfBirth!).getTime()) /
-      (1000 * 60 * 60 * 24 * 30),
+        (1000 * 60 * 60 * 24 * 30),
     );
     if (months === 0) return "Less than 1 month";
     return `${months} month${months > 1 ? "s" : ""}`;

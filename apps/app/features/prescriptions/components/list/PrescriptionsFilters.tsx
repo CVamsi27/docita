@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@workspace/ui/components/input";
 import { Search } from "lucide-react";

@@ -1,7 +1,13 @@
 "use client";
 
 import React, { FC, ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import {
@@ -41,9 +47,14 @@ interface PatientFaceSheetHeaderProps {
   age?: string;
 }
 
-export const PatientFaceSheetHeader: FC<PatientFaceSheetHeaderProps> = ({ patient, initials, age }) => {
+export const PatientFaceSheetHeader: FC<PatientFaceSheetHeaderProps> = ({
+  patient,
+  initials,
+  age,
+}) => {
   if (!patient) return null;
-  const displayInitials = initials ?? `${patient.firstName?.[0] ?? ''}${patient.lastName?.[0] ?? ''}`;
+  const displayInitials =
+    initials ?? `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
   return (
     <Card className="border-none shadow-lg bg-linear-to-r from-primary/5 to-transparent">
       <CardContent className="flex items-center gap-6 p-6">
@@ -57,10 +68,17 @@ export const PatientFaceSheetHeader: FC<PatientFaceSheetHeaderProps> = ({ patien
             {patient.firstName} {patient.lastName}
           </h1>
           <div className="flex items-center gap-4 mt-2 text-muted-foreground">
-            <span>{age ?? patient.age ?? 'Age N/A'}</span>
+            <span>{age ?? patient.age ?? "Age N/A"}</span>
             <span>•</span>
-            <span className="capitalize">{patient.gender?.toLowerCase() ?? 'Unknown'}</span>
-            {patient.mrn && <><span>•</span><span>MRN: {patient.mrn}</span></>}
+            <span className="capitalize">
+              {patient.gender?.toLowerCase() ?? "Unknown"}
+            </span>
+            {patient.mrn && (
+              <>
+                <span>•</span>
+                <span>MRN: {patient.mrn}</span>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
@@ -73,7 +91,10 @@ interface PatientStatsCardsProps {
   loading?: boolean;
 }
 
-export const PatientStatsCards: FC<PatientStatsCardsProps> = ({ statistics, loading }) => {
+export const PatientStatsCards: FC<PatientStatsCardsProps> = ({
+  statistics,
+  loading,
+}) => {
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -89,8 +110,16 @@ export const PatientStatsCards: FC<PatientStatsCardsProps> = ({ statistics, load
   }
 
   const stats: Array<{ label: string; value: number; icon: LucideIcon }> = [
-    { label: "Total Visits", value: statistics?.totalVisits ?? 0, icon: Calendar },
-    { label: "Prescriptions", value: statistics?.prescriptions ?? 0, icon: Pill },
+    {
+      label: "Total Visits",
+      value: statistics?.totalVisits ?? 0,
+      icon: Calendar,
+    },
+    {
+      label: "Prescriptions",
+      value: statistics?.prescriptions ?? 0,
+      icon: Pill,
+    },
     { label: "Documents", value: statistics?.documents ?? 0, icon: FileText },
     { label: "Invoices", value: statistics?.invoices ?? 0, icon: Receipt },
   ];
@@ -119,7 +148,9 @@ interface PatientMedicalHistoryProps {
   readOnly?: boolean;
 }
 
-export const PatientMedicalHistory: FC<PatientMedicalHistoryProps> = ({ patient }) => {
+export const PatientMedicalHistory: FC<PatientMedicalHistoryProps> = ({
+  patient,
+}) => {
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
@@ -127,21 +158,25 @@ export const PatientMedicalHistory: FC<PatientMedicalHistoryProps> = ({ patient 
           <Heart className="h-5 w-5 text-red-500" />
           <CardTitle>Medical History</CardTitle>
         </div>
-        <CardDescription>Patient's medical conditions and history</CardDescription>
+        <CardDescription>
+          Patient's medical conditions and history
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Allergies</h4>
           <div className="flex flex-wrap gap-2">
             {patient?.allergies ? (
-              patient.allergies.split(',').map((allergy, i) => (
+              patient.allergies.split(",").map((allergy, i) => (
                 <Badge key={i} variant="destructive" className="gap-1">
                   <AlertTriangle className="h-3 w-3" />
                   {allergy.trim()}
                 </Badge>
               ))
             ) : (
-              <span className="text-sm text-muted-foreground">No known allergies</span>
+              <span className="text-sm text-muted-foreground">
+                No known allergies
+              </span>
             )}
           </div>
         </div>
@@ -149,8 +184,8 @@ export const PatientMedicalHistory: FC<PatientMedicalHistoryProps> = ({ patient 
           <h4 className="font-medium text-sm">Medical Conditions</h4>
           <p className="text-sm text-muted-foreground">
             {patient?.medicalConditions && patient.medicalConditions.length > 0
-              ? patient.medicalConditions.map((c) => c.conditionName).join(', ')
-              : 'No conditions recorded'}
+              ? patient.medicalConditions.map((c) => c.conditionName).join(", ")
+              : "No conditions recorded"}
           </p>
         </div>
       </CardContent>
@@ -162,7 +197,9 @@ interface PatientVitalsBannerProps {
   appointments?: Appointment[];
 }
 
-export const PatientVitalsBanner: FC<PatientVitalsBannerProps> = ({ appointments }) => {
+export const PatientVitalsBanner: FC<PatientVitalsBannerProps> = ({
+  appointments,
+}) => {
   const latestVitals = appointments?.find((a) => a.vitalSign)?.vitalSign;
   if (!latestVitals) return null;
 
@@ -171,10 +208,26 @@ export const PatientVitalsBanner: FC<PatientVitalsBannerProps> = ({ appointments
       <CardContent className="flex items-center gap-6 p-4">
         <Activity className="h-5 w-5 text-blue-600" />
         <div className="flex gap-6 text-sm">
-          {latestVitals.bloodPressure && <span>BP: <strong>{latestVitals.bloodPressure}</strong></span>}
-          {latestVitals.pulse && <span>HR: <strong>{latestVitals.pulse}</strong> bpm</span>}
-          {latestVitals.temperature && <span>Temp: <strong>{latestVitals.temperature}</strong>°F</span>}
-          {latestVitals.weight && <span>Weight: <strong>{latestVitals.weight}</strong> kg</span>}
+          {latestVitals.bloodPressure && (
+            <span>
+              BP: <strong>{latestVitals.bloodPressure}</strong>
+            </span>
+          )}
+          {latestVitals.pulse && (
+            <span>
+              HR: <strong>{latestVitals.pulse}</strong> bpm
+            </span>
+          )}
+          {latestVitals.temperature && (
+            <span>
+              Temp: <strong>{latestVitals.temperature}</strong>°F
+            </span>
+          )}
+          {latestVitals.weight && (
+            <span>
+              Weight: <strong>{latestVitals.weight}</strong> kg
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -186,7 +239,9 @@ interface PatientAllergyAlertProps {
   patientId?: string;
 }
 
-export const PatientAllergyAlert: FC<PatientAllergyAlertProps> = ({ patient }) => {
+export const PatientAllergyAlert: FC<PatientAllergyAlertProps> = ({
+  patient,
+}) => {
   const allergies = patient?.allergies;
   if (!allergies) return null;
 
@@ -195,7 +250,9 @@ export const PatientAllergyAlert: FC<PatientAllergyAlertProps> = ({ patient }) =
       <CardContent className="flex items-center gap-3 p-4">
         <AlertTriangle className="h-5 w-5 text-red-500" />
         <div>
-          <p className="font-medium text-red-700 dark:text-red-400">Allergy Alert</p>
+          <p className="font-medium text-red-700 dark:text-red-400">
+            Allergy Alert
+          </p>
           <p className="text-sm text-red-600 dark:text-red-300">{allergies}</p>
         </div>
       </CardContent>
@@ -209,7 +266,9 @@ interface AppointmentHistoryTimelineProps {
   showFilters?: boolean;
 }
 
-export const AppointmentHistoryTimeline: FC<AppointmentHistoryTimelineProps> = ({ appointments = [] }) => {
+export const AppointmentHistoryTimeline: FC<
+  AppointmentHistoryTimelineProps
+> = ({ appointments = [] }) => {
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
@@ -220,21 +279,30 @@ export const AppointmentHistoryTimeline: FC<AppointmentHistoryTimelineProps> = (
       </CardHeader>
       <CardContent>
         {appointments.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">No appointments yet</p>
+          <p className="text-center text-muted-foreground py-8">
+            No appointments yet
+          </p>
         ) : (
           <div className="space-y-4">
             {appointments.slice(0, 5).map((apt, i) => (
-              <div key={apt.id || i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50">
+              <div
+                key={apt.id || i}
+                className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50"
+              >
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Calendar className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">{apt.type}</p>
                   <p className="text-sm text-muted-foreground">
-                    {(apt.startTime) ? new Date(apt.startTime).toLocaleDateString() : 'Date unknown'}
+                    {apt.startTime
+                      ? new Date(apt.startTime).toLocaleDateString()
+                      : "Date unknown"}
                   </p>
                 </div>
-                <Badge variant="outline" className="capitalize">{apt.status}</Badge>
+                <Badge variant="outline" className="capitalize">
+                  {apt.status}
+                </Badge>
               </div>
             ))}
           </div>

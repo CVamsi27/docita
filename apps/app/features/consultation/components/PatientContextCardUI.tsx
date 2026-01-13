@@ -160,30 +160,30 @@ export function PatientContextCardUI({
         <CollapsibleContent>
           <div className="p-3 space-y-4">
             {/* Active Problems */}
-           {/* Use shared SummaryConditions - map PatientCondition to required format */}
-        <div className="px-4 py-2 border-b">
-             <SummaryConditions 
-                conditions={(patient.conditions || []).map(c => ({ 
-                    id: c.name, 
-                    name: c.name,
-                    status: c.isChronic ? "chronic" : "active"
-                }))} 
-             />
-        </div>
-
-        {/* Use shared SummaryMedications - map PatientMedication to required format */}
-        <div className="px-4 py-2 border-b">
-            <SummaryMedications 
-                medications={(patient.currentMedications || []).map(m => ({
-                    name: m.name,
-                    dosage: m.dosage,
-                    frequency: m.frequency
+            {/* Use shared SummaryConditions - map PatientCondition to required format */}
+            <div className="px-4 py-2 border-b">
+              <SummaryConditions
+                conditions={(patient.conditions || []).map((c) => ({
+                  id: c.name,
+                  name: c.name,
+                  status: c.isChronic ? "chronic" : "active",
                 }))}
-            />
-        </div>
+              />
+            </div>
 
-        <div className="px-4 py-2 border-b">
-           {/* Map recent vitals to SummaryVitals format. 
+            {/* Use shared SummaryMedications - map PatientMedication to required format */}
+            <div className="px-4 py-2 border-b">
+              <SummaryMedications
+                medications={(patient.currentMedications || []).map((m) => ({
+                  name: m.name,
+                  dosage: m.dosage,
+                  frequency: m.frequency,
+                }))}
+              />
+            </div>
+
+            <div className="px-4 py-2 border-b">
+              {/* Map recent vitals to SummaryVitals format. 
                This part is tricky because PatientContextCard has specialized trend view which SummaryVitals doesn't support yet.
                However, I can use SummaryVitals for the 'latest' view if I had it.
                The context card shows specific vitals like BP, Weight, HbA1c with history/trend sparklines (in advanced version) or just list.
@@ -203,44 +203,56 @@ export function PatientContextCardUI({
                Vitals... ContextCard likely shows trends.
                I'll revert the Vitals part of this plan for ContextCard but keep Conditions/Meds.
            */}
-           
-             {/* Original Vitals Section Logic Key: 'recentVitals' */}
-             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Activity className="h-4 w-4" />
-                Key Vitals (Last 3 visits)
+
+              {/* Original Vitals Section Logic Key: 'recentVitals' */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Activity className="h-4 w-4" />
+                  Key Vitals (Last 3 visits)
+                </div>
+
+                {/* BP Trend */}
+                {patient.recentVitals?.bp &&
+                  patient.recentVitals.bp.length > 0 && (
+                    <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                      <div className="flex justify-between font-medium">
+                        <span>Blood Pressure</span>
+                        <span>{patient.recentVitals.bp[0].value}</span>
+                      </div>
+                      <div className="text-muted-foreground flex justify-between text-[10px]">
+                        <span>Previous:</span>
+                        <span>
+                          {patient.recentVitals.bp
+                            .slice(1)
+                            .map((b) => b.value)
+                            .join(", ")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Weight Trend */}
+                {patient.recentVitals?.weight &&
+                  patient.recentVitals.weight.length > 0 && (
+                    <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                      <div className="flex justify-between font-medium">
+                        <span>Weight</span>
+                        <span>{patient.recentVitals.weight[0].value}</span>
+                      </div>
+                      <div className="text-muted-foreground flex justify-between text-[10px]">
+                        <span>Previous:</span>
+                        <span>
+                          {patient.recentVitals.weight
+                            .slice(1)
+                            .map((b) => b.value)
+                            .join(", ")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
               </div>
-              
-               {/* BP Trend */}
-               {patient.recentVitals?.bp && patient.recentVitals.bp.length > 0 && (
-                 <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
-                   <div className="flex justify-between font-medium">
-                     <span>Blood Pressure</span>
-                     <span>{patient.recentVitals.bp[0].value}</span>
-                   </div>
-                   <div className="text-muted-foreground flex justify-between text-[10px]">
-                      <span>Previous:</span>
-                      <span>{patient.recentVitals.bp.slice(1).map(b => b.value).join(", ")}</span>
-                   </div>
-                 </div>
-               )}
-               
-               {/* Weight Trend */}
-                {patient.recentVitals?.weight && patient.recentVitals.weight.length > 0 && (
-                 <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
-                   <div className="flex justify-between font-medium">
-                     <span>Weight</span>
-                     <span>{patient.recentVitals.weight[0].value}</span>
-                   </div>
-                    <div className="text-muted-foreground flex justify-between text-[10px]">
-                      <span>Previous:</span>
-                      <span>{patient.recentVitals.weight.slice(1).map(b => b.value).join(", ")}</span>
-                   </div>
-                 </div>
-               )}
-             </div>
-        </div>
-    {patient.lastVisit && (
+            </div>
+            {patient.lastVisit && (
               <div className="pt-2 border-t">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">

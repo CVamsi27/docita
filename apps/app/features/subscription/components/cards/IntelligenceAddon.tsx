@@ -1,4 +1,3 @@
-
 import { Sparkles } from "lucide-react";
 import {
   Card,
@@ -14,7 +13,10 @@ import { getFeatureDetails } from "../../config/feature-config";
 interface IntelligenceAddonProps {
   featuresByTier: Array<{
     tier: number;
-    features: Array<{ feature: Feature; details: ReturnType<typeof getFeatureDetails> }>;
+    features: Array<{
+      feature: Feature;
+      details: ReturnType<typeof getFeatureDetails>;
+    }>;
   }>;
 }
 

@@ -1,4 +1,3 @@
-
 import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft, Edit, Lock, Printer, Share2 } from "lucide-react";
 import {

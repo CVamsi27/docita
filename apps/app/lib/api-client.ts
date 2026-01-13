@@ -1,10 +1,6 @@
 import { toast } from "sonner";
 import { getAPIClient } from "@workspace/data-access";
-import {
-  API_ROUTES,
-  AppErrorCode,
-  ERROR_MESSAGES,
-} from "@workspace/types";
+import { API_ROUTES, AppErrorCode, ERROR_MESSAGES } from "@workspace/types";
 
 /**
  * Initialize and get the shared API client
@@ -18,7 +14,9 @@ const client = getAPIClient({
   timeout: 30000,
   retries: 3,
   onError: (error) => {
-    const errorCode = ((error.data as Record<string, unknown>)?.error as Record<string, unknown>)?.code as AppErrorCode | undefined;
+    const errorCode = (
+      (error.data as Record<string, unknown>)?.error as Record<string, unknown>
+    )?.code as AppErrorCode | undefined;
     const message =
       (errorCode && ERROR_MESSAGES[errorCode]) ||
       error.message ||
@@ -70,13 +68,11 @@ export const typedApi = {
   },
 
   appointments: {
-    list: (params?: {
-      date?: string;
-      startDate?: string;
-      endDate?: string;
-    }) => client.get(API_ROUTES.appointments.list, { params }),
+    list: (params?: { date?: string; startDate?: string; endDate?: string }) =>
+      client.get(API_ROUTES.appointments.list, { params }),
     get: (id: string) => client.get(API_ROUTES.appointments.get(id)),
-    create: (data: unknown) => client.post(API_ROUTES.appointments.create, data),
+    create: (data: unknown) =>
+      client.post(API_ROUTES.appointments.create, data),
     update: (id: string, data: unknown) =>
       client.patch(API_ROUTES.appointments.update(id), data),
   },

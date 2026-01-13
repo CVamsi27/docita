@@ -31,7 +31,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.QUEUE_MANAGEMENT)
 export class QueueController {
-  constructor(private readonly queueService: QueueService) { }
+  constructor(private readonly queueService: QueueService) {}
 
   /**
    * Get unified view of today's patients (appointments + queue)
@@ -43,7 +43,11 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
-    return this.queueService.getTodaysPatients(req.user.clinicId, doctorId, search);
+    return this.queueService.getTodaysPatients(
+      req.user.clinicId,
+      doctorId,
+      search,
+    );
   }
 
   /**
@@ -77,7 +81,11 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
-    return this.queueService.findAllWithPatients(req.user.clinicId, doctorId, search);
+    return this.queueService.findAllWithPatients(
+      req.user.clinicId,
+      doctorId,
+      search,
+    );
   }
 
   /**

@@ -40,7 +40,7 @@ interface CreateMovementDto {
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(
     clinicId: string,

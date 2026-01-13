@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
@@ -24,7 +30,9 @@ export function NotificationSettings() {
             <Bell className="h-5 w-5 text-amber-600" />
             <div>
               <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Manage how you receive notifications</CardDescription>
+              <CardDescription>
+                Manage how you receive notifications
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -34,12 +42,16 @@ export function NotificationSettings() {
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div className="space-y-1">
                 <Label>Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive email updates</p>
+                <p className="text-sm text-muted-foreground">
+                  Receive email updates
+                </p>
               </div>
             </div>
             <Switch
               checked={settings.emailNotifications}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, emailNotifications: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, emailNotifications: checked }))
+              }
             />
           </div>
           <div className="flex items-center justify-between">
@@ -47,12 +59,16 @@ export function NotificationSettings() {
               <Smartphone className="h-4 w-4 text-muted-foreground" />
               <div className="space-y-1">
                 <Label>SMS Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive SMS alerts</p>
+                <p className="text-sm text-muted-foreground">
+                  Receive SMS alerts
+                </p>
               </div>
             </div>
             <Switch
               checked={settings.smsNotifications}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, smsNotifications: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, smsNotifications: checked }))
+              }
             />
           </div>
           <div className="flex items-center justify-between">
@@ -60,12 +76,16 @@ export function NotificationSettings() {
               <Bell className="h-4 w-4 text-muted-foreground" />
               <div className="space-y-1">
                 <Label>Push Notifications</Label>
-                <p className="text-sm text-muted-foreground">Browser push notifications</p>
+                <p className="text-sm text-muted-foreground">
+                  Browser push notifications
+                </p>
               </div>
             </div>
             <Switch
               checked={settings.pushNotifications}
-              onCheckedChange={(checked) => setSettings(s => ({ ...s, pushNotifications: checked }))}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, pushNotifications: checked }))
+              }
             />
           </div>
           <Button className="w-full">Save Preferences</Button>

@@ -7,7 +7,8 @@ import { QueueSettingsUI } from "./QueueSettingsUI";
 
 export function QueueSettingsContainer() {
   const { data: settings, isLoading, refetch } = apiHooks.useQueueSettings();
-  const { mutate: updateSettings, isPending: saving } = apiHooks.useUpdateQueueSettings();
+  const { mutate: updateSettings, isPending: saving } =
+    apiHooks.useUpdateQueueSettings();
 
   const [queueBufferMinutes, setQueueBufferMinutes] = useState(10);
   const [useDoctorQueues, setUseDoctorQueues] = useState(false);
@@ -24,20 +25,23 @@ export function QueueSettingsContainer() {
   }, [settings]);
 
   const handleSave = () => {
-    updateSettings({
-      queueBufferMinutes,
-      useDoctorQueues,
-      lateArrivalGraceMinutes,
-      avgConsultationMinutes,
-    }, {
-      onSuccess: () => {
-        toast.success("Queue settings saved");
-        refetch();
+    updateSettings(
+      {
+        queueBufferMinutes,
+        useDoctorQueues,
+        lateArrivalGraceMinutes,
+        avgConsultationMinutes,
       },
-      onError: () => {
-        toast.error("Failed to save queue settings");
-      }
-    });
+      {
+        onSuccess: () => {
+          toast.success("Queue settings saved");
+          refetch();
+        },
+        onError: () => {
+          toast.error("Failed to save queue settings");
+        },
+      },
+    );
   };
 
   return (

@@ -7,13 +7,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import {
-  AlertCircle,
-  Loader2,
-  Scan,
-  Smartphone,
-  Upload,
-} from "lucide-react";
+import { AlertCircle, Loader2, Scan, Smartphone, Upload } from "lucide-react";
 
 interface OCRUploadSectionProps {
   previewUrl: string | null;
@@ -73,14 +67,10 @@ export const OCRUploadSection = ({
             >
               <Smartphone className="mr-2 h-4 w-4" /> Scan with Phone
             </Button>
-            <Button
-              onClick={onScan}
-              disabled={!file || isScanning || scanned}
-            >
+            <Button onClick={onScan} disabled={!file || isScanning || scanned}>
               {isScanning ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                  Scanning...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scanning...
                 </>
               ) : (
                 <>

@@ -4,13 +4,14 @@ import {
   Feature,
   FeatureGate,
 } from "@/features/_shared/components/feature-gate";
-import {
-  Loader2,
-  Plus,
-  RefreshCw,
-} from "lucide-react";
+import { Loader2, Plus, RefreshCw } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
 import { useLabTestsLogic } from "../hooks/use-lab-tests-logic";
 import { LabTestsOverview } from "./tabs/LabTestsOverview";
 import { LabTestsOrders } from "./tabs/LabTestsOrders";
@@ -69,11 +70,7 @@ export const LabTestsPageUI: FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleRefresh}
-            >
+            <Button variant="outline" className="gap-2" onClick={handleRefresh}>
               <RefreshCw
                 className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
               />
@@ -90,7 +87,11 @@ export const LabTestsPageUI: FC = () => {
         </div>
 
         {/* Stats Overview */}
-        <LabTestsOverview stats={stats || { pending: 0, inProgress: 0, completed: 0, urgent: 0 }} />
+        <LabTestsOverview
+          stats={
+            stats || { pending: 0, inProgress: 0, completed: 0, urgent: 0 }
+          }
+        />
 
         {/* Tabs */}
         <Tabs defaultValue="orders" className="w-full">

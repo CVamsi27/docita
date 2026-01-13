@@ -42,7 +42,11 @@ export default function CodingQueuePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const { data: visits = [], isLoading, error } = apiHooks.useCodingQueue(debouncedSearch);
+  const {
+    data: visits = [],
+    isLoading,
+    error,
+  } = apiHooks.useCodingQueue(debouncedSearch);
 
   if (error) {
     toast.error("Failed to load coding queue");

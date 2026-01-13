@@ -34,7 +34,7 @@ export class QueueService {
     private prisma: PrismaService,
     @InjectQueue('analytics') private analyticsQueue: Queue,
     @InjectQueue('notifications') private notificationsQueue: Queue,
-  ) { }
+  ) {}
 
   // ============================================================================
   // Queue Settings
@@ -706,7 +706,11 @@ export class QueueService {
   // Unified Today's Patients View
   // ============================================================================
 
-  async getTodaysPatients(clinicId: string, doctorId?: string, search?: string) {
+  async getTodaysPatients(
+    clinicId: string,
+    doctorId?: string,
+    search?: string,
+  ) {
     const { today, tomorrow } = this.getTodayRange();
     const settings = await this.getQueueSettings(clinicId);
 

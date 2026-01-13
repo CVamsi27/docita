@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -15,13 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import {
-  Calendar,
-  CheckCircle2,
-  FileText,
-  History,
-  Send,
-} from "lucide-react";
+import { Calendar, CheckCircle2, FileText, History, Send } from "lucide-react";
 
 export const SmartTasksTab = ({ state, handlers }: any) => (
   <div className="grid gap-6 lg:grid-cols-2">

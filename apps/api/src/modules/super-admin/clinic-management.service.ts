@@ -219,18 +219,18 @@ export class ClinicManagementService {
   }
 
   async deactivateAdmin(adminId: string) {
-    return {
+    return await Promise.resolve({
       id: adminId,
       message:
         'Admin deactivation requires additional setup (active/status field on User model)',
-    };
+    });
   }
 
   async activateAdmin(adminId: string) {
-    return {
+    return await Promise.resolve({
       id: adminId,
       message:
         'Admin activation requires additional setup (active/status field on User model)',
-    };
+    });
   }
 }

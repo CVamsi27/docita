@@ -1,13 +1,25 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { BedDouble, Users, Activity, Calendar } from "lucide-react";
 
-// Import shared types from ipdRules 
+// Import shared types from ipdRules
 // Adjusting import path since we are in components folder now: ../rules/ipdRules matches
-import type { Bed, Ward, BedStatus, BedType, WardType } from "../rules/ipdRules";
+import type {
+  Bed,
+  Ward,
+  BedStatus,
+  BedType,
+  WardType,
+} from "../rules/ipdRules";
 
 // Additional types for form data and component props
 interface AdmissionFormData {
@@ -34,7 +46,10 @@ interface BedMapProps {
 }
 
 // IPD Dashboard
-export const IpdDashboard: FC<IpdDashboardProps> = ({ wards = [], beds = [] }) => {
+export const IpdDashboard: FC<IpdDashboardProps> = ({
+  wards = [],
+  beds = [],
+}) => {
   const occupiedCount = beds.filter((b) => b.status === "occupied").length;
   const dischargesCount = 0;
 
@@ -101,15 +116,24 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({ wards = [], beds = [] }) =
             <div className="space-y-4">
               {wards.map((ward) => {
                 const wardBeds = beds.filter((b) => b.wardId === ward.id);
-                const occupancy = wardBeds.filter((b) => b.status === "occupied").length;
+                const occupancy = wardBeds.filter(
+                  (b) => b.status === "occupied",
+                ).length;
                 return (
-                  <div key={ward.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div
+                    key={ward.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                  >
                     <div>
                       <p className="font-medium">{ward.name}</p>
-                      <p className="text-sm text-muted-foreground">Floor {ward.floor}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Floor {ward.floor}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{occupancy}/{wardBeds.length}</p>
+                      <p className="font-medium">
+                        {occupancy}/{wardBeds.length}
+                      </p>
                       <p className="text-sm text-muted-foreground">occupied</p>
                     </div>
                   </div>
@@ -126,12 +150,12 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({ wards = [], beds = [] }) =
 // Admission Form
 export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
-    patientId: '',
-    wardId: '',
-    bedId: '',
-    attendingDoctorId: '',
-    diagnosis: '',
-    notes: '',
+    patientId: "",
+    wardId: "",
+    bedId: "",
+    attendingDoctorId: "",
+    diagnosis: "",
+    notes: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -153,7 +177,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
               className="w-full p-2 rounded-md border bg-background"
               placeholder="Search patient by name or phone..."
               value={formData.patientId}
-              onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, patientId: e.target.value })
+              }
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -162,7 +188,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
               <select
                 className="w-full p-2 rounded-md border bg-background"
                 value={formData.wardId}
-                onChange={(e) => setFormData({ ...formData, wardId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, wardId: e.target.value })
+                }
               >
                 <option value="">Select Ward</option>
                 <option value="general">General Ward</option>
@@ -175,7 +203,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
               <select
                 className="w-full p-2 rounded-md border bg-background"
                 value={formData.bedId}
-                onChange={(e) => setFormData({ ...formData, bedId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, bedId: e.target.value })
+                }
               >
                 <option value="">Select Bed</option>
                 <option value="bed-1">Bed 101</option>
@@ -189,7 +219,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
             <select
               className="w-full p-2 rounded-md border bg-background"
               value={formData.attendingDoctorId}
-              onChange={(e) => setFormData({ ...formData, attendingDoctorId: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, attendingDoctorId: e.target.value })
+              }
             >
               <option value="">Select Doctor</option>
               <option value="dr1">Dr. Vamsi Krishna</option>
@@ -202,7 +234,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
               className="w-full p-2 rounded-md border bg-background min-h-[80px]"
               placeholder="Primary diagnosis for admission..."
               value={formData.diagnosis}
-              onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, diagnosis: e.target.value })
+              }
             />
           </div>
           <div className="space-y-2">
@@ -211,7 +245,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
               className="w-full p-2 rounded-md border bg-background min-h-[60px]"
               placeholder="Additional notes..."
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
             />
           </div>
           <Button type="submit" className="w-full">
@@ -272,4 +308,14 @@ export const BedMap: FC<BedMapProps> = ({ ward, beds = [] }) => {
 };
 
 // Export types
-export type { Bed, Ward, BedStatus, BedType, WardType, AdmissionFormData, IpdDashboardProps, AdmissionFormProps, BedMapProps };
+export type {
+  Bed,
+  Ward,
+  BedStatus,
+  BedType,
+  WardType,
+  AdmissionFormData,
+  IpdDashboardProps,
+  AdmissionFormProps,
+  BedMapProps,
+};

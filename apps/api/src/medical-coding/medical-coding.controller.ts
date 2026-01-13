@@ -17,7 +17,7 @@ import { RequireFeature, Feature } from '../auth/tier.decorator';
 @UseGuards(JwtAuthGuard)
 @RequireFeature(Feature.MEDICAL_CODING)
 export class MedicalCodingController {
-  constructor(private readonly medicalCodingService: MedicalCodingService) { }
+  constructor(private readonly medicalCodingService: MedicalCodingService) {}
 
   @Get('icd-codes')
   async searchIcdCodes(@Query('search') search: string) {
@@ -64,10 +64,10 @@ export class MedicalCodingController {
   }
 
   @Get('uncoded')
-  async getUncodedVisits(
-    @Request() req,
-    @Query('search') search?: string,
-  ) {
-    return this.medicalCodingService.getUncodedVisits(req.user.clinicId, search);
+  async getUncodedVisits(@Request() req, @Query('search') search?: string) {
+    return this.medicalCodingService.getUncodedVisits(
+      req.user.clinicId,
+      search,
+    );
   }
 }

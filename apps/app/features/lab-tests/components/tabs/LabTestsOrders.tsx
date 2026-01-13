@@ -8,12 +8,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import {
-  FileText,
-  Filter,
-  FlaskConical,
-  Search,
-} from "lucide-react";
+import { FileText, Filter, FlaskConical, Search } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 
@@ -109,9 +104,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                             : "Unknown"}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        {test.labTest?.name || "-"}
-                      </td>
+                      <td className="py-3 px-4">{test.labTest?.name || "-"}</td>
                       <td className="py-3 px-4 text-muted-foreground capitalize">
                         {test.labTest?.category || "-"}
                       </td>
