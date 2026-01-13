@@ -31,11 +31,20 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.INVENTORY)
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(private readonly inventoryService: InventoryService) { }
 
   @Get()
-  findAll(@Request() req: AuthRequest) {
-    return this.inventoryService.findAll(req.user.clinicId);
+  findAll(
+    @Request() req: AuthRequest,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.inventoryService.findAll(req.user.clinicId, {
+      search,
+      category,
+      status,
+    });
   }
 
   @Get('stats')

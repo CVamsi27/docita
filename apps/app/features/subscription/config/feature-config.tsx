@@ -1,0 +1,91 @@
+
+import {
+  BarChart3,
+  Brain,
+  Building2,
+  Calendar,
+  FileText,
+  FlaskConical,
+  Lock,
+  LucideIcon,
+  MessageSquare,
+  Package,
+  Receipt,
+  ScanLine,
+  Shield,
+  Ticket,
+  Upload,
+  Users,
+  Zap,
+} from "lucide-react";
+import { Feature, FEATURE_DISPLAY } from "@/lib/tier-config";
+
+// Icon mapping for features - uses FEATURE_DISPLAY from tier-config for names/descriptions
+export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
+  // Tier 0: CAPTURE
+  [Feature.PAPER_SCANNING]: ScanLine,
+  [Feature.EXCEL_IMPORT]: Upload,
+  [Feature.PATIENT_DEDUPLICATION]: Users,
+  [Feature.BASIC_PATIENT_MANAGEMENT]: Users,
+  [Feature.DOCUMENT_ARCHIVAL]: FileText,
+  [Feature.EXPORT_CSV]: Upload,
+  [Feature.OCR_BASIC]: ScanLine,
+
+  // Tier 1: CORE
+  [Feature.CALENDAR_SLOTS]: Calendar,
+  [Feature.VISIT_HISTORY]: FileText,
+  [Feature.MEDICINES_LIST]: Package,
+  [Feature.INVOICING]: Receipt,
+  [Feature.DIGITAL_PRESCRIPTIONS]: FileText,
+  [Feature.BASIC_ANALYTICS]: BarChart3,
+  [Feature.MEDICAL_CODING]: FileText,
+
+  // Tier 2: PLUS
+  [Feature.AUTO_REMINDERS]: Calendar,
+  [Feature.PAYMENT_LINKS]: Receipt,
+  [Feature.PRESCRIPTION_TEMPLATES]: FileText,
+  [Feature.MULTI_DEVICE]: Shield,
+  [Feature.ROLE_MANAGEMENT]: Users,
+  [Feature.CONSENT_MANAGEMENT]: Shield,
+  [Feature.DOCTOR_SIGNATURE]: FileText,
+
+  // Tier 3: PRO
+  [Feature.MULTI_DOCTOR]: Users,
+  [Feature.MULTI_CLINIC]: Building2,
+  [Feature.LAB_TESTS]: FlaskConical,
+  [Feature.INVENTORY]: Package,
+  [Feature.QUEUE_MANAGEMENT]: Ticket,
+  [Feature.AUDIT_LOGS]: Shield,
+  [Feature.INSURANCE_BILLING]: Receipt,
+  [Feature.DIGITAL_INTAKE_FORMS]: FileText,
+  [Feature.BROADCAST_CAMPAIGNS]: MessageSquare,
+  [Feature.OCR_ADVANCED]: ScanLine,
+  [Feature.ADVANCED_ANALYTICS]: BarChart3,
+
+  // Tier 4: ENTERPRISE
+  [Feature.FULL_EHR]: FileText,
+  [Feature.API_ACCESS]: Zap,
+  [Feature.MULTI_LOCATION_ANALYTICS]: BarChart3,
+  [Feature.CUSTOM_BRANDING]: Building2,
+  [Feature.DATA_WAREHOUSE_EXPORT]: Upload,
+  [Feature.SSO]: Shield,
+  [Feature.BULK_IMPORT_SUITE]: Upload,
+
+  // Tier 5: INTELLIGENCE
+  [Feature.AI_PRESCRIPTION_ASSISTANT]: Brain,
+  [Feature.AI_DIAGNOSIS_HINTS]: Brain,
+  [Feature.SMART_TASK_ENGINE]: Zap,
+  [Feature.PREDICTIVE_NO_SHOW]: Calendar,
+  [Feature.PATIENT_SEGMENTATION]: Users,
+  [Feature.ANOMALY_DETECTION]: Shield,
+};
+
+// Helper to get feature details from single source of truth
+export function getFeatureDetails(feature: Feature) {
+  const display = FEATURE_DISPLAY[feature];
+  return {
+    name: display?.name || feature,
+    description: display?.description || "",
+    icon: FEATURE_ICONS[feature] || Lock,
+  };
+}

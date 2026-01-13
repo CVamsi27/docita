@@ -36,7 +36,9 @@ import {
   MoreHorizontal,
   Plus,
   RefreshCw,
+  Search,
 } from "lucide-react";
+import { Input } from "@workspace/ui/components/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +63,8 @@ export const InvoicesPageUI: FC = () => {
     setSortBy,
     handleDownloadPdf,
     handleRefresh,
+    searchQuery,
+    setSearchQuery,
     refetch,
   } = useInvoicesLogic();
 
@@ -143,6 +147,19 @@ export const InvoicesPageUI: FC = () => {
                     <SelectItem value="draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-center gap-2 flex-1 md:max-w-xs">
+                <div className="relative w-full">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search patient name..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>

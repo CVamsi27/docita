@@ -27,14 +27,55 @@ export class PrescriptionsService {
     private prisma: PrismaService,
     private whatsapp: WhatsappService,
     private pdfGenerator: PDFGeneratorService,
-  ) {}
+  ) { }
 
-  async findAll(clinicId: string) {
+  async findAll(
+    clinicId: string,
+    params?: { search?: string; date?: string },
+  ) {
     if (!clinicId) {
       return [];
     }
+
+    const { search, date } = params || {};
+    const whereCallback: any = {
+      patient: { clinicId },
+    };
+
+    if (search) {
+      whereCallback.OR = [
+        {
+          patient: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+        {
+          medications: {
+            some: {
+              name: { contains: search, mode: 'insensitive' },
+            },
+          },
+        },
+      ];
+    }
+
+    if (date) {
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      whereCallback.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
     return this.prisma.prescription.findMany({
-      where: { patient: { clinicId } },
+      where: whereCallback,
       include: {
         medications: true,
         patient: {

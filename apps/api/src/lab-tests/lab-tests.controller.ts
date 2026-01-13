@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { LabTestsService } from './lab-tests.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -30,7 +31,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.LAB_TESTS)
 export class LabTestsController {
-  constructor(private readonly labTestsService: LabTestsService) {}
+  constructor(private readonly labTestsService: LabTestsService) { }
 
   // Lab Test Catalog
   @Get('catalog')
@@ -45,8 +46,17 @@ export class LabTestsController {
 
   // Lab Test Orders
   @Get('orders')
-  findAllOrders(@Request() req: AuthRequest) {
-    return this.labTestsService.findAllOrdersWithPatients(req.user.clinicId);
+  findAllOrders(
+    @Request() req: AuthRequest,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('date') date?: string,
+  ) {
+    return this.labTestsService.findAllOrdersWithPatients(req.user.clinicId, {
+      search,
+      status,
+      date,
+    });
   }
 
   @Get('orders/stats')

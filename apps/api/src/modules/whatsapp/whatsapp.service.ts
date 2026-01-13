@@ -103,12 +103,12 @@ export class WhatsappService {
       type: 'header' | 'body' | 'button';
       parameters?: Array<{
         type:
-          | 'text'
-          | 'currency'
-          | 'date_time'
-          | 'image'
-          | 'document'
-          | 'video';
+        | 'text'
+        | 'currency'
+        | 'date_time'
+        | 'image'
+        | 'document'
+        | 'video';
         text?: string;
         currency?: {
           fallback_value: string;
@@ -762,5 +762,26 @@ export class WhatsappService {
     });
 
     return { success: true, invoice };
+  }
+
+  /**
+   * Get WhatsApp statistics for the clinic
+   */
+  async getWhatsappStats(clinicId: string) {
+    const totalPatients = await this.prisma.patient.count({
+      where: { clinicId },
+    });
+
+    const subscribers = await this.prisma.patient.count({
+      where: {
+        clinicId,
+        phoneNumber: { not: '' },
+      },
+    });
+
+    return {
+      totalPatients,
+      subscribers,
+    };
   }
 }

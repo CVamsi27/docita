@@ -1,0 +1,322 @@
+
+import { Button } from "@workspace/ui/components/button";
+import {
+  Check,
+  ChevronsUpDown,
+  Loader2,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandList,
+} from "@workspace/ui/components/command";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { cn } from "@workspace/ui/lib/utils";
+import { FormProvider, UseFormReturn } from "react-hook-form";
+
+interface OrderLabTestDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<any>;
+  onSubmit: (data: any) => void;
+  isCreating: boolean;
+  patients: any[];
+  patientsLoading: boolean;
+  testCatalog: any[];
+  catalogLoading: boolean;
+  patientSearch: string;
+  setPatientSearch: (value: string) => void;
+  testSearch: string;
+  setTestSearch: (value: string) => void;
+  patientComboboxOpen: boolean;
+  setPatientComboboxOpen: (open: boolean) => void;
+  testComboboxOpen: boolean;
+  setTestComboboxOpen: (open: boolean) => void;
+  selectedPatient: any;
+  selectedTest: any;
+}
+
+export function OrderLabTestDialog({
+  open,
+  onOpenChange,
+  form,
+  onSubmit,
+  isCreating,
+  patients,
+  patientsLoading,
+  testCatalog,
+  catalogLoading,
+  patientSearch,
+  setPatientSearch,
+  testSearch,
+  setTestSearch,
+  patientComboboxOpen,
+  setPatientComboboxOpen,
+  testComboboxOpen,
+  setTestComboboxOpen,
+  selectedPatient,
+  selectedTest,
+}: OrderLabTestDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Order Lab Test</DialogTitle>
+          <DialogDescription>
+            Create a new lab test order for a patient
+          </DialogDescription>
+        </DialogHeader>
+        <FormProvider {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="patientId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Patient</FormLabel>
+                  <Popover
+                    open={patientComboboxOpen}
+                    onOpenChange={setPatientComboboxOpen}
+                    modal={true}
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          type="button"
+                          aria-expanded={patientComboboxOpen}
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {selectedPatient
+                            ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                            : "Search patient by name..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-[400px] p-0 z-100"
+                      align="start"
+                    >
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Search patient by name..."
+                          value={patientSearch}
+                          onValueChange={setPatientSearch}
+                        />
+                        <CommandList>
+                          {patientsLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="ml-2 text-sm text-muted-foreground">
+                                Searching...
+                              </span>
+                            </div>
+                          ) : patients.length === 0 ? (
+                            <CommandEmpty>
+                              {patientSearch
+                                ? "No patient found."
+                                : "Type to search patients..."}
+                            </CommandEmpty>
+                          ) : (
+                            <CommandGroup>
+                              {patients.map((patient) => (
+                                <div
+                                  key={patient.id}
+                                  onClick={() => {
+                                    field.onChange(patient.id);
+                                    setPatientComboboxOpen(false);
+                                  }}
+                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === patient.id
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span>
+                                      {patient.firstName} {patient.lastName}
+                                    </span>
+                                    {patient.phoneNumber && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {patient.phoneNumber}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </CommandGroup>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="labTestId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Test</FormLabel>
+                  <Popover
+                    open={testComboboxOpen}
+                    onOpenChange={setTestComboboxOpen}
+                    modal={true}
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          type="button"
+                          aria-expanded={testComboboxOpen}
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {selectedTest
+                            ? selectedTest.name
+                            : "Search test by name..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-[400px] p-0 z-100"
+                      align="start"
+                    >
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Search test by name..."
+                          value={testSearch}
+                          onValueChange={setTestSearch}
+                        />
+                        <CommandList>
+                          {catalogLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="ml-2 text-sm text-muted-foreground">
+                                Loading tests...
+                              </span>
+                            </div>
+                          ) : testCatalog.length === 0 ? (
+                            <CommandEmpty>No tests available</CommandEmpty>
+                          ) : (
+                            <CommandGroup>
+                              {testCatalog
+                                .filter((test: any) =>
+                                  test.name
+                                    .toLowerCase()
+                                    .includes(testSearch.toLowerCase()),
+                                )
+                                .map((test: any) => (
+                                  <div
+                                    key={test.id}
+                                    onClick={() => {
+                                      field.onChange(test.id);
+                                      setTestComboboxOpen(false);
+                                    }}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === test.id
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                    <div className="flex flex-col flex-1">
+                                      <span>{test.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {test.category}
+                                        {test.price && ` • ₹${test.price}`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                            </CommandGroup>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any additional notes..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isCreating} className="gap-2">
+                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isCreating ? "Creating..." : "Order Test"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormProvider>
+      </DialogContent>
+    </Dialog>
+  );
+}

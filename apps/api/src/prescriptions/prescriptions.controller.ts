@@ -7,6 +7,7 @@ import {
   UseGuards,
   Request,
   Res,
+  Query,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
@@ -26,11 +27,18 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 export class PrescriptionsController {
-  constructor(private readonly prescriptionsService: PrescriptionsService) {}
+  constructor(private readonly prescriptionsService: PrescriptionsService) { }
 
   @Get()
-  findAll(@Request() req: AuthRequest) {
-    return this.prescriptionsService.findAll(req.user.clinicId);
+  findAll(
+    @Request() req: AuthRequest,
+    @Query('search') search?: string,
+    @Query('date') date?: string,
+  ) {
+    return this.prescriptionsService.findAll(req.user.clinicId, {
+      search,
+      date,
+    });
   }
 
   @Get(':id')

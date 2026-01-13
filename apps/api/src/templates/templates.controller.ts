@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 
@@ -33,7 +34,7 @@ interface UpdateTemplateDto {
 
 @Controller('templates')
 export class TemplatesController {
-  constructor(private readonly templatesService: TemplatesService) {}
+  constructor(private readonly templatesService: TemplatesService) { }
 
   @Post()
   create(@Body() createTemplateDto: CreateTemplateDto) {
@@ -41,8 +42,16 @@ export class TemplatesController {
   }
 
   @Get()
-  findAll() {
-    return this.templatesService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('speciality') speciality?: string,
+    @Query('clinicId') clinicId?: string,
+  ) {
+    return this.templatesService.findAll({
+      search,
+      speciality,
+      clinicId,
+    });
   }
 
   @Get(':id')

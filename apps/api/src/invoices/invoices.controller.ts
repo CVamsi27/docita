@@ -29,17 +29,25 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.INVOICING)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
+  constructor(private readonly invoicesService: InvoicesService) { }
 
   @Get()
   findAll(
     @Request() req: AuthRequest,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
+    @Query('patientId') patientId?: string,
+    @Query('status') status?: string,
+    @Query('date') date?: string,
+    @Query('search') search?: string,
   ) {
     return this.invoicesService.findAll(req.user.clinicId, {
       cursor,
       limit: limit ? parseInt(limit, 10) : undefined,
+      patientId,
+      status,
+      date,
+      search,
     });
   }
 

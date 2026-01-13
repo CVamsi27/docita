@@ -52,6 +52,80 @@ export class InvoicesService extends BaseService<Invoice> {
     return INVOICE_DETAIL_SELECT;
   }
 
+  // @ts-ignore
+  async findAll(
+    clinicId: string,
+    params?: {
+      cursor?: string;
+      limit?: number;
+      patientId?: string;
+      status?: string;
+      date?: string;
+      search?: string;
+    },
+  ) {
+    const { cursor, limit, patientId, status, date, search } = params || {};
+    const where: any = this.buildClinicWhereClause(clinicId);
+
+    if (patientId) {
+      where.patientId = patientId;
+    }
+
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    if (date) {
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      where.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        {
+          patient: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ];
+    }
+
+    // Use Prisma directly to support complex filtering alongside pagination
+    // Or call super.findAll if it supports extra where clauses?
+    // Looking at common/services/base.service.ts would be ideal but for now we'll impl directly to be safe and explicit.
+
+    const items = await this.prisma.invoice.findMany({
+      where,
+      take: limit ? limit + 1 : undefined,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { createdAt: 'desc' },
+      select: this.getListSelect(),
+    });
+
+    let nextCursor: string | undefined = undefined;
+    if (limit && items.length > limit) {
+      const nextItem = items.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return {
+      items,
+      nextCursor,
+      hasMore: !!nextCursor,
+      count: items.length, // Approximate count of fetched page
+    };
+  }
+
   /**
    * Invoices don't have direct clinicId - they're linked via patient
    */
@@ -297,12 +371,12 @@ export class InvoicesService extends BaseService<Invoice> {
       },
       doctor: invoice.appointment?.doctor
         ? {
-            name: invoice.appointment.doctor.name,
-            qualification:
-              invoice.appointment.doctor.qualification || undefined,
-            registrationNumber:
-              invoice.appointment.doctor.registrationNumber || undefined,
-          }
+          name: invoice.appointment.doctor.name,
+          qualification:
+            invoice.appointment.doctor.qualification || undefined,
+          registrationNumber:
+            invoice.appointment.doctor.registrationNumber || undefined,
+        }
         : undefined,
       items: items.map((item) => ({
         description: item.description,

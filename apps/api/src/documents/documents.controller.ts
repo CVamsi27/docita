@@ -10,6 +10,7 @@ import {
   BadRequestException,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
@@ -21,11 +22,20 @@ import { UploadDocumentDto } from './dto/upload-document.dto';
 @Controller('documents')
 @UseGuards(JwtAuthGuard)
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(private readonly documentsService: DocumentsService) { }
 
   @Get()
-  findAll(@Request() req) {
-    return this.documentsService.findAll(req.user.clinicId);
+  findAll(
+    @Request() req,
+    @Query('search') search?: string,
+    @Query('type') type?: string,
+    @Query('patientId') patientId?: string,
+  ) {
+    return this.documentsService.findAll(req.user.clinicId, {
+      search,
+      type,
+      patientId,
+    });
   }
 
   @Get(':id')

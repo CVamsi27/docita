@@ -17,7 +17,7 @@ interface UpdateLabTestOrderDto {
 
 @Injectable()
 export class LabTestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Lab Test Types/Catalog
   async findAllTests(clinicId: string) {
@@ -64,21 +64,75 @@ export class LabTestsService {
     });
   }
 
-  async findAllOrdersWithPatients(clinicId: string) {
+  async findAllOrdersWithPatients(
+    clinicId: string,
+    params?: { search?: string; status?: string; date?: string },
+  ) {
     if (!clinicId) {
       return [];
     }
 
+    const { search, status, date } = params || {};
+    const where: any = { clinicId };
+
+    // Handle Search
+    if (search) {
+      // 1. Find matching lab tests
+      const matchingTests = await this.prisma.labTest.findMany({
+        where: {
+          clinicId,
+          name: { contains: search, mode: 'insensitive' },
+        },
+        select: { id: true },
+      });
+      const matchingTestIds = matchingTests.map((t) => t.id);
+
+      // 2. Find matching patients
+      const matchingPatients = await this.prisma.patient.findMany({
+        where: {
+          clinicId,
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+        select: { id: true },
+      });
+      const matchingPatientIds = matchingPatients.map((p) => p.id);
+
+      // 3. Filter orders by either matching test or matching patient
+      where.OR = [
+        { labTestId: { in: matchingTestIds } },
+        { patientId: { in: matchingPatientIds } },
+      ];
+    }
+
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    if (date) {
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      where.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
     const orders = await this.prisma.labTestOrder.findMany({
-      where: { clinicId },
+      where,
       include: {
         labTest: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Get patient details
-    const patientIds = orders.map((o) => o.patientId);
+    // Get patient details manually (since relation might be missing/named differently)
+    const patientIds = [...new Set(orders.map((o) => o.patientId))];
     const patients = await this.prisma.patient.findMany({
       where: { id: { in: patientIds } },
       select: {
@@ -88,11 +142,10 @@ export class LabTestsService {
         phoneNumber: true,
       },
     });
-
     const patientMap = new Map(patients.map((p) => [p.id, p]));
 
-    // Get doctor details (orderedBy)
-    const doctorIds = orders.map((o) => o.orderedBy);
+    // Get doctor details manually
+    const doctorIds = [...new Set(orders.map((o) => o.orderedBy))];
     const doctors = await this.prisma.user.findMany({
       where: { id: { in: doctorIds } },
       select: {
@@ -100,7 +153,6 @@ export class LabTestsService {
         name: true,
       },
     });
-
     const doctorMap = new Map(doctors.map((d) => [d.id, d]));
 
     return orders.map((order) => ({

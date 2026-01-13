@@ -55,7 +55,7 @@ const appointmentFullSelect = {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(
     clinicId: string,
@@ -67,6 +67,7 @@ export class AppointmentsService {
       doctorId?: string;
       cursor?: string;
       limit?: number;
+      search?: string;
       userId?: string;
       userRole?: string;
     },
@@ -81,6 +82,17 @@ export class AppointmentsService {
     }
 
     const where: Prisma.AppointmentWhereInput = { clinicId };
+
+    // Handle Search
+    if (options?.search) {
+      where.patient = {
+        OR: [
+          { firstName: { contains: options.search, mode: 'insensitive' } },
+          { lastName: { contains: options.search, mode: 'insensitive' } },
+          { phoneNumber: { contains: options.search } },
+        ],
+      };
+    }
 
     // Filter by patient if specified
     if (options?.patientId) {

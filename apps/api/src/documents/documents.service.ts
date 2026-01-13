@@ -8,14 +8,45 @@ import { unlink } from 'fs/promises';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async findAll(clinicId: string) {
+  async findAll(
+    clinicId: string,
+    params?: { search?: string; type?: string; patientId?: string },
+  ) {
     if (!clinicId) {
       return [];
     }
+
+    const { search, type, patientId } = params || {};
+    const whereCallback: any = {
+      patient: { clinicId },
+    };
+
+    if (search) {
+      whereCallback.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        {
+          patient: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ];
+    }
+
+    if (type && type !== 'all') {
+      whereCallback.type = type;
+    }
+
+    if (patientId) {
+      whereCallback.patientId = patientId;
+    }
+
     return this.prisma.document.findMany({
-      where: { patient: { clinicId } },
+      where: whereCallback,
       select: {
         id: true,
         patientId: true,

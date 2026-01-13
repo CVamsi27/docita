@@ -26,7 +26,7 @@ interface UpdateTemplateData {
 
 @Injectable()
 export class TemplatesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   create(data: CreateTemplateData) {
     return this.prisma.clinicalTemplate.create({
@@ -40,8 +40,28 @@ export class TemplatesService {
     });
   }
 
-  findAll() {
+  findAll(params?: {
+    search?: string;
+    speciality?: string;
+    clinicId?: string;
+  }) {
+    const { search, speciality, clinicId } = params || {};
+    const where: any = {};
+
+    if (clinicId) {
+      where.clinicId = clinicId;
+    }
+
+    if (speciality && speciality !== 'all') {
+      where.speciality = speciality;
+    }
+
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' };
+    }
+
     return this.prisma.clinicalTemplate.findMany({
+      where,
       orderBy: { updatedAt: 'desc' },
     });
   }

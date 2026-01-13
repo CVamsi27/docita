@@ -1,6 +1,6 @@
-
 import { useState, useMemo } from "react";
 import { useAPIQuery } from "@/lib/api-hooks";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Bed as BedType, Room, Ward } from "@workspace/types";
 
 // Type definitions matching existing data structure
@@ -9,9 +9,12 @@ export interface WardWithRooms extends Ward {
 }
 
 export const useIpdLogic = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearch = useDebounce(searchQuery, 300);
+
     const { data: wards, isLoading } = useAPIQuery<WardWithRooms[]>(
-        ["wards"],
-        "/ipd/wards",
+        ["wards", debouncedSearch],
+        `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
     );
     const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
@@ -48,6 +51,8 @@ export const useIpdLogic = () => {
         wards,
         isLoading,
         stats,
+        searchQuery,
+        setSearchQuery,
         showAdmissionModal,
         setShowAdmissionModal,
     };

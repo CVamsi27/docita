@@ -31,7 +31,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.QUEUE_MANAGEMENT)
 export class QueueController {
-  constructor(private readonly queueService: QueueService) {}
+  constructor(private readonly queueService: QueueService) { }
 
   /**
    * Get unified view of today's patients (appointments + queue)
@@ -41,8 +41,9 @@ export class QueueController {
   getTodaysPatients(
     @Request() req: AuthRequest,
     @Query('doctorId') doctorId?: string,
+    @Query('search') search?: string,
   ) {
-    return this.queueService.getTodaysPatients(req.user.clinicId, doctorId);
+    return this.queueService.getTodaysPatients(req.user.clinicId, doctorId, search);
   }
 
   /**
@@ -71,16 +72,24 @@ export class QueueController {
    * Get all queue tokens with optional doctor filter
    */
   @Get()
-  findAll(@Request() req: AuthRequest, @Query('doctorId') doctorId?: string) {
-    return this.queueService.findAllWithPatients(req.user.clinicId, doctorId);
+  findAll(
+    @Request() req: AuthRequest,
+    @Query('doctorId') doctorId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.queueService.findAllWithPatients(req.user.clinicId, doctorId, search);
   }
 
   /**
    * Get queue statistics
    */
   @Get('stats')
-  getStats(@Request() req: AuthRequest, @Query('doctorId') doctorId?: string) {
-    return this.queueService.getStats(req.user.clinicId, doctorId);
+  getStats(
+    @Request() req: AuthRequest,
+    @Query('doctorId') doctorId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.queueService.getStats(req.user.clinicId, doctorId, search);
   }
 
   /**

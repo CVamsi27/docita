@@ -7,9 +7,11 @@ import {
   Calendar,
   CheckCircle2,
   Loader2,
+  Search,
   User,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
 import {
   Card,
   CardContent,
@@ -28,6 +30,8 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { apiHooks } from "@/lib/api-hooks";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
   Feature,
   FeatureGate,
@@ -35,7 +39,10 @@ import {
 import { EmptyState } from "@workspace/ui/components/empty-state";
 
 export default function CodingQueuePage() {
-  const { data: visits = [], isLoading, error } = apiHooks.useCodingQueue();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const { data: visits = [], isLoading, error } = apiHooks.useCodingQueue(debouncedSearch);
 
   if (error) {
     toast.error("Failed to load coding queue");
@@ -51,9 +58,20 @@ export default function CodingQueuePage() {
               Completed visits that are missing diagnosis codes.
             </p>
           </div>
-          <Badge variant="outline" className="text-lg px-4 py-1">
-            {visits.length} Pending
-          </Badge>
+          <div className="flex items-center gap-4">
+            <div className="relative w-64 md:w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by patient name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Badge variant="outline" className="text-lg px-4 py-1">
+              {visits.length} Pending
+            </Badge>
+          </div>
         </div>
 
         <Card>

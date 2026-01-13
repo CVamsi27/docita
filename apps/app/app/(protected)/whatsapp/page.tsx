@@ -11,35 +11,21 @@ import {
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { apiHooks } from "@/lib/api-hooks";
-import { Patient } from "@workspace/types";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 
-interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
 
 export default function WhatsAppPage() {
-  const { data: patientsResponse } = apiHooks.usePatients();
-  const paginatedResponse = patientsResponse as
-    | PaginatedResponse<Patient>
-    | undefined;
-  const patients: Patient[] = paginatedResponse?.items || [];
+  const { data: stats } = apiHooks.useWhatsappStats();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
-  // Count patients with phone numbers as potential WhatsApp subscribers
-  const patientsWithPhone = patients.filter(
-    (p) => p.phoneNumber && p.phoneNumber.trim() !== "",
-  );
-  const subscriberCount = patientsWithPhone.length;
+  const subscriberCount = stats?.subscribers || 0;
+  const totalPatients = stats?.totalPatients || 0;
   const optInRate =
-    patients.length > 0
-      ? Math.round((subscriberCount / patients.length) * 100)
+    totalPatients > 0
+      ? Math.round((subscriberCount / totalPatients) * 100)
       : 0;
 
   return (

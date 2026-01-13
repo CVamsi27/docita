@@ -34,7 +34,7 @@ export class QueueService {
     private prisma: PrismaService,
     @InjectQueue('analytics') private analyticsQueue: Queue,
     @InjectQueue('notifications') private notificationsQueue: Queue,
-  ) {}
+  ) { }
 
   // ============================================================================
   // Queue Settings
@@ -105,7 +105,7 @@ export class QueueService {
     return (lastToken?.tokenNumber || 0) + 1;
   }
 
-  async findAll(clinicId: string, doctorId?: string) {
+  async findAll(clinicId: string, doctorId?: string, search?: string) {
     if (!clinicId) {
       return [];
     }
@@ -124,6 +124,21 @@ export class QueueService {
     // Filter by doctor if doctor-specific queues are enabled
     if (settings.useDoctorQueues && doctorId) {
       where.doctorId = doctorId;
+    }
+
+    // Handle Search
+    if (search) {
+      const searchLower = search.toLowerCase();
+      // Try to match token number if it's a number (or starts with A/a)
+      const tokenMatch = searchLower.match(/a?(\d+)/);
+      const tokenNumber = tokenMatch ? parseInt(tokenMatch[1], 10) : NaN;
+
+      where.OR = [
+        { patient: { firstName: { contains: search, mode: 'insensitive' } } },
+        { patient: { lastName: { contains: search, mode: 'insensitive' } } },
+        { patient: { phoneNumber: { contains: search } } },
+        ...(isNaN(tokenNumber) ? [] : [{ tokenNumber }]),
+      ];
     }
 
     return this.prisma.queueToken.findMany({
@@ -159,8 +174,12 @@ export class QueueService {
     });
   }
 
-  async findAllWithPatients(clinicId: string, doctorId?: string) {
-    return this.findAll(clinicId, doctorId);
+  async findAllWithPatients(
+    clinicId: string,
+    doctorId?: string,
+    search?: string,
+  ) {
+    return this.findAll(clinicId, doctorId, search);
   }
 
   async findOne(id: string) {
@@ -604,7 +623,7 @@ export class QueueService {
   // Stats
   // ============================================================================
 
-  async getStats(clinicId: string, doctorId?: string) {
+  async getStats(clinicId: string, doctorId?: string, search?: string) {
     const { today, tomorrow } = this.getTodayRange();
     const settings = await this.getQueueSettings(clinicId);
 
@@ -687,7 +706,7 @@ export class QueueService {
   // Unified Today's Patients View
   // ============================================================================
 
-  async getTodaysPatients(clinicId: string, doctorId?: string) {
+  async getTodaysPatients(clinicId: string, doctorId?: string, search?: string) {
     const { today, tomorrow } = this.getTodayRange();
     const settings = await this.getQueueSettings(clinicId);
 
@@ -702,6 +721,19 @@ export class QueueService {
 
     if (settings.useDoctorQueues && doctorId) {
       queueWhere.doctorId = doctorId;
+    }
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      const tokenMatch = searchLower.match(/a?(\d+)/);
+      const tokenNumber = tokenMatch ? parseInt(tokenMatch[1], 10) : NaN;
+
+      queueWhere.OR = [
+        { patient: { firstName: { contains: search, mode: 'insensitive' } } },
+        { patient: { lastName: { contains: search, mode: 'insensitive' } } },
+        { patient: { phoneNumber: { contains: search } } },
+        ...(isNaN(tokenNumber) ? [] : [{ tokenNumber }]),
+      ];
     }
 
     const queueTokens = await this.prisma.queueToken.findMany({
@@ -753,6 +785,16 @@ export class QueueService {
 
     if (doctorId) {
       appointmentWhere.doctorId = doctorId;
+    }
+
+    if (search) {
+      appointmentWhere.patient = {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { phoneNumber: { contains: search } },
+        ],
+      };
     }
 
     const pendingAppointments = await this.prisma.appointment.findMany({

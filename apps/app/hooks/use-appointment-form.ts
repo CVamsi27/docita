@@ -60,14 +60,8 @@ export function useAppointmentForm({
   const { data: doctors = [], isLoading: doctorsLoading } =
     apiHooks.useDoctors();
 
-  // Filter doctors to include both DOCTOR and ADMIN_DOCTOR roles
-  const filteredDoctors = useMemo(
-    () =>
-      doctors.filter(
-        (doc) => doc.role === "DOCTOR" || doc.role === "ADMIN_DOCTOR",
-      ),
-    [doctors],
-  );
+  // API now returns strictly doctors, so no need to filter manually
+  const filteredDoctors = doctors;
 
   const { mutateAsync: createAppointment, isPending: loading } =
     apiHooks.useCreateAppointment();
@@ -206,7 +200,7 @@ export function useAppointmentForm({
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
             data.endTime ||
-              new Date(new Date(data.startTime).getTime() + durationMs),
+            new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
 

@@ -24,12 +24,20 @@ import {
   Mail,
   Phone,
   Pill,
-  ShieldAlert,
-  ShieldCheck,
   User,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { format } from "date-fns";
+import {
+  CodeStatusAlertUI,
+  CodeStatus,
+  CODE_STATUS_COLORS,
+  CODE_STATUS_LABELS,
+} from "./summary/CodeStatusAlertUI";
+import { AllergyAlertUI } from "./summary/AllergyAlertUI";
+import { SummaryVitals } from "./shared/SummaryVitals";
+import { SummaryMedications } from "./shared/SummaryMedications";
+import { SummaryConditions } from "./shared/SummaryConditions";
 
 export interface Allergy {
   id: string;
@@ -79,6 +87,7 @@ export interface PatientSummaryCardUIProps {
   expanded: boolean;
   onToggleExpanded: () => void;
   className?: string;
+  codeStatus?: CodeStatus;
 }
 
 const SEVERITY_COLORS = {
@@ -105,6 +114,7 @@ export function PatientSummaryCardUI({
   expanded,
   onToggleExpanded,
   className,
+  codeStatus,
 }: PatientSummaryCardUIProps) {
   const hasAllergies = allergies.length > 0;
   const hasSevereAllergy = allergies.some((a) => a.severity === "severe");
@@ -142,7 +152,7 @@ export function PatientSummaryCardUI({
           {hasSevereAllergy && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild>
+              <TooltipTrigger asChild>
                   <div className="flex items-center gap-1 text-red-600 animate-pulse">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-xs font-medium">ALERT</span>
@@ -157,8 +167,8 @@ export function PatientSummaryCardUI({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        {/* Allergies - Always Visible */}
+      <CardContent className="space-y-6">
+        {/* Top Allergies Badges (Optional - keeping if it was intended) */}
         {hasAllergies && (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -196,300 +206,56 @@ export function PatientSummaryCardUI({
           </div>
         )}
 
-        {/* Chronic Conditions - Always Visible */}
-        {activeConditions.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Heart className="h-3 w-3" />
-              Chronic Conditions
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {activeConditions.map((condition) => (
-                <Badge
-                  key={condition.id}
-                  variant="secondary"
-                  className="text-xs"
-                >
-                  {condition.name}
-                </Badge>
-              ))}
-            </div>
+        {/* Main Grid Columns */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-4">
+             {/* Detailed Alerts */}
+             <div className="space-y-2">
+                <AllergyAlertUI allergies={allergies} />
+             </div>
+             {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
           </div>
-        )}
 
-        {/* Expandable Section */}
-        {expanded && (
-          <div className="space-y-3 pt-2 border-t animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Contact Info */}
-            {(patient.phone || patient.email) && (
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Contact
-                </div>
-                <div className="space-y-1 text-sm">
-                  {patient.phone && (
-                    <a
-                      href={`tel:${patient.phone}`}
-                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Phone className="h-3 w-3" />
-                      {patient.phone}
-                    </a>
-                  )}
-                  {patient.email && (
-                    <a
-                      href={`mailto:${patient.email}`}
-                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Mail className="h-3 w-3" />
-                      {patient.email}
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* Conditions Column */}
+          <SummaryConditions conditions={activeConditions} />
 
-            {/* Current Medications */}
-            {currentMedications.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  <Pill className="h-3 w-3" />
-                  Current Medications ({currentMedications.length})
-                </div>
-                <div className="space-y-1">
-                  {currentMedications.slice(0, 5).map((med, index) => (
-                    <div
-                      key={index}
-                      className="text-xs bg-muted/50 rounded px-2 py-1.5"
-                    >
-                      <span className="font-medium">{med.name}</span>
-                      <span className="text-muted-foreground">
-                        {" "}
-                        • {med.dosage} • {med.frequency}
-                      </span>
-                    </div>
-                  ))}
-                  {currentMedications.length > 5 && (
-                    <p className="text-xs text-muted-foreground">
-                      +{currentMedications.length - 5} more medications
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* Medications Column */}
+          <SummaryMedications medications={currentMedications} />
 
-            {/* Latest Vitals */}
-            {latestVitals.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  <Activity className="h-3 w-3" />
-                  Latest Vitals
+          {/* Vitals Column */}
+          <SummaryVitals vitals={latestVitals} />
+        </div>
+         
+          {/* Expanded Content */}
+          {expanded && (
+            <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
+               <div>
+                  <h4 className="text-sm font-medium mb-2">Contact Information</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    {patient.phone && <div>📞 {patient.phone}</div>}
+                    {patient.email && <div>✉️ {patient.email}</div>}
+                    {patient.emergencyContact && <div>🚑 Emergency: {patient.emergencyContact}</div>}
+                  </div>
+               </div>
+               
+                <div>
+                   <h4 className="text-sm font-medium mb-2">Last Visit</h4>
+                   {lastVisit ? (
+                     <div className="text-sm text-muted-foreground">
+                       {format(lastVisit, "PPP")}
+                     </div>
+                   ) : (
+                     <div className="text-sm text-muted-foreground">No previous visits</div>
+                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {latestVitals.map((vital, index) => (
-                    <div
-                      key={index}
-                      className="bg-muted/50 rounded px-2 py-1.5 text-xs"
-                    >
-                      <span className="text-muted-foreground">
-                        {vital.type}:
-                      </span>{" "}
-                      <span
-                        className={cn(
-                          "font-medium",
-                          vital.status && VITAL_STATUS_COLORS[vital.status],
-                        )}
-                      >
-                        {vital.value} {vital.unit}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Last Visit */}
-            {lastVisit && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
-                <Calendar className="h-3 w-3" />
-                <span>Last visit: {format(lastVisit, "MMM d, yyyy")}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Expand/Collapse Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-xs"
-          onClick={onToggleExpanded}
-        >
-          {expanded ? (
-            <>
-              <ChevronUp className="h-3 w-3 mr-1" />
-              Show Less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-3 w-3 mr-1" />
-              Show More
-            </>
+            </div>
           )}
-        </Button>
       </CardContent>
     </Card>
   );
 }
 
-// Export sub-components with re-exports
-export type CodeStatus =
-  | "FULL_CODE"
-  | "DNR"
-  | "DNI"
-  | "DNR_DNI"
-  | "COMFORT_CARE";
-
-export const CODE_STATUS_LABELS: Record<CodeStatus, string> = {
-  FULL_CODE: "Full Code",
-  DNR: "DNR (Do Not Resuscitate)",
-  DNI: "DNI (Do Not Intubate)",
-  DNR_DNI: "DNR/DNI",
-  COMFORT_CARE: "Comfort Care Only",
-};
-
-export const CODE_STATUS_COLORS: Record<
-  CodeStatus,
-  { bg: string; border: string; text: string; icon: string }
-> = {
-  FULL_CODE: {
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-800",
-    icon: "text-green-600",
-  },
-  DNR: {
-    bg: "bg-red-50",
-    border: "border-red-300",
-    text: "text-red-900",
-    icon: "text-red-600",
-  },
-  DNI: {
-    bg: "bg-orange-50",
-    border: "border-orange-300",
-    text: "text-orange-900",
-    icon: "text-orange-600",
-  },
-  DNR_DNI: {
-    bg: "bg-red-100",
-    border: "border-red-400",
-    text: "text-red-900",
-    icon: "text-red-700",
-  },
-  COMFORT_CARE: {
-    bg: "bg-purple-50",
-    border: "border-purple-300",
-    text: "text-purple-900",
-    icon: "text-purple-600",
-  },
-};
-
-export function AllergyAlertUI({
-  allergies,
-  className,
-}: {
-  allergies: Allergy[];
-  className?: string;
-}) {
-  const severeAllergies = allergies.filter((a) => a.severity === "severe");
-  const otherAllergies = allergies.filter((a) => a.severity !== "severe");
-
-  if (allergies.length === 0) return null;
-
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg",
-        severeAllergies.length > 0
-          ? "bg-red-50 border border-red-200 text-red-800"
-          : "bg-yellow-50 border border-yellow-200 text-yellow-800",
-        className,
-      )}
-    >
-      <AlertTriangle className="h-4 w-4 shrink-0" />
-      <div className="flex-1 text-sm">
-        <span className="font-medium">Allergies: </span>
-        {severeAllergies.length > 0 && (
-          <span className="text-red-700">
-            {severeAllergies.map((a) => a.allergen).join(", ")}
-            {otherAllergies.length > 0 && ", "}
-          </span>
-        )}
-        {otherAllergies.map((a) => a.allergen).join(", ")}
-      </div>
-    </div>
-  );
-}
-
-export function CodeStatusAlertUI({
-  codeStatus,
-  updatedAt,
-  updatedBy,
-  className,
-  compact = false,
-}: {
-  codeStatus: CodeStatus;
-  updatedAt?: Date | string;
-  updatedBy?: string;
-  className?: string;
-  compact?: boolean;
-}) {
-  if (compact && codeStatus === "FULL_CODE") return null;
-
-  const colors = CODE_STATUS_COLORS[codeStatus];
-  const label = CODE_STATUS_LABELS[codeStatus];
-  const isCritical = ["DNR", "DNI", "DNR_DNI", "COMFORT_CARE"].includes(
-    codeStatus,
-  );
-
-  const Icon = codeStatus === "FULL_CODE" ? ShieldCheck : ShieldAlert;
-
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg border",
-        colors.bg,
-        colors.border,
-        colors.text,
-        isCritical && "animate-pulse",
-        className,
-      )}
-    >
-      <Icon className={cn("h-4 w-4 shrink-0", colors.icon)} />
-      <div className="flex-1 text-sm">
-        <span className="font-bold uppercase tracking-wide">Code Status: </span>
-        <span className="font-semibold">{label}</span>
-        {!compact && updatedAt && (
-          <span className="ml-2 text-xs opacity-75">
-            (Updated:{" "}
-            {typeof updatedAt === "string"
-              ? new Date(updatedAt).toLocaleDateString()
-              : updatedAt.toLocaleDateString()}
-            {updatedBy && ` by ${updatedBy}`})
-          </span>
-        )}
-      </div>
-      {isCritical && (
-        <Badge
-          variant="outline"
-          className={cn(
-            "text-xs font-bold border-current uppercase",
-            colors.text,
-          )}
-        >
-          CRITICAL
-        </Badge>
-      )}
-    </div>
-  );
-}
+// Re-export for backward compatibility
+export { AllergyAlertUI, CodeStatusAlertUI };
+export type { CodeStatus } from "./summary/CodeStatusAlertUI";
+export { CODE_STATUS_LABELS, CODE_STATUS_COLORS } from "./summary/CodeStatusAlertUI";

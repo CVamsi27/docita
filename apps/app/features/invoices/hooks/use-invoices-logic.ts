@@ -1,12 +1,14 @@
-
 import { useMemo, useState } from "react";
 import { apiHooks } from "@/lib/api-hooks";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice } from "@workspace/types";
 
 export const useInvoicesLogic = () => {
     const [filter, setFilter] = useState("all");
     const [sortBy, setSortBy] = useState("date-desc");
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearch = useDebounce(searchQuery, 300);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
@@ -14,7 +16,10 @@ export const useInvoicesLogic = () => {
         data: invoicesResponse,
         isLoading: loading,
         refetch,
-    } = apiHooks.useInvoices();
+    } = apiHooks.useInvoices({
+        status: filter !== "all" ? filter : undefined,
+        search: debouncedSearch || undefined,
+    });
 
     const invoices = Array.isArray(invoicesResponse)
         ? invoicesResponse
@@ -23,9 +28,7 @@ export const useInvoicesLogic = () => {
     const filteredInvoices = useMemo(() => {
         let result = [...invoices];
 
-        if (filter !== "all") {
-            result = result.filter((inv) => inv.status === filter);
-        }
+        // Backend-driven status filtering, frontend handles sorting for now
 
         result.sort((a, b) => {
             switch (sortBy) {
@@ -91,6 +94,8 @@ export const useInvoicesLogic = () => {
         isEditDialogOpen,
         selectedInvoice,
         handleRefresh,
+        searchQuery,
+        setSearchQuery,
         refetch,
     };
 };

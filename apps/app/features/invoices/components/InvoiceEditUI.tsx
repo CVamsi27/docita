@@ -18,14 +18,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import {
   Form,
   FormControl,
   FormField,
@@ -34,9 +26,11 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { ArrowLeft, FileText, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Plus, Save, Trash2 } from "lucide-react"; // Keep Trash2 here if used elsewhere or handled by auto-clean, actually used in component? No, extracted.
 import { useInvoiceEditLogic } from "../hooks/use-invoice-edit-logic";
 import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
+import { InvoiceItemsTable } from "./sections/edit/InvoiceItemsTable";
+import { InvoiceSubtotal } from "./sections/edit/InvoiceSubtotal";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -139,6 +133,28 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Line Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InvoiceItemsTable
+                items={fields.map((field, index) => ({
+                  id: field.id,
+                  description: form.watch(`items.${index}.description`),
+                  quantity: form.watch(`items.${index}.quantity`) || 0,
+                  unitPrice: form.watch(`items.${index}.price`) || 0,
+                  total:
+                    (form.watch(`items.${index}.quantity`) || 0) *
+                    (form.watch(`items.${index}.price`) || 0),
+                }))}
+                onUpdateItem={(index, key, value) => {
+                   const fieldName = key === "unitPrice" ? "price" : key;
+                   form.setValue(
+                     `items.${index}.${fieldName}` as any, // dynamic path
+                     value
+                   );
+                }}
+                onRemoveItem={remove}
+                formatCurrency={formatCurrency}
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -146,138 +162,17 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                 onClick={() =>
                   append({ description: "", quantity: 1, price: 0 })
                 }
+                className="mt-4"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40%]">Description</TableHead>
-                      <TableHead className="w-[15%]">Quantity</TableHead>
-                      <TableHead className="w-[20%]">Price</TableHead>
-                      <TableHead className="w-[15%] text-right">Total</TableHead>
-                      <TableHead className="w-[10%]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fields.map((field, index) => (
-                      <TableRow key={field.id}>
-                        <TableCell>
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input placeholder="Item description" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    {...field}
-                                    onChange={(e) =>
-                                      field.onChange(parseInt(e.target.value) || 0)
-                                    }
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.price`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    {...field}
-                                    onChange={(e) =>
-                                      field.onChange(parseFloat(e.target.value) || 0)
-                                    }
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(
-                            (form.watch(`items.${index}.quantity`) || 0) *
-                              (form.watch(`items.${index}.price`) || 0)
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => remove(index)}
-                            disabled={fields.length === 1}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
 
-              <div className="flex flex-col items-end gap-4 mt-6">
-                <div className="w-full max-w-[300px] space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="discount"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between space-y-0 gap-4">
-                        <FormLabel className="shrink-0">Discount</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            className="w-[120px] text-right"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <span className="font-bold text-lg">Total Amount</span>
-                    <span className="font-bold text-lg text-primary">
-                      {formatCurrency(totalAmount)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <InvoiceSubtotal
+                control={form.control}
+                totalAmount={totalAmount}
+                formatCurrency={formatCurrency}
+              />
             </CardContent>
           </Card>
 

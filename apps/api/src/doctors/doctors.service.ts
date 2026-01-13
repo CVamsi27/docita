@@ -66,7 +66,7 @@ interface CreateCertificationData {
 
 @Injectable()
 export class DoctorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(clinicId: string) {
     // Fetch all clinic staff including doctors from doctorClinic and direct clinic users
@@ -79,9 +79,13 @@ export class DoctorsService {
           },
         },
       }),
-      // Also fetch users directly assigned to clinic (admins, receptionists created with clinic)
+      // Also fetch users directly assigned to clinic
+      // STRICTLY FILTER for DOCTOR or ADMIN_DOCTOR roles
       this.prisma.user.findMany({
-        where: { clinicId },
+        where: {
+          clinicId,
+          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] }
+        },
         select: {
           ...DOCTOR_LIST_SELECT, // Use optimized list select
           registrationNumber: true,
@@ -95,10 +99,16 @@ export class DoctorsService {
 
     // Combine both lists, avoiding duplicates (users that appear in both)
     const doctorClinicIds = new Set(doctorClinics.map((dc) => dc.doctor.id));
+
+    // Filter doctorClinics to ensure the linked user is actually a doctor (just in case)
+    const validDoctorClinics = doctorClinics.filter(
+      (dc) => dc.doctor.role === 'DOCTOR' || dc.doctor.role === 'ADMIN_DOCTOR'
+    );
+
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
     const allUsers = [
-      ...doctorClinics.map((dc) => ({
+      ...validDoctorClinics.map((dc) => ({
         id: dc.doctor.id,
         role: dc.doctor.role,
         email: dc.doctor.email,

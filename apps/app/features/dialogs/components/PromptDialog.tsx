@@ -1,0 +1,86 @@
+
+import { useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { cn } from "@workspace/ui/lib/utils";
+import { PromptOptions } from "../types";
+import { getVariantStyles } from "../utils";
+
+interface PromptDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  options: PromptOptions | null;
+  value: string;
+  setValue: (value: string) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+export function PromptDialog({
+  open,
+  onOpenChange,
+  options,
+  value,
+  setValue,
+  error,
+  setError,
+  onSubmit,
+  onCancel,
+}: PromptDialogProps) {
+  if (!options) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {options.icon}
+            {options.title}
+          </DialogTitle>
+          <DialogDescription>{options.description || ""}</DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          <Input
+            type={options.inputType || "text"}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setError(null);
+            }}
+            placeholder={options.placeholder}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onSubmit();
+              }
+            }}
+          />
+          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            {options.cancelText || "Cancel"}
+          </Button>
+          <Button
+            onClick={onSubmit}
+            className={cn(getVariantStyles(options.variant))}
+          >
+            {options.confirmText || "Submit"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

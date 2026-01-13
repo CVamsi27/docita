@@ -31,11 +31,12 @@ interface FeedbackFilters {
   endDate?: string;
   minRating?: number;
   maxRating?: number;
+  search?: string;
 }
 
 @Injectable()
 export class FeedbackService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Submit feedback from a user
@@ -130,6 +131,16 @@ export class FeedbackService {
       if (filters.endDate) {
         where.createdAt.lte = new Date(filters.endDate);
       }
+    }
+
+    if (filters.search) {
+      where.OR = [
+        { featureRequests: { contains: filters.search, mode: 'insensitive' } },
+        { generalComments: { contains: filters.search, mode: 'insensitive' } },
+        { goodFeaturesReason: { contains: filters.search, mode: 'insensitive' } },
+        { badFeaturesReason: { contains: filters.search, mode: 'insensitive' } },
+        { improvementReason: { contains: filters.search, mode: 'insensitive' } },
+      ];
     }
 
     return this.prisma.feedback.findMany({

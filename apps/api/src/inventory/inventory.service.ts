@@ -40,17 +40,64 @@ interface CreateMovementDto {
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async findAll(clinicId: string) {
+  async findAll(
+    clinicId: string,
+    params?: { search?: string; category?: string; status?: string },
+  ) {
     if (!clinicId) {
       return [];
     }
 
-    return this.prisma.inventoryItem.findMany({
-      where: { clinicId, active: true },
+    const { search, category, status } = params || {};
+
+    const whereCallback: any = {
+      clinicId,
+      active: true,
+    };
+
+    if (search) {
+      whereCallback.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (category && category !== 'all') {
+      whereCallback.category = category;
+    }
+
+    // Fetch items matching search and category
+    let items = await this.prisma.inventoryItem.findMany({
+      where: whereCallback,
       orderBy: { name: 'asc' },
     });
+
+    // Filter by stock status if provided
+    if (status && status !== 'all') {
+      items = items.filter((item) => {
+        if (status === 'critical') {
+          return item.quantity <= item.minQuantity * 0.5;
+        }
+        if (status === 'low') {
+          return (
+            item.quantity <= item.minQuantity &&
+            item.quantity > item.minQuantity * 0.5
+          );
+        }
+        if (status === 'low_critical') {
+          return item.quantity <= item.minQuantity;
+        }
+        if (status === 'in_stock') {
+          return item.quantity > item.minQuantity;
+        }
+        return true;
+      });
+    }
+
+    return items;
   }
 
   async findOne(id: string) {

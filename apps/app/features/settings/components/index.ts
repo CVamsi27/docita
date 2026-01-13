@@ -16,7 +16,7 @@ export { QueueSettingsUI, type QueueSettingsUIProps } from "./QueueSettingsUI";
 export { QueueSettingsContainer } from "./QueueSettingsContainer";
 export { QueueSettingsContainer as QueueSettings } from "./QueueSettingsContainer";
 
-// Member Management (API-connected - uses useDoctors hook)
+// Member Management (API-connected - uses useClinicMembers hook)
 export { MemberManagementSettings } from "./MemberManagementSettings";
 
 // Settings Components (from SettingsComponents.tsx)

@@ -32,6 +32,8 @@ function AppointmentsContent() {
     handleDialogChange,
     selectedDoctorId,
     setSelectedDoctorId,
+    searchQuery,
+    setSearchQuery,
     canViewAllDoctors,
     doctorsList,
     loading,
@@ -80,6 +82,8 @@ function AppointmentsContent() {
           isAddDialogOpen={isAddDialogOpen}
           onOpenChange={handleDialogChange}
           preselectedPatientId={preselectedPatientId}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
 
         <div className="grid gap-6 md:grid-cols-[300px_1fr]">

@@ -10,7 +10,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { useSocket } from "@/lib/socket-context";
+import { useClinicSocket } from "@/hooks/use-clinic-socket";
 
 interface Clinic {
   id: string;
@@ -88,50 +88,6 @@ function subscribeToWindowFocus(callback: () => void) {
   };
 }
 
-// Subscribe to socket events
-function useSocketSubscription(
-  socket: ReturnType<typeof useSocket>["socket"],
-  isConnected: boolean,
-  clinicId: string | null,
-  onUpdate: (data: {
-    clinicId: string;
-    tier?: string;
-    intelligenceAddon?: string;
-  }) => void,
-) {
-  const callbackRef = useRef(onUpdate);
-  callbackRef.current = onUpdate;
-
-  useSyncExternalStore(
-    useCallback(
-      (notify) => {
-        if (!socket || !isConnected || !clinicId) return () => {};
-
-        socket.emit("subscribe:clinic", clinicId);
-
-        const handleClinicUpdate = (data: {
-          clinicId: string;
-          tier?: string;
-          intelligenceAddon?: string;
-          subscriptionStatus?: string;
-        }) => {
-          callbackRef.current(data);
-          notify();
-        };
-
-        socket.on("clinic:update", handleClinicUpdate);
-
-        return () => {
-          socket.off("clinic:update", handleClinicUpdate);
-        };
-      },
-      [socket, isConnected, clinicId],
-    ),
-    () => null,
-    () => null,
-  );
-}
-
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
   // Start with null on both server and client to avoid hydration mismatch
   const [clinicId, setClinicId] = useState<string | null>(null);
@@ -145,7 +101,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setClinicType,
     setFacilityType,
   } = usePermissionStore();
-  const { socket, isConnected } = useSocket();
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastFetchTimeRef = useRef<number>(0);
@@ -268,7 +223,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   );
 
   // Handle WebSocket clinic updates
-  useSocketSubscription(socket, isConnected, clinicId, (data) => {
+  useClinicSocket(clinicId, (data) => {
     if (data.clinicId === clinicId) {
       if (data.tier) {
         setTier(data.tier);

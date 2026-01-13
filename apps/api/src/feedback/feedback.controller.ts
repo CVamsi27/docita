@@ -32,12 +32,13 @@ interface FeedbackFiltersQuery {
   endDate?: string;
   minRating?: string;
   maxRating?: string;
+  search?: string;
 }
 
 @Controller('feedback')
 @UseGuards(JwtAuthGuard)
 export class FeedbackController {
-  constructor(private readonly feedbackService: FeedbackService) {}
+  constructor(private readonly feedbackService: FeedbackService) { }
 
   /**
    * Submit feedback
@@ -103,6 +104,7 @@ export class FeedbackController {
       endDate: query.endDate,
       minRating: query.minRating ? parseInt(query.minRating) : undefined,
       maxRating: query.maxRating ? parseInt(query.maxRating) : undefined,
+      search: query.search,
     });
   }
 

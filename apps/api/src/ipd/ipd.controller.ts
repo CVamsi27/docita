@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -31,11 +32,14 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, FacilityTypeGuard)
 @RequireFacilityType(FacilityType.HOSPITAL)
 export class IpdController {
-  constructor(private readonly ipdService: IpdService) {}
+  constructor(private readonly ipdService: IpdService) { }
 
   @Get('wards')
-  findAllWards(@Request() req: AuthRequest) {
-    return this.ipdService.findAllWards(req.user.clinicId);
+  findAllWards(
+    @Request() req: AuthRequest,
+    @Query('search') search?: string,
+  ) {
+    return this.ipdService.findAllWards(req.user.clinicId, search);
   }
 
   @Post('wards')

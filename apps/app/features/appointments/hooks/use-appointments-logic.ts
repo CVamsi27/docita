@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
 import { useAuth, User } from "@/lib/auth-context";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Appointment, Patient } from "@workspace/types";
 
 // Generate 30-minute time slots for the entire day
@@ -47,6 +48,8 @@ export const useAppointmentsLogic = () => {
     const [noShowAptId, setNoShowAptId] = useState<string | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(undefined);
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearch = useDebounce(searchQuery, 300);
 
     const { user } = useAuth();
     const searchParams = useSearchParams();
@@ -66,11 +69,8 @@ export const useAppointmentsLogic = () => {
     // Fetch doctors list
     const { data: doctors = [] } = apiHooks.useDoctors();
 
-    const doctorsList = useMemo(
-        () =>
-            doctors.filter((d) => d.role === "DOCTOR" || d.role === "ADMIN_DOCTOR"),
-        [doctors],
-    );
+    // API now returns strictly doctors
+    const doctorsList = doctors;
 
     const {
         data: appointmentsResponse,
@@ -81,6 +81,7 @@ export const useAppointmentsLogic = () => {
         ...(canViewAllDoctors && selectedDoctorId
             ? { doctorId: selectedDoctorId }
             : {}),
+        search: debouncedSearch,
     });
 
     const appointments = useMemo(() => {
@@ -225,6 +226,8 @@ export const useAppointmentsLogic = () => {
             handleDialogChange,
             selectedDoctorId,
             setSelectedDoctorId,
+            searchQuery,
+            setSearchQuery,
             canViewAllDoctors,
             doctorsList,
             loading,

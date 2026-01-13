@@ -17,7 +17,7 @@ import { RequireFeature, Feature } from '../auth/tier.decorator';
 @UseGuards(JwtAuthGuard)
 @RequireFeature(Feature.MEDICAL_CODING)
 export class MedicalCodingController {
-  constructor(private readonly medicalCodingService: MedicalCodingService) {}
+  constructor(private readonly medicalCodingService: MedicalCodingService) { }
 
   @Get('icd-codes')
   async searchIcdCodes(@Query('search') search: string) {
@@ -64,10 +64,10 @@ export class MedicalCodingController {
   }
 
   @Get('uncoded')
-  async getUncodedVisits(@Request() req) {
-    // Assuming user has clinicId, or we get it from request
-    // For now, using a placeholder or getting from user if available
-    // In a real app, we'd check user's clinic
-    return this.medicalCodingService.getUncodedVisits(req.user.clinicId);
+  async getUncodedVisits(
+    @Request() req,
+    @Query('search') search?: string,
+  ) {
+    return this.medicalCodingService.getUncodedVisits(req.user.clinicId, search);
   }
 }

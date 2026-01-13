@@ -11,16 +11,69 @@ import {
 
 @Injectable()
 export class IpdService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Wards
-  async findAllWards(clinicId: string): Promise<Ward[]> {
+  async findAllWards(clinicId: string, search?: string): Promise<Ward[]> {
     return this.prisma.ward.findMany({
-      where: { clinicId },
+      where: {
+        clinicId,
+        ...(search && {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            {
+              rooms: {
+                some: {
+                  OR: [
+                    { roomNumber: { contains: search, mode: 'insensitive' } },
+                    {
+                      beds: {
+                        some: {
+                          OR: [
+                            { bedNumber: { contains: search, mode: 'insensitive' } },
+                            {
+                              admissions: {
+                                some: {
+                                  status: 'ADMITTED',
+                                  patient: {
+                                    OR: [
+                                      { firstName: { contains: search, mode: 'insensitive' } },
+                                      { lastName: { contains: search, mode: 'insensitive' } },
+                                    ],
+                                  },
+                                },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        }),
+      },
       include: {
         rooms: {
           include: {
-            beds: true,
+            beds: {
+              include: {
+                admissions: {
+                  where: { status: 'ADMITTED' },
+                  include: {
+                    patient: {
+                      select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },

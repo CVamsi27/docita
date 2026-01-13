@@ -4,13 +4,9 @@ import { FC } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { Separator } from "@workspace/ui/components/separator";
 import { ArrowLeft, Download, Edit, FileText, Printer, Share2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,6 +19,10 @@ import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInvoiceDetailsLogic } from "../hooks/use-invoice-details-logic";
 import Link from "next/link";
 import { Invoice } from "@workspace/types";
+import { InvoiceHeader } from "./sections/details/InvoiceHeader";
+import { InvoiceBillTo } from "./sections/details/InvoiceBillTo";
+import { InvoiceItemsTableReadOnly } from "./sections/details/InvoiceItemsTableReadOnly";
+import { InvoiceTotalsOnly } from "./sections/details/InvoiceTotalsOnly";
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -112,159 +112,24 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
         </div>
       </div>
 
-      {/* Invoice Content */}
       <div ref={printRef} className="print:p-0">
         <Card className="border-none shadow-sm print:shadow-none print:border">
-          <CardHeader className="flex flex-row justify-between items-start border-b pb-6">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                  D
-                </div>
-                <CardTitle className="text-xl">Docita Clinic</CardTitle>
-              </div>
-              <CardDescription className="mt-2 text-sm max-w-[250px]">
-                123 Medical Center Dr.<br />
-                Health City, HC 54321<br />
-                Phone: +91 98765 43210<br />
-                Email: billing@docita.com
-              </CardDescription>
-            </div>
-            <div className="text-right">
-              <h2 className="text-2xl font-bold text-primary mb-1">INVOICE</h2>
-              <p className="text-sm font-medium text-muted-foreground">
-                #{invoice.id}
-              </p>
-              <div className="mt-4 text-sm">
-                <div className="flex justify-end gap-4">
-                  <span className="text-muted-foreground">Date:</span>
-                  <span className="font-medium">
-                    {formatDate(invoice.createdAt)}
-                  </span>
-                </div>
-                <div className="flex justify-end gap-4 mt-1">
-                  <span className="text-muted-foreground">Due Date:</span>
-                  <span className="font-medium">
-                    {formatDate(invoice.updatedAt)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
+          <InvoiceHeader invoice={invoice} formatDate={formatDate} />
 
           <CardContent className="p-6 md:p-8">
-            {/* Bill To Section */}
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Bill To
-                </h3>
-                {invoice.patient ? (
-                  <div className="text-sm space-y-1">
-                    <p className="font-bold text-lg">
-                      {invoice.patient.firstName} {invoice.patient.lastName}
-                    </p>
-                    <p>{invoice.patient.address || "Address not provided"}</p>
-                    <p>{invoice.patient.email}</p>
-                    <p>{invoice.patient.phoneNumber}</p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Unknown Patient
-                  </p>
-                )}
-              </div>
-              <div className="md:text-right">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Payment Details
-                </h3>
-                <div className="text-sm space-y-1">
-                  <p>
-                    <span className="text-muted-foreground mr-2">Method:</span>
-                    <span className="capitalize">{invoice.paymentMethod || "N/A"}</span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground mr-2">Status:</span>
-                    <span className="capitalize font-medium">
-                      {invoice.status}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
+            <InvoiceBillTo invoice={invoice} />
 
-            {/* Items Table */}
-            <div className="rounded-lg border overflow-hidden mb-6">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="py-3 px-4 text-left font-medium text-muted-foreground">
-                      Description
-                    </th>
-                    <th className="py-3 px-4 text-center font-medium text-muted-foreground w-24">
-                      Qty
-                    </th>
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground w-32">
-                      Price
-                    </th>
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground w-32">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {(invoice.items || []).map((item, index: number) => (
-                    <tr key={index}>
-                      <td className="py-3 px-4">{item.description}</td>
-                      <td className="py-3 px-4 text-center">{item.quantity}</td>
-                      <td className="py-3 px-4 text-right">
-                        {formatCurrency(item.price)}
-                      </td>
-                      <td className="py-3 px-4 text-right font-medium">
-                        {formatCurrency(item.quantity * item.price)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <InvoiceItemsTableReadOnly
+              items={invoice.items || []}
+              formatCurrency={formatCurrency}
+            />
 
-            {/* Totals */}
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-              <div className="flex-1">
-                <div className="text-sm text-muted-foreground mb-4">
-                  <p className="font-medium mb-1">Amount in Words:</p>
-                  <p className="italic">
-                    {numberToWords(invoice.totalAmount ?? 0)}
-                  </p>
-                </div>
-                {invoice.notes && (
-                  <div className="text-sm p-4 bg-muted/30 rounded-lg max-w-md">
-                    <p className="font-semibold mb-1">Notes:</p>
-                    <p className="text-muted-foreground">{invoice.notes}</p>
-                  </div>
-                )}
-              </div>
-              <div className="w-full md:w-64 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(calculateSubtotal(invoice.items || []))}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (0%)</span>
-                  <span>{formatCurrency(0)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Discount</span>
-                    <span>-{formatCurrency((invoice as unknown as { discount?: number }).discount || 0)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>{formatCurrency(invoice.totalAmount ?? invoice.total)}</span>
-                </div>
-              </div>
-            </div>
+            <InvoiceTotalsOnly
+              invoice={invoice}
+              calculateSubtotal={calculateSubtotal}
+              formatCurrency={formatCurrency}
+              numberToWords={numberToWords}
+            />
           </CardContent>
           <CardFooter className="flex-col items-center justify-center border-t py-6 text-center text-sm text-muted-foreground bg-muted/10 print:bg-transparent">
             <p className="mb-1">Thank you for your business!</p>

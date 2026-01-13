@@ -22,7 +22,7 @@ export class AnalyticsService {
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * Get read-optimized Prisma client (read replica if available)
@@ -32,8 +32,8 @@ export class AnalyticsService {
     return this.prisma.getReadClient();
   }
 
-  async getOverview(timezone: string = DEFAULT_TIMEZONE) {
-    const cacheKey = `dashboard-overview-${timezone}`;
+  async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
+    const cacheKey = `dashboard-overview-${clinicId}-${timezone}`;
     const cachedResult = await this.cacheManager.get<any>(cacheKey);
 
     if (cachedResult) {
@@ -59,25 +59,27 @@ export class AnalyticsService {
       invoicesThisMonth,
       invoicesLastMonth,
     ] = await Promise.all([
-      readClient.patient.count(),
+      readClient.patient.count({ where: { clinicId } }),
       readClient.patient.count({
-        where: { createdAt: { gte: thisMonthRange.start } },
+        where: { clinicId, createdAt: { gte: thisMonthRange.start } },
       }),
       readClient.patient.count({
         where: {
+          clinicId,
           createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
       }),
-      readClient.appointment.count(),
+      readClient.appointment.count({ where: { clinicId } }),
       readClient.appointment.count({
-        where: { createdAt: { gte: thisMonthRange.start } },
+        where: { clinicId, createdAt: { gte: thisMonthRange.start } },
       }),
       readClient.invoice.aggregate({
-        where: { createdAt: { gte: thisMonthRange.start } },
+        where: { patient: { clinicId }, createdAt: { gte: thisMonthRange.start } },
         _sum: { total: true },
       }),
       readClient.invoice.aggregate({
         where: {
+          patient: { clinicId },
           createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
         },
         _sum: { total: true },
@@ -85,14 +87,14 @@ export class AnalyticsService {
     ]);
 
     // ✅ OPTIMIZATION: Use aggregation instead of manual calculation
-    const revenueThisMonth = invoicesThisMonth._sum.total || 0;
-    const revenueLastMonth = invoicesLastMonth._sum.total || 0;
+    const revenueThisMonth = invoicesThisMonth._sum?.total || 0;
+    const revenueLastMonth = invoicesLastMonth._sum?.total || 0;
 
     const patientGrowth =
       newPatientsLastMonth > 0
         ? ((newPatientsThisMonth - newPatientsLastMonth) /
-            newPatientsLastMonth) *
-          100
+          newPatientsLastMonth) *
+        100
         : 0;
 
     const revenueGrowth =
@@ -116,11 +118,12 @@ export class AnalyticsService {
   }
 
   async getRevenueTrends(
+    clinicId: string,
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
     days: number = 30,
     timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const cacheKey = `analytics:revenue-trends:${period}:${days}:${timezone}`;
+    const cacheKey = `analytics:revenue-trends:${clinicId}:${period}:${days}:${timezone}`;
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
       return cached;
@@ -131,6 +134,7 @@ export class AnalyticsService {
 
     const invoices = await readClient.invoice.findMany({
       where: {
+        patient: { clinicId },
         createdAt: { gte: dateRange.start },
       },
       select: INVOICE_ANALYTICS_SELECT, // Only total and createdAt (~50 bytes per record)
@@ -157,10 +161,11 @@ export class AnalyticsService {
   }
 
   async getPatientGrowth(
+    clinicId: string,
     days: number = 30,
     timezone: string = DEFAULT_TIMEZONE,
   ) {
-    const cacheKey = `analytics:patient-growth:${days}:${timezone}`;
+    const cacheKey = `analytics:patient-growth:${clinicId}:${days}:${timezone}`;
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
       return cached;
@@ -171,6 +176,7 @@ export class AnalyticsService {
 
     const patients = await readClient.patient.findMany({
       where: {
+        clinicId,
         createdAt: { gte: dateRange.start },
       },
       select: PATIENT_ANALYTICS_SELECT, // Only createdAt (~20 bytes per record)
@@ -197,12 +203,12 @@ export class AnalyticsService {
     return data;
   }
 
-  async getAppointmentStats(timezone: string = DEFAULT_TIMEZONE) {
+  async getAppointmentStats(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
     const monthRange = getMonthRange(new Date(), { timezone });
     const readClient = this.getReadClient();
 
     const appointments = await readClient.appointment.findMany({
-      where: { createdAt: { gte: monthRange.start } },
+      where: { clinicId, createdAt: { gte: monthRange.start } },
       select: APPOINTMENT_ANALYTICS_SELECT, // Only status, type, createdAt (~80 bytes per record)
     });
 
@@ -229,11 +235,12 @@ export class AnalyticsService {
     };
   }
 
-  async getTopDiagnoses(limit: number = 10) {
+  async getTopDiagnoses(clinicId: string, limit: number = 10) {
     const readClient = this.getReadClient();
 
     const appointments = await readClient.appointment.findMany({
       where: {
+        clinicId,
         observations: { not: null },
       },
       select: {
@@ -979,7 +986,7 @@ export class AnalyticsService {
           avgInvoiceAmount:
             revenue.length > 0
               ? revenue.reduce((sum, r) => sum + r.totalRevenue, 0) /
-                revenue.length
+              revenue.length
               : 0,
           totalAppointments,
           completedAppts: completedAppointments,

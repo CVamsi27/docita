@@ -1,5 +1,5 @@
 
-import { Bed, CheckCircle2, Users } from "lucide-react";
+import { Bed, CheckCircle2, Search, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
 import { AdmissionModal } from ".";
 import { WardWithRooms } from "../hooks/use-ipd-logic";
 
@@ -21,6 +22,8 @@ interface BedManagementUIProps {
   };
   showAdmissionModal: boolean;
   setShowAdmissionModal: (show: boolean) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 export function BedManagementUI({
@@ -29,6 +32,8 @@ export function BedManagementUI({
   stats,
   showAdmissionModal,
   setShowAdmissionModal,
+  searchQuery,
+  setSearchQuery,
 }: BedManagementUIProps) {
   if (isLoading) {
     return (
@@ -50,7 +55,17 @@ export function BedManagementUI({
           </p>
         </div>
         <div className="flex gap-3">
-          <Button>Manage Wards</Button>
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search patients, beds..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button variant="outline">Manage Wards</Button>
           <Button variant="default" onClick={() => setShowAdmissionModal(true)}>
             New Admission
           </Button>

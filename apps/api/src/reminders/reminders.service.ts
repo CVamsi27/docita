@@ -55,7 +55,7 @@ export class RemindersService {
     private whatsappService: WhatsappService,
     @Inject(forwardRef(() => WhatsappTemplatesService))
     private templatesService: WhatsappTemplatesService,
-  ) {}
+  ) { }
 
   async getSettings() {
     let settings = await this.prisma.reminderSettings.findFirst();
@@ -463,11 +463,28 @@ Thank you,
       .replace(/{clinicName}/g, 'Your Clinic');
   }
 
-  async getReminderHistory(limit: number = 50) {
+  async getReminderHistory(clinicId: string, limit: number = 50) {
     return this.prisma.appointmentReminder.findMany({
+      where: {
+        appointment: {
+          clinicId,
+        },
+      },
       take: limit,
       orderBy: { createdAt: 'desc' },
-    });
+      include: {
+        appointment: {
+          include: {
+            patient: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    } as any);
   }
 
   async sendManualReminder(

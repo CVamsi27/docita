@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -16,10 +17,16 @@ import {
   SendReminderDto,
 } from './dto/reminder-settings.dto';
 
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
 @Controller('reminders')
 @UseGuards(JwtAuthGuard)
 export class RemindersController {
-  constructor(private readonly remindersService: RemindersService) {}
+  constructor(private readonly remindersService: RemindersService) { }
 
   @Get('settings')
   getSettings() {
@@ -33,9 +40,10 @@ export class RemindersController {
 
   @Get('history')
   getReminderHistory(
+    @Request() req: AuthRequest,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 50,
   ) {
-    return this.remindersService.getReminderHistory(limit);
+    return this.remindersService.getReminderHistory(req.user.clinicId, limit);
   }
 
   @Post('send/:appointmentId')

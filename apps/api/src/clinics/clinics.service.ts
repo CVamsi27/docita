@@ -42,7 +42,7 @@ interface ClinicSettingsData {
 
 @Injectable()
 export class ClinicsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(data: CreateClinicData) {
     return this.prisma.clinic.create({
@@ -352,6 +352,30 @@ export class ClinicsService {
         email: true,
         role: true,
         phoneNumber: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+  async getMembers(clinicId: string) {
+    return this.prisma.user.findMany({
+      where: {
+        clinicId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        hospitalRole: true,
+        qualification: true,
+        registrationNumber: true,
+        profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { apiHooks } from "@/lib/api-hooks";
 import { Patient, LabTest, Doctor } from "@workspace/types";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export interface PaginatedResponse<T> {
     items: T[];
@@ -30,13 +31,19 @@ export const useLabTestsLogic = () => {
     const [testSearch, setTestSearch] = useState("");
     const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
     const [testComboboxOpen, setTestComboboxOpen] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string>("all");
+
+    const debouncedSearch = useDebounce(searchQuery, 300);
 
     const {
         data: labTests = [],
         isLoading,
         refetch,
         isFetching,
-    } = apiHooks.useLabTestOrders();
+    } = apiHooks.useLabTestOrders({
+        search: debouncedSearch,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+    });
 
     const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
 
@@ -76,20 +83,8 @@ export const useLabTestsLogic = () => {
         (t: any) => t.id === form.watch("labTestId"),
     );
 
-    const filteredTests = labTests.filter((test: any) => {
-        const patientName = test.patient
-            ? `${test.patient.firstName} ${test.patient.lastName}`.toLowerCase()
-            : "";
-        const testName = test.labTest?.name?.toLowerCase() || "";
-        const doctorName = test.doctor?.name?.toLowerCase() || "";
-        const search = searchQuery.toLowerCase();
-
-        return (
-            patientName.includes(search) ||
-            testName.includes(search) ||
-            doctorName.includes(search)
-        );
-    });
+    // Backend-driven filtering
+    const filteredTests = labTests;
 
     const onSubmitOrder = useCallback(
         async (data: CreateLabTestOrderInput) => {
@@ -143,6 +138,8 @@ export const useLabTestsLogic = () => {
         setTestComboboxOpen,
         selectedPatient,
         selectedTest,
+        statusFilter,
+        setStatusFilter,
         handleRefresh,
     };
 };

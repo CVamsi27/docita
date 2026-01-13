@@ -13,10 +13,13 @@ import {
   Smile,
   Baby,
 } from "lucide-react";
+import { ConsultationFormRenderer } from "./ConsultationFormRenderer";
 import { DentalChartUI } from "./specialty/DentalChartUI";
 import { VisionExamUI } from "./specialty/VisionExamUI";
 import { GrowthChartUI } from "./specialty/GrowthChartUI";
 import { CLINIC_TYPE_FEATURES, ClinicType } from "@workspace/types";
+
+// ... (previous imports and types)
 
 interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
@@ -130,63 +133,27 @@ export const ClinicalDocumentationDynamic: FC<ClinicalDocumentationDynamicProps>
 
   const tabs = getTabs();
 
-  const renderInput = (tabId: string) => {
-    // If component is mounting and we don't have data yet, we show placeholders or current state
-    switch (tabId) {
-      case 'chief-complaint':
-        return (
-          <textarea
-            className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-            placeholder="Enter the patient's chief complaint..."
-            value={chiefComplaint}
-            onChange={(e) => setChiefComplaint(e.target.value)}
-          />
-        );
-      case 'history':
-        return (
-          <textarea
-            className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-            placeholder="Enter patient history..."
-            value={history}
-            onChange={(e) => setHistory(e.target.value)}
-          />
-        );
-      case 'examination':
-        return (
-          <textarea
-            className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-            placeholder="Enter examination findings..."
-            value={examination}
-            onChange={(e) => setExamination(e.target.value)}
-          />
-        );
-      case 'dental-chart':
-        return <DentalChartUI value={dentalChart} onChange={setDentalChart} />;
-      case 'vision-exam':
-        return <VisionExamUI value={eyeExam} onChange={setEyeExam} />;
-      case 'growth-chart':
-        return <GrowthChartUI value={growthData} onChange={setGrowthData} />;
-      case 'diagnosis':
-        return (
-          <textarea
-            className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-            placeholder="Enter diagnosis..."
-            value={diagnosis}
-            onChange={(e) => setDiagnosis(e.target.value)}
-          />
-        );
-      case 'treatment':
-        return (
-          <textarea
-            className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
-            placeholder="Enter treatment plan..."
-            value={treatment}
-            onChange={(e) => setTreatment(e.target.value)}
-          />
-        );
-      default:
-        return null; // Handle unexpected tabs
-    }
+  // Create objects for renderer
+  const formData = {
+    chiefComplaint,
+    history,
+    examination,
+    diagnosis,
+    treatment,
+    dentalChart,
+    eyeExam,
+    growthData,
+  };
+
+  const formHandlers = {
+    setChiefComplaint,
+    setHistory,
+    setExamination,
+    setDiagnosis,
+    setTreatment,
+    setDentalChart,
+    setEyeExam,
+    setGrowthData,
   };
 
   return (
@@ -259,7 +226,7 @@ export const ClinicalDocumentationDynamic: FC<ClinicalDocumentationDynamicProps>
                 </CardHeader>
                 <CardContent className="flex-1 p-4 md:p-6 overflow-hidden flex flex-col">
                     <div className="flex-1 h-full overflow-y-auto">
-                         {renderInput(activeTab)}
+                         <ConsultationFormRenderer tabId={activeTab} data={formData} handlers={formHandlers} />
                     </div>
                 </CardContent>
                 </Card>
@@ -275,7 +242,7 @@ export const ClinicalDocumentationDynamic: FC<ClinicalDocumentationDynamicProps>
                              </CardTitle>
                          </CardHeader>
                          <CardContent className="p-4">
-                             {renderInput(tab.id)}
+                             <ConsultationFormRenderer tabId={tab.id} data={formData} handlers={formHandlers} />
                          </CardContent>
                      </Card>
                  ))}

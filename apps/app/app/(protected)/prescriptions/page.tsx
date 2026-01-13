@@ -2,46 +2,29 @@
 
 import { useMemo, useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Download,
-  Eye,
   Pill,
-  Search,
 } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
 import Link from "next/link";
 import { apiHooks } from "@/lib/api-hooks";
 import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp-button";
-import { format } from "date-fns";
+import { useDebounce } from "@/hooks/use-debounce";
 
-type SortKey = "date" | "patient" | "diagnosis" | "medications";
-type SortDirection = "asc" | "desc";
+import {
+  PrescriptionsFilters,
+} from "@/features/prescriptions/components/list/PrescriptionsFilters";
+import {
+  PrescriptionsTable,
+  SortDirection,
+  SortKey,
+} from "@/features/prescriptions/components/list/PrescriptionsTable";
 
 export default function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const { data: prescriptions = [], isLoading: loading } =
-    apiHooks.usePrescriptions();
+    apiHooks.usePrescriptions({ search: debouncedSearch });
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: SortDirection;
@@ -82,24 +65,9 @@ export default function PrescriptionsPage() {
   };
 
   const filteredAndSortedPrescriptions = useMemo(() => {
-    let result = [...prescriptions];
+    const result = [...prescriptions];
 
-    // Filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((item) => {
-        const patientName = item.patient?.firstName
-          ? `${item.patient.firstName} ${item.patient.lastName}`.toLowerCase()
-          : "";
-        const diagnosis = (item.diagnosis || "").toLowerCase();
-        const phone = (item.patient?.phoneNumber || "").toLowerCase();
-        return (
-          patientName.includes(query) ||
-          diagnosis.includes(query) ||
-          phone.includes(query)
-        );
-      });
-    }
+    // Backend-driven filtering
 
     // Sort
     result.sort((a, b) => {
@@ -133,33 +101,7 @@ export default function PrescriptionsPage() {
     });
 
     return result;
-  }, [prescriptions, searchQuery, sortConfig]);
-
-  const SortableHeader = ({
-    column,
-    label,
-  }: {
-    column: SortKey;
-    label: string;
-  }) => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => handleSort(column)}
-      className="gap-1 h-8 px-0 font-medium hover:bg-transparent"
-    >
-      {label}
-      {sortConfig.key === column ? (
-        sortConfig.direction === "asc" ? (
-          <ArrowUp className="h-3 w-3" />
-        ) : (
-          <ArrowDown className="h-3 w-3" />
-        )
-      ) : (
-        <ArrowUpDown className="h-3 w-3 opacity-50" />
-      )}
-    </Button>
-  );
+  }, [prescriptions, sortConfig]);
 
   return (
     <FeatureGate
@@ -188,137 +130,18 @@ export default function PrescriptionsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by patient, diagnosis, or phone..."
-              className="pl-9 bg-background"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
+        <PrescriptionsFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
 
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle>All Prescriptions</CardTitle>
-            <CardDescription>
-              A list of all prescriptions generated for patients
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-muted/50">
-                  <TableHead>Prescription ID</TableHead>
-                  <TableHead>
-                    <SortableHeader column="patient" label="Patient" />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader column="diagnosis" label="Diagnosis" />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader column="medications" label="Medications" />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader column="date" label="Date" />
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Loading prescriptions...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredAndSortedPrescriptions.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      No prescriptions found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredAndSortedPrescriptions.map((prescription) => (
-                    <TableRow
-                      key={prescription.id}
-                      className="hover:bg-muted/50"
-                    >
-                      <TableCell className="font-mono text-sm">
-                        {(prescription.id || "").slice(0, 8).toUpperCase()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            {prescription.patient?.firstName}{" "}
-                            {prescription.patient?.lastName}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {prescription.patient?.phoneNumber}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {prescription.diagnosis || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          <Pill className="h-3 w-3 mr-1" />
-                          {prescription.medications?.length || 0} meds
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(
-                          new Date(prescription.createdAt),
-                          "MMM d, yyyy",
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                          className="gap-2"
-                        >
-                          <Link href={`/prescriptions/${prescription.id}`}>
-                            <Eye className="h-4 w-4" />
-                            View
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => downloadPDF(prescription.id || "")}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          PDF
-                        </Button>
-                        {prescription.patient?.phoneNumber && (
-                          <WhatsAppButton
-                            phoneNumber={prescription.patient.phoneNumber}
-                            message={`Hello ${prescription.patient.firstName}, here is your prescription from ${process.env["NEXT_PUBLIC_CLINIC_NAME"] || "Docita Clinic"}.`}
-                            variant="ghost"
-                            label=""
-                            className="h-8 w-8 p-0"
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <PrescriptionsTable
+          prescriptions={filteredAndSortedPrescriptions}
+          loading={loading}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          onDownloadPDF={downloadPDF}
+        />
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">

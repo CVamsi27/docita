@@ -1,6 +1,7 @@
 
 import { useMemo, useState } from "react";
 import { apiHooks } from "@/lib/api-hooks";
+import { useDebounce } from "@/hooks/use-debounce";
 import { InventoryItem } from "@workspace/types";
 
 export interface StockStatus {
@@ -16,12 +17,18 @@ export const useInventoryLogic = () => {
     const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
+    const debouncedSearch = useDebounce(searchQuery, 300);
+
     const {
         data: inventory = [],
         isLoading,
         refetch,
         isFetching,
-    } = apiHooks.useInventory();
+    } = apiHooks.useInventory({
+        search: debouncedSearch,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
+        status: stockFilter !== "all" ? stockFilter : undefined,
+    });
 
     const { data: stats, refetch: refetchStats } = apiHooks.useInventoryStats();
 
@@ -45,25 +52,8 @@ export const useInventoryLogic = () => {
         };
     };
 
-    const filteredInventory = useMemo(() => {
-        return inventory.filter((item: InventoryItem) => {
-            const matchesSearch =
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.category.toLowerCase().includes(searchQuery.toLowerCase());
-
-            const matchesCategory =
-                categoryFilter === "all" || item.category === categoryFilter;
-
-            const status = getStockStatus(item.quantity, item.minQuantity);
-            const matchesStock =
-                stockFilter === "all" ||
-                (stockFilter === "low_critical" &&
-                    (status.value === "low" || status.value === "critical")) ||
-                status.value === stockFilter;
-
-            return matchesSearch && matchesCategory && matchesStock;
-        });
-    }, [inventory, searchQuery, categoryFilter, stockFilter]);
+    // Backend-driven filtering, so filteredInventory is just the data
+    const filteredInventory = inventory;
 
     const uniqueCategories = useMemo(() => {
         return Array.from(new Set(inventory.map((item: InventoryItem) => item.category)));

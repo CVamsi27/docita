@@ -34,15 +34,14 @@ import { InventoryItemDetails } from "@/features/inventory/components/InventoryI
 import {
   AlertTriangle,
   BarChart3,
-  Eye,
   Package,
   Plus,
   RefreshCw,
-  Search,
   TrendingDown,
 } from "lucide-react";
-import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInventoryLogic, StockStatus } from "../hooks/use-inventory-logic";
+import { InventoryTable } from "./sections/list/InventoryTable";
+import { InventoryFilters } from "./sections/list/InventoryFilters";
 
 export const InventoryPageUI: FC = () => {
   const {
@@ -172,130 +171,23 @@ export const InventoryPageUI: FC = () => {
         </div>
 
         {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search inventory..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={stockFilter} onValueChange={setStockFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Stock Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="low_critical">Low & Critical</SelectItem>
-              <SelectItem value="in_stock">In Stock</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <InventoryFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          stockFilter={stockFilter}
+          setStockFilter={setStockFilter}
+          uniqueCategories={uniqueCategories}
+        />
 
         {/* Inventory Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventory Items</CardTitle>
-            <CardDescription>
-              A list of all items in your inventory. Click &quot;View&quot; for
-              details.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingState message="Loading inventory..." />
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Expiry</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInventory.map((item) => {
-                      const status = getStockStatus(
-                        item.quantity,
-                        item.minQuantity,
-                      );
-                      return (
-                        <TableRow
-                          key={item.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setSelectedItemId(item.id)}
-                        >
-                          <TableCell className="font-medium">
-                            {item.name}
-                          </TableCell>
-                          <TableCell className="capitalize text-muted-foreground">
-                            {item.category}
-                          </TableCell>
-                          <TableCell>
-                            {item.quantity} {item.unit}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={status.variant}
-                              className="whitespace-nowrap"
-                            >
-                              {status.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {formatDate(item.expiryDate)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedItemId(item.id);
-                              }}
-                            >
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {filteredInventory.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                          <EmptyState
-                            icon={Package}
-                            title="No items found"
-                            description="Adjust your filters or add a new item."
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <InventoryTable
+          items={filteredInventory}
+          isLoading={isLoading}
+          onViewItem={setSelectedItemId}
+          getStockStatus={getStockStatus}
+        />
 
         <InventoryAddItemDialog
           isOpen={isAddItemDialogOpen}

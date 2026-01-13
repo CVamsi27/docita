@@ -1,51 +1,62 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.BASIC_ANALYTICS)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   @Get('overview')
-  getOverview() {
-    return this.analyticsService.getOverview();
+  getOverview(@Request() req: AuthRequest) {
+    return this.analyticsService.getOverview(req.user.clinicId);
   }
 
   @Get('revenue')
   getRevenueTrends(
+    @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'daily',
     @Query('days') days: string = '30',
   ) {
-    return this.analyticsService.getRevenueTrends(period, parseInt(days));
+    return this.analyticsService.getRevenueTrends(
+      req.user.clinicId,
+      period,
+      parseInt(days),
+    );
   }
 
   @Get('patients')
-  getPatientGrowth(@Query('days') days: string = '30') {
-    return this.analyticsService.getPatientGrowth(parseInt(days));
+  getPatientGrowth(@Request() req: AuthRequest, @Query('days') days: string = '30') {
+    return this.analyticsService.getPatientGrowth(req.user.clinicId, parseInt(days));
   }
 
   @Get('appointments')
-  getAppointmentStats() {
-    return this.analyticsService.getAppointmentStats();
+  getAppointmentStats(@Request() req: AuthRequest) {
+    return this.analyticsService.getAppointmentStats(req.user.clinicId);
   }
 
   @Get('top-diagnoses')
-  getTopDiagnoses(@Query('limit') limit: string = '10') {
-    return this.analyticsService.getTopDiagnoses(parseInt(limit));
+  getTopDiagnoses(@Request() req: AuthRequest, @Query('limit') limit: string = '10') {
+    return this.analyticsService.getTopDiagnoses(req.user.clinicId, parseInt(limit));
   }
 
   @Get('disease-trends')
   getDiseaseTrends(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getDiseaseTrends(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -53,12 +64,12 @@ export class AnalyticsController {
 
   @Get('disease-trends/by-category')
   getDiseaseTrendsByCategory(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getDiseaseTrendsByCategory(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -66,13 +77,13 @@ export class AnalyticsController {
 
   @Get('disease-trends/time-series')
   getDiseaseTimeSeries(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
     @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
     return this.analyticsService.getDiseaseTimeSeries(
-      clinicId,
+      req.user.clinicId,
       new Date(startDate),
       new Date(endDate),
       groupBy,
@@ -81,12 +92,12 @@ export class AnalyticsController {
 
   @Get('revenue/by-cpt')
   getRevenueByCptCode(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getRevenueByCptCode(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -94,12 +105,12 @@ export class AnalyticsController {
 
   @Get('revenue/by-category')
   getRevenueByCategory(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getRevenueByCategory(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -107,13 +118,13 @@ export class AnalyticsController {
 
   @Get('revenue/time-series')
   getRevenueTimeSeries(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
     @Query('groupBy') groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
     return this.analyticsService.getRevenueTimeSeries(
-      clinicId,
+      req.user.clinicId,
       new Date(startDate),
       new Date(endDate),
       groupBy,
@@ -122,30 +133,30 @@ export class AnalyticsController {
 
   @Get('compliance/metrics')
   getCodingComplianceMetrics(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getCodingComplianceMetrics(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
   }
 
   @Get('compliance/uncoded-stats')
-  getUncodedVisitsStats(@Query('clinicId') clinicId: string) {
-    return this.analyticsService.getUncodedVisitsStats(clinicId);
+  getUncodedVisitsStats(@Request() req: AuthRequest) {
+    return this.analyticsService.getUncodedVisitsStats(req.user.clinicId);
   }
 
   @Get('compliance/timeliness')
   getCodingTimeliness(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getCodingTimeliness(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -155,13 +166,13 @@ export class AnalyticsController {
 
   @Get('revenue-metrics')
   getRevenueMetrics(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getRevenueMetrics(
-      clinicId,
+      req.user.clinicId,
       period,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
@@ -170,13 +181,13 @@ export class AnalyticsController {
 
   @Get('appointment-metrics')
   getAppointmentMetrics(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getAppointmentMetrics(
-      clinicId,
+      req.user.clinicId,
       period,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
@@ -185,12 +196,12 @@ export class AnalyticsController {
 
   @Get('patient-demographics')
   getPatientDemographics(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     return this.analyticsService.getPatientDemographics(
-      clinicId,
+      req.user.clinicId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
@@ -198,9 +209,9 @@ export class AnalyticsController {
 
   @Get('top-conditions')
   getTopConditions(
-    @Query('clinicId') clinicId: string,
+    @Request() req: AuthRequest,
     @Query('limit') limit: string = '10',
   ) {
-    return this.analyticsService.getTopConditions(clinicId, parseInt(limit));
+    return this.analyticsService.getTopConditions(req.user.clinicId, parseInt(limit));
   }
 }

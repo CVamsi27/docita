@@ -33,7 +33,7 @@ interface AuthRequest {
 @UseGuards(JwtAuthGuard, TierGuard)
 @RequireFeature(Feature.CALENDAR_SLOTS)
 export class AppointmentsController {
-  constructor(private readonly appointmentsService: AppointmentsService) {}
+  constructor(private readonly appointmentsService: AppointmentsService) { }
 
   @Get()
   findAll(
@@ -43,6 +43,7 @@ export class AppointmentsController {
     @Query('endDate') endDate?: string,
     @Query('patientId') patientId?: string,
     @Query('doctorId') doctorId?: string,
+    @Query('search') search?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
@@ -52,6 +53,7 @@ export class AppointmentsController {
       endDate,
       patientId,
       doctorId,
+      search,
       cursor,
       limit: limit ? parseInt(limit, 10) : undefined,
       userId: req.user.id,

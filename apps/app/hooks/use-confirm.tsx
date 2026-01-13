@@ -7,48 +7,26 @@ import {
   useContext,
   useState,
 } from "react";
+import { ConfirmDialog } from "../features/dialogs/components/ConfirmDialog";
+import { PromptDialog } from "../features/dialogs/components/PromptDialog";
+import { AlertDialog } from "../features/dialogs/components/AlertDialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { cn } from "@/lib/design-system";
+  ConfirmOptions,
+  PromptOptions,
+  AlertOptions,
+  ConfirmVariant,
+} from "../features/dialogs/types";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-type ConfirmVariant = "default" | "destructive" | "warning" | "success";
-
-interface ConfirmOptions {
-  title: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  variant?: ConfirmVariant;
-  icon?: ReactNode;
-  requireConfirmation?: string;
-}
-
-interface PromptOptions extends Omit<ConfirmOptions, "requireConfirmation"> {
-  placeholder?: string;
-  defaultValue?: string;
-  inputType?: "text" | "email" | "password" | "number";
-  validation?: (value: string) => string | null;
-}
-
-interface AlertOptions {
-  title: string;
-  description?: string;
-  confirmText?: string;
-  variant?: ConfirmVariant;
-  icon?: ReactNode;
-}
+export type {
+  ConfirmOptions,
+  PromptOptions,
+  AlertOptions,
+  ConfirmVariant,
+} from "../features/dialogs/types";
 
 interface ConfirmState {
   isOpen: boolean;
@@ -243,24 +221,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     [confirm],
   );
 
-  const getVariantStyles = (variant: ConfirmVariant = "default") => {
-    switch (variant) {
-      case "destructive":
-        return "bg-red-600 hover:bg-red-700 text-white";
-      case "warning":
-        return "bg-yellow-600 hover:bg-yellow-700 text-white";
-      case "success":
-        return "bg-green-600 hover:bg-green-700 text-white";
-      default:
-        return "";
-    }
-  };
-
-  const requiresTypedConfirmation = confirmState.options?.requireConfirmation;
-  const confirmationMatches =
-    !requiresTypedConfirmation ||
-    typedConfirmation === requiresTypedConfirmation;
-
   return (
     <ConfirmContext.Provider
       value={{
@@ -274,128 +234,34 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     >
       {children}
 
-      {/* Confirm Dialog */}
-      <Dialog
+      <ConfirmDialog
         open={confirmState.isOpen}
         onOpenChange={(open) => !open && handleConfirmClose(false)}
-      >
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {confirmState.options?.icon}
-              {confirmState.options?.title}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmState.options?.description || ""}
-            </DialogDescription>
-          </DialogHeader>
+        options={confirmState.options}
+        onConfirm={() => handleConfirmClose(true)}
+        onCancel={() => handleConfirmClose(false)}
+        typedConfirmation={typedConfirmation}
+        setTypedConfirmation={setTypedConfirmation}
+      />
 
-          {requiresTypedConfirmation && (
-            <div className="py-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Type <strong>{requiresTypedConfirmation}</strong> to confirm:
-              </p>
-              <Input
-                value={typedConfirmation}
-                onChange={(e) => setTypedConfirmation(e.target.value)}
-                placeholder={requiresTypedConfirmation}
-                autoFocus
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => handleConfirmClose(false)}>
-              {confirmState.options?.cancelText || "Cancel"}
-            </Button>
-            <Button
-              onClick={() => handleConfirmClose(true)}
-              className={cn(getVariantStyles(confirmState.options?.variant))}
-              disabled={!confirmationMatches}
-            >
-              {confirmState.options?.confirmText || "Confirm"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Prompt Dialog */}
-      <Dialog
+      <PromptDialog
         open={promptState.isOpen}
         onOpenChange={(open) => !open && handlePromptCancel()}
-      >
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {promptState.options?.icon}
-              {promptState.options?.title}
-            </DialogTitle>
-            <DialogDescription>
-              {promptState.options?.description || ""}
-            </DialogDescription>
-          </DialogHeader>
+        options={promptState.options}
+        value={promptValue}
+        setValue={setPromptValue}
+        error={promptError}
+        setError={setPromptError}
+        onSubmit={handlePromptSubmit}
+        onCancel={handlePromptCancel}
+      />
 
-          <div className="py-4">
-            <Input
-              type={promptState.options?.inputType || "text"}
-              value={promptValue}
-              onChange={(e) => {
-                setPromptValue(e.target.value);
-                setPromptError(null);
-              }}
-              placeholder={promptState.options?.placeholder}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handlePromptSubmit();
-                }
-              }}
-            />
-            {promptError && (
-              <p className="text-sm text-red-500 mt-1">{promptError}</p>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={handlePromptCancel}>
-              {promptState.options?.cancelText || "Cancel"}
-            </Button>
-            <Button
-              onClick={handlePromptSubmit}
-              className={cn(getVariantStyles(promptState.options?.variant))}
-            >
-              {promptState.options?.confirmText || "Submit"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Alert Dialog */}
-      <Dialog
+      <AlertDialog
         open={alertState.isOpen}
         onOpenChange={(open) => !open && handleAlertClose()}
-      >
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {alertState.options?.icon}
-              {alertState.options?.title}
-            </DialogTitle>
-            <DialogDescription>
-              {alertState.options?.description || ""}
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              onClick={handleAlertClose}
-              className={cn(getVariantStyles(alertState.options?.variant))}
-            >
-              {alertState.options?.confirmText || "OK"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        options={alertState.options}
+        onConfirm={handleAlertClose}
+      />
     </ConfirmContext.Provider>
   );
 }
@@ -447,90 +313,4 @@ export function useConfirmDialog(
       onOpenChange: setIsOpen,
     },
   };
-}
-
-// =============================================================================
-// Preset Confirm Dialogs Components
-// =============================================================================
-
-interface DeleteConfirmDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  itemName: string;
-  isLoading?: boolean;
-}
-
-export function DeleteConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  itemName,
-  isLoading,
-}: DeleteConfirmDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Delete {itemName}?</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete this {itemName.toLowerCase()}? This
-            action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            className="bg-red-600 hover:bg-red-700"
-            disabled={isLoading}
-          >
-            {isLoading ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface DiscardChangesDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-}
-
-export function DiscardChangesDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-}: DiscardChangesDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Discard changes?</DialogTitle>
-          <DialogDescription>
-            You have unsaved changes. Are you sure you want to discard them?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Keep editing
-          </Button>
-          <Button
-            onClick={onConfirm}
-            className="bg-yellow-600 hover:bg-yellow-700"
-          >
-            Discard
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }

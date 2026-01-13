@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MedicalCodingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async searchIcdCodes(query: string) {
     // If query is too short, return commonly used codes
@@ -207,7 +207,7 @@ export class MedicalCodingService {
     });
   }
 
-  async getUncodedVisits(clinicId: string) {
+  async getUncodedVisits(clinicId: string, search?: string) {
     return this.prisma.appointment.findMany({
       where: {
         clinicId,
@@ -215,6 +215,15 @@ export class MedicalCodingService {
         diagnoses: {
           none: {},
         },
+        ...(search && {
+          patient: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+              { phoneNumber: { contains: search } },
+            ],
+          },
+        }),
       },
       include: {
         patient: {

@@ -41,7 +41,7 @@ import { Request } from 'express';
 export class WhatsappController {
   private readonly logger = new Logger(WhatsappController.name);
 
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(private readonly whatsappService: WhatsappService) { }
 
   // ==========================================================================
   // Template Management
@@ -278,6 +278,20 @@ export class WhatsappController {
     }
 
     return this.whatsappService.approveInvoice(id, user.id);
+  }
+
+  /**
+   * Get WhatsApp statistics for the clinic
+   */
+  @Get('stats')
+  @UseGuards(JwtAuthGuard)
+  async getStats(@Req() req: Request) {
+    const user = req.user as { clinicId: string };
+    if (!user.clinicId) {
+      throw new BadRequestException('User not associated with a clinic');
+    }
+
+    return this.whatsappService.getWhatsappStats(user.clinicId);
   }
 
   // ==========================================================================
