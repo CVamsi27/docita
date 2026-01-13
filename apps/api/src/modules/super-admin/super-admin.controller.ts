@@ -24,6 +24,21 @@ import {
   UpdateAdminDto,
 } from './dto/clinic-management.dto';
 import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
+import {
+  SuperAdminGlobalStatsResponseDto,
+  SuperAdminAnalyticsResponseDto,
+  SuperAdminPerformanceMetricsResponseDto,
+  SuperAdminAIFeatureCatalogResponseDto,
+  SuperAdminClinicTierInfoResponseDto,
+  SuperAdminTierPricingResponseDto,
+  SuperAdminClinicListResponseDto,
+  SuperAdminLogListResponseDto,
+  SuperAdminUserListResponseDto,
+  SuperAdminUserResponseDto,
+  SuccessResponseDto,
+} from './dto/super-admin.dto';
+import { ClinicResponseDto } from '../../clinics/dto/clinics.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('super-admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,6 +53,7 @@ export class SuperAdminController {
   ) {}
 
   @Get('clinics')
+  @ZodSerializerDto(SuperAdminClinicListResponseDto)
   async getAllClinics(
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
@@ -49,16 +65,19 @@ export class SuperAdminController {
   }
 
   @Get('clinics/:id/doctors')
+  @ZodSerializerDto(SuperAdminUserListResponseDto)
   async getClinicDoctors(@Param('id') id: string) {
     return this.clinicService.getClinicDoctors(id);
   }
 
   @Post('clinics')
+  @ZodSerializerDto(ClinicResponseDto)
   async createClinic(@Body() data: CreateClinicDto) {
     return this.clinicService.createClinic(data);
   }
 
   @Patch('clinics/:id/tier')
+  @ZodSerializerDto(ClinicResponseDto)
   async updateClinicTier(
     @Param('id') id: string,
     @Body('tier') tier: ClinicTier,
@@ -67,6 +86,7 @@ export class SuperAdminController {
   }
 
   @Patch('clinics/:id/status')
+  @ZodSerializerDto(ClinicResponseDto)
   async updateClinicStatus(
     @Param('id') id: string,
     @Body('active') active: boolean,
@@ -75,6 +95,7 @@ export class SuperAdminController {
   }
 
   @Patch('clinics/:id')
+  @ZodSerializerDto(ClinicResponseDto)
   async updateClinic(@Param('id') id: string, @Body() data: UpdateClinicDto) {
     return this.clinicService.updateClinic(id, data);
   }
@@ -85,6 +106,7 @@ export class SuperAdminController {
   }
 
   @Get('analytics')
+  @ZodSerializerDto(SuperAdminAnalyticsResponseDto)
   async getAnalytics(
     @Query('period') period?: 'daily' | 'weekly' | 'monthly' | 'yearly',
     @Query('startDate') startDate?: string,
@@ -98,6 +120,7 @@ export class SuperAdminController {
   }
 
   @Get('logs')
+  @ZodSerializerDto(SuperAdminLogListResponseDto)
   async getLogs(
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -108,17 +131,20 @@ export class SuperAdminController {
   }
 
   @Get('performance')
+  @ZodSerializerDto(SuperAdminPerformanceMetricsResponseDto)
   async getPerformanceMetrics() {
     return this.analyticsService.getPerformanceMetrics();
   }
 
   // Admin Management Endpoints
   @Get('clinics/:id/admins')
+  @ZodSerializerDto(SuperAdminUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {
     return this.clinicService.getClinicAdmins(id);
   }
 
   @Post('clinics/:id/admins')
+  @ZodSerializerDto(SuperAdminUserResponseDto)
   async createAdmin(
     @Param('id') clinicId: string,
     @Body() data: CreateAdminDto,
@@ -127,32 +153,38 @@ export class SuperAdminController {
   }
 
   @Get('admins/:id')
+  @ZodSerializerDto(SuperAdminUserResponseDto)
   async getAdminDetails(@Param('id') id: string) {
     return this.clinicService.getAdminDetails(id);
   }
 
   @Patch('admins/:id')
+  @ZodSerializerDto(SuperAdminUserResponseDto)
   async updateAdmin(@Param('id') id: string, @Body() data: UpdateAdminDto) {
     return this.clinicService.updateAdmin(id, data);
   }
 
   @Patch('admins/:id/deactivate')
+  @ZodSerializerDto(SuperAdminUserResponseDto)
   async deactivateAdmin(@Param('id') id: string) {
     return this.clinicService.deactivateAdmin(id);
   }
 
   @Patch('admins/:id/activate')
+  @ZodSerializerDto(SuperAdminUserResponseDto)
   async activateAdmin(@Param('id') id: string) {
     return this.clinicService.activateAdmin(id);
   }
 
   // AI Features Management
   @Get('clinics/:id/ai-features')
+  // @ZodSerializerDto() // Need schema for this if specific
   async getClinicAIFeatures(@Param('id') id: string) {
     return this.aiService.getClinicAIFeatures(id);
   }
 
   @Patch('clinics/:id/ai-features')
+  @ZodSerializerDto(SuccessResponseDto)
   async updateClinicAIFeatures(
     @Param('id') id: string,
     @Body() data: UpdateAIFeaturesDto,
@@ -161,17 +193,20 @@ export class SuperAdminController {
   }
 
   @Patch('clinics/:id/enable-ai')
+  @ZodSerializerDto(SuccessResponseDto)
   async enableAIFeatures(@Param('id') id: string) {
     return this.aiService.enableAIFeatures(id);
   }
 
   @Patch('clinics/:id/disable-ai')
+  @ZodSerializerDto(SuccessResponseDto)
   async disableAIFeatures(@Param('id') id: string) {
     return this.aiService.disableAIFeatures(id);
   }
 
   // Payment & Tier Management
   @Post('clinics/:id/process-payment')
+  @ZodSerializerDto(SuccessResponseDto)
   async processPaymentAndUpdateTier(
     @Param('id') id: string,
     @Body() data: any,
@@ -180,11 +215,13 @@ export class SuperAdminController {
   }
 
   @Get('clinics/:id/tier-info')
+  @ZodSerializerDto(SuperAdminClinicTierInfoResponseDto)
   async getClinicTierInfo(@Param('id') id: string) {
     return this.billingService.getClinicTierInfo(id);
   }
 
   @Post('clinics/:id/upgrade-tier')
+  @ZodSerializerDto(SuccessResponseDto)
   async upgradeTier(
     @Param('id') id: string,
     @Body('newTier') newTier: ClinicTier,
@@ -193,6 +230,7 @@ export class SuperAdminController {
   }
 
   @Post('clinics/:id/downgrade-tier')
+  @ZodSerializerDto(SuccessResponseDto)
   async downgradeTier(
     @Param('id') id: string,
     @Body('newTier') newTier: ClinicTier,
@@ -201,11 +239,13 @@ export class SuperAdminController {
   }
 
   @Get('tier-pricing')
+  @ZodSerializerDto(SuperAdminTierPricingResponseDto)
   getTierPricingInfo() {
     return this.billingService.getTierPricingInfo();
   }
 
   @Get('ai-features-catalog')
+  @ZodSerializerDto(SuperAdminAIFeatureCatalogResponseDto)
   getAIFeaturesCatalog() {
     return this.aiService.getAIFeaturesCatalog();
   }

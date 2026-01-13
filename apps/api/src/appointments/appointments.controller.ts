@@ -16,10 +16,14 @@ import {
   CreateAppointmentDto,
   UpdateAppointmentDto,
   VitalsDto,
+  AppointmentResponseDto,
+  PaginatedAppointmentResponseDto,
+  VitalSignResponseDto,
 } from './dto/appointments.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -36,6 +40,7 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Get()
+  @ZodSerializerDto(PaginatedAppointmentResponseDto)
   findAll(
     @Request() req: AuthRequest,
     @Query('date') date?: string,
@@ -62,11 +67,13 @@ export class AppointmentsController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(AppointmentResponseDto)
   findOne(@Param('id') id: string) {
     return this.appointmentsService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(AppointmentResponseDto)
   create(
     @Request() req: AuthRequest,
     @Body() createAppointmentDto: CreateAppointmentDto,
@@ -78,6 +85,7 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
+  @ZodSerializerDto(AppointmentResponseDto)
   update(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -91,6 +99,7 @@ export class AppointmentsController {
   }
 
   @Put(':id')
+  @ZodSerializerDto(AppointmentResponseDto)
   updateWithPut(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -109,11 +118,13 @@ export class AppointmentsController {
   }
 
   @Post(':id/vitals')
+  @ZodSerializerDto(VitalSignResponseDto)
   createVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
     return this.appointmentsService.createVitals(id, vitalsDto);
   }
 
   @Put(':id/vitals')
+  @ZodSerializerDto(VitalSignResponseDto)
   updateVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
     return this.appointmentsService.updateVitals(id, vitalsDto);
   }

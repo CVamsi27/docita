@@ -11,7 +11,18 @@ import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
-import { WebVitalDto } from './dto/web-vital.dto';
+import {
+  WebVitalDto,
+  RequestStatsResponseDto,
+  ErrorStatsResponseDto,
+  PerformanceMetricsResponseDto,
+  SystemHealthResponseDto,
+  AggregatedPerformanceResponseDto,
+  MonitoringDashboardResponseDto,
+  WebVitalListResponseDto,
+  AnyResponseDto,
+} from './dto/monitoring.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('monitoring')
 @UseGuards(JwtAuthGuard, TierGuard)
@@ -20,6 +31,7 @@ export class MonitoringController {
   constructor(private readonly monitoringService: MonitoringService) {}
 
   @Get('requests')
+  @ZodSerializerDto(RequestStatsResponseDto)
   async getRequestStats(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -33,6 +45,7 @@ export class MonitoringController {
   }
 
   @Get('errors')
+  @ZodSerializerDto(ErrorStatsResponseDto)
   async getErrorStats(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -46,6 +59,7 @@ export class MonitoringController {
   }
 
   @Get('performance')
+  @ZodSerializerDto(PerformanceMetricsResponseDto)
   async getPerformanceMetrics(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -57,11 +71,13 @@ export class MonitoringController {
   }
 
   @Get('health')
+  @ZodSerializerDto(SystemHealthResponseDto)
   async getSystemHealth() {
     return this.monitoringService.getSystemHealth();
   }
 
   @Get('aggregated')
+  @ZodSerializerDto(AggregatedPerformanceResponseDto)
   async getAggregatedPerformance(
     @Query('period') period: 'hourly' | 'daily' = 'hourly',
     @Query('startDate') startDate: string,
@@ -75,6 +91,7 @@ export class MonitoringController {
   }
 
   @Post('errors/:id/resolve')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   async resolveError(
     @Param('id') errorId: string,
     @Body('resolvedBy') resolvedBy: string,
@@ -83,6 +100,7 @@ export class MonitoringController {
   }
 
   @Post('errors/resolve-multiple')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   async resolveMultipleErrors(
     @Body('errorIds') errorIds: string[],
     @Body('resolvedBy') resolvedBy: string,
@@ -91,11 +109,13 @@ export class MonitoringController {
   }
 
   @Post('cleanup')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   async cleanupOldData(@Body('daysToKeep') daysToKeep?: number) {
     return this.monitoringService.cleanupOldData(daysToKeep);
   }
 
   @Get('dashboard')
+  @ZodSerializerDto(MonitoringDashboardResponseDto)
   async getDashboard(@Query('clinicId') clinicId?: string) {
     const now = new Date();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -134,11 +154,13 @@ export class MonitoringController {
    * - INP (Interaction to Next Paint): < 200ms good
    */
   @Post('web-vitals')
+  @ZodSerializerDto(AnyResponseDto) // Returns void/status
   async reportWebVital(@Body() vital: WebVitalDto) {
     return this.monitoringService.recordWebVital(vital);
   }
 
   @Get('web-vitals')
+  @ZodSerializerDto(WebVitalListResponseDto)
   async getWebVitals(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,

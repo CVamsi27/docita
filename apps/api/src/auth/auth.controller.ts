@@ -10,13 +10,23 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { LoginDto, RegisterDto, ChangePasswordDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  ChangePasswordDto,
+  LoginResponseDto,
+  RegisterResponseDto,
+  ValidateSessionResponseDto,
+  ChangePasswordResponseDto,
+} from './dto/auth.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @ZodSerializerDto(LoginResponseDto)
   async login(@Body() dto: LoginDto) {
     const user = await this.authService.validateUser(dto.email, dto.password);
     if (!user) {
@@ -26,6 +36,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @ZodSerializerDto(RegisterResponseDto)
   async register(@Body() dto: RegisterDto) {
     return this.authService.register({
       ...dto,
@@ -35,9 +46,9 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
+  @ZodSerializerDto(ChangePasswordResponseDto)
   async changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {
     // Validation is now handled by ZodValidationPipe and ChangePasswordSchema
-
     return this.authService.changePassword({
       userId: req.user.sub,
       currentPassword: dto.currentPassword,
@@ -47,6 +58,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('validate')
+  @ZodSerializerDto(ValidateSessionResponseDto)
   validate(@Request() req: any) {
     return {
       valid: true,

@@ -18,6 +18,13 @@ import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import {
+  ImportPatientFieldsResponseDto,
+  ImportPreviewResponseDto,
+  ImportResultResponseDto,
+  OcrResultResponseDto,
+} from './dto/imports.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -35,6 +42,7 @@ export class ImportsController {
 
   @Get('fields/patients')
   @RequireFeature(Feature.EXCEL_IMPORT)
+  @ZodSerializerDto(ImportPatientFieldsResponseDto)
   getPatientFields() {
     return {
       fields: Object.entries(PATIENT_FIELD_MAPPINGS).map(
@@ -77,6 +85,7 @@ export class ImportsController {
       },
     }),
   )
+  @ZodSerializerDto(ImportPreviewResponseDto)
   previewImport(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -93,6 +102,7 @@ export class ImportsController {
 
   @Post('patients/:sessionId')
   @RequireFeature(Feature.EXCEL_IMPORT)
+  @ZodSerializerDto(ImportResultResponseDto)
   async importPatients(
     @Param('sessionId') sessionId: string,
     @Body() body: { columnMapping?: Record<string, string> },
@@ -140,6 +150,7 @@ export class ImportsController {
       },
     }),
   )
+  @ZodSerializerDto(ImportResultResponseDto)
   async importPatientsDirectly(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: AuthRequest,
@@ -181,6 +192,7 @@ export class ImportsController {
       },
     }),
   )
+  @ZodSerializerDto(OcrResultResponseDto)
   async processOCR(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: AuthRequest,

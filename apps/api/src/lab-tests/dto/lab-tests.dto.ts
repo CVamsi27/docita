@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { labTestSchema, labTestOrderSchema } from '@workspace/types';
 
 export const CreateLabTestSchema = z.object({
   name: z.string().min(1),
@@ -23,12 +24,21 @@ export class CreateLabTestOrderDto extends createZodDto(
 ) {}
 
 export const UpdateLabTestOrderSchema = z.object({
-  status: z.string().optional(), // Could be enum
-  result: z.record(z.unknown()).optional(), // Loose for now, could be stricter
+  status: z.string().optional(),
+  result: z.record(z.unknown()).optional(),
   resultUrl: z.string().url().optional(),
   notes: z.string().optional(),
 });
 
 export class UpdateLabTestOrderDto extends createZodDto(
   UpdateLabTestOrderSchema,
+) {}
+
+export class LabTestResponseDto extends createZodDto(labTestSchema) {}
+export class LabTestListResponseDto extends createZodDto(
+  z.array(labTestSchema),
+) {}
+export class LabTestOrderResponseDto extends createZodDto(labTestOrderSchema) {}
+export class LabTestOrderListResponseDto extends createZodDto(
+  z.array(labTestOrderSchema),
 ) {}

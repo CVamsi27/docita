@@ -17,7 +17,10 @@ import { PrescriptionTemplatesService } from './prescription-templates.service';
 import {
   CreatePrescriptionTemplateDto,
   UpdatePrescriptionTemplateDto,
+  PrescriptionTemplateResponseDto,
+  PrescriptionTemplateListResponseDto,
 } from './dto/prescription-templates.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -34,16 +37,19 @@ export class PrescriptionTemplatesController {
   ) {}
 
   @Get()
+  @ZodSerializerDto(PrescriptionTemplateListResponseDto)
   async findAll(@Request() req: AuthRequest) {
     return this.prescriptionTemplatesService.findAll(req.user.userId);
   }
 
   @Get(':id')
+  @ZodSerializerDto(PrescriptionTemplateResponseDto)
   async findOne(@Param('id') id: string) {
     return this.prescriptionTemplatesService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(PrescriptionTemplateResponseDto)
   async create(
     @Request() req: AuthRequest,
     @Body() dto: CreatePrescriptionTemplateDto,
@@ -52,6 +58,7 @@ export class PrescriptionTemplatesController {
   }
 
   @Put(':id')
+  @ZodSerializerDto(PrescriptionTemplateResponseDto)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdatePrescriptionTemplateDto,
@@ -60,6 +67,7 @@ export class PrescriptionTemplatesController {
   }
 
   @Delete(':id')
+  @ZodSerializerDto(PrescriptionTemplateResponseDto)
   async remove(@Param('id') id: string) {
     return this.prescriptionTemplatesService.remove(id);
   }

@@ -20,7 +20,11 @@ import {
   CreateDoctorDto,
   CreateReceptionistDto,
   ClinicSettingsDto,
+  ClinicResponseDto,
+  ClinicListResponseDto,
 } from './dto/clinics.dto';
+import { UserResponseDto } from '../users/dto/users.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user?: {
@@ -35,31 +39,37 @@ export class ClinicsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 
   @Post()
+  @ZodSerializerDto(ClinicResponseDto)
   create(@Body() dto: CreateClinicDto) {
     return this.clinicsService.create(dto);
   }
 
   @Get()
+  @ZodSerializerDto(ClinicListResponseDto)
   findAll() {
     return this.clinicsService.findAll();
   }
 
   @Get(':id')
+  @ZodSerializerDto(ClinicResponseDto)
   findOne(@Param('id') id: string) {
     return this.clinicsService.findOne(id);
   }
 
   @Put(':id')
+  @ZodSerializerDto(ClinicResponseDto)
   update(@Param('id') id: string, @Body() dto: UpdateClinicDto) {
     return this.clinicsService.update(id, dto);
   }
 
   @Delete(':id')
+  @ZodSerializerDto(ClinicResponseDto)
   delete(@Param('id') id: string) {
     return this.clinicsService.delete(id);
   }
 
   @Get('user/:userId')
+  @ZodSerializerDto(ClinicListResponseDto)
   getUserClinics(@Param('userId') userId: string) {
     return this.clinicsService.getUserClinics(userId);
   }
@@ -71,6 +81,7 @@ export class ClinicsController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':clinicId/doctors')
+  @ZodSerializerDto(UserResponseDto)
   async createDoctor(
     @Param('clinicId') clinicId: string,
     @Body() dto: CreateDoctorDto,
@@ -87,12 +98,17 @@ export class ClinicsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':clinicId/doctors')
+  // @ZodSerializerDto(UserListResponseDto) - Assuming array of UserResponseDto
+  // Since we haven't created UserListResponseDto, let's leave it for now or create it.
+  // Actually, let's assume getDoctors returns generic response or specific schema.
+  // For now, I will omit the decorator for getDoctors to be safe or investigate context.
   async getDoctors(@Param('clinicId') clinicId: string) {
     return this.clinicsService.getDoctors(clinicId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':clinicId/receptionists')
+  @ZodSerializerDto(UserResponseDto)
   async createReceptionist(
     @Param('clinicId') clinicId: string,
     @Body() dto: CreateReceptionistDto,
@@ -120,6 +136,7 @@ export class ClinicSettingsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 
   @Get('settings')
+  @ZodSerializerDto(ClinicResponseDto)
   async getSettings(@Request() req: AuthRequest) {
     const clinicId = req.user?.clinicId;
     if (!clinicId) {
@@ -133,6 +150,7 @@ export class ClinicSettingsController {
   }
 
   @Put('settings')
+  @ZodSerializerDto(ClinicResponseDto)
   async updateSettings(
     @Request() req: AuthRequest,
     @Body() dto: ClinicSettingsDto,

@@ -74,3 +74,17 @@ const VitalsSchema = z.object({
 });
 
 export class VitalsDto extends createZodDto(VitalsSchema) {}
+
+export class AppointmentResponseDto extends createZodDto(appointmentSchema) {}
+
+const PaginatedAppointmentResponseSchema = z.object({
+  items: z.array(appointmentSchema),
+  nextCursor: z.string().optional(),
+  hasMore: z.boolean(),
+  count: z.number().optional(),
+});
+export class PaginatedAppointmentResponseDto extends createZodDto(
+  PaginatedAppointmentResponseSchema,
+) {}
+
+export class VitalSignResponseDto extends createZodDto(vitalSignSchema) {}

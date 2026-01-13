@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { clinicSchema } from '@workspace/types';
 import { ClinicTier, ClinicType } from '@workspace/db';
 
 // Enums from DB need to be compatible, we can match string values or use nativeEnum if imported
@@ -39,6 +40,15 @@ export const ClinicSettingsSchema = z.object({
 });
 
 export class ClinicSettingsDto extends createZodDto(ClinicSettingsSchema) {}
+
+export class ClinicResponseDto extends createZodDto(clinicSchema) {}
+
+export class ClinicListResponseDto extends createZodDto(
+  z.array(clinicSchema),
+) {}
+
+// Using UserResponseDto for doctor/receptionist responses might be cleaner, but we can also define lists here
+// for now, let's export base Clinic DTOs
 
 export const CreateStaffSchema = z.object({
   name: z.string().min(1),

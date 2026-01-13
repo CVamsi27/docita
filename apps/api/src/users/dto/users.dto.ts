@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { userSchema } from '@workspace/types';
 
 export const UpdateProfileSchema = z
   .object({
@@ -11,3 +12,5 @@ export const UpdateProfileSchema = z
   });
 
 export class UpdateProfileDto extends createZodDto(UpdateProfileSchema) {}
+
+export class UserResponseDto extends createZodDto(userSchema) {}

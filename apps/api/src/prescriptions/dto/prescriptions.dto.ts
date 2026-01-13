@@ -1,6 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { hospitalRoleSchema, specializationSchema } from '@workspace/types';
+import {
+  hospitalRoleSchema,
+  specializationSchema,
+  prescriptionSchema,
+} from '@workspace/types';
 
 // Define Medication Schema manually or loosely if exact types aren't available immediately
 // Assuming standard fields based on typical medical apps
@@ -34,4 +38,10 @@ export const CreatePrescriptionSchema = z.object({
 
 export class CreatePrescriptionDto extends createZodDto(
   CreatePrescriptionSchema,
+) {}
+
+export class PrescriptionResponseDto extends createZodDto(prescriptionSchema) {}
+
+export class PrescriptionListResponseDto extends createZodDto(
+  z.array(prescriptionSchema),
 ) {}

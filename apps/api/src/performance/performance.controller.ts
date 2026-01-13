@@ -1,21 +1,30 @@
 import { Controller, Get } from '@nestjs/common';
 import { PerformanceService } from './performance.service';
+import {
+  DatabaseStatsResponseDto,
+  AppPerformanceMetricsResponseDto,
+  HealthCheckResponseDto,
+} from './dto/performance.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('performance')
 export class PerformanceController {
   constructor(private readonly performanceService: PerformanceService) {}
 
   @Get('db-stats')
+  @ZodSerializerDto(DatabaseStatsResponseDto)
   async getDatabaseStats() {
     return this.performanceService.getDatabaseStats();
   }
 
   @Get('metrics')
+  @ZodSerializerDto(AppPerformanceMetricsResponseDto)
   getMetrics() {
     return this.performanceService.getMetrics();
   }
 
   @Get('health')
+  @ZodSerializerDto(HealthCheckResponseDto)
   getHealth() {
     return {
       status: 'ok',

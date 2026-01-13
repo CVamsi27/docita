@@ -1,7 +1,14 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { MedicationValidationService } from './medication-validation.service';
 import { AuthGuard } from '@nestjs/passport';
-import { z } from 'zod';
+import {
+  CheckDrugInteractionsDto,
+  ValidateDosageDto,
+  CheckContraindicationsDto,
+  ValidatePediatricDosageDto,
+  ValidateRenalDosageDto,
+  ComprehensiveMedicationCheckDto,
+} from './dto/medications.dto';
 
 interface AuthRequest {
   user: {
@@ -18,13 +25,7 @@ export class MedicationValidationController {
    * Check for drug-drug interactions
    */
   @Post('check-interactions')
-  checkInteractions(
-    @Body()
-    body: {
-      medications: Array<{ name: string; dosage?: string }>;
-      patientAllergies?: string[];
-    },
-  ) {
+  checkInteractions(@Body() body: CheckDrugInteractionsDto) {
     return this.medicationService.checkDrugInteractions(
       body.medications,
       body.patientAllergies || [],
@@ -35,7 +36,7 @@ export class MedicationValidationController {
    * Validate medication dosage
    */
   @Post('validate-dosage')
-  validateDosage(@Body() body: { medication: string; dosage: string }) {
+  validateDosage(@Body() body: ValidateDosageDto) {
     return this.medicationService.validateMedicationDosage(
       body.medication,
       body.dosage,
@@ -46,23 +47,13 @@ export class MedicationValidationController {
    * Check contraindications for a patient
    */
   @Post('check-contraindications')
-  checkContraindications(
-    @Body()
-    body: {
-      medication: string;
-      patientAllergies?: Array<{ name: string; severity: string }>;
-      patientConditions?: Array<{ icdCode: string; name: string }>;
-      currentMedications?: string[];
-      isPregnant?: boolean;
-      renalFunctionCategory?: string;
-    },
-  ) {
+  checkContraindications(@Body() body: CheckContraindicationsDto) {
     return this.medicationService.checkContraindications(body.medication, {
       allergies: body.patientAllergies,
       conditions: body.patientConditions,
       currentMedications: body.currentMedications,
       isPregnant: body.isPregnant,
-      renalFunctionCategory: body.renalFunctionCategory as any,
+      renalFunctionCategory: body.renalFunctionCategory,
     });
   }
 
@@ -70,9 +61,7 @@ export class MedicationValidationController {
    * Validate pediatric dosage
    */
   @Post('validate-pediatric-dosage')
-  validatePediatricDosage(
-    @Body() body: { medication: string; dosage: string; weightKg: number },
-  ) {
+  validatePediatricDosage(@Body() body: ValidatePediatricDosageDto) {
     return this.medicationService.validatePediatricDosageImpl(
       body.medication,
       body.dosage,
@@ -84,14 +73,7 @@ export class MedicationValidationController {
    * Validate renal dosage adjustment
    */
   @Post('validate-renal-dosage')
-  validateRenalDosage(
-    @Body()
-    body: {
-      medication: string;
-      dosage: string;
-      renalFunctionCategory: string;
-    },
-  ) {
+  validateRenalDosage(@Body() body: ValidateRenalDosageDto) {
     return this.medicationService.validateRenalDosageImpl(
       body.medication,
       body.dosage,
@@ -103,19 +85,7 @@ export class MedicationValidationController {
    * Comprehensive medication safety check
    */
   @Post('comprehensive-check')
-  comprehensiveCheck(
-    @Body()
-    body: {
-      medications: Array<{ name: string; dosage: string }>;
-      patientAllergies?: string[];
-      patientConditions?: string[];
-      currentMedications?: string[];
-      isPregnant?: boolean;
-      age?: number;
-      weight?: number;
-      renalFunction?: string;
-    },
-  ) {
+  comprehensiveCheck(@Body() body: ComprehensiveMedicationCheckDto) {
     return this.medicationService.comprehensiveMedicationCheck(body);
   }
 }

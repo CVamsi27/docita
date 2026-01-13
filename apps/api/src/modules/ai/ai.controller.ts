@@ -15,6 +15,14 @@ import { TierGuard } from '../../auth/tier.guard';
 import { RequireFeature, Feature } from '../../auth/tier.decorator';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import {
+  AIAnalysisResponseDto,
+  DiagnosisSuggestionListResponseDto,
+  MedicationRecommendationListResponseDto,
+  ExtractionResultResponseDto,
+  AnalyzePrescriptionDto,
+} from './dto/ai.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('ai')
 @UseGuards(JwtAuthGuard, TierGuard)
@@ -22,19 +30,16 @@ export class AIController {
   constructor(private readonly aiService: AIService) {}
 
   @Post('prescription-analysis')
+  @ZodSerializerDto(AIAnalysisResponseDto)
   async analyzePrescription(
     @Body()
-    data: {
-      medications: Array<{ name: string; dosage: string }>;
-      patientAge?: number;
-      patientAllergies?: string[];
-      existingConditions?: string[];
-    },
+    data: AnalyzePrescriptionDto,
   ) {
     return this.aiService.analyzePrescription(data);
   }
 
   @Post('diagnosis-suggestions')
+  @ZodSerializerDto(DiagnosisSuggestionListResponseDto)
   async suggestDiagnoses(
     @Body() data: { symptoms: string[]; findingsNotes?: string },
   ) {
@@ -42,6 +47,7 @@ export class AIController {
   }
 
   @Post('medication-recommendations')
+  @ZodSerializerDto(MedicationRecommendationListResponseDto)
   async recommendMedications(
     @Body()
     data: {
@@ -59,6 +65,7 @@ export class AIController {
 
   @Post('ocr/extract')
   @RequireFeature(Feature.OCR_ADVANCED)
+  @ZodSerializerDto(ExtractionResultResponseDto)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({

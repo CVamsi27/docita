@@ -20,7 +20,10 @@ import {
   CreateEducationDto,
   CreateCertificationDto,
   AddSpecializationDto,
+  DoctorResponseDto,
+  DoctorListResponseDto,
 } from './dto/doctors.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -36,6 +39,7 @@ export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
   @Get()
+  @ZodSerializerDto(DoctorListResponseDto)
   async findAll(@Request() req: AuthRequest) {
     return this.doctorsService.findAll(req.user.clinicId);
   }
@@ -51,11 +55,13 @@ export class DoctorsController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(DoctorResponseDto)
   async findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(DoctorResponseDto)
   async create(@Request() req: AuthRequest, @Body() dto: CreateDoctorDto) {
     // Only ADMIN and ADMIN_DOCTOR can create members
     if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
@@ -65,6 +71,7 @@ export class DoctorsController {
   }
 
   @Put(':id')
+  @ZodSerializerDto(DoctorResponseDto)
   async update(
     @Request() req: AuthRequest,
     @Param('id') id: string,

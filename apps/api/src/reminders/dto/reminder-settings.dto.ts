@@ -1,7 +1,12 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import {
+  reminderSettingsSchema as SharedReminderSettingsSchema,
+  appointmentReminderSchema,
+  sendManualReminderResponseSchema,
+} from '@workspace/types';
 
-export const reminderSettingsSchema = z.object({
+export const UpdateReminderSettingsSchema = z.object({
   enabled: z.boolean().optional(),
   smsEnabled: z.boolean().optional(),
   emailEnabled: z.boolean().optional(),
@@ -11,10 +16,24 @@ export const reminderSettingsSchema = z.object({
   smsTemplate: z.string().optional(),
 });
 
-export class ReminderSettingsDto extends createZodDto(reminderSettingsSchema) {}
+export class ReminderSettingsDto extends createZodDto(
+  UpdateReminderSettingsSchema,
+) {}
 
 export const sendReminderSchema = z.object({
   type: z.enum(['email', 'sms']),
 });
 
 export class SendReminderDto extends createZodDto(sendReminderSchema) {}
+
+export class ReminderSettingsResponseDto extends createZodDto(
+  SharedReminderSettingsSchema,
+) {}
+
+export class AppointmentReminderListResponseDto extends createZodDto(
+  z.array(appointmentReminderSchema),
+) {}
+
+export class ManualReminderResponseDto extends createZodDto(
+  sendManualReminderResponseSchema,
+) {}

@@ -12,17 +12,21 @@ import { UploadsService } from './uploads.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { MAX_FILE_SIZE } from '@workspace/utils';
+import { UploadSessionResponseDto } from './dto/uploads.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('uploads')
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
   @Post('session')
+  @ZodSerializerDto(UploadSessionResponseDto)
   async createSession() {
     return this.uploadsService.createSession();
   }
 
   @Get('session/:id')
+  @ZodSerializerDto(UploadSessionResponseDto)
   async getSession(@Param('id') id: string) {
     return this.uploadsService.getSession(id);
   }
@@ -54,6 +58,7 @@ export class UploadsController {
       },
     }),
   )
+  @ZodSerializerDto(UploadSessionResponseDto)
   async uploadFile(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,

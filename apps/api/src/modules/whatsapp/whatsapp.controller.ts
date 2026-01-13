@@ -20,22 +20,17 @@ import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto } from './dto/send-template.dto';
 import { MetaWebhookPayload } from './types/webhook.types';
 import { Request } from 'express';
+import {
+  WhatsappTemplateListResponseDto,
+  WhatsappDefaultTemplatesResponseDto,
+  WhatsappMessageResponseDto,
+  WhatsappLogListResponseDto,
+  WhatsappStatsResponseDto,
+  SuccessResponseDto,
+} from './dto/whatsapp-response.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
-// ============================================================================
-// DTOs
-// ============================================================================
-
-// DTOs moved to ./dto/send-template.dto.ts
-// Webhook types moved to ./types/webhook.types.ts
-
-/**
- * Meta WhatsApp Cloud API webhook payload
- */
-// MetaWebhookPayload moved to ./types/webhook.types.ts
-
-// ============================================================================
-// Controller
-// ============================================================================
+// ... (comments elided for brevity if not strictly needed)
 
 @Controller('whatsapp')
 export class WhatsappController {
@@ -52,16 +47,12 @@ export class WhatsappController {
    */
   @Get('templates')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(WhatsappTemplateListResponseDto)
   async listTemplates(@Req() req: Request) {
     const user = req.user as { clinicId: string };
     if (!user.clinicId) {
       throw new BadRequestException('User not associated with a clinic');
     }
-    // Note: While this currently just calls the templates service,
-    // we could keep it in controller for simple proxying or move to WhatsappService
-    // for consistency. Let's keep it calling templatesService for now but through controller.
-    // Wait, I removed templatesService from constructor. I should call it through whatsappService
-    // if I want to keep controller thin.
     return this.whatsappService.listTemplates(user.clinicId);
   }
 
@@ -70,6 +61,7 @@ export class WhatsappController {
    */
   @Get('templates/defaults')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(WhatsappDefaultTemplatesResponseDto)
   getDefaultTemplates() {
     return this.whatsappService.getDefaultTemplateNames();
   }
@@ -79,6 +71,7 @@ export class WhatsappController {
    */
   @Post('templates/seed')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(SuccessResponseDto)
   async seedTemplates(@Req() req: Request) {
     const user = req.user as { clinicId: string };
     if (!user.clinicId) {
@@ -97,6 +90,7 @@ export class WhatsappController {
    */
   @Post('send')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(WhatsappMessageResponseDto)
   async sendTemplateMessage(@Req() req: Request, @Body() dto: SendTemplateDto) {
     const user = req.user as { clinicId: string; id: string };
     if (!user.clinicId) {
@@ -111,6 +105,7 @@ export class WhatsappController {
    */
   @Post('resend-prescription/:id')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(SuccessResponseDto)
   async resendPrescription(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { clinicId: string; id: string; role: string };
     return this.whatsappService.resendPrescription(
@@ -126,6 +121,7 @@ export class WhatsappController {
    */
   @Post('resend-invoice/:id')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(SuccessResponseDto)
   async resendInvoice(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { clinicId: string; id: string; role: string };
     return this.whatsappService.resendInvoice(
@@ -137,12 +133,15 @@ export class WhatsappController {
   }
 
   // ==========================================================================
-  // Webhooks (Meta Cloud API Callbacks)
+  // Webhooks
   // ==========================================================================
+
+  // Note: Webhooks usually return raw 'OK' or challenge integer, not JSON.
+  // ZodSerializer might break this if it expects JSON.
+  // Skipping ZodSerializer for webhooks as they are machine-to-machine with strict protocol.
 
   /**
    * Meta webhook verification (GET request)
-   * Called by Meta when setting up the webhook URL
    */
   @Get('webhook')
   handleWebhookVerification(
@@ -165,8 +164,7 @@ export class WhatsappController {
   }
 
   /**
-   * Meta incoming message webhook - handles patient responses and status updates
-   * This is called when a patient sends a message or when message status changes
+   * Meta incoming message webhook
    */
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
@@ -205,8 +203,6 @@ export class WhatsappController {
     }
   }
 
-  // Webhook sub-processing moved to WhatsappService
-
   // ==========================================================================
   // Message Logs
   // ==========================================================================
@@ -216,6 +212,7 @@ export class WhatsappController {
    */
   @Get('logs')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(WhatsappLogListResponseDto)
   async getLogs(
     @Req() req: Request,
     @Query('limit') limit?: string,
@@ -243,6 +240,7 @@ export class WhatsappController {
    */
   @Post('approve-prescription/:id')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(SuccessResponseDto)
   async approvePrescription(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; role: string };
 
@@ -264,6 +262,7 @@ export class WhatsappController {
    */
   @Post('approve-invoice/:id')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; role: string };
 
@@ -285,6 +284,7 @@ export class WhatsappController {
    */
   @Get('stats')
   @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(WhatsappStatsResponseDto)
   async getStats(@Req() req: Request) {
     const user = req.user as { clinicId: string };
     if (!user.clinicId) {

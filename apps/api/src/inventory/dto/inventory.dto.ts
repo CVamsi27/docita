@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { inventoryItemSchema, inventoryStatsSchema } from '@workspace/types';
 
 export const CreateInventoryItemSchema = z.object({
   name: z.string().min(1),
@@ -37,3 +38,13 @@ export const CreateMovementSchema = z.object({
 });
 
 export class CreateMovementDto extends createZodDto(CreateMovementSchema) {}
+
+export class InventoryResponseDto extends createZodDto(inventoryItemSchema) {}
+
+export class InventoryListResponseDto extends createZodDto(
+  z.array(inventoryItemSchema),
+) {}
+
+export class InventoryStatsResponseDto extends createZodDto(
+  inventoryStatsSchema,
+) {}

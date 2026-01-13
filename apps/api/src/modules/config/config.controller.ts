@@ -1,6 +1,14 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ConfigService } from './config.service';
 import { Public } from '../../auth/public.decorator';
+import {
+  FormOptionsResponseDto,
+  AppConstantsResponseDto,
+  PatientImportFieldsResponseDto,
+  AppDefaultsResponseDto,
+  AppConfigResponseDto,
+} from './dto/config.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('config')
 export class ConfigController {
@@ -12,6 +20,7 @@ export class ConfigController {
    */
   @Public()
   @Get('form-options')
+  @ZodSerializerDto(FormOptionsResponseDto)
   getFormOptions() {
     return this.configService.getFormOptions();
   }
@@ -21,6 +30,7 @@ export class ConfigController {
    */
   @Public()
   @Get('constants')
+  @ZodSerializerDto(AppConstantsResponseDto)
   getConstants() {
     return this.configService.getConstants();
   }
@@ -30,6 +40,7 @@ export class ConfigController {
    */
   @Public()
   @Get('patient-import-fields')
+  @ZodSerializerDto(PatientImportFieldsResponseDto)
   getPatientImportFields() {
     return this.configService.getPatientImportFields();
   }
@@ -39,6 +50,7 @@ export class ConfigController {
    */
   @Public()
   @Get('defaults')
+  @ZodSerializerDto(AppDefaultsResponseDto)
   getDefaults() {
     return this.configService.getDefaults();
   }
@@ -49,6 +61,7 @@ export class ConfigController {
    */
   @Public()
   @Get()
+  @ZodSerializerDto(AppConfigResponseDto)
   async getAppConfig(@Query('clinicId') clinicId?: string) {
     return this.configService.getAppConfig(clinicId);
   }

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { queueTokenSchema, queueSettingsSchema } from '@workspace/types';
 
 export const CreateQueueTokenSchema = z.object({
   patientId: z.string(),
@@ -25,4 +26,14 @@ export const UpdateQueueSettingsSchema = z.object({
 });
 export class UpdateQueueSettingsDto extends createZodDto(
   UpdateQueueSettingsSchema,
+) {}
+
+export class QueueResponseDto extends createZodDto(queueTokenSchema) {}
+
+export class QueueListResponseDto extends createZodDto(
+  z.array(queueTokenSchema),
+) {}
+
+export class QueueSettingsResponseDto extends createZodDto(
+  queueSettingsSchema,
 ) {}

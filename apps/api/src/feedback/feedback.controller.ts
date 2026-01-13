@@ -14,7 +14,13 @@ import {
 import { FeedbackService } from './feedback.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-import { CreateFeedbackDto, UpdateFeedbackStatusDto } from './dto/feedback.dto';
+import {
+  CreateFeedbackDto,
+  UpdateFeedbackStatusDto,
+  FeedbackResponseDto,
+  FeedbackListResponseDto,
+} from './dto/feedback.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -44,6 +50,7 @@ export class FeedbackController {
    * Submit feedback
    */
   @Post()
+  @ZodSerializerDto(FeedbackResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateFeedbackDto) {
     return this.feedbackService.create(req.user.clinicId, req.user.userId, dto);
   }
@@ -64,6 +71,7 @@ export class FeedbackController {
    * Get user's own feedback history
    */
   @Get('my-feedback')
+  @ZodSerializerDto(FeedbackListResponseDto)
   getMyFeedback(@Request() req: AuthRequest) {
     return this.feedbackService.findByUser(req.user.userId);
   }
@@ -90,6 +98,7 @@ export class FeedbackController {
    * Get all feedback (super admin only)
    */
   @Get('all')
+  @ZodSerializerDto(FeedbackListResponseDto)
   findAll(@Request() req: AuthRequest, @Query() query: FeedbackFiltersQuery) {
     // Only super admin can see all feedback
     if (req.user.role !== 'SUPER_ADMIN') {
@@ -112,6 +121,7 @@ export class FeedbackController {
    * Get feedback for current clinic (admin only)
    */
   @Get('clinic')
+  @ZodSerializerDto(FeedbackListResponseDto)
   findForClinic(@Request() req: AuthRequest) {
     if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can view clinic feedback');
@@ -124,6 +134,7 @@ export class FeedbackController {
    * Get single feedback by ID
    */
   @Get(':id')
+  @ZodSerializerDto(FeedbackResponseDto)
   findOne(@Param('id') id: string) {
     return this.feedbackService.findOne(id);
   }
@@ -132,6 +143,7 @@ export class FeedbackController {
    * Update feedback status (admin only)
    */
   @Patch(':id/status')
+  @ZodSerializerDto(FeedbackResponseDto)
   updateStatus(
     @Request() req: AuthRequest,
     @Param('id') id: string,

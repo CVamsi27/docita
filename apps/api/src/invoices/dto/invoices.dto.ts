@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { invoiceSchema } from '@workspace/types';
 
 const InvoiceItemSchema = z.object({
   description: z.string(),
@@ -32,3 +33,15 @@ export const UpdateInvoiceSchema = z.object({
 });
 
 export class UpdateInvoiceDto extends createZodDto(UpdateInvoiceSchema) {}
+
+export class InvoiceResponseDto extends createZodDto(invoiceSchema) {}
+
+const PaginatedInvoiceResponseSchema = z.object({
+  items: z.array(invoiceSchema),
+  nextCursor: z.string().optional(),
+  hasMore: z.boolean(),
+  count: z.number().optional(),
+});
+export class PaginatedInvoiceResponseDto extends createZodDto(
+  PaginatedInvoiceResponseSchema,
+) {}

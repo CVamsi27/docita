@@ -3,6 +3,16 @@ import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import {
+  OverviewStatsResponseDto,
+  RevenueTrendListResponseDto,
+  PatientGrowthListResponseDto,
+  AppointmentStatsResponseDto,
+  TopDiagnosisListResponseDto,
+  DiseaseTrendListResponseDto,
+  AnyResponseDto,
+} from './dto/analytics.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -17,11 +27,13 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
+  @ZodSerializerDto(OverviewStatsResponseDto)
   getOverview(@Request() req: AuthRequest) {
     return this.analyticsService.getOverview(req.user.clinicId);
   }
 
   @Get('revenue')
+  @ZodSerializerDto(RevenueTrendListResponseDto)
   getRevenueTrends(
     @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'daily',
@@ -35,6 +47,7 @@ export class AnalyticsController {
   }
 
   @Get('patients')
+  @ZodSerializerDto(PatientGrowthListResponseDto)
   getPatientGrowth(
     @Request() req: AuthRequest,
     @Query('days') days: string = '30',
@@ -46,11 +59,13 @@ export class AnalyticsController {
   }
 
   @Get('appointments')
+  @ZodSerializerDto(AppointmentStatsResponseDto)
   getAppointmentStats(@Request() req: AuthRequest) {
     return this.analyticsService.getAppointmentStats(req.user.clinicId);
   }
 
   @Get('top-diagnoses')
+  @ZodSerializerDto(TopDiagnosisListResponseDto)
   getTopDiagnoses(
     @Request() req: AuthRequest,
     @Query('limit') limit: string = '10',
@@ -62,6 +77,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends')
+  @ZodSerializerDto(DiseaseTrendListResponseDto)
   getDiseaseTrends(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -75,6 +91,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends/by-category')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getDiseaseTrendsByCategory(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -88,6 +105,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends/time-series')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getDiseaseTimeSeries(
     @Request() req: AuthRequest,
     @Query('startDate') startDate: string,
@@ -103,6 +121,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/by-cpt')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getRevenueByCptCode(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -116,6 +135,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/by-category')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getRevenueByCategory(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -129,6 +149,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/time-series')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getRevenueTimeSeries(
     @Request() req: AuthRequest,
     @Query('startDate') startDate: string,
@@ -144,6 +165,7 @@ export class AnalyticsController {
   }
 
   @Get('compliance/metrics')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getCodingComplianceMetrics(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -157,11 +179,13 @@ export class AnalyticsController {
   }
 
   @Get('compliance/uncoded-stats')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getUncodedVisitsStats(@Request() req: AuthRequest) {
     return this.analyticsService.getUncodedVisitsStats(req.user.clinicId);
   }
 
   @Get('compliance/timeliness')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getCodingTimeliness(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -177,6 +201,7 @@ export class AnalyticsController {
   // ========== NEW ENDPOINTS FOR ADVANCED ANALYTICS (Phase 1) ==========
 
   @Get('revenue-metrics')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getRevenueMetrics(
     @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
@@ -192,6 +217,7 @@ export class AnalyticsController {
   }
 
   @Get('appointment-metrics')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getAppointmentMetrics(
     @Request() req: AuthRequest,
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'monthly',
@@ -207,6 +233,7 @@ export class AnalyticsController {
   }
 
   @Get('patient-demographics')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getPatientDemographics(
     @Request() req: AuthRequest,
     @Query('startDate') startDate?: string,
@@ -220,6 +247,7 @@ export class AnalyticsController {
   }
 
   @Get('top-conditions')
+  @ZodSerializerDto(AnyResponseDto) // Placeholder
   getTopConditions(
     @Request() req: AuthRequest,
     @Query('limit') limit: string = '10',

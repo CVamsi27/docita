@@ -15,7 +15,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
-import { CreatePrescriptionDto } from './dto/prescriptions.dto';
+import {
+  CreatePrescriptionDto,
+  PrescriptionResponseDto,
+  PrescriptionListResponseDto,
+} from './dto/prescriptions.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -30,6 +35,7 @@ export class PrescriptionsController {
   constructor(private readonly prescriptionsService: PrescriptionsService) {}
 
   @Get()
+  @ZodSerializerDto(PrescriptionListResponseDto)
   findAll(
     @Request() req: AuthRequest,
     @Query('search') search?: string,
@@ -42,11 +48,13 @@ export class PrescriptionsController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(PrescriptionResponseDto)
   findOne(@Param('id') id: string) {
     return this.prescriptionsService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(PrescriptionResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({
       ...dto,

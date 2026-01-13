@@ -71,7 +71,7 @@ function PatientsContent() {
   const filteredPatients = useMemo(() => {
     // Extract items from paginated responses
     const patients = patientsResponse?.items || [];
-    let result = [...patients];
+    const result = [...patients];
 
     // 1. Smart Filters (Pre-sort/Filter)
     if (filterType === "recent") {
@@ -127,7 +127,7 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patientsResponse, searchQuery, sortConfig, filterType]);
+  }, [patientsResponse, sortConfig, filterType]);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">

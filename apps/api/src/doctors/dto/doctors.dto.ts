@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { Specialization, HospitalRole } from '@workspace/db';
+import { userSchema } from '@workspace/types';
 
 export const CreateDoctorSchema = z.object({
   email: z.string().email(),
@@ -62,3 +63,7 @@ export const AddSpecializationSchema = z.object({
 export class AddSpecializationDto extends createZodDto(
   AddSpecializationSchema,
 ) {}
+
+export class DoctorResponseDto extends createZodDto(userSchema) {}
+
+export class DoctorListResponseDto extends createZodDto(z.array(userSchema)) {}

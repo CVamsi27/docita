@@ -13,8 +13,14 @@ import { OnboardingService } from './onboarding.service';
 import {
   CompleteOnboardingDto,
   OnboardingStep,
+  OnboardingProgressDto,
 } from './dto/create-clinic-onboarding.dto';
+import {
+  OnboardingInitResponseDto,
+  OnboardingCompletionResponseDto,
+} from './dto/onboarding-response.dto';
 import { Request } from 'express';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -26,6 +32,7 @@ export class OnboardingController {
    */
   @Post('initialize')
   @HttpCode(201)
+  @ZodSerializerDto(OnboardingInitResponseDto)
   initializeOnboarding() {
     return this.onboardingService.initializeOnboarding();
   }
@@ -35,6 +42,7 @@ export class OnboardingController {
    * Saves progress and returns next step
    */
   @Patch(':onboardingId/step/:step')
+  @ZodSerializerDto(OnboardingProgressDto)
   updateStep(
     @Param('onboardingId') onboardingId: string,
     @Param('step') step: OnboardingStep,
@@ -51,6 +59,7 @@ export class OnboardingController {
    * Get onboarding progress
    */
   @Get(':onboardingId/progress')
+  @ZodSerializerDto(OnboardingProgressDto)
   getProgress(@Param('onboardingId') onboardingId: string) {
     return this.onboardingService.getOnboardingProgress(onboardingId);
   }
@@ -61,6 +70,7 @@ export class OnboardingController {
    */
   @Post(':onboardingId/complete')
   @HttpCode(201)
+  @ZodSerializerDto(OnboardingCompletionResponseDto)
   async completeOnboarding(
     @Param('onboardingId') onboardingId: string,
     @Body() completeData: CompleteOnboardingDto,

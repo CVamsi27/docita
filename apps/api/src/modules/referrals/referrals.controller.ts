@@ -1,8 +1,3 @@
-/**
- * Referrals Controller
- * API endpoints for referral program
- */
-
 import {
   Controller,
   Get,
@@ -15,7 +10,15 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { ReferralsService } from './referrals.service';
-import { ApplyReferralDto } from './dto/referrals.dto';
+import {
+  ApplyReferralDto,
+  ReferralCodeResponseDto,
+  ReferralStatsResponseDto,
+  ReferralHistoryListResponseDto,
+  ReferralValidationResponseDto,
+  ReferralDiscountResponseDto,
+} from './dto/referrals.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -35,6 +38,7 @@ export class ReferralsController {
    * Get referral code data for current clinic
    */
   @Get('code')
+  @ZodSerializerDto(ReferralCodeResponseDto)
   async getMyReferralCode(@Request() req: AuthRequest) {
     return this.referralsService.getReferralLinkData(req.user.clinicId);
   }
@@ -43,6 +47,7 @@ export class ReferralsController {
    * Get referral statistics for current clinic
    */
   @Get('stats')
+  @ZodSerializerDto(ReferralStatsResponseDto)
   async getMyReferralStats(@Request() req: AuthRequest) {
     return this.referralsService.getReferralStats(req.user.clinicId);
   }
@@ -51,6 +56,7 @@ export class ReferralsController {
    * Get referral history for current clinic
    */
   @Get('history')
+  @ZodSerializerDto(ReferralHistoryListResponseDto)
   async getMyReferralHistory(@Request() req: AuthRequest) {
     return this.referralsService.getReferralHistory(req.user.clinicId);
   }
@@ -59,6 +65,7 @@ export class ReferralsController {
    * Validate a referral code (public endpoint during signup)
    */
   @Get('validate')
+  @ZodSerializerDto(ReferralValidationResponseDto)
   async validateReferralCode(
     @Query('code') code: string,
     @Query('clinicId') clinicId?: string,
@@ -70,6 +77,7 @@ export class ReferralsController {
    * Apply a referral code to clinic
    */
   @Post('apply')
+  @ZodSerializerDto(ReferralDiscountResponseDto) // Assuming it returns updated discount info
   async applyReferralCode(
     @Request() req: AuthRequest,
     @Body() dto: ApplyReferralDto,
@@ -85,6 +93,7 @@ export class ReferralsController {
    * Check if current clinic has a pending referral discount
    */
   @Get('discount')
+  @ZodSerializerDto(ReferralDiscountResponseDto)
   async getMyReferralDiscount(@Request() req: AuthRequest) {
     return this.referralsService.getReferralDiscount(req.user.clinicId);
   }

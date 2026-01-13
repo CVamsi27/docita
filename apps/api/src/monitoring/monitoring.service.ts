@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, ErrorSeverity, MetricType } from '@workspace/db';
-import { WebVitalDto } from './dto/web-vital.dto';
+import { WebVitalDto } from './dto/monitoring.dto';
 
 interface RequestLogData {
   clinicId?: string;

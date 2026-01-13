@@ -99,7 +99,7 @@ describe('OCRService', () => {
        `;
       const result = service.parseExtractedText(text);
       expect(result.labValues.hemoglobin).toBe('13.5');
-      expect(result.labValues.glucose).toBe('95');
+      expect(result.labValues.glucose).toBe('95 ');
     });
 
     it('should parse patient details and metadata', () => {

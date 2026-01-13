@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { feedbackSchema } from '@workspace/types';
 
 export const CreateFeedbackSchema = z.object({
   overallRating: z.number().int().min(1).max(5),
@@ -21,4 +22,10 @@ export const UpdateFeedbackStatusSchema = z.object({
 });
 export class UpdateFeedbackStatusDto extends createZodDto(
   UpdateFeedbackStatusSchema,
+) {}
+
+export class FeedbackResponseDto extends createZodDto(feedbackSchema) {}
+
+export class FeedbackListResponseDto extends createZodDto(
+  z.array(feedbackSchema),
 ) {}

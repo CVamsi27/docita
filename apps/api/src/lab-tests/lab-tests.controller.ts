@@ -18,7 +18,12 @@ import {
   CreateLabTestDto,
   CreateLabTestOrderDto,
   UpdateLabTestOrderDto,
+  LabTestListResponseDto,
+  LabTestResponseDto,
+  LabTestOrderListResponseDto,
+  LabTestOrderResponseDto,
 } from './dto/lab-tests.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -35,17 +40,20 @@ export class LabTestsController {
 
   // Lab Test Catalog
   @Get('catalog')
+  @ZodSerializerDto(LabTestListResponseDto)
   findAllTests(@Request() req: AuthRequest) {
     return this.labTestsService.findAllTests(req.user.clinicId);
   }
 
   @Post('catalog')
+  @ZodSerializerDto(LabTestResponseDto)
   createTest(@Request() req: AuthRequest, @Body() dto: CreateLabTestDto) {
     return this.labTestsService.createTest(req.user.clinicId, dto);
   }
 
   // Lab Test Orders
   @Get('orders')
+  @ZodSerializerDto(LabTestOrderListResponseDto)
   findAllOrders(
     @Request() req: AuthRequest,
     @Query('search') search?: string,
@@ -65,11 +73,13 @@ export class LabTestsController {
   }
 
   @Get('orders/:id')
+  @ZodSerializerDto(LabTestOrderResponseDto)
   findOrder(@Param('id') id: string) {
     return this.labTestsService.findOrder(id);
   }
 
   @Post('orders')
+  @ZodSerializerDto(LabTestOrderResponseDto)
   createOrder(@Request() req: AuthRequest, @Body() dto: CreateLabTestOrderDto) {
     return this.labTestsService.createOrder(
       req.user.clinicId,
@@ -79,6 +89,7 @@ export class LabTestsController {
   }
 
   @Patch('orders/:id')
+  @ZodSerializerDto(LabTestOrderResponseDto)
   updateOrder(@Param('id') id: string, @Body() dto: UpdateLabTestOrderDto) {
     return this.labTestsService.updateOrder(id, dto);
   }

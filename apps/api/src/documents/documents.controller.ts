@@ -18,6 +18,11 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UploadDocumentDto } from './dto/upload-document.dto';
+import {
+  DocumentResponseDto,
+  DocumentListResponseDto,
+} from './dto/documents.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard)
@@ -25,6 +30,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
+  @ZodSerializerDto(DocumentListResponseDto)
   findAll(
     @Request() req,
     @Query('search') search?: string,
@@ -39,6 +45,7 @@ export class DocumentsController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(DocumentResponseDto)
   findOne(@Param('id') id: string, @Request() req) {
     return this.documentsService.findOne(id, req.user.clinicId);
   }
@@ -61,6 +68,7 @@ export class DocumentsController {
       },
     }),
   )
+  @ZodSerializerDto(DocumentResponseDto)
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UploadDocumentDto,

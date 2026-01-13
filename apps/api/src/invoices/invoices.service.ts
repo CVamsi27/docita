@@ -65,6 +65,11 @@ export class InvoicesService extends BaseService<Invoice> {
     },
   ) {
     const { cursor, limit, patientId, status, date, search } = params || {};
+
+    if (!clinicId) {
+      return { items: [], count: 0, nextCursor: undefined, hasMore: false };
+    }
+
     const where: any = this.buildClinicWhereClause(clinicId);
 
     if (patientId) {

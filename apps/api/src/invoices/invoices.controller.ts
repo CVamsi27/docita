@@ -17,7 +17,13 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
-import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/invoices.dto';
+import {
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+  InvoiceResponseDto,
+  PaginatedInvoiceResponseDto,
+} from './dto/invoices.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -32,6 +38,7 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
+  @ZodSerializerDto(PaginatedInvoiceResponseDto)
   findAll(
     @Request() req: AuthRequest,
     @Query('cursor') cursor?: string,
@@ -52,11 +59,13 @@ export class InvoicesController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(InvoiceResponseDto)
   findOne(@Param('id') id: string) {
     return this.invoicesService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
       ...dto,
@@ -65,6 +74,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @ZodSerializerDto(InvoiceResponseDto)
   update(@Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, dto);
   }

@@ -95,7 +95,24 @@ describe('IpdService', () => {
         include: {
           rooms: {
             include: {
-              beds: true,
+              beds: {
+                include: {
+                  admissions: {
+                    include: {
+                      patient: {
+                        select: {
+                          firstName: true,
+                          id: true,
+                          lastName: true,
+                        },
+                      },
+                    },
+                    where: {
+                      status: 'ADMITTED',
+                    },
+                  },
+                },
+              },
             },
           },
         },

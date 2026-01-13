@@ -15,6 +15,12 @@ import {
 } from '@nestjs/common';
 import { FhirService } from './fhir.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {
+  FhirResourceDto,
+  FhirBundleDto,
+  FhirResourceListDto,
+} from './dto/fhir.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('fhir')
 @UseGuards(JwtAuthGuard)
@@ -26,6 +32,7 @@ export class FhirController {
    * GET /fhir/Patient/:id
    */
   @Get('Patient/:id')
+  @ZodSerializerDto(FhirResourceDto)
   async getPatient(@Param('id') id: string, @Request() req: any) {
     const clinicId = req.user.clinicId;
     return this.fhirService.getPatientResource(id, clinicId);
@@ -36,6 +43,7 @@ export class FhirController {
    * GET /fhir/Observation?patient=:patientId&encounter=:appointmentId
    */
   @Get('Observation')
+  @ZodSerializerDto(FhirResourceListDto)
   async getObservations(
     @Query('patient') patientId: string,
     @Query('encounter') encounterId: string,
@@ -54,6 +62,7 @@ export class FhirController {
    * GET /fhir/MedicationRequest?patient=:patientId
    */
   @Get('MedicationRequest')
+  @ZodSerializerDto(FhirResourceListDto)
   async getMedicationRequests(
     @Query('patient') patientId: string,
     @Request() req: any,
@@ -67,6 +76,7 @@ export class FhirController {
    * GET /fhir/Condition?patient=:patientId
    */
   @Get('Condition')
+  @ZodSerializerDto(FhirResourceListDto)
   async getConditions(
     @Query('patient') patientId: string,
     @Request() req: any,
@@ -80,6 +90,7 @@ export class FhirController {
    * GET /fhir/AllergyIntolerance?patient=:patientId
    */
   @Get('AllergyIntolerance')
+  @ZodSerializerDto(FhirResourceListDto)
   async getAllergyIntolerances(
     @Query('patient') patientId: string,
     @Request() req: any,
@@ -93,6 +104,7 @@ export class FhirController {
    * GET /fhir/Bundle/:patientId
    */
   @Get('Bundle/:patientId')
+  @ZodSerializerDto(FhirBundleDto)
   async getPatientBundle(
     @Param('patientId') patientId: string,
     @Request() req: any,
@@ -106,6 +118,10 @@ export class FhirController {
    * GET /fhir/export/ccd/:patientId
    */
   @Get('export/ccd/:patientId')
+  // CCD is XML, so we might return a string or object.
+  // Assuming it returns string or wrapping object.
+  // If string, we might need a specific DTO or just bypass serializer for this one or use a String DTO.
+  // Let's assume it returns a wrapped response for now.
   async exportCCD(@Param('patientId') patientId: string, @Request() req: any) {
     const clinicId = req.user.clinicId;
     return this.fhirService.getCCDExport(patientId, clinicId);
@@ -116,6 +132,7 @@ export class FhirController {
    * GET /fhir/metadata
    */
   @Get('metadata')
+  @ZodSerializerDto(FhirResourceDto)
   getCapabilityStatement() {
     return this.fhirService.getCapabilityStatement();
   }

@@ -1,5 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import {
+  loginResponseSchema,
+  registerResponseSchema,
+  validateSessionResponseSchema,
+} from '@workspace/types';
 
 export const LoginSchema = z.object({
   email: z.string().email(),
@@ -41,3 +46,12 @@ export const ChangePasswordSchema = z
   });
 
 export class ChangePasswordDto extends createZodDto(ChangePasswordSchema) {}
+
+export class LoginResponseDto extends createZodDto(loginResponseSchema) {}
+export class RegisterResponseDto extends createZodDto(registerResponseSchema) {}
+export class ValidateSessionResponseDto extends createZodDto(
+  validateSessionResponseSchema,
+) {}
+export class ChangePasswordResponseDto extends createZodDto(
+  z.object({ success: z.boolean(), message: z.string().optional() }),
+) {}

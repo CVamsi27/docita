@@ -11,8 +11,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
-import { CreatePatientDto, UpdatePatientDto } from './dto/patients.dto';
+import {
+  CreatePatientDto,
+  UpdatePatientDto,
+  PatientResponseDto,
+  PaginatedPatientResponseDto,
+} from './dto/patients.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -26,6 +32,7 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Get()
+  @ZodSerializerDto(PaginatedPatientResponseDto)
   findAll(
     @Request() req: AuthRequest,
     @Query('limit') limit?: string,
@@ -40,11 +47,13 @@ export class PatientsController {
   }
 
   @Get(':id')
+  @ZodSerializerDto(PatientResponseDto)
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);
   }
 
   @Post()
+  @ZodSerializerDto(PatientResponseDto)
   create(
     @Request() req: AuthRequest,
     @Body() createPatientDto: CreatePatientDto,
@@ -56,6 +65,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
+  @ZodSerializerDto(PatientResponseDto)
   update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientsService.update(id, updatePatientDto);
   }

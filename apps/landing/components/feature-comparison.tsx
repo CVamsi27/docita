@@ -146,6 +146,24 @@ const features: Feature[] = [
       genericEHR: "partial",
     },
   },
+  {
+    name: "Dental Charting",
+    comparison: {
+      docita: "yes",
+      practo: "partial",
+      paper: "yes",
+      genericEHR: "no",
+    },
+  },
+  {
+    name: "Pediatric Growth Charts",
+    comparison: {
+      docita: "yes",
+      practo: "no",
+      paper: "no",
+      genericEHR: "partial",
+    },
+  },
 ];
 
 const statusLabels = {

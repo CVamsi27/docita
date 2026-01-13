@@ -9,7 +9,8 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-import { UpdateProfileDto } from './dto/users.dto';
+import { UpdateProfileDto, UserResponseDto } from './dto/users.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
@@ -23,6 +24,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('profile')
+  @ZodSerializerDto(UserResponseDto)
   async updateProfile(
     @Request() req: AuthRequest,
     @Body() dto: UpdateProfileDto,
