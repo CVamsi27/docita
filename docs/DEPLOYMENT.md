@@ -96,7 +96,7 @@ When ready to migrate:
 
 ## 3. Backend Deployment (AWS EC2)
 
-The API is containerized using Docker and deployed on EC2.
+The API is containerized using Docker and deployed on EC2 (Primary) or AWS App Runner (Alternative).
 
 ### Prerequisites
 
@@ -1357,3 +1357,35 @@ app.enableCors({
 ```
 
 If you add a new domain, update this list and redeploy the API.
+
+## 6. Alternative: AWS App Runner (Serverless Container)
+
+> **Note**: This is a recommended alternative if you want to remove the operational overhead of managing EC2 and Nginx. It costs slightly more (~$15/mo) but includes automated scaling, load balancing, and zero-maintenance infrastructure.
+
+### 1. One-time Setup
+
+1.  **Push your image to ECR** (follow the ECR steps in section 3).
+2.  **Create App Runner Service** in AWS Console:
+    *   **Source**: Container Registry
+    *   **Provider**: Amazon ECR
+    *   **Image URI**: Select your `docita-api` image (Region: `us-west-1`)
+    *   **Deployment settings**: Automatic or Manual (Manual is fine if using GitHub Actions)
+    *   **Configuration**:
+        *   **CPU**: 1 vCPU
+        *   **Memory**: 2 GB
+        *   **Environment variables**: Add `DATABASE_URL`, `JWT_SECRET`, etc.
+        *   **Port**: 3001
+3.  **Copy Service ARN**: It looks like `arn:aws:apprunner:us-west-1:1234567890:service/docita-api/xyz`.
+4.  **Add Secret to GitHub**:
+    *   Name: `APP_RUNNER_SERVICE_ARN`
+    *   Value: Your Service ARN (e.g., `arn:aws:apprunner:...`)
+
+### 2. Deployment Workflow
+
+A dedicated workflow file exists at `.github/workflows/deploy-app-runner.yml`.
+
+*   **Status**: Disabled (Manual Trigger Only)
+*   **To Enable**:
+    1.  Add `APP_RUNNER_SERVICE_ARN` to GitHub Secrets.
+    2.  Go to "Actions" tab in GitHub -> "Build & Deploy to App Runner" -> "Run workflow".
+    3.  (Optional) Uncomment the `push: branches: [main]` section in the YAML file to enable auto-deploy.

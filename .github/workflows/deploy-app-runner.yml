@@ -1,0 +1,140 @@
+name: Deploy API to AWS App Runner (Disabled)
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  AWS_REGION: us-west-1
+  ECR_REPOSITORY: docita-api
+  APP_RUNNER_SERVICE_ARN: ${{ secrets.APP_RUNNER_SERVICE_ARN }}
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: docita_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: packages/db
+        run: pnpm db:generate
+
+      - name: Run E2E Tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/docita_test
+          DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/docita_test
+          JWT_SECRET: test-key
+          NODE_ENV: test
+        run: pnpm --filter api test:e2e
+
+  build-and-deploy:
+    name: Build & Deploy to App Runner
+    runs-on: ubuntu-latest
+    # Run if manual trigger or if tests passed (skipped if tests failed)
+    needs: [test]
+    if: |
+      always() && 
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # 1. BUILD TYPESCRIPT ARTIFACTS
+      # ----------------------------------------------------------------
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Packages (DB, Types, API)
+        run: |
+          pnpm --filter @workspace/db run build
+          pnpm --filter @workspace/types run build
+          pnpm --filter @docita/api run build
+          pnpm --filter @workspace/db run db:generate
+
+      # ----------------------------------------------------------------
+      # 2. SETUP AWS & ECR
+      # ----------------------------------------------------------------
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          # App Runner typically uses AMD64
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-to: type=inline
+
+
+      # ----------------------------------------------------------------
+      # 3. DEPLOY TO APP RUNNER
+      # ----------------------------------------------------------------
+      - name: Deploy to App Runner
+        # This requires the App Runner service to be already created
+        if: env.APP_RUNNER_SERVICE_ARN != ''
+        run: |
+          echo "Starting App Runner deployment..."
+          aws apprunner start-deployment \
+            --service-arn ${{ secrets.APP_RUNNER_SERVICE_ARN }} \
+            --region ${{ env.AWS_REGION }}
+          echo "Deployment started. Check AWS Console for progress."
