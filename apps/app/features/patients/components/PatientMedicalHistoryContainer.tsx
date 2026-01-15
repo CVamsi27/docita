@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdatePatient } from "@/hooks/api/use-patients";
+import { useClinicSettings } from "@/hooks/api/use-settings";
 import {
   PatientAllergy,
   PatientFamilyHistory,
@@ -22,7 +23,7 @@ export function PatientMedicalHistoryContainer({
   readOnly = false,
   className,
 }: PatientMedicalHistoryContainerProps) {
-  const { mutate: updatePatient } = apiHooks.useUpdatePatient(patient.id || "");
+  const { mutate: updatePatient } = useUpdatePatient(patient.id || "");
   const [editingAllergy, setEditingAllergy] = useState<PatientAllergy | null>(
     null,
   );
@@ -36,7 +37,7 @@ export function PatientMedicalHistoryContainer({
   const [newFamilyRelation, setNewFamilyRelation] = useState("");
 
   // Fetch clinic settings to get type
-  const { data: clinic } = apiHooks.useClinicSettings();
+  const { data: clinic } = useClinicSettings();
 
   const handleUpdate = (updates: Partial<PatientWithMedicalHistory>) => {
     updatePatient(updates, {

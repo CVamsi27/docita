@@ -4,7 +4,7 @@
  */
 
 import { useRouter } from "next/navigation";
-import { apiHooks } from "@/lib/api-hooks";
+import { useInfinitePatients } from "@/hooks/api/use-patients";
 import { getInitials } from "@/features/_shared/utils";
 import { getPatientAgeDisplay } from "../rules/patientRules";
 import { InfinitePatientsListUI } from "./InfinitePatientsListUI";
@@ -23,7 +23,7 @@ export function InfinitePatientsListContainer({
 
   // Use infinite patients query
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    apiHooks.useInfinitePatients({
+    useInfinitePatients({
       search: searchQuery,
       limit,
     });

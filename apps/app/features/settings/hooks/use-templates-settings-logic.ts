@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useTemplates,
+  useDeleteTemplate,
+  useCreateTemplate,
+  useUpdateTemplate,
+} from "@/hooks/api/use-clinical";
 import { ClinicalTemplate } from "@workspace/types";
 import { toast } from "sonner";
 
 export const useTemplatesSettingsLogic = () => {
-  const { data: templates, isLoading } = apiHooks.useTemplates();
-  const { mutate: deleteTemplate } = apiHooks.useDeleteTemplate();
+  const { data: templates, isLoading } = useTemplates();
+  const { mutate: deleteTemplate } = useDeleteTemplate();
   const { mutate: createTemplate, isPending: isCreating } =
-    apiHooks.useCreateTemplate();
+    useCreateTemplate();
   const { mutate: updateTemplate, isPending: isUpdating } =
-    apiHooks.useUpdateTemplate();
+    useUpdateTemplate();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentTemplate, setCurrentTemplate] =

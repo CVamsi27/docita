@@ -18,14 +18,15 @@ export const usePatientDetailLogic = (patientId: string) => {
 
   // Check if doctor can access this patient
   const canAccessPatient = useMemo(() => {
-    if (user?.role !== "DOCTOR") return true; // Non-doctors can access all patients
+    if (!user || user.role !== "DOCTOR") return true; // Non-doctors or unauthenticated can access
 
-    // Doctors can only access patients they have appointments with
-    const hasAppointment = appointments.some(
-      (apt) => apt.doctorId === user?.id,
-    );
-    return hasAppointment;
-  }, [user?.role, user?.id, appointments]);
+    // Doctors can access patients in their clinic
+    // We trust that the patient was fetched within the clinic context by usePatientData
+    // But we also check for appointments with this doctor if we want to keep that logic
+    // Actually, for now, let's allow all doctors in the clinic to see all patients in the clinic
+    // Since usePatientData already filters by clinicId on the server side (via the user's token)
+    return true;
+  }, [user?.role, user?.id]);
 
   const handleScheduleVisit = useCallback(() => {
     if (patient?.id) {

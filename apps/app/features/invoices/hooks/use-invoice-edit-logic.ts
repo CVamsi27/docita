@@ -3,7 +3,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
 
@@ -28,9 +28,9 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: invoice, isLoading, error } = apiHooks.useInvoice(invoiceId);
+  const { data: invoice, isLoading, error } = useInvoice(invoiceId);
 
-  const updateInvoice = apiHooks.useUpdateInvoice(invoiceId);
+  const updateInvoice = useUpdateInvoice(invoiceId);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),

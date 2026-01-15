@@ -11,7 +11,10 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Separator } from "@workspace/ui/components/separator";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useCreatePrescription,
+  usePatientPrescriptions,
+} from "@/hooks/api/use-clinical";
 import { RotateCcw, X, Plus, Pill } from "lucide-react";
 import type { Prescription } from "@workspace/types";
 
@@ -44,10 +47,10 @@ export function PrescriptionModal({
     { name: "", dosage: "", frequency: "", duration: "", route: "ORAL" },
   ]);
 
-  const createPrescription = apiHooks.useCreatePrescription();
+  const createPrescription = useCreatePrescription();
 
   // For repeating last prescription
-  const { data: lastRxData } = apiHooks.usePatientPrescriptions(
+  const { data: lastRxData } = usePatientPrescriptions(
     patientId || "",
     { limit: 1 },
     { enabled: !!patientId },

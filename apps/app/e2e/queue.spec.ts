@@ -13,7 +13,8 @@ test.describe("Queue Management", () => {
         data: {
           email: `doctor${Date.now()}@test.com`,
           password: "Test@123456",
-          name: "Dr. Queue",
+          firstName: "Dr.",
+          lastName: "Queue",
           role: "DOCTOR",
         },
       });

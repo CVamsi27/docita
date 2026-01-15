@@ -169,4 +169,29 @@ export class ClinicSettingsController {
     }
     return this.clinicsService.getMembers(clinicId);
   }
+
+  @Get('prescription-defaults')
+  async getPrescriptionDefaults(@Request() req: AuthRequest) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    // Assuming getPrescriptionDefaults is implemented in service or we mock it for now.
+    // Ideally, this should return settings.
+    // Let's implement basics in service or assume the method exists.
+    // If not, we might need to add it to service too.
+    return this.clinicsService.getPrescriptionDefaults(clinicId);
+  }
+
+  @Put('prescription-defaults')
+  async updatePrescriptionDefaults(
+    @Request() req: AuthRequest,
+    @Body() dto: any, // Use proper DTO
+  ) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    return this.clinicsService.updatePrescriptionDefaults(clinicId, dto);
+  }
 }

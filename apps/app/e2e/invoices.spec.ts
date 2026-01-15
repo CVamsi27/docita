@@ -17,7 +17,8 @@ test.describe("Invoices", () => {
         data: {
           email,
           password,
-          name: "Dr. Invoice",
+          firstName: "Dr.",
+          lastName: "Invoice",
           role: "DOCTOR",
         },
       });

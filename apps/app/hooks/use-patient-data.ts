@@ -45,11 +45,16 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setLoading(true);
       setError(null);
 
-      // Fetch patient details
-      const patientData = await apiFetch<PatientWithMedicalHistory>(
-        `/patients/${patientId}`,
-      );
+      // Fetch all data in parallel
+      const [patientData, appointmentsData, documentsData, statisticsData] =
+        await Promise.all([
+          apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
+          apiFetch<Appointment[]>(`/patients/${patientId}/appointments`),
+          apiFetch<Document[]>(`/patients/${patientId}/documents`),
+          apiFetch<PatientStatistics>(`/patients/${patientId}/statistics`),
+        ]);
 
+      // Set patient
       if (
         patientData &&
         !("error" in patientData) &&
@@ -62,13 +67,8 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setError("Failed to load patient details");
       }
 
-      // Fetch appointments
-      const appointmentsData = await apiFetch<Appointment[]>(
-        `/patients/${patientId}/appointments`,
-      );
-
+      // Set appointments
       if (Array.isArray(appointmentsData)) {
-        // Deduplicate by ID
         const uniqueAppointments = Array.from(
           new Map(appointmentsData.map((item) => [item.id, item])).values(),
         );
@@ -78,11 +78,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setAppointments([]);
       }
 
-      // Fetch documents
-      const documentsData = await apiFetch<Document[]>(
-        `/patients/${patientId}/documents`,
-      );
-
+      // Set documents
       if (Array.isArray(documentsData)) {
         setDocuments(documentsData);
       } else {
@@ -90,11 +86,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setDocuments([]);
       }
 
-      // Fetch patient statistics
-      const statisticsData = await apiFetch<PatientStatistics>(
-        `/patients/${patientId}/statistics`,
-      );
-
+      // Set statistics
       if (
         statisticsData &&
         typeof statisticsData === "object" &&
@@ -105,7 +97,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setStatistics(statisticsData);
       } else {
         console.error("Invalid statistics data:", statisticsData);
-        // Set default statistics instead of null
         setStatistics({
           totalVisits: 0,
           lastVisit: null,
@@ -136,7 +127,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         hasFetchedRef.current = patientId;
         loadPatientData();
       }
-      return () => {};
+      return () => { };
     }, [patientId, loadPatientData]),
     () => patient,
     () => null,

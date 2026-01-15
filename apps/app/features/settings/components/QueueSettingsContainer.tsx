@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useQueueSettings,
+  useUpdateQueueSettings,
+} from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
 import { QueueSettingsUI } from "./QueueSettingsUI";
 
 export function QueueSettingsContainer() {
-  const { data: settings, isLoading, refetch } = apiHooks.useQueueSettings();
+  const { data: settings, isLoading, refetch } = useQueueSettings();
   const { mutate: updateSettings, isPending: saving } =
-    apiHooks.useUpdateQueueSettings();
+    useUpdateQueueSettings();
 
   const [queueBufferMinutes, setQueueBufferMinutes] = useState(10);
   const [useDoctorQueues, setUseDoctorQueues] = useState(false);

@@ -12,12 +12,39 @@ test.describe("Auth Flow", () => {
       data: {
         email: uniqueEmail,
         password,
-        name: "Test Doctor",
+        firstName: "Test",
+        lastName: "Doctor",
         role: "DOCTOR",
       },
     });
 
     expect(registerRes.ok()).toBeTruthy();
+    const user = (await registerRes.json()) as Record<string, unknown>;
+
+    // Create a clinic for this user so they can login
+    const token = (user?.access_token as string) || (user?.accessToken as string);
+    const clinicRes = await context.request.post(`${API_URL}/clinics`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        name: "Auth Test Clinic",
+        email: `clinic${Date.now()}@test.com`,
+        phone: "1234567890",
+        address: "123 Auth St",
+      },
+    });
+    expect(clinicRes.ok()).toBeTruthy();
+    const clinic = (await clinicRes.json()) as Record<string, unknown>;
+
+    // Assign doctor to clinic explicitly to ensure login works
+    const assignRes = await context.request.post(`${API_URL}/doctor-clinics`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        doctorId: user.id || (user.user as any)?.id,
+        clinicId: clinic.id,
+        role: "DOCTOR", // Use uppercase to match strict role check if needed, or 'doctor'
+      },
+    });
+    expect(assignRes.ok()).toBeTruthy();
 
     // Navigate to login page and wait for inputs
     await page.goto("/login");
@@ -47,19 +74,15 @@ test.describe("Auth Flow", () => {
       // If navigation didn't happen as expected, just continue with other checks
     }
 
-    // Verify logged in - check for token storage
+    // Verify logged in - check for token storage (docita_token)
+    await page.waitForTimeout(1000); // Give time for storage
     const hasToken = await page.evaluate(() => {
-      return (
-        !!localStorage.getItem("token") ||
-        !!localStorage.getItem("access_token") ||
-        !!sessionStorage.getItem("token")
-      );
+      return !!localStorage.getItem("docita_token");
     });
 
-    // Either token is stored or page has changed from login
-    const url = page.url();
-    const isLoggedIn = hasToken || !url.includes("/login");
-    expect(isLoggedIn).toBeTruthy();
+    // Expect successful redirect to dashboard
+    await expect(page).toHaveURL(/\/dashboard/);
+    expect(hasToken).toBeTruthy();
   });
 
   test("should show error on invalid credentials", async ({

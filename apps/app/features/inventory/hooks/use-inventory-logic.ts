@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import { useInventory, useInventoryStats } from "@/hooks/api/use-inventory";
 import { useDebounce } from "@/hooks/use-debounce";
 import { InventoryItem } from "@workspace/types";
 
@@ -23,13 +23,13 @@ export const useInventoryLogic = () => {
     isLoading,
     refetch,
     isFetching,
-  } = apiHooks.useInventory({
+  } = useInventory({
     search: debouncedSearch,
     category: categoryFilter !== "all" ? categoryFilter : undefined,
     status: stockFilter !== "all" ? stockFilter : undefined,
   });
 
-  const { data: stats, refetch: refetchStats } = apiHooks.useInventoryStats();
+  const { data: stats, refetch: refetchStats } = useInventoryStats();
 
   const getStockStatus = (quantity: number, minStock: number): StockStatus => {
     if (quantity <= minStock * 0.5)

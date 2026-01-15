@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -12,14 +10,56 @@ import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { Loader2 } from "lucide-react";
+import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import { toast } from "sonner";
 
 export function SecuritySettings() {
+  const { data: clinic, isLoading } = useClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+
   const [settings, setSettings] = useState({
     twoFactorAuth: false,
     sessionTimeout: "30",
-    ipWhitelist: false,
     auditLogs: true,
   });
+
+  useEffect(() => {
+    if (clinic) {
+      const s = clinic.settings as Record<string, any> || {};
+      setSettings({
+        twoFactorAuth: s.twoFactorAuth ?? false,
+        sessionTimeout: String(s.sessionTimeout || "30"),
+        auditLogs: s.auditLogs ?? true,
+      });
+    }
+  }, [clinic]);
+
+  const handleSave = () => {
+    updateSettings(
+      {
+        twoFactorAuth: settings.twoFactorAuth,
+        sessionTimeout: settings.sessionTimeout,
+        auditLogs: settings.auditLogs,
+      } as any,
+      {
+        onSuccess: () => {
+          toast.success("Security settings saved successfully");
+        },
+        onError: (error) => {
+          toast.error(`Failed to save settings: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <Card className="border-none shadow-lg">
@@ -72,7 +112,10 @@ export function SecuritySettings() {
             }
           />
         </div>
-        <Button className="w-full">Save Security Settings</Button>
+        <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Save Security Settings
+        </Button>
       </CardContent>
     </Card>
   );

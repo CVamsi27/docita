@@ -1,5 +1,10 @@
 import { useState, useMemo } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useAnalyticsOverview,
+  useDiseaseTrends,
+  useRevenueByCPT,
+  useComplianceMetrics,
+} from "@/hooks/api/use-analytics";
 import { useClinic } from "@/lib/clinic-context";
 
 export interface AnalyticsOverview {
@@ -37,25 +42,24 @@ export const useAnalyticsLogic = () => {
   const { clinicId } = useClinic();
   const [dateRange] = useState({ start: "", end: "" });
 
-  const { data: overview, isLoading: overviewLoading } =
-    apiHooks.useAnalyticsOverview();
+  const { data: overview, isLoading: overviewLoading } = useAnalyticsOverview();
 
   const { data: diseaseTrends = [], isLoading: trendsLoading } =
-    apiHooks.useDiseaseTrends(
+    useDiseaseTrends(
       clinicId || "default",
       dateRange.start,
       dateRange.end,
     );
 
   const { data: revenueByCPT = [], isLoading: revenueLoading } =
-    apiHooks.useRevenueByCPT(
+    useRevenueByCPT(
       clinicId || "default",
       dateRange.start,
       dateRange.end,
     );
 
   const { data: complianceMetrics = [], isLoading: complianceLoading } =
-    apiHooks.useComplianceMetrics(
+    useComplianceMetrics(
       clinicId || "default",
       dateRange.start,
       dateRange.end,

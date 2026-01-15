@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import { usePrescriptionDefaults, useUpdatePrescriptionDefaults } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import {
   PrescriptionDefaultsSettingsUI,
@@ -11,9 +11,9 @@ export function PrescriptionDefaultsSettingsContainer() {
     data: initialSettings,
     isLoading: loading,
     refetch,
-  } = apiHooks.usePrescriptionDefaults();
+  } = usePrescriptionDefaults();
   const { mutate: updateSettings, isPending: saving } =
-    apiHooks.useUpdatePrescriptionDefaults();
+    useUpdatePrescriptionDefaults();
   const [settings, setSettings] = useState<PrescriptionDefaultsSettings>({
     defaultInstructions: "",
     defaultFooterText: "",

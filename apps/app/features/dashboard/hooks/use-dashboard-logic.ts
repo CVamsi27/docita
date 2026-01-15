@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import { useDashboardStats } from "@/hooks/api/use-dashboard";
+import { useTodayAppointments } from "@/hooks/api/use-appointments";
+import { useRecentPatients } from "@/hooks/api/use-patients";
 import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 
 // Types derived from usage in original page.tsx
@@ -40,11 +42,11 @@ export const useDashboardLogic = () => {
   const { canAccess } = usePermissionStore();
 
   // ✅ OPTIMIZATION: All hooks run in parallel automatically via React Query
-  const { data, isLoading: loadingStats } = apiHooks.useDashboardStats();
+  const { data, isLoading: loadingStats } = useDashboardStats();
   const { data: rawAppointmentsResponse, isLoading: loadingAppointments } =
-    apiHooks.useTodayAppointments();
+    useTodayAppointments();
   const { data: recentPatientsResponse, isLoading: loadingPatients } =
-    apiHooks.useRecentPatients(5);
+    useRecentPatients(5);
 
   const stats = useMemo(
     () => ({

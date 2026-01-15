@@ -5,7 +5,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Loader2 } from "lucide-react";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
-import { apiHooks } from "@/lib/api-hooks";
+import { usePrescription } from "@/hooks/api/use-clinical";
 import { toast } from "sonner";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
@@ -44,7 +44,7 @@ export default function PrescriptionViewPage() {
     data: prescription,
     isLoading,
     error,
-  } = apiHooks.usePrescription(prescriptionId);
+  } = usePrescription(prescriptionId);
 
   const handleEdit = () => {
     if (prescription?.appointmentId) {

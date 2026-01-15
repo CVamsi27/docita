@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useDoctors } from "@/hooks/api/use-settings";
+import {
+  useAppointments,
+  useCheckInAppointment,
+  useUpdateAppointment,
+} from "@/hooks/api/use-appointments";
 import { useAuth, User } from "@/lib/auth-context";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Appointment, Patient } from "@workspace/types";
@@ -68,7 +73,7 @@ export const useAppointmentsLogic = () => {
   );
 
   // Fetch doctors list
-  const { data: doctors = [] } = apiHooks.useDoctors();
+  const { data: doctors = [] } = useDoctors();
 
   // API now returns strictly doctors
   const doctorsList = doctors;
@@ -77,7 +82,7 @@ export const useAppointmentsLogic = () => {
     data: appointmentsResponse,
     isLoading: loading,
     refetch,
-  } = apiHooks.useAppointments({
+  } = useAppointments({
     ...(selectedDateStr ? { date: selectedDateStr } : {}),
     ...(canViewAllDoctors && selectedDoctorId
       ? { doctorId: selectedDoctorId }
@@ -89,9 +94,9 @@ export const useAppointmentsLogic = () => {
     return appointmentsResponse?.items || [];
   }, [appointmentsResponse]);
 
-  const checkInMutation = apiHooks.useCheckInAppointment();
+  const checkInMutation = useCheckInAppointment();
 
-  const updateAppointmentMutation = apiHooks.useUpdateAppointment(
+  const updateAppointmentMutation = useUpdateAppointment(
     cancellingAptId || noShowAptId || "",
   );
 

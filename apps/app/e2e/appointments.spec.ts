@@ -1,6 +1,6 @@
 import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
-const API_URL: string = process.env["API_URL"] || "http://localhost:3001/api";
+const API_URL = "http://127.0.0.1:3001/api";
 
 test.describe("Appointments", () => {
   let cachedUser: {
@@ -23,7 +23,8 @@ test.describe("Appointments", () => {
       data: {
         email: uniqueEmail,
         password,
-        name: "Test Doctor",
+        firstName: "Test",
+        lastName: "Doctor",
         role: "DOCTOR",
       },
     });
@@ -140,10 +141,7 @@ test.describe("Appointments", () => {
     );
 
     // Navigate to dashboard which should pick up token from localStorage
-    await page
-      .goto("/dashboard", { waitUntil: "networkidle" })
-      .catch(() => null);
-    await page.waitForTimeout(500);
+    await page.goto("/dashboard", { waitUntil: "load" }).catch(() => null);
   });
 
   test("should display appointments list", async ({ page }) => {
@@ -190,10 +188,30 @@ test.describe("Appointments", () => {
       },
     });
 
-    await page.goto("/appointments");
+    // Wait a bit to ensure DB persistence and avoid race conditions
+    await page.waitForTimeout(2000);
 
-    // Check if appointment is visible
-    await expect(page.getByText("Test Patient")).toBeVisible();
-    await expect(page.getByText("10:00")).toBeVisible();
+    // Navigate to appointments page
+    await page.goto("/appointments", { waitUntil: "load" });
+    console.log("Appointments Page URL:", page.url());
+
+    // Retry once if not found immediately (sometimes frontend cache is stale)
+    const row = page.locator('text=10:00').first();
+    try {
+      await expect(row).toBeVisible({ timeout: 5000 });
+    } catch (e) {
+      console.log("Appointment not found initially, reloading page...");
+      await page.reload({ waitUntil: "load" });
+      await page.waitForTimeout(1000);
+      await expect(row).toBeVisible({ timeout: 10000 });
+    }
+
+    try {
+      // Check for patient name
+      await expect(page.locator(`text=Test Patient`).first()).toBeVisible();
+    } catch (e) {
+      console.log("Appointments Page DOM Content on failure:", await page.content());
+      throw e;
+    }
   });
 });

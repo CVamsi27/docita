@@ -13,7 +13,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Input } from "@workspace/ui/components/input";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdateQueueSettings } from "@/hooks/api/use-appointments";
 
 interface QueueSettings {
   queueBufferMinutes?: number;
@@ -36,7 +36,7 @@ export const QueueSettingsDialog: FC<QueueSettingsDialogProps> = ({
   onSettingsUpdated,
 }) => {
   const { mutate: updateSettings, isPending: saving } =
-    apiHooks.useUpdateQueueSettings();
+    useUpdateQueueSettings();
   const [queueBuffer, setQueueBuffer] = useState(
     settings?.queueBufferMinutes ?? 10,
   );

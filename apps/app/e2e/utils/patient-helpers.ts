@@ -41,7 +41,8 @@ export async function setupTestUser(
     data: {
       email: uniqueEmail,
       password,
-      name: "Dr. History",
+      firstName: "Dr.",
+      lastName: "History",
       role: "DOCTOR",
     },
   });

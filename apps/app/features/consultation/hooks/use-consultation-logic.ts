@@ -1,7 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useAppointment,
+  usePatientAppointments,
+  useUpdateAppointment,
+} from "@/hooks/api/use-appointments";
+import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
 import { UpdateAppointmentInput } from "@workspace/types";
@@ -23,13 +28,13 @@ export const useConsultationLogic = (appointmentId: string) => {
   const { canGoBack } = useNavigationStore();
 
   const { data: appointmentData, isLoading: loading } =
-    apiHooks.useAppointment(appointmentId);
+    useAppointment(appointmentId);
 
   // Fetch clinic settings to get clinic type
-  const { data: clinic } = apiHooks.useClinicSettings();
+  const { data: clinic } = useClinicSettings();
 
   // Fetch past appointments for consultation history
-  const { data: patientAppointmentsResponse } = apiHooks.usePatientAppointments(
+  const { data: patientAppointmentsResponse } = usePatientAppointments(
     appointmentData?.patientId || "",
   );
   const patientAppointments = patientAppointmentsResponse?.items || [];
@@ -74,7 +79,7 @@ export const useConsultationLogic = (appointmentId: string) => {
   }, [canGoBack, goBack, router, fallbackRoute]);
 
   // Mutation for updating appointment
-  const updateAppointment = apiHooks.useUpdateAppointment(appointmentId);
+  const updateAppointment = useUpdateAppointment(appointmentId);
 
   const handleSave = useCallback(
     async (data: UpdateAppointmentInput) => {

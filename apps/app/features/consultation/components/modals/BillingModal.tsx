@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 
@@ -34,7 +34,7 @@ export function BillingModal({
     new Date().toISOString().split("T")[0],
   );
 
-  const createInvoice = apiHooks.useCreateInvoice();
+  const createInvoice = useCreateInvoice();
 
   const handleSave = async () => {
     try {

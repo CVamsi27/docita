@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCodingQueue } from "@/hooks/api/use-medical-coding";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -46,7 +46,7 @@ export default function CodingQueuePage() {
     data: visits = [],
     isLoading,
     error,
-  } = apiHooks.useCodingQueue(debouncedSearch);
+  } = useCodingQueue(debouncedSearch);
 
   if (error) {
     toast.error("Failed to load coding queue");

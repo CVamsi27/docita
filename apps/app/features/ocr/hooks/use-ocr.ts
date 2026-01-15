@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateAppointment } from "@/hooks/api/use-appointments";
+import { useProcessOCR } from "@/hooks/api/use-import";
+import { useCreatePatient } from "@/hooks/api/use-patients";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
@@ -23,9 +25,9 @@ export const useOCR = () => {
   });
 
   // Mutations
-  const processOCRMutation = apiHooks.useProcessOCR();
-  const createPatientMutation = apiHooks.useCreatePatient();
-  const createAppointmentMutation = apiHooks.useCreateAppointment();
+  const processOCRMutation = useProcessOCR();
+  const createPatientMutation = useCreatePatient();
+  const createAppointmentMutation = useCreateAppointment();
 
   // Enhanced Form State with Confidence Scores and Suggestions
   const [formData, setFormData] = useState({

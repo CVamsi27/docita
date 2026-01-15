@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,9 +9,56 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
+import { Loader2 } from "lucide-react";
+import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import { toast } from "sonner";
 
 export function AppearanceSettings() {
-  const [theme, setTheme] = useState("system");
+  const { data: clinic, isLoading } = useClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+
+  const [settings, setSettings] = useState({
+    theme: "system",
+    primaryColor: "blue",
+    compactMode: false,
+  });
+
+  useEffect(() => {
+    if (clinic) {
+      const s = clinic.settings as Record<string, any> || {};
+      setSettings({
+        theme: s.theme || "system",
+        primaryColor: s.primaryColor || "blue",
+        compactMode: s.compactMode || false,
+      });
+    }
+  }, [clinic]);
+
+  const handleSave = () => {
+    updateSettings(
+      {
+        theme: settings.theme,
+        primaryColor: settings.primaryColor,
+        compactMode: settings.compactMode,
+      } as any,
+      {
+        onSuccess: () => {
+          toast.success("Appearance settings saved successfully");
+        },
+        onError: (error) => {
+          toast.error(`Failed to save settings: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <Card className="border-none shadow-lg">
@@ -28,9 +73,9 @@ export function AppearanceSettings() {
             {["light", "dark", "system"].map((t) => (
               <Button
                 key={t}
-                variant={theme === t ? "default" : "outline"}
+                variant={settings.theme === t ? "default" : "outline"}
                 size="sm"
-                onClick={() => setTheme(t)}
+                onClick={() => setSettings(s => ({ ...s, theme: t }))}
                 className="capitalize"
               >
                 {t}
@@ -44,7 +89,8 @@ export function AppearanceSettings() {
             {["blue", "green", "purple", "orange"].map((color) => (
               <button
                 key={color}
-                className={`h-8 w-8 rounded-full bg-${color}-500 ring-2 ring-offset-2 ring-transparent hover:ring-primary`}
+                className={`h-8 w-8 rounded-full bg-${color}-500 ring-2 ring-offset-2 ring-transparent hover:ring-primary ${settings.primaryColor === color ? "ring-primary" : ""}`}
+                onClick={() => setSettings(s => ({ ...s, primaryColor: color }))}
                 style={{
                   backgroundColor:
                     color === "blue"
@@ -66,9 +112,15 @@ export function AppearanceSettings() {
               Reduce spacing for more content
             </p>
           </div>
-          <Switch />
+          <Switch 
+            checked={settings.compactMode} 
+            onCheckedChange={(checked) => setSettings(s => ({ ...s, compactMode: checked }))}
+          />
         </div>
-        <Button className="w-full">Save Appearance</Button>
+        <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Save Appearance
+        </Button>
       </CardContent>
     </Card>
   );

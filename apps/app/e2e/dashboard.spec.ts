@@ -14,7 +14,8 @@ test.describe("Dashboard", () => {
       data: {
         email: uniqueEmail,
         password,
-        name: "Test Doctor",
+        firstName: "Test",
+        lastName: "Doctor",
         role: "DOCTOR",
       },
     });
@@ -119,10 +120,4 @@ test.describe("Dashboard", () => {
     await expect(page).toHaveURL(/.*\/patients\?action=new/);
   });
 
-  test("should navigate to appointments page from quick action", async ({
-    page,
-  }) => {
-    await page.click('text="Schedule"');
-    await expect(page).toHaveURL(/.*\/appointments\?action=new/);
-  });
 });

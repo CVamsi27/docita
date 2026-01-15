@@ -39,7 +39,8 @@ export class AuthController {
   @ZodSerializerDto(RegisterResponseDto)
   async register(@Body() dto: RegisterDto) {
     return this.authService.register({
-      ...dto,
+      email: dto.email,
+      password: dto.password,
       name: `${dto.firstName} ${dto.lastName}`,
     });
   }

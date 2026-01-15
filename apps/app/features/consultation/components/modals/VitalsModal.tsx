@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useSaveVitals } from "@/hooks/api/use-clinical";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 
@@ -43,7 +43,7 @@ export function VitalsModal({
     respiratoryRate: "",
   });
 
-  const recordVitals = apiHooks.useSaveVitals(appointmentId || "");
+  const recordVitals = useSaveVitals(appointmentId || "");
 
   const handleSave = async () => {
     try {

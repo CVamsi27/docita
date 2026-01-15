@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useFormOptions } from "@/lib/app-config-context";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
@@ -26,7 +26,7 @@ export function EditInvoiceDialogContainer({
   );
   const [loading, setLoading] = useState(false);
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
-  const updateInvoiceMutation = apiHooks.useUpdateInvoice(invoice?.id || "");
+  const updateInvoiceMutation = useUpdateInvoice(invoice?.id || "");
   // Sync state when invoice changes
   if (invoice?.id !== lastInvoiceIdRef.current) {
     lastInvoiceIdRef.current = invoice?.id ?? null;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateMedicineReminder } from "@/hooks/api/use-whatsapp";
 import {
   MedicineReminderDialogUI,
   MedicineReminderFormData,
@@ -30,7 +30,7 @@ export function MedicineReminderDialogContainer({
   const [formData, setFormData] =
     useState<MedicineReminderFormData>(initialFormData);
   const { mutate: createReminder, isPending } =
-    apiHooks.useCreateMedicineReminder();
+    useCreateMedicineReminder();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

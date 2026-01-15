@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdateAppointmentObservations } from "@/hooks/api/use-appointments";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface UseObservationsFormProps {
@@ -18,7 +18,7 @@ export function useObservationsForm({
 }: UseObservationsFormProps) {
   const queryClient = useQueryClient();
   const updateObservations =
-    apiHooks.useUpdateAppointmentObservations(appointmentId);
+    useUpdateAppointmentObservations(appointmentId);
   const [observations, setObservations] = useState(initialObservations);
 
   const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {

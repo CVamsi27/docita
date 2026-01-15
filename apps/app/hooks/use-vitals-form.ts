@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useAppointment } from "@/hooks/api/use-appointments";
+import { useSaveVitals } from "@/hooks/api/use-clinical";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface UseVitalsFormProps {
@@ -27,8 +28,8 @@ export function useVitalsForm({
   onVitalsSaved,
 }: UseVitalsFormProps) {
   const queryClient = useQueryClient();
-  const saveVitals = apiHooks.useSaveVitals(appointmentId);
-  const { data: appointment } = apiHooks.useAppointment(appointmentId);
+  const saveVitals = useSaveVitals(appointmentId);
+  const { data: appointment } = useAppointment(appointmentId);
 
   const [formData, setFormData] = useState<VitalsFormData>({
     height: "",

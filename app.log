@@ -1,0 +1,24 @@
+
+> @docita/app@0.1.0 dev /Users/vamsikrishnachandaluri/repos/docita/apps/app
+> next dev --turbopack --port 3000
+
+   ▲ Next.js 15.5.8 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.110:3000
+   - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Compiled middleware in 248ms
+ ✓ Ready in 2.6s
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 5.1s
+ GET /dashboard 200 in 5960ms
+ ○ Compiling /appointments ...
+ ✓ Compiled /appointments in 2.6s
+ GET /appointments 200 in 2889ms
+ GET /dashboard 200 in 944ms
+ GET /appointments 200 in 844ms
+ GET /dashboard 200 in 178ms
+ GET /appointments 200 in 1662ms

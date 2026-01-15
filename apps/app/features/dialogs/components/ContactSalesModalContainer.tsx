@@ -6,7 +6,7 @@ import {
   ContactSalesModalUI,
   ContactSalesFormData,
 } from "./ContactSalesModalUI";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateContactInquiry } from "@/hooks/api/use-contact";
 interface ContactSalesModalContainerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,7 +24,7 @@ export function ContactSalesModalContainer({
   const [formData, setFormData] =
     useState<ContactSalesFormData>(initialFormData);
   const { mutate: createInquiry, isPending: isSubmitting } =
-    apiHooks.useCreateContactInquiry();
+    useCreateContactInquiry();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

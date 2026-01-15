@@ -49,10 +49,10 @@ function shutdown(code = 0) {
   console.log("\nShutting down processes...");
   try {
     apiProc.kill("SIGINT");
-  } catch (e) {}
+  } catch (e) { }
   try {
     appProc.kill("SIGINT");
-  } catch (e) {}
+  } catch (e) { }
   process.exit(code);
 }
 
@@ -71,7 +71,9 @@ appProc.on("exit", (code) => {
     console.log("Frontend listening on 3000");
 
     // Run Playwright tests in app
-    const testProc = spawn("pnpm", ["exec", "playwright", "test", "e2e/"], {
+    const args = process.argv.slice(2);
+    const testArgs = args.length > 0 ? args : ["e2e/"];
+    const testProc = spawn("pnpm", ["exec", "playwright", "test", ...testArgs], {
       cwd: APP_DIR,
       stdio: "inherit",
       env: { ...process.env },

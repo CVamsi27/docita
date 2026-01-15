@@ -1,5 +1,6 @@
-"use client";
-
+import { useRouter } from "next/navigation";
+import { useSubscription } from "@/hooks/api/use-settings";
+import { useBillingStatus } from "@/hooks/api/use-billing";
 import {
   Card,
   CardContent,
@@ -10,6 +11,25 @@ import {
 import { Button } from "@workspace/ui/components/button";
 
 export function SubscriptionSettings() {
+  const router = useRouter();
+  const { data: subscription, isLoading } = useSubscription();
+  const { data: billingStatus } = useBillingStatus();
+
+  if (isLoading) {
+    return <div>Loading subscription details...</div>;
+  }
+
+  const tierName = subscription?.tierName || "Free Plan";
+  const price = billingStatus?.subscription?.scheduledChange?.tier 
+    ? "Changing soon"
+    : `${billingStatus?.lastPayment?.currency || "₹"} ${billingStatus?.lastPayment?.amount || 0}/month`;
+  
+  const renewsAt = billingStatus?.subscription?.currentPeriodEnd 
+    ? new Date(billingStatus.subscription.currentPeriodEnd).toLocaleDateString()
+    : "N/A";
+
+  const isPro = subscription?.tier === "pro" || subscription?.tier === "enterprise";
+
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
@@ -20,31 +40,33 @@ export function SubscriptionSettings() {
         <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-bold text-lg">Pro Plan</p>
+              <p className="font-bold text-lg">{tierName}</p>
               <p className="text-sm text-muted-foreground">
-                ₹2,499/month • Renews Jan 15
+                {price} • Renews {renewsAt}
               </p>
             </div>
-            <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">
-              Active
+            <span className={`px-2 py-1 rounded text-xs font-medium ${
+              subscription?.subscriptionStatus === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+            }`}>
+              {subscription?.subscriptionStatus || "Inactive"}
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="p-3 rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Patients</p>
-            <p className="text-lg font-bold">247 / Unlimited</p>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Storage</p>
-            <p className="text-lg font-bold">2.3 GB / 10 GB</p>
-          </div>
-        </div>
+        
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1">
+          {/* <Button variant="outline" className="flex-1">
             Manage Billing
+          </Button> */}
+          {/* Billing often handled in separate tab or portal. 
+              If there is a billing portal URL, we'd use it here. 
+              For now, we can link to invoices or just show upgrade. */}
+          
+          <Button 
+            className="flex-1" 
+            onClick={() => router.push("/upgrade")}
+          >
+            {isPro ? "Change Plan" : "Upgrade Plan"}
           </Button>
-          <Button className="flex-1">Upgrade Plan</Button>
         </div>
       </CardContent>
     </Card>

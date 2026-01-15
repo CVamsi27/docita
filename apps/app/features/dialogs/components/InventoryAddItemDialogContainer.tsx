@@ -6,7 +6,7 @@ import {
   InventoryAddItemDialogUI,
   InventoryItemFormData,
 } from "./InventoryAddItemDialogUI";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateInventoryItem } from "@/hooks/api/use-inventory";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
 
 interface InventoryAddItemDialogContainerProps {
@@ -29,7 +29,7 @@ export function InventoryAddItemDialogContainer({
   const { data: constants } = useConstants();
   const [formData, setFormData] =
     useState<InventoryItemFormData>(initialFormData);
-  const { mutate: createItem, isPending } = apiHooks.useCreateInventoryItem();
+  const { mutate: createItem, isPending } = useCreateInventoryItem();
 
   const resetForm = () => setFormData(initialFormData);
   const handleFormChange = (data: Partial<InventoryItemFormData>) => {

@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,15 +9,59 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Loader2 } from "lucide-react";
+import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import { toast } from "sonner";
 
 export function WhatsAppAutomationSettings() {
+  const { data: clinic, isLoading } = useClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+
   const [settings, setSettings] = useState({
     appointmentReminders: true,
     followUpMessages: true,
     birthdayWishes: false,
     medicineReminders: true,
   });
+
+  useEffect(() => {
+    if (clinic) {
+      const s = clinic.settings as Record<string, any> || {};
+      setSettings({
+        appointmentReminders: s.whatsappAppointmentReminders ?? true,
+        followUpMessages: s.whatsappFollowUpMessages ?? true,
+        birthdayWishes: s.whatsappBirthdayWishes ?? false,
+        medicineReminders: s.whatsappMedicineReminders ?? true,
+      });
+    }
+  }, [clinic]);
+
+  const handleSave = () => {
+    updateSettings(
+      {
+        whatsappAppointmentReminders: settings.appointmentReminders,
+        whatsappFollowUpMessages: settings.followUpMessages,
+        whatsappBirthdayWishes: settings.birthdayWishes,
+        whatsappMedicineReminders: settings.medicineReminders,
+      } as any,
+      {
+        onSuccess: () => {
+          toast.success("WhatsApp automation settings saved successfully");
+        },
+        onError: (error) => {
+          toast.error(`Failed to save settings: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -92,7 +134,10 @@ export function WhatsAppAutomationSettings() {
               }
             />
           </div>
-          <Button className="w-full">Save Changes</Button>
+          <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+          </Button>
         </CardContent>
       </Card>
     </div>

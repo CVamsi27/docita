@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdateAppointment } from "@/hooks/api/use-appointments";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 
@@ -29,7 +29,7 @@ export function ConsultationNotesModal({
   onSaved,
 }: ConsultationNotesModalProps) {
   const [notes, setNotes] = useState("");
-  const updateAppointment = apiHooks.useUpdateAppointment(appointmentId || "");
+  const updateAppointment = useUpdateAppointment(appointmentId || "");
 
   const handleSave = async () => {
     if (!appointmentId) return;

@@ -14,7 +14,8 @@ test.describe("Analytics", () => {
         data: {
           email: `doctor${Date.now()}@test.com`,
           password: "Test@123456",
-          name: "Dr. Analytics",
+          firstName: "Dr.",
+          lastName: "Analytics",
           role: "DOCTOR",
         },
       });

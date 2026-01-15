@@ -10,7 +10,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateWalkIn } from "@/hooks/api/use-appointments";
 
 interface AddWalkInDialogProps {
   open?: boolean;
@@ -43,7 +43,7 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
   const isOpen = open ?? showForm;
   if (!isOpen) return null;
 
-  const { mutate: addWalkIn, isPending: saving } = apiHooks.useCreateWalkIn();
+  const { mutate: addWalkIn, isPending: saving } = useCreateWalkIn();
 
   const handleClose = () => {
     onOpenChange?.(false);

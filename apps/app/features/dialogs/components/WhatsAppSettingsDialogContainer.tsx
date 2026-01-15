@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useUpdateWhatsAppSettings,
+  useWhatsAppSettings,
+} from "@/hooks/api/use-whatsapp";
 import { toast } from "sonner";
 import {
   WhatsAppSettingsDialogUI,
@@ -20,9 +23,9 @@ export function WhatsAppSettingsDialogContainer({
     data: initialSettings,
     isLoading: loading,
     refetch,
-  } = apiHooks.useWhatsAppSettings();
+  } = useWhatsAppSettings();
   const { mutate: updateSettings, isPending: isSaving } =
-    apiHooks.useUpdateWhatsAppSettings();
+    useUpdateWhatsAppSettings();
 
   const [settings, setSettings] = useState<WhatsAppSettings>({
     appointmentReminders: true,

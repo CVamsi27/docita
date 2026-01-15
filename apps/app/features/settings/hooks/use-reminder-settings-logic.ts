@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 
 export interface ReminderSettingsState {
@@ -8,9 +11,9 @@ export interface ReminderSettingsState {
 }
 
 export const useReminderSettingsLogic = () => {
-  const { data: clinic, isLoading } = apiHooks.useClinicSettings();
+  const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettingsMutation, isPending: isSaving } =
-    apiHooks.useUpdateClinicSettings();
+    useUpdateClinicSettings();
 
   const [settings, setSettings] = useState<ReminderSettingsState>({
     reminderBefore: "1",

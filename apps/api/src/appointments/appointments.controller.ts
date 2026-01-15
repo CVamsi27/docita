@@ -23,6 +23,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { CacheDuration } from '../common/interceptors/cache.interceptor';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
@@ -40,6 +41,7 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Get()
+  @CacheDuration('no-cache')
   @ZodSerializerDto(PaginatedAppointmentResponseDto)
   findAll(
     @Request() req: AuthRequest,

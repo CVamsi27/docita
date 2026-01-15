@@ -10,7 +10,8 @@ import {
 } from "@workspace/ui/components/tabs";
 import { ArrowLeft, FileText, History } from "lucide-react";
 import Link from "next/link";
-import { apiHooks } from "@/lib/api-hooks";
+import { usePatientAppointments } from "@/hooks/api/use-appointments";
+import { usePatient } from "@/hooks/api/use-patients";
 import { AppointmentHistoryTimeline } from "@/features/patients/components";
 import { DetailedHistoryList } from "@/features/patients/components/history/DetailedHistoryList";
 
@@ -25,9 +26,9 @@ export default function PatientHistoryPage({
   const patientId = resolvedParams.id;
 
   const { data: patient, isLoading: patientLoading } =
-    apiHooks.usePatient(patientId);
+    usePatient(patientId);
   const { data: appointmentsResponse, isLoading: appointmentsLoading } =
-    apiHooks.usePatientAppointments(patientId);
+    usePatientAppointments(patientId);
 
   const appointments = appointmentsResponse?.items || [];
 

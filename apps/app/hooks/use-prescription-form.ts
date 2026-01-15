@@ -10,7 +10,7 @@ import {
   checkMedicationContraindications,
   validateDosage,
 } from "@workspace/utils";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface UsePrescriptionFormProps {
@@ -61,7 +61,7 @@ export function usePrescriptionForm({
   doctorLicenseNumber,
 }: UsePrescriptionFormProps) {
   const queryClient = useQueryClient();
-  const createPrescription = apiHooks.useCreatePrescription();
+  const createPrescription = useCreatePrescription();
   const [instructions, setInstructions] = useState("");
   const [medications, setMedications] = useState<Medication[]>([
     { name: "", dosage: "", frequency: "", duration: "", route: "PO" },

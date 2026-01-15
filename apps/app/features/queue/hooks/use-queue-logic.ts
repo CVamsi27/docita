@@ -1,7 +1,12 @@
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useQueueByDoctor,
+  useQueueSettings,
+  useQueueStats,
+} from "@/hooks/api/use-appointments";
+import { useDoctors } from "@/hooks/api/use-settings";
 import { apiFetch } from "@/lib/api-client";
 import { useQueueFiltering } from "@/hooks/use-queue-filtering";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
@@ -13,7 +18,7 @@ export const useQueueLogic = () => {
   const queryClient = useQueryClient();
 
   const { data: queueSettings, refetch: refetchSettings } =
-    apiHooks.useQueueSettings();
+    useQueueSettings();
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -23,21 +28,21 @@ export const useQueueLogic = () => {
     isLoading,
     refetch,
     isFetching,
-  } = apiHooks.useQueueByDoctor(
+  } = useQueueByDoctor(
     queueSettings?.useDoctorQueues && selectedDoctor
       ? selectedDoctor
       : undefined,
     debouncedSearch,
   );
 
-  const { data: stats, refetch: refetchStats } = apiHooks.useQueueStats(
+  const { data: stats, refetch: refetchStats } = useQueueStats(
     queueSettings?.useDoctorQueues && selectedDoctor
       ? selectedDoctor
       : undefined,
     debouncedSearch,
   );
 
-  const { data: doctors = [] } = apiHooks.useDoctors();
+  const { data: doctors = [] } = useDoctors();
   const { data: constants } = useConstants();
 
   const { sortConfig, handleSort, filteredQueue } = useQueueFiltering(queue);

@@ -37,6 +37,32 @@ export const ClinicSettingsSchema = z.object({
   workingDays: z.array(z.string()).optional(),
   consultationDuration: z.number().int().positive().optional(),
   type: z.nativeEnum(ClinicType).optional(),
+  reminderBefore: z.union([z.string(), z.number()]).optional(),
+  reminderUnit: z.string().optional(),
+  whatsappAppointmentReminders: z.boolean().optional(),
+  whatsappFollowUpMessages: z.boolean().optional(),
+  whatsappBirthdayWishes: z.boolean().optional(),
+  whatsappMedicineReminders: z.boolean().optional(),
+  customFields: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: z.string(),
+        required: z.boolean(),
+      }),
+    )
+    .optional(),
+  emailNotifications: z.boolean().optional(),
+  smsNotifications: z.boolean().optional(),
+  pushNotifications: z.boolean().optional(),
+  appointmentAlerts: z.boolean().optional(),
+  reportAlerts: z.boolean().optional(),
+  twoFactorAuth: z.boolean().optional(),
+  sessionTimeout: z.union([z.string(), z.number()]).optional(),
+  auditLogs: z.boolean().optional(),
+  theme: z.string().optional(),
+  primaryColor: z.string().optional(),
+  compactMode: z.boolean().optional(),
 });
 
 export class ClinicSettingsDto extends createZodDto(ClinicSettingsSchema) {}

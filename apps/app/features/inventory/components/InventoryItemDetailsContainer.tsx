@@ -1,6 +1,6 @@
 "use client";
 
-import { apiHooks } from "@/lib/api-hooks";
+import { useInventoryItem } from "@/hooks/api/use-inventory";
 import {
   InventoryItemDetailsUI,
   InventoryItem,
@@ -16,7 +16,7 @@ export function InventoryItemDetailsContainer({
   open,
   onOpenChange,
 }: InventoryItemDetailsContainerProps) {
-  const { data: rawItem, isLoading } = apiHooks.useInventoryItem(itemId || "");
+  const { data: rawItem, isLoading } = useInventoryItem(itemId || "");
   // Transform the raw API data to our typed structure
   const item: InventoryItem | null = rawItem
     ? {

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useBulkImport,
+  useBulkImportTemplate,
+} from "@/hooks/api/use-import";
 import {
   BulkImportDialogUI,
   EntityType,
@@ -19,8 +22,8 @@ export function BulkImportDialogContainer({
   const [step, setStep] = useState<BulkImportStep>("select");
   const [selectedEntity, setSelectedEntity] = useState<EntityType>("PATIENT");
   const [progress, setProgress] = useState(0);
-  const templateQuery = apiHooks.useBulkImportTemplate(selectedEntity);
-  const importMutation = apiHooks.useBulkImport();
+  const templateQuery = useBulkImportTemplate(selectedEntity);
+  const importMutation = useBulkImport();
   const openModal = () => {
     setIsOpen(true);
     onOpenChange?.(true);

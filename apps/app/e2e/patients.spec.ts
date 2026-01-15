@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
+const API_URL = "http://127.0.0.1:3001/api";
 
 let authToken: string;
 let clinicId: string;
@@ -18,7 +18,8 @@ test.describe("Patient Management", () => {
       data: {
         email: userEmail,
         password: userPassword,
-        name: "Dr. Test",
+        firstName: "Dr",
+        lastName: "Test",
         role: "DOCTOR",
       },
     });
@@ -119,7 +120,7 @@ test.describe("Patient Management", () => {
 
     // Navigate to patients or create patient page
     await page
-      .goto("/dashboard/patients", { waitUntil: "networkidle" })
+      .goto("/dashboard/patients", { waitUntil: "load" })
       .catch(() => {
         // Page might not exist in all deployments
       });
@@ -173,22 +174,87 @@ test.describe("Patient Management", () => {
       },
     });
 
+    if (!patientRes.ok()) {
+      console.log("Patient creation failed", patientRes.status(), await patientRes.text());
+    }
     expect(patientRes.ok()).toBeTruthy();
+
+    // DEBUG: Monitor API response - setup BEFORE navigation
+    page.on('console', msg => {
+      if (msg.type() === 'error' || msg.type() === 'warning')
+        console.log(`BROWSER CONSOLE: ${msg.text()}`);
+    });
+
+    // Catch ALL requests to patients endpoint
+    page.on('request', request => {
+      if (request.url().includes('/patients')) console.log('>>', request.method(), request.url());
+    });
+    page.on('response', response => {
+      if (response.url().includes('/patients')) console.log('<<', response.status(), response.url());
+    });
+
+    // Setup listener
+    const patientsResponsePromise = page.waitForResponse(
+      (resp) => resp.url().includes("/patients"),
+      { timeout: 10000 }
+    ).catch(() => null);
 
     // Navigate to patients page
     await loginAsDoctor(page);
     await page
-      .goto("/dashboard/patients", { waitUntil: "networkidle" })
+      .goto("/patients", { waitUntil: "load" })
       .catch(() => {
         // Page might not exist
       });
 
-    // Patient should be visible or list should load
-    const listVisible =
-      (await page.locator('table, [role="grid"]').count()) > 0 ||
-      (await page.locator("Jane").count()) > 0;
+    const patientsResponse = await patientsResponsePromise;
 
-    expect(listVisible).toBeTruthy();
+    if (patientsResponse) {
+      console.log(`Patients API Status: ${patientsResponse.status()}`);
+    } else {
+      console.log("Patients API request not found or timed out");
+    }
+
+    // DEBUG: Check UI State
+    if (await page.locator('text=No patients found').isVisible()) {
+      console.log("UI: 'No patients found' is visible");
+    }
+
+    // Patient should be visible or list should load
+    // use robust wait
+    const patientName = page.locator('text=Jane').first();
+    if (await page.locator('text=error').isVisible()) {
+      console.log("Found error text on page:", await page.locator('text=error').textContent());
+    }
+    console.log("Current Page URL:", page.url());
+    // await page.screenshot({ path: 'patients-list.png' });
+
+    try {
+      await expect(patientName).toBeVisible({ timeout: 10000 });
+    } catch (e) {
+      console.log("DOM Content on failure:", await page.content());
+      throw e;
+    }
+
+    // Test Navigation: Click on a patient to go to details
+    const firstPatientRow = page.locator('table tbody tr, [role="grid"] [role="row"]').first();
+    // OR look for the text of the patient name
+    const patientNameLink = page.locator('text=Jane Doe').first();
+
+    if (await patientNameLink.isVisible()) {
+      await patientNameLink.click();
+      await page.waitForURL(/\/patients\//);
+      // Verify details page loaded
+      try {
+        await expect(page.locator('text=Jane').first()).toBeVisible({ timeout: 10000 });
+      } catch (e) {
+        console.log("Details Page DOM Content on failure:", await page.content());
+        throw e;
+      }
+    } else if (await firstPatientRow.isVisible()) {
+      await firstPatientRow.click();
+      await page.waitForURL(/\/patients\//);
+    }
   });
 
   test("should search patients by name", async ({ page }) => {
@@ -209,7 +275,7 @@ test.describe("Patient Management", () => {
 
     await loginAsDoctor(page);
     await page
-      .goto("/dashboard/patients", { waitUntil: "networkidle" })
+      .goto("/dashboard/patients", { waitUntil: "load" })
       .catch(() => {
         // Page might not exist
       });
@@ -268,7 +334,8 @@ test.describe("Patient Management", () => {
         data: {
           email: otherDoctorEmail,
           password: otherDoctorPassword,
-          name: "Dr. Other",
+          firstName: "Dr",
+          lastName: "Other",
           role: "DOCTOR",
         },
       },
@@ -296,7 +363,7 @@ test.describe("Patient Management", () => {
     const patients = await patientsRes.json();
 
     // Should not have patients from other clinic
-    expect(Array.isArray(patients)).toBeTruthy();
+    expect(Array.isArray(patients.items)).toBeTruthy();
   });
 });
 
@@ -338,7 +405,7 @@ async function loginAsDoctor(page: any) {
       );
 
       await page
-        .goto("/dashboard", { waitUntil: "networkidle" })
+        .goto("/dashboard", { waitUntil: "load" })
         .catch(() => null);
       await page.waitForTimeout(500);
       return;

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { apiHooks } from "@/lib/api-hooks";
+import { useInvoice } from "@/hooks/api/use-billing";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
@@ -9,7 +9,7 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
   const router = useRouter();
   const printRef = useRef<HTMLDivElement>(null);
 
-  const { data: invoice, isLoading, error } = apiHooks.useInvoice(invoiceId);
+  const { data: invoice, isLoading, error } = useInvoice(invoiceId);
 
   const handlePrint = () => {
     window.print();

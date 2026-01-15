@@ -10,13 +10,13 @@ import {
 } from "@workspace/ui/components/card";
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { apiHooks } from "@/lib/api-hooks";
+import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 
 export default function WhatsAppPage() {
-  const { data: stats } = apiHooks.useWhatsappStats();
+  const { data: stats } = useWhatsappStats();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 

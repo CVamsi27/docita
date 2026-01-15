@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { API_URL } from "./api-config";
 import { getAPIClient } from "@workspace/data-access";
 import { API_ROUTES, AppErrorCode, ERROR_MESSAGES } from "@workspace/types";
 
@@ -6,7 +7,7 @@ import { API_ROUTES, AppErrorCode, ERROR_MESSAGES } from "@workspace/types";
  * Initialize and get the shared API client
  */
 const client = getAPIClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+  baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
   getToken: () => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("docita_token");

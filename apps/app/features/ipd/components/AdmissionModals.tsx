@@ -14,7 +14,9 @@ interface ModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-import { apiHooks } from "@/lib/api-hooks";
+
+
+import { useDoctors } from "@/hooks/api/use-settings";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
 
 export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
@@ -25,7 +27,7 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
     diagnosis: "",
   });
   const { data: constants } = useConstants();
-  const { data: doctors = [] } = apiHooks.useDoctors();
+  const { data: doctors = [] } = useDoctors();
 
   if (!open) return null;
 

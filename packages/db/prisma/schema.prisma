@@ -551,6 +551,7 @@ model Prescription {
   @@index([createdAt])
   @@index([doctorId, createdAt])
   @@index([doctorId])
+  @@index([date])
 }
 
 model Medication {
@@ -594,6 +595,7 @@ model Medication {
 
   @@index([ndcCode])
   @@index([rxNormCui])
+  @@index([name])
 }
 
 model Invoice {
@@ -791,7 +793,7 @@ model Clinic {
   usageRecords          UsageRecord[]
   usageEvents           UsageEvent[]
   wards                 Ward[]
-  facilityType          FacilityType      @default(CLINIC)
+  facilityType          FacilityType           @default(CLINIC)
 }
 
 enum FacilityType {
@@ -806,9 +808,9 @@ enum FacilityType {
 model FeatureFlag {
   id          String   @id @default(cuid())
   key         String
-  value       Json     // Can store boolean, number, string, or object
+  value       Json // Can store boolean, number, string, or object
   description String?
-  clinicId    String?  // null = global, specific = per-clinic override
+  clinicId    String? // null = global, specific = per-clinic override
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -898,22 +900,22 @@ model WhatsappLog {
 
 // WhatsApp Message Templates (for button-first approach)
 model WhatsappTemplate {
-  id               String                   @id @default(cuid())
-  clinicId         String?
-  name             String // e.g., "appointment_reminder_30min"
-  category         WhatsappTemplateCategory
-  content          String // Template text with {{variables}}
-  variables        Json? // Array of variable names
-  buttonType       WhatsappButtonType       @default(NONE)
-  buttons          Json? // Button configuration
-  status           WhatsappTemplateStatus   @default(DRAFT)
-  metaTemplateId   String? // Meta WhatsApp template ID (for production)
-  version          Int                      @default(1)
-  isActive         Boolean                  @default(true)
-  isDefault        Boolean                  @default(false) // System default template
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
-  clinic           Clinic?                  @relation(fields: [clinicId], references: [id])
+  id             String                   @id @default(cuid())
+  clinicId       String?
+  name           String // e.g., "appointment_reminder_30min"
+  category       WhatsappTemplateCategory
+  content        String // Template text with {{variables}}
+  variables      Json? // Array of variable names
+  buttonType     WhatsappButtonType       @default(NONE)
+  buttons        Json? // Button configuration
+  status         WhatsappTemplateStatus   @default(DRAFT)
+  metaTemplateId String? // Meta WhatsApp template ID (for production)
+  version        Int                      @default(1)
+  isActive       Boolean                  @default(true)
+  isDefault      Boolean                  @default(false) // System default template
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  clinic         Clinic?                  @relation(fields: [clinicId], references: [id])
 
   @@unique([clinicId, name, version])
   @@index([clinicId])
@@ -1223,6 +1225,7 @@ model QueueToken {
   @@index([createdAt])
   @@index([scheduledTime])
   @@index([clinicId, status, createdAt])
+  @@index([clinicId, createdAt])
   @@index([doctorId, status])
   @@index([patientId])
 }
@@ -1580,17 +1583,17 @@ enum ClinicTier {
 }
 
 enum ClinicType {
-  GENERAL       // General Medicine/Multi-specialty
-  DENTAL        // Dental/Orthodontics
-  PEDIATRIC     // Pediatrics/Child Health
-  ORTHOPEDIC    // Orthopedics/Bone & Joint
-  CARDIOLOGY    // Cardiology/Heart Specialist
-  DERMATOLOGY   // Dermatology/Skin Care
-  ENT           // ENT/Ear, Nose, Throat
-  GYNECOLOGY    // Gynecology/Women's Health
+  GENERAL // General Medicine/Multi-specialty
+  DENTAL // Dental/Orthodontics
+  PEDIATRIC // Pediatrics/Child Health
+  ORTHOPEDIC // Orthopedics/Bone & Joint
+  CARDIOLOGY // Cardiology/Heart Specialist
+  DERMATOLOGY // Dermatology/Skin Care
+  ENT // ENT/Ear, Nose, Throat
+  GYNECOLOGY // Gynecology/Women's Health
   OPHTHALMOLOGY // Ophthalmology/Eye Care
-  PSYCHIATRY    // Psychiatry/Mental Health
-  SPECIALTY     // Other Specialty
+  PSYCHIATRY // Psychiatry/Mental Health
+  SPECIALTY // Other Specialty
 }
 
 enum IntelligenceAddon {
@@ -1848,6 +1851,8 @@ model ApiRequest {
   @@index([statusCode])
   @@index([createdAt])
   @@index([duration])
+  @@index([clinicId, createdAt])
+  @@index([path, method])
 }
 
 model ErrorLog {
@@ -1875,6 +1880,8 @@ model ErrorLog {
   @@index([severity])
   @@index([resolved])
   @@index([createdAt])
+  @@index([clinicId, createdAt])
+  @@index([type, severity])
 }
 
 model SystemMetric {
@@ -1887,6 +1894,7 @@ model SystemMetric {
 
   @@index([metricType])
   @@index([recordedAt])
+  @@index([metricType, recordedAt])
 }
 
 model PerformanceAggregate {
@@ -2562,8 +2570,8 @@ enum ReferralStatus {
 
 model Ward {
   id          String   @id @default(cuid())
-  name        String   // e.g., "ICU", "General Ward", "Private"
-  type        String   // e.g., "INTENSIVE_CARE", "GENERAL", "PRIVATE", "OXYGEN"
+  name        String // e.g., "ICU", "General Ward", "Private"
+  type        String // e.g., "INTENSIVE_CARE", "GENERAL", "PRIVATE", "OXYGEN"
   description String?
   floorNumber String?
   clinicId    String
@@ -2571,20 +2579,20 @@ model Ward {
   updatedAt   DateTime @updatedAt
   clinic      Clinic   @relation(fields: [clinicId], references: [id])
   rooms       Room[]
-  
+
   @@index([clinicId])
 }
 
 model Room {
-  id          String   @id @default(cuid())
-  wardId      String
-  roomNumber  String
-  type        String?  // e.g., "SINGLE", "DOUBLE", "SHARED"
-  charges     Float    @default(0) // Daily charges
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  ward        Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
-  beds        Bed[]
+  id         String   @id @default(cuid())
+  wardId     String
+  roomNumber String
+  type       String? // e.g., "SINGLE", "DOUBLE", "SHARED"
+  charges    Float    @default(0) // Daily charges
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ward       Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
+  beds       Bed[]
 
   @@index([wardId])
 }
@@ -2598,14 +2606,14 @@ enum BedStatus {
 }
 
 model Bed {
-  id          String     @id @default(cuid())
-  roomId      String
-  bedNumber   String
-  status      BedStatus  @default(AVAILABLE)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  room        Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  admissions  Admission[]
+  id         String      @id @default(cuid())
+  roomId     String
+  bedNumber  String
+  status     BedStatus   @default(AVAILABLE)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  room       Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  admissions Admission[]
 
   @@index([roomId])
   @@index([status])
@@ -2618,23 +2626,23 @@ enum AdmissionStatus {
 }
 
 model Admission {
-  id             String          @id @default(cuid())
-  patientId      String
-  bedId          String
-  admittedAt     DateTime        @default(now())
-  dischargedAt   DateTime?
-  status         AdmissionStatus @default(ADMITTED)
-  reason         String?
-  diagnosis      String?
-  notes          String?
+  id                String          @id @default(cuid())
+  patientId         String
+  bedId             String
+  admittedAt        DateTime        @default(now())
+  dischargedAt      DateTime?
+  status            AdmissionStatus @default(ADMITTED)
+  reason            String?
+  diagnosis         String?
+  notes             String?
   admittingDoctorId String?
-  
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
 
-  patient        Patient         @relation(fields: [patientId], references: [id])
-  bed            Bed             @relation(fields: [bedId], references: [id])
-  admittingDoctor User?          @relation(fields: [admittingDoctorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient         Patient @relation(fields: [patientId], references: [id])
+  bed             Bed     @relation(fields: [bedId], references: [id])
+  admittingDoctor User?   @relation(fields: [admittingDoctorId], references: [id])
 
   @@index([patientId])
   @@index([bedId])

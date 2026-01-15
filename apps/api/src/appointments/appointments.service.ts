@@ -110,11 +110,12 @@ export class AppointmentsService {
 
     // Filter by specific date (for today's appointments)
     if (options?.date) {
-      const targetDate = new Date(options.date);
-      const startOfDay = new Date(targetDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(targetDate);
-      endOfDay.setHours(23, 59, 59, 999);
+      // options.date is expected in YYYY-MM-DD format
+      const [year, month, day] = options.date.split('-').map(Number);
+      const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+      const endOfDay = new Date(
+        Date.UTC(year, month - 1, day, 23, 59, 59, 999),
+      );
 
       where.startTime = {
         gte: startOfDay,
@@ -136,7 +137,7 @@ export class AppointmentsService {
       }
     }
 
-    return paginateWithCursor({
+    const result = await paginateWithCursor({
       model: this.prisma.appointment,
       cursor: options?.cursor,
       limit: options?.limit || 50,
@@ -146,6 +147,12 @@ export class AppointmentsService {
         ...APPOINTMENT_CARD_SELECT, // Use optimized card select for lists
       },
     });
+
+    console.log(
+      `[AppointmentsService] Found ${result.items.length} appointments for clinic ${clinicId}. Filter: ${JSON.stringify(where)}`,
+    );
+
+    return result;
   }
 
   async findOne(id: string): Promise<Appointment> {

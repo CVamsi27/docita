@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreatePatient } from "@/hooks/api/use-patients";
 import { CreatePatientInput, createPatientSchema } from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
 
@@ -17,7 +17,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
 } {
   const { clinicId } = useClinic();
   const { mutateAsync: createPatient, isPending: loading } =
-    apiHooks.useCreatePatient();
+    useCreatePatient();
 
   const defaultValues = useMemo(
     () => ({

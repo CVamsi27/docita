@@ -48,6 +48,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { IpdModule } from './ipd/ipd.module';
 import { PerformanceModule } from './performance/performance.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
 
 // Extensibility Infrastructure
 import { EventsModule } from './common/events';
@@ -124,6 +125,7 @@ import { CommonServicesModule } from './common/services';
     OnboardingModule,
     IpdModule,
     PerformanceModule,
+    ComplianceModule,
   ],
   controllers: [AppController],
   providers: [

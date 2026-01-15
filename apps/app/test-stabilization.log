@@ -1,0 +1,71 @@
+
+Running 8 tests using 1 worker
+
+[1A[2K[1/8] [chromium] › e2e/appointments.spec.ts:150:3 › Appointments › should display appointments list
+[1A[2K[chromium] › e2e/appointments.spec.ts:150:3 › Appointments › should display appointments list
+Starting beforeAll setup for Appointments tests
+
+[1A[2K  1) [chromium] › e2e/appointments.spec.ts:150:3 › Appointments › should display appointments list ─
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:3001
+    Call log:
+    [2m  - → POST http://127.0.0.1:3001/api/auth/register[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7499.4 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 120[22m
+
+
+      20 |
+      21 |     // Register user
+    > 22 |     const registerRes = await request.post(`${API_URL}/auth/register`, {
+         |                                       ^
+      23 |       data: {
+      24 |         email: uniqueEmail,
+      25 |         password,
+        at /Users/vamsikrishnachandaluri/repos/docita/apps/app/e2e/appointments.spec.ts:22:39
+
+
+[1A[2K[2/8] [chromium] › e2e/appointments.spec.ts:156:3 › Appointments › should create a new appointment
+[1A[2K[3/8] [chromium] › e2e/appointments.spec.ts:174:3 › Appointments › should show API-created appointment
+[1A[2K[4/8] [chromium] › e2e/patients.spec.ts:117:3 › Patient Management › should create patient successfully
+[1A[2K  2) [chromium] › e2e/patients.spec.ts:117:3 › Patient Management › should create patient successfully 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:3001
+    Call log:
+    [2m  - → POST http://127.0.0.1:3001/api/auth/register[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7499.4 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 116[22m
+
+
+      15 |     const userPassword = "Test@123456";
+      16 |
+    > 17 |     const registerRes = await page.request.post(`${API_URL}/auth/register`, {
+         |                                            ^
+      18 |       data: {
+      19 |         email: userEmail,
+      20 |         password: userPassword,
+        at /Users/vamsikrishnachandaluri/repos/docita/apps/app/e2e/patients.spec.ts:17:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/patients-Patient-Managemen-7117a-create-patient-successfully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[5/8] [chromium] › e2e/patients.spec.ts:161:3 › Patient Management › should display patient list
+[1A[2K[6/8] [chromium] › e2e/patients.spec.ts:260:3 › Patient Management › should search patients by name
+[1A[2K[7/8] [chromium] › e2e/patients.spec.ts:300:3 › Patient Management › should show error on invalid form submission
+[1A[2K[8/8] [chromium] › e2e/patients.spec.ts:325:3 › Patient Management › should handle clinic data isolation
+[1A[2K  2 failed
+    [chromium] › e2e/appointments.spec.ts:150:3 › Appointments › should display appointments list ──
+    [chromium] › e2e/patients.spec.ts:117:3 › Patient Management › should create patient successfully 
+  6 did not run
+
+[36m  Serving HTML report at http://localhost:56422. Press Ctrl+C to quit.[39m
+/Users/vamsikrishnachandaluri/Library/pnpm/pnpm: line 12: 59972 Killed: 9               "$basedir/.tools/@pnpm+macos-arm64/10.15.1/node_modules/@pnpm/macos-arm64/pnpm" "$@"
+undefined
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command was killed with SIGKILL (Forced termination): playwright test e2e/appointments.spec.ts e2e/patients.spec.ts

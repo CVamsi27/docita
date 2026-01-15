@@ -1,5 +1,7 @@
 import { AddAppointmentDialogContainer as AddAppointmentDialog } from "@/features/appointments/components/AddAppointmentDialogContainer";
 import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button";
+import { Plus } from "lucide-react";
 import { Search } from "lucide-react";
 
 interface AppointmentsPageHeaderUIProps {
@@ -39,6 +41,10 @@ export function AppointmentsPageHeaderUI({
             className="pl-9"
           />
         </div>
+        <Button onClick={() => onOpenChange(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Appointment
+        </Button>
       </div>
       <AddAppointmentDialog
         onAppointmentAdded={onAppointmentAdded}

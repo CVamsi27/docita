@@ -142,10 +142,10 @@ export const TemplatesSettingsUI: FC = () => {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Template Name</Label>
+              <Label htmlFor="name">Template Name <span className="text-destructive">*</span></Label>
               <Input
                 id="name"
-                value={formData.name}
+                value={formData.name || ""}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
@@ -156,7 +156,7 @@ export const TemplatesSettingsUI: FC = () => {
             <div className="space-y-2">
               <Label htmlFor="speciality">Speciality / Category</Label>
               <Select
-                value={formData.speciality}
+                value={formData.speciality || "General"}
                 onValueChange={(val) =>
                   setFormData((prev) => ({ ...prev, speciality: val }))
                 }

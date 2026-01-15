@@ -3,6 +3,8 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -29,7 +31,9 @@ export class WhatsappService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly templatesService: WhatsappTemplatesService,
+    @Inject(forwardRef(() => ResponseHandlerService))
     private readonly responseHandler: ResponseHandlerService,
+    @Inject(forwardRef(() => StaffNotificationService))
     private readonly staffNotification: StaffNotificationService,
   ) {
     this.phoneNumberId = process.env.META_PHONE_NUMBER_ID || '';

@@ -3,7 +3,9 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiHooks } from "@/lib/api-hooks";
+import { usePatients, usePatient } from "@/hooks/api/use-patients";
+import { useDoctors } from "@/hooks/api/use-settings";
+import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
   CreateAppointmentInput,
   createAppointmentSchema,
@@ -30,13 +32,13 @@ export function useAppointmentForm({
 }: UseAppointmentFormProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const { data: searchedPatientsResponse, isLoading: patientsLoading } =
-    apiHooks.usePatients({
+    usePatients({
       search: patientSearch || undefined,
       limit: patientSearch ? 20 : 10, // Show more results when searching
     });
 
   // Fetch preselected patient separately to ensure it's available
-  const { data: preselectedPatient } = apiHooks.usePatient(
+  const { data: preselectedPatient } = usePatient(
     preselectedPatientId || "",
   );
 
@@ -58,13 +60,13 @@ export function useAppointmentForm({
   // Track if we've auto-selected a single patient
   const lastSinglePatientIdRef = useRef<string | null>(null);
   const { data: doctors = [], isLoading: doctorsLoading } =
-    apiHooks.useDoctors();
+    useDoctors();
 
   // API now returns strictly doctors, so no need to filter manually
   const filteredDoctors = doctors;
 
   const { mutateAsync: createAppointment, isPending: loading } =
-    apiHooks.useCreateAppointment();
+    useCreateAppointment();
   const queryClient = useQueryClient();
   const { config } = useAppConfig();
   const { user } = useAuth();
@@ -200,7 +202,7 @@ export function useAppointmentForm({
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
             data.endTime ||
-              new Date(new Date(data.startTime).getTime() + durationMs),
+            new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
 

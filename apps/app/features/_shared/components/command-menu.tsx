@@ -21,7 +21,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@workspace/ui/components/command";
-import { apiHooks } from "@/lib/api-hooks";
+import { usePatients } from "@/hooks/api/use-patients";
 import { useAuth } from "@/lib/auth-context";
 import { Patient } from "@workspace/types";
 
@@ -36,7 +36,7 @@ export function CommandMenu() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { data: patientsResponse } = apiHooks.usePatients(
+  const { data: patientsResponse } = usePatients(
     isAuthenticated ? {} : null,
   ); // Only fetch when authenticated
   const paginatedResponse = patientsResponse as

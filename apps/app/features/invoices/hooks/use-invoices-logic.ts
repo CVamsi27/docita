@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import { useInvoices } from "@/hooks/api/use-billing";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice } from "@workspace/types";
@@ -16,7 +16,7 @@ export const useInvoicesLogic = () => {
     data: invoicesResponse,
     isLoading: loading,
     refetch,
-  } = apiHooks.useInvoices({
+  } = useInvoices({
     status: filter !== "all" ? filter : undefined,
     search: debouncedSearch || undefined,
   });

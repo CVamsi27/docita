@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { Patient } from '@workspace/types';
 import { PatientsRepository } from '../common/repositories';
 import { DomainEventService, DomainEvents } from '../common/events';
+import { EncryptionService } from '../common/encryption.service';
 
 /**
  * DTO for creating patients - matches what controller sends
@@ -18,6 +19,8 @@ interface CreatePatientData {
   allergies?: string;
   medicalHistory?: string[];
   clinicId: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
 }
 
 /**
@@ -32,6 +35,7 @@ interface CreatePatientData {
 export class PatientsService {
   constructor(
     private readonly patientsRepository: PatientsRepository,
+    private readonly encryptionService: EncryptionService,
     @Optional() private readonly eventService?: DomainEventService,
   ) {}
 
@@ -46,34 +50,53 @@ export class PatientsService {
       search?: string;
     },
   ) {
-    return this.patientsRepository.findAll(clinicId, options);
+    // Note: Search relies on exact matches or backend logic that handles encrypted search if implemented
+    // For now, we assume simple listing. Search on encrypted fields won't work out-of-the-box without deterministic encryption or blind indexing
+    const result = await this.patientsRepository.findAll(clinicId, options);
+
+    // Decrypt sensitive data for each patient
+    const decryptedItems = result.items.map((patient) =>
+      this.encryptionService.decryptPatientData(patient),
+    );
+
+    return {
+      ...result,
+      items: decryptedItems,
+    };
   }
 
   /**
    * Find a single patient by ID
    */
   async findOne(id: string): Promise<Patient> {
-    return this.patientsRepository.findOneOrFail(id);
+    const patient = await this.patientsRepository.findOneOrFail(id);
+    return this.encryptionService.decryptPatientData(patient);
   }
 
   /**
    * Create a new patient
    */
   async create(data: CreatePatientData, userId?: string) {
-    const patient = await this.patientsRepository.create(data);
+    // Encrypt sensitive data before saving
+    const encryptedData = this.encryptionService.encryptPatientData(data);
+
+    const patient = await this.patientsRepository.create(encryptedData);
+
+    // Decrypt for return value
+    const decryptedPatient = this.encryptionService.decryptPatientData(patient);
 
     // Emit event for other modules to react (only if eventService is available)
     if (this.eventService) {
-      const mrn = (patient as any).mrn as string | undefined;
+      const mrn = decryptedPatient.mrn;
       // Use non-null assertion since these are required by schema
       this.eventService.emit(
         DomainEvents.PATIENT_CREATED,
         {
-          patientId: patient.id!,
+          patientId: decryptedPatient.id,
           ...(mrn && { mrn }),
-          firstName: patient.firstName,
-          lastName: patient.lastName,
-          phoneNumber: patient.phoneNumber,
+          firstName: decryptedPatient.firstName,
+          lastName: decryptedPatient.lastName,
+          phoneNumber: decryptedPatient.phoneNumber,
         },
         {
           clinicId: data.clinicId,
@@ -83,7 +106,7 @@ export class PatientsService {
       );
     }
 
-    return patient;
+    return decryptedPatient;
   }
 
   /**
@@ -95,15 +118,31 @@ export class PatientsService {
     context?: { clinicId: string; userId?: string },
   ): Promise<Patient> {
     const oldPatient = await this.patientsRepository.findOne(id);
-    const patient = await this.patientsRepository.update(id, data);
+
+    // Encrypt sensitive data if present in update
+    const encryptedUpdateData = this.encryptionService.encryptPatientData(data);
+
+    const patient = await this.patientsRepository.update(
+      id,
+      encryptedUpdateData,
+    );
+
+    // Decrypt for return value
+    const decryptedPatient = this.encryptionService.decryptPatientData(patient);
+    const decryptedOldPatient = oldPatient
+      ? this.encryptionService.decryptPatientData(oldPatient)
+      : null;
 
     // Emit event with changes (only if eventService is available)
     if (this.eventService && context) {
       const changes: Record<string, { old: unknown; new: unknown }> = {};
       for (const key of Object.keys(data)) {
-        if (oldPatient && (oldPatient as any)[key] !== (data as any)[key]) {
+        if (
+          decryptedOldPatient &&
+          decryptedOldPatient[key] !== (data as any)[key]
+        ) {
           changes[key] = {
-            old: (oldPatient as any)[key],
+            old: decryptedOldPatient[key],
             new: (data as any)[key],
           };
         }
@@ -122,7 +161,7 @@ export class PatientsService {
       }
     }
 
-    return patient;
+    return decryptedPatient;
   }
 
   /**
@@ -132,12 +171,13 @@ export class PatientsService {
     id: string,
     context?: { clinicId: string; userId?: string; reason?: string },
   ): Promise<void> {
-    const patient = await this.patientsRepository.findOne(id);
+    const patientRaw = await this.patientsRepository.findOne(id);
     await this.patientsRepository.delete(id);
 
     // Emit event (only if eventService is available)
-    if (this.eventService && context && patient) {
-      const mrn = (patient as any).mrn as string | undefined;
+    if (this.eventService && context && patientRaw) {
+      const patient = this.encryptionService.decryptPatientData(patientRaw);
+      const mrn = patient.mrn;
       this.eventService.emit(
         DomainEvents.PATIENT_DELETED,
         {

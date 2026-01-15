@@ -3,7 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import {
+  useCreateLabTestOrder,
+  useLabTestCatalog,
+  useLabTestOrders,
+  useLabTestStats,
+} from "@/hooks/api/use-clinical";
+import { usePatients } from "@/hooks/api/use-patients";
 import { Patient, LabTest, Doctor } from "@workspace/types";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -39,16 +45,16 @@ export const useLabTestsLogic = () => {
     isLoading,
     refetch,
     isFetching,
-  } = apiHooks.useLabTestOrders({
+  } = useLabTestOrders({
     search: debouncedSearch,
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
 
-  const { data: stats, refetch: refetchStats } = apiHooks.useLabTestStats();
+  const { data: stats, refetch: refetchStats } = useLabTestStats();
 
   // Search logic for patients for sorting/dropdown
   const { data: patientsResponse, isLoading: patientsLoading } =
-    apiHooks.usePatients({
+    usePatients({
       ...(patientSearch && { search: patientSearch }),
       limit: patientSearch ? 20 : 5,
     });
@@ -59,10 +65,10 @@ export const useLabTestsLogic = () => {
   const patients: Patient[] = paginatedResponse?.items || [];
 
   const { data: testCatalog = [], isLoading: catalogLoading } =
-    apiHooks.useLabTestCatalog();
+    useLabTestCatalog();
 
   const { mutateAsync: createOrder, isPending: isCreating } =
-    apiHooks.useCreateLabTestOrder();
+    useCreateLabTestOrder();
 
   const form = useForm<CreateLabTestOrderInput>({
     resolver: zodResolver(createLabTestOrderSchema),

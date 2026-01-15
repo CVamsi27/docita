@@ -11,7 +11,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { useAuth } from "@/lib/auth-context";
-import { apiHooks } from "@/lib/api-hooks";
+import { useUpdateProfile } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import { ChangePasswordSettings } from "@/features/settings/stubs";
 
@@ -21,7 +21,7 @@ export default function ProfilePage() {
     name: user?.name || "Doctor",
   });
   const [isSaving, setIsSaving] = useState(false);
-  const updateProfileMutation = apiHooks.useUpdateProfile();
+  const updateProfileMutation = useUpdateProfile();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, name: e.target.value });

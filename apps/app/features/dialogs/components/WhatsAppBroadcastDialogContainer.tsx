@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { apiHooks } from "@/lib/api-hooks";
+import { useCreateWhatsAppBroadcast } from "@/hooks/api/use-whatsapp";
 import {
   WhatsAppBroadcastDialogUI,
   WhatsAppBroadcastFormData,
@@ -27,7 +27,7 @@ export function WhatsAppBroadcastDialogContainer({
   const [formData, setFormData] =
     useState<WhatsAppBroadcastFormData>(initialFormData);
   const { mutate: createBroadcast, isPending: isLoading } =
-    apiHooks.useCreateWhatsAppBroadcast();
+    useCreateWhatsAppBroadcast();
 
   const resetForm = () => setFormData(initialFormData);
   const handleFormChange = (data: Partial<WhatsAppBroadcastFormData>) => {

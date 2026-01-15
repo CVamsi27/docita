@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiHooks } from "@/lib/api-hooks";
+import { useDocuments } from "@/hooks/api/use-clinical";
 import type { Document } from "@workspace/types";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -20,7 +20,7 @@ export const useDocumentsLogic = () => {
   });
 
   // Fetch documents with backend filtering
-  const { data: documents = [], isLoading: loading } = apiHooks.useDocuments({
+  const { data: documents = [], isLoading: loading } = useDocuments({
     search: debouncedSearch,
   });
 

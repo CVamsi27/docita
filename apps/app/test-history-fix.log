@@ -1,0 +1,13 @@
+
+Running 4 tests using 1 worker
+
+[1A[2K[1/4] [chromium] › e2e/patient-history-edge-cases.spec.ts:41:3 › Patient Medical History - Edge Cases › should validate required fields in medical history
+[1A[2K[2/4] [chromium] › e2e/patient-history-edge-cases.spec.ts:82:3 › Patient Medical History - Edge Cases › should handle validation error when medical history exceeds character limit
+[1A[2K[3/4] [chromium] › e2e/patient-history-edge-cases.spec.ts:141:3 › Patient Medical History - Edge Cases › should handle concurrent edits gracefully
+[1A[2K[4/4] [chromium] › e2e/patient-history-edge-cases.spec.ts:178:3 › Patient Medical History - Edge Cases › should handle network errors gracefully
+[1A[2K  4 passed (44.3s)
+
+To open last HTML report run:
+[36m[39m
+[36m  pnpm exec playwright show-report[39m
+[36m[39m

@@ -1,36 +1,61 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
-import { apiHooks } from "@/lib/api-hooks";
+
+import { usePatients } from "@/hooks/api/use-patients";
 import { Patient } from "@workspace/types";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Calendar,
+  Pencil,
+  Search,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { format } from "date-fns";
+
 import {
   AddPatientDialog,
   EditPatientDialog,
 } from "@/features/patients/components";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { PatientsTable } from "@/features/patients/components/table/PatientsTable";
-import { PatientsFilters } from "@/features/patients/components/table/PatientsFilters";
 
 function PatientsContent() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
   const {
     data: patientsResponse,
     isLoading: loading,
     error: queryError,
     refetch,
-  } = apiHooks.usePatients({ search: debouncedSearch });
+  } = usePatients();
+  // Note: Doctors should see all patients, not filtered by appointments
+  // Appointments API call removed to improve performance
   const error = queryError ? (queryError as Error).message : null;
+  const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Patient | "fullName";
     direction: "asc" | "desc";
   } | null>(null);
-  const [filterType, setFilterType] = useState<"all" | "recent" | "new">("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
@@ -71,29 +96,20 @@ function PatientsContent() {
   const filteredPatients = useMemo(() => {
     // Extract items from paginated responses
     const patients = patientsResponse?.items || [];
-    const result = [...patients];
+    let result = [...patients];
 
-    // 1. Smart Filters (Pre-sort/Filter)
-    if (filterType === "recent") {
-      // Sort by updatedAt desc
-      result.sort((a, b) => {
-        const da = new Date(a.updatedAt || 0).getTime();
-        const db = new Date(b.updatedAt || 0).getTime();
-        return db - da;
-      });
-    } else if (filterType === "new") {
-      // Sort by createdAt desc
-      result.sort((a, b) => {
-        const da = new Date(a.createdAt || 0).getTime();
-        const db = new Date(b.createdAt || 0).getTime();
-        return db - da;
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((patient) => {
+        const fullName =
+          `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        const phoneNumber = patient.phoneNumber.toLowerCase();
+        return fullName.includes(query) || phoneNumber.includes(query);
       });
     }
 
-    // 2. Search Filter removed - now handled by backend
-    // result = result.filter(...)
-
-    // 3. Column Sort (Overrides Smart Filter sort if active)
+    // Sort
     if (sortConfig) {
       result.sort((a, b) => {
         let aValue: string | number | Date | undefined;
@@ -127,7 +143,18 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patientsResponse, sortConfig, filterType]);
+  }, [patientsResponse, searchQuery, sortConfig]);
+
+  const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
+    if (sortConfig?.key !== column) {
+      return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
+    }
+    return sortConfig.direction === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4" />
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -152,37 +179,185 @@ function PatientsContent() {
         />
       </div>
 
-      <div className="space-y-4">
-        <PatientsFilters
-          filterType={filterType}
-          onFilterChange={setFilterType}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20 mb-6">
-            <p className="text-sm text-destructive">{error}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Patients</CardTitle>
+          <CardDescription>
+            A list of all patients in your practice including their name,
+            contact, and medical history.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or phone..."
+                className="pl-9 bg-background"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery("")}
+              >
+                Clear
+              </Button>
+            )}
           </div>
-        )}
 
-        <PatientsTable
-          patients={filteredPatients}
-          isLoading={loading}
-          sortConfig={sortConfig}
-          onSort={handleSort}
-          onEdit={setEditingPatient}
-          onSchedule={(patient) =>
-            router.push(`/appointments?action=new&patientId=${patient.id}`)
-          }
-          onRowClick={(id) => router.push(`/patients/${id}`)}
-          emptyMessage={
-            searchQuery
-              ? `No patients found matching "${searchQuery}"`
-              : "No patients found."
-          }
-        />
-      </div>
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20 mb-6">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <div className="rounded-md border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-muted/50">
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("fullName")}
+                  >
+                    <div className="flex items-center">
+                      Name
+                      <SortIcon column="fullName" />
+                    </div>
+                  </TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("gender")}
+                  >
+                    <div className="flex items-center">
+                      Gender
+                      <SortIcon column="gender" />
+                    </div>
+                  </TableHead>
+                  <TableHead>Blood Group</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort("updatedAt")}
+                  >
+                    <div className="flex items-center">
+                      Last Updated
+                      <SortIcon column="updatedAt" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      Loading patients...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredPatients.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      {searchQuery
+                        ? `No patients found matching "${searchQuery}"`
+                        : "No patients found."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPatients.map((patient) => (
+                    <TableRow
+                      key={patient.id}
+                      className="hover:bg-muted/50 cursor-pointer"
+                      onClick={() =>
+                        (window.location.href = `/patients/${patient.id}`)
+                      }
+                    >
+                      <TableCell>
+                        <Avatar className="h-8 w-8 bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {patient.firstName.charAt(0)}
+                            {patient.lastName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {patient.firstName} {patient.lastName}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col text-sm">
+                          <span>{patient.phoneNumber}</span>
+                          <span className="text-muted-foreground">
+                            {patient.email}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {patient.gender}
+                      </TableCell>
+                      <TableCell>
+                        {patient.bloodGroup ? (
+                          <span className="font-medium">
+                            {patient.bloodGroup}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            --
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {patient.updatedAt
+                          ? format(new Date(patient.updatedAt), "MMM d, yyyy")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(
+                                `/appointments?action=new&patientId=${patient.id}`,
+                              );
+                            }}
+                          >
+                            <Calendar className="h-4 w-4" />
+                            Schedule
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPatient(patient);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

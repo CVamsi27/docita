@@ -1,92 +1,93 @@
-import { APIRequestContext, expect, test } from "@playwright/test";
-
-const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
+import { expect, test } from "@playwright/test";
+import { setupTestUser, loginUser, UserData, API_URL } from "./utils/patient-helpers";
 
 test.describe("Documents", () => {
-  let authToken: string;
-  let _clinicId: string;
+  let user: UserData;
   let patientId: string;
-  let serverAvailable = true;
+  let documentId: string;
 
-  test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
-    try {
-      // Register doctor
-      const registerRes = await request.post(`${API_URL}/auth/register`, {
-        data: {
-          email: `doctor${Date.now()}@test.com`,
-          password: "Test@123456",
-          name: "Dr. Docs",
-          role: "DOCTOR",
+  test.beforeAll(async ({ request }) => {
+    user = await setupTestUser(request);
+
+    // Create Patient
+    const patientRes = await request.post(`${API_URL}/patients`, {
+      headers: { Authorization: `Bearer ${user.accessToken}` },
+      data: {
+        firstName: "Doc",
+        lastName: "Owner",
+        phoneNumber: `98${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`,
+        gender: "MALE",
+        dateOfBirth: "1990-01-01",
+        clinicId: user.clinicId,
+      },
+    });
+    expect(patientRes.ok()).toBeTruthy();
+    const patient = await patientRes.json();
+    patientId = patient.id;
+
+    // Seed Document via API (since UI upload is missing)
+    // Create a dummy file buffer
+    const buffer = Buffer.from('dummy content');
+
+    // Playwright request.post with multipart
+    const uploadRes = await request.post(`${API_URL}/documents/upload`, {
+      headers: { Authorization: `Bearer ${user.accessToken}` },
+      multipart: {
+        file: {
+          name: 'test-report.pdf',
+          mimeType: 'application/pdf',
+          buffer: buffer,
         },
-      });
-
-      if (!registerRes.ok()) {
-        serverAvailable = false;
-        return;
+        patientId: patientId,
+        type: 'LAB_REPORT',
+        description: 'E2E Test Report'
       }
-
-      const userData = await registerRes.json();
-      authToken = userData.access_token;
-
-      // Create clinic
-      const clinicRes = await request.post(`${API_URL}/clinics`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: {
-          name: "Documents Clinic",
-          email: `clinic${Date.now()}@test.com`,
-          phone: "1234567890",
-          address: "789 Doc Lane",
-          city: "Document City",
-          state: "DC",
-          zipCode: "99999",
-        },
-      });
-
-      const clinic = await clinicRes.json();
-      _clinicId = clinic.id;
-
-      // Create patient
-      const patientRes = await request.post(`${API_URL}/patients`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: {
-          firstName: "Doc",
-          lastName: "Patient",
-          phoneNumber: "7777777777",
-          gender: "MALE",
-          dateOfBirth: "1985-06-15",
-        },
-      });
-
-      const patient = await patientRes.json();
-      patientId = patient.id;
-    } catch {
-      serverAvailable = false;
-    }
-  });
-
-  test("should fetch documents list", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
-    const docList = await request.get(`${API_URL}/documents`, {
-      headers: { Authorization: `Bearer ${authToken}` },
     });
 
-    expect(docList.ok()).toBeTruthy();
-    const docs = await docList.json();
-    expect(Array.isArray(docs)).toBeTruthy();
+    if (!uploadRes.ok()) {
+      console.log("Upload failed:", await uploadRes.text());
+    }
+    expect(uploadRes.ok()).toBeTruthy();
+    const doc = await uploadRes.json();
+    documentId = doc.id;
   });
 
-  test("should fetch documents for specific patient", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
-    const patientDocs = await request.get(
-      `${API_URL}/patients/${patientId}/documents`,
-      {
-        headers: { Authorization: `Bearer ${authToken}` },
-      },
-    );
+  test.beforeEach(async ({ page }) => {
+    await loginUser(page, user);
+  });
 
-    if (patientDocs.ok()) {
-      const docs = await patientDocs.json();
-      expect(Array.isArray(docs)).toBeTruthy();
-    }
+  test("should display seeded document in list", async ({ page }) => {
+    await page.goto("/documents", { waitUntil: "networkidle" });
+
+    // Verify Page Header
+    await expect(page.locator('h1:has-text("Documents")')).toBeVisible();
+
+    // Verify Document exists in table
+    const row = page.locator('tr').filter({ hasText: "test-report.pdf" });
+    await expect(row).toBeVisible();
+    await expect(row).toContainText("LAB_REPORT");
+    await expect(row).toContainText("Doc"); // UI matches "Doc" (first name) or name field
+
+    // Verify Actions
+    const viewBtn = row.locator('button:has-text("View")');
+    await expect(viewBtn).toBeVisible();
+
+    const downloadBtn = row.locator('button:has-text("Download")');
+    await expect(downloadBtn).toBeVisible();
+  });
+
+  test("should filter documents by search", async ({ page }) => {
+    await page.goto("/documents", { waitUntil: "networkidle" });
+
+    const searchInput = page.locator('input[placeholder*="Search"]');
+    await searchInput.fill("NonExistentFile");
+    await page.waitForTimeout(500); // Debounce
+
+    await expect(page.getByText("No documents found")).toBeVisible();
+
+    await searchInput.fill("test-report");
+    await page.waitForTimeout(500); // Debounce
+
+    await expect(page.locator('tr').filter({ hasText: "test-report.pdf" })).toBeVisible();
   });
 });

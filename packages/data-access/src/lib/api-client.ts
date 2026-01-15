@@ -134,8 +134,11 @@ export function createAPIClient(config: APIClientConfig) {
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined | null>,
   ): string {
+    const normalizedEndpoint = endpoint.startsWith("/")
+      ? endpoint.substring(1)
+      : endpoint;
     const url = new URL(
-      endpoint,
+      normalizedEndpoint,
       baseURL.endsWith("/") ? baseURL : `${baseURL}/`,
     );
 
@@ -228,8 +231,8 @@ export function createAPIClient(config: APIClientConfig) {
 
           const error = new APIRequestError(
             (errorData as { message?: string })?.message ||
-              response.statusText ||
-              "Request failed",
+            response.statusText ||
+            "Request failed",
             {
               status: response.status,
               statusText: response.statusText,
