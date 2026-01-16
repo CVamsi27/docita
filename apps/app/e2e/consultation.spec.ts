@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { setupTestUser, loginUser, UserData, API_URL } from "./utils/patient-helpers";
+import { API_URL, loginUser, setupTestUser, UserData } from "./utils/patient-helpers";
 
 test.describe("Consultation Flow", () => {
     let user: UserData;
@@ -77,7 +77,7 @@ test.describe("Consultation Flow", () => {
                 await page.waitForTimeout(1000);
                 navigated = true;
             }
-        } catch (e) {
+        } catch {
             console.log("Dashboard interaction failed or row not found, falling back to direct navigation");
         }
 
