@@ -21,6 +21,9 @@ test.describe("Consultation Flow", () => {
                 clinicId: user.clinicId,
             },
         });
+        if (!patientRes.ok()) {
+            console.log("Patient creation failed:", await patientRes.text());
+        }
         expect(patientRes.ok()).toBeTruthy();
         const patient = await patientRes.json();
         patientId = patient.id;
@@ -86,39 +89,50 @@ test.describe("Consultation Flow", () => {
         await expect(page.locator('text=Consultation').first()).toBeVisible();
         await expect(page.locator('text=Consult Patient').first()).toBeVisible();
 
-        // 4. Add Chief Complaint / Notes
-        // Assuming inputs exist
-        const notesInput = page.locator('textarea[placeholder*="notes"], textarea[placeholder*="complaint"]').first();
-        if (await notesInput.isVisible()) {
-            await notesInput.fill("Patient complains of mild headache.");
+        // 4. Add Chief Complaint (Structured)
+        const addComplaintBtn = page.locator('button:has-text("Add Complaint")');
+        if (await addComplaintBtn.isVisible()) {
+            await addComplaintBtn.click();
+            const symptomInput = page.locator('input[placeholder*="Symptom"]');
+            await expect(symptomInput).toBeVisible();
+            await symptomInput.fill("Severe Headache");
+            
+            // Set Duration
+            const durationInput = page.locator('input[placeholder="Duration"]');
+            await durationInput.fill("2");
+            // Unit defaults to days, Severity defaults to moderate
         }
 
-        // 5. Add Diagnosis
-        const diagnosisTab = page.locator('button[value="diagnosis"], button:has-text("Diagnosis")').first();
+        // 5. Add Diagnosis (Structured)
+        // Click tab if needed (assuming unified view or tabs)
+        const diagnosisTab = page.locator('button:has-text("Diagnosis")');
         if (await diagnosisTab.isVisible()) {
             await diagnosisTab.click();
-            const searchInput = page.locator('input[placeholder*="Search diagnosis"]').first();
-            if (await searchInput.isVisible()) {
-                await searchInput.fill("Headache");
-                await page.waitForTimeout(500);
-                // Select first result
-                await page.keyboard.press("ArrowDown");
-                await page.keyboard.press("Enter");
-            }
         }
 
-        // 6. Finish Consultation
+        const addDiagnosisBtn = page.locator('button:has-text("Add Diagnosis")');
+        if (await addDiagnosisBtn.isVisible()) {
+            await addDiagnosisBtn.click();
+            const conditionInput = page.locator('input[placeholder*="Condition"]');
+            await expect(conditionInput).toBeVisible();
+            await conditionInput.fill("Migraine");
+            
+            // Set status (Testing select interaction if possible, or leave default)
+        }
+
+        // 6. Save Notes / Finish
+        const saveButton = page.locator('button:has-text("Save Notes")');
+        if (await saveButton.isVisible()) {
+            await saveButton.click();
+            // Verify toast or success indication
+            await expect(page.locator('text=saved').first()).toBeVisible();
+        }
+
+        // Optional: Finish Consultation if button exists (might be in sidebar)
         const finishButton = page.locator('button:has-text("Finish"), button:has-text("Complete"), button:has-text("End Consultation")').first();
-        let clickedFinish = false;
         if (await finishButton.isVisible()) {
             await finishButton.click();
-            clickedFinish = true;
-        }
-
-        // 7. Verify Redirect/Success
-        // Usually redirects to summary or dashboard or billing
-        if (clickedFinish) {
-            await expect(page).not.toHaveURL(new RegExp(`/consultation/${appointmentId}$`));
+             await expect(page).not.toHaveURL(new RegExp(`/consultation/${appointmentId}$`));
         }
     });
 });

@@ -5,9 +5,10 @@ import { MedicalHistoryController } from './medical-history.controller';
 import { MedicalHistoryService } from './medical-history.service';
 import { PatientsRepository } from '../common/repositories';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [PatientsController, MedicalHistoryController],
   providers: [PatientsService, MedicalHistoryService, PatientsRepository],
   exports: [PatientsService, PatientsRepository],

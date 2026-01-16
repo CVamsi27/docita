@@ -93,11 +93,19 @@ export async function setupTestUser(
           userData.accessToken =
             loginData.access_token || loginData.accessToken;
           userData.clinicId = loginData.user?.clinicId || userData.clinicId;
+        } else {
+             console.log("Login failed in setupTestUser:", await loginRes.text());
+             throw new Error("Login failed during test user setup");
         }
       }
     }
   } catch (err) {
     console.log("Clinic setup error:", err);
+    throw err;
+  }
+  
+  if (!userData.accessToken) {
+      throw new Error("No access token obtained for test user");
   }
 
   return userData;

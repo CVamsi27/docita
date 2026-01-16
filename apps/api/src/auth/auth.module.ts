@@ -8,6 +8,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import type { JwtSignOptions } from '@nestjs/jwt';
 
+import { PassportModule } from '@nestjs/passport';
+
 // Validate JWT_SECRET is set in production
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret && process.env.NODE_ENV === 'production') {
@@ -17,8 +19,9 @@ if (!jwtSecret && process.env.NODE_ENV === 'production') {
 @Module({
   imports: [
     PrismaModule,
+    PassportModule,
     JwtModule.register({
-      secret: jwtSecret || 'dev-only-secret-do-not-use-in-prod',
+      secret: process.env.JWT_SECRET || 'dev-only-secret-do-not-use-in-prod',
       signOptions: {
         expiresIn: process.env.JWT_EXPIRATION || '7d',
       } as JwtSignOptions,
@@ -32,6 +35,14 @@ if (!jwtSecret && process.env.NODE_ENV === 'production') {
     FacilityTypeGuard,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, ClinicTypeGuard, FacilityTypeGuard],
+  exports: [
+    AuthService,
+    JwtAuthGuard,
+    JwtStrategy,
+    PassportModule,
+    JwtModule,
+    ClinicTypeGuard,
+    FacilityTypeGuard,
+  ],
 })
 export class AuthModule {}
