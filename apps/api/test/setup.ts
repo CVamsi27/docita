@@ -5,13 +5,21 @@ import path from 'path';
 let prisma: PrismaClient;
 
 export function setupTestDatabase() {
+  const testDbUrl = process.env.DATABASE_URL_TEST;
+
+  if (!testDbUrl) {
+    throw new Error(
+      'DATABASE_URL_TEST is not defined. Tests must run against a dedicated test database.',
+    );
+  }
+
   prisma = new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL,
+        url: testDbUrl,
       },
     },
-  });
+  } as any); // Cast to any to bypass strict type check for now if datasources is internal or protected
 
   // Run migrations for test database
   try {

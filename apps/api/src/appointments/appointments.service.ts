@@ -148,10 +148,6 @@ export class AppointmentsService {
       },
     });
 
-    console.log(
-      `[AppointmentsService] Found ${result.items.length} appointments for clinic ${clinicId}. Filter: ${JSON.stringify(where)}`,
-    );
-
     return result;
   }
 

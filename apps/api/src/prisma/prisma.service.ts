@@ -5,6 +5,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaClient } from '@workspace/db';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService
@@ -15,25 +17,68 @@ export class PrismaService
   private readReplica?: PrismaClient;
 
   constructor() {
+    let connectionString = process.env.DATABASE_URL;
+
+    // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
+    try {
+      if (connectionString) {
+        const url = new URL(connectionString);
+        const sslMode = url.searchParams.get('sslmode');
+        if (
+          sslMode === 'require' ||
+          sslMode === 'prefer' ||
+          sslMode === 'verify-ca'
+        ) {
+          url.searchParams.set('sslmode', 'verify-full');
+          connectionString = url.toString();
+        }
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to parse DATABASE_URL for SSL mode adjustment',
+        error,
+      );
+    }
+
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+
     super({
-      // Configure connection pool settings to prevent exhaustion
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
+      adapter,
       log:
         process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
     });
 
     // Initialize read replica if URL is provided
     if (process.env.DATABASE_READ_URL) {
+      let readConnectionString = process.env.DATABASE_READ_URL;
+
+      // Fix for "SECURITY WARNING" for read replica as well
+      try {
+        if (readConnectionString) {
+          const url = new URL(readConnectionString);
+          const sslMode = url.searchParams.get('sslmode');
+          if (
+            sslMode === 'require' ||
+            sslMode === 'prefer' ||
+            sslMode === 'verify-ca'
+          ) {
+            url.searchParams.set('sslmode', 'verify-full');
+            readConnectionString = url.toString();
+          }
+        }
+      } catch (error) {
+        console.warn(
+          'Failed to parse DATABASE_READ_URL for SSL mode adjustment',
+          error,
+        );
+      }
+
+      const readPool = new Pool({ connectionString: readConnectionString });
+      const readAdapter = new PrismaPg(readPool);
+
       this.readReplica = new PrismaClient({
-        datasources: {
-          db: {
-            url: process.env.DATABASE_READ_URL,
-          },
-        },
+        adapter: readAdapter,
         log:
           process.env.NODE_ENV === 'development'
             ? ['warn', 'error']

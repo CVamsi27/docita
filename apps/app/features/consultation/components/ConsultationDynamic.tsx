@@ -10,29 +10,33 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import {
   Activity,
+  Baby,
   Clock,
+  Eye,
   FileText,
   Pill,
-  Stethoscope,
-  Eye,
   Smile,
-  Baby,
+  Stethoscope,
 } from "lucide-react";
 import { ConsultationFormRenderer } from "./ConsultationFormRenderer";
-import { DentalChartUI } from "./specialty/DentalChartUI";
-import { VisionExamUI } from "./specialty/VisionExamUI";
-import { GrowthChartUI } from "./specialty/GrowthChartUI";
-import { CLINIC_TYPE_FEATURES, ClinicType } from "@workspace/types";
-
-// ... (previous imports and types)
+import { ChiefComplaintItem } from "./structured/ChiefComplaintInput";
+import { DiagnosisItem } from "./structured/DiagnosisInput";
+import { ExaminationData } from "./structured/ExaminationInput";
+import { Medication } from "./structured/PrescriptionInput";
+import { DentalChartValue } from "./specialty/DentalChartUI";
+import { usePatient } from "@/hooks/api/use-patients";
+import { useCreatePrescription } from "@/hooks/api/use-clinical";
+import { toast } from "sonner";
 
 interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
   patientId?: string;
   doctorId?: string;
   // Make appointmentData optional but strongly recommended for functionality
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   appointmentData?: any;
   defaultTab?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave?: (data: any) => Promise<void>;
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
@@ -42,6 +46,8 @@ interface ClinicalDocumentationDynamicProps {
 export const ClinicalDocumentationDynamic: FC<
   ClinicalDocumentationDynamicProps
 > = ({
+  appointmentId,
+  patientId,
   appointmentData,
   defaultTab = "chief-complaint",
   onSave,
@@ -53,29 +59,118 @@ export const ClinicalDocumentationDynamic: FC<
   const [viewMode, setViewMode] = React.useState<"tabs" | "scroll">("tabs");
   const [isSaving, setIsSaving] = React.useState(false);
 
-  // General Fields
-  const [chiefComplaint, setChiefComplaint] = React.useState("");
-  const [history, setHistory] = React.useState("");
-  const [examination, setExamination] = React.useState("");
-  const [diagnosis, setDiagnosis] = React.useState("");
+  // General Fields (Structured)
+  const [chiefComplaint, setChiefComplaint] = React.useState<
+    ChiefComplaintItem[]
+  >([]);
+  const [history, setHistory] = React.useState<unknown>(null); // Managed via PatientMedicalHistoryContainer
+  const [examination, setExamination] = React.useState<ExaminationData>({
+    general: {
+      pallor: false,
+      icterus: false,
+      cyanosis: false,
+      clubbing: false,
+      lymphadenopathy: false,
+      edema: false,
+      notes: "",
+    },
+    systemic: {
+      cvs: "",
+      rs: "",
+      pa: "",
+      cns: "",
+      musculoskeletal: "",
+      notes: "",
+    },
+  });
+  const [diagnosis, setDiagnosis] = React.useState<DiagnosisItem[]>([]);
   const [treatment, setTreatment] = React.useState("");
+  const [prescriptions, setPrescriptions] = React.useState<Medication[]>([]);
 
   // Specialty Fields
-  const [dentalChart, setDentalChart] = React.useState<any>({});
-  const [eyeExam, setEyeExam] = React.useState<any>({});
-  const [growthData, setGrowthData] = React.useState<any>({});
+  const [dentalChart, setDentalChart] = React.useState<DentalChartValue>({});
+  const [eyeExam, setEyeExam] = React.useState<Record<string, unknown>>({});
+  const [growthData, setGrowthData] = React.useState<Record<string, unknown>>(
+    {}
+  );
+
+  // Fetch Patient Data for History
+  const { data: patient } = usePatient(patientId || "");
+  const createPrescription = useCreatePrescription();
 
   // Initialize data
   useEffect(() => {
     if (appointmentData) {
-      setChiefComplaint(appointmentData.chiefComplaint || "");
-      setHistory(appointmentData.historyOfPresentIllness || ""); // Mapping 'history' to HPI for simplicity, can span multiple fields
-      setExamination(
-        appointmentData.generalExamination
-          ? JSON.stringify(appointmentData.generalExamination, null, 2)
-          : "",
-      ); // Placeholder for complex object
-      setDiagnosis(appointmentData.finalDiagnosis || "");
+      if (appointmentData.chiefComplaintStructured) {
+        setChiefComplaint(appointmentData.chiefComplaintStructured);
+      } else if (appointmentData.chiefComplaint) {
+        // Convert legacy string to single item
+        setChiefComplaint([
+          {
+            id: "legacy",
+            complaint: appointmentData.chiefComplaint,
+            durationValue: "",
+            durationUnit: "days",
+            severity: "moderate",
+          },
+        ]);
+      }
+
+      setHistory(appointmentData.historyOfPresentIllness || "");
+
+      if (appointmentData.generalExamination) {
+        // Check if it matches our structure, otherwise fallback
+        const examData = appointmentData.generalExamination;
+        // Simple check if it has the keys we expect
+        if (examData.general || examData.systemic) {
+          setExamination(examData);
+        } else {
+          // Maybe legacy data?
+          setExamination((prev) => ({
+            ...prev,
+            general: { ...prev.general, notes: JSON.stringify(examData) },
+          }));
+        }
+      }
+
+      if (appointmentData.finalDiagnosis) {
+        // Determine if it looks like JSON or just string
+        try {
+          const parsed = JSON.parse(appointmentData.finalDiagnosis);
+          if (Array.isArray(parsed)) {
+            setDiagnosis(parsed);
+          } else {
+            setDiagnosis([
+              {
+                id: "legacy-dx",
+                condition: appointmentData.finalDiagnosis,
+                type: "provisional",
+                status: "active",
+              },
+            ]);
+          }
+        } catch (_e) {
+          setDiagnosis([
+            {
+              id: "legacy-dx",
+              condition: appointmentData.finalDiagnosis,
+              type: "provisional",
+              status: "active",
+            },
+          ]);
+        }
+      } else if (appointmentData.provisionalDiagnosis) {
+        // Fallback
+        setDiagnosis([
+          {
+            id: "legacy-prov",
+            condition: appointmentData.provisionalDiagnosis,
+            type: "provisional",
+            status: "active",
+          },
+        ]);
+      }
+
       setTreatment(appointmentData.treatmentPlan || "");
 
       // Initialize Specialty Data
@@ -90,19 +185,23 @@ export const ClinicalDocumentationDynamic: FC<
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const dataToSave = {
-        chiefComplaint,
-        historyOfPresentIllness: history,
-        // For general examination, if it's a string, we might need to parse it or save as notes.
-        // For this MVP, we'll assume it's just notes or handle simplified saving.
-        // If examination is just text, save to generalExamination.notes? Or just generalExamination (if it allowed string).
-        // The DTO allows 'any' for generalExamination, so we can pass an object or string?
-        // Actually DTO says 'any', so let's try to be robust.
-        // If the user typed JSON manually (unlikely), we could parse it.
-        // Better: let's map 'examination' text to 'generalExamination.generalNotes'
-        generalExamination: { generalNotes: examination },
+      // Serialize structured inputs
+      const chiefComplaintString = chiefComplaint
+        .map((c) => `${c.complaint} (${c.durationValue} ${c.durationUnit})`)
+        .join("; ");
 
-        finalDiagnosis: diagnosis,
+      const diagnosisString = JSON.stringify(diagnosis); // Save as JSON string for now to preserve structure
+
+      const dataToSave = {
+        chiefComplaint: chiefComplaintString,
+        // Also save structured version if backend supports it (or extended properties)
+        chiefComplaintStructured: chiefComplaint,
+
+        historyOfPresentIllness: history, // Note: Medical history is saved via PatientMedicalHistoryContainer independently usually
+
+        generalExamination: examination, // Save the full object
+
+        finalDiagnosis: diagnosisString,
         treatmentPlan: treatment,
 
         // Specialty Data
@@ -115,6 +214,24 @@ export const ClinicalDocumentationDynamic: FC<
       };
 
       await onSave?.(dataToSave);
+
+      // Handle Prescriptions
+      if (prescriptions.length > 0 && patientId && appointmentId) {
+        // Filter empty
+        const validRx = prescriptions.filter((p) => p.name.trim() !== "");
+        if (validRx.length > 0) {
+          await createPrescription.mutateAsync({
+            patientId,
+            appointmentId,
+            medications: validRx,
+            notes: "Created from consultation",
+          });
+          toast.success("Prescription saved");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to save consultation", error);
+      toast.error("Failed to save consultation");
     } finally {
       setIsSaving(false);
     }
@@ -153,7 +270,7 @@ export const ClinicalDocumentationDynamic: FC<
 
     baseTabs.push(
       { id: "diagnosis", label: "Diagnosis", icon: Activity },
-      { id: "treatment", label: "Treatment", icon: Pill },
+      { id: "treatment", label: "Treatment", icon: Pill }
     );
 
     return baseTabs;
@@ -168,20 +285,23 @@ export const ClinicalDocumentationDynamic: FC<
     examination,
     diagnosis,
     treatment,
+    prescriptions,
     dentalChart,
     eyeExam,
     growthData,
   };
 
   const formHandlers = {
-    setChiefComplaint,
-    setHistory,
-    setExamination,
-    setDiagnosis,
-    setTreatment,
-    setDentalChart,
-    setEyeExam,
-    setGrowthData,
+    setChiefComplaint: (val: ChiefComplaintItem[]) => setChiefComplaint(val),
+    setHistory: (val: unknown) => setHistory(val),
+    setExamination: (val: ExaminationData) => setExamination(val),
+    setDiagnosis: (val: DiagnosisItem[]) => setDiagnosis(val),
+    setTreatment: (val: string) => setTreatment(val),
+    setPrescriptions: (val: Medication[]) => setPrescriptions(val),
+    setDentalChart: (val: DentalChartValue) => setDentalChart(val),
+    setEyeExam: (val: unknown) => setEyeExam(val as Record<string, unknown>),
+    setGrowthData: (val: unknown) =>
+      setGrowthData(val as Record<string, unknown>),
   };
 
   return (
@@ -276,6 +396,7 @@ export const ClinicalDocumentationDynamic: FC<
                     tabId={activeTab}
                     data={formData}
                     handlers={formHandlers}
+                    patient={patient}
                   />
                 </div>
               </CardContent>
@@ -300,6 +421,7 @@ export const ClinicalDocumentationDynamic: FC<
                     tabId={tab.id}
                     data={formData}
                     handlers={formHandlers}
+                    patient={patient}
                   />
                 </CardContent>
               </Card>
@@ -308,89 +430,5 @@ export const ClinicalDocumentationDynamic: FC<
         )}
       </div>
     </div>
-  );
-};
-
-interface ClinicalExaminationDynamicProps {
-  appointmentId?: string;
-  patientId?: string;
-  doctorId?: string;
-  defaultTab?: string;
-  onSave?: () => Promise<void>;
-  isFocusMode?: boolean;
-  onToggleFocus?: () => void;
-  clinicType?: string;
-}
-
-export const ClinicalExaminationDynamic: FC<
-  ClinicalExaminationDynamicProps
-> = ({ onSave }) => {
-  const [general, setGeneral] = React.useState("");
-  const [vitals, setVitals] = React.useState("");
-  const [systemic, setSystemic] = React.useState("");
-  const [local, setLocal] = React.useState("");
-  const [isSaving, setIsSaving] = React.useState(false);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      await onSave?.();
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <Card className="border-none shadow-lg">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Stethoscope className="h-5 w-5 text-primary" />
-            <CardTitle>Clinical Examination</CardTitle>
-          </div>
-          <Button size="sm" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">General Appearance</label>
-          <textarea
-            className="w-full p-3 mt-1 rounded-md border bg-background min-h-[80px]"
-            placeholder="Describe patient appearance, alertness, distress level..."
-            value={general}
-            onChange={(e) => setGeneral(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Vital Signs Notes</label>
-          <textarea
-            className="w-full p-3 mt-1 rounded-md border bg-background min-h-[60px]"
-            placeholder="Additional notes about vital signs..."
-            value={vitals}
-            onChange={(e) => setVitals(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Systemic Examination</label>
-          <textarea
-            className="w-full p-3 mt-1 rounded-md border bg-background min-h-[100px]"
-            placeholder="CVS, RS, GI, CNS, MSK findings..."
-            value={systemic}
-            onChange={(e) => setSystemic(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Local Examination</label>
-          <textarea
-            className="w-full p-3 mt-1 rounded-md border bg-background min-h-[100px]"
-            placeholder="Site-specific examination findings..."
-            value={local}
-            onChange={(e) => setLocal(e.target.value)}
-          />
-        </div>
-      </CardContent>
-    </Card>
   );
 };

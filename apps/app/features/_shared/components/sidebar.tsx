@@ -3,20 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
-  Users,
   Calendar,
-  Settings,
+  ClipboardList,
   FileText,
+  Home,
   Package,
   Receipt,
-  ClipboardList,
+  Settings,
   Stethoscope,
+  Users,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { useSubscription } from "@/hooks/api/use-settings";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -40,12 +42,13 @@ export function Sidebar({
   onCollapsedChange,
 }: SidebarProps) {
   const pathname = usePathname();
+  const { data: subscription } = useSubscription();
 
   return (
     <aside
       className={cn(
         "hidden lg:flex flex-col h-screen bg-background border-r transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex items-center justify-between p-4 border-b">
@@ -80,7 +83,7 @@ export function Sidebar({
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isCollapsed && "justify-center px-2",
+                isCollapsed && "justify-center px-2"
               )}
               title={isCollapsed ? item.label : undefined}
             >
@@ -90,6 +93,54 @@ export function Sidebar({
           );
         })}
       </nav>
+
+      <div className="p-4 border-t mt-auto">
+        {!isCollapsed ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                  Plan
+                </p>
+                <p className="text-sm font-medium truncate">
+                  {subscription?.tierName || "Loading..."}
+                </p>
+              </div>
+              {subscription?.tier === "free" && (
+                <div className="h-2 w-2 rounded-full bg-yellow-500" />
+              )}
+              {subscription?.tier === "pro" && (
+                <div className="h-2 w-2 rounded-full bg-blue-500" />
+              )}
+              {subscription?.tier === "enterprise" && (
+                <div className="h-2 w-2 rounded-full bg-purple-500" />
+              )}
+            </div>
+            <Button
+              className="w-full gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              size="sm"
+              asChild
+            >
+              <Link href="/upgrade">
+                <Sparkles className="h-3.5 w-3.5" />
+                Upgrade
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-full"
+            title="Upgrade Plan"
+            asChild
+          >
+            <Link href="/upgrade">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </Link>
+          </Button>
+        )}
+      </div>
     </aside>
   );
 }

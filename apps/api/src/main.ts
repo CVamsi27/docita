@@ -81,15 +81,10 @@ async function bootstrap() {
   // Graceful shutdown handler for zero-downtime deployments
   // Allows active connections to drain before process exit
   const gracefulShutdown = (signal: string) => {
-    console.log(`\n${signal} received: starting graceful shutdown...`);
-
     // Stop accepting new connections
     server.close(async () => {
-      console.log('HTTP server closed, waiting for connections to drain...');
-
       // Close NestJS app (closes database, caches, etc.)
       await app.close();
-      console.log('NestJS app closed');
 
       process.exit(0);
     });

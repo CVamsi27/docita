@@ -1,0 +1,99 @@
+import { useCallback, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useCreateInvoice } from "@/hooks/api/use-billing";
+import { usePatients } from "@/hooks/api/use-patients";
+import { useRouter } from "next/navigation";
+import { invoiceItemSchema } from "./use-invoice-edit-logic";
+
+export const createInvoiceSchema = z.object({
+  patientId: z.string().min(1, "Patient is required"),
+  status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+  discount: z.number().min(0),
+  notes: z.string().optional(),
+  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+});
+
+export type CreateInvoiceFormValues = z.infer<typeof createInvoiceSchema>;
+
+export const useInvoiceCreateLogic = () => {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
+
+  // Fetch patients for selector
+  const { data: patientsData, isLoading: patientsLoading } = usePatients({
+    search: patientSearch,
+    limit: 10,
+  });
+
+  const createInvoice = useCreateInvoice();
+
+  const form = useForm<CreateInvoiceFormValues>({
+    resolver: zodResolver(createInvoiceSchema),
+    defaultValues: {
+      patientId: "",
+      status: "pending",
+      discount: 0,
+      notes: "",
+      items: [{ description: "", quantity: 1, price: 0 }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  const calculateTotal = useCallback((values: CreateInvoiceFormValues) => {
+    const subtotal = values.items.reduce(
+      (sum, item) => sum + item.quantity * item.price,
+      0,
+    );
+    return Math.max(0, subtotal - (values.discount || 0));
+  }, []);
+
+  const totalAmount = calculateTotal(form.watch());
+
+  const onSubmit = async (data: CreateInvoiceFormValues) => {
+    try {
+      setIsSaving(true);
+      
+      const payload = {
+        ...data,
+        total: totalAmount, // Include calculated total
+        // Ensure items have necessary structure if implied by API, but schema matches typical input
+      };
+
+      const result = await createInvoice.mutateAsync(payload);
+      toast.success("Invoice created successfully");
+      router.push(`/invoices/${result.id}`);
+    } catch (error) {
+      toast.error("Failed to create invoice");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return {
+    form,
+    fields,
+    append,
+    remove,
+    onSubmit,
+    isSaving,
+    totalAmount,
+    router,
+    // Patient selector props
+    patients: patientsData?.items || [],
+    patientsLoading,
+    patientSearch,
+    setPatientSearch,
+    patientComboboxOpen,
+    setPatientComboboxOpen,
+  };
+};

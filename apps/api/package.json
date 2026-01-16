@@ -71,7 +71,9 @@
     "sharp": "^0.34.5",
     "socket.io": "^4.8.1",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@prisma/adapter-pg": "^7.0.0",
+    "pg": "^8.11.3"
   },
   "optionalDependencies": {
     "tesseract.js": "^7.0.0"
@@ -113,6 +115,7 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "setupFiles": ["../test/setup-env.ts"],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

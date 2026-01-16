@@ -1,4 +1,4 @@
-import { ArrowLeft, Search, Settings } from "lucide-react";
+import { ArrowLeft, LogOut, Search, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
@@ -49,6 +49,8 @@ interface SettingsPageUIProps {
   firstMatchingTab?: string;
 }
 
+import { useAuth } from "@/lib/auth-context";
+
 export function SettingsPageUI({
   filteredTabs,
   searchQuery,
@@ -56,6 +58,8 @@ export function SettingsPageUI({
   defaultTab,
   firstMatchingTab,
 }: SettingsPageUIProps) {
+  const { logout } = useAuth();
+
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6 pb-24">
       {/* Header */}
@@ -82,15 +86,22 @@ export function SettingsPageUI({
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search settings..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
+          <Button variant="outline" onClick={logout} className="gap-2">
+            <LogOut className="h-4 w-4" />
+            Log out
+          </Button>
         </div>
       </div>
 
@@ -116,7 +127,7 @@ export function SettingsPageUI({
                         "justify-start px-3 py-2.5 gap-3 w-full",
                         "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
                         "hover:bg-muted/50 transition-colors",
-                        "rounded-lg",
+                        "rounded-lg"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
