@@ -6,9 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
-import type { JwtSignOptions } from '@nestjs/jwt';
-
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Validate JWT_SECRET is set in production
 const jwtSecret = process.env.JWT_SECRET;
@@ -20,11 +19,17 @@ if (!jwtSecret && process.env.NODE_ENV === 'production') {
   imports: [
     PrismaModule,
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev-only-secret-do-not-use-in-prod',
-      signOptions: {
-        expiresIn: process.env.JWT_EXPIRATION || '7d',
-      } as JwtSignOptions,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'dev-only-secret-do-not-use-in-prod',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '7d') as any,
+        },
+      }),
     }),
   ],
   providers: [
