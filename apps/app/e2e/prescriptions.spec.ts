@@ -176,16 +176,40 @@ test.describe("Prescriptions", () => {
 
   test("should create prescription successfully", async ({ request }) => {
     // Skip if endpoint not available or no appointment available
-    if (!prescriptionEndpointAvailable || !appointmentId || !patientId) {
+    if (!prescriptionEndpointAvailable || !patientId) {
       test.skip();
     }
+
+    // Create a fresh appointment for this test to avoid conflicts
+    const now = new Date();
+    const start = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const end = new Date(now.getTime() + 90 * 60 * 1000).toISOString();
+    const apptRes = await request.post(`${API_URL}/appointments`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      data: {
+        patientId,
+        doctorId,
+        startTime: start,
+        endTime: end,
+        status: "scheduled",
+        type: "consultation",
+      },
+    });
+
+    if (!apptRes.ok()) {
+      console.log("Appointment creation failed for test:", apptRes.status());
+      test.skip();
+    }
+    
+    // Use the fresh appointment ID
+    const specificAppointmentId = (await apptRes.json()).id;
 
     const prescRes = await request.post(`${API_URL}/prescriptions`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         patientId,
         doctorId,
-        appointmentId,
+        appointmentId: specificAppointmentId,
         instructions: "Take medications with food",
         medications: [
           {

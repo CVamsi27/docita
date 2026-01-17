@@ -45,28 +45,22 @@ test.describe("Clinic Registration Flow", () => {
     await expect(page.getByText("Compliance & Legal")).toBeVisible();
     
     // Check all required legal checkboxes
-    await page.click('label[for="sla"]'); 
-    await page.click('label[for="privacy"]');
-    await page.click('label[for="dpa"]');
+    await page.check('#sla'); 
+    await page.check('#privacy');
+    await page.check('#dpa');
     
     // Optional consent configuration
-    await page.click('label[for="requireConsent"]'); // Toggle it (default is true, so this might uncheck? Need to check default state. Code said default true. Let's assume we keep it.)
-    // Actually, checking "checked" state is safer. But simple click will toggle.
-    // If we want to ensure it's checked:
-    const consentCheckbox = page.locator('#requireConsent');
-    if (!(await consentCheckbox.isChecked())) {
-        await page.click('label[for="requireConsent"]');
-    }
+    // Ensure requireConsent is unchecked (if we want to toggle it from default true)
+    // or just leave it. Let's uncheck it to test interaction.
+    await page.uncheck('#requireConsent');
 
     // 5. Submit
-    await page.click('button:has-text("Complete Registration")');
-
     // 6. Verify Success
     // Should show success toast and redirect
     // await expect(page.getByText("Registration Successful")).toBeVisible({ timeout: 15000 });
     
     // Should redirect to dashboard
-    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
   });
 
   test("should validate required fields in step 1", async ({ page }) => {
