@@ -3,10 +3,11 @@ import { Label } from "@workspace/ui/components/label";
 import { User } from "lucide-react";
 import { ConfidenceIndicator } from "../ConfidenceIndicator";
 import { SectionToggle } from "../SectionToggle";
+import { OCRFormData } from "../../types";
 
 interface OCRPatientInfoProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: OCRFormData;
+  setFormData: (data: OCRFormData) => void;
   getScore: (key: string) => number | undefined;
   getCorrection: (key: string) => string | undefined;
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const OCRPatientInfo = ({
                 <Label className="text-xs">First Name</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("firstName"),
+                    getScore("firstName")
                   )}
                 />
               </div>
@@ -69,7 +70,7 @@ export const OCRPatientInfo = ({
                 <Label className="text-xs">Last Name</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("lastName"),
+                    getScore("lastName")
                   )}
                 />
               </div>
@@ -115,7 +116,7 @@ export const OCRPatientInfo = ({
                 <Label className="text-xs">Phone</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("phoneNumber"),
+                    getScore("phoneNumber")
                   )}
                 />
               </div>

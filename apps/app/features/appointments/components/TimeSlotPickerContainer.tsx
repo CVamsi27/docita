@@ -3,7 +3,7 @@
  * Handles time slot availability logic and selection
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TimeSlotPickerUI } from "./TimeSlotPickerUI";
 import { api } from "@/lib/api-client";
 

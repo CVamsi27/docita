@@ -1,28 +1,9 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 
 export const useMobileUpload = () => {
   const [showQr, setShowQr] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
-
-  const startMobileUpload = useCallback(
-    async (onUploadComplete: (file: File, url: string) => void) => {
-      try {
-        const data = await apiFetch<{ id: string }>(`/uploads/session`, {
-          method: "POST",
-        });
-        // In dev, use localhost. In prod, use actual domain.
-        const origin = window.location.origin;
-        setQrUrl(`${origin}/mobile-upload/${data.id}`);
-        setShowQr(true);
-        pollSession(data.id, onUploadComplete);
-      } catch (error) {
-        console.error("Failed to start session", error);
-        alert("Could not start mobile session");
-      }
-    },
-    [],
-  );
 
   const pollSession = useCallback(
     async (id: string, onUploadComplete: (file: File, url: string) => void) => {
@@ -87,6 +68,25 @@ export const useMobileUpload = () => {
       }, 120000);
     },
     [],
+  );
+
+  const startMobileUpload = useCallback(
+    async (onUploadComplete: (file: File, url: string) => void) => {
+      try {
+        const data = await apiFetch<{ id: string }>(`/uploads/session`, {
+          method: "POST",
+        });
+        // In dev, use localhost. In prod, use actual domain.
+        const origin = window.location.origin;
+        setQrUrl(`${origin}/mobile-upload/${data.id}`);
+        setShowQr(true);
+        pollSession(data.id, onUploadComplete);
+      } catch (error) {
+        console.error("Failed to start session", error);
+        alert("Could not start mobile session");
+      }
+    },
+    [pollSession],
   );
 
   return {

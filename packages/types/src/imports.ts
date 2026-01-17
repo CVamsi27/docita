@@ -55,3 +55,9 @@ export const bulkImportJobSchema = z.object({
 
 export type ImportJob = z.infer<typeof importJobSchema>;
 export type BulkImportJob = z.infer<typeof bulkImportJobSchema>;
+
+export interface DBField {
+  label: string;
+  field: string;
+  required?: boolean;
+}

@@ -1,7 +1,7 @@
 import { api } from "@/lib/api-client";
 import type {
-  Patient,
   CreatePatientInput,
+  Patient,
   UpdatePatientInput,
 } from "@workspace/types";
 

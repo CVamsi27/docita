@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
 import {
   Select,
   SelectContent,
@@ -26,9 +25,13 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { ArrowLeft, FileText, Loader2, Plus, Save, Trash2 } from "lucide-react"; // Keep Trash2 here if used elsewhere or handled by auto-clean, actually used in component? No, extracted.
-import { useInvoiceEditLogic } from "../hooks/use-invoice-edit-logic";
-import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
+import { ArrowLeft, FileText, Loader2, Plus, Save } from "lucide-react"; // Keep Trash2 here if used elsewhere or handled by auto-clean, actually used in component? No, extracted.
+import { Path } from "react-hook-form";
+import {
+  InvoiceFormValues,
+  useInvoiceEditLogic,
+} from "../hooks/use-invoice-edit-logic";
+import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./sections/edit/InvoiceItemsTable";
 import { InvoiceSubtotal } from "./sections/edit/InvoiceSubtotal";
 
@@ -147,10 +150,9 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                 }))}
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
-                  form.setValue(
-                    `items.${index}.${fieldName}` as any, // dynamic path
-                    value,
-                  );
+                  const path =
+                    `items.${index}.${fieldName}` as Path<InvoiceFormValues>;
+                  form.setValue(path, value);
                 }}
                 onRemoveItem={remove}
                 formatCurrency={formatCurrency}

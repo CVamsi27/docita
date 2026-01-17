@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,14 +10,19 @@ import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import {
+  ClinicAppSettings,
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 
 export function AppearanceSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ClinicAppSettings>({
     theme: "system",
     primaryColor: "blue",
     compactMode: false,
@@ -25,7 +30,7 @@ export function AppearanceSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = clinic.settings as Record<string, any> || {};
+      const s = (clinic.settings as ClinicAppSettings) || {};
       setSettings({
         theme: s.theme || "system",
         primaryColor: s.primaryColor || "blue",
@@ -40,7 +45,7 @@ export function AppearanceSettings() {
         theme: settings.theme,
         primaryColor: settings.primaryColor,
         compactMode: settings.compactMode,
-      } as any,
+      },
       {
         onSuccess: () => {
           toast.success("Appearance settings saved successfully");
@@ -75,7 +80,12 @@ export function AppearanceSettings() {
                 key={t}
                 variant={settings.theme === t ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSettings(s => ({ ...s, theme: t }))}
+                onClick={() =>
+                  setSettings((s) => ({
+                    ...s,
+                    theme: t as "light" | "dark" | "system",
+                  }))
+                }
                 className="capitalize"
               >
                 {t}
@@ -90,7 +100,9 @@ export function AppearanceSettings() {
               <button
                 key={color}
                 className={`h-8 w-8 rounded-full bg-${color}-500 ring-2 ring-offset-2 ring-transparent hover:ring-primary ${settings.primaryColor === color ? "ring-primary" : ""}`}
-                onClick={() => setSettings(s => ({ ...s, primaryColor: color }))}
+                onClick={() =>
+                  setSettings((s) => ({ ...s, primaryColor: color }))
+                }
                 style={{
                   backgroundColor:
                     color === "blue"
@@ -112,9 +124,11 @@ export function AppearanceSettings() {
               Reduce spacing for more content
             </p>
           </div>
-          <Switch 
-            checked={settings.compactMode} 
-            onCheckedChange={(checked) => setSettings(s => ({ ...s, compactMode: checked }))}
+          <Switch
+            checked={settings.compactMode}
+            onCheckedChange={(checked: boolean) =>
+              setSettings((s) => ({ ...s, compactMode: checked }))
+            }
           />
         </div>
         <Button className="w-full" onClick={handleSave} disabled={isSaving}>

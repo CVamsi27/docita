@@ -61,7 +61,7 @@ export function DashboardQuickActionsContainer({
 
   const quickActions: QuickAction[] = allActions
     .filter((action) => canAccess(action.feature))
-    .map(({ feature, ...rest }) => rest);
+    .map(({ feature: _feature, ...rest }) => rest);
 
   return <DashboardQuickActionsUI quickActions={quickActions} />;
 }

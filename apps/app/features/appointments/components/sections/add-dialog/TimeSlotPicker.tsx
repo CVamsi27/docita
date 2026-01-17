@@ -1,5 +1,6 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { z } from "zod";
 import {
   FormField,
   FormItem,
@@ -7,7 +8,9 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { DateTimePicker } from "@workspace/ui/components/date-time-picker";
-import type { CreateAppointmentInput } from "@workspace/types";
+import { createAppointmentSchema } from "@workspace/types";
+
+type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
 interface TimeSlotPickerProps {
   form: UseFormReturn<CreateAppointmentInput>;
@@ -29,7 +32,11 @@ export function TimeSlotPicker({
           <FormItem className="flex flex-col">
             <FormLabel>Start Time</FormLabel>
             <DateTimePicker
-              value={field.value}
+              value={
+                field.value instanceof Date
+                  ? field.value.toISOString()
+                  : field.value
+              }
               onChange={field.onChange}
               startHour={startHour}
               endHour={endHour}
@@ -46,7 +53,11 @@ export function TimeSlotPicker({
           <FormItem className="flex flex-col">
             <FormLabel>End Time (Optional)</FormLabel>
             <DateTimePicker
-              value={field.value}
+              value={
+                field.value instanceof Date
+                  ? field.value.toISOString()
+                  : field.value
+              }
               onChange={field.onChange}
               startHour={startHour}
               endHour={endHour}

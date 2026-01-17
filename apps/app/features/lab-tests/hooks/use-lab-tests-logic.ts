@@ -10,7 +10,7 @@ import {
   useLabTestStats,
 } from "@/hooks/api/use-clinical";
 import { usePatients } from "@/hooks/api/use-patients";
-import { Patient, LabTest, Doctor } from "@workspace/types";
+import { Patient } from "@workspace/types";
 import { useDebounce } from "@/hooks/use-debounce";
 
 export interface PaginatedResponse<T> {
@@ -85,7 +85,7 @@ export const useLabTestsLogic = () => {
     (p) => p.id === form.watch("patientId"),
   );
   const selectedTest = testCatalog.find(
-    (t: any) => t.id === form.watch("labTestId"),
+    (t: { id: string }) => t.id === form.watch("labTestId"),
   );
 
   // Backend-driven filtering

@@ -1,8 +1,7 @@
 import { AddAppointmentDialogContainer as AddAppointmentDialog } from "@/features/appointments/components/AddAppointmentDialogContainer";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
-import { Plus } from "lucide-react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 interface AppointmentsPageHeaderUIProps {
   onAppointmentAdded: () => void;

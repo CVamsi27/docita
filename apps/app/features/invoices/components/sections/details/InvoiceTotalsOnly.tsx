@@ -1,9 +1,9 @@
 import { Separator } from "@workspace/ui/components/separator";
-import { Invoice } from "@workspace/types";
+import { Invoice, InvoiceItem } from "@workspace/types";
 
 interface InvoiceTotalsOnlyProps {
   invoice: Invoice;
-  calculateSubtotal: (items: any[]) => number;
+  calculateSubtotal: (items: InvoiceItem[]) => number;
   formatCurrency: (amount: number) => string;
   numberToWords: (amount: number) => string;
 }
@@ -39,7 +39,12 @@ export function InvoiceTotalsOnly({
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Discount</span>
-          <span>-{formatCurrency((invoice as any).discount || 0)}</span>
+          <span>
+            -
+            {formatCurrency(
+              (invoice as Invoice & { discount?: number }).discount || 0
+            )}
+          </span>
         </div>
         <Separator />
         <div className="flex justify-between font-bold text-lg">

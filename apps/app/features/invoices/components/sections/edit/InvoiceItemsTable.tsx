@@ -21,7 +21,7 @@ interface InvoiceItem {
 
 interface InvoiceItemsTableProps {
   items: InvoiceItem[];
-  onUpdateItem: (index: number, field: string, value: any) => void;
+  onUpdateItem: (index: number, field: string, value: string | number) => void;
   onRemoveItem: (index: number) => void;
   formatCurrency: (amount: number) => string;
 }
@@ -98,7 +98,7 @@ export function InvoiceItemsTable({
                 colSpan={5}
                 className="text-center py-8 text-muted-foreground"
               >
-                No items added. Click "Add Item" to start.
+                No items added. Click &quot;Add Item&quot; to start.
               </TableCell>
             </TableRow>
           )}

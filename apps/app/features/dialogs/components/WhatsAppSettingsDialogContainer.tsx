@@ -5,8 +5,8 @@ import {
 } from "@/hooks/api/use-whatsapp";
 import { toast } from "sonner";
 import {
-  WhatsAppSettingsDialogUI,
   WhatsAppSettings,
+  WhatsAppSettingsDialogUI,
 } from "./WhatsAppSettingsDialogUI";
 
 interface WhatsAppSettingsDialogContainerProps {

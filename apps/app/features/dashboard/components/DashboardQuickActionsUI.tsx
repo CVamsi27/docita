@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  Calendar,
-  CalendarCheck,
-  ClipboardList,
-  Receipt,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface QuickAction {
@@ -31,9 +24,9 @@ export function DashboardQuickActionsUI({
           key={action.href}
           href={action.href}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 min-w-[5.5rem] sm:min-w-[6rem] p-3 rounded-2xl transition-all duration-300 snap-start group",
+            "flex flex-col items-center justify-center gap-2 min-w-22 sm:min-w-24 p-3 rounded-2xl transition-all duration-300 snap-start group",
             "bg-card/40 backdrop-blur-md border border-transparent hover:border-primary/20",
-            "hover:bg-card/60 hover:shadow-lg hover:-translate-y-0.5",
+            "hover:bg-card/60 hover:shadow-lg hover:-translate-y-0.5"
           )}
         >
           <div
@@ -41,13 +34,13 @@ export function DashboardQuickActionsUI({
               "h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shadow-sm",
               idx === 0
                 ? "bg-primary text-primary-foreground shadow-primary/25"
-                : "bg-background/80 text-primary hover:bg-primary/10",
+                : "bg-background/80 text-primary hover:bg-primary/10"
             )}
           >
             <action.icon
               className={cn(
                 "h-5 w-5 sm:h-6 sm:w-6",
-                idx === 0 ? "text-primary-foreground" : "text-primary",
+                idx === 0 ? "text-primary-foreground" : "text-primary"
               )}
             />
             {action.badge && (
@@ -66,7 +59,7 @@ export function DashboardQuickActionsUI({
 
       <Link
         href="/patients"
-        className="hidden sm:flex flex-col items-center justify-center gap-2 min-w-[5rem] p-3 rounded-2xl hover:bg-card/40 transition-all group"
+        className="hidden sm:flex flex-col items-center justify-center gap-2 min-w-20 p-3 rounded-2xl hover:bg-card/40 transition-all group"
       >
         <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
           <Users className="h-5 w-5" />

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Prisma } from '@workspace/db';
 import { PrismaService } from '../prisma/prisma.service';
 import { unlink } from 'fs/promises';
 
@@ -19,7 +20,7 @@ export class DocumentsService {
     }
 
     const { search, type, patientId } = params || {};
-    const whereCallback: any = {
+    const whereCallback: Prisma.DocumentWhereInput = {
       patient: { clinicId },
     };
 
@@ -45,7 +46,7 @@ export class DocumentsService {
       whereCallback.patientId = patientId;
     }
 
-    return this.prisma.document.findMany({
+    return await this.prisma.document.findMany({
       where: whereCallback,
       select: {
         id: true,

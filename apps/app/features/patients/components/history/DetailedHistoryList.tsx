@@ -2,8 +2,10 @@ import { Card, CardContent } from "@workspace/ui/components/card";
 import { Calendar } from "lucide-react";
 import { HistoryItem } from "./HistoryItem";
 
+import { Appointment } from "@workspace/types";
+
 interface DetailedHistoryListProps {
-  appointments: any[];
+  appointments: Appointment[];
 }
 
 export function DetailedHistoryList({

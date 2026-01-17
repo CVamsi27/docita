@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useEffect, useState } from "react";
 import {
   Card,
@@ -10,13 +11,16 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Clock, Loader2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import {
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-import { Clinic } from "@workspace/types";
 
 export const ReminderSettingsUI: FC = () => {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
   const [reminderBefore, setReminderBefore] = useState("1");
   const [reminderUnit, setReminderUnit] = useState("day");
@@ -24,10 +28,12 @@ export const ReminderSettingsUI: FC = () => {
   useEffect(() => {
     if (clinic) {
       // Check for reminder settings in root or settings object
-      const settings = clinic.settings as Record<string, any> || {};
-      const before = settings.reminderBefore || (clinic as any).reminderBefore || "1";
-      const unit = settings.reminderUnit || (clinic as any).reminderUnit || "day";
-      
+      const settings = (clinic.settings as Record<string, any>) || {};
+      const before =
+        settings.reminderBefore || (clinic as any).reminderBefore || "1";
+      const unit =
+        settings.reminderUnit || (clinic as any).reminderUnit || "day";
+
       setReminderBefore(String(before));
       setReminderUnit(String(unit));
     }
@@ -38,7 +44,7 @@ export const ReminderSettingsUI: FC = () => {
       {
         reminderBefore: reminderBefore,
         reminderUnit: reminderUnit,
-      } as any, 
+      } as any,
       // casting to any because Partial<Clinic> might not explicitly have these extended fields in frontend types yet
       // but backend DTO accepts them in 'settings' JSON construction
       {

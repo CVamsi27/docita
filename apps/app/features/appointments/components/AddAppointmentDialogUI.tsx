@@ -1,50 +1,14 @@
-import {
-  Check,
-  ChevronsUpDown,
-  Loader2,
-  Plus,
-  Calendar as CalendarIcon,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
-import type { CreateAppointmentInput, Patient, Doctor } from "@workspace/types";
+import { createAppointmentSchema, Doctor, Patient } from "@workspace/types";
+
+type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/app-config-context";
-import { format } from "date-fns";
-import { cn } from "@workspace/ui/lib/utils";
 
 import { Button } from "@workspace/ui/components/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import { Textarea } from "@workspace/ui/components/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@workspace/ui/components/command";
+import { Form } from "@workspace/ui/components/form";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
-import { DateTimePicker } from "@workspace/ui/components/date-time-picker";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { Separator } from "@workspace/ui/components/separator";
 import { AppointmentFormFields } from "./sections/add-dialog/AppointmentFormFields";
 import { PatientSelector } from "./sections/add-dialog/PatientSelector";
 import { DoctorSelector } from "./sections/add-dialog/DoctorSelector";
@@ -63,7 +27,7 @@ interface AddAppointmentDialogUIProps {
   doctorsLoading: boolean;
   onSubmit: (
     data: CreateAppointmentInput,
-    onSuccess?: () => void,
+    onSuccess?: () => void
   ) => Promise<void>;
   appointmentTypeOptions: SelectOption[];
   patientComboboxOpen: boolean;

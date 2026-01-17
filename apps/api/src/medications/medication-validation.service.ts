@@ -5,6 +5,27 @@ import {
   validateRenalDosage,
   checkMedicationContraindications,
 } from '@workspace/utils';
+import {
+  DosageValidation,
+  PediatricDosageValidation,
+  RenalDosageAdjustment,
+  ContraindicationCheck,
+  RenalFunction,
+  Allergy,
+} from '@workspace/types';
+
+interface InteractionResult {
+  medication: string;
+  interactsWith: string;
+  severity: 'warning' | 'critical';
+  message: string;
+}
+
+interface AllergyInteraction {
+  medication: string;
+  allergy: string;
+  severity: 'warning' | 'critical';
+}
 
 @Injectable()
 export class MedicationValidationService {
@@ -15,14 +36,14 @@ export class MedicationValidationService {
     medications: Array<{ name: string; dosage?: string }>,
     patientAllergies: string[] = [],
   ) {
-    const interactions: any[] = [];
-    const allergies: any[] = [];
+    const interactions: InteractionResult[] = [];
+    const allergies: AllergyInteraction[] = [];
 
     // Check medication pairs for interactions
     for (let i = 0; i < medications.length; i++) {
       for (let j = i + 1; j < medications.length; j++) {
-        const med1 = medications[i].name.toLowerCase();
-        const med2 = medications[j].name.toLowerCase();
+        // Logically we would check interactions here if we had a database
+        // For now this is a placeholder for the structure
       }
     }
 
@@ -52,7 +73,10 @@ export class MedicationValidationService {
   /**
    * Validate medication dosage
    */
-  validateMedicationDosage(medication: string, dosage: string) {
+  validateMedicationDosage(
+    medication: string,
+    dosage: string,
+  ): DosageValidation {
     return validateDosage(medication, dosage);
   }
 
@@ -63,7 +87,7 @@ export class MedicationValidationService {
     medication: string,
     dosage: string,
     weightKg: number,
-  ) {
+  ): PediatricDosageValidation {
     return validatePediatricDosage(medication, dosage, weightKg);
   }
 
@@ -73,8 +97,8 @@ export class MedicationValidationService {
   validateRenalDosageImpl(
     medication: string,
     dosage: string,
-    renalFunctionCategory: 'normal' | 'mild' | 'moderate' | 'severe' | 'esrd',
-  ) {
+    renalFunctionCategory: RenalFunction,
+  ): RenalDosageAdjustment {
     return validateRenalDosage(medication, dosage, renalFunctionCategory);
   }
 
@@ -84,14 +108,14 @@ export class MedicationValidationService {
   checkContraindications(
     medication: string,
     patientData: {
-      allergies?: Array<{ name: string; severity: string }>;
+      allergies?: Allergy[];
       conditions?: Array<{ icdCode: string; name: string }>;
       currentMedications?: string[];
       isPregnant?: boolean;
-      renalFunctionCategory?: string;
+      renalFunctionCategory?: RenalFunction;
     },
-  ) {
-    return checkMedicationContraindications(medication, patientData as any);
+  ): ContraindicationCheck[] {
+    return checkMedicationContraindications(medication, patientData);
   }
 
   /**
@@ -107,11 +131,18 @@ export class MedicationValidationService {
     renalFunction?: string;
   }) {
     const results = {
-      dosageValidations: [] as any[],
-      interactionChecks: [] as any[],
-      contraindications: [] as any[],
-      pediatricValidations: [] as any[],
-      renalValidations: [] as any[],
+      dosageValidations: [] as DosageValidation[],
+      interactionChecks: [] as Array<{
+        interactions: InteractionResult[];
+        allergies: AllergyInteraction[];
+        hasWarnings: boolean;
+      }>,
+      contraindications: [] as Array<{
+        medication: string;
+        contraindications: ContraindicationCheck[];
+      }>,
+      pediatricValidations: [] as PediatricDosageValidation[],
+      renalValidations: [] as RenalDosageAdjustment[],
       warnings: [] as string[],
       errors: [] as string[],
     };
@@ -145,13 +176,15 @@ export class MedicationValidationService {
     // Check contraindications for each medication
     for (const med of params.medications) {
       const contraindications = this.checkContraindications(med.name, {
-        allergies: params.patientAllergies?.map((name) => ({
-          name,
-          severity: 'moderate',
-        })),
+        allergies: params.patientAllergies?.map(
+          (name): Allergy => ({
+            name,
+            severity: 'moderate',
+          }),
+        ),
         currentMedications: params.currentMedications,
         isPregnant: params.isPregnant,
-        renalFunctionCategory: params.renalFunction as any,
+        renalFunctionCategory: params.renalFunction as unknown as RenalFunction,
       });
 
       results.contraindications.push({
@@ -161,7 +194,7 @@ export class MedicationValidationService {
 
       if (Array.isArray(contraindications) && contraindications.length > 0) {
         const criticalCount = contraindications.filter(
-          (c: any) => c.severity === 'critical',
+          (c) => c.severity === 'critical',
         ).length;
         if (criticalCount > 0) {
           results.errors.push(
@@ -195,7 +228,7 @@ export class MedicationValidationService {
         const renalValidation = this.validateRenalDosageImpl(
           med.name,
           med.dosage,
-          params.renalFunction as any,
+          params.renalFunction as unknown as RenalFunction,
         );
         results.renalValidations.push(renalValidation);
 

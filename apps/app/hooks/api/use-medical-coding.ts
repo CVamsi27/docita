@@ -4,7 +4,6 @@ import {
   CptFavorite,
   IcdCode,
   IcdFavorite,
-  UpdateAppointmentInput,
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 

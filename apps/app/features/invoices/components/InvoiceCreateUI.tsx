@@ -86,7 +86,7 @@ export const InvoiceCreateUI: FC = () => {
               {/* Patient Selector */}
               <div className="col-span-full md:col-span-1">
                 <PatientSelector
-                  form={form as any} // Cast because PatientSelector expects CreateAppointmentInput but structure is compatible for patientId
+                  form={form}
                   patients={patients}
                   patientsLoading={patientsLoading}
                   patientSearch={patientSearch}
@@ -143,7 +143,9 @@ export const InvoiceCreateUI: FC = () => {
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
                   form.setValue(
-                    `items.${index}.${fieldName}` as any, // dynamic path
+                    `items.${index}.${fieldName}` as import("react-hook-form").Path<
+                      import("../hooks/use-invoice-create-logic").CreateInvoiceFormValues
+                    >,
                     value
                   );
                 }}

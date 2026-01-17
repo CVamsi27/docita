@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CommandDialog,
@@ -11,17 +11,17 @@ import {
   CommandList,
 } from "@workspace/ui/components/command";
 import {
-  Home,
-  Users,
   Calendar,
-  Settings,
-  FileText,
-  Package,
-  Receipt,
   ClipboardList,
-  Stethoscope,
-  Search,
+  FileText,
+  Home,
+  Package,
   PlusCircle,
+  Receipt,
+  Search,
+  Settings,
+  Stethoscope,
+  Users,
 } from "lucide-react";
 
 const navigationItems = [

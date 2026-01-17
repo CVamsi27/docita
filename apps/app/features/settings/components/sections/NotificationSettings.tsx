@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,15 +9,20 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { Bell, Mail, Smartphone, Loader2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import { Bell, Loader2, Mail, Smartphone } from "lucide-react";
+import {
+  ClinicAppSettings,
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ClinicAppSettings>({
     emailNotifications: true,
     smsNotifications: false,
     pushNotifications: true,
@@ -27,7 +32,7 @@ export function NotificationSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = clinic.settings as Record<string, any> || {};
+      const s = (clinic.settings as ClinicAppSettings) || {};
       setSettings({
         emailNotifications: s.emailNotifications ?? true,
         smsNotifications: s.smsNotifications ?? false,
@@ -46,7 +51,7 @@ export function NotificationSettings() {
         pushNotifications: settings.pushNotifications,
         appointmentAlerts: settings.appointmentAlerts,
         reportAlerts: settings.reportAlerts,
-      } as any,
+      },
       {
         onSuccess: () => {
           toast.success("Notification preferences saved successfully");

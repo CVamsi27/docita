@@ -1,14 +1,15 @@
-import { Check, Lock } from "lucide-react";
+import { ComponentType } from "react";
+import { Check, Lock, LucideProps } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Feature } from "@/lib/tier-config";
 
-interface FeatureDetail {
+export interface FeatureDetail {
   name: string;
   description: string;
-  icon: any;
+  icon: ComponentType<LucideProps>;
 }
 
-interface PlanFeature {
+export interface PlanFeature {
   feature: Feature;
   details: FeatureDetail;
   hasAccess: boolean;
@@ -30,7 +31,7 @@ export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
           key={feature}
           className={cn(
             "flex items-center gap-2 text-sm",
-            !hasAccess && "text-muted-foreground",
+            !hasAccess && "text-muted-foreground"
           )}
         >
           {hasAccess ? (

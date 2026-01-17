@@ -3,7 +3,6 @@ import {
   CreatePatientInput,
   Patient,
   UpdatePatientInput,
-  User,
 } from "@workspace/types";
 import {
   fetchAPI,

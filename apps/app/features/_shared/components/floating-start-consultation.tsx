@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
-import { Stethoscope, ChevronUp } from "lucide-react";
+import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface FloatingStartConsultationProps {

@@ -6,15 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import { Badge } from "@workspace/ui/components/badge";
 import {
   Table,
   TableBody,
@@ -27,6 +18,14 @@ import {
   Feature,
   FeatureGate,
 } from "@/features/_shared/components/feature-gate";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import {
   Download,
   Eye,
@@ -64,7 +63,6 @@ export const InvoicesPageUI: FC = () => {
     handleRefresh,
     searchQuery,
     setSearchQuery,
-    refetch,
   } = useInvoicesLogic();
 
   const formatDate = (dateString: string | Date) => {

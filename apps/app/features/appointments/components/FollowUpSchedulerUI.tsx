@@ -2,11 +2,10 @@
 
 import * as React from "react";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { Calendar } from "@workspace/ui/components/calendar";
-import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
+
+import { Calendar } from "@workspace/ui/components/calendar";
+
 import {
   Dialog,
   DialogContent,
@@ -16,27 +15,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import {
-  Bell,
-  Calendar as CalendarIcon,
-  CalendarPlus,
-  Check,
-  Clock,
-  MessageSquare,
-} from "lucide-react";
+import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
 import { FollowUpForm } from "./sections/follow-up/FollowUpForm";
@@ -96,7 +81,7 @@ export function FollowUpSchedulerUI({
   onOpenChange,
   loading,
   patientName,
-  patientPhone,
+  // patientPhone,
   selectedDate,
   onDateSelect,
   selectedTime,
@@ -155,7 +140,7 @@ export function FollowUpSchedulerUI({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground",
+                      !selectedDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />

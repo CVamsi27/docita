@@ -34,9 +34,9 @@ export function InventoryTable({
   onViewItem,
   getStockStatus,
 }: InventoryTableProps) {
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-US", {
+  const formatDate = (dateVal?: string | Date | null) => {
+    if (!dateVal) return "-";
+    return new Date(dateVal).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -72,7 +72,7 @@ export function InventoryTable({
                 {items.map((item) => {
                   const status = getStockStatus(
                     item.quantity,
-                    item.minQuantity,
+                    item.minQuantity
                   );
                   return (
                     <TableRow

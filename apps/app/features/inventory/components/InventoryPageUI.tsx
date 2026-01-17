@@ -2,28 +2,10 @@ import { FC } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Badge } from "@workspace/ui/components/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
 import {
   Feature,
   FeatureGate,
@@ -38,7 +20,7 @@ import {
   RefreshCw,
   TrendingDown,
 } from "lucide-react";
-import { useInventoryLogic, StockStatus } from "../hooks/use-inventory-logic";
+import { useInventoryLogic } from "../hooks/use-inventory-logic";
 import { InventoryTable } from "./sections/list/InventoryTable";
 import { InventoryFilters } from "./sections/list/InventoryFilters";
 
@@ -63,15 +45,6 @@ export const InventoryPageUI: FC = () => {
     handleRefresh,
     refetch,
   } = useInventoryLogic();
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   return (
     <FeatureGate

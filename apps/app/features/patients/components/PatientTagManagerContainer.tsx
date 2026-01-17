@@ -6,8 +6,8 @@
 import { useCallback, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import {
-  PatientTagManagerUI,
   type PatientTag,
+  PatientTagManagerUI,
   type PresetTag,
 } from "./PatientTagManagerUI";
 

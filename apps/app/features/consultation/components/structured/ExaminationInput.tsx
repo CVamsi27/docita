@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Activity, Heart, Stethoscope, Wind, FileText } from "lucide-react";
+import { Activity, FileText, Heart, Stethoscope, Wind } from "lucide-react";
 
 export interface ExaminationData {
   general: {

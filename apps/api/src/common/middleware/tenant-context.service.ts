@@ -6,7 +6,7 @@ import { Request } from 'express';
 /**
  * User info from JWT token
  */
-interface AuthUser {
+export interface AuthUser {
   id: string;
   email: string;
   role: string;
@@ -16,7 +16,7 @@ interface AuthUser {
 /**
  * Request with authenticated user
  */
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: AuthUser;
 }
 

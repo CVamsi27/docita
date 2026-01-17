@@ -6,6 +6,7 @@ import { useCreatePatient } from "@/hooks/api/use-patients";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
+import { OCRFormData } from "../types";
 
 export const useOCR = () => {
   const router = useRouter();
@@ -30,23 +31,21 @@ export const useOCR = () => {
   const createAppointmentMutation = useCreateAppointment();
 
   // Enhanced Form State with Confidence Scores and Suggestions
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OCRFormData>({
     firstName: "",
     lastName: "",
     age: "",
     gender: "MALE",
+    dateOfBirth: "",
     phoneNumber: "",
     email: "",
+    address: "",
     bloodType: "",
     diagnosis: "",
-    symptoms: [] as string[],
-    allergies: [] as string[],
-    medicalHistory: [] as string[],
-    medications: [] as Array<{
-      name: string;
-      dosage: string;
-      frequency: string;
-    }>,
+    symptoms: [],
+    allergies: [],
+    medicalHistory: [],
+    medications: [],
     vitals: {
       bp: "",
       temp: "",
@@ -96,6 +95,8 @@ export const useOCR = () => {
         gender: result.fields?.gender || result.gender || "MALE",
         phoneNumber: result.fields?.phoneNumber || result.phoneNumber || "",
         email: result.fields?.email || "",
+        dateOfBirth: "",
+        address: "",
         bloodType: result.fields?.bloodType || "",
         diagnosis: result.fields?.diagnosis || result.diagnosis || "",
         symptoms: result.fields?.symptoms || [],

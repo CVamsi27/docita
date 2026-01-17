@@ -3,6 +3,7 @@ import { z } from "zod";
 export const BedStatusEnum = z.enum([
     "AVAILABLE", "OCCUPIED", "MAINTENANCE", "CLEANING", "RESERVED"
 ]);
+export type BedStatus = z.infer<typeof BedStatusEnum>;
 
 export const AdmissionStatus = z.enum([
     "ADMITTED", "DISCHARGED", "TRANSFERRED"

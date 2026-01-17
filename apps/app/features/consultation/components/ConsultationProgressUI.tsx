@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { AlertCircle, Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import {
@@ -42,7 +41,7 @@ export function ConsultationProgressUI({
   className,
   compact = false,
 }: ConsultationProgressUIProps) {
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStepId);
+  const _currentStepIndex = steps.findIndex((s) => s.id === currentStepId);
 
   if (compact) {
     return (
@@ -51,7 +50,7 @@ export function ConsultationProgressUI({
           <div
             className={cn(
               "h-full transition-all duration-300",
-              progress.isMinimumMet ? "bg-green-500" : "bg-primary",
+              progress.isMinimumMet ? "bg-green-500" : "bg-primary"
             )}
             style={{ width: `${progress.percentage}%` }}
           />
@@ -59,7 +58,7 @@ export function ConsultationProgressUI({
         <span
           className={cn(
             "text-xs font-medium",
-            progress.isMinimumMet ? "text-green-600" : "text-muted-foreground",
+            progress.isMinimumMet ? "text-green-600" : "text-muted-foreground"
           )}
         >
           {progress.percentage}%
@@ -76,7 +75,7 @@ export function ConsultationProgressUI({
           <div
             className={cn(
               "h-full transition-all duration-500 ease-out",
-              progress.isMinimumMet ? "bg-green-500" : "bg-primary",
+              progress.isMinimumMet ? "bg-green-500" : "bg-primary"
             )}
             style={{ width: `${progress.percentage}%` }}
           />
@@ -84,7 +83,7 @@ export function ConsultationProgressUI({
         <span
           className={cn(
             "text-sm font-semibold min-w-12 text-right",
-            progress.isMinimumMet ? "text-green-600" : "text-foreground",
+            progress.isMinimumMet ? "text-green-600" : "text-foreground"
           )}
         >
           {progress.percentage}%
@@ -106,7 +105,7 @@ export function ConsultationProgressUI({
                       className={cn(
                         "flex flex-col items-center gap-1 transition-all",
                         onStepClick && "cursor-pointer hover:scale-105",
-                        !onStepClick && "cursor-default",
+                        !onStepClick && "cursor-default"
                       )}
                     >
                       <div
@@ -122,7 +121,7 @@ export function ConsultationProgressUI({
                             "border-muted bg-background text-muted-foreground",
                           step.hasWarnings &&
                             !step.isComplete &&
-                            "border-amber-500 bg-amber-50",
+                            "border-amber-500 bg-amber-50"
                         )}
                       >
                         {step.isComplete ? (
@@ -142,7 +141,7 @@ export function ConsultationProgressUI({
                           isCurrent && !step.isComplete && "text-primary",
                           !step.isComplete &&
                             !isCurrent &&
-                            "text-muted-foreground",
+                            "text-muted-foreground"
                         )}
                       >
                         {step.shortLabel}
@@ -176,7 +175,7 @@ export function ConsultationProgressUI({
                         ? "bg-green-500"
                         : isCurrent
                           ? "bg-primary/30"
-                          : "bg-muted",
+                          : "bg-muted"
                     )}
                   />
                 )}

@@ -3,10 +3,11 @@ import { Label } from "@workspace/ui/components/label";
 import { FileText } from "lucide-react";
 import { ConfidenceIndicator } from "../ConfidenceIndicator";
 import { SectionToggle } from "../SectionToggle";
+import { OCRFormData } from "../../types";
 
 interface OCRLabValuesProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: OCRFormData;
+  setFormData: (data: OCRFormData) => void;
   getScore: (key: string) => number | undefined;
   isOpen: boolean;
   onToggle: () => void;
@@ -35,7 +36,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Glucose (mg/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_glucose"),
+                    getScore("labValues_glucose")
                   )}
                 />
               </div>
@@ -58,7 +59,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Hemoglobin (g/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_hemoglobin"),
+                    getScore("labValues_hemoglobin")
                   )}
                 />
               </div>
@@ -81,7 +82,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Creatinine (mg/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_creatinine"),
+                    getScore("labValues_creatinine")
                   )}
                 />
               </div>

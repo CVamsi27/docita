@@ -19,11 +19,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { RevenueCPT } from "../../hooks/use-analytics-logic";
-import { LoadingSpinner, EmptyState, COLORS } from "./chart-helpers";
+import type { RevenueByCPT } from "../../hooks/use-analytics-logic";
+import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface RevenueChartProps {
-  data: RevenueCPT[];
+  data: RevenueByCPT[];
   loading: boolean;
 }
 
@@ -40,12 +40,7 @@ export const RevenueBarChart = ({ data, loading }: RevenueChartProps) => (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data.slice(0, 10)}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="cptCode"
-              angle={-45}
-              textAnchor="end"
-              height={100}
-            />
+            <XAxis dataKey="code" angle={-45} textAnchor="end" height={100} />
             <YAxis />
             <Tooltip />
             <Legend />
@@ -80,7 +75,7 @@ export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ payload }) => `${payload.cptCode}: ${payload.count}`}
+              label={({ payload }) => `${payload.code}: ${payload.count}`}
               outerRadius={120}
               fill="#8884d8"
               dataKey="count"

@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  PrescriptionModal,
-  ModalProps,
   Medication,
+  ModalProps,
+  PrescriptionModal,
 } from "./modals/PrescriptionModal";
-import { VitalsModal, VitalsFormData } from "./modals/VitalsModal";
+import { VitalsFormData, VitalsModal } from "./modals/VitalsModal";
 import { BillingModal, LineItem } from "./modals/BillingModal";
 import {
   ConsultationNotesModal,

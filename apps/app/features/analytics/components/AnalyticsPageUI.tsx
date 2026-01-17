@@ -14,9 +14,9 @@ import {
 } from "@/features/_shared/components/feature-gate";
 import type {
   AnalyticsOverview,
-  DiseaseTrend,
-  RevenueCPT,
   ComplianceMetric,
+  DiseaseTrend,
+  RevenueByCPT,
 } from "../hooks/use-analytics-logic";
 import { OverviewCard } from "./charts/OverviewCard";
 import { TrendsBarChart, TrendsPieChart } from "./charts/TrendsCharts";
@@ -27,7 +27,7 @@ import { AnalyticsUpgradeState } from "./charts/AnalyticsUpgradeState";
 interface AnalyticsPageUIProps {
   overview?: AnalyticsOverview;
   diseaseTrends: DiseaseTrend[];
-  revenueByCPT: RevenueCPT[];
+  revenueByCPT: RevenueByCPT[];
   complianceMetrics: ComplianceMetric[];
   isLoading: boolean;
   trendsLoading: boolean;

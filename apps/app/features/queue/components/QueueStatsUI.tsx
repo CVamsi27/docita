@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { Clock, Users, CheckCircle2, Play } from "lucide-react";
+import { CheckCircle2, Clock, Play, Users } from "lucide-react";
 
 interface QueueStatsData {
   waiting: number;

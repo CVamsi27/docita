@@ -368,7 +368,7 @@ test.describe("Patient Management", () => {
 });
 
 async function loginAsDoctor(page: any) {
-  // eslint-disable-line @typescript-eslint/no-explicit-any
+   
   // Try to login or navigate to dashboard
   // Prefer injecting token into localStorage for reliable auth during e2e
   if (!(await page.url()).includes("/dashboard")) {

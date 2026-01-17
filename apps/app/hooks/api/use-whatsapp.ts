@@ -1,4 +1,4 @@
-import { fetchAPI, useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
 // WhatsApp Statistics
 export const useWhatsappStats = () =>

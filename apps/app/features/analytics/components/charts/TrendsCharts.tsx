@@ -20,7 +20,7 @@ import {
   YAxis,
 } from "recharts";
 import type { DiseaseTrend } from "../../hooks/use-analytics-logic";
-import { LoadingSpinner, EmptyState, COLORS } from "./chart-helpers";
+import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface TrendsChartProps {
   data: DiseaseTrend[];

@@ -2,8 +2,8 @@ import { APIRequestContext, expect, Page, test } from "@playwright/test";
 import {
   API_URL,
   fetchPatientByApi,
-  setupTestUser,
   loginUser,
+  setupTestUser,
   UserData,
 } from "./utils/patient-helpers";
 

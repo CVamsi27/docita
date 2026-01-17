@@ -10,10 +10,22 @@ import {
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '../../monitoring/monitoring.service';
+import { ZodValidationException } from 'nestjs-zod';
+import { ZodIssue } from 'zod';
 
 interface RequestUser {
   id?: string;
   clinicId?: string;
+}
+
+interface ZodErrorDetails {
+  errors: ZodIssue[];
+}
+
+interface HttpExceptionResponse {
+  message?: string | string[];
+  error?: string;
+  statusCode?: number;
 }
 
 @Catch()
@@ -24,10 +36,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
     private monitoringService?: MonitoringService,
   ) {}
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(
+    exception:
+      | HttpException
+      | Prisma.PrismaClientKnownRequestError
+      | Prisma.PrismaClientValidationError
+      | ZodValidationException
+      | Error,
+    host: ArgumentsHost,
+  ) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    // Detailed Zod logging at the top
+    if (exception instanceof ZodValidationException) {
+      const zodError = exception.getZodError() as ZodErrorDetails;
+      console.error(
+        'Zod Validation Error Details:',
+        JSON.stringify(zodError.errors, null, 2),
+      );
+    }
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'An unexpected error occurred';
@@ -36,7 +65,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      errorType = 'HttpException';
+      errorType = exception.name || 'HttpException';
       errorStack = exception.stack;
       const exceptionResponse = exception.getResponse();
 
@@ -46,30 +75,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null
       ) {
-        const responseObj = exceptionResponse as Record<string, unknown>;
+        const responseObj = exceptionResponse as HttpExceptionResponse;
         message =
-          (responseObj.message as string) ||
-          (responseObj.error as string) ||
+          (Array.isArray(responseObj.message)
+            ? responseObj.message.join(', ')
+            : responseObj.message) ||
+          responseObj.error ||
           message;
-
-        if (Array.isArray(responseObj.message)) {
-          message = responseObj.message.join(', ');
-        }
       }
-    } else if (
-      exception &&
-      typeof exception === 'object' &&
-      'code' in exception &&
-      exception instanceof Prisma.PrismaClientKnownRequestError
-    ) {
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       errorType = 'PrismaClientKnownRequestError';
-      errorStack = (exception as any).stack;
-      switch ((exception as any).code) {
+      errorStack = exception.stack;
+      switch (exception.code) {
         case 'P2002': {
           status = HttpStatus.CONFLICT;
-          const fields = ((exception as any).meta?.target as string[]) || [
-            'field',
-          ];
+          const fields = (exception.meta?.target as string[]) || ['field'];
           message = `A record with this ${fields.join(', ')} already exists`;
           break;
         }
@@ -84,16 +104,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
         default:
           message = 'Database error occurred';
       }
-    } else if (
-      exception &&
-      typeof exception === 'object' &&
-      'message' in exception &&
-      exception instanceof Prisma.PrismaClientValidationError
-    ) {
+    } else if (exception instanceof Prisma.PrismaClientValidationError) {
       status = HttpStatus.BAD_REQUEST;
       errorType = 'PrismaClientValidationError';
-      errorStack = (exception as any).stack;
-      const errorMessage = (exception as any).message;
+      errorStack = exception.stack;
+      const errorMessage = exception.message;
 
       if (errorMessage.includes('Invalid value for argument')) {
         const match = errorMessage.match(/Invalid value for argument `(\w+)`/);
@@ -107,7 +122,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      console.error('Unhandled error:', exception);
+      console.error('Unhandled error details:', {
+        name: exception.name,
+        message: exception.message,
+        stack: exception.stack,
+      });
+    } else {
+      console.error('Unhandled or Known exception type:', exception);
+    }
+
+    if (exception instanceof Error) {
+      message = exception.message || message;
+      errorType = exception.name || 'Error';
+      errorStack = exception.stack;
+
+      console.error('Unhandled error details:', {
+        name: exception.name,
+        message: exception.message,
+        stack: exception.stack,
+      });
     }
 
     // Log error to monitoring service
@@ -124,7 +157,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
         statusCode: status,
         userAgent: request.headers['user-agent'],
         ip: request.ip || request.headers['x-forwarded-for']?.toString(),
-        requestBody: request.body as Record<string, unknown>,
+        requestBody: request.body as Record<
+          string,
+          string | number | boolean | null | undefined | object
+        >,
         severity:
           (status as number) >= 500
             ? ErrorSeverity.CRITICAL

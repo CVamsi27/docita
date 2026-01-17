@@ -2,21 +2,18 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Separator } from "@workspace/ui/components/separator";
 import { toast } from "sonner";
 import {
   useCreatePrescription,
   usePatientPrescriptions,
 } from "@/hooks/api/use-clinical";
-import { RotateCcw, X, Plus, Pill } from "lucide-react";
-import type { Prescription } from "@workspace/types";
+import { Pill, Plus, RotateCcw, X } from "lucide-react";
 
 export interface ModalProps {
   open?: boolean;
@@ -53,7 +50,7 @@ export function PrescriptionModal({
   const { data: lastRxData } = usePatientPrescriptions(
     patientId || "",
     { limit: 1 },
-    { enabled: !!patientId },
+    { enabled: !!patientId }
   );
 
   const lastRx = lastRxData?.items?.[0];
@@ -114,7 +111,7 @@ export function PrescriptionModal({
   const updateMedication = (
     index: number,
     field: keyof Medication,
-    value: string,
+    value: string
   ) => {
     const newMeds = [...medications];
     newMeds[index] = { ...newMeds[index], [field]: value };

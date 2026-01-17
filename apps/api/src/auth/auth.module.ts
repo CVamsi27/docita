@@ -27,7 +27,8 @@ if (!jwtSecret && process.env.NODE_ENV === 'production') {
           configService.get<string>('JWT_SECRET') ||
           'dev-only-secret-do-not-use-in-prod',
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '7d') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+            '7d') as any,
         },
       }),
     }),

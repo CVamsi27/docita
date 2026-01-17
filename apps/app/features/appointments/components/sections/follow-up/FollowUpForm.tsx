@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Bell, MessageSquare, Clock } from "lucide-react";
+import { Bell, Clock, MessageSquare } from "lucide-react";
 
 interface FollowUpType {
   value: string;

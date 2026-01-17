@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export interface GlobalShortcutContext {
@@ -141,7 +141,6 @@ export function useGlobalShortcuts({
     [
       enabled,
       router,
-      pathname,
       isInConsultation,
       isOnQueue,
       isOnDashboard,

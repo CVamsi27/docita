@@ -5,16 +5,16 @@
 
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { Feature, type ClinicType } from "@workspace/types";
+import { useCallback, useMemo } from "react";
+import { type ClinicType, Feature } from "@workspace/types";
 
 import { AccessControlFactory } from "../lib/access-control/factory";
-import type {
-  IAccessContext,
-  IAccessDecision,
-  IUpgradeOption,
+import {
+  AddOnType,
+  type IAccessContext,
+  type IAccessDecision,
+  type IUpgradeOption,
 } from "../lib/access-control/interfaces";
-import { AddOnType } from "../lib/access-control/interfaces";
 import { usePermissionStore } from "../lib/stores/permission-store";
 import { useAuth } from "../lib/auth-context";
 import { useClinic } from "../lib/clinic-context"; // NEW

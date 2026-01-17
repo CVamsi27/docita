@@ -156,7 +156,7 @@ export const prescriptionMedicationSchema = z.object({
 });
 
 export type VitalSignsInput = z.infer<typeof vitalSignsInputSchema>;
-export type PrescriptionMedication = z.infer<
+export type ValidationPrescriptionMedication = z.infer<
   typeof prescriptionMedicationSchema
 >;
 

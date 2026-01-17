@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { Patient, Document } from '@workspace/db';
 
 jest.mock('fs/promises', () => ({
   unlink: jest.fn().mockResolvedValue(undefined),
@@ -28,7 +29,40 @@ describe('DocumentsService', () => {
       lastName: 'Doe',
       phoneNumber: '1234567890',
       clinicId: 'clinic-123',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      gender: 'MALE',
+      dateOfBirth: new Date(),
+      preferredName: null,
+      pronouns: null,
+      address: null,
+      email: null,
+      medicalHistory: [],
+      allergies: null,
+      bloodGroup: null,
+      customData: {},
+      race: null,
+      ethnicity: null,
+      preferredLanguage: 'en',
+      maritalStatus: null,
+      emergencyContactName: null,
+      emergencyContactPhone: null,
+      emergencyContactRelation: null,
+      codeStatus: 'FULL_CODE',
+      codeStatusUpdatedAt: null,
+      codeStatusUpdatedBy: null,
+      advanceDirectiveUrl: null,
+      whatsappConsent: false,
+      whatsappConsentAt: null,
     },
+  };
+
+  const fullMockPatient = {
+    ...mockDocument.patient,
+    email: 'john@example.com',
+    address: '123 Test St',
+    mrn: 'MRN-123',
+    status: 'ACTIVE',
   };
 
   beforeEach(async () => {
@@ -73,7 +107,25 @@ describe('DocumentsService', () => {
       expect(result).toEqual([mockDocument]);
       expect(prismaService.document.findMany).toHaveBeenCalledWith({
         where: { patient: { clinicId: 'clinic-123' } },
-        select: expect.any(Object),
+        select: {
+          id: true,
+          patientId: true,
+          name: true,
+          type: true,
+          url: true,
+          fileSize: true,
+          mimeType: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       });
     });
@@ -97,7 +149,27 @@ describe('DocumentsService', () => {
       expect(result).toEqual(mockDocument);
       expect(prismaService.document.findUnique).toHaveBeenCalledWith({
         where: { id: 'doc-123' },
-        select: expect.any(Object),
+        select: {
+          id: true,
+          patientId: true,
+          name: true,
+          type: true,
+          url: true,
+          fileSize: true,
+          mimeType: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phoneNumber: true,
+              clinicId: true,
+            },
+          },
+        },
       });
     });
 
@@ -132,10 +204,9 @@ describe('DocumentsService', () => {
         description: 'Lab test results',
       };
 
-      jest.spyOn(prismaService.patient, 'findUnique').mockResolvedValue({
-        id: 'patient-123',
-        clinicId: 'clinic-123',
-      } as any);
+      jest
+        .spyOn(prismaService.patient, 'findUnique')
+        .mockResolvedValue(fullMockPatient as Patient);
 
       jest
         .spyOn(prismaService.document, 'create')
@@ -154,7 +225,25 @@ describe('DocumentsService', () => {
           mimeType: createData.mimeType,
           description: createData.description,
         },
-        select: expect.any(Object),
+        select: {
+          id: true,
+          patientId: true,
+          name: true,
+          type: true,
+          url: true,
+          fileSize: true,
+          mimeType: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
       });
     });
 
@@ -169,9 +258,9 @@ describe('DocumentsService', () => {
       };
 
       jest.spyOn(prismaService.patient, 'findUnique').mockResolvedValue({
-        id: 'patient-123',
+        ...fullMockPatient,
         clinicId: 'different-clinic',
-      } as any);
+      } as Patient);
 
       await expect(service.create(createData, 'clinic-123')).rejects.toThrow(
         ForbiddenException,
@@ -183,10 +272,10 @@ describe('DocumentsService', () => {
     it('should delete a document and its file', async () => {
       jest
         .spyOn(prismaService.document, 'findUnique')
-        .mockResolvedValue(mockDocument);
+        .mockResolvedValue(mockDocument as Document);
       jest
         .spyOn(prismaService.document, 'delete')
-        .mockResolvedValue(mockDocument);
+        .mockResolvedValue(mockDocument as Document);
 
       const result = await service.remove('doc-123', 'clinic-123');
 

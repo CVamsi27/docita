@@ -26,10 +26,16 @@ import {
 import { AlertTriangle, ArrowRight, Users } from "lucide-react";
 import { ImportPreview } from "../hooks/use-excel-import";
 
+interface DBField {
+  label: string;
+  field: string;
+  required?: boolean;
+}
+
 interface ExcelMappingStepProps {
   preview: ImportPreview;
   columnMappings: Record<string, string>;
-  DB_FIELDS: any[];
+  DB_FIELDS: DBField[];
   isImporting: boolean;
   onUpdateMapping: (excelColumn: string, dbField: string | null) => void;
   onImport: () => void;

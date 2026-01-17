@@ -32,3 +32,6 @@ export const doctorFavoriteCodeSchema = z.object({
 export type IcdCode = z.infer<typeof icdCodeSchema>;
 export type CptCode = z.infer<typeof cptCodeSchema>;
 export type DoctorFavoriteCode = z.infer<typeof doctorFavoriteCodeSchema>;
+
+export type IcdFavorite = DoctorFavoriteCode;
+export type CptFavorite = DoctorFavoriteCode;

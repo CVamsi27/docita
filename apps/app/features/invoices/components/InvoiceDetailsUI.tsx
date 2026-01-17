@@ -21,7 +21,6 @@ import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { useInvoiceDetailsLogic } from "../hooks/use-invoice-details-logic";
 import Link from "next/link";
-import { Invoice } from "@workspace/types";
 import { InvoiceHeader } from "./sections/details/InvoiceHeader";
 import { InvoiceBillTo } from "./sections/details/InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./sections/details/InvoiceItemsTableReadOnly";

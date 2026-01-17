@@ -10,13 +10,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  TestTube,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  FileText,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileText, TestTube } from "lucide-react";
 
 // Lab Order Card
 export const LabOrderCard: FC<{
@@ -136,14 +130,14 @@ export const LabOrderForm: FC<{
     setSelectedTests((prev: string[]) =>
       prev.includes(testId)
         ? prev.filter((id: string) => id !== testId)
-        : [...prev, testId],
+        : [...prev, testId]
     );
   };
 
   const filteredTests = availableTests.filter(
     (t) =>
       t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchTerm.toLowerCase()),
+      t.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Badge } from "@workspace/ui/components/badge";
-import { Feature, Tier, TierName, TIER_INFO } from "@workspace/types";
+import { Feature, Tier, TIER_INFO, TierName } from "@workspace/types";
 
 // Re-export for convenience
 export { Feature, Tier };

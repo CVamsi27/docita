@@ -1,42 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   useAnalyticsOverview,
+  useComplianceMetrics,
   useDiseaseTrends,
   useRevenueByCPT,
-  useComplianceMetrics,
 } from "@/hooks/api/use-analytics";
 import { useClinic } from "@/lib/clinic-context";
 
-export interface AnalyticsOverview {
-  totalPatients: number;
-  patientGrowth: number;
-  newPatientsThisMonth: number;
-  appointmentsThisMonth: number;
-  revenueThisMonth: number;
-  revenueGrowth: number;
-  [key: string]: any;
-}
-
-export interface DiseaseTrend {
-  disease: string;
-  count: number;
-  percentage: number;
-  [key: string]: any;
-}
-
-export interface RevenueCPT {
-  cptCode: string;
-  revenue: number;
-  count: number;
-  [key: string]: any;
-}
-
-export interface ComplianceMetric {
-  metric: string;
-  value: number;
-  status: "good" | "warning";
-  [key: string]: any;
-}
+export type {
+  AnalyticsOverview,
+  ComplianceMetric,
+  DiseaseTrend,
+  RevenueByCPT,
+} from "@workspace/types";
 
 export const useAnalyticsLogic = () => {
   const { clinicId } = useClinic();
@@ -69,10 +45,10 @@ export const useAnalyticsLogic = () => {
 
   return {
     state: {
-      overview: overview as AnalyticsOverview | undefined,
-      diseaseTrends: diseaseTrends as DiseaseTrend[],
-      revenueByCPT: revenueByCPT as RevenueCPT[],
-      complianceMetrics: complianceMetrics as ComplianceMetric[],
+      overview: overview,
+      diseaseTrends: diseaseTrends,
+      revenueByCPT: revenueByCPT,
+      complianceMetrics: complianceMetrics,
       isLoading,
       trendsLoading,
       revenueLoading,

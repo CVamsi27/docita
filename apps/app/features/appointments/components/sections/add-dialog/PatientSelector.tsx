@@ -23,10 +23,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import type { CreateAppointmentInput, Patient } from "@workspace/types";
+import type { Patient } from "@workspace/types";
 
-interface PatientSelectorProps {
-  form: UseFormReturn<CreateAppointmentInput>;
+interface PatientSelectorProps<
+  T extends import("react-hook-form").FieldValues,
+> {
+  form: UseFormReturn<T>;
   patients: Patient[];
   patientsLoading: boolean;
   patientSearch: string;
@@ -35,7 +37,9 @@ interface PatientSelectorProps {
   setPatientComboboxOpen: (open: boolean) => void;
 }
 
-export function PatientSelector({
+export function PatientSelector<
+  T extends import("react-hook-form").FieldValues,
+>({
   form,
   patients,
   patientsLoading,
@@ -43,11 +47,11 @@ export function PatientSelector({
   setPatientSearch,
   patientComboboxOpen,
   setPatientComboboxOpen,
-}: PatientSelectorProps) {
+}: PatientSelectorProps<T>) {
   return (
     <FormField
       control={form.control}
-      name="patientId"
+      name={"patientId" as unknown as import("react-hook-form").Path<T>}
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>Patient</FormLabel>
@@ -63,13 +67,13 @@ export function PatientSelector({
                   role="combobox"
                   className={cn(
                     "w-full justify-between",
-                    !field.value && "text-muted-foreground",
+                    !field.value && "text-muted-foreground"
                   )}
                 >
                   {field.value
                     ? (() => {
                         const patient = patients.find(
-                          (p) => p.id === field.value,
+                          (p) => p.id === field.value
                         );
                         return patient
                           ? `${patient.firstName} ${patient.lastName}`
@@ -105,7 +109,13 @@ export function PatientSelector({
                         value={patient.id}
                         onSelect={() => {
                           if (patient.id) {
-                            form.setValue("patientId", patient.id);
+                            form.setValue(
+                              "patientId" as unknown as import("react-hook-form").Path<T>,
+                              patient.id as import("react-hook-form").PathValue<
+                                T,
+                                import("react-hook-form").Path<T>
+                              >
+                            );
                           }
                           setPatientComboboxOpen(false);
                         }}
@@ -115,7 +125,7 @@ export function PatientSelector({
                             "mr-2 h-4 w-4",
                             patient.id === field.value
                               ? "opacity-100"
-                              : "opacity-0",
+                              : "opacity-0"
                           )}
                         />
                         <div className="flex flex-col">

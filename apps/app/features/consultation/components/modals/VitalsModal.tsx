@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -50,7 +50,7 @@ export function VitalsModal({
       if (!appointmentId) return;
 
       // Filter empty strings and convert to numbers
-      const payload: any = { appointmentId };
+      const payload: Record<string, unknown> = { appointmentId };
       Object.entries(vitals).forEach(([key, value]) => {
         if (value.trim() !== "") {
           payload[key] = parseFloat(value);

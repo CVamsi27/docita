@@ -21,10 +21,13 @@ export const useInvoicesLogic = () => {
     search: debouncedSearch || undefined,
   });
 
-  const invoices = Array.isArray(invoicesResponse) ? invoicesResponse : [];
+  const invoices = useMemo(
+    () => (Array.isArray(invoicesResponse) ? invoicesResponse : []),
+    [invoicesResponse]
+  );
 
   const filteredInvoices = useMemo(() => {
-    let result = [...invoices];
+    const result = [...invoices];
 
     // Backend-driven status filtering, frontend handles sorting for now
 
@@ -48,7 +51,7 @@ export const useInvoicesLogic = () => {
     });
 
     return result;
-  }, [invoices, filter, sortBy]);
+  }, [invoices, sortBy]);
 
   const handleDownloadPdf = async (invoiceId: string) => {
     try {

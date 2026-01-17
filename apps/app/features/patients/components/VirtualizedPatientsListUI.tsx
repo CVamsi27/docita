@@ -6,7 +6,7 @@
 import { Card } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
-import { Calendar, Phone, Mail } from "lucide-react";
+import { Calendar, Mail, Phone } from "lucide-react";
 import type { Patient } from "@workspace/types";
 
 interface VirtualizedPatientsListUIProps {

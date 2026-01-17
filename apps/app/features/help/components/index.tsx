@@ -11,14 +11,14 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
-  HelpCircle,
-  Search,
   BookOpen,
-  Video,
-  MessageCircle,
-  Mail,
   ChevronRight,
   ExternalLink,
+  HelpCircle,
+  Mail,
+  MessageCircle,
+  Search,
+  Video,
 } from "lucide-react";
 
 // Help categories

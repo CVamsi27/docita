@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -276,7 +276,9 @@ export function BillingModal({
                 <div className="flex items-center gap-2">
                   <Select
                     value={discountType}
-                    onValueChange={(v: any) => setDiscountType(v)}
+                    onValueChange={(v) =>
+                      setDiscountType(v as "PERCENTAGE" | "AMOUNT")
+                    }
                   >
                     <SelectTrigger className="w-[110px]">
                       <SelectValue />

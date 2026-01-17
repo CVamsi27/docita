@@ -1,8 +1,9 @@
 import { Pill } from "lucide-react";
 import { SectionToggle } from "../SectionToggle";
+import { OCRFormData } from "../../types";
 
 interface OCRMedicationsProps {
-  formData: any;
+  formData: OCRFormData;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -26,7 +27,7 @@ export const OCRMedications = ({
       {isOpen && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           {formData.medications.length > 0 ? (
-            formData.medications.map((med: any, idx: number) => (
+            formData.medications.map((med, idx) => (
               <div
                 key={idx}
                 className="p-2 border border-border rounded text-sm space-y-1"

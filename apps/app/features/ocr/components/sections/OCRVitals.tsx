@@ -3,10 +3,11 @@ import { Label } from "@workspace/ui/components/label";
 import { Activity } from "lucide-react";
 import { ConfidenceIndicator } from "../ConfidenceIndicator";
 import { SectionToggle } from "../SectionToggle";
+import { OCRFormData } from "../../types";
 
 interface OCRVitalsProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: OCRFormData;
+  setFormData: (data: OCRFormData) => void;
   getScore: (key: string) => number | undefined;
   isOpen: boolean;
   onToggle: () => void;
@@ -35,7 +36,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">BP</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_bp"),
+                    getScore("vitals_bp")
                   )}
                 />
               </div>
@@ -58,7 +59,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">Temp (°F)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_temp"),
+                    getScore("vitals_temp")
                   )}
                 />
               </div>
@@ -81,7 +82,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">Pulse</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_pulse"),
+                    getScore("vitals_pulse")
                   )}
                 />
               </div>

@@ -13,10 +13,16 @@ import { Badge } from "@workspace/ui/components/badge";
 import { FileSpreadsheet, Loader2, Upload } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
+interface DBField {
+  label: string;
+  field: string;
+  required?: boolean;
+}
+
 interface ExcelUploadStepProps {
   file: File | null;
   isUploading: boolean;
-  DB_FIELDS: any[];
+  DB_FIELDS: DBField[];
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onUpload: () => void;
 }
@@ -45,7 +51,7 @@ export const ExcelUploadStep = ({
             "flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors",
             file
               ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50",
+              : "border-muted-foreground/25 hover:border-primary/50"
           )}
         >
           <Input

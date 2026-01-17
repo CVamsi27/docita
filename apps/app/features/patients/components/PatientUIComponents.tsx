@@ -1,12 +1,12 @@
 "use client";
 
-import React, { FC, ReactNode } from "react";
+import React, { FC } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
@@ -17,12 +17,11 @@ import {
   Clock,
   FileText,
   Heart,
+  type LucideIcon,
   Pill,
   Receipt,
-  User,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Patient as BasePatient, Appointment } from "@workspace/types";
+import { Appointment, Patient as BasePatient } from "@workspace/types";
 
 // Extended types for UI components
 interface Patient extends BasePatient {
@@ -159,7 +158,7 @@ export const PatientMedicalHistory: FC<PatientMedicalHistoryProps> = ({
           <CardTitle>Medical History</CardTitle>
         </div>
         <CardDescription>
-          Patient's medical conditions and history
+          Patient&apos;s medical conditions and history
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

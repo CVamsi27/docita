@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePatientData, PatientStatistics } from "@/hooks/use-patient-data";
+import { usePatientData } from "@/hooks/use-patient-data";
 import { useAuth } from "@/lib/auth-context";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
@@ -26,7 +26,7 @@ export const usePatientDetailLogic = (patientId: string) => {
     // Actually, for now, let's allow all doctors in the clinic to see all patients in the clinic
     // Since usePatientData already filters by clinicId on the server side (via the user's token)
     return true;
-  }, [user?.role, user?.id]);
+  }, [user]);
 
   const handleScheduleVisit = useCallback(() => {
     if (patient?.id) {

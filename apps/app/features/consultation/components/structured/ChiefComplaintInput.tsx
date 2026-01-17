@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Plus, Trash2, Activity } from "lucide-react";
+import { Activity, Plus, Trash2 } from "lucide-react";
 
 export interface ChiefComplaintItem {
   id: string;

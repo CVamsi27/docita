@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/app-config-context";
 import { useClinic } from "@/lib/clinic-context";

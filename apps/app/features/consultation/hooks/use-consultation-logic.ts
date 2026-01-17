@@ -37,7 +37,10 @@ export const useConsultationLogic = (appointmentId: string) => {
   const { data: patientAppointmentsResponse } = usePatientAppointments(
     appointmentData?.patientId || "",
   );
-  const patientAppointments = patientAppointmentsResponse?.items || [];
+  const patientAppointments = useMemo(
+    () => patientAppointmentsResponse?.items || [],
+    [patientAppointmentsResponse?.items],
+  );
 
   // Filter past appointments (exclude current, only completed)
   const pastAppointments = useMemo(() => {

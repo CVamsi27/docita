@@ -1,10 +1,10 @@
 import * as React from "react";
 import { differenceInYears } from "date-fns";
 import {
-  PatientSummaryCardUI,
-  PatientSummaryData,
   Allergy,
   ChronicCondition,
+  PatientSummaryCardUI,
+  PatientSummaryData,
   VitalSign,
 } from "./PatientSummaryCardUI";
 

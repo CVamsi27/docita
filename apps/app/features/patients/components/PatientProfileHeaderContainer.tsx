@@ -4,10 +4,7 @@
  */
 
 import { usePatient } from "../hooks/usePatients";
-import {
-  getPatientDisplayName,
-  getPatientAgeDisplay,
-} from "../rules/patientRules";
+import { getPatientAgeDisplay } from "../rules/patientRules";
 import { getInitials } from "@/features/_shared/utils";
 import { PatientProfileHeaderUI } from "./PatientProfileHeaderUI";
 

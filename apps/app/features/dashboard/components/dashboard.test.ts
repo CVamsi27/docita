@@ -1,7 +1,7 @@
 /**
  * Dashboard Components Unit Tests
  */
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // Test DailyProgress rules
 describe("DailyProgress Business Rules", () => {

@@ -1,6 +1,9 @@
 import React from "react";
 import { toast } from "sonner";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import {
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import {
   Card,
   CardContent,
@@ -18,7 +21,7 @@ export function ClinicGeneralSettings() {
   const [formData, setFormData] = React.useState({
     name: "",
     address: "",
-    phoneNumber: "",
+    phone: "",
   });
 
   React.useEffect(() => {
@@ -26,7 +29,7 @@ export function ClinicGeneralSettings() {
       setFormData({
         name: clinic.name || "",
         address: clinic.address || "",
-        phoneNumber: clinic.phoneNumber || "",
+        phone: clinic.phone || "",
       });
     }
   }, [clinic]);
@@ -55,26 +58,32 @@ export function ClinicGeneralSettings() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>Clinic Name</Label>
-          <Input 
-            placeholder="Enter clinic name" 
+          <Input
+            placeholder="Enter clinic name"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>Address</Label>
-          <Input 
-            placeholder="Enter address" 
+          <Input
+            placeholder="Enter address"
             value={formData.address}
-            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, address: e.target.value }))
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>Phone Number</Label>
-          <Input 
-            placeholder="Enter phone number" 
-            value={formData.phoneNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+          <Input
+            placeholder="Enter phone number"
+            value={formData.phone}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, phone: e.target.value }))
+            }
           />
         </div>
         <Button className="w-full" onClick={handleSubmit} disabled={isPending}>

@@ -29,7 +29,6 @@ interface EditPatientDialogProps {
 export const AddPatientDialog: FC<AddPatientDialogProps> = ({
   open,
   onOpenChange,
-  onPatientAdded,
 }) => {
   const [patient, setPatient] = useState({
     firstName: "",

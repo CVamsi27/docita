@@ -1,8 +1,43 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clinic, User } from "@workspace/types";
-import { fetchAPI, useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
 // Clinic Settings
+export interface CustomField {
+  name: string;
+  type: string;
+  required: boolean;
+}
+
+export interface ClinicAppSettings {
+  // Appearance
+  theme?: "light" | "dark" | "system";
+  primaryColor?: string;
+  compactMode?: boolean;
+  
+  // Notifications
+  emailNotifications?: boolean;
+  smsNotifications?: boolean;
+  pushNotifications?: boolean;
+  appointmentAlerts?: boolean;
+  reportAlerts?: boolean;
+  reminderBefore?: string;
+  reminderUnit?: string;
+
+  // Security
+  twoFactorAuth?: boolean;
+  sessionTimeout?: string | number;
+  auditLogs?: boolean;
+
+  // WhatsApp
+  whatsappAppointmentReminders?: boolean;
+  whatsappFollowUpMessages?: boolean;
+  whatsappBirthdayWishes?: boolean;
+  whatsappMedicineReminders?: boolean;
+
+  // Custom Fields
+  customFields?: CustomField[];
+}
+
 export const useClinicSettings = () =>
   useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings");
 
@@ -10,7 +45,14 @@ export const useClinicMembers = () =>
   useAPIQuery<User[]>(["clinic", "members"], "/clinic/members");
 
 export const useUpdateClinicSettings = () =>
-  useAPIMutation<Clinic, Partial<Clinic>>("/clinic/settings", "PUT");
+  useAPIMutation<
+    Clinic,
+    Partial<ClinicAppSettings> & {
+      name?: string;
+      address?: string;
+      phone?: string;
+    }
+  >("/clinic/settings", "PUT");
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<{

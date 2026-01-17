@@ -6,13 +6,6 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
 import { useConstants } from "../../../../hooks/api/use-common";
@@ -96,7 +89,7 @@ export function DentalChartUI({
           "h-12 w-10 flex flex-col items-center justify-center border rounded-md text-xs font-medium transition-all",
           condition.color,
           isSelected ? "ring-2 ring-primary ring-offset-2" : "",
-          readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm",
+          readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm"
         )}
         title={`Tooth ${toothId}: ${condition.label}`}
       >

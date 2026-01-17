@@ -452,3 +452,4 @@ export const userSchema = z.object({
     updatedAt: z.string().or(z.date()),
 });
 export type User = z.infer<typeof userSchema>;
+export type Doctor = User;

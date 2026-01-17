@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { AuthenticatedRequest } from '../common/middleware/tenant-context.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import {
@@ -32,12 +33,16 @@ export class DocumentsController {
   @Get()
   @ZodSerializerDto(DocumentListResponseDto)
   findAll(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Query('search') search?: string,
     @Query('type') type?: string,
     @Query('patientId') patientId?: string,
   ) {
-    return this.documentsService.findAll(req.user.clinicId, {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID not found in request');
+    }
+    return this.documentsService.findAll(clinicId, {
       search,
       type,
       patientId,
@@ -46,8 +51,12 @@ export class DocumentsController {
 
   @Get(':id')
   @ZodSerializerDto(DocumentResponseDto)
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.documentsService.findOne(id, req.user.clinicId);
+  findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID not found in request');
+    }
+    return this.documentsService.findOne(id, clinicId);
   }
 
   @Post('upload')
@@ -72,8 +81,12 @@ export class DocumentsController {
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UploadDocumentDto,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID not found in request');
+    }
     if (!file) {
       throw new BadRequestException('File is required');
     }
@@ -87,12 +100,16 @@ export class DocumentsController {
         mimeType: file.mimetype,
         description: body.description,
       },
-      req.user.clinicId,
+      clinicId,
     );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req) {
-    return this.documentsService.remove(id, req.user.clinicId);
+  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID not found in request');
+    }
+    return this.documentsService.remove(id, clinicId);
   }
 }

@@ -9,8 +9,10 @@ import {
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { FlaskConical } from "lucide-react";
 
+import { LabTest } from "@workspace/types";
+
 interface LabTestsCatalogProps {
-  testCatalog: any[];
+  testCatalog: LabTest[];
   isLoading: boolean;
 }
 
@@ -44,7 +46,7 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {testCatalog.map((test: any) => (
+                {testCatalog.map((test) => (
                   <tr
                     key={test.id}
                     className="border-b hover:bg-muted/50 transition-colors"

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  useTemplates,
-  useDeleteTemplate,
   useCreateTemplate,
+  useDeleteTemplate,
+  useTemplates,
   useUpdateTemplate,
 } from "@/hooks/api/use-clinical";
 import { ClinicalTemplate } from "@workspace/types";

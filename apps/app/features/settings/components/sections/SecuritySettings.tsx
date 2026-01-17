@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,14 +11,19 @@ import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Loader2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import {
+  ClinicAppSettings,
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 
 export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ClinicAppSettings>({
     twoFactorAuth: false,
     sessionTimeout: "30",
     auditLogs: true,
@@ -26,7 +31,7 @@ export function SecuritySettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = clinic.settings as Record<string, any> || {};
+      const s = (clinic.settings as ClinicAppSettings) || {};
       setSettings({
         twoFactorAuth: s.twoFactorAuth ?? false,
         sessionTimeout: String(s.sessionTimeout || "30"),
@@ -41,7 +46,7 @@ export function SecuritySettings() {
         twoFactorAuth: settings.twoFactorAuth,
         sessionTimeout: settings.sessionTimeout,
         auditLogs: settings.auditLogs,
-      } as any,
+      },
       {
         onSuccess: () => {
           toast.success("Security settings saved successfully");

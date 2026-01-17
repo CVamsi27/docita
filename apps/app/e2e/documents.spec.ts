@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { setupTestUser, loginUser, UserData, API_URL } from "./utils/patient-helpers";
+import { API_URL, loginUser, setupTestUser, UserData } from "./utils/patient-helpers";
 
 test.describe("Documents", () => {
   let user: UserData;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -26,18 +26,18 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import {
+  ClinicAppSettings,
+  CustomField,
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
-
-interface CustomField {
-  name: string;
-  type: string;
-  required: boolean;
-}
 
 export function CustomFieldsSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
   const [fields, setFields] = useState<CustomField[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -49,7 +49,7 @@ export function CustomFieldsSettings() {
 
   useEffect(() => {
     if (clinic) {
-      const s = clinic.settings as Record<string, any> || {};
+      const s = (clinic.settings as ClinicAppSettings) || {};
       setFields(s.customFields || []);
     }
   }, [clinic]);
@@ -71,14 +71,14 @@ export function CustomFieldsSettings() {
 
   const saveFields = (updatedFields: CustomField[]) => {
     updateSettings(
-      { customFields: updatedFields } as any,
+      { customFields: updatedFields },
       {
         onSuccess: () => {
           toast.success("Custom fields updated successfully");
         },
         onError: (error) => {
           toast.error(`Failed to save custom fields: ${error.message}`);
-        }
+        },
       }
     );
   };
@@ -101,7 +101,11 @@ export function CustomFieldsSettings() {
               Define custom fields for patient records
             </CardDescription>
           </div>
-          <Button size="sm" onClick={() => setIsDialogOpen(true)} className="gap-2">
+          <Button
+            size="sm"
+            onClick={() => setIsDialogOpen(true)}
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" />
             Add Field
           </Button>
@@ -125,9 +129,9 @@ export function CustomFieldsSettings() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDeleteField(i)}
                       disabled={isSaving}
@@ -156,7 +160,9 @@ export function CustomFieldsSettings() {
               <Input
                 id="name"
                 value={newField.name}
-                onChange={(e) => setNewField({ ...newField, name: e.target.value })}
+                onChange={(e) =>
+                  setNewField({ ...newField, name: e.target.value })
+                }
                 placeholder="e.g., Blood Type"
               />
             </div>
@@ -183,7 +189,9 @@ export function CustomFieldsSettings() {
               <Switch
                 id="required"
                 checked={newField.required}
-                onCheckedChange={(checked) => setNewField({ ...newField, required: checked })}
+                onCheckedChange={(checked) =>
+                  setNewField({ ...newField, required: checked })
+                }
               />
             </div>
           </div>
@@ -191,7 +199,10 @@ export function CustomFieldsSettings() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddField} disabled={!newField.name || isSaving}>
+            <Button
+              onClick={handleAddField}
+              disabled={!newField.name || isSaving}
+            >
               {isSaving ? "Saving..." : "Add Field"}
             </Button>
           </DialogFooter>

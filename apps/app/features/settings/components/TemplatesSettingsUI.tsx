@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -27,7 +27,7 @@ import {
 } from "@workspace/ui/components/select";
 import { useTemplatesSettingsLogic } from "../hooks/use-templates-settings-logic";
 import { ClinicalTemplate } from "@workspace/types";
-import { Loader2, Plus, Trash2, Edit2, Copy } from "lucide-react";
+import { Copy, Edit2, Loader2, Plus, Trash2 } from "lucide-react";
 
 export const TemplatesSettingsUI: FC = () => {
   const { state, handlers } = useTemplatesSettingsLogic();

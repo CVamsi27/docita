@@ -1,4 +1,4 @@
-import { ArrowLeft, User, PanelLeft } from "lucide-react";
+import { ArrowLeft, PanelLeft, User } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Sheet,

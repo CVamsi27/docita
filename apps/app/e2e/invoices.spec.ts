@@ -94,7 +94,9 @@ test.describe("Invoices", () => {
         data: {
           firstName: "Test",
           lastName: `Patient${Date.now()}`,
-          phone: `9${Math.floor(Math.random() * 1e9)}`,
+          dateOfBirth: "1990-01-01",
+          gender: "MALE",
+          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, '0'),
         },
       });
       if (patientRes.ok()) {

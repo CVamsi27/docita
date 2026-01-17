@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Appointment } from "@workspace/types";
 import {
+  canCancel,
+  canCheckIn,
+  getAppointmentStatusDisplay,
   isAppointmentPast,
   isAppointmentToday,
-  canCheckIn,
-  canCancel,
-  getAppointmentStatusDisplay,
   validateAppointmentData,
 } from "./appointmentRules";
 

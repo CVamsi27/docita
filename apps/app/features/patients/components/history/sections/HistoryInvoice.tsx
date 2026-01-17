@@ -1,8 +1,10 @@
 import { Receipt } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 
+import { InvoiceItem } from "@workspace/types";
+
 interface InvoiceData {
-  items?: any[];
+  items?: InvoiceItem[];
   total?: number;
   status: string;
 }

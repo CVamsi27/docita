@@ -17,7 +17,7 @@ export const CreatePrescriptionTemplateSchema = z.object({
 
 export const PrescriptionTemplateSchema =
   CreatePrescriptionTemplateSchema.extend({
-    id: z.string().uuid(),
+    id: z.string(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   });

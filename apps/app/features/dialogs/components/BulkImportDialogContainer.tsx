@@ -7,8 +7,8 @@ import {
 } from "@/hooks/api/use-import";
 import {
   BulkImportDialogUI,
-  EntityType,
   BulkImportStep,
+  EntityType,
 } from "./BulkImportDialogUI";
 interface BulkImportDialogContainerProps {
   open?: boolean;

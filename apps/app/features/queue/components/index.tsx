@@ -10,12 +10,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
-  Clock,
-  Users,
   CheckCircle2,
+  Clock,
   Play,
   RefreshCw,
   Settings,
+  Users,
 } from "lucide-react";
 
 // Type definitions

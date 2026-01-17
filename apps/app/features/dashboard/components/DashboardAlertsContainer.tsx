@@ -8,7 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
-import { DashboardAlertsUI, AlertItem } from "./DashboardAlertsUI";
+import { AlertItem, DashboardAlertsUI } from "./DashboardAlertsUI";
 
 interface DashboardAlertsContainerProps {
   todayAppointments: number;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { format, addWeeks, addMonths } from "date-fns";
-import { FollowUpSchedulerUI, FollowUpDetails } from "./FollowUpSchedulerUI";
+import { addMonths, addWeeks, format } from "date-fns";
+import { FollowUpDetails, FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
 
 interface FollowUpSchedulerContainerProps {
   patientId: string;

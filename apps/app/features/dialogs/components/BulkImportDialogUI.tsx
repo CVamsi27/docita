@@ -17,7 +17,7 @@ import { BulkImportStepDownload } from "./bulk-import/BulkImportStepDownload";
 import { BulkImportStepUpload } from "./bulk-import/BulkImportStepUpload";
 import { BulkImportStepProgress } from "./bulk-import/BulkImportStepProgress";
 import { BulkImportStepResult } from "./bulk-import/BulkImportStepResult";
-import { EntityType, BulkImportStep, STEPS } from "./bulk-import/types";
+import { BulkImportStep, EntityType, STEPS } from "./bulk-import/types";
 
 export type { EntityType, BulkImportStep };
 

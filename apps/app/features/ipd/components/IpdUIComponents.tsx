@@ -9,15 +9,15 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { BedDouble, Users, Activity, Calendar } from "lucide-react";
+import { Activity, BedDouble, Calendar, Users } from "lucide-react";
 
 // Import shared types from ipdRules
 // Adjusting import path since we are in components folder now: ../rules/ipdRules matches
 import type {
   Bed,
-  Ward,
   BedStatus,
   BedType,
+  Ward,
   WardType,
 } from "../rules/ipdRules";
 

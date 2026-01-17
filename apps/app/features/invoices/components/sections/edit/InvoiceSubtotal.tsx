@@ -1,4 +1,4 @@
-import { Control } from "react-hook-form";
+import { Control, FieldValues, Path } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -7,23 +7,23 @@ import {
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 
-interface InvoiceSubtotalProps {
-  control: Control<any>;
+interface InvoiceSubtotalProps<T extends FieldValues & { discount: number }> {
+  control: Control<T>;
   totalAmount: number;
   formatCurrency: (amount: number) => string;
 }
 
-export function InvoiceSubtotal({
+export function InvoiceSubtotal<T extends FieldValues & { discount: number }>({
   control,
   totalAmount,
   formatCurrency,
-}: InvoiceSubtotalProps) {
+}: InvoiceSubtotalProps<T>) {
   return (
     <div className="flex flex-col items-end gap-4 mt-6">
       <div className="w-full max-w-[300px] space-y-4">
         <FormField
           control={control}
-          name="discount"
+          name={"discount" as Path<T>}
           render={({ field }) => (
             <FormItem className="flex items-center justify-between space-y-0 gap-4">
               <FormLabel className="shrink-0">Discount</FormLabel>

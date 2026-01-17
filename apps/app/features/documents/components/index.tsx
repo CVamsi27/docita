@@ -10,16 +10,15 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
+
 import {
-  FileText,
-  Upload,
-  Search,
-  Eye,
   Download,
-  Trash2,
-  Image,
+  Eye,
   File,
+  FileText,
+  Image,
+  Trash2,
+  Upload,
 } from "lucide-react";
 
 // Document List Component

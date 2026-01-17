@@ -49,3 +49,40 @@ export const DiseaseTrendSchema = z.object({
 
 export type AnalyticsPeriod = z.infer<typeof AnalyticsPeriod>;
 export type AnalyticsGroupBy = z.infer<typeof AnalyticsGroupBy>;
+
+// ... types
+
+export type DiseaseTrend = z.infer<typeof DiseaseTrendSchema> & {
+    disease?: string;      // from local usage
+    count?: number;        // from local usage
+    percentage?: number;   // from local usage
+    [key: string]: unknown;
+};
+
+export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {
+    patientGrowth?: number;
+    newPatientsThisMonth?: number;
+    appointmentsThisMonth?: number;
+    revenueThisMonth?: number;
+    revenueGrowth?: number;
+    // Allow for keys used in UI not yet in schema
+    [key: string]: unknown;
+};
+
+export interface ComplianceMetric {
+    category: string;
+    score: number;
+    issues: number;
+    status: 'compliant' | 'warning' | 'critical' | 'good'; // include 'good' for transition
+    metric?: string; // from local usage
+    value?: number; // from local usage
+}
+
+export interface RevenueByCPT {
+    code: string;
+    description: string;
+    revenue: number;
+    count: number;
+    cptCode?: string; // from local usage
+    [key: string]: unknown;
+}

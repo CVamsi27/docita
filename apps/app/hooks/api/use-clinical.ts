@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Appointment,
   ClinicalTemplate,
   CreatePrescriptionInput,
   Document,
@@ -8,7 +7,6 @@ import {
   LabTestOrder,
   Patient,
   Prescription,
-  UpdateAppointmentInput,
   VitalSign,
 } from "@workspace/types";
 import { fetchAPI, useAPIMutation, useAPIQuery } from "../../lib/api-core";

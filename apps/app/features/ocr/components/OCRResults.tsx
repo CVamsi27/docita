@@ -7,14 +7,15 @@ import { OCRClinicalFindings } from "./sections/OCRClinicalFindings";
 import { OCRVitals } from "./sections/OCRVitals";
 import { OCRMedications } from "./sections/OCRMedications";
 import { OCRLabValues } from "./sections/OCRLabValues";
+import { OCRFormData } from "../types";
 
 interface OCRResultsProps {
   scanned: boolean;
   documentType: string;
   confidenceScores: Record<string, number>;
   suggestedCorrections: Record<string, string>;
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: OCRFormData;
+  setFormData: (data: OCRFormData) => void;
   expandedSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
   isSaving: boolean;
@@ -41,7 +42,7 @@ export const OCRResults = ({
 
   const hasPatientInfoLowConfidence = Object.entries(confidenceScores)
     .filter(([key]) =>
-      ["firstName", "lastName", "phoneNumber", "email"].includes(key),
+      ["firstName", "lastName", "phoneNumber", "email"].includes(key)
     )
     .some(([, score]) => score < 0.6);
 

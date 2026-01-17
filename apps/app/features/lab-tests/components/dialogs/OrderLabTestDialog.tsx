@@ -31,15 +31,18 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
+import { LabTest, Patient } from "@workspace/types";
+import { CreateLabTestOrderInput } from "../../hooks/use-lab-tests-logic";
+
 interface OrderLabTestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: UseFormReturn<any>;
-  onSubmit: (data: any) => void;
+  form: UseFormReturn<CreateLabTestOrderInput>;
+  onSubmit: (data: CreateLabTestOrderInput) => void;
   isCreating: boolean;
-  patients: any[];
+  patients: Patient[];
   patientsLoading: boolean;
-  testCatalog: any[];
+  testCatalog: LabTest[];
   catalogLoading: boolean;
   patientSearch: string;
   setPatientSearch: (value: string) => void;
@@ -49,8 +52,8 @@ interface OrderLabTestDialogProps {
   setPatientComboboxOpen: (open: boolean) => void;
   testComboboxOpen: boolean;
   setTestComboboxOpen: (open: boolean) => void;
-  selectedPatient: any;
-  selectedTest: any;
+  selectedPatient: Patient | undefined;
+  selectedTest: LabTest | undefined;
 }
 
 export function OrderLabTestDialog({
@@ -105,7 +108,7 @@ export function OrderLabTestDialog({
                           aria-expanded={patientComboboxOpen}
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground",
+                            !field.value && "text-muted-foreground"
                           )}
                         >
                           {selectedPatient
@@ -155,7 +158,7 @@ export function OrderLabTestDialog({
                                       "mr-2 h-4 w-4",
                                       field.value === patient.id
                                         ? "opacity-100"
-                                        : "opacity-0",
+                                        : "opacity-0"
                                     )}
                                   />
                                   <div className="flex flex-col">
@@ -201,7 +204,7 @@ export function OrderLabTestDialog({
                           aria-expanded={testComboboxOpen}
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground",
+                            !field.value && "text-muted-foreground"
                           )}
                         >
                           {selectedTest
@@ -234,12 +237,12 @@ export function OrderLabTestDialog({
                           ) : (
                             <CommandGroup>
                               {testCatalog
-                                .filter((test: any) =>
+                                .filter((test: LabTest) =>
                                   test.name
                                     .toLowerCase()
-                                    .includes(testSearch.toLowerCase()),
+                                    .includes(testSearch.toLowerCase())
                                 )
-                                .map((test: any) => (
+                                .map((test: LabTest) => (
                                   <div
                                     key={test.id}
                                     onClick={() => {
@@ -253,7 +256,7 @@ export function OrderLabTestDialog({
                                         "mr-2 h-4 w-4",
                                         field.value === test.id
                                           ? "opacity-100"
-                                          : "opacity-0",
+                                          : "opacity-0"
                                       )}
                                     />
                                     <div className="flex flex-col flex-1">

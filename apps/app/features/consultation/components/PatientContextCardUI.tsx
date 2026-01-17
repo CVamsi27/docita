@@ -4,10 +4,8 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Clipboard,
   Droplets,
   FileText,
-  Heart,
   History,
   Pill,
   User,
@@ -19,8 +17,8 @@ import {
   CollapsibleContent,
 } from "@workspace/ui/components/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
-import { format, formatDistanceToNow } from "date-fns";
-import { SummaryVitals } from "./shared/SummaryVitals";
+import { formatDistanceToNow } from "date-fns";
+// import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
 
@@ -74,19 +72,18 @@ export function PatientContextCardUI({
   isExpanded,
   onToggleExpand,
   className,
-  showVitalsTrend = false,
+  // showVitalsTrend = false,
 }: PatientContextCardUIProps) {
   const hasAllergies = patient.allergies && patient.allergies.length > 0;
-  const hasConditions = patient.conditions && patient.conditions.length > 0;
-  const hasMedications =
-    patient.currentMedications && patient.currentMedications.length > 0;
+  // const hasConditions = patient.conditions && patient.conditions.length > 0;
+  // const hasMedications = patient.currentMedications && patient.currentMedications.length > 0;
 
   return (
     <div
       className={cn(
         "border rounded-lg bg-card shadow-sm overflow-hidden",
         hasAllergies && "border-l-4 border-l-red-500",
-        className,
+        className
       )}
     >
       {/* Header */}

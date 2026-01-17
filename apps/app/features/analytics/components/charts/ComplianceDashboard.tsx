@@ -39,16 +39,18 @@ export const ComplianceDashboard = ({
               <CardTitle className="text-sm font-medium">
                 {metric.metric}
               </CardTitle>
-              {metric.status === "good" ? (
+              {metric.status === "good" || metric.status === "compliant" ? (
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
               ) : (
                 <AlertCircle className="h-4 w-4 text-yellow-600" />
               )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metric.value}%</div>
+              <div className="text-2xl font-bold">
+                {metric.value || metric.score}%
+              </div>
               <p className="text-xs text-muted-foreground">
-                {metric.status === "good"
+                {metric.status === "good" || metric.status === "compliant"
                   ? "Meeting standards"
                   : "Needs improvement"}
               </p>

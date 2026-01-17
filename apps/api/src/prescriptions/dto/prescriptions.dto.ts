@@ -21,7 +21,7 @@ const MedicationSchema = z
   .passthrough(); // Allow extra fields defined in the shared type
 
 export const CreatePrescriptionSchema = z.object({
-  appointmentId: z.string().uuid(), // Made required based on service error
+  appointmentId: z.string(), // Changed from uuid() to string() for cuid compatibility
   patientId: z.string(),
   doctorId: z.string(),
   instructions: z.string().optional(),

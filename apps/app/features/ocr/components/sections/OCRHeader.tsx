@@ -1,6 +1,5 @@
 import { AlertCircle, AlertOctagon, Lightbulb } from "lucide-react";
 import {
-  Card,
   CardDescription,
   CardHeader,
   CardTitle,

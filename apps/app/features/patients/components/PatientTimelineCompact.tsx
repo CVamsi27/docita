@@ -3,32 +3,18 @@
 import React, { useState } from "react";
 import { format } from "date-fns";
 import {
+  Activity,
+  ArrowRight,
+  Calendar,
   ChevronDown,
   ChevronRight,
   FileText,
-  Stethoscope,
   Pill,
-  Activity,
-  Receipt,
-  Calendar,
-  MoreHorizontal,
-  ArrowRight,
 } from "lucide-react";
 import { Appointment } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+import { Card, CardContent } from "@workspace/ui/components/card";
 
 interface PatientTimelineCompactProps {
   appointments: Appointment[];
@@ -63,7 +49,7 @@ export const PatientTimelineCompact: React.FC<PatientTimelineCompactProps> = ({
       <div className="flex items-center justify-between px-4 py-2 text-sm font-medium text-muted-foreground border-b mb-2">
         <div className="flex-1 md:w-32 md:flex-none">Date</div>
         <div className="flex-1 md:w-40 md:flex-none hidden md:block">Type</div>
-        <div className="flex-[2] hidden md:block">Diagnosis / Complaint</div>
+        <div className="flex-2 hidden md:block">Diagnosis / Complaint</div>
         <div className="flex-1 md:w-32 md:flex-none text-right md:text-left">
           Status
         </div>
@@ -101,7 +87,7 @@ export const PatientTimelineCompact: React.FC<PatientTimelineCompactProps> = ({
             </div>
 
             {/* Diagnosis/Summary */}
-            <div className="flex-[2] hidden md:flex flex-col justify-center text-sm truncate px-4">
+            <div className="flex-2 min-w-0 hidden md:flex flex-col justify-center text-sm truncate px-4">
               <span className="font-medium truncate text-foreground">
                 {apt.finalDiagnosis || apt.chiefComplaint || "No diagnosis"}
               </span>

@@ -4,9 +4,9 @@
  */
 
 import {
-  getLatestVitals,
   calculateBMI,
   getBMIStatus,
+  getLatestVitals,
 } from "../rules/vitalsRules";
 import { PatientVitalsBannerUI } from "./PatientVitalsBannerUI";
 import type { Appointment } from "@workspace/types";

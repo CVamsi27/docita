@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,29 +9,34 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { MessageSquare, Loader2 } from "lucide-react";
-import { useClinicSettings, useUpdateClinicSettings } from "@/hooks/api/use-settings";
+import { Loader2, MessageSquare } from "lucide-react";
+import {
+  ClinicAppSettings,
+  useClinicSettings,
+  useUpdateClinicSettings,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 
 export function WhatsAppAutomationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateClinicSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState({
-    appointmentReminders: true,
-    followUpMessages: true,
-    birthdayWishes: false,
-    medicineReminders: true,
+  const [settings, setSettings] = useState<ClinicAppSettings>({
+    whatsappAppointmentReminders: true,
+    whatsappFollowUpMessages: true,
+    whatsappBirthdayWishes: false,
+    whatsappMedicineReminders: true,
   });
 
   useEffect(() => {
     if (clinic) {
-      const s = clinic.settings as Record<string, any> || {};
+      const s = (clinic.settings as ClinicAppSettings) || {};
       setSettings({
-        appointmentReminders: s.whatsappAppointmentReminders ?? true,
-        followUpMessages: s.whatsappFollowUpMessages ?? true,
-        birthdayWishes: s.whatsappBirthdayWishes ?? false,
-        medicineReminders: s.whatsappMedicineReminders ?? true,
+        whatsappAppointmentReminders: s.whatsappAppointmentReminders ?? true,
+        whatsappFollowUpMessages: s.whatsappFollowUpMessages ?? true,
+        whatsappBirthdayWishes: s.whatsappBirthdayWishes ?? false,
+        whatsappMedicineReminders: s.whatsappMedicineReminders ?? true,
       });
     }
   }, [clinic]);
@@ -39,11 +44,11 @@ export function WhatsAppAutomationSettings() {
   const handleSave = () => {
     updateSettings(
       {
-        whatsappAppointmentReminders: settings.appointmentReminders,
-        whatsappFollowUpMessages: settings.followUpMessages,
-        whatsappBirthdayWishes: settings.birthdayWishes,
-        whatsappMedicineReminders: settings.medicineReminders,
-      } as any,
+        whatsappAppointmentReminders: settings.whatsappAppointmentReminders,
+        whatsappFollowUpMessages: settings.whatsappFollowUpMessages,
+        whatsappBirthdayWishes: settings.whatsappBirthdayWishes,
+        whatsappMedicineReminders: settings.whatsappMedicineReminders,
+      },
       {
         onSuccess: () => {
           toast.success("WhatsApp automation settings saved successfully");
@@ -86,9 +91,12 @@ export function WhatsAppAutomationSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.appointmentReminders}
+              checked={settings.whatsappAppointmentReminders}
               onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, appointmentReminders: checked }))
+                setSettings((s) => ({
+                  ...s,
+                  whatsappAppointmentReminders: checked,
+                }))
               }
             />
           </div>
@@ -100,9 +108,12 @@ export function WhatsAppAutomationSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.followUpMessages}
+              checked={settings.whatsappFollowUpMessages}
               onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, followUpMessages: checked }))
+                setSettings((s) => ({
+                  ...s,
+                  whatsappFollowUpMessages: checked,
+                }))
               }
             />
           </div>
@@ -114,9 +125,12 @@ export function WhatsAppAutomationSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.birthdayWishes}
+              checked={settings.whatsappBirthdayWishes}
               onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, birthdayWishes: checked }))
+                setSettings((s) => ({
+                  ...s,
+                  whatsappBirthdayWishes: checked,
+                }))
               }
             />
           </div>
@@ -128,9 +142,12 @@ export function WhatsAppAutomationSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.medicineReminders}
+              checked={settings.whatsappMedicineReminders}
               onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, medicineReminders: checked }))
+                setSettings((s) => ({
+                  ...s,
+                  whatsappMedicineReminders: checked,
+                }))
               }
             />
           </div>

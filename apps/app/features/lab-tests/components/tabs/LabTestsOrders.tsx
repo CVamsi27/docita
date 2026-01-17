@@ -12,9 +12,11 @@ import { FileText, Filter, FlaskConical, Search } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 
+import { LabTestOrder } from "@workspace/types";
+
 interface LabTestsOrdersProps {
   isLoading: boolean;
-  filteredTests: any[];
+  filteredTests: LabTestOrder[];
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -92,7 +94,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTests.map((test: any) => (
+                  {filteredTests.map((test) => (
                     <tr
                       key={test.id}
                       className="border-b hover:bg-muted/50 transition-colors"

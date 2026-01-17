@@ -12,12 +12,11 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   AlertTriangle,
+  ClipboardCopy,
   Clock,
   Heart,
   Stethoscope,
   User,
-  Receipt,
-  ClipboardCopy,
 } from "lucide-react";
 import { Appointment, Patient as BasePatient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";

@@ -57,6 +57,7 @@ test.describe("Consultation Flow", () => {
     });
 
     test.beforeEach(async ({ page }) => {
+        test.setTimeout(120000); // Increase timeout for slow dev server
         await loginUser(page, user);
     });
 
@@ -125,7 +126,7 @@ test.describe("Consultation Flow", () => {
         if (await saveButton.isVisible()) {
             await saveButton.click();
             // Verify toast or success indication
-            await expect(page.locator('text=saved').first()).toBeVisible();
+            await expect(page.locator('text=Consultation saved').first()).toBeVisible({ timeout: 10000 });
         }
 
         // Optional: Finish Consultation if button exists (might be in sidebar)

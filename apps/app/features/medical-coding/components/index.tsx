@@ -11,13 +11,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
-import {
-  Search,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-  BookOpen,
-} from "lucide-react";
+import { BookOpen, CheckCircle2, FileText, Search } from "lucide-react";
 
 // Medical Coding Search Component
 export const MedicalCodingSearch: FC<{

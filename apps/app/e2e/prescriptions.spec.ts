@@ -90,7 +90,9 @@ test.describe("Prescriptions", () => {
         data: {
           firstName: "Test",
           lastName: `Patient${Date.now()}`,
-          phone: `9${Math.floor(Math.random() * 1e9)}`,
+          dateOfBirth: "1990-01-01",
+          gender: "MALE",
+          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, '0'),
         },
       });
       if (patientRes.ok()) {
@@ -230,9 +232,28 @@ test.describe("Prescriptions", () => {
 
   test("should fetch specific prescription", async ({ request }) => {
     // Skip if endpoint not available or no appointment available
-    if (!prescriptionEndpointAvailable || !appointmentId || !patientId) {
+    if (!prescriptionEndpointAvailable || !patientId) {
       test.skip();
     }
+
+    // Create a fresh appointment for this specific test
+    const now = new Date();
+    const start = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const end = new Date(now.getTime() + 90 * 60 * 1000).toISOString();
+    const apptRes = await request.post(`${API_URL}/appointments`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      data: {
+        patientId,
+        doctorId,
+        startTime: start,
+        endTime: end,
+        status: "scheduled",
+        type: "consultation",
+      },
+    });
+
+    expect(apptRes.ok()).toBeTruthy();
+    const specificAppointmentId = (await apptRes.json()).id;
 
     // Create a prescription first
     const createRes = await request.post(`${API_URL}/prescriptions`, {
@@ -240,7 +261,7 @@ test.describe("Prescriptions", () => {
       data: {
         patientId,
         doctorId,
-        appointmentId,
+        appointmentId: specificAppointmentId,
         instructions: "Take with meals",
         medications: [
           {
@@ -298,12 +319,6 @@ test.describe("Prescriptions", () => {
     // I'll assume we can use the token setup in beforeAll for API, 
     // but for UI we need to inject it.
 
-    const userForStorage = JSON.stringify({
-      id: doctorId,
-      email: `doctor...`, // we didn't save email in beforeAll scope exposed easily
-      role: "DOCTOR"
-    });
-
     await page.addInitScript(({ token, uid, cid }) => {
       try {
         localStorage.setItem("docita_token", token);
@@ -312,7 +327,9 @@ test.describe("Prescriptions", () => {
           clinicId: cid,
           role: "DOCTOR"
         }));
-      } catch { }
+      } catch (err) { 
+        console.error("Failed to inject auth script:", err);
+      }
     }, { token: authToken, uid: doctorId, cid: _clinicId });
 
     await page.goto("/prescriptions", { waitUntil: "networkidle" });
@@ -344,7 +361,7 @@ test.describe("Prescriptions", () => {
       try {
         await page.waitForURL(/\/prescriptions\//, { timeout: 10000 });
         navigated = true;
-      } catch (e) {
+      } catch {
         console.log("UI Navigation failed, attempting fallback via API lookup");
       }
     }
@@ -362,13 +379,33 @@ test.describe("Prescriptions", () => {
           await page.goto(`/prescriptions/${latest.id}`, { waitUntil: "networkidle" });
         } else {
           console.log("No prescriptions found via API fallback. Response:", list);
-          // Emergency create
+          // Emergency create with fresh appointment
+          const now = new Date();
+          const start = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
+          const end = new Date(now.getTime() + 150 * 60 * 1000).toISOString();
+          const apptRes = await page.request.post(`${API_URL}/appointments`, {
+            headers: { Authorization: `Bearer ${authToken}` },
+            data: {
+              patientId,
+              doctorId,
+              startTime: start,
+              endTime: end,
+              status: "scheduled",
+              type: "consultation",
+            },
+          });
+          
+          let emergencyAppointmentId = appointmentId;
+          if (apptRes.ok()) {
+            emergencyAppointmentId = (await apptRes.json()).id;
+          }
+
           const createRes = await page.request.post(`${API_URL}/prescriptions`, {
             headers: { Authorization: `Bearer ${authToken}` },
             data: {
               patientId,
               doctorId,
-              appointmentId: appointmentId || undefined,
+              appointmentId: emergencyAppointmentId || undefined,
               instructions: "Emergency test prescription",
               medications: [{ name: "Test", dosage: "100mg", frequency: "QD", duration: "1d" }]
             }

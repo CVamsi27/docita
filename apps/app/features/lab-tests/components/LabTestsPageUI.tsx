@@ -4,8 +4,7 @@ import {
   Feature,
   FeatureGate,
 } from "@/features/_shared/components/feature-gate";
-import { Loader2, Plus, RefreshCw } from "lucide-react";
-import { cn } from "@workspace/ui/lib/utils";
+import { Plus, RefreshCw } from "lucide-react";
 import {
   Tabs,
   TabsContent,

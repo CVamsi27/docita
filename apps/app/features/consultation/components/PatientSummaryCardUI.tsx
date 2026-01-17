@@ -6,33 +6,21 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import {
-  Activity,
-  AlertTriangle,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Droplet,
-  Heart,
-  Mail,
-  Phone,
-  Pill,
-  User,
-} from "lucide-react";
+import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { format } from "date-fns";
 import {
-  CodeStatusAlertUI,
+  // CODE_STATUS_COLORS,
+  // CODE_STATUS_LABELS,
   CodeStatus,
-  CODE_STATUS_COLORS,
-  CODE_STATUS_LABELS,
+  CodeStatusAlertUI,
 } from "./summary/CodeStatusAlertUI";
 import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
@@ -96,13 +84,6 @@ const SEVERITY_COLORS = {
   severe: "bg-red-100 text-red-800 border-red-300",
 };
 
-const VITAL_STATUS_COLORS = {
-  normal: "text-green-600",
-  elevated: "text-orange-600",
-  low: "text-blue-600",
-  critical: "text-red-600 animate-pulse",
-};
-
 export function PatientSummaryCardUI({
   patient,
   age,
@@ -112,7 +93,7 @@ export function PatientSummaryCardUI({
   latestVitals,
   lastVisit,
   expanded,
-  onToggleExpanded,
+  // onToggleExpanded,
   className,
   codeStatus,
 }: PatientSummaryCardUIProps) {
@@ -184,7 +165,7 @@ export function PatientSummaryCardUI({
                         variant="outline"
                         className={cn(
                           "text-xs cursor-help",
-                          SEVERITY_COLORS[allergy.severity],
+                          SEVERITY_COLORS[allergy.severity]
                         )}
                       >
                         {allergy.allergen}

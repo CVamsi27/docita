@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import {
   API_URL,
-  setupTestUser,
   loginUser,
+  setupTestUser,
   UserData,
 } from "./utils/patient-helpers";
 

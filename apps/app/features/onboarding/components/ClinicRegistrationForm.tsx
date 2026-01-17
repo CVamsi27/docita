@@ -223,7 +223,21 @@ export function ClinicRegistrationForm({
                 <Label htmlFor="type">Clinic Type</Label>
                 <Select
                   onValueChange={(val) =>
-                    clinicForm.setValue("type", val as any)
+                    clinicForm.setValue(
+                      "type",
+                      val as
+                        | "GENERAL"
+                        | "DENTAL"
+                        | "PEDIATRIC"
+                        | "ORTHOPEDIC"
+                        | "CARDIOLOGY"
+                        | "DERMATOLOGY"
+                        | "ENT"
+                        | "GYNECOLOGY"
+                        | "OPHTHALMOLOGY"
+                        | "PSYCHIATRY"
+                        | "SPECIALTY"
+                    )
                   }
                   defaultValue={clinicForm.getValues("type")}
                 >

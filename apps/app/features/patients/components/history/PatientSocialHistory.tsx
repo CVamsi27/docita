@@ -17,8 +17,8 @@ import { Coffee } from "lucide-react";
 import {
   ALCOHOL_USE_STATUS_LABELS,
   AlcoholUseStatus,
-  PatientWithMedicalHistory,
   PatientSocialHistory,
+  PatientWithMedicalHistory,
   SMOKING_STATUS_LABELS,
   SmokingStatus,
 } from "@workspace/types";

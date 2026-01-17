@@ -3,16 +3,10 @@ import { Label } from "@workspace/ui/components/label";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
 
 export interface GrowthData {
   height?: string;
@@ -38,8 +32,8 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
 
   // Placeholder logic for percentiles - in a real app, this would use WHO/CDC tables
   const calculatePercentile = (
-    val: number,
-    type: "height" | "weight" | "head",
+    val: number
+    // type: "height" | "weight" | "head",
   ) => {
     if (!val) return null;
     return "~50th"; // Stub
@@ -66,7 +60,7 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
               />
               {value?.height && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.height), "height")} %ile
+                  {calculatePercentile(Number(value.height))} %ile
                 </span>
               )}
             </div>
@@ -83,7 +77,7 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
               />
               {value?.weight && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.weight), "weight")} %ile
+                  {calculatePercentile(Number(value.weight))} %ile
                 </span>
               )}
             </div>
@@ -102,8 +96,7 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
               />
               {value?.headCircumference && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.headCircumference), "head")}{" "}
-                  %ile
+                  {calculatePercentile(Number(value.headCircumference))} %ile
                 </span>
               )}
             </div>

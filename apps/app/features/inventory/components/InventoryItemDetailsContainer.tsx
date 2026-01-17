@@ -2,8 +2,8 @@
 
 import { useInventoryItem } from "@/hooks/api/use-inventory";
 import {
-  InventoryItemDetailsUI,
   InventoryItem,
+  InventoryItemDetailsUI,
   InventoryMovement,
 } from "./InventoryItemDetailsUI";
 interface InventoryItemDetailsContainerProps {
@@ -18,20 +18,20 @@ export function InventoryItemDetailsContainer({
 }: InventoryItemDetailsContainerProps) {
   const { data: rawItem, isLoading } = useInventoryItem(itemId || "");
   // Transform the raw API data to our typed structure
-  const item: InventoryItem | null = rawItem
+  const rawData = rawItem as Record<string, unknown> | null | undefined;
+
+  const item: InventoryItem | null = rawData
     ? {
-        name: rawItem.name,
-        category: rawItem.category,
-        sku: (rawItem as Record<string, unknown>).sku as string,
-        quantity: rawItem.quantity,
-        minQuantity: rawItem.minQuantity,
-        unit: rawItem.unit,
-        purchasePrice: (rawItem as Record<string, unknown>)
-          .purchasePrice as number,
-        sellingPrice: (rawItem as Record<string, unknown>)
-          .sellingPrice as number,
-        expiryDate: rawItem.expiryDate,
-        movements: rawItem.movements as InventoryMovement[],
+        name: String(rawData.name || ""),
+        category: String(rawData.category || ""),
+        sku: String(rawData.sku || ""),
+        quantity: Number(rawData.quantity || 0),
+        minQuantity: Number(rawData.minQuantity || 0),
+        unit: String(rawData.unit || ""),
+        purchasePrice: Number(rawData.purchasePrice || 0),
+        sellingPrice: Number(rawData.sellingPrice || 0),
+        expiryDate: rawData.expiryDate as string | undefined,
+        movements: (rawData.movements as InventoryMovement[]) || [],
       }
     : null;
   return (

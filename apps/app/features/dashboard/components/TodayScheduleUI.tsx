@@ -15,21 +15,10 @@ import { EmptyState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { ViewAllLinkUI } from "./ViewAllLinkUI";
 
-export interface SchedulePatient {
-  firstName: string;
-  lastName: string;
-}
-
-export interface ScheduleAppointment {
-  id: string;
-  startTime: string | Date;
-  status: "scheduled" | "completed" | "in-progress" | "cancelled" | "no-show";
-  type: string;
-  patient: SchedulePatient;
-}
+import { DashboardAppointment } from "@workspace/types";
 
 export interface TodayScheduleUIProps {
-  appointments: ScheduleAppointment[];
+  appointments: DashboardAppointment[];
 }
 
 export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
@@ -86,7 +75,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     apt.status === "in-progress" &&
                       "bg-primary/5 ring-1 ring-primary/20 shadow-lg shadow-primary/5",
                     isNext && "bg-muted/40",
-                    "hover:bg-muted/60 hover:border-border/50 hover:shadow-sm",
+                    "hover:bg-muted/60 hover:border-border/50 hover:shadow-sm"
                   )}
                 >
                   {/* Time */}
@@ -94,7 +83,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     <p
                       className={cn(
                         "text-sm font-bold leading-none",
-                        apt.status === "in-progress" && "text-primary",
+                        apt.status === "in-progress" && "text-primary"
                       )}
                     >
                       {format(new Date(apt.startTime), "h:mm")}
@@ -145,7 +134,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                         className={cn(
                           "h-8 w-8 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100",
                           apt.status === "in-progress" &&
-                            "opacity-100 scale-100 shadow-md shadow-primary/20",
+                            "opacity-100 scale-100 shadow-md shadow-primary/20"
                         )}
                       >
                         <Play className="h-3 w-3" />

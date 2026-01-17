@@ -1,4 +1,4 @@
-import { useInfiniteQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { CreateInvoiceInput, Invoice, Patient } from "@workspace/types";
 import { API_URL, useAPIMutation, useAPIQuery } from "../../lib/api-core";
 

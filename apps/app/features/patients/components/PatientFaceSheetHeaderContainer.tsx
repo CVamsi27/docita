@@ -6,8 +6,11 @@
 import { getPatientAgeDisplay } from "../rules/patientRules";
 import { getInitials } from "@/features/_shared/utils";
 import { PatientFaceSheetHeaderUI } from "./PatientFaceSheetHeaderUI";
-import type { Patient } from "@workspace/types";
-import { CODE_STATUS_LABELS, ISOLATION_STATUS_LABELS } from "@workspace/types";
+import {
+  CODE_STATUS_LABELS,
+  ISOLATION_STATUS_LABELS,
+  type Patient,
+} from "@workspace/types";
 
 interface PatientFaceSheetHeaderContainerProps {
   patient: Patient;

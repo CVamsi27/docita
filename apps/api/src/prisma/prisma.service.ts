@@ -40,6 +40,14 @@ export class PrismaService
       );
     }
 
+    // Verify connectionString is valid or fallback to env
+    if (!connectionString) {
+      connectionString = process.env.DATABASE_URL!;
+    } else {
+      // Sync env var to ensure Prisma Client uses the correct connection string
+      process.env.DATABASE_URL = connectionString;
+    }
+
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
 

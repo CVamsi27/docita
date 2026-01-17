@@ -1,4 +1,6 @@
 import { PrismaClient } from '@workspace/db';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -6,7 +8,29 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 async function main() {
-  const prisma = new PrismaClient();
+  let connectionString = process.env.DATABASE_URL;
+
+  // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
+  if (connectionString) {
+    try {
+      const url = new URL(connectionString);
+      const sslMode = url.searchParams.get('sslmode');
+      if (
+        sslMode === 'require' ||
+        sslMode === 'prefer' ||
+        sslMode === 'verify-ca'
+      ) {
+        url.searchParams.set('sslmode', 'verify-full');
+        connectionString = url.toString();
+      }
+    } catch (error) {
+      console.warn('Failed to parse DATABASE_URL for SSL adjustment', error);
+    }
+  }
+
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({ adapter });
 
   try {
     console.log('🌱 Starting database seed...');
@@ -25,7 +49,7 @@ async function main() {
         name: 'Docita Health Clinic',
         address: '123 Health Street, Bangalore, Karnataka 560001',
         phone: '+91 80 1234 5678',
-        email: 'contact@docita.health',
+        email: 'contact@docita.work',
         active: true,
         tier: 'PRO',
       },
@@ -36,10 +60,10 @@ async function main() {
     const hashedPassword = await bcrypt.hash('password123', 10);
 
     await prisma.user.upsert({
-      where: { email: 'admin@docita.com' },
+      where: { email: 'admin@docita.work' },
       update: {},
       create: {
-        email: 'admin@docita.com',
+        email: 'admin@docita.work',
         password: hashedPassword,
         name: 'Super Admin',
         role: 'SUPER_ADMIN',
@@ -48,10 +72,10 @@ async function main() {
     });
 
     await prisma.user.upsert({
-      where: { email: 'clinic.admin@docita.com' },
+      where: { email: 'clinic.admin@docita.work' },
       update: {},
       create: {
-        email: 'clinic.admin@docita.com',
+        email: 'clinic.admin@docita.work',
         password: hashedPassword,
         name: 'Clinic Administrator',
         role: 'ADMIN',
@@ -60,10 +84,10 @@ async function main() {
     });
 
     const doctor1 = await prisma.user.upsert({
-      where: { email: 'doctor@docita.com' },
+      where: { email: 'doctor@docita.work' },
       update: {},
       create: {
-        email: 'doctor@docita.com',
+        email: 'doctor@docita.work',
         password: hashedPassword,
         name: 'Vamsi Krishna',
         role: 'DOCTOR',
@@ -81,10 +105,10 @@ async function main() {
     });
 
     const doctor2 = await prisma.user.upsert({
-      where: { email: 'dr.sharma@docita.com' },
+      where: { email: 'dr.sharma@docita.work' },
       update: {},
       create: {
-        email: 'dr.sharma@docita.com',
+        email: 'dr.sharma@docita.work',
         password: hashedPassword,
         name: 'Priya Sharma',
         role: 'DOCTOR',
@@ -102,10 +126,10 @@ async function main() {
     });
 
     const doctor3 = await prisma.user.upsert({
-      where: { email: 'dr.dental@docita.com' },
+      where: { email: 'dr.dental@docita.work' },
       update: {},
       create: {
-        email: 'dr.dental@docita.com',
+        email: 'dr.dental@docita.work',
         password: hashedPassword,
         name: 'Arun Menon',
         role: 'DOCTOR',
@@ -336,10 +360,10 @@ async function main() {
     console.log('✅ DoctorClinic associations created');
 
     await prisma.user.upsert({
-      where: { email: 'reception@docita.com' },
+      where: { email: 'reception@docita.work' },
       update: {},
       create: {
-        email: 'reception@docita.com',
+        email: 'reception@docita.work',
         password: hashedPassword,
         name: 'Anjali Reddy',
         role: 'RECEPTIONIST',
@@ -359,7 +383,7 @@ async function main() {
           bloodGroup: 'O+',
           allergies: 'Penicillin',
           phoneNumber: '9876543210',
-          email: 'rajesh.kumar@email.com',
+          email: 'rajesh.kumar@docita.work',
           address: '123 MG Road, Bangalore',
           medicalHistory: ['Hypertension', 'Diabetes Type 2'],
           clinicId: defaultClinic.id,
@@ -374,7 +398,7 @@ async function main() {
           bloodGroup: 'A+',
           allergies: null,
           phoneNumber: '9876543211',
-          email: 'priya.nair@email.com',
+          email: 'priya.nair@docita.work',
           address: '456 Brigade Road, Bangalore',
           medicalHistory: ['Asthma'],
           clinicId: defaultClinic.id,
@@ -389,7 +413,7 @@ async function main() {
           bloodGroup: 'B+',
           allergies: 'Sulfa drugs',
           phoneNumber: '9876543212',
-          email: 'amit.patel@email.com',
+          email: 'amit.patel@docita.work',
           address: '789 Residency Road, Bangalore',
           medicalHistory: ['Arthritis'],
           clinicId: defaultClinic.id,
@@ -404,7 +428,7 @@ async function main() {
           bloodGroup: 'AB+',
           allergies: null,
           phoneNumber: '9876543213',
-          email: 'lakshmi.iyer@email.com',
+          email: 'lakshmi.iyer@docita.work',
           address: '321 Indiranagar, Bangalore',
           medicalHistory: [],
           clinicId: defaultClinic.id,
@@ -419,7 +443,7 @@ async function main() {
           bloodGroup: 'O-',
           allergies: 'Latex',
           phoneNumber: '9876543214',
-          email: 'suresh.reddy@email.com',
+          email: 'suresh.reddy@docita.work',
           address: '654 Koramangala, Bangalore',
           medicalHistory: ['Migraine'],
           clinicId: defaultClinic.id,
@@ -3070,17 +3094,19 @@ async function main() {
     console.log(`   - ICD-10 Codes: ${icdCodes.length}`);
     console.log('\n🔑 Login credentials:');
     console.log('\n   📱 Main App (http://localhost:3000):');
-    console.log('   - clinic.admin@docita.com / password123 (Clinic Admin)');
+    console.log('   - clinic.admin@docita.work / password123 (Clinic Admin)');
     console.log(
-      '   - doctor@docita.com / password123 (Dr. Vamsi - Cardiologist)',
+      '   - doctor@docita.work / password123 (Dr. Vamsi - Cardiologist)',
     );
     console.log(
-      '   - dr.sharma@docita.com / password123 (Dr. Priya - Pediatrician)',
+      '   - dr.sharma@docita.work / password123 (Dr. Priya - Pediatrician)',
     );
-    console.log('   - dr.dental@docita.com / password123 (Dr. Arun - Dentist)');
-    console.log('   - reception@docita.com / password123 (Receptionist)');
+    console.log(
+      '   - dr.dental@docita.work / password123 (Dr. Arun - Dentist)',
+    );
+    console.log('   - reception@docita.work / password123 (Receptionist)');
     console.log('\n   👨‍💼 Admin Console (http://localhost:3002):');
-    console.log('   - admin@docita.com / password123 (Super Admin)');
+    console.log('   - admin@docita.work / password123 (Super Admin)');
   } catch (error) {
     console.error('❌ Seeding failed:', error);
     throw error;

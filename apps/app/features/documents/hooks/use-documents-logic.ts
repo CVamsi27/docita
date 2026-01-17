@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDocuments } from "@/hooks/api/use-clinical";
 import type { Document } from "@workspace/types";
 import { useDebounce } from "@/hooks/use-debounce";
 
-export type SortKey = "date" | "patient" | "type" | "fileName";
+export type SortKey = "date" | "patient" | "type" | "filename";
 export type SortDirection = "asc" | "desc";
 
 export interface SortConfig {
@@ -45,7 +45,7 @@ export const useDocumentsLogic = () => {
         const url = window.URL.createObjectURL(blob);
         const a = window.document.createElement("a");
         a.href = url;
-        a.download = document.fileName || document.name || "document";
+        a.download = document.name || document.filename || document.title || "document";
         window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -76,9 +76,9 @@ export const useDocumentsLogic = () => {
         aValue = (a.type || "").toLowerCase();
         bValue = (b.type || "").toLowerCase();
         break;
-      case "fileName":
-        aValue = (a.fileName || a.name || "").toLowerCase();
-        bValue = (b.fileName || b.name || "").toLowerCase();
+      case "filename":
+        aValue = (a.name || a.filename || a.title || "").toLowerCase();
+        bValue = (b.name || b.filename || b.title || "").toLowerCase();
         break;
     }
 

@@ -7,19 +7,19 @@ import {
 } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier, TierInfo } from "@/lib/tier-config";
-import { PlanFeatures } from "./PlanFeatures";
+import { PlanFeature, PlanFeatures } from "./PlanFeatures";
 
 interface TierCardProps {
   tier: Tier;
   info: TierInfo;
-  features: any[]; // Using specific type from PlanFeatures or just pass generic array
+  features: PlanFeature[];
   isCurrentTier: boolean;
   isLocked: boolean;
   className?: string;
 }
 
 export function TierCard({
-  tier,
+  tier: _tier,
   info,
   features,
   isCurrentTier,
@@ -32,7 +32,7 @@ export function TierCard({
         "relative overflow-hidden",
         isCurrentTier && "border-primary ring-2 ring-primary/20",
         isLocked && "opacity-75",
-        className,
+        className
       )}
     >
       {isCurrentTier && (
@@ -49,7 +49,7 @@ export function TierCard({
               info.color === "blue" && "bg-blue-500",
               info.color === "green" && "bg-green-500",
               info.color === "purple" && "bg-purple-500",
-              info.color === "orange" && "bg-orange-500",
+              info.color === "orange" && "bg-orange-500"
             )}
           />
           <CardTitle className="text-base">{info.name}</CardTitle>

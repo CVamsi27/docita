@@ -10,6 +10,8 @@ export default [
       "build/**",
       "coverage/**",
       "*.d.ts",
+      "playwright-report/**",
+      "test-results/**",
     ],
   },
   ...nextJsConfig,

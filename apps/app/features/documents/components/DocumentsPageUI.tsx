@@ -134,7 +134,7 @@ export function DocumentsPageUI({
               <TableRow className="hover:bg-muted/50">
                 <TableHead>Document ID</TableHead>
                 <TableHead>
-                  <SortableHeader column="fileName" label="File Name" />
+                  <SortableHeader column="filename" label="File Name" />
                 </TableHead>
                 <TableHead>
                   <SortableHeader column="patient" label="Patient" />
@@ -177,7 +177,7 @@ export function DocumentsPageUI({
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium truncate max-w-[200px]">
-                          {document.fileName || document.name}
+                          {document.name || document.filename || document.title}
                         </span>
                       </div>
                     </TableCell>

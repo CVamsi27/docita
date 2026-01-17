@@ -7,9 +7,8 @@ import {
   useCheckInAppointment,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
-import { useAuth, User } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Appointment, Patient } from "@workspace/types";
 
 // Generate 30-minute time slots for the entire day
 export const generateTimeSlots = () => {
@@ -34,12 +33,7 @@ const getCurrentTimeSlot = () => {
   return `${hours.toString().padStart(2, "0")}:${slotMinutes.toString().padStart(2, "0")}`;
 };
 
-interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
+
 
 export const useAppointmentsLogic = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());

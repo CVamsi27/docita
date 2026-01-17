@@ -28,7 +28,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: invoice, isLoading, error } = useInvoice(invoiceId);
+  const { data: invoice, isLoading, } = useInvoice(invoiceId);
 
   const updateInvoice = useUpdateInvoice(invoiceId);
 
@@ -50,14 +50,18 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   // Load data into form when invoice fetch completes
   useEffect(() => {
     if (invoice) {
-      // Safe casting to ensure type compatibility if API returns slightly different structure
-      const safeInvoice = invoice as unknown as Invoice;
+      // Extended interface to handle potential extra fields from API
+      interface ExtendedInvoice extends Invoice {
+        discount?: number;
+      }
+      
+      const safeInvoice = invoice as unknown as ExtendedInvoice;
 
       form.reset({
         status: ((safeInvoice.status as string) === "created"
           ? "pending"
-          : safeInvoice.status) as any,
-        discount: (safeInvoice as any).discount || 0,
+          : safeInvoice.status) as "pending" | "paid" | "overdue" | "cancelled",
+        discount: safeInvoice.discount || 0,
         notes: safeInvoice.notes || "",
         items: safeInvoice.items?.map((item) => ({
           id: item.id,

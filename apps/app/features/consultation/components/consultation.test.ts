@@ -1,7 +1,7 @@
 /**
  * Consultation Components Unit Tests
  */
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // Test ConsultationTimer rules
 describe("ConsultationTimer Business Rules", () => {

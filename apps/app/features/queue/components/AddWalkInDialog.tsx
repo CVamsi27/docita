@@ -26,6 +26,8 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
   const [showForm, setShowForm] = useState(false);
   const [patient, setPatient] = useState({ name: "", phone: "", reason: "" });
 
+  const { mutate: addWalkIn, isPending: saving } = useCreateWalkIn();
+
   // Button trigger mode
   if (!open && !showForm) {
     return (
@@ -42,8 +44,6 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
 
   const isOpen = open ?? showForm;
   if (!isOpen) return null;
-
-  const { mutate: addWalkIn, isPending: saving } = useCreateWalkIn();
 
   const handleClose = () => {
     onOpenChange?.(false);
@@ -72,7 +72,7 @@ export const AddWalkInDialog: FC<AddWalkInDialogProps> = ({
         onError: (error: Error) => {
           toast.error(error.message || "Failed to add walk-in patient");
         },
-      },
+      }
     );
   };
 

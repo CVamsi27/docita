@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Plus, X, Pill, Trash2 } from "lucide-react";
+import { Pill, Plus, Trash2 } from "lucide-react";
 
 export interface Medication {
   name: string;

@@ -1,4 +1,4 @@
-import { useTodayAppointments, useQueue } from "@/hooks/api/use-appointments";
+import { useQueue, useTodayAppointments } from "@/hooks/api/use-appointments";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 

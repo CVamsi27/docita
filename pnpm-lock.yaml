@@ -447,6 +447,9 @@ importers:
       eslint:
         specifier: ^9.32.0
         version: 9.39.1(jiti@2.6.1)
+      eslint-config-next:
+        specifier: 16.0.7
+        version: 16.0.7(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0
@@ -10587,7 +10590,7 @@ snapshots:
 
   '@types/minimatch@6.0.0':
     dependencies:
-      minimatch: 9.0.5
+      minimatch: 10.1.1
 
   '@types/ms@2.1.0': {}
 

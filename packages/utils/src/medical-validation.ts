@@ -188,10 +188,10 @@ export const COMMON_DOSAGE_RANGES: Record<string, DosageRange> = {
   },
   aspirin: {
     min: 75,
-    max: 325,
+    max: 1000,
     unit: "mg",
-    frequency: "once daily",
-    maxDaily: 325,
+    frequency: "once daily or 4-6 hourly",
+    maxDaily: 4000,
   },
   metoprolol: {
     min: 25,

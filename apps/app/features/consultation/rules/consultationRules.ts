@@ -1,4 +1,4 @@
-import type { VitalSign, Appointment } from "@workspace/types";
+import type { Appointment, VitalSign } from "@workspace/types";
 
 /**
  * Consultation Business Rules

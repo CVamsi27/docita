@@ -20,8 +20,16 @@ interface ClinicInfo {
   logo?: string;
 }
 
+interface PrescriptionData {
+  createdAt: string | Date;
+  doctor?: DoctorInfo;
+  patient?: Patient;
+  medications?: Medication[];
+  instructions?: string;
+}
+
 interface PrescriptionDocumentProps {
-  prescription: any; // Using any for now to avoid deep type issues with joined relations
+  prescription: PrescriptionData; // Strict typing instead of any
   clinicInfo: ClinicInfo | undefined;
 }
 

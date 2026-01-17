@@ -2,41 +2,12 @@ import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/api/use-dashboard";
 import { useTodayAppointments } from "@/hooks/api/use-appointments";
 import { useRecentPatients } from "@/hooks/api/use-patients";
-import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
-
-// Types derived from usage in original page.tsx
-interface Patient {
-  firstName: string;
-  lastName: string;
-}
-
-interface Appointment {
-  id: string;
-  startTime: string | Date;
-  status: "scheduled" | "completed" | "in-progress" | "cancelled" | "no-show";
-  type: string;
-  patient: Patient;
-}
-
-interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
-
-interface PatientListItem extends Patient {
-  id: string;
-  email?: string;
-  bloodGroup?: string;
-  updatedAt?: string;
-  tags?: Array<{ id: string; tag: string; color: string }>;
-}
-
-interface AppointmentListItem extends Appointment {
-  notes?: string;
-  createdAt?: string;
-}
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import {
+  DashboardAppointment,
+  DashboardPatient,
+  PaginatedResponse,
+} from "@workspace/types";
 
 export const useDashboardLogic = () => {
   const { canAccess } = usePermissionStore();
@@ -60,12 +31,12 @@ export const useDashboardLogic = () => {
   );
 
   // ✅ OPTIMIZATION: Memoize filtered patients
-  const castRecentPatients = useMemo(() => {
+  const castRecentPatients = useMemo<DashboardPatient[]>(() => {
     const paginatedResponse =
-      recentPatientsResponse as unknown as PaginatedResponse<PatientListItem>;
+      recentPatientsResponse as unknown as PaginatedResponse<DashboardPatient>;
     const patients = paginatedResponse?.items || [];
     return patients.filter(
-      (p): p is PatientListItem & { id: string } => !!(p && p.id),
+      (p): p is DashboardPatient => !!(p && p.id),
     );
   }, [recentPatientsResponse]);
 
@@ -80,7 +51,7 @@ export const useDashboardLogic = () => {
   } = useMemo(() => {
     // Extract items from paginated response
     const paginatedResponse =
-      rawAppointmentsResponse as unknown as PaginatedResponse<AppointmentListItem>;
+      rawAppointmentsResponse as unknown as PaginatedResponse<DashboardAppointment>;
     const appointmentsData = paginatedResponse?.items || [];
 
     const sorted = [...appointmentsData].sort(

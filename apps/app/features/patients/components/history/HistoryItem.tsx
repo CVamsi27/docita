@@ -13,8 +13,10 @@ import { HistoryPrescription } from "./sections/HistoryPrescription";
 import { HistoryInvoice } from "./sections/HistoryInvoice";
 import { HistoryDiagnoses } from "./sections/HistoryDiagnoses";
 
+import { Appointment } from "@workspace/types";
+
 interface HistoryItemProps {
-  appointment: any; // Using any to avoid deep type issues
+  appointment: Appointment;
   isLast: boolean;
 }
 
@@ -67,10 +69,18 @@ export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
       </CardHeader>
 
       <CardContent className="pl-12 space-y-4">
-        <HistoryObservations observations={appointment.observations} />
-        <HistoryVitals vitalSign={appointment.vitalSign} />
-        <HistoryPrescription prescription={appointment.prescription} />
-        <HistoryInvoice invoice={appointment.invoice} />
+        {appointment.observations && (
+          <HistoryObservations observations={appointment.observations} />
+        )}
+        {appointment.vitalSign && (
+          <HistoryVitals vitalSign={appointment.vitalSign} />
+        )}
+        {appointment.prescription && (
+          <HistoryPrescription prescription={appointment.prescription} />
+        )}
+        {appointment.invoice && (
+          <HistoryInvoice invoice={appointment.invoice} />
+        )}
 
         {/* Notes */}
         {appointment.notes && (
@@ -83,7 +93,9 @@ export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
           </div>
         )}
 
-        <HistoryDiagnoses diagnoses={appointment.diagnoses} />
+        {appointment.diagnoses && (
+          <HistoryDiagnoses diagnoses={appointment.diagnoses} />
+        )}
       </CardContent>
     </Card>
   );

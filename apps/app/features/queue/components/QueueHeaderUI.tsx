@@ -25,8 +25,10 @@ export const QueueHeader: FC<QueueHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold">Patient Queue</h1>
-        <p className="text-muted-foreground">Manage today's patient flow</p>
+        <span className="font-semibold">Today&apos;s Queue</span>
+        <p className="text-muted-foreground">
+          Manage today&apos;s patient flow
+        </p>
       </div>
       <div className="flex gap-2">
         <Button

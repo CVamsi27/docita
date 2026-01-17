@@ -36,6 +36,7 @@ export const labTestOrderSchema = z.object({
     createdAt: z.date().or(z.string()),
     updatedAt: z.date().or(z.string()),
     labTest: labTestSchema.optional(),
+    doctor: z.object({ name: z.string() }).optional(),
     // We can include patient here if needed, consistent with other schemas
     patient: z.object({
         id: z.string(),

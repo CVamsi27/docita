@@ -3,10 +3,11 @@ import { Label } from "@workspace/ui/components/label";
 import { FileText } from "lucide-react";
 import { ConfidenceIndicator } from "../ConfidenceIndicator";
 import { SectionToggle } from "../SectionToggle";
+import { OCRFormData } from "../../types";
 
 interface OCRClinicalFindingsProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: OCRFormData;
+  setFormData: (data: OCRFormData) => void;
   getScore: (key: string) => number | undefined;
   isOpen: boolean;
   onToggle: () => void;

@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC } from "react";
 import {
   Card,
   CardContent,
@@ -12,19 +12,19 @@ import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
 import {
-  MessageSquare,
-  Star,
-  Send,
-  ThumbsUp,
-  ThumbsDown,
-  Smile,
-  Meh,
   Frown,
+  Meh,
+  MessageSquare,
+  Send,
+  Smile,
+  Star,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 // Feedback Form Component
-import { useFeedbackLogic, FeedbackType } from "../hooks/use-feedback-logic";
+import { FeedbackType, useFeedbackLogic } from "../hooks/use-feedback-logic";
 
 export const FeedbackForm: FC<{
   onSubmit?: (feedback: {
@@ -50,7 +50,7 @@ export const FeedbackForm: FC<{
           <MessageSquare className="h-5 w-5 text-primary" />
           <div>
             <CardTitle>Send Feedback</CardTitle>
-            <CardDescription>We'd love to hear from you</CardDescription>
+            <CardDescription>We&apos;d love to hear from you</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -69,13 +69,18 @@ export const FeedbackForm: FC<{
                     "h-8 w-8 transition-colors",
                     star <= rating
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground",
+                      : "text-muted-foreground"
                   )}
                 />
               </button>
             ))}
           </div>
         </div>
+
+        <p className="text-muted-foreground mb-4">
+          We&apos;re always looking to improve Docita. Share your thoughts,
+          report bugs, or suggest new features.
+        </p>
 
         <div className="space-y-2">
           <Label>Feedback Type</Label>

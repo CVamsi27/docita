@@ -1,6 +1,6 @@
 import { ArrowLeft, FileJson } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { DialogTrigger } from "@workspace/ui/components/dialog";
+
 import { FhirExportDialog } from "./PatientDialogs";
 
 interface PatientPageHeaderUIProps {

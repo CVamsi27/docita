@@ -1,9 +1,7 @@
 import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import { DailyProgressUI, DailyProgressUIProps } from "./DailyProgressUI";
 
-interface DailyProgressContainerProps extends DailyProgressUIProps {}
-
-export function DailyProgressContainer(props: DailyProgressContainerProps) {
+export function DailyProgressContainer(props: DailyProgressUIProps) {
   const { canAccess } = usePermissionStore();
 
   if (!canAccess(Feature.CALENDAR_SLOTS)) {

@@ -109,7 +109,7 @@ export function useQueueFiltering(queue: QueueItem[]) {
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [queue, searchQuery, sortConfig]);
+  }, [queue, sortConfig]);
 
   return {
     searchQuery,

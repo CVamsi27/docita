@@ -20,10 +20,7 @@ import {
   AlertTriangle,
   Calendar,
   Droplets,
-  FileText,
-  Heart,
   Mail,
-  MapPin,
   Phone,
   User,
 } from "lucide-react";
@@ -95,7 +92,7 @@ export function PatientBadgeUI({
           sizes.container,
           onClick &&
             "cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors",
-          className,
+          className
         )}
         onClick={onClick}
       >
@@ -153,7 +150,7 @@ export function PatientBadgeUI({
             <div
               className={cn(
                 "flex items-center gap-3 text-muted-foreground mt-0.5",
-                sizes.details,
+                sizes.details
               )}
             >
               {age !== null && (
@@ -175,7 +172,7 @@ export function PatientBadgeUI({
             <div
               className={cn(
                 "flex items-center gap-3 text-muted-foreground mt-0.5",
-                sizes.details,
+                sizes.details
               )}
             >
               {phone && (

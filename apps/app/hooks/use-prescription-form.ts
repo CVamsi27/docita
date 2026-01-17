@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import {
   type DosageValidation,
   type HospitalRole,
-  Medication,
+  PrescriptionMedication,
   type Specialization,
 } from "@workspace/types";
 import {
@@ -63,7 +63,7 @@ export function usePrescriptionForm({
   const queryClient = useQueryClient();
   const createPrescription = useCreatePrescription();
   const [instructions, setInstructions] = useState("");
-  const [medications, setMedications] = useState<Medication[]>([
+  const [medications, setMedications] = useState<PrescriptionMedication[]>([
     { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
   ]);
   const [validations, setValidations] = useState<MedicationValidation[]>([]);
@@ -81,7 +81,7 @@ export function usePrescriptionForm({
 
   const updateMedication = (
     index: number,
-    field: keyof Medication,
+    field: keyof PrescriptionMedication,
     value: string,
   ) => {
     const updated = [...medications];
@@ -96,7 +96,7 @@ export function usePrescriptionForm({
     }
   };
 
-  const validateMedicationAtIndex = (index: number, med: Medication) => {
+  const validateMedicationAtIndex = (index: number, med: PrescriptionMedication) => {
     const warnings: string[] = [];
 
     // Validate dosage

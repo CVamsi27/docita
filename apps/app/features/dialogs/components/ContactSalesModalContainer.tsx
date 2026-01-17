@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  ContactSalesModalUI,
   ContactSalesFormData,
+  ContactSalesModalUI,
 } from "./ContactSalesModalUI";
 import { useCreateContactInquiry } from "@/hooks/api/use-contact";
 interface ContactSalesModalContainerProps {

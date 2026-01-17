@@ -12,20 +12,9 @@ import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { Clock, Play, Users, Stethoscope, ChevronRight } from "lucide-react";
+import { ChevronRight, Clock, Play, Stethoscope, Users } from "lucide-react";
 
-interface Patient {
-  firstName: string;
-  lastName: string;
-}
-
-interface Appointment {
-  id: string;
-  startTime: string | Date;
-  status: "scheduled" | "completed" | "in-progress" | "cancelled" | "no-show";
-  type: string;
-  patient: Patient;
-}
+import { DashboardAppointment } from "@workspace/types";
 
 interface QueueStats {
   waiting: number;
@@ -35,8 +24,8 @@ interface QueueStats {
 }
 
 interface DoctorDashboardCardsProps {
-  currentPatient?: Appointment;
-  nextPatients: Appointment[];
+  currentPatient?: DashboardAppointment | null;
+  nextPatients: DashboardAppointment[];
   queueStats: QueueStats;
   estimatedWaitTime: number;
 }
@@ -175,7 +164,7 @@ export function DoctorDashboardCardsUI({
           {/* Progress Bar */}
           <div className="mt-4">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Today's Progress</span>
+              <span>Today&apos;s Progress</span>
               <span>
                 {queueStats.completed}/{queueStats.total}
               </span>
@@ -183,7 +172,7 @@ export function DoctorDashboardCardsUI({
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className={cn(
-                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500",
+                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500"
                 )}
                 style={{
                   width: `${queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0}%`,

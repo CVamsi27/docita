@@ -54,7 +54,7 @@ export async function setupTestUser(
   const registerData = await registerRes.json();
   const token = registerData.access_token || registerData.accessToken;
 
-  let userData: UserData = {
+  const userData: UserData = {
     id: registerData.user.id,
     email: registerData.user.email,
     clinicId: registerData.user.clinicId,

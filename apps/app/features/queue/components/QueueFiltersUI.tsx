@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import { Input } from "@workspace/ui/components/input";
-import { Search, Filter } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 
 interface Doctor {
   id: string;

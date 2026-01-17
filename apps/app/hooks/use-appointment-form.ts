@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePatients, usePatient } from "@/hooks/api/use-patients";
+import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import { useDoctors } from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import {

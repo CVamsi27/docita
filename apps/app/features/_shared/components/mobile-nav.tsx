@@ -4,17 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
-  Users,
   Calendar,
-  Settings,
-  Menu,
-  X,
+  ClipboardList,
   FileText,
+  Home,
+  Menu,
   Package,
   Receipt,
-  ClipboardList,
+  Settings,
   Stethoscope,
+  Users,
+  X,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";

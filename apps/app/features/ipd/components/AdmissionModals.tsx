@@ -14,8 +14,6 @@ interface ModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-
-
 import { useDoctors } from "@/hooks/api/use-settings";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
 
@@ -47,11 +45,13 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
                 onChange={(e) => setData({ ...data, ward: e.target.value })}
               >
                 <option value="">Select Ward</option>
-                {constants?.wardTypes?.map((ward: any) => (
-                  <option key={ward.value} value={ward.value}>
-                    {ward.label}
-                  </option>
-                ))}
+                {constants?.wardTypes?.map(
+                  (ward: { value: string; label: string }) => (
+                    <option key={ward.value} value={ward.value}>
+                      {ward.label}
+                    </option>
+                  )
+                )}
               </select>
             </div>
             <div>
@@ -62,11 +62,13 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
                 onChange={(e) => setData({ ...data, bed: e.target.value })}
               >
                 <option value="">Select Bed</option>
-                {constants?.availableBeds?.map((bed: any) => (
-                  <option key={bed.value} value={bed.value}>
-                    {bed.label}
-                  </option>
-                ))}
+                {constants?.availableBeds?.map(
+                  (bed: { value: string; label: string }) => (
+                    <option key={bed.value} value={bed.value}>
+                      {bed.label}
+                    </option>
+                  )
+                )}
               </select>
             </div>
           </div>

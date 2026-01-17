@@ -9,6 +9,7 @@ import {
   ValidateRenalDosageDto,
   ComprehensiveMedicationCheckDto,
 } from './dto/medications.dto';
+import { Allergy, RenalFunction } from '@workspace/types';
 
 interface AuthRequest {
   user: {
@@ -49,11 +50,12 @@ export class MedicationValidationController {
   @Post('check-contraindications')
   checkContraindications(@Body() body: CheckContraindicationsDto) {
     return this.medicationService.checkContraindications(body.medication, {
-      allergies: body.patientAllergies,
+      allergies: body.patientAllergies as unknown as Allergy[],
       conditions: body.patientConditions,
       currentMedications: body.currentMedications,
       isPregnant: body.isPregnant,
-      renalFunctionCategory: body.renalFunctionCategory,
+      renalFunctionCategory:
+        body.renalFunctionCategory as unknown as RenalFunction,
     });
   }
 
@@ -77,7 +79,7 @@ export class MedicationValidationController {
     return this.medicationService.validateRenalDosageImpl(
       body.medication,
       body.dosage,
-      body.renalFunctionCategory as any,
+      body.renalFunctionCategory as unknown as RenalFunction,
     );
   }
 

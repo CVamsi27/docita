@@ -27,20 +27,41 @@ import { DentalChartValue } from "./specialty/DentalChartUI";
 import { usePatient } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { toast } from "sonner";
+import { Appointment } from "@workspace/types";
 
 interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
   patientId?: string;
   doctorId?: string;
   // Make appointmentData optional but strongly recommended for functionality
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  appointmentData?: any;
+  appointmentData?: ConsultationAppointmentData;
   defaultTab?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave?: (data: any) => Promise<void>;
+  onSave?: (data: ConsultationSaveData) => Promise<void>;
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
   clinicType?: string;
+}
+
+// Extended interface for appointment data that might include legacy or specialty fields
+interface ConsultationAppointmentData extends Partial<Appointment> {
+  chiefComplaintStructured?: ChiefComplaintItem[];
+  growthData?: Record<string, unknown>;
+  dentalChart?: DentalChartValue;
+  ophthalmologyExam?: Record<string, unknown>;
+  // Allow for other potential dynamic fields while simpler than 'any'
+  [key: string]: unknown;
+}
+
+interface ConsultationSaveData {
+  chiefComplaint: string;
+  chiefComplaintStructured: ChiefComplaintItem[];
+  historyOfPresentIllness: unknown;
+  generalExamination: ExaminationData;
+  finalDiagnosis: string;
+  treatmentPlan: string;
+  dentalChart?: DentalChartValue;
+  ophthalmologyExam?: Record<string, unknown>;
+  growthData?: Record<string, unknown>;
 }
 
 export const ClinicalDocumentationDynamic: FC<
@@ -118,17 +139,47 @@ export const ClinicalDocumentationDynamic: FC<
 
       setHistory(appointmentData.historyOfPresentIllness || "");
 
-      if (appointmentData.generalExamination) {
-        // Check if it matches our structure, otherwise fallback
-        const examData = appointmentData.generalExamination;
-        // Simple check if it has the keys we expect
-        if (examData.general || examData.systemic) {
-          setExamination(examData);
+      // Handle Examination Data safely for both legacy wrapper and new schema
+      if (
+        appointmentData.generalExamination ||
+        appointmentData.systemicExamination
+      ) {
+        const genExam = appointmentData.generalExamination;
+        const sysExam = appointmentData.systemicExamination;
+
+        // Helper check for legacy wrapper where generalExamination contained both parts
+        const isLegacyWrapper = (data: unknown): data is ExaminationData => {
+          return (
+            typeof data === "object" &&
+            data !== null &&
+            ("general" in data || "systemic" in data)
+          );
+        };
+
+        const ensureString = (val: unknown): string => {
+          if (typeof val === "string") return val;
+          if (typeof val === "object" && val !== null)
+            return JSON.stringify(val);
+          return "";
+        };
+
+        if (genExam && isLegacyWrapper(genExam)) {
+          setExamination(genExam);
         } else {
-          // Maybe legacy data?
+          // Standard schema structure: map separate fields
           setExamination((prev) => ({
-            ...prev,
-            general: { ...prev.general, notes: JSON.stringify(examData) },
+            general: genExam ? { ...prev.general, ...genExam } : prev.general,
+            systemic: sysExam
+              ? {
+                  cvs: ensureString(sysExam.cvs) || prev.systemic.cvs,
+                  rs: ensureString(sysExam.rs) || prev.systemic.rs,
+                  pa: ensureString(sysExam.pa) || prev.systemic.pa,
+                  cns: ensureString(sysExam.cns) || prev.systemic.cns,
+                  // musculoskeletal not present in shared SystemicExamination schema
+                  musculoskeletal: prev.systemic.musculoskeletal,
+                  notes: sysExam.additionalNotes || prev.systemic.notes,
+                }
+              : prev.systemic,
           }));
         }
       }
@@ -214,6 +265,7 @@ export const ClinicalDocumentationDynamic: FC<
       };
 
       await onSave?.(dataToSave);
+      toast.success("Consultation saved");
 
       // Handle Prescriptions
       if (prescriptions.length > 0 && patientId && appointmentId) {
@@ -223,7 +275,11 @@ export const ClinicalDocumentationDynamic: FC<
           await createPrescription.mutateAsync({
             patientId,
             appointmentId,
-            medications: validRx,
+            medications: validRx.map((p) => ({
+              ...p,
+              dosageForm: "TABLET", // Default to TABLET if not specified
+              sigCode: "QD", // Default to QD if not specified
+            })),
             notes: "Created from consultation",
           });
           toast.success("Prescription saved");

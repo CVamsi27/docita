@@ -9,7 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Play, CheckCircle } from "lucide-react";
+import { CheckCircle, Play } from "lucide-react";
 
 type QueueItemStatus =
   | "waiting"

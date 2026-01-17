@@ -2,13 +2,7 @@ import { format } from "date-fns";
 import { FileText } from "lucide-react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
-
-interface Document {
-  id: string;
-  name: string;
-  createdAt: string | Date;
-  type: string;
-}
+import { Document } from "@workspace/types";
 
 interface PatientDocumentsTabUIProps {
   documents: Document[];
@@ -39,7 +33,9 @@ export function PatientDocumentsTabUI({
               <FileText className="h-8 w-8" />
             </div>
             <div>
-              <h4 className="font-semibold truncate w-full px-2">{doc.name}</h4>
+              <h4 className="font-semibold truncate w-full px-2">
+                {doc.name || doc.title}
+              </h4>
               <p className="text-xs text-muted-foreground mt-1">
                 {format(new Date(doc.createdAt), "MMM d, yyyy")}
               </p>

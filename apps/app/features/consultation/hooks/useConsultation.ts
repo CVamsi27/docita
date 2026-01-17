@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { consultationApi } from "../api/consultation.api";
 import type { VitalSign } from "@workspace/types";
 import { toast } from "sonner";

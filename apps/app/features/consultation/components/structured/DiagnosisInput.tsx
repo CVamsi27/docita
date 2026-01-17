@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Plus, X, Stethoscope, Trash2 } from "lucide-react";
+import { Plus, Stethoscope, Trash2 } from "lucide-react";
 
 export interface DiagnosisItem {
   id: string;

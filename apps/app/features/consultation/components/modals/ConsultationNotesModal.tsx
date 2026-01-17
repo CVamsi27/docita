@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
@@ -36,7 +36,6 @@ export function ConsultationNotesModal({
 
     try {
       await updateAppointment.mutateAsync({
-        id: appointmentId,
         notes,
       });
       toast.success("Notes saved");

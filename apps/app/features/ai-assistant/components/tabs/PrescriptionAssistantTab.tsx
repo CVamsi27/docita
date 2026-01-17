@@ -18,8 +18,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import type {
-  PrescriptionSuggestion,
   DrugInteraction,
+  PrescriptionSuggestion,
 } from "../../hooks/use-ai-assistant-logic";
 import { EmptyState } from "../AIAssistantUI";
 
