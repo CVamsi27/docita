@@ -9,15 +9,11 @@ import { BaseService } from '../common/services/base.service';
 import { WhatsAppNotificationService } from '../common/services/whatsapp-notification.service';
 import { PDFGeneratorService } from '../common/services/pdf-generator.service';
 import { PaymentsService } from '../modules/payments/payments.service';
-
-/**
- * Invoice item structure
- */
-interface InvoiceItem {
-  description: string;
-  quantity: number;
-  price: number;
-}
+import type { InvoiceItem } from '@workspace/types';
+import {
+  validateSpecialization,
+  validateHospitalRole,
+} from './enum-validators';
 
 /**
  * InvoicesService extends BaseService to leverage standardized CRUD patterns
@@ -70,7 +66,8 @@ export class InvoicesService extends BaseService<Invoice> {
       return { items: [], count: 0, nextCursor: undefined, hasMore: false };
     }
 
-    const where: any = this.buildClinicWhereClause(clinicId);
+    const where: Prisma.InvoiceWhereInput =
+      this.buildClinicWhereClause(clinicId);
 
     if (patientId) {
       where.patientId = patientId;
@@ -152,8 +149,8 @@ export class InvoicesService extends BaseService<Invoice> {
     doctorName?: string;
     doctorEmail?: string;
     doctorPhone?: string;
-    doctorSpecialization?: any;
-    doctorRole?: any;
+    doctorSpecialization?: string | null;
+    doctorRole?: string | null;
     doctorRegistrationNumber?: string;
     doctorLicenseNumber?: string;
     clinicId?: string;
@@ -169,8 +166,8 @@ export class InvoicesService extends BaseService<Invoice> {
         doctorName: data.doctorName,
         doctorEmail: data.doctorEmail,
         doctorPhone: data.doctorPhone,
-        doctorSpecialization: data.doctorSpecialization || null,
-        doctorRole: data.doctorRole || null,
+        doctorSpecialization: validateSpecialization(data.doctorSpecialization),
+        doctorRole: validateHospitalRole(data.doctorRole),
         doctorRegistrationNumber: data.doctorRegistrationNumber,
         doctorLicenseNumber: data.doctorLicenseNumber,
       },
@@ -195,7 +192,14 @@ export class InvoicesService extends BaseService<Invoice> {
     });
 
     // Send WhatsApp notification if automation is enabled
-    await this.sendInvoiceNotification(invoice, data.clinicId);
+    const notificationPayload = {
+      ...invoice,
+      items: invoice.items as unknown as InvoiceItem[],
+      // Ensure patient object is correctly typed/passed
+      patient: invoice.patient,
+    };
+
+    await this.sendInvoiceNotification(invoice as any, data.clinicId);
 
     return invoice;
   }
@@ -210,7 +214,7 @@ export class InvoicesService extends BaseService<Invoice> {
       patientId: string;
       patient: { firstName: string; lastName: string; phoneNumber: string };
       total: number;
-      items: any;
+      items: InvoiceItem[];
       createdAt: Date;
     },
     clinicId?: string,
@@ -365,7 +369,8 @@ export class InvoicesService extends BaseService<Invoice> {
         address: clinic?.address || process.env.CLINIC_ADDRESS,
         phone: clinic?.phone || process.env.CLINIC_PHONE,
         email: clinic?.email || process.env.CLINIC_EMAIL,
-        gstin: (clinic as any)?.gstin,
+        gstin:
+          (clinic as { gstin?: string })?.gstin || process.env.CLINIC_GSTIN,
       },
       patient: {
         name: `${invoice.patient.firstName} ${invoice.patient.lastName}`,

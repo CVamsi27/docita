@@ -46,7 +46,7 @@ export const whatsappLogSchema = z.object({
     status: z.string(),
     direction: z.enum(["inbound", "outbound"]),
     messageId: z.string().optional(),
-    content: z.any().optional(),
+    content: z.unknown().optional(),
     createdAt: z.date().or(z.string()),
 });
 

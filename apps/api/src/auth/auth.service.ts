@@ -79,6 +79,14 @@ export class AuthService {
     }
   }
 
+  async checkEmailExists(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    return !!user;
+  }
+
   async validateUser(
     email: string,
     pass: string,

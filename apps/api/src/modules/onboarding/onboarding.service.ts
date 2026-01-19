@@ -6,8 +6,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { AuthService } from '../../auth/auth.service';
 import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
 import * as bcrypt from 'bcrypt';
+import type { PaymentData } from '@workspace/types';
+import {
+  validateSpecializationForOnboarding,
+  validateClinicTier,
+  validateBillingCycle,
+  getClinicSettings,
+} from './type-helpers';
 import {
   CompleteOnboardingDto,
   OnboardingStep,
@@ -21,6 +29,7 @@ import {
   ClinicTier,
   BillingCycle,
 } from './dto/create-clinic-onboarding.dto';
+import type { PrismaTransaction } from '@workspace/types';
 
 interface OnboardingResult {
   success: boolean;
@@ -29,6 +38,14 @@ interface OnboardingResult {
   subscriptionId?: string;
   message: string;
   errors?: string[];
+  access_token?: string;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    clinicId: string | null;
+  };
 }
 
 interface OnboardingSession {
@@ -50,6 +67,7 @@ export class OnboardingService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private authService: AuthService,
     private subscriptionBilling: SubscriptionBillingService,
   ) {
     // Clean up expired sessions every hour
@@ -85,7 +103,7 @@ export class OnboardingService {
   updateOnboardingStep(
     onboardingId: string,
     step: OnboardingStep,
-    data: any,
+    data: Partial<CompleteOnboardingDto>,
   ): OnboardingProgressDto {
     const session = this.onboardingSessions.get(onboardingId);
     if (!session) {
@@ -223,29 +241,50 @@ export class OnboardingService {
         await this.initializeClinicSettings(tx, clinic.id);
 
         // Step 8: Audit Log (DPDP Compliance)
-        await this.auditService.logAction({
-          userId: adminUser.id,
-          clinicId: clinic.id,
-          actionType: 'CLINIC_ONBOARDED',
-          resourceType: 'Clinic',
-          resourceId: clinic.id,
-          metadata: {
-            tier: completeData.planSelection.tier,
-            billingCycle: completeData.planSelection.billingCycle,
-            onboardingId,
-          },
-          ipAddress,
-        });
 
         return { clinic, adminUser, subscription: { id: subscriptionId } };
       });
 
-      // Clean up session after successful onboarding
       this.onboardingSessions.delete(onboardingId);
+
+      // Auditing (moved outside transaction to avoid deadlock/visibility issues)
+      try {
+        await this.auditService.logAction(
+          {
+            userId: result.adminUser.id,
+            clinicId: result.clinic.id,
+            actionType: 'CLINIC_ONBOARDED',
+            resourceType: 'Clinic',
+            resourceId: result.clinic.id,
+            metadata: {
+              tier: completeData.planSelection.tier,
+              billingCycle: completeData.planSelection.billingCycle,
+              onboardingId,
+            },
+            ipAddress,
+          },
+          true,
+        );
+      } catch (auditError) {
+        this.logger.error(`Failed to log audit action: ${auditError.message}`);
+      }
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${clinicId}`,
       );
+
+      // Generate JWT token for automatic login
+      const authPayload = {
+        id: result.adminUser.id,
+        email: result.adminUser.email,
+        name: result.adminUser.name,
+        role: result.adminUser.role,
+        clinicId: result.clinic.id,
+      };
+      const authCredentials = this.authService.login({
+        ...authPayload,
+        clinicId: result.clinic.id,
+      } as any);
 
       return {
         success: true,
@@ -253,6 +292,8 @@ export class OnboardingService {
         userId: result.adminUser.id,
         subscriptionId: result.subscription.id,
         message: 'Clinic onboarded successfully. Welcome to Docita!',
+        access_token: authCredentials.access_token,
+        user: authCredentials.user,
       };
     } catch (error) {
       this.logger.error(`Onboarding failed: ${error.message}`, error.stack);
@@ -285,7 +326,7 @@ export class OnboardingService {
    * Create clinic with DPDP compliance metadata
    */
   private async createClinic(
-    tx: any,
+    tx: PrismaTransaction,
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
   ) {
@@ -335,7 +376,7 @@ export class OnboardingService {
    * Create admin user with encrypted password
    */
   private async createAdminUser(
-    tx: any,
+    tx: PrismaTransaction,
     adminData: AdminAccountDto,
     clinicId: string,
     ipAddress?: string,
@@ -365,7 +406,9 @@ export class OnboardingService {
         clinicId,
         qualification: adminData.qualification,
         registrationNumber: adminData.registrationNumber,
-        specialization: adminData.specialization,
+        specialization: validateSpecializationForOnboarding(
+          adminData.specialization,
+        ),
       },
     });
 
@@ -376,10 +419,10 @@ export class OnboardingService {
    * Create subscription based on plan selection
    */
   private async createSubscription(
-    tx: any,
+    tx: PrismaTransaction,
     clinicId: string,
     planData: PlanSelectionDto,
-    paymentData?: any,
+    paymentData?: PaymentData,
   ) {
     const now = new Date();
     const periodEnd =
@@ -389,8 +432,8 @@ export class OnboardingService {
 
     // Calculate pricing based on tier
     const priceCents = this.getTierPricing(
-      planData.tier as any,
-      planData.billingCycle as any,
+      validateClinicTier(planData.tier),
+      validateBillingCycle(planData.billingCycle),
     );
 
     const subscription = await tx.subscription.create({
@@ -403,7 +446,7 @@ export class OnboardingService {
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         // Set appropriate usage limits based on tier
-        ...this.getTierLimits(planData.tier as any),
+        ...this.getTierLimits(validateClinicTier(planData.tier)),
       },
     });
 
@@ -430,7 +473,7 @@ export class OnboardingService {
    * Record SLA agreement with DPDP compliance tracking
    */
   private async recordSLAAgreement(
-    tx: any,
+    tx: PrismaTransaction,
     clinicId: string,
     userId: string,
     slaData: SLAAgreementDto,
@@ -453,9 +496,9 @@ export class OnboardingService {
       data: {
         userId,
         clinicId,
-        actionType: 'SLA_ACCEPTED',
-        resourceType: 'Legal',
-        resourceId: clinicId,
+        action: 'SLA_ACCEPTED',
+        entityType: 'Legal',
+        entityId: clinicId,
         metadata: {
           slaVersion: slaData.slaVersion,
           acceptedBy: slaData.acceptedBy,
@@ -474,7 +517,7 @@ export class OnboardingService {
       where: { id: clinicId },
       data: {
         settings: {
-          ...clinic.settings,
+          ...getClinicSettings(clinic?.settings),
           sla: {
             accepted: true,
             version: slaData.slaVersion,
@@ -496,7 +539,7 @@ export class OnboardingService {
    * Configure consent management for patient communications (DPDP Compliance)
    */
   private async configureConsentManagement(
-    tx: any,
+    tx: PrismaTransaction,
     clinicId: string,
     consentData: ConsentManagementDto,
   ) {
@@ -514,7 +557,7 @@ export class OnboardingService {
           logAllMessages: true, // Always log for DPDP compliance
         },
         settings: {
-          ...clinic.settings,
+          ...getClinicSettings(clinic?.settings),
           consentManagement: {
             whatsappEnabled: consentData.enableWhatsAppCommunication,
             marketingEnabled: consentData.enableMarketingCommunications,
@@ -533,7 +576,7 @@ export class OnboardingService {
    * Create staff members
    */
   private async createStaffMembers(
-    tx: any,
+    tx: PrismaTransaction,
     clinicId: string,
     staffData: StaffSetupDto,
     ipAddress?: string,
@@ -558,7 +601,7 @@ export class OnboardingService {
       // Hash password
       const hashedPassword = await bcrypt.hash(member.password, 10);
 
-      await tx.user.create({
+      const newUser = await tx.user.create({
         data: {
           name: member.name,
           email: member.email,
@@ -568,17 +611,20 @@ export class OnboardingService {
           clinicId,
           qualification: member.qualification,
           registrationNumber: member.registrationNumber,
-          specialization: member.specialization,
+          specialization: validateSpecializationForOnboarding(
+            member.specialization,
+          ),
         },
       });
 
       // Audit log for staff creation
       await tx.auditLog.create({
         data: {
+          userId: newUser.id,
           clinicId,
-          actionType: 'USER_CREATED',
-          resourceType: 'User',
-          resourceId: member.email,
+          action: 'USER_CREATED',
+          entityType: 'User',
+          entityId: newUser.id,
           metadata: {
             role: member.role,
             createdDuringOnboarding: true,
@@ -592,16 +638,18 @@ export class OnboardingService {
   /**
    * Initialize default clinic settings
    */
-  private async initializeClinicSettings(tx: any, clinicId: string) {
+  private async initializeClinicSettings(
+    tx: PrismaTransaction,
+    clinicId: string,
+  ) {
     // Create reminder settings
     await tx.reminderSettings.create({
       data: {
-        clinicId,
+        clinic: { connect: { id: clinicId } },
         enabled: false, // User can enable later
-        reminderTimings: ['1440', '120'], // 24h and 2h before
-        autoConfirmation: false,
       },
     });
+    this.logger.log(`Initialized defaults for clinic: ${clinicId}`);
   }
 
   // Helper methods

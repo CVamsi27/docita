@@ -7,97 +7,15 @@ import {
 import sharp from 'sharp';
 import { promises as fs } from 'fs';
 
-export interface ExtractedText {
-  text: string;
-  confidence: number;
-  documentType: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'GENERAL';
-}
-
-interface Medication {
-  name: string;
-  dosage: string;
-  frequency: string;
-  route: string;
-  duration: string;
-}
-
-interface Vitals {
-  bp: string;
-  temp: string;
-  pulse: string;
-  respiratoryRate: string;
-  spO2: string;
-  glucose: string;
-}
-
-interface LabValues {
-  glucose: string;
-  hemoglobin: string;
-  creatinine: string;
-}
-
-interface InvoiceItem {
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-}
-
-interface EmergencyContact {
-  name: string;
-  phoneNumber: string;
-  relation: string;
-}
-
-export interface ParsedMedicalFields {
-  // Patient Details
-  firstName: string;
-  lastName: string;
-  mrn: string;
-  preferredName: string;
-  pronouns: string;
-  address: string;
-  race: string;
-  ethnicity: string;
-  maritalStatus: string;
-  preferredLanguage: string;
-  age: string;
-  gender: string;
-  phoneNumber: string;
-  email: string;
-  bloodType: string;
-  emergencyContact: EmergencyContact | null;
-
-  // Dates
-  dateOfBirth: string;
-  visitDate: string;
-  invoiceDate: string;
-  admissionDate: string;
-
-  // Metadata
-  clinicName: string;
-  doctorName: string;
-
-  // Medical Data
-  diagnosis: string;
-  symptoms: string[];
-  allergies: string[];
-  medicalHistory: string[];
-  medications: Medication[];
-  vitals: Vitals;
-  labValues: LabValues;
-
-  // Invoice Data
-  invoice: {
-    total: number | null;
-    tax: number | null;
-    discount: number | null;
-    subtotal: number | null;
-    items: InvoiceItem[];
-  };
-
-  [key: string]: unknown;
-}
+import {
+  ExtractedText,
+  ParsedMedicalFields,
+  OCRMedication as Medication,
+  OCRVitals as Vitals,
+  OCRLabValues as LabValues,
+  OCRInvoiceItem as InvoiceItem,
+  EmergencyContact,
+} from '@workspace/types';
 
 // Minimal interface for Tesseract Worker to avoid hard dependency on tesseract.js types
 interface TesseractWorker {
@@ -125,7 +43,7 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
   private tesseractAvailable = false;
 
   async onModuleInit() {
-    this.loadTesseract();
+    await this.loadTesseract();
     if (this.tesseractAvailable) {
       await this.initWorker();
     }
@@ -138,10 +56,10 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private loadTesseract() {
+  private async loadTesseract() {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      this.Tesseract = require('tesseract.js');
+      this.Tesseract = (await import('tesseract.js'))
+        .default as unknown as TesseractModule;
       this.tesseractAvailable = true;
     } catch (e) {
       this.logger.warn('Tesseract.js not found, OCR will use fallback mode');
@@ -157,8 +75,9 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
         this.workerReady = true;
         this.logger.log('Tesseract worker initialized successfully');
       }
-    } catch (error: any) {
-      this.logger.error('Failed to initialize Tesseract worker', error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error('Failed to initialize Tesseract worker', err);
       this.workerReady = false;
     }
   }
@@ -205,8 +124,9 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
       // Return buffer directly instead of saving to file
       this.logger.debug(`Preprocessing complete for ${imagePath}`);
       return await pipeline.png().toBuffer();
-    } catch (error: any) {
-      this.logger.error(`Image preprocessing failed: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Image preprocessing failed: ${err.message}`);
       // Return original image buffer if preprocessing fails
       return await fs.readFile(imagePath);
     }
@@ -273,10 +193,9 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
           ),
         ]);
         this.logger.log('[OCR] Tesseract recognition completed');
-      } catch (recognizeError: any) {
-        this.logger.warn(
-          `[OCR] Tesseract recognition failed: ${recognizeError.message}`,
-        );
+      } catch (recognizeError: unknown) {
+        const err = recognizeError as Error;
+        this.logger.warn(`[OCR] Tesseract recognition failed: ${err.message}`);
         // If worker crashed/timed out, mark it as not ready for next time
         this.workerReady = false;
         return {
@@ -301,11 +220,9 @@ export class OCRService implements OnModuleInit, OnModuleDestroy {
         confidence: Math.max(confidence, 0.1), // Ensure minimum 0.1 confidence
         documentType,
       };
-    } catch (error: any) {
-      this.logger.error(
-        `[OCR] Unexpected error: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`[OCR] Unexpected error: ${err.message}`, err.stack);
       // Return empty text with low confidence instead of throwing
       return {
         text: '',

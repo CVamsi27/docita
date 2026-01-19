@@ -440,7 +440,10 @@ export class ClinicsService {
     };
   }
 
-  async updatePrescriptionDefaults(clinicId: string, data: any) {
+  async updatePrescriptionDefaults(
+    clinicId: string,
+    data: Record<string, unknown>,
+  ) {
     // First get existing settings to merge
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },

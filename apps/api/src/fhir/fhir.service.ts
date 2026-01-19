@@ -20,6 +20,7 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 
 // FHIR R4 Resource Types
 interface FhirResource {
@@ -463,7 +464,7 @@ export class FhirService {
     clinicId: string,
     appointmentId?: string,
   ): Promise<FhirObservation[]> {
-    const where: any = {
+    const where: Prisma.VitalSignWhereInput = {
       appointment: {
         patientId,
         clinicId,

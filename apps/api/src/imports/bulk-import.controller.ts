@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('imports')
 @UseGuards(JwtAuthGuard)
@@ -26,7 +27,7 @@ export class BulkImportController {
 
   @Post('bulk')
   async startBulkImport(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Body()
     data: {
       entityType: BulkImportEntityType;
@@ -34,8 +35,8 @@ export class BulkImportController {
       fileBuffer: Buffer;
     },
   ) {
-    const clinicId = req.user?.clinicId;
-    const userId = req.user?.id;
+    const clinicId = req.user?.clinicId || ''; // Handle potential undefined safely
+    const userId = req.user.userId;
 
     return this.bulkImportService.startImport(
       clinicId,

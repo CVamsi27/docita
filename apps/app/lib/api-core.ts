@@ -42,6 +42,13 @@ export interface FormOptions {
   timezone: { value: string; label: string }[];
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  count: number;
+  hasMore: boolean;
+  nextCursor?: string | null;
+}
+
 /**
  * Medical History Timeline Item - represents a single appointment in the patient's medical history
  */
@@ -221,9 +228,4 @@ export function useAPIMutation<TData, TVariables>(
   });
 }
 
-export interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
+

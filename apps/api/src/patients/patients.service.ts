@@ -1,27 +1,8 @@
 import { Injectable, Optional } from '@nestjs/common';
-import { Patient } from '@workspace/types';
+import { Patient, CreatePatientInput } from '@workspace/types';
 import { PatientsRepository } from '../common/repositories';
 import { DomainEventService, DomainEvents } from '../common/events';
 import { EncryptionService } from '../common/encryption.service';
-
-/**
- * DTO for creating patients - matches what controller sends
- */
-interface CreatePatientData {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email?: string;
-  address?: string;
-  gender: string;
-  dateOfBirth: Date | string;
-  bloodGroup?: string;
-  allergies?: string;
-  medicalHistory?: string[];
-  clinicId: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-}
 
 /**
  * Service for patient-related business logic.
@@ -76,9 +57,17 @@ export class PatientsService {
   /**
    * Create a new patient
    */
-  async create(data: CreatePatientData, userId?: string) {
+  async create(data: CreatePatientInput, userId?: string) {
+    if (!data.clinicId) {
+      throw new Error('Clinic ID is required to create a patient');
+    }
+
     // Encrypt sensitive data before saving
-    const encryptedData = this.encryptionService.encryptPatientData(data);
+    // Cast to ensure clinicId is treated as string since we checked it
+    const encryptedData = this.encryptionService.encryptPatientData({
+      ...data,
+      clinicId: data.clinicId,
+    });
 
     const patient = await this.patientsRepository.create(encryptedData);
 
@@ -92,7 +81,7 @@ export class PatientsService {
       this.eventService.emit(
         DomainEvents.PATIENT_CREATED,
         {
-          patientId: decryptedPatient.id,
+          patientId: decryptedPatient.id as string,
           ...(mrn && { mrn }),
           firstName: decryptedPatient.firstName,
           lastName: decryptedPatient.lastName,
@@ -137,13 +126,14 @@ export class PatientsService {
     if (this.eventService && context) {
       const changes: Record<string, { old: unknown; new: unknown }> = {};
       for (const key of Object.keys(data)) {
+        const dataKey = key as keyof typeof data;
         if (
           decryptedOldPatient &&
-          decryptedOldPatient[key] !== (data as any)[key]
+          decryptedOldPatient[dataKey] !== data[dataKey]
         ) {
           changes[key] = {
-            old: decryptedOldPatient[key],
-            new: (data as any)[key],
+            old: decryptedOldPatient[dataKey],
+            new: data[dataKey],
           };
         }
       }

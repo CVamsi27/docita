@@ -17,16 +17,16 @@ export const clinicSchema = z.object({
     active: z.boolean(),
     tier: z.string().or(ClinicTier),
     type: z.string().or(clinicTypeSchema),
-    settings: z.any().nullable().optional(), // Json
+    settings: z.record(z.unknown()).nullable().optional(), // Json
     timezone: z.string(),
     locale: z.string(),
     currency: z.string(),
     createdAt: z.date().or(z.string()),
     updatedAt: z.date().or(z.string()),
     subscriptionStatus: z.string(),
-    branding: z.any().nullable().optional(), // Json
-    features: z.any().nullable().optional(), // Json
-    whatsappAutomation: z.any().nullable().optional(), // Json
+    branding: z.record(z.unknown()).nullable().optional(), // Json
+    features: z.record(z.unknown()).nullable().optional(), // Json
+    whatsappAutomation: z.record(z.unknown()).nullable().optional(), // Json
     intelligenceAddon: z.string().or(IntelligenceAddonStatus),
     trialEndsAt: z.date().or(z.string()).nullable().optional(),
     avgConsultationMinutes: z.number(),

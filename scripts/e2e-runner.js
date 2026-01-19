@@ -29,16 +29,23 @@ function waitForPort(port, host = "127.0.0.1", timeout = 30000) {
 
 console.log("Starting API and frontend for full e2e run...");
 
+// Force IPv4 for reliable local connection
+const ENV_VARS = {
+    ...process.env,
+    API_URL: "http://127.0.0.1:3001/api",
+    NEXT_PUBLIC_API_URL: "http://127.0.0.1:3001/api",
+};
+
 const apiProc = spawn("pnpm", ["--filter", "@docita/api", "run", "dev"], {
   cwd: REPO_ROOT,
   stdio: "inherit",
-  env: process.env,
+  env: ENV_VARS,
 });
 
 const appProc = spawn("pnpm", ["--filter", "@docita/app", "run", "dev"], {
   cwd: REPO_ROOT,
   stdio: "inherit",
-  env: process.env,
+  env: ENV_VARS,
 });
 
 let finished = false;
@@ -65,9 +72,9 @@ appProc.on("exit", (code) => {
 
 (async () => {
   try {
-    await waitForPort(3001, "127.0.0.1", 30000);
+    await waitForPort(3001, "127.0.0.1", 120000);
     console.log("API listening on 3001");
-    await waitForPort(3000, "127.0.0.1", 30000);
+    await waitForPort(3000, "127.0.0.1", 120000);
     console.log("Frontend listening on 3000");
 
     // Run Playwright tests in app
@@ -76,7 +83,7 @@ appProc.on("exit", (code) => {
     const testProc = spawn("pnpm", ["exec", "playwright", "test", ...testArgs], {
       cwd: APP_DIR,
       stdio: "inherit",
-      env: { ...process.env },
+      env: ENV_VARS,
     });
 
     testProc.on("exit", (code) => {

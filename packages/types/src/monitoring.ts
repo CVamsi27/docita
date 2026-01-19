@@ -18,7 +18,7 @@ export const RequestStatsSchema = z.object({
 export const ErrorStatsSchema = z.object({
     totalErrors: z.number().int(),
     byType: z.record(z.number().int()),
-    recentErrors: z.array(z.any()), // Refine if possible
+    recentErrors: z.array(z.unknown()), // Refine if possible
 });
 
 export const PerformanceMetricsSchema = z.object({

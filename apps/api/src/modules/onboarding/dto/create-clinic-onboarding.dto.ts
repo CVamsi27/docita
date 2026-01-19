@@ -57,7 +57,7 @@ export const clinicDetailsSchema = z.object({
   state: z.string().optional(),
   pincode: z.string().optional(),
   type: clinicTypeSchema.optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().or(z.literal('')),
   mrnPrefix: z.string().max(20).optional(),
   dataResidency: z.string().optional(),
   timezone: z.string().optional(),

@@ -4,6 +4,8 @@
  */
 
 import * as crypto from 'crypto';
+import { Patient } from '@workspace/types';
+import { Logger } from '@nestjs/common';
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32; // 256 bits
@@ -11,6 +13,7 @@ const IV_LENGTH = 16; // 128 bits
 const TAG_LENGTH = 16; // 128 bits
 
 export class EncryptionService {
+  private readonly logger = new Logger(EncryptionService.name);
   private encryptionKey: Buffer;
 
   constructor() {
@@ -75,7 +78,7 @@ export class EncryptionService {
 
       return decrypted;
     } catch (error) {
-      console.error('Decryption failed:', error);
+      this.logger.error('Decryption failed', error);
       return encryptedData; // Return original if decryption fails
     }
   }
@@ -85,7 +88,7 @@ export class EncryptionService {
    * @param patient - Patient object
    * @returns Patient with encrypted sensitive fields
    */
-  encryptPatientData(patient: any): any {
+  encryptPatientData<T>(patient: T): T {
     const sensitiveFields = [
       'email',
       'phoneNumber',
@@ -98,7 +101,7 @@ export class EncryptionService {
 
     for (const field of sensitiveFields) {
       if (patient[field]) {
-        encryptedPatient[field] = this.encrypt(patient[field]);
+        encryptedPatient[field] = this.encrypt(patient[field] as string);
       }
     }
 
@@ -110,7 +113,7 @@ export class EncryptionService {
    * @param patient - Patient object with encrypted fields
    * @returns Patient with decrypted fields
    */
-  decryptPatientData(patient: any): any {
+  decryptPatientData<T>(patient: T): T {
     const sensitiveFields = [
       'email',
       'phoneNumber',
@@ -123,7 +126,7 @@ export class EncryptionService {
 
     for (const field of sensitiveFields) {
       if (patient[field]) {
-        decryptedPatient[field] = this.decrypt(patient[field]);
+        decryptedPatient[field] = this.decrypt(patient[field] as string);
       }
     }
 

@@ -1,27 +1,12 @@
 import { useState } from "react";
 
-export interface DrugInteraction {
-  drug1: string;
-  drug2: string;
-  severity: "low" | "moderate" | "high";
-  description: string;
-}
+import {
+  DiagnosisSuggestion,
+  DrugInteraction,
+  PrescriptionSuggestion,
+} from "@workspace/types";
 
-export interface DiagnosisSuggestion {
-  condition: string;
-  icdCode: string;
-  confidence: number;
-  reasoning: string;
-}
-
-export interface PrescriptionSuggestion {
-  medication: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  route: string;
-  notes: string;
-}
+export type { DrugInteraction, DiagnosisSuggestion, PrescriptionSuggestion };
 
 export const useAIAssistantLogic = () => {
   const [activeTab, setActiveTab] = useState("prescription");

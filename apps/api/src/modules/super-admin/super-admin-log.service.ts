@@ -1,8 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { SystemLogEntry } from '@workspace/types';
 
 @Injectable()
 export class SuperAdminLogService {
+  private readonly logger = new Logger(SuperAdminLogService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async getLogs(limit: number = 50, offset: number = 0) {
@@ -42,7 +49,7 @@ export class SuperAdminLogService {
       // Fallback: Generate logs from recent database activity if no audit logs exist
       return this.getRecentActivityLogs(limit, offset);
     } catch (error) {
-      console.error('Failed to fetch logs:', error);
+      this.logger.error('Failed to fetch logs', error);
       throw new InternalServerErrorException('Failed to fetch logs');
     }
   }
@@ -91,7 +98,7 @@ export class SuperAdminLogService {
       }),
     ]);
 
-    const logs: any[] = [];
+    const logs: SystemLogEntry[] = [];
 
     appointments.forEach((apt) => {
       logs.push({

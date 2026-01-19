@@ -161,7 +161,7 @@ export class BulkImportService {
 
       const batchSize = 1000;
       for (let i = 0; i < rows.length; i += batchSize) {
-        const batch = rows.slice(i, i + batchSize);
+        const batch = rows.slice(i, i + batchSize) as Record<string, any>[];
         const batchResults = await this.processBatch(
           entityType,
           batch,
@@ -208,7 +208,7 @@ export class BulkImportService {
    */
   private async processBatch(
     entityType: BulkImportEntityType,
-    rows: any[],
+    rows: Record<string, any>[],
     clinicId: string,
     startRowNumber: number,
   ): Promise<{ successCount: number; errors: ImportError[] }> {
@@ -267,7 +267,7 @@ export class BulkImportService {
   ) {
     const validators: Record<
       BulkImportEntityType,
-      (row: any) => { valid: boolean; error?: string }
+      (row: Record<string, any>) => { valid: boolean; error?: string }
     > = {
       PATIENT: (row) => {
         if (!row.firstName || !row.lastName) {

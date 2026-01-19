@@ -4,7 +4,7 @@ import { API_URL, loginUser, setupTestUser, UserData } from "./utils/patient-hel
 test.describe("Documents", () => {
   let user: UserData;
   let patientId: string;
-  let documentId: string;
+  let _documentId: string;
 
   test.beforeAll(async ({ request }) => {
     user = await setupTestUser(request);
@@ -49,7 +49,7 @@ test.describe("Documents", () => {
     }
     expect(uploadRes.ok()).toBeTruthy();
     const doc = await uploadRes.json();
-    documentId = doc.id;
+    _documentId = doc.id;
   });
 
   test.beforeEach(async ({ page }) => {

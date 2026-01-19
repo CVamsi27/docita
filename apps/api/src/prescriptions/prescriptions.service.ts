@@ -18,6 +18,7 @@ import {
 } from '@workspace/utils';
 
 import { Specialization, HospitalRole } from '@workspace/types';
+import { Prisma } from '@workspace/db';
 
 @Injectable()
 export class PrescriptionsService {
@@ -35,7 +36,7 @@ export class PrescriptionsService {
     }
 
     const { search, date } = params || {};
-    const whereCallback: any = {
+    const whereCallback: Prisma.PrescriptionWhereInput = {
       patient: { clinicId },
     };
 
@@ -71,29 +72,38 @@ export class PrescriptionsService {
       };
     }
 
-    return this.prisma.prescription.findMany({
-      where: whereCallback,
-      include: {
-        medications: true,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            gender: true,
-            dateOfBirth: true,
+    try {
+      return await this.prisma.prescription.findMany({
+        where: whereCallback,
+        include: {
+          medications: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phoneNumber: true,
+              gender: true,
+              dateOfBirth: true,
+            },
+          },
+          doctor: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(
+        `Failed to find prescriptions: ${err.message}`,
+        err.stack,
+      );
+      throw error;
+    }
   }
 
   async findOne(id: string) {

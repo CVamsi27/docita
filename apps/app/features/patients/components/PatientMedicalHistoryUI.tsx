@@ -8,13 +8,18 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Baby, Eye, History, Smile } from "lucide-react";
 import {
+  GrowthChartData,
+  OphthalmologyExamData,
   PatientAllergy,
   PatientSocialHistory,
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
 // Specialty Components
-import { DentalChartUI } from "@/features/consultation/components/specialty/DentalChartUI";
+import {
+  DentalChartUI,
+  DentalChartValue,
+} from "@/features/consultation/components/specialty/DentalChartUI";
 import { VisionExamUI } from "@/features/consultation/components/specialty/VisionExamUI";
 import { GrowthChartUI } from "@/features/consultation/components/specialty/GrowthChartUI";
 
@@ -68,7 +73,7 @@ interface PatientMedicalHistoryUIProps {
   // Social History
   onSocialHistoryUpdate: (
     field: keyof PatientSocialHistory,
-    value: string,
+    value: string
   ) => void;
 }
 
@@ -117,7 +122,10 @@ export function PatientMedicalHistoryUI({
       icon = <Smile className="h-5 w-5 text-teal-600" />;
       component = (
         <DentalChartUI
-          value={customData.dentalChart || {}}
+          value={
+            (customData.dentalChart as unknown as DentalChartValue) ||
+            ({} as DentalChartValue)
+          }
           onChange={(val) => onCustomDataUpdate?.("dentalChart", val)} // Only allows updating if prop provided
           readOnly={readOnly}
         />
@@ -127,7 +135,10 @@ export function PatientMedicalHistoryUI({
       icon = <Eye className="h-5 w-5 text-blue-600" />;
       component = (
         <VisionExamUI
-          value={customData.ophthalmologyExam || {}}
+          value={
+            (customData.ophthalmologyExam as unknown as OphthalmologyExamData) ||
+            ({} as OphthalmologyExamData)
+          }
           onChange={(val) => onCustomDataUpdate?.("ophthalmologyExam", val)}
           readOnly={readOnly}
         />
@@ -137,7 +148,12 @@ export function PatientMedicalHistoryUI({
       icon = <Baby className="h-5 w-5 text-pink-500" />;
       component = (
         <GrowthChartUI
-          value={customData.growthData || {}}
+          value={
+            (customData.growthData as unknown as GrowthChartData) || {
+              patientGender: patient.gender === "MALE" ? "MALE" : "FEMALE",
+              measurements: [],
+            }
+          }
           onChange={(val) => onCustomDataUpdate?.("growthData", val)}
           readOnly={readOnly}
         />

@@ -32,5 +32,5 @@ export const appConfigSchema = z.object({
     formOptions: formOptionsSchema,
     constants: appConstantsSchema,
     importFields: patientImportFieldsSchema,
-    clinicConfig: z.record(z.any()).optional(), // Clinic specific overrides
+    clinicConfig: z.record(z.unknown()).optional(), // Clinic specific overrides
 });

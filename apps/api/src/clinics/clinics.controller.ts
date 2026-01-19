@@ -29,7 +29,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 interface AuthRequest {
   user?: {
     clinicId?: string;
-    userId?: string;
+    id?: string;
     role?: string;
   };
 }

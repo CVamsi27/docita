@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import bundleAnalyzer from "@next/bundle-analyzer";
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -32,13 +31,21 @@ const nextConfig = {
       "lucide-react",
       "recharts",
       "date-fns",
-      "framer-motion",
       "@tanstack/react-query",
     ],
   },
 
   // Production source maps (disabled for smaller builds)
   productionBrowserSourceMaps: false,
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:3001/api/:path*",
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

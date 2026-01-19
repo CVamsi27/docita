@@ -5,13 +5,19 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGateway } from '../../gateways/payment.gateway';
-import { ClinicTier } from '@workspace/db';
+import { ClinicTier, Prisma } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
 } from '../../common/select-fragments';
 import { paginateWithCursor } from '../../common/pagination.helper';
+import type {
+  CreateClinicDto,
+  CreateAdminDto,
+  UpdateAdminDto,
+} from '@workspace/types';
+import type { UpdateClinicDto } from './dto/clinic-management.dto';
 
 @Injectable()
 export class ClinicManagementService {
@@ -44,7 +50,7 @@ export class ClinicManagementService {
     return doctorClinics.map((dc) => dc.doctor);
   }
 
-  async createClinic(data: any) {
+  async createClinic(data: CreateClinicDto) {
     const existingClinic = await this.prisma.clinic.findFirst({
       where: { email: data.email },
     });
@@ -65,7 +71,9 @@ export class ClinicManagementService {
         email: data.email,
         phone: data.phone,
         address: data.address,
-        tier: data.tier || 'CORE',
+        tier: (data.tier && data.tier !== 'INTELLIGENCE'
+          ? data.tier
+          : 'CORE') as ClinicTier,
         users: {
           create: {
             email: data.adminEmail,
@@ -110,10 +118,10 @@ export class ClinicManagementService {
     return clinic;
   }
 
-  async updateClinic(id: string, data: any) {
+  async updateClinic(id: string, data: UpdateClinicDto) {
     const clinic = await this.prisma.clinic.update({
       where: { id },
-      data,
+      data: data as any,
     });
     if (data.tier !== undefined || data.active !== undefined) {
       this.paymentGateway.emitClinicUpdate(id, {
@@ -143,7 +151,7 @@ export class ClinicManagementService {
     });
   }
 
-  async createAdmin(clinicId: string, data: any) {
+  async createAdmin(clinicId: string, data: CreateAdminDto) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
     });
@@ -187,7 +195,7 @@ export class ClinicManagementService {
     return admin;
   }
 
-  async updateAdmin(adminId: string, data: any) {
+  async updateAdmin(adminId: string, data: UpdateAdminDto) {
     const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     if (!admin) throw new BadRequestException('Admin not found');
 
@@ -198,7 +206,7 @@ export class ClinicManagementService {
       if (existingUser) throw new BadRequestException('Email already in use');
     }
 
-    const updateData: any = { ...data };
+    const updateData: Record<string, unknown> = { ...data };
     if (data.adminType) {
       updateData.role =
         data.adminType === 'admin_doctor' ? 'ADMIN_DOCTOR' : 'ADMIN';

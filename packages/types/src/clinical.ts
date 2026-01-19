@@ -139,58 +139,6 @@ export const clinicalInvestigationSchema = z.object({
 });
 export type ClinicalInvestigation = z.infer<typeof clinicalInvestigationSchema>;
 
-// Full Clinical Note in SOAP format
-export const clinicalNoteSchema = z.object({
-  // Subjective
-  chiefComplaint: z.string().optional(),
-  treatmentHistory: z.string().optional(), // Previous treatments attempted for the current condition
-  historyOfPresentIllness: z.string().optional(),
-  pastMedicalHistory: z.string().optional(),
-  familyHistory: z.string().optional(),
-  socialHistory: z.string().optional(),
-  reviewOfSystems: z.string().optional(),
-  allergies: z.string().optional(),
-  currentMedications: z.string().optional(),
-
-  // Objective
-  vitalSigns: vitalSignSchema.optional(),
-  generalExamination: generalExaminationSchema.optional(),
-  systemicExamination: systemicExaminationSchema.optional(),
-
-  // Specialty-specific data
-  dentalChart: z.any().optional(), // DentalChartData - using any for now to avoid circular deps
-  growthData: z.any().optional(), // GrowthChartData - pediatric growth tracking
-  ophthalmologyExam: z.any().optional(), // OphthalmologyExamData - ophthalmology examination
-  cardiologyExam: z.any().optional(), // CardiologyExamData - cardiology examination
-  gynecologyExam: z.any().optional(), // GynecologyExamData - gynecology/obstetrics examination
-  dermatologyExam: z.any().optional(), // DermatologyExamData - dermatology examination
-  psychiatryExam: z.any().optional(), // PsychiatryExamData - psychiatry mental status examination
-
-  // Assessment
-  provisionalDiagnosis: z.string().optional(),
-  differentialDiagnosis: z.string().optional(),
-  clinicalImpression: z.string().optional(),
-
-  // Plan
-  investigations: z.array(clinicalInvestigationSchema).optional(),
-  finalDiagnosis: z.string().optional(),
-  treatmentPlan: z.string().optional(),
-  prescriptions: z
-    .array(
-      z.object({
-        name: z.string(),
-        dosage: z.string(),
-        frequency: z.string(),
-        duration: z.string(),
-        route: z.string().default("PO"),
-      }),
-    )
-    .optional(),
-  followUpPlan: z.string().optional(),
-  patientEducation: z.string().optional(),
-});
-export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
-
 // ============================================================================
 // Dental Chart Schema
 // ============================================================================
@@ -350,6 +298,7 @@ export const ecgDataSchema = z.object({
       "Left Axis Deviation",
       "Right Axis Deviation",
       "Extreme Axis Deviation",
+      "Other",
     ])
     .optional(),
   interpretation: z.string().optional(),
@@ -653,6 +602,58 @@ export type RiskAssessmentData = z.infer<typeof riskAssessmentDataSchema>;
 export type ScreeningScalesData = z.infer<typeof screeningScalesDataSchema>;
 export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 
+// Full Clinical Note in SOAP format
+export const clinicalNoteSchema = z.object({
+  // Subjective
+  chiefComplaint: z.string().optional(),
+  treatmentHistory: z.string().optional(), // Previous treatments attempted for the current condition
+  historyOfPresentIllness: z.string().optional(),
+  pastMedicalHistory: z.string().optional(),
+  familyHistory: z.string().optional(),
+  socialHistory: z.string().optional(),
+  reviewOfSystems: z.string().optional(),
+  allergies: z.string().optional(),
+  currentMedications: z.string().optional(),
+
+  // Objective
+  vitalSigns: vitalSignSchema.optional(),
+  generalExamination: generalExaminationSchema.optional(),
+  systemicExamination: systemicExaminationSchema.optional(),
+
+  // Specialty-specific data
+  dentalChart: dentalChartSchema.optional(),
+  growthData: growthChartDataSchema.optional(),
+  ophthalmologyExam: ophthalmologyExamDataSchema.optional(),
+  cardiologyExam: cardiologyExamDataSchema.optional(),
+  gynecologyExam: gynecologyExamDataSchema.optional(),
+  dermatologyExam: dermatologyExamDataSchema.optional(),
+  psychiatryExam: psychiatryExamDataSchema.optional(),
+
+  // Assessment
+  provisionalDiagnosis: z.string().optional(),
+  differentialDiagnosis: z.string().optional(),
+  clinicalImpression: z.string().optional(),
+
+  // Plan
+  investigations: z.array(clinicalInvestigationSchema).optional(),
+  finalDiagnosis: z.string().optional(),
+  treatmentPlan: z.string().optional(),
+  prescriptions: z
+    .array(
+      z.object({
+        name: z.string(),
+        dosage: z.string(),
+        frequency: z.string(),
+        duration: z.string(),
+        route: z.string().default("PO"),
+      }),
+    )
+    .optional(),
+  followUpPlan: z.string().optional(),
+  patientEducation: z.string().optional(),
+});
+export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
+
 // ============================================================================
 // Clinical Templates
 // ============================================================================
@@ -662,7 +663,7 @@ export const clinicalTemplateSchema = z.object({
   name: z.string(),
   speciality: z.string(),
   defaultObservations: z.string(),
-  fields: z.array(z.any()).default([]),
+  fields: z.array(z.record(z.unknown())).default([]),
   userId: z.string().optional(),
   clinicId: z.string().optional(),
   createdAt: z.date().or(z.string()).optional(),
@@ -670,8 +671,3 @@ export const clinicalTemplateSchema = z.object({
 });
 
 export type ClinicalTemplate = z.infer<typeof clinicalTemplateSchema>;
-
-
-
-
-

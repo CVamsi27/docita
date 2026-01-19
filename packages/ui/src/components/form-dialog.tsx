@@ -42,25 +42,21 @@ export function FormDialog({
   onOpenChange,
   title,
   description,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isEditing = false,
-  isLoading = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  submitLabel,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  cancelLabel = "Cancel",
+  isEditing: _isEditing = false,
+  isLoading,
+  submitLabel: _submitLabel,
+  cancelLabel: _cancelLabel = "Cancel",
   contentClassName,
   disabled = false,
   children,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onCancel,
+  onCancel: _onCancel,
 }: FormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
           "sm:max-w-[600px] max-h-[85vh] sm:max-h-[90vh]",
-          contentClassName,
+          contentClassName
         )}
         onInteractOutside={(e: Event) => {
           if (isLoading || disabled) {

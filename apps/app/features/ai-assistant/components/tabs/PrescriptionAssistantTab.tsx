@@ -22,8 +22,12 @@ import type {
   PrescriptionSuggestion,
 } from "../../hooks/use-ai-assistant-logic";
 import { EmptyState } from "../AIAssistantUI";
+import type { PrescriptionAssistantTabProps } from "@workspace/types";
 
-export const PrescriptionAssistantTab = ({ state, handlers }: any) => (
+export const PrescriptionAssistantTab = ({
+  state,
+  handlers,
+}: PrescriptionAssistantTabProps) => (
   <div className="grid gap-6 lg:grid-cols-2">
     <Card>
       <CardHeader>

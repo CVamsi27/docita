@@ -18,7 +18,6 @@ import {
   Package,
   PlusCircle,
   Receipt,
-  Search,
   Settings,
   Stethoscope,
   Users,

@@ -4,6 +4,19 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  Prisma,
+  ClinicTier,
+  SubscriptionStatus,
+  BillingCycle,
+} from '@workspace/db';
+
+interface BillingTierInfo {
+  name: string;
+  price: number | null;
+  maxDoctors: number;
+  aiEnabled: boolean;
+}
 
 @Injectable()
 export class SuperAdminBillingService {
@@ -220,10 +233,11 @@ export class SuperAdminBillingService {
     status?: string;
     billingCycle?: string;
   }) {
-    const where: any = {};
-    if (filters.tier) where.plan = filters.tier;
-    if (filters.status) where.status = filters.status;
-    if (filters.billingCycle) where.billingCycle = filters.billingCycle;
+    const where: Prisma.SubscriptionWhereInput = {};
+    if (filters.tier) where.plan = filters.tier as ClinicTier;
+    if (filters.status) where.status = filters.status as SubscriptionStatus;
+    if (filters.billingCycle)
+      where.billingCycle = filters.billingCycle as BillingCycle;
 
     const subscriptions = await this.prisma.subscription.findMany({
       where,
@@ -297,7 +311,7 @@ export class SuperAdminBillingService {
     startDate?: string;
     endDate?: string;
   }) {
-    const where: any = {};
+    const where: Prisma.SubscriptionPaymentWhereInput = {};
     if (filters.clinicId) where.clinicId = filters.clinicId;
     if (filters.startDate || filters.endDate) {
       where.createdAt = {};
@@ -398,7 +412,7 @@ export class SuperAdminBillingService {
       paymentId: string;
       amount: number;
       currency: string;
-      newTier: any;
+      newTier: ClinicTier;
       paymentMethod: string;
       notes?: string;
     },
@@ -452,7 +466,7 @@ export class SuperAdminBillingService {
     };
   }
 
-  async upgradeTier(clinicId: string, newTier: any) {
+  async upgradeTier(clinicId: string, newTier: ClinicTier) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
     });
@@ -470,7 +484,7 @@ export class SuperAdminBillingService {
     };
   }
 
-  async downgradeTier(clinicId: string, newTier: any) {
+  async downgradeTier(clinicId: string, newTier: ClinicTier) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
     });
@@ -496,8 +510,8 @@ export class SuperAdminBillingService {
     }));
   }
 
-  private getTierDetails(tier: any) {
-    const tierDetails: any = {
+  private getTierDetails(tier: string): BillingTierInfo | null {
+    const tierDetails: Record<string, BillingTierInfo> = {
       CAPTURE: { name: 'Capture', price: 0, maxDoctors: 1, aiEnabled: false },
       CORE: { name: 'Core', price: 4999, maxDoctors: 5, aiEnabled: false },
       PLUS: { name: 'Plus', price: 9999, maxDoctors: 20, aiEnabled: false },

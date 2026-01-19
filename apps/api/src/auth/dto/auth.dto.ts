@@ -4,6 +4,7 @@ import {
   loginResponseSchema,
   registerResponseSchema,
   validateSessionResponseSchema,
+  checkEmailResponseSchema,
 } from '@workspace/types';
 
 export const LoginSchema = z.object({
@@ -47,6 +48,12 @@ export const ChangePasswordSchema = z
 
 export class ChangePasswordDto extends createZodDto(ChangePasswordSchema) {}
 
+export const CheckEmailSchema = z.object({
+  email: z.string().email(),
+});
+
+export class CheckEmailDto extends createZodDto(CheckEmailSchema) {}
+
 export class LoginResponseDto extends createZodDto(loginResponseSchema) {}
 export class RegisterResponseDto extends createZodDto(registerResponseSchema) {}
 export class ValidateSessionResponseDto extends createZodDto(
@@ -54,4 +61,7 @@ export class ValidateSessionResponseDto extends createZodDto(
 ) {}
 export class ChangePasswordResponseDto extends createZodDto(
   z.object({ success: z.boolean(), message: z.string().optional() }),
+) {}
+export class CheckEmailResponseDto extends createZodDto(
+  checkEmailResponseSchema,
 ) {}

@@ -80,7 +80,7 @@ export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
               fill="#8884d8"
               dataKey="count"
             >
-              {data.slice(0, 8).map((_entry: any, index: number) => (
+              {data.slice(0, 8).map((_entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

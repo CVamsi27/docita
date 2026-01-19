@@ -6,15 +6,28 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Brain, FileText, Pill, Sparkles, TrendingUp } from "lucide-react";
+import {
+  Brain,
+  FileText,
+  LucideIcon,
+  Pill,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { FeatureGuard } from "@/features/_shared/components/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";
 import { DiagnosisAssistantTab } from "./tabs/DiagnosisAssistantTab";
 import { InsightsTab } from "./tabs/InsightsTab";
 import { SmartTasksTab } from "./tabs/SmartTasksTab";
+import type { AIAssistantHandlers, AIAssistantState } from "@workspace/types";
 
-export const EmptyState = ({ icon: Icon, label }: any) => (
+interface EmptyStateProps {
+  icon: LucideIcon;
+  label: string;
+}
+
+export const EmptyState = ({ icon: Icon, label }: EmptyStateProps) => (
   <div className="flex flex-col items-center justify-center py-12">
     <Icon className="h-12 w-12 text-muted-foreground/50 mb-4" />
     <p className="text-muted-foreground text-center">{label}</p>
@@ -22,8 +35,8 @@ export const EmptyState = ({ icon: Icon, label }: any) => (
 );
 
 interface AIAssistantUIProps {
-  state: any;
-  handlers: any;
+  state: AIAssistantState;
+  handlers: AIAssistantHandlers;
 }
 
 export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {

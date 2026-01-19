@@ -26,7 +26,7 @@ interface ConsentRecord {
   givenBy?: string;
   givenAt?: Date;
   expiresAt?: Date;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface DataSubjectRequest {
@@ -35,7 +35,7 @@ interface DataSubjectRequest {
   requestType: DataSubjectRight;
   reason?: string;
   requestedBy: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -196,7 +196,7 @@ export class DPDPComplianceService {
    * DPDP Requirement: Right to correct inaccurate data
    */
   async handleCorrectionRequest(
-    data: DataSubjectRequest & { corrections: any },
+    data: DataSubjectRequest & { corrections: Record<string, unknown> },
     ipAddress?: string,
   ): Promise<any> {
     // Update patient data

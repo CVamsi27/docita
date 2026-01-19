@@ -1,10 +1,21 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+  Optional,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MonitoringService } from '../../monitoring/monitoring.service';
-import OpenAI from 'openai';
-import { Inject, Optional } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import OpenAI from 'openai';
+import type {
+  OpenAIPrescriptionAnalysisData,
+  OpenAIDiagnosisData,
+  OpenAIMedicationData,
+} from '@workspace/types';
 import * as fs from 'fs';
 
 // ============================================================================
@@ -213,7 +224,10 @@ export class AIService {
 
     try {
       // Check cache
-      const cacheKey = this.generateCacheKey('prescription-analysis', request);
+      const cacheKey = this.generateCacheKey(
+        'prescription-analysis',
+        request as unknown as Record<string, unknown>,
+      );
       if (this.cacheEnabled && this.cacheManager) {
         const cached =
           await this.cacheManager.get<PrescriptionAnalysisResponse>(cacheKey);
@@ -621,19 +635,48 @@ Return ONLY valid JSON array, no other text.
    * Normalize prescription analysis response from OpenAI
    */
   private normalizePrescriptionAnalysis(
-    data: any,
+    data: OpenAIPrescriptionAnalysisData,
   ): PrescriptionAnalysisResponse {
+    const validSeverities = ['mild', 'moderate', 'severe'] as const;
+    const validStatuses = ['appropriate', 'high', 'low'] as const;
+
     return {
-      drugInteractions: (data.drugInteractions || []).slice(0, 10),
-      contraindications: (data.contraindications || []).slice(0, 10),
-      dosageRecommendations: (data.dosageRecommendations || []).slice(0, 10),
+      drugInteractions: (data.drugInteractions || [])
+        .slice(0, 10)
+        .map((interaction) => ({
+          drug1: interaction.drug1 || 'Unknown Drug',
+          drug2: interaction.drug2 || 'Unknown Drug',
+          severity: validSeverities.includes(interaction.severity as any)
+            ? (interaction.severity as 'mild' | 'moderate' | 'severe')
+            : 'moderate',
+          description: interaction.description || 'No description provided',
+        })),
+      contraindications: (data.contraindications || [])
+        .slice(0, 10)
+        .map((contraindication) => ({
+          medication: contraindication.medication || 'Unknown Medication',
+          condition: contraindication.condition || 'Unknown Condition',
+          description:
+            contraindication.description || 'No description provided',
+        })),
+      dosageRecommendations: (data.dosageRecommendations || [])
+        .slice(0, 10)
+        .map((rec) => ({
+          medication: rec.medication || 'Unknown Medication',
+          status: validStatuses.includes(rec.status as any)
+            ? (rec.status as 'appropriate' | 'high' | 'low')
+            : 'appropriate',
+          recommendation: rec.recommendation || 'No recommendation provided',
+        })),
     };
   }
 
   /**
    * Normalize diagnosis suggestions response from OpenAI
    */
-  private normalizeDiagnosisSuggestions(data: any): DiagnosisSuggestion[] {
+  private normalizeDiagnosisSuggestions(
+    data: OpenAIDiagnosisData,
+  ): DiagnosisSuggestion[] {
     const suggestions = Array.isArray(data) ? data : data.suggestions || [];
     return suggestions
       .slice(0, 10)
@@ -650,7 +693,7 @@ Return ONLY valid JSON array, no other text.
    * Normalize medication recommendations response from OpenAI
    */
   private normalizeMedicationRecommendations(
-    data: any,
+    data: OpenAIMedicationData,
   ): MedicationRecommendation[] {
     const recommendations = Array.isArray(data)
       ? data
@@ -676,7 +719,10 @@ Return ONLY valid JSON array, no other text.
   /**
    * Generate cache key for requests
    */
-  private generateCacheKey(prefix: string, data: any): string {
+  private generateCacheKey(
+    prefix: string,
+    data: Record<string, unknown>,
+  ): string {
     return `${prefix}:${JSON.stringify(data)
       .split('')
       .reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)}`;
@@ -992,7 +1038,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
    */
   private async generateFieldSuggestions(
     fields: OcrExtractedFields,
-  ): Promise<Record<string, any>> {
+  ): Promise<Record<string, string>> {
     if (!this.openai || !process.env.OPENAI_API_KEY) {
       return {};
     }

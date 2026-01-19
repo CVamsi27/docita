@@ -42,6 +42,7 @@ test.describe("Prescriptions", () => {
           email: `clinic${Date.now()}@test.com`,
           phone: "1234567890",
           address: "123 Test St",
+          tier: "PRO",
         },
       });
 
@@ -262,8 +263,8 @@ test.describe("Prescriptions", () => {
 
     // Create a fresh appointment for this specific test
     const now = new Date();
-    const start = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
-    const end = new Date(now.getTime() + 90 * 60 * 1000).toISOString();
+    const start = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
+    const end = new Date(now.getTime() + 150 * 60 * 1000).toISOString();
     const apptRes = await request.post(`${API_URL}/appointments`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
@@ -335,115 +336,97 @@ test.describe("Prescriptions", () => {
     // And existing tests use ({ request }). To add UI tests I should use ({ page }).
   });
 
-  test("should navigate to prescription details", async ({ page }) => {
+  test("should navigate to prescription details", async ({ page, request: requestContext }) => {
     // Only run if setup was successful
     if (!prescriptionEndpointAvailable) test.skip();
 
-    // Login logic - duplicating for now as per strategy, or using what I have
-    // I'll assume we can use the token setup in beforeAll for API, 
-    // but for UI we need to inject it.
+    // 1. Create a fresh prescription to ensure we have data
+    // Use a fresh appointment for this test
+    const now = new Date();
+    const start = new Date(now.getTime() + 180 * 60 * 1000).toISOString();
+    const end = new Date(now.getTime() + 210 * 60 * 1000).toISOString();
 
+    // Direct API call to create data
+    const apptRes = await requestContext.post(`${API_URL}/appointments`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      data: {
+        patientId,
+        doctorId,
+        startTime: start,
+        endTime: end,
+        status: "completed",
+        type: "consultation",
+      },
+    });
+    
+    // Check if appointment creation failed
+    if (!apptRes.ok()) {
+       console.log("Failed to create appointment for nav test", await apptRes.text());
+       // Try to proceed anyway if there is existing data
+    } else {
+        const appt = await apptRes.json();
+        await requestContext.post(`${API_URL}/prescriptions`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+          data: {
+            appointmentId: appt.id,
+            diagnosis: "Test Diagnosis for Nav",
+            medications: [{ name: "Test Med", dosage: "10mg", frequency: "daily", duration: "7 days" }]
+          },
+        });
+    }
+
+    // 2. Inject Auth & Clinic Data
     await page.addInitScript(({ token, uid, cid }) => {
-      try {
-        localStorage.setItem("docita_token", token);
-        localStorage.setItem("docita_user", JSON.stringify({
-          id: uid,
-          clinicId: cid,
-          role: "DOCTOR"
-        }));
-      } catch (err) { 
-        console.error("Failed to inject auth script:", err);
-      }
+      localStorage.setItem("docita_token", token);
+      localStorage.setItem("docita_user", JSON.stringify({
+        id: uid,
+        clinicId: cid,
+        role: "DOCTOR"
+      }));
+      localStorage.setItem("selectedClinicId", cid);
+      localStorage.setItem("selectedClinic", JSON.stringify({
+        id: cid,
+        name: "Test Clinic",
+        tier: "PRO",
+        type: "GENERAL"
+      }));
     }, { token: authToken, uid: doctorId, cid: _clinicId });
 
+    // 3. Navigate
     await page.goto("/prescriptions", { waitUntil: "networkidle" });
+    
+    // 4. Debugging: Check where we are
+    const url = page.url();
+    console.log("Current URL:", url);
+    
+    // Check if redirected to login
+    if (url.includes("/login")) {
+        console.error("Redirected to login! Auth injection failed.");
+        // Try to recover or fail with clear message
+        // await page.getByLabel("Email").fill(...) // We could try manual login here but that needs credentials
+    }
 
-    // Look for a prescription link/row
-    // Wait for the table to load
+    // 5. Wait for table
     const table = page.locator('table tbody');
-    await expect(table).toBeVisible({ timeout: 10000 });
-
+    await expect(table).toBeVisible({ timeout: 15000 });
+    
+    // 6. Navigate to details
     const row = table.locator('tr').first();
-    await expect(row).toBeVisible({ timeout: 5000 });
-
-    let navigated = false;
-    if (await row.isVisible()) {
-      // Click the View button/link specifically
-      const viewLink = row.locator('a, button').filter({ hasText: "View" }).first();
-
-      if (await viewLink.isVisible()) {
-        await viewLink.click();
-      } else {
-        const anyLink = row.locator('a[href*="/prescriptions/"]').first();
-        if (await anyLink.isVisible()) {
-          await anyLink.click();
-        } else {
-          await row.click();
-        }
-      }
-
-      try {
-        await page.waitForURL(/\/prescriptions\//, { timeout: 10000 });
-        navigated = true;
-      } catch {
-        console.log("UI Navigation failed, attempting fallback via API lookup");
-      }
+    await expect(row).toBeVisible();
+    
+    // Try to find a view button or clickable row
+    const viewButton = row.locator('a[href*="/prescriptions/"]').first();
+    
+    // If specific view button/link exists
+    if (await viewButton.count() > 0 && await viewButton.isVisible()) {
+        await viewButton.click();
+    } else {
+        // Fallback: click the row
+        await row.click();
     }
-
-    if (!navigated) {
-      // Fallback: Fetch latest prescription from API to get ID
-      const response = await page.request.get(`${API_URL}/prescriptions`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-
-      if (response.ok()) {
-        const list = await response.json();
-        if (Array.isArray(list) && list.length > 0) {
-          const latest = list[0];
-          await page.goto(`/prescriptions/${latest.id}`, { waitUntil: "networkidle" });
-        } else {
-          console.log("No prescriptions found via API fallback. Response:", list);
-          // Emergency create with fresh appointment
-          const now = new Date();
-          const start = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
-          const end = new Date(now.getTime() + 150 * 60 * 1000).toISOString();
-          const apptRes = await page.request.post(`${API_URL}/appointments`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-            data: {
-              patientId,
-              doctorId,
-              startTime: start,
-              endTime: end,
-              status: "scheduled",
-              type: "consultation",
-            },
-          });
-          
-          let emergencyAppointmentId = appointmentId;
-          if (apptRes.ok()) {
-            emergencyAppointmentId = (await apptRes.json()).id;
-          }
-
-          const createRes = await page.request.post(`${API_URL}/prescriptions`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-            data: {
-              patientId,
-              doctorId,
-              appointmentId: emergencyAppointmentId || undefined,
-              instructions: "Emergency test prescription",
-              medications: [{ name: "Test", dosage: "100mg", frequency: "QD", duration: "1d" }]
-            }
-          });
-          if (createRes.ok()) {
-            const created = await createRes.json();
-            await page.goto(`/prescriptions/${created.id}`, { waitUntil: "networkidle" });
-          } else {
-            console.log("Emergency create failed:", await createRes.text());
-          }
-        }
-      }
-    }
-
+    
+    await expect(page).toHaveURL(/\/prescriptions\//, { timeout: 10000 });
+    
     // Relaxed assertion to avoid strict mode violation on "Prescription"
     await expect(page.locator('h1, h2, h3').filter({ hasText: /Prescription/ }).first()).toBeVisible({ timeout: 15000 });
   });

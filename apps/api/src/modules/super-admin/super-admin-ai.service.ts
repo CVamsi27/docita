@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { UpdateClinicAIFeaturesDto } from '@workspace/types';
 
 @Injectable()
 export class SuperAdminAiService {
@@ -38,7 +39,10 @@ export class SuperAdminAiService {
     };
   }
 
-  async updateClinicAIFeatures(clinicId: string, data: any) {
+  async updateClinicAIFeatures(
+    clinicId: string,
+    data: UpdateClinicAIFeaturesDto,
+  ) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
     });
@@ -48,7 +52,7 @@ export class SuperAdminAiService {
       where: { id: clinicId },
       data: {
         intelligenceAddon: data.enabled ? 'ACTIVE' : 'NONE',
-        features: data.features || clinic.features,
+        features: data.features ? data.features : clinic.features || {},
       },
     });
   }

@@ -52,7 +52,7 @@ export class IpdController {
     return this.ipdService.createWard({
       ...dto,
       clinicId: req.user.clinicId,
-    });
+    } as any);
   }
 
   @Post('rooms')
@@ -76,7 +76,7 @@ export class IpdController {
   @Post('admissions')
   @ZodSerializerDto(AdmissionResponseDto)
   admitPatient(@Body() dto: AdmitPatientDto) {
-    return this.ipdService.admitPatient(dto);
+    return this.ipdService.admitPatient(dto as any);
   }
 
   @Patch('admissions/:id/discharge')

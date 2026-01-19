@@ -205,15 +205,8 @@ export class AppointmentQueryBuilder {
   /**
    * Build the final query object
    */
-  build(): {
-    where: Prisma.AppointmentWhereInput;
-    orderBy: Prisma.AppointmentOrderByWithRelationInput;
-    include?: Prisma.AppointmentInclude;
-    select?: Prisma.AppointmentSelect;
-    take?: number;
-    skip?: number;
-  } {
-    const result: any = {
+  build(): Prisma.AppointmentFindManyArgs {
+    const result: Prisma.AppointmentFindManyArgs = {
       where: this.where,
       orderBy: this.orderBy,
     };
@@ -310,8 +303,8 @@ export class PatientQueryBuilder {
     return this;
   }
 
-  build() {
-    const result: any = {
+  build(): Prisma.PatientFindManyArgs {
+    const result: Prisma.PatientFindManyArgs = {
       where: this.where,
       orderBy: this.orderBy,
     };

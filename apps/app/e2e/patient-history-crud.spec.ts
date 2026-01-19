@@ -1,4 +1,4 @@
-import { APIRequestContext, expect, Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   API_URL,
   fetchPatientByApi,

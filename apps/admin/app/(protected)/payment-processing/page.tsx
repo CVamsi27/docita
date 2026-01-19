@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -90,7 +90,7 @@ export default function PaymentProcessingPage() {
   const { token, isSuperAdmin } = useAuth();
   const form = useForm<PaymentFormData>();
 
-  const loadClinics = async () => {
+  const loadClinics = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -119,9 +119,9 @@ export default function PaymentProcessingPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const loadTierPricing = async () => {
+  const loadTierPricing = useCallback(async () => {
     if (!token) return;
 
     // Default tier pricing as fallback
@@ -188,15 +188,14 @@ export default function PaymentProcessingPage() {
       // Use default tier pricing on error
       setTierPricing(defaultTiers);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (isSuperAdmin && token) {
       loadClinics();
       loadTierPricing();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuperAdmin, token]);
+  }, [isSuperAdmin, token, loadClinics, loadTierPricing]);
 
   const loadClinicTierInfo = async (clinic: Clinic) => {
     if (!token) return;
@@ -206,7 +205,7 @@ export default function PaymentProcessingPage() {
         `${API_URL}/super-admin/clinics/${clinic.id}/tier-info`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        },
+        }
       );
 
       if (res.ok) {
@@ -248,7 +247,7 @@ export default function PaymentProcessingPage() {
             paymentMethod: data.paymentMethod,
             notes: data.paymentNotes,
           }),
-        },
+        }
       );
 
       if (res.ok) {
@@ -459,7 +458,7 @@ export default function PaymentProcessingPage() {
                       onValueChange={(value) => {
                         field.onChange(value);
                         const tierData = tierPricing.find(
-                          (t) => t.tier === value,
+                          (t) => t.tier === value
                         );
                         if (tierData) {
                           form.setValue("amount", tierData.price.toString());

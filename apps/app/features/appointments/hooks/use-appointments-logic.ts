@@ -9,6 +9,7 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
 import { useDebounce } from "@/hooks/use-debounce";
+import { Appointment } from "@workspace/types";
 
 // Generate 30-minute time slots for the entire day
 export const generateTimeSlots = () => {
@@ -117,7 +118,7 @@ export const useAppointmentsLogic = () => {
 
   const uniqueAppointments = useMemo(() => {
     const seen = new Set<string>();
-    return appointments.filter((apt) => {
+    return appointments.filter((apt: Appointment) => {
       if (!apt.id || seen.has(apt.id)) return false;
       seen.add(apt.id);
       return true;

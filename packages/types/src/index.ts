@@ -3,6 +3,7 @@
 // Core Modules
 // ============================================================================
 
+export * from "./common";
 export * from "./auth";
 export * from "./users";
 export * from "./medical";
@@ -24,7 +25,6 @@ export * from "./performance";
 export * from "./doctor-clinics";
 export * from "./fhir";
 export * from "./subscription";
-export * from "./ai";
 export * from "./audit";
 export * from "./config";
 export * from "./onboarding";
@@ -48,3 +48,17 @@ export * from "./medical-validation";
 export * from "./members";
 export * from "./api-response";
 export * from "./tier";
+export * from "./ai-components";
+export * from "./ocr";
+export * from "./prisma-types";
+export * from "./ipd-types";
+export * from "./super-admin-types";
+export * from "./payment-types";
+export * from "./api-types";
+export * from "./ai-types";
+export * from "./error-types";
+
+
+
+
+

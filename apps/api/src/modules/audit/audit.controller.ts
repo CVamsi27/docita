@@ -14,7 +14,10 @@ export class AuditController {
 
   @Get()
   @ZodSerializerDto(AnyAuditResponseDto) // Temporary until we confirm pagination structure
-  async getAuditLogs(@Req() req: any, @Query() filter: AuditLogFilter) {
+  async getAuditLogs(
+    @Req() req: Request & { user: { clinicId?: string; role?: string } },
+    @Query() filter: AuditLogFilter,
+  ) {
     const userRole = req.user?.role || 'DOCTOR';
     const userClinicId = req.user?.clinicId;
 

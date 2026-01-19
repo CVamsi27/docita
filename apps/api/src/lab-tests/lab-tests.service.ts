@@ -73,7 +73,7 @@ export class LabTestsService {
     }
 
     const { search, status, date } = params || {};
-    const where: any = { clinicId };
+    const where: Record<string, unknown> = { clinicId };
 
     // Handle Search
     if (search) {

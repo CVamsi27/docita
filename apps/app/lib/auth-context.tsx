@@ -25,6 +25,14 @@ interface AuthContextType {
   isAdmin: boolean;
   isDoctor: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    clinicName?: string,
+  ) => Promise<void>;
+  checkEmail: (email: string) => Promise<boolean>;
   logout: () => void;
   token: string | null;
 }
@@ -122,6 +130,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
+  const checkEmail = async (email: string): Promise<boolean> => {
+    try {
+      const apiUrl =
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+      const response = await fetch(`${apiUrl}/auth/check-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Email check failed");
+      }
+
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error("Email check error:", error);
+      throw error;
+    }
+  };
+
+  const register = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    clinicName?: string,
+  ) => {
+    try {
+      const apiUrl =
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+      const response = await fetch(`${apiUrl}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          clinicName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+
+      const data = await response.json();
+      const { access_token, user } = data;
+
+      // Validate that user object exists
+      if (!user) {
+        throw new Error("Invalid registration response: user data missing");
+      }
+
+      setToken(access_token);
+      setUser(user);
+      setUserRole(user.role);
+      localStorage.setItem("docita_token", access_token);
+      localStorage.setItem("docita_user", JSON.stringify(user));
+
+      // Redirect to dashboard after successful registration
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+  };
   // ...
 
   const logout = () => {
@@ -141,6 +220,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR",
         isDoctor: user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR",
         login,
+        register,
+        checkEmail,
         logout,
         token,
       }}

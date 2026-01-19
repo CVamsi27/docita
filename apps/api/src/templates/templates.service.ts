@@ -46,7 +46,7 @@ export class TemplatesService {
     clinicId?: string;
   }) {
     const { search, speciality, clinicId } = params || {};
-    const where: any = {};
+    const where: Prisma.ClinicalTemplateWhereInput = {};
 
     if (clinicId) {
       where.clinicId = clinicId;

@@ -56,7 +56,7 @@ export type DiseaseTrend = z.infer<typeof DiseaseTrendSchema> & {
     disease?: string;      // from local usage
     count?: number;        // from local usage
     percentage?: number;   // from local usage
-    [key: string]: unknown;
+
 };
 
 export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {
@@ -66,7 +66,7 @@ export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {
     revenueThisMonth?: number;
     revenueGrowth?: number;
     // Allow for keys used in UI not yet in schema
-    [key: string]: unknown;
+
 };
 
 export interface ComplianceMetric {
@@ -84,5 +84,87 @@ export interface RevenueByCPT {
     revenue: number;
     count: number;
     cptCode?: string; // from local usage
-    [key: string]: unknown;
+    [key: string]: string | number | undefined;
+}
+
+export interface RevenueMetric {
+  totalRevenue: number;
+  invoiceCount: number;
+  avgInvoiceAmount: number;
+  date: string;
+}
+
+export interface AppointmentSnapshot {
+  total: number;
+  booked: number;
+  completed: number;
+  cancelled: number;
+  noShow: number;
+  fillRate: number;
+  completionRate: number;
+}
+
+export interface DemographicsSnapshot {
+  totalPatients: number;
+  newPatients: number;
+  ageDistribution: Record<string, number>;
+  genderDistribution: {
+    MALE: number;
+    FEMALE: number;
+    OTHER: number;
+  };
+}
+
+export interface OverviewMetrics {
+  totalPatients: number;
+  newPatientsThisMonth: number;
+  patientGrowth: number;
+  totalAppointments: number;
+  appointmentsThisMonth: number;
+  revenueThisMonth: number;
+  revenueGrowth: number;
+}
+
+export interface RevenueTrendPoint {
+  date: string;
+  revenue: number;
+  dateStr?: string; // Legacy support
+}
+
+export interface PatientGrowthPoint {
+  date: string;
+  count: number;
+}
+
+export interface DiseaseTrendPoint {
+  icdCode: { code: string; description: string; category: string } | undefined;
+  count: number;
+}
+
+export interface ComplianceMetrics {
+  totalVisits: number;
+  codedVisits: number;
+  billedVisits: number;
+  codingCompletenessRate: number;
+  billingRate: number;
+  primaryDiagnosisRate: number;
+  avgDiagnosesPerVisit: number;
+  avgProceduresPerVisit: number;
+  proceduresWithoutPrice: number;
+  unbilledProceduresRate: number;
+}
+
+export interface TopCondition {
+  condition: string;
+  count: number;
+  percentage: number;
+}
+
+export interface CptRevenueMetric {
+  cptCode:
+    | { code: string; description: string; price: number; category: string }
+    | undefined;
+  procedureCount: number;
+  totalRevenue: number;
+  avgPrice: number;
 }

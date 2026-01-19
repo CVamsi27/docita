@@ -14,30 +14,34 @@ import {
 import { Medication, PrescriptionInput } from "./structured/PrescriptionInput";
 import { PatientMedicalHistoryContainer } from "../../patients/components/PatientMedicalHistoryContainer";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Patient } from "@workspace/types";
+import {
+  GrowthChartData,
+  OphthalmologyExamData,
+  Patient,
+} from "@workspace/types";
 
 export interface ConsultationData {
   chiefComplaint: ChiefComplaintItem[];
-  history: unknown; // Handled by PatientMedicalHistoryContainer using patient ID
+  history: string | null; // Handled by PatientMedicalHistoryContainer using patient ID
   examination: ExaminationData;
   diagnosis: DiagnosisItem[];
   treatment: string; // Treatment notes
   prescriptions: Medication[];
   dentalChart: DentalChartValue;
-  eyeExam: Record<string, unknown>;
-  growthData: Record<string, unknown>;
+  eyeExam: OphthalmologyExamData;
+  growthData: GrowthChartData;
 }
 
 export interface ConsultationHandlers {
   setChiefComplaint: (value: ChiefComplaintItem[]) => void;
-  setHistory: (value: unknown) => void;
+  setHistory: (value: string | null) => void;
   setExamination: (value: ExaminationData) => void;
   setDiagnosis: (value: DiagnosisItem[]) => void;
   setTreatment: (value: string) => void;
   setPrescriptions: (value: Medication[]) => void;
   setDentalChart: (value: DentalChartValue) => void;
-  setEyeExam: (value: unknown) => void;
-  setGrowthData: (value: unknown) => void;
+  setEyeExam: (value: OphthalmologyExamData) => void;
+  setGrowthData: (value: GrowthChartData) => void;
 }
 
 interface ConsultationFormRendererProps {

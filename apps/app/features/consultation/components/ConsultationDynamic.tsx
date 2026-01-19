@@ -27,7 +27,11 @@ import { DentalChartValue } from "./specialty/DentalChartUI";
 import { usePatient } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { toast } from "sonner";
-import { Appointment } from "@workspace/types";
+import {
+  Appointment,
+  GrowthChartData,
+  OphthalmologyExamData,
+} from "@workspace/types";
 
 interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
@@ -45,10 +49,9 @@ interface ClinicalDocumentationDynamicProps {
 // Extended interface for appointment data that might include legacy or specialty fields
 interface ConsultationAppointmentData extends Partial<Appointment> {
   chiefComplaintStructured?: ChiefComplaintItem[];
-  growthData?: Record<string, unknown>;
+  growthData?: GrowthChartData;
   dentalChart?: DentalChartValue;
-  ophthalmologyExam?: Record<string, unknown>;
-  // Allow for other potential dynamic fields while simpler than 'any'
+  ophthalmologyExam?: OphthalmologyExamData;
   [key: string]: unknown;
 }
 
@@ -60,8 +63,8 @@ interface ConsultationSaveData {
   finalDiagnosis: string;
   treatmentPlan: string;
   dentalChart?: DentalChartValue;
-  ophthalmologyExam?: Record<string, unknown>;
-  growthData?: Record<string, unknown>;
+  ophthalmologyExam?: OphthalmologyExamData;
+  growthData?: GrowthChartData;
 }
 
 export const ClinicalDocumentationDynamic: FC<
@@ -84,7 +87,7 @@ export const ClinicalDocumentationDynamic: FC<
   const [chiefComplaint, setChiefComplaint] = React.useState<
     ChiefComplaintItem[]
   >([]);
-  const [history, setHistory] = React.useState<unknown>(null); // Managed via PatientMedicalHistoryContainer
+  const [history, setHistory] = React.useState<string | null>(null); // Managed via PatientMedicalHistoryContainer
   const [examination, setExamination] = React.useState<ExaminationData>({
     general: {
       pallor: false,
@@ -110,10 +113,11 @@ export const ClinicalDocumentationDynamic: FC<
 
   // Specialty Fields
   const [dentalChart, setDentalChart] = React.useState<DentalChartValue>({});
-  const [eyeExam, setEyeExam] = React.useState<Record<string, unknown>>({});
-  const [growthData, setGrowthData] = React.useState<Record<string, unknown>>(
-    {}
-  );
+  const [eyeExam, setEyeExam] = React.useState<OphthalmologyExamData>({});
+  const [growthData, setGrowthData] = React.useState<GrowthChartData>({
+    patientGender: "MALE", // Default, will update from patient data if needed
+    measurements: [],
+  });
 
   // Fetch Patient Data for History
   const { data: patient } = usePatient(patientId || "");
@@ -349,15 +353,14 @@ export const ClinicalDocumentationDynamic: FC<
 
   const formHandlers = {
     setChiefComplaint: (val: ChiefComplaintItem[]) => setChiefComplaint(val),
-    setHistory: (val: unknown) => setHistory(val),
+    setHistory: (val: string | null) => setHistory(val),
     setExamination: (val: ExaminationData) => setExamination(val),
     setDiagnosis: (val: DiagnosisItem[]) => setDiagnosis(val),
     setTreatment: (val: string) => setTreatment(val),
     setPrescriptions: (val: Medication[]) => setPrescriptions(val),
     setDentalChart: (val: DentalChartValue) => setDentalChart(val),
-    setEyeExam: (val: unknown) => setEyeExam(val as Record<string, unknown>),
-    setGrowthData: (val: unknown) =>
-      setGrowthData(val as Record<string, unknown>),
+    setEyeExam: (val: OphthalmologyExamData) => setEyeExam(val),
+    setGrowthData: (val: GrowthChartData) => setGrowthData(val),
   };
 
   return (

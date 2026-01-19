@@ -15,6 +15,7 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
+import type { RazorpayWebhookPayload } from '@workspace/types';
 
 @Controller('webhooks/subscriptions')
 @SkipThrottle()
@@ -26,7 +27,7 @@ export class SubscriptionWebhooksController {
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
     @Req() request: RawBodyRequest<Request>,
-    @Body() payload: any,
+    @Body() payload: RazorpayWebhookPayload,
   ) {
     const rawBody = request.rawBody?.toString() || JSON.stringify(payload);
     await this.webhookService.processWebhook(signature, rawBody, payload);

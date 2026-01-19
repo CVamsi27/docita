@@ -1,27 +1,25 @@
 /**
  * Cursor-based pagination helper for Prisma queries
- *
- * Benefits over offset pagination:
- * - O(1) performance regardless of page depth (offset pagination is O(n))
- * - Consistent results even when data is being inserted/deleted
- * - Scales to millions of records without performance degradation
- *
- * Usage:
- * ```typescript
- * const result = await paginateWithCursor({
- *   model: prisma.patient,
- *   cursor,
- *   limit: 50,
- *   where: { clinicId: 'abc123' },
- *   orderBy: { createdAt: 'desc' },
- *   select: PATIENT_LIST_SELECT,
- * });
- * ```
  */
 
-export interface CursorPaginationOptions<T = any> {
+import {
+  CursorPaginationResult,
+  OffsetPaginationResult,
+  PaginationMeta,
+  PrismaQuery,
+} from '@workspace/types';
+
+// Generic interface for Prisma Delegate (compatible with any Prisma model delegate)
+// We must use 'any' for args here because stricter types (like UserArgs) are not contra-variant
+// to a generic argument type. This allows any Prisma delegate to be passed.
+export interface PrismaModelDelegate<T> {
+  findMany: (...args: any[]) => Promise<T[]>;
+  count: (...args: any[]) => Promise<number>;
+}
+
+export interface CursorPaginationOptions<T> {
   /** Prisma model to query */
-  model: any;
+  model: PrismaModelDelegate<T>;
 
   /** Cursor ID from previous page (undefined for first page) */
   cursor?: string;
@@ -30,58 +28,22 @@ export interface CursorPaginationOptions<T = any> {
   limit?: number;
 
   /** Prisma where clause */
-  where?: any;
+  where?: PrismaQuery;
 
   /** Prisma orderBy clause */
-  orderBy?: any;
+  orderBy?: PrismaQuery;
 
   /** Prisma select clause */
-  select?: any;
+  select?: PrismaQuery;
 
   /** Prisma include clause (use select instead for better performance) */
-  include?: any;
-}
-
-export interface CursorPaginationResult<T> {
-  /** Array of items for current page */
-  items: T[];
-
-  /** Cursor for next page (undefined if no more pages) */
-  nextCursor: string | undefined;
-
-  /** Whether there are more pages */
-  hasMore: boolean;
-
-  /** Number of items returned */
-  count: number;
+  include?: PrismaQuery;
 }
 
 /**
  * Execute cursor-based pagination query
- *
- * @example
- * ```typescript
- * // First page
- * const page1 = await paginateWithCursor({
- *   model: prisma.patient,
- *   limit: 50,
- *   where: { clinicId: 'abc123' },
- *   orderBy: { createdAt: 'desc' },
- *   select: PATIENT_LIST_SELECT,
- * });
- *
- * // Next page
- * const page2 = await paginateWithCursor({
- *   model: prisma.patient,
- *   cursor: page1.nextCursor,
- *   limit: 50,
- *   where: { clinicId: 'abc123' },
- *   orderBy: { createdAt: 'desc' },
- *   select: PATIENT_LIST_SELECT,
- * });
- * ```
  */
-export async function paginateWithCursor<T = any>(
+export async function paginateWithCursor<T>(
   options: CursorPaginationOptions<T>,
 ): Promise<CursorPaginationResult<T>> {
   const {
@@ -100,7 +62,15 @@ export async function paginateWithCursor<T = any>(
   // Fetch one extra item to determine if there are more pages
   const takeCount = safeLimit + 1;
 
-  const queryOptions: any = {
+  const queryOptions: {
+    take: number;
+    where: PrismaQuery;
+    orderBy: PrismaQuery;
+    cursor?: { id: string };
+    skip?: number;
+    select?: PrismaQuery;
+    include?: PrismaQuery;
+  } = {
     take: takeCount,
     where,
     orderBy,
@@ -129,9 +99,16 @@ export async function paginateWithCursor<T = any>(
   const paginatedItems = hasMore ? items.slice(0, safeLimit) : items;
 
   // Get next cursor (ID of last item)
+  // Casting to any to access 'id' without generic constraint on T
+  const lastItem =
+    paginatedItems.length > 0
+      ? (paginatedItems[paginatedItems.length - 1] as unknown as {
+          id?: unknown;
+        })
+      : undefined;
   const nextCursor =
-    hasMore && paginatedItems.length > 0
-      ? paginatedItems[paginatedItems.length - 1].id
+    hasMore && lastItem && typeof lastItem.id === 'string'
+      ? lastItem.id
       : undefined;
 
   return {
@@ -142,18 +119,10 @@ export async function paginateWithCursor<T = any>(
   };
 }
 
-/**
- * Helper to create pagination metadata for API responses
- */
-export interface PaginationMeta {
-  cursor: string | undefined;
-  hasMore: boolean;
-  count: number;
-  limit: number;
-}
+export type { PaginationMeta };
 
 export function createPaginationMeta(
-  result: CursorPaginationResult<any>,
+  result: CursorPaginationResult<unknown>,
   limit: number,
 ): PaginationMeta {
   return {
@@ -166,29 +135,18 @@ export function createPaginationMeta(
 
 /**
  * Offset-based pagination (legacy, use cursor pagination for better performance)
- *
- * @deprecated Use paginateWithCursor instead for better performance on large datasets
  */
-export interface OffsetPaginationOptions<T = any> {
-  model: any;
+export interface OffsetPaginationOptions<T> {
+  model: PrismaModelDelegate<T>;
   page?: number;
   limit?: number;
-  where?: any;
-  orderBy?: any;
-  select?: any;
-  include?: any;
+  where?: PrismaQuery;
+  orderBy?: PrismaQuery;
+  select?: PrismaQuery;
+  include?: PrismaQuery;
 }
 
-export interface OffsetPaginationResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasMore: boolean;
-}
-
-export async function paginateWithOffset<T = any>(
+export async function paginateWithOffset<T>(
   options: OffsetPaginationOptions<T>,
 ): Promise<OffsetPaginationResult<T>> {
   const {
@@ -205,15 +163,26 @@ export async function paginateWithOffset<T = any>(
   const safePage = Math.max(page, 1);
   const skip = (safePage - 1) * safeLimit;
 
+  // Typed query options
+  const findManyOptions: {
+    skip: number;
+    take: number;
+    where: PrismaQuery;
+    orderBy: PrismaQuery;
+    select?: PrismaQuery;
+    include?: PrismaQuery;
+  } = {
+    skip,
+    take: safeLimit,
+    where,
+    orderBy,
+  };
+
+  if (select) findManyOptions.select = select;
+  if (include) findManyOptions.include = include;
+
   const [items, total] = await Promise.all([
-    model.findMany({
-      skip,
-      take: safeLimit,
-      where,
-      orderBy,
-      ...(select ? { select } : {}),
-      ...(include ? { include } : {}),
-    }),
+    model.findMany(findManyOptions),
     model.count({ where }),
   ]);
 

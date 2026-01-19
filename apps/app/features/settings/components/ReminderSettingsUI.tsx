@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useEffect, useState } from "react";
 import {
   Card,
@@ -27,12 +26,20 @@ export const ReminderSettingsUI: FC = () => {
 
   useEffect(() => {
     if (clinic) {
-      // Check for reminder settings in root or settings object
-      const settings = (clinic.settings as Record<string, any>) || {};
+      const settings =
+        (clinic.settings as {
+          reminderBefore?: string | number;
+          reminderUnit?: string;
+        }) || {};
+      const clinicWithReminders = clinic as {
+        reminderBefore?: string | number;
+        reminderUnit?: string;
+      };
+
       const before =
-        settings.reminderBefore || (clinic as any).reminderBefore || "1";
+        settings.reminderBefore || clinicWithReminders.reminderBefore || "1";
       const unit =
-        settings.reminderUnit || (clinic as any).reminderUnit || "day";
+        settings.reminderUnit || clinicWithReminders.reminderUnit || "day";
 
       setReminderBefore(String(before));
       setReminderUnit(String(unit));
@@ -44,9 +51,7 @@ export const ReminderSettingsUI: FC = () => {
       {
         reminderBefore: reminderBefore,
         reminderUnit: reminderUnit,
-      } as any,
-      // casting to any because Partial<Clinic> might not explicitly have these extended fields in frontend types yet
-      // but backend DTO accepts them in 'settings' JSON construction
+      } as { reminderBefore: string; reminderUnit: string },
       {
         onSuccess: () => {
           toast.success("Reminder settings saved successfully");

@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Inject,
   Optional,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
@@ -30,6 +31,8 @@ interface HttpExceptionResponse {
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   constructor(
     @Optional()
     @Inject(MonitoringService)
@@ -49,21 +52,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Detailed Zod logging at the top
-    if (exception instanceof ZodValidationException) {
-      const zodError = exception.getZodError() as ZodErrorDetails;
-      console.error(
-        'Zod Validation Error Details:',
-        JSON.stringify(zodError.errors, null, 2),
-      );
-    }
-
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'An unexpected error occurred';
     let errorType = 'UnknownError';
     let errorStack: string | undefined;
+    let details: unknown;
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof ZodValidationException) {
+      status = HttpStatus.BAD_REQUEST;
+      message = 'Validation failed';
+      errorType = 'ZodValidationException';
+      const zodError = exception.getZodError() as ZodErrorDetails;
+      details = zodError.errors;
+      this.logger.error(
+        'Zod Validation Error Details',
+        JSON.stringify(zodError.errors, null, 2),
+      );
+    } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       errorType = exception.name || 'HttpException';
       errorStack = exception.stack;
@@ -82,6 +87,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
             : responseObj.message) ||
           responseObj.error ||
           message;
+        // Capture details if present (e.g. from class-validator)
+        details = responseObj.message;
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       errorType = 'PrismaClientKnownRequestError';
@@ -122,13 +129,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      console.error('Unhandled error details:', {
+      this.logger.error('Unhandled error details', {
         name: exception.name,
         message: exception.message,
         stack: exception.stack,
       });
     } else {
-      console.error('Unhandled or Known exception type:', exception);
+      this.logger.error('Unhandled or Known exception type', exception);
     }
 
     if (exception instanceof Error) {
@@ -136,7 +143,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      console.error('Unhandled error details:', {
+      this.logger.error('Unhandled error details', {
         name: exception.name,
         message: exception.message,
         stack: exception.stack,
@@ -171,6 +178,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       message,
+      details,
       timestamp: new Date().toISOString(),
       path: request.path,
     });

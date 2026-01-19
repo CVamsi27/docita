@@ -2,6 +2,7 @@ import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from './whatsapp.service';
 import { WhatsappTemplatesService } from './templates.service';
+import { Prisma } from '@workspace/db';
 import type {
   StaffNotificationType,
   NotificationPriority,
@@ -116,10 +117,9 @@ export class StaffNotificationService {
     const targetRoles = this.getTargetRoles(type);
 
     // Build query conditions
-    const where: Record<string, unknown> = {
+    const where: Prisma.UserWhereInput = {
       clinicId,
       role: { in: targetRoles },
-      isActive: true,
     };
 
     // For doctor-specific notifications, include the doctor

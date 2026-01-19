@@ -3,7 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
 import { Gender } from '@workspace/db';
-import { OCRService, ParsedMedicalFields } from './ocr.service';
+import { OCRService } from './ocr.service';
+import { ParsedMedicalFields } from '@workspace/types';
 
 interface OcrExtractionResult {
   success: boolean;

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '../prisma/prisma.service';
@@ -9,6 +10,8 @@ import { unlink } from 'fs/promises';
 
 @Injectable()
 export class DocumentsService {
+  private readonly logger = new Logger(DocumentsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async findAll(
@@ -177,7 +180,7 @@ export class DocumentsService {
       await unlink(document.url);
     } catch (error) {
       // Log but don't fail if file deletion fails (file might not exist on disk)
-      console.error('Failed to delete file from disk:', error);
+      this.logger.error('Failed to delete file from disk', error);
     }
 
     await this.prisma.document.delete({

@@ -20,7 +20,7 @@ export const useWhatsAppSettings = () =>
 
 export const useUpdateWhatsAppSettings = () =>
   useAPIMutation<
-    unknown,
+    void,
     {
       appointmentReminders?: boolean;
       followUpMessages?: boolean;
@@ -34,7 +34,7 @@ export const useUpdateWhatsAppSettings = () =>
 // Messaging Operations
 export const useCreateMedicineReminder = () =>
   useAPIMutation<
-    unknown,
+    void,
     {
       medicineName: string;
       dosage: string;
@@ -46,7 +46,7 @@ export const useCreateMedicineReminder = () =>
 
 export const useCreateWhatsAppBroadcast = () =>
   useAPIMutation<
-    unknown,
+    void,
     {
       campaignName: string;
       message: string;
@@ -57,13 +57,13 @@ export const useCreateWhatsAppBroadcast = () =>
   >("/whatsapp/broadcast", "POST");
 
 export const useResendPrescriptionWhatsApp = (id: string) =>
-  useAPIMutation<unknown, void>(`/whatsapp/resend-prescription/${id}`, "POST");
+  useAPIMutation<void, void>(`/whatsapp/resend-prescription/${id}`, "POST");
 
 export const useResendInvoiceWhatsApp = (id: string) =>
-  useAPIMutation<unknown, void>(`/whatsapp/resend-invoice/${id}`, "POST");
+  useAPIMutation<void, void>(`/whatsapp/resend-invoice/${id}`, "POST");
 
 export const useApprovePrescriptionWhatsApp = (id: string) =>
-  useAPIMutation<unknown, void>(`/whatsapp/approve-prescription/${id}`, "POST");
+  useAPIMutation<void, void>(`/whatsapp/approve-prescription/${id}`, "POST");
 
 export const useApproveInvoiceWhatsApp = (id: string) =>
-  useAPIMutation<unknown, void>(`/whatsapp/approve-invoice/${id}`, "POST");
+  useAPIMutation<void, void>(`/whatsapp/approve-invoice/${id}`, "POST");

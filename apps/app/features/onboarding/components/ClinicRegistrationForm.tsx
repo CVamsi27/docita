@@ -177,6 +177,14 @@ export function ClinicRegistrationForm({
         throw new Error(err.message || "Registration failed");
       }
 
+      const responseData = await res.json();
+
+      // Auto-login: store auth credentials if provided
+      if (responseData.access_token && responseData.user) {
+        localStorage.setItem("docita_token", responseData.access_token);
+        localStorage.setItem("docita_user", JSON.stringify(responseData.user));
+      }
+
       toast.success("Registration Successful", {
         description: "Your clinic has been registered. Redirecting...",
       });

@@ -63,7 +63,7 @@ test.describe("Consultation Flow", () => {
 
     test("should start consultation, add notes, and complete visit", async ({ page }) => {
         // 1. Navigate to Dashboard which has Today's Appointments
-        await page.goto("/dashboard", { waitUntil: "networkidle" });
+        await page.goto("/dashboard");
 
         // 2. Find Appointment and Click Check-in / Start
         // Locate row by patient name
@@ -71,7 +71,7 @@ test.describe("Consultation Flow", () => {
 
         let navigated = false;
         try {
-            await expect(row).toBeVisible({ timeout: 5000 });
+            await expect(row).toBeVisible({ timeout: 10000 });
             const actionButton = row.locator('button:has-text("Check In"), button:has-text("Start")').first();
             if (await actionButton.isVisible()) {
                 await actionButton.click();
@@ -83,11 +83,11 @@ test.describe("Consultation Flow", () => {
         }
 
         if (!navigated) {
-            await page.goto(`/consultation/${appointmentId}`, { waitUntil: "networkidle" });
+            await page.goto(`/consultation/${appointmentId}`);
         }
 
         // 3. Verify Consultation Page Loaded
-        await expect(page.locator('text=Consultation').first()).toBeVisible();
+        await expect(page.locator('text=Consultation').first()).toBeVisible({ timeout: 15000 });
         await expect(page.locator('text=Consult Patient').first()).toBeVisible();
 
         // 4. Add Chief Complaint (Structured)

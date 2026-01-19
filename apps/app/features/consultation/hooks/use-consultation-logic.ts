@@ -9,7 +9,7 @@ import {
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
-import { UpdateAppointmentInput } from "@workspace/types";
+import { Appointment, UpdateAppointmentInput } from "@workspace/types";
 
 // Map old tab names to new ones
 const TAB_MAPPING: Record<string, string> = {
@@ -45,15 +45,15 @@ export const useConsultationLogic = (appointmentId: string) => {
   // Filter past appointments (exclude current, only completed)
   const pastAppointments = useMemo(() => {
     return patientAppointments
-      .filter((apt) => apt.id !== appointmentId && apt.status === "completed")
-      .map((apt) => ({
+      .filter((apt: Appointment) => apt.id !== appointmentId && apt.status === "completed")
+      .map((apt: Appointment) => ({
         id: apt.id || "",
         date: apt.startTime,
         chiefComplaint: apt.chiefComplaint,
         finalDiagnosis: apt.finalDiagnosis,
         diagnoses: apt.diagnoses,
       }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a: { date: Date | string }, b: { date: Date | string }) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 10);
   }, [patientAppointments, appointmentId]);
 

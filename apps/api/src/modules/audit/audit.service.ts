@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { Prisma } from '@workspace/db';
 
 export interface AuditLogData {
   clinicId: string;
@@ -143,7 +144,7 @@ export class AuditService {
       }
 
       // Build where clause for AuditLog table
-      const where: any = {};
+      const where: Prisma.AuditLogWhereInput = {};
 
       if (filter.clinicId) {
         where.clinicId = filter.clinicId;

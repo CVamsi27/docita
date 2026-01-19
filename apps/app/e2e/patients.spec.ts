@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api";
 
@@ -367,7 +367,7 @@ test.describe("Patient Management", () => {
   });
 });
 
-async function loginAsDoctor(page: any) {
+async function loginAsDoctor(page: Page) {
    
   // Try to login or navigate to dashboard
   // Prefer injecting token into localStorage for reliable auth during e2e

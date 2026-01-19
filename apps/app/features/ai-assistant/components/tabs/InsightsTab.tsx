@@ -81,7 +81,14 @@ export const InsightsTab = () => (
   </div>
 );
 
-const InsightCard = ({ title, description, color, children }: any) => (
+interface InsightCardProps {
+  title: string;
+  description: string;
+  color?: string;
+  children: React.ReactNode;
+}
+
+const InsightCard = ({ title, description, children }: InsightCardProps) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">{title}</CardTitle>
@@ -91,13 +98,20 @@ const InsightCard = ({ title, description, color, children }: any) => (
   </Card>
 );
 
-const RiskItem = ({ name, time, risk, variant }: any) => (
+interface RiskItemProps {
+  name: string;
+  time: string;
+  risk: string;
+  variant: "destructive" | "secondary" | "outline" | "default";
+}
+
+const RiskItem = ({ name, time, risk, variant }: RiskItemProps) => (
   <div
     className={cn(
       "flex items-center justify-between p-3 rounded-lg",
       variant === "destructive"
         ? "bg-red-50 dark:bg-red-950/20"
-        : "bg-orange-50 dark:bg-orange-950/20",
+        : "bg-orange-50 dark:bg-orange-950/20"
     )}
   >
     <div>
@@ -108,20 +122,32 @@ const RiskItem = ({ name, time, risk, variant }: any) => (
   </div>
 );
 
-const SegmentItem = ({ label, count, variant }: any) => (
+interface SegmentItemProps {
+  label: string;
+  count: string;
+  variant?: "destructive" | "secondary" | "outline" | "default";
+}
+
+const SegmentItem = ({ label, count, variant }: SegmentItemProps) => (
   <div className="flex items-center justify-between">
     <span className="text-sm">{label}</span>
     <Badge variant={variant}>{count}</Badge>
   </div>
 );
 
-const AnomalyItem = ({ title, description, type }: any) => (
+interface AnomalyItemProps {
+  title: string;
+  description: string;
+  type: "warning" | "info";
+}
+
+const AnomalyItem = ({ title, description, type }: AnomalyItemProps) => (
   <div
     className={cn(
       "p-3 rounded-lg border",
       type === "warning"
         ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200"
-        : "bg-blue-50 dark:bg-blue-950/20 border-blue-200",
+        : "bg-blue-50 dark:bg-blue-950/20 border-blue-200"
     )}
   >
     <p className="text-sm font-medium">{title}</p>

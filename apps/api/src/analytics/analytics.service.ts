@@ -14,6 +14,18 @@ import {
   PATIENT_ANALYTICS_SELECT,
   APPOINTMENT_ANALYTICS_SELECT,
 } from '../common/select-fragments';
+import {
+  RevenueMetric,
+  AppointmentSnapshot,
+  DemographicsSnapshot,
+  OverviewMetrics,
+  RevenueTrendPoint,
+  PatientGrowthPoint,
+  DiseaseTrendPoint,
+  ComplianceMetrics,
+  TopCondition,
+  CptRevenueMetric,
+} from '@workspace/types';
 
 @Injectable()
 export class AnalyticsService {
@@ -34,7 +46,7 @@ export class AnalyticsService {
 
   async getOverview(clinicId: string, timezone: string = DEFAULT_TIMEZONE) {
     const cacheKey = `dashboard-overview-${clinicId}-${timezone}`;
-    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+    const cachedResult = await this.cacheManager.get<OverviewMetrics>(cacheKey);
 
     if (cachedResult) {
       return cachedResult;
@@ -127,7 +139,7 @@ export class AnalyticsService {
     timezone: string = DEFAULT_TIMEZONE,
   ) {
     const cacheKey = `analytics:revenue-trends:${clinicId}:${period}:${days}:${timezone}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<RevenueTrendPoint[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -169,7 +181,7 @@ export class AnalyticsService {
     timezone: string = DEFAULT_TIMEZONE,
   ) {
     const cacheKey = `analytics:patient-growth:${clinicId}:${days}:${timezone}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<PatientGrowthPoint[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -279,7 +291,8 @@ export class AnalyticsService {
 
   async getDiseaseTrends(clinicId: string, startDate?: Date, endDate?: Date) {
     const cacheKey = `disease-trends-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+    const cachedResult =
+      await this.cacheManager.get<DiseaseTrendPoint[]>(cacheKey);
 
     if (cachedResult) {
       return cachedResult;
@@ -321,8 +334,11 @@ export class AnalyticsService {
 
     const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
 
-    const result = diagnoses.map((d) => ({
-      icdCode: icdCodeMap.get(d.icdCodeId as string),
+    const result: DiseaseTrendPoint[] = diagnoses.map((d) => ({
+      // Manual type coercion since we know the shape from Prisma query
+      icdCode: icdCodeMap.get(d.icdCodeId as string) as unknown as
+        | { code: string; description: string; category: string }
+        | undefined,
       count: d._count.id,
     }));
 
@@ -420,7 +436,8 @@ export class AnalyticsService {
     endDate?: Date,
   ) {
     const cacheKey = `revenue-by-cpt-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cachedResult = await this.cacheManager.get<any>(cacheKey);
+    const cachedResult =
+      await this.cacheManager.get<CptRevenueMetric[]>(cacheKey);
 
     if (cachedResult) {
       return cachedResult;
@@ -461,17 +478,24 @@ export class AnalyticsService {
 
     const cptCodeMap = new Map(cptCodes.map((code) => [code.id, code]));
 
-    const result = procedures
+    const result: CptRevenueMetric[] = procedures
       .map((p) => {
-        const cptCode = cptCodeMap.get(p.cptCodeId as string) as any;
+        const cptCode = cptCodeMap.get(p.cptCodeId as string);
         const count = p._count.id;
-        const totalRevenue = cptCode ? cptCode.price * count : 0;
+        const totalRevenue = cptCode ? Number(cptCode.price) * count : 0;
 
         return {
-          cptCode,
+          cptCode: cptCode as unknown as
+            | {
+                code: string;
+                description: string;
+                price: number;
+                category: string;
+              }
+            | undefined,
           procedureCount: count,
           totalRevenue,
-          avgPrice: cptCode?.price || 0,
+          avgPrice: cptCode?.price ? Number(cptCode.price) : 0,
         };
       })
       .sort((a, b) => b.totalRevenue - a.totalRevenue);
@@ -760,10 +784,10 @@ export class AnalyticsService {
     endDate?: Date,
   ) {
     const cacheKey = `revenue-metrics-${clinicId}-${period}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cached = await this.cacheManager.get<any>(cacheKey);
+    const cached = await this.cacheManager.get<RevenueMetric[]>(cacheKey);
     if (cached) return cached;
 
-    const where: any = { patient: { clinicId } };
+    const where: Prisma.InvoiceWhereInput = { patient: { clinicId } };
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = startDate;
@@ -779,19 +803,25 @@ export class AnalyticsService {
     });
 
     // Group by period
-    const grouped: Record<string, any> = {};
+    const grouped: Record<string, RevenueMetric> = {};
     invoices.forEach((inv) => {
       const key = this.getPeriodKey(inv.createdAt, period);
       if (!grouped[key]) {
-        grouped[key] = { totalRevenue: 0, invoiceCount: 0, date: key };
+        grouped[key] = {
+          totalRevenue: 0,
+          invoiceCount: 0,
+          avgInvoiceAmount: 0,
+          date: key,
+        };
       }
       grouped[key].totalRevenue += inv.total || 0;
       grouped[key].invoiceCount += 1;
     });
 
-    const result = Object.values(grouped).map((g: any) => ({
+    const result = Object.values(grouped).map((g) => ({
       ...g,
-      avgInvoiceAmount: g.totalRevenue / g.invoiceCount,
+      avgInvoiceAmount:
+        g.invoiceCount > 0 ? g.totalRevenue / g.invoiceCount : 0,
     }));
 
     await this.cacheManager.set(
@@ -813,10 +843,10 @@ export class AnalyticsService {
     endDate?: Date,
   ) {
     const cacheKey = `appointment-metrics-${clinicId}-${period}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cached = await this.cacheManager.get<any>(cacheKey);
+    const cached = await this.cacheManager.get<AppointmentSnapshot>(cacheKey);
     if (cached) return cached;
 
-    const where: any = { clinicId };
+    const where: Prisma.AppointmentWhereInput = { clinicId };
     if (startDate || endDate) {
       where.startTime = {};
       if (startDate) where.startTime.gte = startDate;
@@ -840,7 +870,7 @@ export class AnalyticsService {
       readClient.appointment.count({ where: { ...where, status: 'no_show' } }),
     ]);
 
-    const result = {
+    const result: AppointmentSnapshot = {
       total,
       booked,
       completed,
@@ -867,10 +897,10 @@ export class AnalyticsService {
     endDate?: Date,
   ) {
     const cacheKey = `patient-demographics-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cached = await this.cacheManager.get<any>(cacheKey);
+    const cached = await this.cacheManager.get<DemographicsSnapshot>(cacheKey);
     if (cached) return cached;
 
-    const where: any = { clinicId };
+    const where: Prisma.PatientWhereInput = { clinicId };
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = startDate;
@@ -930,7 +960,7 @@ export class AnalyticsService {
    */
   async getTopConditions(clinicId: string, limit: number = 10) {
     const cacheKey = `top-conditions-${clinicId}-${limit}`;
-    const cached = await this.cacheManager.get<any>(cacheKey);
+    const cached = await this.cacheManager.get<TopCondition[]>(cacheKey);
     if (cached) return cached;
 
     const readClient = this.getReadClient();
@@ -1044,7 +1074,7 @@ export class AnalyticsService {
       return snapshots.map((s) => ({
         ...s,
         topConditions: s.topConditions
-          ? JSON.parse(s.topConditions as any)
+          ? JSON.parse(s.topConditions as string)
           : [],
       }));
     } catch (error) {

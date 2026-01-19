@@ -5,6 +5,7 @@ import { vitalSignSchema } from "./vitals";
 import { invoiceSchema } from "./invoices";
 import { prescriptionSchema } from "./medications";
 import { generalExaminationSchema, systemicExaminationSchema, clinicalInvestigationSchema, clinicalNoteSchema } from "./clinical";
+import { icdCodeSchema, cptCodeSchema } from "./medical-coding";
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",
   "URGENT",
@@ -81,7 +82,7 @@ export const appointmentSchema = z.object({
       z.object({
         id: z.string(),
         icdCodeId: z.string(),
-        icdCode: z.any().optional(),
+        icdCode: icdCodeSchema.optional(),
         notes: z.string().optional(),
         isPrimary: z.boolean(),
         createdAt: z.string().or(z.date()),
@@ -93,7 +94,7 @@ export const appointmentSchema = z.object({
       z.object({
         id: z.string(),
         cptCodeId: z.string(),
-        cptCode: z.any().optional(),
+        cptCode: cptCodeSchema.optional(),
         notes: z.string().optional(),
         createdAt: z.string().or(z.date()),
         updatedAt: z.string().or(z.date()),

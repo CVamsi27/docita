@@ -36,9 +36,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   );
 
   const form = useForm<CreatePatientInput>({
-    resolver: zodResolver(
-      createPatientSchema,
-    ) as unknown as Resolver<CreatePatientInput>,
+    resolver: zodResolver(createPatientSchema) as Resolver<CreatePatientInput>,
     defaultValues,
   });
 
@@ -83,7 +81,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   );
 
   return {
-    form: form as unknown as UseFormReturn<CreatePatientInput>,
+    form,
     loading,
     onSubmit,
   };

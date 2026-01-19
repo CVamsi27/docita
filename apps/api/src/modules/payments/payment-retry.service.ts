@@ -4,6 +4,7 @@ import { Queue } from 'bull';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { Cron } from '@nestjs/schedule';
+import type { PaymentRetryInvoice } from '@workspace/types';
 
 export interface PaymentRetryData {
   invoiceId: string;
@@ -67,6 +68,13 @@ export class PaymentRetryService {
         where: {
           status: 'UNPAID',
         },
+        select: {
+          id: true,
+          patientId: true,
+          total: true,
+          status: true,
+          createdAt: true,
+        },
         take: 100,
       });
 
@@ -83,7 +91,7 @@ export class PaymentRetryService {
   /**
    * Attempt to process a payment (placeholder for Razorpay integration)
    */
-  private attemptPayment(invoice: any): boolean {
+  private attemptPayment(invoice: PaymentRetryInvoice): boolean {
     try {
       this.logger.debug(`Attempting payment for invoice ${invoice.id}`);
       // Phase 2: This will integrate with Razorpay API
@@ -125,7 +133,7 @@ export class PaymentRetryService {
   /**
    * Get pending retries for a clinic
    */
-  getPendingRetries(clinicId: string): any[] {
+  getPendingRetries(clinicId: string): PaymentRetryData[] {
     try {
       this.logger.debug(`Fetching pending retries for clinic ${clinicId}`);
       return [];

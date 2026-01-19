@@ -39,7 +39,7 @@ test.describe("Auth Flow", () => {
     const assignRes = await context.request.post(`${API_URL}/doctor-clinics`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
-        doctorId: user.id || (user.user as any)?.id,
+        doctorId: (user.id as string) || ((user.user as { id?: string })?.id),
         clinicId: clinic.id,
         role: "DOCTOR", // Use uppercase to match strict role check if needed, or 'doctor'
       },
@@ -57,12 +57,16 @@ test.describe("Auth Flow", () => {
       await page.waitForSelector('input[type="email"]', { timeout: 30000 });
     }
 
-    // Fill form
+    // Fill form - Step 1
     await page.fill('input[type="email"]', uniqueEmail);
+    await page.click('button:has-text("Continue")');
+    
+    // Fill form - Step 2
+    await page.waitForSelector('input[type="password"]');
     await page.fill('input[type="password"]', password);
 
     // Submit
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("Sign In")');
 
     // Wait for redirect - the app should redirect after successful login
     // Check multiple possible redirect URLs
@@ -91,27 +95,37 @@ test.describe("Auth Flow", () => {
   }) => {
     // Setup: Create a user
     const uniqueEmail = `doctor${Date.now()}@test.com`;
-    await context.request.post(`${API_URL}/auth/register`, {
+    const registerRes = await context.request.post(`${API_URL}/auth/register`, {
       data: {
         email: uniqueEmail,
-        password: "CorrectPassword123",
-        name: "Test Doctor",
+        password: "Test@123456",
+        firstName: "Test",
+        lastName: "Doctor",
         role: "DOCTOR",
       },
     });
+    expect(registerRes.ok()).toBeTruthy();
 
     await page.goto("/login");
 
     // Try wrong password
     await page.fill('input[type="email"]', uniqueEmail);
+    await page.click('button:has-text("Continue")');
+    
+    await page.waitForSelector('input[type="password"]');
     await page.fill('input[type="password"]', "WrongPassword123");
 
-    await page.click('button[type="submit"]');
+    const signInBtn = page.locator('button:has-text("Sign In")');
+    await signInBtn.waitFor({ state: "visible" });
+    // Force click in case of overlay/animation
+    await signInBtn.click({ force: true });
+    console.log("Clicked Sign In (Invalid Creds)");
 
     // Look for error message or stay on login page
     await page.waitForTimeout(1000);
     const errorExists =
-      (await page.locator("text=/invalid|credentials|error/i").count()) > 0 ||
+      (await page.getByText("Invalid credentials").isVisible()) ||
+      (await page.getByText("An error occurred").isVisible()) ||
       page.url().includes("/login");
 
     expect(errorExists).toBeTruthy();
@@ -123,7 +137,7 @@ test.describe("Auth Flow", () => {
     await page.goto("/login");
 
     // Try to submit empty form
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("Continue")');
 
     // Check for validation errors or form still visible
     await page.waitForTimeout(500);

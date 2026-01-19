@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -10,6 +11,8 @@ import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 
 @Injectable()
 export class SuperAdminAnalyticsService {
+  private readonly logger = new Logger(SuperAdminAnalyticsService.name);
+
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -212,7 +215,7 @@ export class SuperAdminAnalyticsService {
         patientsChange: Number(patientsChange.toFixed(2)),
       };
     } catch (error) {
-      console.error('Failed to fetch analytics data:', error);
+      this.logger.error('Failed to fetch analytics data', error);
       throw new InternalServerErrorException('Failed to fetch analytics data');
     }
   }

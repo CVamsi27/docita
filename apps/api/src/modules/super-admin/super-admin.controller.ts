@@ -24,6 +24,7 @@ import {
   UpdateAdminDto,
 } from './dto/clinic-management.dto';
 import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
+import { ProcessPaymentDto } from './dto/payment.dto';
 import {
   SuperAdminGlobalStatsResponseDto,
   SuperAdminAnalyticsResponseDto,
@@ -209,7 +210,7 @@ export class SuperAdminController {
   @ZodSerializerDto(SuccessResponseDto)
   async processPaymentAndUpdateTier(
     @Param('id') id: string,
-    @Body() data: any,
+    @Body() data: ProcessPaymentDto,
   ) {
     return this.billingService.processPaymentAndUpdateTier(id, data);
   }

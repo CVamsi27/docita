@@ -199,7 +199,7 @@ test.describe("Appointments", () => {
     const row = page.locator('text=10:00').first();
     try {
       await expect(row).toBeVisible({ timeout: 5000 });
-    } catch (e) {
+    } catch (_e) {
       console.log("Appointment not found initially, reloading page...");
       await page.reload({ waitUntil: "load" });
       await page.waitForTimeout(1000);

@@ -21,6 +21,7 @@ import {
   FhirResourceListDto,
 } from './dto/fhir.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import type { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('fhir')
 @UseGuards(JwtAuthGuard)
@@ -33,8 +34,12 @@ export class FhirController {
    */
   @Get('Patient/:id')
   @ZodSerializerDto(FhirResourceDto)
-  async getPatient(@Param('id') id: string, @Request() req: any) {
+  async getPatient(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getPatientResource(id, clinicId);
   }
 
@@ -47,9 +52,10 @@ export class FhirController {
   async getObservations(
     @Query('patient') patientId: string,
     @Query('encounter') encounterId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getVitalSignObservations(
       patientId,
       clinicId,
@@ -65,9 +71,10 @@ export class FhirController {
   @ZodSerializerDto(FhirResourceListDto)
   async getMedicationRequests(
     @Query('patient') patientId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getMedicationRequests(patientId, clinicId);
   }
 
@@ -79,9 +86,10 @@ export class FhirController {
   @ZodSerializerDto(FhirResourceListDto)
   async getConditions(
     @Query('patient') patientId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getConditions(patientId, clinicId);
   }
 
@@ -93,9 +101,10 @@ export class FhirController {
   @ZodSerializerDto(FhirResourceListDto)
   async getAllergyIntolerances(
     @Query('patient') patientId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getAllergyIntolerances(patientId, clinicId);
   }
 
@@ -107,9 +116,10 @@ export class FhirController {
   @ZodSerializerDto(FhirBundleDto)
   async getPatientBundle(
     @Param('patientId') patientId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getPatientBundle(patientId, clinicId);
   }
 
@@ -122,8 +132,12 @@ export class FhirController {
   // Assuming it returns string or wrapping object.
   // If string, we might need a specific DTO or just bypass serializer for this one or use a String DTO.
   // Let's assume it returns a wrapped response for now.
-  async exportCCD(@Param('patientId') patientId: string, @Request() req: any) {
+  async exportCCD(
+    @Param('patientId') patientId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getCCDExport(patientId, clinicId);
   }
 

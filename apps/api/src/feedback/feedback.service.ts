@@ -4,6 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma, FeedbackCategory, FeedbackStatus } from '@workspace/db';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -55,7 +56,7 @@ export class FeedbackService {
         improvementReason: data.improvementReason,
         featureRequests: data.featureRequests,
         generalComments: data.generalComments,
-        category: (data.category as any) || 'GENERAL',
+        category: (data.category as FeedbackCategory) || 'GENERAL',
         status: 'NEW',
       },
       include: {
@@ -99,14 +100,14 @@ export class FeedbackService {
    * Get all feedback for super admin (all clinics)
    */
   async findAll(filters: FeedbackFilters = {}) {
-    const where: any = {};
+    const where: Prisma.FeedbackWhereInput = {};
 
     if (filters.status) {
-      where.status = filters.status;
+      where.status = filters.status as FeedbackStatus;
     }
 
     if (filters.category) {
-      where.category = filters.category;
+      where.category = filters.category as FeedbackCategory;
     }
 
     if (filters.clinicId) {
@@ -237,7 +238,7 @@ export class FeedbackService {
     return this.prisma.feedback.update({
       where: { id },
       data: {
-        status: data.status as any,
+        status: data.status as FeedbackStatus,
         adminNotes: data.adminNotes,
       },
       include: {

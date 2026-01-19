@@ -12,8 +12,12 @@ import { Brain, Loader2, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "../../hooks/use-ai-assistant-logic";
 import { EmptyState } from "../AIAssistantUI";
+import type { DiagnosisAssistantTabProps } from "@workspace/types";
 
-export const DiagnosisAssistantTab = ({ state, handlers }: any) => (
+export const DiagnosisAssistantTab = ({
+  state,
+  handlers,
+}: DiagnosisAssistantTabProps) => (
   <div className="grid gap-6 lg:grid-cols-2">
     <Card>
       <CardHeader>
@@ -104,7 +108,7 @@ export const DiagnosisAssistantTab = ({ state, handlers }: any) => (
                     "p-4 rounded-lg border transition-colors",
                     idx === 0
                       ? "bg-green-50 dark:bg-green-950/20 border-green-200"
-                      : "bg-muted/30",
+                      : "bg-muted/30"
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -125,7 +129,7 @@ export const DiagnosisAssistantTab = ({ state, handlers }: any) => (
                               ? "bg-green-500"
                               : suggestion.confidence >= 50
                                 ? "bg-yellow-500"
-                                : "bg-orange-500",
+                                : "bg-orange-500"
                           )}
                           style={{ width: `${suggestion.confidence}%` }}
                         />
@@ -147,7 +151,7 @@ export const DiagnosisAssistantTab = ({ state, handlers }: any) => (
                     </Button>
                   </div>
                 </div>
-              ),
+              )
             )}
           </div>
         ) : (

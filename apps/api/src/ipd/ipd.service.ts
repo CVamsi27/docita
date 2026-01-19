@@ -8,6 +8,12 @@ import {
   BedStatus,
   AdmissionStatus,
 } from '@workspace/types';
+import type {
+  CreateWardDto,
+  CreateRoomDto,
+  CreateBedDto,
+  AdmitPatientDto,
+} from '@workspace/types';
 
 @Injectable()
 export class IpdService {
@@ -95,21 +101,21 @@ export class IpdService {
     });
   }
 
-  async createWard(data: any): Promise<Ward> {
+  async createWard(data: CreateWardDto): Promise<Ward> {
     return this.prisma.ward.create({
-      data,
+      data: data as any,
     });
   }
 
   // Rooms
-  async createRoom(data: any): Promise<Room> {
+  async createRoom(data: CreateRoomDto): Promise<Room> {
     return this.prisma.room.create({
       data,
     });
   }
 
   // Beds
-  async createBed(data: any): Promise<Bed> {
+  async createBed(data: CreateBedDto): Promise<Bed> {
     return this.prisma.bed.create({
       data,
     });
@@ -123,7 +129,7 @@ export class IpdService {
   }
 
   // Admissions
-  async admitPatient(data: any): Promise<Admission> {
+  async admitPatient(data: AdmitPatientDto): Promise<Admission> {
     const { patientId, bedId, admittingDoctorId, ...rest } = data;
 
     // Check if bed is available

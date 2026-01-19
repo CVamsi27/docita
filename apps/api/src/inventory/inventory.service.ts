@@ -52,7 +52,7 @@ export class InventoryService {
 
     const { search, category, status } = params || {};
 
-    const whereCallback: any = {
+    const whereCallback: Record<string, unknown> = {
       clinicId,
       active: true,
     };

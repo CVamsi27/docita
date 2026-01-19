@@ -79,7 +79,7 @@ export function TierGate({ children }: TierGateProps) {
 }
 
 // Hook to check if a feature is enabled
-export function useFeature(feature?: Feature): boolean {
+export function useFeature(_feature?: Feature): boolean {
   // In production, check from feature flag context
   return true;
 }

@@ -112,7 +112,7 @@ export class PaymentsService {
       return session;
     }
 
-    let paymentLink: any;
+    let paymentLink: any = null;
     try {
       paymentLink = await this.razorpay.paymentLink.create({
         amount: amountInPaise,
@@ -149,9 +149,7 @@ export class PaymentsService {
         currency: dto.currency,
         status: 'created',
         expiresAt,
-        meta: {
-          razorpayResponse: paymentLink,
-        },
+        meta: paymentLink ? JSON.parse(JSON.stringify(paymentLink)) : null,
       },
     });
 

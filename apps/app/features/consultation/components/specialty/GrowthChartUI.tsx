@@ -8,25 +8,58 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 
-export interface GrowthData {
-  height?: string;
-  weight?: string;
-  headCircumference?: string;
-}
+import { GrowthChartData, GrowthMeasurement } from "@workspace/types";
 
 interface GrowthChartProps {
-  value: GrowthData;
-  onChange: (value: GrowthData) => void;
+  value: GrowthChartData;
+  onChange: (value: GrowthChartData) => void;
   patientAgeMinutes?: number; // Needed for accurate percentile calc
   readOnly?: boolean;
 }
 
 export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
-  const handleChange = (field: keyof GrowthData, val: string) => {
+  // Helper to extract the most recent or active measurement for editing
+  // For this UI, we assume we are editing the *current* visit's measurement
+  // If no measurements exist, we will create one on change.
+  const activeMeasurement = value.measurements?.[0] || {};
+
+  const handleChange = (field: keyof GrowthMeasurement, val: string) => {
     if (readOnly) return;
+
+    // Create new array with updated first element
+    const currentMeasurements = [...(value.measurements || [])];
+    const firstMeasurement = {
+      ...(currentMeasurements[0] || {
+        date: new Date().toISOString(),
+        ageMonths: 0,
+      }),
+    };
+
+    // Update field
+    if (
+      field === "height" ||
+      field === "weight" ||
+      field === "headCircumference"
+    ) {
+      // We know these fields are numbers in the schema
+      const numVal = val ? parseFloat(val) : undefined;
+      if (field === "height")
+        (firstMeasurement as GrowthMeasurement).height = numVal;
+      if (field === "weight")
+        (firstMeasurement as GrowthMeasurement).weight = numVal;
+      if (field === "headCircumference")
+        (firstMeasurement as GrowthMeasurement).headCircumference = numVal;
+    }
+
+    if (currentMeasurements.length === 0) {
+      currentMeasurements.push(firstMeasurement as GrowthMeasurement);
+    } else {
+      currentMeasurements[0] = firstMeasurement as GrowthMeasurement;
+    }
+
     onChange({
       ...value,
-      [field]: val,
+      measurements: currentMeasurements,
     });
   };
 
@@ -54,13 +87,13 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
             <div className="flex gap-2 items-center">
               <Input
                 type="number"
-                value={value?.height || ""}
+                value={activeMeasurement.height?.toString() || ""}
                 onChange={(e) => handleChange("height", e.target.value)}
                 readOnly={readOnly}
               />
-              {value?.height && (
+              {activeMeasurement.height && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.height))} %ile
+                  {calculatePercentile(Number(activeMeasurement.height))} %ile
                 </span>
               )}
             </div>
@@ -71,13 +104,13 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
             <div className="flex gap-2 items-center">
               <Input
                 type="number"
-                value={value?.weight || ""}
+                value={activeMeasurement.weight?.toString() || ""}
                 onChange={(e) => handleChange("weight", e.target.value)}
                 readOnly={readOnly}
               />
-              {value?.weight && (
+              {activeMeasurement.weight && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.weight))} %ile
+                  {calculatePercentile(Number(activeMeasurement.weight))} %ile
                 </span>
               )}
             </div>
@@ -88,15 +121,18 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
             <div className="flex gap-2 items-center">
               <Input
                 type="number"
-                value={value?.headCircumference || ""}
+                value={activeMeasurement.headCircumference?.toString() || ""}
                 onChange={(e) =>
                   handleChange("headCircumference", e.target.value)
                 }
                 readOnly={readOnly}
               />
-              {value?.headCircumference && (
+              {activeMeasurement.headCircumference && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {calculatePercentile(Number(value.headCircumference))} %ile
+                  {calculatePercentile(
+                    Number(activeMeasurement.headCircumference)
+                  )}{" "}
+                  %ile
                 </span>
               )}
             </div>

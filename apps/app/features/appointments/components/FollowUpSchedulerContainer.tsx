@@ -4,10 +4,10 @@ import { addMonths, addWeeks, format } from "date-fns";
 import { FollowUpDetails, FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
 
 interface FollowUpSchedulerContainerProps {
-  patientId: string;
+  _patientId: string;
   patientName: string;
   patientPhone: string;
-  appointmentId?: string;
+  _appointmentId?: string;
   onScheduled?: (followUp: FollowUpDetails) => void;
   className?: string;
 }
@@ -23,10 +23,10 @@ const QUICK_SCHEDULES = [
 import { useConstants } from "@/features/_shared/hooks/use-constants";
 
 export function FollowUpSchedulerContainer({
-  patientId,
+  _patientId,
   patientName,
   patientPhone,
-  appointmentId,
+  _appointmentId,
   onScheduled,
   className,
 }: FollowUpSchedulerContainerProps) {
@@ -75,7 +75,7 @@ export function FollowUpSchedulerContainer({
           description: reminderEnabled
             ? `Reminder will be sent ${reminderDays} day(s) before`
             : undefined,
-        },
+        }
       );
       setOpen(false);
 

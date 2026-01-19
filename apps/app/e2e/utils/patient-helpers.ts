@@ -1,6 +1,6 @@
 import { APIRequestContext, Page } from "@playwright/test";
 
-export const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
+export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api";
 export const TEST_PASSWORD = "Test@123456";
 
 export interface UserData {
@@ -113,11 +113,23 @@ export async function setupTestUser(
 
 export async function loginUser(page: Page, user: UserData) {
   await page.goto("/login");
-  await page.fill('input[type="email"]', user.email);
-  await page.fill('input[type="password"]', TEST_PASSWORD);
-  await page.click('button[type="submit"]');
+  
+  // Step 1: Email
+  const emailInput = page.locator('input[type="email"]');
+  await emailInput.waitFor({ state: "visible" });
+  await emailInput.fill(user.email);
+  await page.click('button:has-text("Continue")');
+
+  // Step 2: Password
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: "visible" });
+  await passwordInput.fill(TEST_PASSWORD);
+  
+  // Submit Login
+  await page.click('button:has-text("Sign In")');
+
   try {
-    await page.waitForURL("/dashboard", { timeout: 5000 });
+    await page.waitForURL("/dashboard", { timeout: 10000 });
   } catch {
     console.log("Redirected to a different page after login");
   }

@@ -9,6 +9,22 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { ClinicTier } from '@workspace/db';
 
+// Type for subscription with related clinic data
+interface SubscriptionWithRelations {
+  id: string;
+  clinicId: string;
+  plan: ClinicTier;
+  status: string;
+  currentPeriodEnd: Date;
+  clinic: {
+    id: string;
+    name: string;
+    email: string;
+    tier: ClinicTier;
+    users?: Array<{ email: string; name: string }>;
+  };
+}
+
 interface ReminderConfig {
   daysBeforeExpiry: number;
   type: string;
@@ -189,7 +205,7 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
   }
 
   private async sendExpirationReminder(
-    subscription: any,
+    subscription: SubscriptionWithRelations,
     config: ReminderConfig,
   ) {
     const clinic = subscription.clinic;
@@ -260,7 +276,9 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
     }
   }
 
-  private async handleGracePeriodExpiration(subscription: any) {
+  private async handleGracePeriodExpiration(
+    subscription: SubscriptionWithRelations,
+  ) {
     const clinic = subscription.clinic;
 
     await this.prisma.$transaction([

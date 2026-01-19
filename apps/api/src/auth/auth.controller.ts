@@ -18,12 +18,22 @@ import {
   RegisterResponseDto,
   ValidateSessionResponseDto,
   ChangePasswordResponseDto,
+  CheckEmailDto,
+  CheckEmailResponseDto,
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Post('check-email')
+  @ZodSerializerDto(CheckEmailResponseDto)
+  async checkEmail(@Body() dto: CheckEmailDto) {
+    const exists = await this.authService.checkEmailExists(dto.email);
+    return { exists };
+  }
 
   @Post('login')
   @ZodSerializerDto(LoginResponseDto)
@@ -48,7 +58,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
   @ZodSerializerDto(ChangePasswordResponseDto)
-  async changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {
+  async changePassword(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: ChangePasswordDto,
+  ) {
     // Validation is now handled by ZodValidationPipe and ChangePasswordSchema
     return this.authService.changePassword({
       userId: req.user.sub,
@@ -60,7 +73,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('validate')
   @ZodSerializerDto(ValidateSessionResponseDto)
-  validate(@Request() req: any) {
+  validate(@Request() req: AuthenticatedRequest) {
     return {
       valid: true,
       user: {

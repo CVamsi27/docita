@@ -46,7 +46,7 @@ export class OnboardingController {
   updateStep(
     @Param('onboardingId') onboardingId: string,
     @Param('step') step: OnboardingStep,
-    @Body() data: any,
+    @Body() data: CompleteOnboardingDto,
   ) {
     return this.onboardingService.updateOnboardingStep(
       onboardingId,

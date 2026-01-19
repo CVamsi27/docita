@@ -27,7 +27,7 @@ export const labTestOrderSchema = z.object({
     appointmentId: z.string().nullable().optional(),
     labTestId: z.string(),
     status: z.string(),
-    result: z.any().nullable().optional(), // Json
+    result: z.unknown().nullable().optional(), // Json
     resultUrl: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
     orderedBy: z.string(),

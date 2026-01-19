@@ -208,6 +208,9 @@ export class MedicalCodingService {
   }
 
   async getUncodedVisits(clinicId: string, search?: string) {
+    if (!clinicId) {
+      return [];
+    }
     return this.prisma.appointment.findMany({
       where: {
         clinicId,

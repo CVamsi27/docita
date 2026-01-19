@@ -89,13 +89,13 @@ export const patientSchema = z.object({
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
   tags: z.array(patientTagSchema).optional(),
-  customData: z.record(z.any()).optional(),
+  customData: z.record(z.unknown()).optional(),
 });
 export type Patient = z.infer<typeof patientSchema>;
 
 export const createPatientSchema = patientSchema.extend({
-  dateOfBirth: z.string().refine(
-    (val: string) => {
+  dateOfBirth: z.string().or(z.date()).refine(
+    (val: string | Date) => {
       const date = new Date(val);
       return !isNaN(date.getTime()) && date < new Date();
     },

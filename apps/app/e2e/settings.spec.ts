@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api";
 
@@ -139,7 +139,7 @@ test.describe("Settings Management", () => {
 
 });
 
-async function loginAsDoctor(page: any) {
+async function loginAsDoctor(page: Page) {
     if (!(await page.url()).includes("/dashboard") && !(await page.url()).includes("/settings")) {
         if (typeof authToken !== "undefined" && authToken) {
             const e2eUser = (globalThis as unknown as Record<string, unknown>).__E2E_SETTINGS_USER as Record<string, unknown> | undefined;
@@ -163,7 +163,9 @@ async function loginAsDoctor(page: any) {
                         const { t, u } = args;
                         localStorage.setItem("docita_token", t);
                         localStorage.setItem("docita_user", u);
-                    } catch { }
+                    } catch {
+                        // Ignore localStorage errors
+                    }
                 },
                 { t: authToken, u: userForStorage },
             );

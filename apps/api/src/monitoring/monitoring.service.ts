@@ -338,7 +338,7 @@ export class MonitoringService {
     metricType?: MetricType,
   ): Promise<any[]> {
     try {
-      const where: any = {
+      const where: Prisma.SystemMetricWhereInput = {
         recordedAt: { gte: startDate, lte: endDate },
       };
 

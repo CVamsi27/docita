@@ -14,9 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Calendar, CheckCircle2, FileText, History, Send } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  FileText,
+  History,
+  LucideIcon,
+  Send,
+} from "lucide-react";
 
-export const SmartTasksTab = ({ state, handlers }: any) => (
+interface SmartTasksTabProps {
+  state: {
+    taskType: string;
+  };
+  handlers: {
+    setTaskType: (value: string) => void;
+  };
+}
+
+export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => (
   <div className="grid gap-6 lg:grid-cols-2">
     <Card>
       <CardHeader>
@@ -91,14 +107,24 @@ export const SmartTasksTab = ({ state, handlers }: any) => (
   </div>
 );
 
-const QuickActionButton = ({ icon: Icon, label }: any) => (
+interface QuickActionButtonProps {
+  icon: LucideIcon;
+  label: string;
+}
+
+const QuickActionButton = ({ icon: Icon, label }: QuickActionButtonProps) => (
   <Button variant="outline" className="w-full justify-start" size="sm">
     <Icon className="h-4 w-4 mr-2" />
     {label}
   </Button>
 );
 
-const AutomationItem = ({ task, time }: any) => (
+interface AutomationItemProps {
+  task: string;
+  time: string;
+}
+
+const AutomationItem = ({ task, time }: AutomationItemProps) => (
   <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
     <div>
       <p className="text-sm font-medium">{task}</p>

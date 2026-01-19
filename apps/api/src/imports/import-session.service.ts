@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 
 export interface ImportSession {
@@ -8,6 +8,7 @@ export interface ImportSession {
 
 @Injectable()
 export class ImportSessionService {
+  private readonly logger = new Logger(ImportSessionService.name);
   private readonly pendingImports = new Map<string, ImportSession>();
 
   createSession(filePath: string): string {
@@ -69,7 +70,7 @@ export class ImportSessionService {
       }
     } catch (error) {
       // Log error but don't crash
-      console.error(`Failed to delete temp file ${filePath}:`, error);
+      this.logger.error(`Failed to delete temp file ${filePath}`, error);
     }
   }
 }

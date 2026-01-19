@@ -54,10 +54,11 @@ test.describe("Clinic Registration Flow", () => {
     // or just leave it. Let's uncheck it to test interaction.
     await page.uncheck('#requireConsent');
 
-    // 5. Submit
-    // 6. Verify Success
-    // Should show success toast and redirect
-    // await expect(page.getByText("Registration Successful")).toBeVisible({ timeout: 15000 });
+    // 5. Submit and verify success
+    
+    await page.click("button:has-text('Complete Registration')");
+
+
     
     // Should redirect to dashboard
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });

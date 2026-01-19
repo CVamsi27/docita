@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -38,11 +38,14 @@ export const OCRUploadSection = ({
         <CardContent className="space-y-4">
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 hover:bg-muted/50 transition-colors relative overflow-hidden">
             {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-h-[300px] object-contain"
-              />
+              <div className="relative w-full h-[300px]">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             ) : (
               <>
                 <Upload className="h-10 w-10 text-muted-foreground mb-4" />

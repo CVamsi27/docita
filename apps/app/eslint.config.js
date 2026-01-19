@@ -1,4 +1,5 @@
 import { nextJsConfig } from "@workspace/eslint-config/next-js";
+import globals from "globals";
 
 /** @type {import("eslint").Linter.Config} */
 export default [
@@ -13,6 +14,14 @@ export default [
       "playwright-report/**",
       "test-results/**",
     ],
+  },
+  {
+    files: ["next.config.mjs", "postcss.config.mjs", "tailwind.config.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
   },
   ...nextJsConfig,
 ];
