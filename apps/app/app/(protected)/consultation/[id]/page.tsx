@@ -54,13 +54,19 @@ export default function ConsultationPage() {
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
     : "Patient";
 
-  // Sidebar Component (Passed to Header for Mobile and Layout for Desktop)
-  const SidebarComponent = (
-    <ConsultationSidebar
-      appointment={appointmentData}
-      pastAppointments={pastAppointments}
-    />
+  // Sidebar Props
+  const sidebarProps = {
+    appointment: appointmentData,
+    pastAppointments: pastAppointments,
+  };
+
+  // Desktop Sidebar (Pass toggle handler)
+  const DesktopSidebar = (
+    <ConsultationSidebar {...sidebarProps} onClose={toggleSidebar} />
   );
+
+  // Mobile Sidebar (No toggle handler, relies on Sheet close)
+  const MobileSidebar = <ConsultationSidebar {...sidebarProps} />;
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -69,12 +75,12 @@ export default function ConsultationPage() {
         patientName={patientName}
         appointmentDate={appointmentData.startTime}
         onBack={handleBack}
-        MobileSidebarContent={SidebarComponent}
+        MobileSidebarContent={MobileSidebar}
       />
 
       {/* Main Layout */}
       <ConsultationLayoutUI
-        Sidebar={SidebarComponent}
+        Sidebar={DesktopSidebar}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={toggleSidebar}
         MainContent={

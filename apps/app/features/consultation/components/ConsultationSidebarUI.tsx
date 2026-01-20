@@ -4,7 +4,14 @@ import React, { FC } from "react";
 import { toast } from "sonner";
 import { Badge } from "@workspace/ui/components/badge";
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { AlertTriangle, ClipboardCopy, Clock, Heart, User } from "lucide-react";
+import {
+  AlertTriangle,
+  ClipboardCopy,
+  Clock,
+  Heart,
+  User,
+  X,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Appointment,
@@ -48,6 +55,7 @@ interface ConsultationSidebarProps {
   surgicalHistory?: PatientSurgicalHistory[];
   familyHistory?: PatientFamilyHistory[];
   socialHistory?: PatientSocialHistory | null;
+  onClose?: () => void;
 }
 
 export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
@@ -57,6 +65,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
   patientAllergies = [],
   surgicalHistory = [],
   familyHistory = [],
+  onClose,
 }) => {
   const rawData = appointmentData ?? appointment;
 
@@ -146,8 +155,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
-      {/* Patient Summary Card - Compact */}
-      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50">
+      {/* Header with Close Button */}
+      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 relative group">
         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
           {initials}
         </div>
@@ -163,6 +172,17 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
             {patient.mrn && <span>• MRN: {patient.mrn}</span>}
           </div>
         </div>
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground"
+            aria-label="Close sidebar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Allergy Alert - Clean */}

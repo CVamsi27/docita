@@ -24,11 +24,12 @@ interface PastAppointmentItem {
 interface ConsultationSidebarContainerProps {
   appointmentData?: Appointment;
   pastAppointments?: PastAppointmentItem[];
+  onClose?: () => void;
 }
 
 export const ConsultationSidebarContainer: FC<
   ConsultationSidebarContainerProps
-> = ({ appointmentData, pastAppointments = [] }) => {
+> = ({ appointmentData, pastAppointments = [], onClose }) => {
   // Use shared history hook to get patient data
   const patientId = appointmentData?.patientId || "";
   const { historyData, patient, isLoading } =
@@ -75,6 +76,7 @@ export const ConsultationSidebarContainer: FC<
       surgicalHistory={historyData.surgicalHistory}
       familyHistory={historyData.familyHistory}
       socialHistory={historyData.socialHistory}
+      onClose={onClose}
     />
   );
 };
