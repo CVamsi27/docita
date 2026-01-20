@@ -53,12 +53,12 @@ export function PatientAllergies({
           <AlertTriangle className="h-4 w-4 text-orange-500" />
           Allergies
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-3">
           {patient.patientAllergies?.map((allergy) => (
             <Badge
               key={allergy.id}
               variant="destructive"
-              className="pl-2 pr-1 py-1 h-7 bg-red-100 text-red-800 hover:bg-red-200 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 flex items-center gap-2"
+              className="pl-2 pr-1 py-1.5 h-auto text-sm bg-red-100 text-red-800 hover:bg-red-200 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 flex items-center gap-2"
             >
               <span className="font-medium">{allergy.allergen}</span>
               {!readOnly && (
@@ -66,14 +66,14 @@ export function PatientAllergies({
                   <button
                     type="button"
                     onClick={() => onEditAllergy(allergy)}
-                    className="hover:text-red-950 dark:hover:text-red-100 transition-colors focus:outline-none"
+                    className="p-0.5 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors focus:outline-none"
                   >
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onRemoveAllergy(allergy.id!)}
-                    className="hover:text-red-950 dark:hover:text-red-100 transition-colors focus:outline-none"
+                    className="p-0.5 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -83,34 +83,37 @@ export function PatientAllergies({
           ))}
           {(!patient.patientAllergies ||
             patient.patientAllergies.length === 0) && (
-            <span className="text-sm text-muted-foreground italic">
-              NKA (No Known Allergies)
-            </span>
+            <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-green-50/50 border-green-200 dark:bg-green-950/10 dark:border-green-900">
+              <span className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center justify-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                NKA (No Known Allergies)
+              </span>
+            </div>
           )}
         </div>
         {!readOnly && (
-          <div className="flex gap-2 max-w-sm mt-1">
-            <Input
-              placeholder="Add allergy..."
-              value={newAllergy}
-              onChange={(e) => onNewAllergyChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  onAddAllergy();
-                }
-              }}
-              className="h-8 text-sm"
-            />
+          <div className="flex gap-2 items-center pt-2 border-t border-border/40">
+            <div className="relative flex-1">
+              <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Add new allergy (e.g. Penicillin)"
+                value={newAllergy}
+                onChange={(e) => onNewAllergyChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onAddAllergy();
+                  }
+                }}
+                className="pl-9"
+              />
+            </div>
             <Button
               type="button"
-              size="sm"
-              variant="secondary"
               onClick={onAddAllergy}
               disabled={!newAllergy.trim()}
-              className="h-8"
             >
-              <Plus className="h-3 w-3" />
+              Add
             </Button>
           </div>
         )}

@@ -9,12 +9,13 @@ import React, {
 } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import type { UserRole } from "@workspace/types";
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR" | "SUPER_ADMIN";
+  role: UserRole;
   clinicId?: string;
 }
 

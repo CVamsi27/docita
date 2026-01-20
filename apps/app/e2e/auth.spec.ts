@@ -15,6 +15,7 @@ test.describe("Auth Flow", () => {
         firstName: "Test",
         lastName: "Doctor",
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
 
@@ -30,6 +31,7 @@ test.describe("Auth Flow", () => {
         email: `clinic${Date.now()}@test.com`,
         phone: "1234567890",
         address: "123 Auth St",
+        tier: "ENTERPRISE",
       },
     });
     expect(clinicRes.ok()).toBeTruthy();
@@ -102,6 +104,7 @@ test.describe("Auth Flow", () => {
         firstName: "Test",
         lastName: "Doctor",
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
     expect(registerRes.ok()).toBeTruthy();

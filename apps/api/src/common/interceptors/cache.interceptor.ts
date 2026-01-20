@@ -76,7 +76,11 @@ export class CacheInterceptor implements NestInterceptor {
  * Usage: @CacheDuration(600) // Cache for 10 minutes
  */
 export const CacheDuration = (seconds: number | 'no-cache') => {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (
+    target: object,
+    propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) => {
     Reflect.defineMetadata('cache-duration', seconds, descriptor.value);
     return descriptor;
   };

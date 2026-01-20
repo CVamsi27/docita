@@ -21,7 +21,7 @@ export function DashboardHeaderContainer() {
 
   return (
     <DashboardHeaderUI
-      userName={user?.name?.split(" ")[0] || "Doctor"}
+      userName={user?.name || "Doctor"}
       greeting={getGreeting()}
       onSearchClick={handleSearchClick}
     />

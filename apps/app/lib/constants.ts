@@ -60,7 +60,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Today's Patients",
-    href: "/queue",
+    href: "/consultation",
     icon: CalendarCheck,
     roles: ["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"],
     feature: Feature.QUEUE_MANAGEMENT,

@@ -54,7 +54,7 @@ export function DashboardAlertsContainer({
           patientsWaiting > 0
             ? `${patientsWaiting} patient${patientsWaiting !== 1 ? "s" : ""} currently waiting`
             : undefined,
-        action: { label: "View Schedule", href: "/queue" },
+        action: { label: "View Schedule", href: "/consultation" },
         dismissible: true,
       });
     }
@@ -66,7 +66,7 @@ export function DashboardAlertsContainer({
         icon: Users,
         title: `${patientsWaiting} patients are waiting`,
         description: "Consider expediting consultations",
-        action: { label: "Open Queue", href: "/queue" },
+        action: { label: "Open Queue", href: "/consultation" },
       });
     }
 
@@ -125,7 +125,7 @@ export function DashboardAlertsContainer({
         icon: Clock,
         title: `${remaining} appointment${remaining !== 1 ? "s" : ""} remaining`,
         description: "End of day approaching",
-        action: { label: "View Queue", href: "/queue" },
+        action: { label: "View Queue", href: "/consultation" },
         dismissible: true,
       });
     }

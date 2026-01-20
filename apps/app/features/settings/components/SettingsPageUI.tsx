@@ -9,6 +9,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { RoleGuard } from "@/features/_shared/components/role-guard";
 import {
   AppearanceSettings,
@@ -127,7 +129,7 @@ export function SettingsPageUI({
                         "justify-start px-3 py-2.5 gap-3 w-full",
                         "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
                         "hover:bg-muted/50 transition-colors",
-                        "rounded-lg"
+                        "rounded-lg",
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -164,7 +166,9 @@ export function SettingsPageUI({
 
           <TabsContent value="members" className="mt-0 space-y-6">
             <RoleGuard requiredPermission="manageStaff">
-              <MemberManagementSettings />
+              <FeatureGate feature={Feature.ROLE_MANAGEMENT} showLockedCard>
+                <MemberManagementSettings />
+              </FeatureGate>
             </RoleGuard>
           </TabsContent>
 

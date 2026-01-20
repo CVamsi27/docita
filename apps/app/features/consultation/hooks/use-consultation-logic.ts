@@ -66,8 +66,8 @@ export const useConsultationLogic = (appointmentId: string) => {
     if (fromPage === "patient") {
       return "/patients";
     }
-    // Default to queue for 'from=queue' or when 'from' is not specified
-    return "/queue";
+    // Default to consultation for 'from=queue' or when 'from' is not specified
+    return "/consultation";
   }, [fromPage, appointmentData?.patientId]);
 
   const goBack = useSmartBack(fallbackRoute);

@@ -1,25 +1,15 @@
 /**
  * Patient Tag Manager - Container Component
  * Handles tag data fetching and management logic
+ * Uses ClinicFeatureService for clinic-specific preset tags
  */
 
 import { useCallback, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
-import {
-  type PatientTag,
-  PatientTagManagerUI,
-  type PresetTag,
-} from "./PatientTagManagerUI";
-
-const PRESET_TAGS: PresetTag[] = [
-  { tag: "Chronic", color: "#ef4444" },
-  { tag: "Diabetic", color: "#f59e0b" },
-  { tag: "Hypertensive", color: "#8b5cf6" },
-  { tag: "Post-Surgery", color: "#06b6d4" },
-  { tag: "Pregnant", color: "#ec4899" },
-  { tag: "Elderly", color: "#64748b" },
-  { tag: "Pediatric", color: "#10b981" },
-];
+import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
+import { useClinicSettings } from "@/hooks/api/use-settings";
+import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
+import type { ClinicType } from "@workspace/types";
 
 interface PatientTagManagerContainerProps {
   patientId: string;
@@ -35,6 +25,12 @@ export function PatientTagManagerContainer({
   const [newTag, setNewTag] = useState("");
   const [newColor, setNewColor] = useState("#3b82f6");
   const [loading, setLoading] = useState(false);
+
+  // Get clinic settings for clinic-specific preset tags
+  const { data: clinic } = useClinicSettings();
+  const presetTags = ClinicFeatureService.getPresetTags(
+    clinic?.type as ClinicType | undefined,
+  );
 
   const loadTags = useCallback(async () => {
     try {
@@ -75,14 +71,45 @@ export function PatientTagManagerContainer({
   };
 
   const removeTag = async (tagId: string) => {
+    // Optimistic update
+    const previousTags = [...tags];
+    setTags(tags.filter((t) => t.id !== tagId));
+
     try {
       await apiFetch(`/patients/${patientId}/tags/${tagId}`, {
         method: "DELETE",
       });
-      await loadTags();
       onTagsUpdated?.();
     } catch (error) {
       console.error("Failed to remove tag:", error);
+      // Rollback on error
+      setTags(previousTags);
+    }
+  };
+
+  const editTag = async (
+    tagId: string,
+    newName: string,
+    newTagColor: string,
+  ) => {
+    // Optimistic update
+    const previousTags = [...tags];
+    setTags(
+      tags.map((t) =>
+        t.id === tagId ? { ...t, tag: newName, color: newTagColor } : t,
+      ),
+    );
+
+    try {
+      await apiFetch(`/patients/${patientId}/tags/${tagId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ tag: newName, color: newTagColor }),
+      });
+      onTagsUpdated?.();
+    } catch (error) {
+      console.error("Failed to edit tag:", error);
+      // Rollback on error
+      setTags(previousTags);
     }
   };
 
@@ -95,7 +122,7 @@ export function PatientTagManagerContainer({
       open={open}
       onOpenChange={setOpen}
       tags={tags}
-      presetTags={PRESET_TAGS}
+      presetTags={presetTags}
       newTag={newTag}
       newColor={newColor}
       loading={loading}
@@ -103,6 +130,7 @@ export function PatientTagManagerContainer({
       onNewColorChange={setNewColor}
       onAddTag={addTag}
       onRemoveTag={removeTag}
+      onEditTag={editTag}
       hasTag={hasTag}
     />
   );

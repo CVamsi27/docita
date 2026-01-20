@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -23,6 +25,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import {
+  CLINIC_TYPE_LABELS,
+  type ClinicType,
+  clinicTypeSchema,
+} from "@workspace/types";
+import { ConsentNoticeModal } from "../../legal/components/ConsentNoticeModal";
+import { PlanSelectionStep } from "./steps/PlanSelectionStep";
+import { TeamInviteStep } from "./steps/TeamInviteStep";
+import { PaymentStep } from "./steps/PaymentStep";
 
 // Schema Definitions
 const clinicDetailsSchema = z.object({
@@ -30,19 +41,7 @@ const clinicDetailsSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   address: z.string().min(5, "Address is required"),
-  type: z.enum([
-    "GENERAL",
-    "DENTAL",
-    "PEDIATRIC",
-    "ORTHOPEDIC",
-    "CARDIOLOGY",
-    "DERMATOLOGY",
-    "ENT",
-    "GYNECOLOGY",
-    "OPHTHALMOLOGY",
-    "PSYCHIATRY",
-    "SPECIALTY",
-  ]),
+  type: clinicTypeSchema,
   website: z.string().url().optional().or(z.literal("")),
 });
 
@@ -69,13 +68,12 @@ const complianceSchema = z.object({
     .boolean()
     .refine(
       (val) => val === true,
-      "You must accept the Data Processing Agreement"
+      "You must accept the Data Processing Agreement",
     ),
   enableWhatsApp: z.boolean(),
   requireConsent: z.boolean(),
 });
 
-// Combined Schema for the whole flow (if needed) but we handle steps separately
 type ClinicDetails = z.infer<typeof clinicDetailsSchema>;
 type AdminAccount = z.infer<typeof adminAccountSchema>;
 type ComplianceSettings = z.infer<typeof complianceSchema>;
@@ -88,18 +86,42 @@ const defaultComplianceValues: ComplianceSettings = {
   requireConsent: true,
 };
 
+interface PaymentDetails {
+  cardNumber: string;
+  autoPay: boolean;
+  addons: {
+    whatsapp: boolean;
+    intelligence: boolean;
+  };
+}
+
+interface TeamMember {
+  email: string;
+  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN_DOCTOR";
+  name?: string;
+}
+
 export function ClinicRegistrationForm({
   onSuccess,
 }: {
   onSuccess: () => void;
 }) {
   const [step, setStep] = useState(1);
+  const [showConsentModal, setShowConsentModal] = useState(false);
 
   // State to hold form data across steps
   const [formData, setFormData] = useState({
     clinicDetails: {} as Partial<ClinicDetails>,
     adminAccount: {} as Partial<AdminAccount>,
     compliance: {} as Partial<ComplianceSettings>,
+    planSelection: {
+      tier: "CAPTURE",
+      billingCycle: "MONTHLY" as "MONTHLY" | "YEARLY",
+      price: 0,
+      currency: "₹",
+    },
+    paymentDetails: {} as Partial<PaymentDetails>,
+    teamMembers: [] as TeamMember[],
   });
 
   // Step 1 Form
@@ -114,7 +136,7 @@ export function ClinicRegistrationForm({
     defaultValues: formData.adminAccount as AdminAccount,
   });
 
-  // Step 3 Form
+  // Step 6 Form (Compliance)
   const complianceForm = useForm<ComplianceSettings>({
     resolver: zodResolver(complianceSchema),
     defaultValues: {
@@ -124,7 +146,6 @@ export function ClinicRegistrationForm({
   });
 
   const submitRegistration = async (complianceData: ComplianceSettings) => {
-    // Ensure incomplete parts are not used if logic were different, but here we assume validation passed.
     const details = formData.clinicDetails as ClinicDetails;
     const admin = formData.adminAccount as AdminAccount;
 
@@ -134,13 +155,12 @@ export function ClinicRegistrationForm({
     }
 
     try {
-      // Prepare payload to match OnboardingService expectations
       const payload = {
         clinicDetails: details,
         adminAccount: admin,
         planSelection: {
-          tier: "CAPTURE", // Default to free tier for now
-          billingCycle: "MONTHLY",
+          tier: formData.planSelection.tier,
+          billingCycle: formData.planSelection.billingCycle,
         },
         slaAgreement: {
           acceptedSLA: complianceData.acceptedSLA,
@@ -148,17 +168,20 @@ export function ClinicRegistrationForm({
           acceptedDataProcessingTerms: complianceData.acceptedDataProcessing,
           slaVersion: "1.0",
           acceptedBy: admin.name,
-          ipAddress: "client-ip", // Server will override
+          ipAddress: "client-ip",
           userAgent: navigator.userAgent,
         },
         consentManagement: {
-          enableWhatsAppCommunication: complianceData.enableWhatsApp,
+          enableWhatsAppCommunication:
+            formData.paymentDetails?.addons?.whatsapp ||
+            complianceData.enableWhatsApp,
           enableMarketingCommunications: false,
           patientConsentRequiredBeforeWhatsApp: complianceData.requireConsent,
           logAllConsentChanges: true,
           dataProcessingPurposes: ["TREATMENT", "BILLING"],
         },
-        paymentDetails: {}, // Optional for free tier
+        paymentDetails: formData.paymentDetails,
+        teamMembers: formData.teamMembers,
       };
 
       const initRes = await fetch("/api/onboarding/initialize", {
@@ -179,7 +202,6 @@ export function ClinicRegistrationForm({
 
       const responseData = await res.json();
 
-      // Auto-login: store auth credentials if provided
       if (responseData.access_token && responseData.user) {
         localStorage.setItem("docita_token", responseData.access_token);
         localStorage.setItem("docita_user", JSON.stringify(responseData.user));
@@ -199,10 +221,12 @@ export function ClinicRegistrationForm({
 
   return (
     <div className="space-y-6">
+      {/* Step Indicator can be added here */}
+
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Clinic Details</CardTitle>
+            <CardTitle>Step 1: Clinic Details</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -231,21 +255,7 @@ export function ClinicRegistrationForm({
                 <Label htmlFor="type">Clinic Type</Label>
                 <Select
                   onValueChange={(val) =>
-                    clinicForm.setValue(
-                      "type",
-                      val as
-                        | "GENERAL"
-                        | "DENTAL"
-                        | "PEDIATRIC"
-                        | "ORTHOPEDIC"
-                        | "CARDIOLOGY"
-                        | "DERMATOLOGY"
-                        | "ENT"
-                        | "GYNECOLOGY"
-                        | "OPHTHALMOLOGY"
-                        | "PSYCHIATRY"
-                        | "SPECIALTY"
-                    )
+                    clinicForm.setValue("type", val as ClinicType)
                   }
                   defaultValue={clinicForm.getValues("type")}
                 >
@@ -253,17 +263,13 @@ export function ClinicRegistrationForm({
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GENERAL">General Practice</SelectItem>
-                    <SelectItem value="DENTAL">Dental</SelectItem>
-                    <SelectItem value="PEDIATRIC">Pediatric</SelectItem>
-                    <SelectItem value="ORTHOPEDIC">Orthopedic</SelectItem>
-                    <SelectItem value="CARDIOLOGY">Cardiology</SelectItem>
-                    <SelectItem value="DERMATOLOGY">Dermatology</SelectItem>
-                    <SelectItem value="ENT">ENT</SelectItem>
-                    <SelectItem value="GYNECOLOGY">Gynecology</SelectItem>
-                    <SelectItem value="OPHTHALMOLOGY">Ophthalmology</SelectItem>
-                    <SelectItem value="PSYCHIATRY">Psychiatry</SelectItem>
-                    <SelectItem value="SPECIALTY">Specialty</SelectItem>
+                    {(Object.keys(CLINIC_TYPE_LABELS) as ClinicType[]).map(
+                      (type) => (
+                        <SelectItem key={type} value={type}>
+                          {CLINIC_TYPE_LABELS[type]}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
                 {clinicForm.formState.errors.type && (
@@ -290,10 +296,16 @@ export function ClinicRegistrationForm({
 
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input
+                <PhoneInput
                   id="phone"
-                  {...clinicForm.register("phone")}
-                  placeholder="+91 9876543210"
+                  defaultCountry="IN"
+                  international
+                  countryCallingCodeEditable={false}
+                  value={clinicForm.watch("phone")}
+                  onChange={(value) =>
+                    clinicForm.setValue("phone", value || "")
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background [&>input]:outline-none [&>input]:bg-transparent"
                 />
                 {clinicForm.formState.errors.phone && (
                   <p className="text-sm text-red-500">
@@ -342,7 +354,7 @@ export function ClinicRegistrationForm({
       {step === 2 && (
         <Card>
           <CardHeader>
-            <CardTitle>Admin Account Setup</CardTitle>
+            <CardTitle>Step 2: Admin Account Setup</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -398,10 +410,15 @@ export function ClinicRegistrationForm({
 
               <div className="space-y-2">
                 <Label htmlFor="adminPhone">Mobile Number</Label>
-                <Input
+                <PhoneInput
                   id="adminPhone"
-                  {...adminForm.register("phoneNumber")}
-                  placeholder="+91 9876543210"
+                  defaultCountry="IN"
+                  international
+                  value={adminForm.watch("phoneNumber")}
+                  onChange={(value) =>
+                    adminForm.setValue("phoneNumber", value || "")
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background [&>input]:outline-none [&>input]:bg-transparent"
                 />
                 {adminForm.formState.errors.phoneNumber && (
                   <p className="text-sm text-red-500">
@@ -416,20 +433,71 @@ export function ClinicRegistrationForm({
               Back
             </Button>
             <Button className="flex-1" form="step2" type="submit">
-              Next: Compliance & Legal
+              Next: Select Plan
             </Button>
           </CardFooter>
         </Card>
       )}
 
       {step === 3 && (
+        <PlanSelectionStep
+          currency="₹"
+          defaultTier={formData.planSelection.tier}
+          defaultBillingCycle={formData.planSelection.billingCycle}
+          onSelect={(tier, billingCycle, pricing) => {
+            const price =
+              billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
+            setFormData((prev) => ({
+              ...prev,
+              planSelection: {
+                tier,
+                billingCycle,
+                price: typeof price === "number" ? price : 0,
+                currency: "₹",
+              },
+            }));
+
+            // If free tier, skip payment
+            if (tier === "CAPTURE") {
+              setStep(5); // Skip Payment
+            } else {
+              setStep(4);
+            }
+          }}
+        />
+      )}
+
+      {step === 4 && (
+        <PaymentStep
+          selectedPlanPrice={formData.planSelection.price}
+          billingCycle={formData.planSelection.billingCycle}
+          currencySymbol={formData.planSelection.currency}
+          onBack={() => setStep(3)}
+          onComplete={(paymentDetails) => {
+            setFormData((prev) => ({ ...prev, paymentDetails }));
+            setStep(5);
+          }}
+        />
+      )}
+
+      {step === 5 && (
+        <TeamInviteStep
+          onSkip={() => setStep(6)}
+          onComplete={(members) => {
+            setFormData((prev) => ({ ...prev, teamMembers: members }));
+            setStep(6);
+          }}
+        />
+      )}
+
+      {step === 6 && (
         <Card>
           <CardHeader>
-            <CardTitle>Compliance & Legal</CardTitle>
+            <CardTitle>Step 6: Compliance & Legal</CardTitle>
           </CardHeader>
           <CardContent>
             <form
-              id="step3"
+              id="step6"
               onSubmit={complianceForm.handleSubmit(submitRegistration)}
               className="space-y-6"
             >
@@ -442,7 +510,7 @@ export function ClinicRegistrationForm({
                     onCheckedChange={(checked) =>
                       complianceForm.setValue(
                         "requireConsent",
-                        checked as boolean
+                        checked as boolean,
                       )
                     }
                   />
@@ -453,16 +521,22 @@ export function ClinicRegistrationForm({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="enableWhatsApp"
-                    checked={complianceForm.watch("enableWhatsApp")}
+                    checked={
+                      complianceForm.watch("enableWhatsApp") ||
+                      formData.paymentDetails?.addons?.whatsapp
+                    }
+                    disabled={formData.paymentDetails?.addons?.whatsapp}
                     onCheckedChange={(checked) =>
                       complianceForm.setValue(
                         "enableWhatsApp",
-                        checked as boolean
+                        checked as boolean,
                       )
                     }
                   />
                   <Label htmlFor="enableWhatsApp">
-                    Enable WhatsApp integration (requires Business API approval)
+                    Enable WhatsApp integration
+                    {formData.paymentDetails?.addons?.whatsapp &&
+                      " (Included in Add-on)"}
                   </Label>
                 </div>
               </div>
@@ -499,18 +573,19 @@ export function ClinicRegistrationForm({
                     id="privacy"
                     className="mt-1"
                     checked={complianceForm.watch("acceptedPrivacyPolicy")}
-                    onCheckedChange={(checked) =>
-                      complianceForm.setValue(
-                        "acceptedPrivacyPolicy",
-                        checked as boolean
-                      )
-                    }
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setShowConsentModal(true);
+                      } else {
+                        complianceForm.setValue("acceptedPrivacyPolicy", false);
+                      }
+                    }}
                   />
                   <div className="grid gap-1.5 leading-none">
                     <Label htmlFor="privacy" className="text-sm font-normal">
                       I accept the{" "}
                       <a href="#" className="underline text-primary">
-                        Privacy Policy
+                        Privacy Policy & Data Consent
                       </a>
                     </Label>
                     {complianceForm.formState.errors.acceptedPrivacyPolicy && (
@@ -532,7 +607,7 @@ export function ClinicRegistrationForm({
                     onCheckedChange={(checked) =>
                       complianceForm.setValue(
                         "acceptedDataProcessing",
-                        checked as boolean
+                        checked as boolean,
                       )
                     }
                   />
@@ -557,12 +632,17 @@ export function ClinicRegistrationForm({
             </form>
           </CardContent>
           <CardFooter className="flex justify-between gap-4">
-            <Button variant="outline" onClick={() => setStep(2)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setStep(formData.planSelection.tier === "CAPTURE" ? 3 : 5)
+              }
+            >
               Back
             </Button>
             <Button
               className="flex-1"
-              form="step3"
+              form="step6"
               type="submit"
               disabled={complianceForm.formState.isSubmitting}
             >
@@ -573,6 +653,26 @@ export function ClinicRegistrationForm({
           </CardFooter>
         </Card>
       )}
+
+      {/* DPDP Consent Modal */}
+      <ConsentNoticeModal
+        open={showConsentModal}
+        onOpenChange={(open) => {
+          setShowConsentModal(open);
+          if (!open && !complianceForm.getValues("acceptedPrivacyPolicy")) {
+            // If closed without acceptance
+          }
+        }}
+        userType="clinic"
+        onConsent={(_) => {
+          complianceForm.setValue("acceptedPrivacyPolicy", true);
+          setShowConsentModal(false);
+        }}
+        onDecline={() => {
+          complianceForm.setValue("acceptedPrivacyPolicy", false);
+          setShowConsentModal(false);
+        }}
+      />
     </div>
   );
 }

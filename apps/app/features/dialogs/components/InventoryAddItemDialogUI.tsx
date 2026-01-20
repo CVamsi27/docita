@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
 import {
   Select,
@@ -7,14 +11,30 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Input } from "@workspace/ui/components/input";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 
-export interface InventoryItemFormData {
-  name: string;
-  category: string;
-  quantity: string;
-  expiryDate: string;
-  minStock: string;
-}
+// Define schema for inventory item
+const inventoryItemSchema = z.object({
+  name: requiredStringSchema("Item Name"),
+  category: requiredStringSchema("Category"),
+  quantity: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Quantity must be a valid non-negative number",
+    }),
+  minStock: z
+    .string()
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) >= 0), {
+      message: "Minimum stock must be a valid non-negative number",
+    })
+    .optional(),
+  expiryDate: z.string().optional(),
+});
+
+type InventoryItemFormValues = z.infer<typeof inventoryItemSchema>;
+
+export type InventoryItemFormData = InventoryItemFormValues;
 
 export interface CategoryOption {
   value: string;
@@ -23,23 +43,51 @@ export interface CategoryOption {
 
 export interface InventoryAddItemDialogUIProps {
   isOpen: boolean;
-  formData: InventoryItemFormData;
+  defaultValues?: Partial<InventoryItemFormValues>;
   isLoading: boolean;
   onClose: () => void;
-  onFormChange: (data: Partial<InventoryItemFormData>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: InventoryItemFormValues) => void;
   categories?: CategoryOption[];
 }
 
 export function InventoryAddItemDialogUI({
   isOpen,
-  formData,
+  defaultValues,
   isLoading,
   onClose,
-  onFormChange,
   onSubmit,
   categories = [],
 }: InventoryAddItemDialogUIProps) {
+  const form = useForm<InventoryItemFormValues>({
+    resolver: zodResolver(inventoryItemSchema),
+    defaultValues: {
+      name: "",
+      category: "",
+      quantity: "",
+      minStock: "",
+      expiryDate: "",
+      ...defaultValues,
+    },
+  });
+
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: "",
+        category: "",
+        quantity: "",
+        minStock: "",
+        expiryDate: "",
+        ...defaultValues,
+      });
+    }
+  }, [isOpen, defaultValues, form]);
+
+  const handleSubmit = (data: InventoryItemFormValues) => {
+    onSubmit(data);
+  };
+
   return (
     <CRUDDialog
       open={isOpen}
@@ -49,79 +97,110 @@ export function InventoryAddItemDialogUI({
       title="Add Inventory Item"
       description="Add a new item to your inventory"
       isLoading={isLoading}
-      onSubmit={onSubmit}
+      onSubmit={form.handleSubmit(handleSubmit)}
       submitLabel="Add Item"
     >
-      <FormFieldGroup
-        label="Item Name"
-        required
-        error={formData.name ? undefined : "Item name is required"}
-      >
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => onFormChange({ name: e.target.value })}
-          placeholder="e.g., Paracetamol 500mg"
-          required
-        />
-      </FormFieldGroup>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Item Name"
+                required
+                error={form.formState.errors.name?.message}
+              >
+                <FormControl>
+                  <Input placeholder="e.g., Paracetamol 500mg" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
+          />
 
-      <FormFieldGroup
-        label="Category"
-        required
-        error={formData.category ? undefined : "Category is required"}
-      >
-        <Select
-          value={formData.category}
-          onValueChange={(value) => onFormChange({ category: value })}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
-                {category.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormFieldGroup>
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Category"
+                required
+                error={form.formState.errors.category?.message}
+              >
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormFieldGroup>
+            )}
+          />
 
-      <FormFieldGroup
-        label="Quantity"
-        required
-        error={formData.quantity ? undefined : "Quantity is required"}
-      >
-        <Input
-          id="quantity"
-          type="number"
-          min="0"
-          value={formData.quantity}
-          onChange={(e) => onFormChange({ quantity: e.target.value })}
-          placeholder="0"
-          required
-        />
-      </FormFieldGroup>
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Quantity"
+                required
+                error={form.formState.errors.quantity?.message}
+              >
+                <FormControl>
+                  <Input type="number" min="0" placeholder="0" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
+          />
 
-      <FormFieldGroup label="Minimum Stock Level">
-        <Input
-          id="minStock"
-          type="number"
-          min="0"
-          value={formData.minStock}
-          onChange={(e) => onFormChange({ minStock: e.target.value })}
-        />
-      </FormFieldGroup>
+          <FormField
+            control={form.control}
+            name="minStock"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Minimum Stock Level"
+                error={form.formState.errors.minStock?.message}
+              >
+                <FormControl>
+                  <Input type="number" min="0" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
+          />
 
-      <FormFieldGroup label="Expiry Date">
-        <Input
-          id="expiryDate"
-          type="date"
-          value={formData.expiryDate}
-          onChange={(e) => onFormChange({ expiryDate: e.target.value })}
-        />
-      </FormFieldGroup>
+          <FormField
+            control={form.control}
+            name="expiryDate"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Expiry Date"
+                error={form.formState.errors.expiryDate?.message}
+              >
+                <FormControl>
+                  <Input
+                    type="date"
+                    {...field}
+                    // Handle empty string for date input
+                    value={field.value || ""}
+                  />
+                </FormControl>
+              </FormFieldGroup>
+            )}
+          />
+        </form>
+      </Form>
     </CRUDDialog>
   );
 }

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { clinicTypeSchema as importedClinicTypeSchema } from '@workspace/types';
 
 export enum OnboardingStep {
   CLINIC_DETAILS = 'CLINIC_DETAILS',
@@ -31,33 +32,32 @@ export enum BillingCycle {
 
 export const billingCycleSchema = z.nativeEnum(BillingCycle);
 
-export enum ClinicType {
-  GENERAL = 'GENERAL',
-  DENTAL = 'DENTAL',
-  PEDIATRIC = 'PEDIATRIC',
-  ORTHOPEDIC = 'ORTHOPEDIC',
-  CARDIOLOGY = 'CARDIOLOGY',
-  DERMATOLOGY = 'DERMATOLOGY',
-  ENT = 'ENT',
-  GYNECOLOGY = 'GYNECOLOGY',
-  OPHTHALMOLOGY = 'OPHTHALMOLOGY',
-  PSYCHIATRY = 'PSYCHIATRY',
-  SPECIALTY = 'SPECIALTY',
-}
+// Re-export ClinicType type from shared types for backward compatibility
+export type { ClinicType } from '@workspace/types';
 
-export const clinicTypeSchema = z.nativeEnum(ClinicType);
+// Use the imported schema from @workspace/types
+export const clinicTypeSchema = importedClinicTypeSchema;
 
 // Step 1: Clinic Details
+// Step 1: Clinic Details
 export const clinicDetailsSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-  phone: z.string(), // We'll keep it simple or use a phone regex if needed
-  address: z.string().min(10).max(500),
+  name: z
+    .string({ required_error: 'Clinic name is required' })
+    .min(2, 'Clinic name must be at least 2 characters')
+    .max(100, 'Clinic name cannot exceed 100 characters'),
+  email: z
+    .string({ required_error: 'Clinic email is required' })
+    .email('Invalid email format'),
+  phone: z.string({ required_error: 'Phone number is required' }),
+  address: z
+    .string({ required_error: 'Address is required' })
+    .min(10, 'Address must be at least 10 characters')
+    .max(500, 'Address cannot exceed 500 characters'),
   city: z.string().optional(),
   state: z.string().optional(),
   pincode: z.string().optional(),
   type: clinicTypeSchema.optional(),
-  website: z.string().url().optional().or(z.literal('')),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
   mrnPrefix: z.string().max(20).optional(),
   dataResidency: z.string().optional(),
   timezone: z.string().optional(),
@@ -79,8 +79,9 @@ export const adminAccountSchema = z.object({
 export class AdminAccountDto extends createZodDto(adminAccountSchema) {}
 
 // Step 3: Plan Selection
+// Step 3: Plan Selection
 export const planSelectionSchema = z.object({
-  tier: clinicTierSchema,
+  tier: clinicTierSchema, // Error message handled by schema refinement or parent if needed
   billingCycle: billingCycleSchema,
   referralCode: z.string().optional(),
   whatsappAddon: z.boolean().optional(),

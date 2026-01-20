@@ -29,7 +29,7 @@ export function DashboardQuickActionsContainer({
       feature: Feature.BASIC_PATIENT_MANAGEMENT,
     },
     {
-      href: "/queue",
+      href: "/consultation",
       icon: CalendarCheck,
       label: "Today's Patients",
       shortLabel: "Today",

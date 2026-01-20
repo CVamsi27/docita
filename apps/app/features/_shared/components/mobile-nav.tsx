@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Calendar,
-  ClipboardList,
   FileText,
   Home,
   Menu,
@@ -18,13 +17,13 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/patients", icon: Users, label: "Patients" },
   { href: "/appointments", icon: Calendar, label: "Appointments" },
-  { href: "/queue", icon: ClipboardList, label: "Queue" },
-  { href: "/consultation", icon: Stethoscope, label: "Consultation" },
+  { href: "/consultation", icon: Stethoscope, label: "Today's Queue" },
   { href: "/invoices", icon: Receipt, label: "Invoices" },
   { href: "/inventory", icon: Package, label: "Inventory" },
   { href: "/documents", icon: FileText, label: "Documents" },
@@ -50,12 +49,8 @@ export function MobileNav() {
           {/* Menu */}
           <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
-              <Link
-                href="/dashboard"
-                className="font-bold text-xl text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Docita
+              <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                <DocitaLogo />
               </Link>
               <Button
                 variant="ghost"

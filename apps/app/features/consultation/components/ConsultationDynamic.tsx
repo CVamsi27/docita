@@ -27,6 +27,9 @@ import { DentalChartValue } from "./specialty/DentalChartUI";
 import { usePatient } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { toast } from "sonner";
+import { Switch } from "@workspace/ui/components/switch";
+import { Label } from "@workspace/ui/components/label";
+import { fetchAPI } from "@/lib/api-core";
 import {
   Appointment,
   GrowthChartData,
@@ -110,6 +113,7 @@ export const ClinicalDocumentationDynamic: FC<
   const [diagnosis, setDiagnosis] = React.useState<DiagnosisItem[]>([]);
   const [treatment, setTreatment] = React.useState("");
   const [prescriptions, setPrescriptions] = React.useState<Medication[]>([]);
+  const [sendToWhatsapp, setSendToWhatsapp] = React.useState(false);
 
   // Specialty Fields
   const [dentalChart, setDentalChart] = React.useState<DentalChartValue>({});
@@ -120,7 +124,12 @@ export const ClinicalDocumentationDynamic: FC<
   });
 
   // Fetch Patient Data for History
-  const { data: patient } = usePatient(patientId || "");
+  const { data: fetchedPatient, isLoading: isPatientLoading } = usePatient(
+    patientId || "",
+  );
+
+  // Use fetched patient or fallback to appointment data patient
+  const patient = fetchedPatient || (appointmentData?.patient as any); // TODO: Fix type
   const createPrescription = useCreatePrescription();
 
   // Initialize data
@@ -276,7 +285,7 @@ export const ClinicalDocumentationDynamic: FC<
         // Filter empty
         const validRx = prescriptions.filter((p) => p.name.trim() !== "");
         if (validRx.length > 0) {
-          await createPrescription.mutateAsync({
+          const result = await createPrescription.mutateAsync({
             patientId,
             appointmentId,
             medications: validRx.map((p) => ({
@@ -287,6 +296,20 @@ export const ClinicalDocumentationDynamic: FC<
             notes: "Created from consultation",
           });
           toast.success("Prescription saved");
+
+          // Send WhatsApp logic
+          if (sendToWhatsapp && result.id) {
+            try {
+              toast.info("Sending WhatsApp...");
+              await fetchAPI(`/whatsapp/resend-prescription/${result.id}`, {
+                method: "POST",
+              });
+              toast.success("Sent via WhatsApp");
+            } catch (error) {
+              console.error("WhatsApp send failed", error);
+              toast.error("Failed to send WhatsApp");
+            }
+          }
         }
       }
     } catch (error) {
@@ -330,7 +353,7 @@ export const ClinicalDocumentationDynamic: FC<
 
     baseTabs.push(
       { id: "diagnosis", label: "Diagnosis", icon: Activity },
-      { id: "treatment", label: "Treatment", icon: Pill }
+      { id: "treatment", label: "Treatment", icon: Pill },
     );
 
     return baseTabs;
@@ -396,6 +419,22 @@ export const ClinicalDocumentationDynamic: FC<
         <div className="flex-1" />
 
         <div className="flex items-center gap-2 border-l pl-2 ml-2">
+          {/* WhatsApp Switch */}
+          <div className="flex items-center gap-2 mr-2 px-2 py-1.5 bg-muted/30 rounded-full border">
+            <Switch
+              id="wa-mode"
+              checked={sendToWhatsapp}
+              onCheckedChange={setSendToWhatsapp}
+              className="scale-75 data-[state=checked]:bg-green-600"
+            />
+            <Label
+              htmlFor="wa-mode"
+              className="text-xs font-medium cursor-pointer flex items-center gap-1 text-muted-foreground"
+            >
+              Send to WhatsApp
+            </Label>
+          </div>
+
           <Button
             variant={viewMode === "scroll" ? "secondary" : "ghost"}
             size="sm"
@@ -456,6 +495,7 @@ export const ClinicalDocumentationDynamic: FC<
                     data={formData}
                     handlers={formHandlers}
                     patient={patient}
+                    isLoading={isPatientLoading}
                   />
                 </div>
               </CardContent>
@@ -481,6 +521,7 @@ export const ClinicalDocumentationDynamic: FC<
                     data={formData}
                     handlers={formHandlers}
                     patient={patient}
+                    isLoading={isPatientLoading}
                   />
                 </CardContent>
               </Card>

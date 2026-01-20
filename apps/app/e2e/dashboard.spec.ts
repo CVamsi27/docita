@@ -17,6 +17,7 @@ test.describe("Dashboard", () => {
         firstName: "Test",
         lastName: "Doctor",
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
 

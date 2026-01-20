@@ -10,11 +10,10 @@ import {
 } from '@workspace/types';
 
 // Generic interface for Prisma Delegate (compatible with any Prisma model delegate)
-// We must use 'any' for args here because stricter types (like UserArgs) are not contra-variant
-// to a generic argument type. This allows any Prisma delegate to be passed.
+// We use generics with optional args to maintain compatibility across Prisma model delegates
 export interface PrismaModelDelegate<T> {
-  findMany: (...args: any[]) => Promise<T[]>;
-  count: (...args: any[]) => Promise<number>;
+  findMany: (args?: Record<string, unknown>) => Promise<T[]>;
+  count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
 }
 
 export interface CursorPaginationOptions<T> {

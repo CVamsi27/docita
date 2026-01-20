@@ -242,7 +242,35 @@ export default function PrivacyPolicyPage() {
 
             <section>
               <h2 className="text-2xl font-semibold mb-4">
-                9. Children&apos;s Privacy
+                9. DPDP Act 2023 Compliance
+              </h2>
+              <div className="bg-primary/5 p-6 rounded-xl border border-primary/20">
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Docita is fully compliant with the Digital Personal Data
+                  Protection Act, 2023 (India).
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li>
+                    <strong>Consent Manager:</strong> We utilize a granular
+                    consent architecture allowed for detailed purpose-based
+                    permissions.
+                  </li>
+                  <li>
+                    <strong>Data Localization:</strong> All sensitive health
+                    data is stored exclusively on Indian servers.
+                  </li>
+                  <li>
+                    <strong>Grievance Redressal:</strong> We have appointed a
+                    Data Protection Officer (DPO) to handle all privacy
+                    concerns.
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">
+                10. Children&apos;s Privacy
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 Our Service is not intended for children under 18 years of age.
@@ -254,7 +282,7 @@ export default function PrivacyPolicyPage() {
 
             <section>
               <h2 className="text-2xl font-semibold mb-4">
-                10. Changes to This Policy
+                11. Changes to This Policy
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 We may update this Privacy Policy from time to time. We will
@@ -266,18 +294,25 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
+              <h2 className="text-2xl font-semibold mb-4">12. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have questions about this Privacy Policy or our privacy
                 practices, please contact us at:
               </p>
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                <p className="font-medium">Docita</p>
+                <p className="font-medium">Docita Data Protection Team</p>
+                <p className="text-muted-foreground mt-2">
+                  <strong>Data Protection Officer (DPO)</strong>
+                </p>
+                <p className="text-muted-foreground">Email: dpo@docita.work</p>
+                <p className="text-muted-foreground mt-2">
+                  <strong>General Privacy Inquiries</strong>
+                </p>
                 <p className="text-muted-foreground">
                   Email: privacy@docita.work
                 </p>
                 <p className="text-muted-foreground">
-                  Support: support@docita.work
+                  Address: Docita HQ, Hyderabad, India
                 </p>
               </div>
             </section>

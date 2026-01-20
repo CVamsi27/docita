@@ -26,6 +26,7 @@ test.describe("Appointments", () => {
         firstName: "Test",
         lastName: "Doctor",
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
 
@@ -60,6 +61,7 @@ test.describe("Appointments", () => {
           city: "Test City",
           state: "TS",
           zipCode: "12345",
+          tier: "ENTERPRISE",
         },
       });
 

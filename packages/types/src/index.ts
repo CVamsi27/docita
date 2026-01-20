@@ -57,6 +57,7 @@ export * from "./payment-types";
 export * from "./api-types";
 export * from "./ai-types";
 export * from "./error-types";
+export * from "./test-types";
 
 
 

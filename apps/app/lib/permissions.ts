@@ -29,7 +29,11 @@ export type Permission =
   | "viewReports"
   | "manageInventory"
   | "manageTemplates"
-  | "exportData";
+  | "exportData"
+  // Super Admin Specific
+  | "viewPlatformAnalytics"
+  | "viewSystemLogs"
+  | "manageTenants";
 
 // ============================================================================
 // Role-based Permission Mapping
@@ -37,24 +41,11 @@ export type Permission =
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
-    "manageStaff",
-    "manageClinic",
-    "startConsultation",
-    "viewPatients",
-    "createPatient",
-    "editPatient",
-    "deletePatient",
-    "viewAppointments",
-    "createAppointment",
-    "manageBilling",
-    "viewInvoices",
-    "createInvoice",
-    "viewPrescriptions",
-    "createPrescription",
+    "viewPlatformAnalytics",
+    "viewSystemLogs",
+    "manageTenants",
+    // Can view high-level stats but not operational data
     "viewReports",
-    "manageInventory",
-    "manageTemplates",
-    "exportData",
   ],
   ADMIN: [
     "manageStaff",
@@ -68,15 +59,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "manageBilling",
     "viewInvoices",
     "createInvoice",
+    "viewPrescriptions", // Can view for auditing, but not create
     "viewReports",
     "manageInventory",
     "manageTemplates",
     "exportData",
   ],
   ADMIN_DOCTOR: [
+    // Admin capabilities
     "manageStaff",
     "manageClinic",
-    "startConsultation",
     "viewPatients",
     "createPatient",
     "editPatient",
@@ -86,12 +78,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "manageBilling",
     "viewInvoices",
     "createInvoice",
-    "viewPrescriptions",
-    "createPrescription",
     "viewReports",
     "manageInventory",
     "manageTemplates",
     "exportData",
+    // Doctor capabilities
+    "startConsultation",
+    "viewPrescriptions",
+    "createPrescription",
   ],
   DOCTOR: [
     "startConsultation",
@@ -102,6 +96,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "createAppointment",
     "viewPrescriptions",
     "createPrescription",
+    "viewInvoices", // Can view patient invoices
     "viewReports",
     "manageTemplates",
   ],
@@ -112,7 +107,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "viewAppointments",
     "createAppointment",
     "viewInvoices",
-    "createInvoice",
+    "viewPrescriptions",
+    // No "createInvoice" - view only
+    // No "createPrescription" - view only
   ],
 };
 

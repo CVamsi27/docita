@@ -56,7 +56,8 @@ export function ConsultationFormRenderer({
   data,
   handlers,
   patient,
-}: ConsultationFormRendererProps) {
+  isLoading,
+}: ConsultationFormRendererProps & { isLoading?: boolean }) {
   switch (tabId) {
     case "chief-complaint":
       return (
@@ -66,9 +67,20 @@ export function ConsultationFormRenderer({
         />
       );
     case "history":
+      if (isLoading && !patient) {
+        return (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        );
+      }
       if (patient) {
         return (
-          <PatientMedicalHistoryContainer patient={patient} readOnly={false} />
+          <PatientMedicalHistoryContainer
+            patient={patient}
+            readOnly={false}
+            variant="consultation"
+          />
         );
       }
       return (

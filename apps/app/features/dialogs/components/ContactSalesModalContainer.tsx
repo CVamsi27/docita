@@ -21,37 +21,14 @@ export function ContactSalesModalContainer({
   open,
   onOpenChange,
 }: ContactSalesModalContainerProps) {
-  const [formData, setFormData] =
-    useState<ContactSalesFormData>(initialFormData);
   const { mutate: createInquiry, isPending: isSubmitting } =
     useCreateContactInquiry();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (data: ContactSalesFormData) => {
     setError(null);
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.message.trim()
-    ) {
-      setError("Please fill in all required fields");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-
-    createInquiry(formData, {
+    createInquiry(data, {
       onSuccess: () => {
         setSubmitted(true);
         toast.success("Thank you! Our sales team will contact you soon.");
@@ -64,19 +41,19 @@ export function ContactSalesModalContainer({
       },
     });
   };
+
   const handleClose = () => {
-    setFormData(initialFormData);
     setSubmitted(false);
     onOpenChange(false);
   };
+
   return (
     <ContactSalesModalUI
       open={open}
-      formData={formData}
+      defaultValues={initialFormData}
       isSubmitting={isSubmitting}
       submitted={submitted}
       error={error}
-      onChange={handleChange}
       onClose={handleClose}
       onSubmit={handleSubmit}
     />

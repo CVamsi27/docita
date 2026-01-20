@@ -172,7 +172,7 @@ export function DoctorDashboardCardsUI({
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className={cn(
-                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500"
+                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500",
                 )}
                 style={{
                   width: `${queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0}%`,
@@ -182,7 +182,7 @@ export function DoctorDashboardCardsUI({
           </div>
 
           <Button asChild variant="ghost" className="w-full mt-4" size="sm">
-            <Link href="/queue">
+            <Link href="/consultation">
               <Clock className="h-4 w-4 mr-2" />
               View Full Queue
             </Link>

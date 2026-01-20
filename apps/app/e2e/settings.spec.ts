@@ -21,6 +21,7 @@ test.describe("Settings Management", () => {
                 firstName: "Dr",
                 lastName: "Settings",
                 role: "DOCTOR",
+        clinicName: "Test Clinic",
             },
         });
 
@@ -39,6 +40,7 @@ test.describe("Settings Management", () => {
                     email: `clinic${Date.now()}@test.com`,
                     phone: "1234567890",
                     address: "123 Test St",
+        tier: "ENTERPRISE",
                 },
             });
 
@@ -148,6 +150,7 @@ async function loginAsDoctor(page: Page) {
                 email: null,
                 clinicId: clinicId || null,
                 role: "DOCTOR",
+        clinicName: "Test Clinic",
             };
 
             const userForStorage = JSON.stringify({

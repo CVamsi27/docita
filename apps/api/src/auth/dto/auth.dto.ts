@@ -22,10 +22,12 @@ export const RegisterSchema = z.object({
     .string()
     .min(8)
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
       'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
     ),
-  clinicName: z.string().min(1).optional(),
+  clinicName: z
+    .string({ required_error: 'Clinic name is required' })
+    .min(1, 'Clinic name is required'),
 });
 
 export class RegisterDto extends createZodDto(RegisterSchema) {}
@@ -37,7 +39,7 @@ export const ChangePasswordSchema = z
       .string()
       .min(8)
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
         'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
       ),
   })

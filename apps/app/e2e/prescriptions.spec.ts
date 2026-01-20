@@ -42,6 +42,7 @@ test.describe("Prescriptions", () => {
           email: `clinic${Date.now()}@test.com`,
           phone: "1234567890",
           address: "123 Test St",
+        tier: "ENTERPRISE",
           tier: "PRO",
         },
       });

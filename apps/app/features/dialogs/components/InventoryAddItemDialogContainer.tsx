@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { toast } from "sonner";
 import {
   InventoryAddItemDialogUI,
@@ -27,35 +26,22 @@ export function InventoryAddItemDialogContainer({
   onSuccess,
 }: InventoryAddItemDialogContainerProps) {
   const { data: constants } = useConstants();
-  const [formData, setFormData] =
-    useState<InventoryItemFormData>(initialFormData);
   const { mutate: createItem, isPending } = useCreateInventoryItem();
 
-  const resetForm = () => setFormData(initialFormData);
-  const handleFormChange = (data: Partial<InventoryItemFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.category || !formData.quantity) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const handleSubmit = (data: InventoryItemFormData) => {
     createItem(
       {
-        name: formData.name,
-        category: formData.category,
-        quantity: parseInt(formData.quantity),
-        expiryDate: formData.expiryDate
-          ? new Date(formData.expiryDate).toISOString()
+        name: data.name,
+        category: data.category,
+        quantity: parseInt(data.quantity),
+        expiryDate: data.expiryDate
+          ? new Date(data.expiryDate).toISOString()
           : undefined,
-        minQuantity: parseInt(formData.minStock),
+        minQuantity: data.minStock ? parseInt(data.minStock) : 10,
       },
       {
         onSuccess: () => {
           toast.success("Item added successfully");
-          resetForm();
           onClose();
           onSuccess();
         },
@@ -65,17 +51,13 @@ export function InventoryAddItemDialogContainer({
       },
     );
   };
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+
   return (
     <InventoryAddItemDialogUI
       isOpen={isOpen}
-      formData={formData}
+      defaultValues={initialFormData}
       isLoading={isPending}
-      onClose={handleClose}
-      onFormChange={handleFormChange}
+      onClose={onClose}
       onSubmit={handleSubmit}
       categories={constants?.inventoryCategories}
     />

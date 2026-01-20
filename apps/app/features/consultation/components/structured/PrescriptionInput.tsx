@@ -1,7 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
+import { useClinicSettings } from "../../../../hooks/api/use-settings";
+import ClinicFeatureService, {
+  MEDICATION_ROUTES,
+} from "@/lib/services/clinic-feature.service";
+
+import { ClinicType } from "@workspace/types";
 
 export interface Medication {
   name: string;
@@ -23,9 +38,27 @@ export function PrescriptionInput({
   onChange,
   readOnly = false,
 }: PrescriptionInputProps) {
+  const { data: clinic } = useClinicSettings();
   const medications = value.length > 0 ? value : [];
 
+  // ... inside component ...
+
+  // Get grouped routes based on clinic type
+  const groupedRoutes = useMemo(() => {
+    return ClinicFeatureService.getMedicationRoutesGrouped(
+      clinic?.type as ClinicType,
+    );
+  }, [clinic?.type]);
+
+  // Flattened prioritized routes for read-only display or fallback
+  const prioritizedRoutes = useMemo(() => {
+    return ClinicFeatureService.getMedicationRoutes(clinic?.type as ClinicType);
+  }, [clinic?.type]);
+
   const addMedication = () => {
+    // Default route based on clinic type preference
+    const defaultRoute = prioritizedRoutes[0]?.value || "ORAL";
+
     onChange([
       ...medications,
       {
@@ -33,7 +66,7 @@ export function PrescriptionInput({
         dosage: "",
         frequency: "",
         duration: "",
-        route: "ORAL",
+        route: defaultRoute,
         instructions: "",
       },
     ]);
@@ -42,7 +75,7 @@ export function PrescriptionInput({
   const updateMedication = (
     index: number,
     field: keyof Medication,
-    fieldValue: string
+    fieldValue: string,
   ) => {
     const newMeds = [...medications];
     newMeds[index] = { ...newMeds[index], [field]: fieldValue };
@@ -130,15 +163,41 @@ export function PrescriptionInput({
                 />
               </div>
               <div className="col-span-1 md:col-span-2">
-                <Input
-                  placeholder="Route"
-                  value={med.route}
-                  onChange={(e) =>
-                    updateMedication(index, "route", e.target.value)
-                  }
-                  readOnly={readOnly}
-                  className="bg-background"
-                />
+                {readOnly ? (
+                  <Input
+                    value={
+                      MEDICATION_ROUTES.find((r) => r.value === med.route)
+                        ?.label || med.route
+                    }
+                    readOnly
+                    className="bg-background"
+                  />
+                ) : (
+                  <Select
+                    value={med.route}
+                    onValueChange={(val) =>
+                      updateMedication(index, "route", val)
+                    }
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Route" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(groupedRoutes).map(
+                        ([category, routes]) => (
+                          <SelectGroup key={category}>
+                            <SelectLabel>{category} Routes</SelectLabel>
+                            {routes.map((route) => (
+                              <SelectItem key={route.value} value={route.value}>
+                                {route.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="col-span-1 md:col-span-12">
                 <Input

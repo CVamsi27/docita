@@ -10,7 +10,11 @@ import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
+import Link from "next/link";
+import { Feature } from "@workspace/types";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { FeatureTierBadge } from "@/features/_shared/components/feature-gate";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -22,6 +26,7 @@ export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
+  const { canAccess } = usePermissionStore();
 
   const [settings, setSettings] = useState<ClinicAppSettings>({
     twoFactorAuth: false,
@@ -54,7 +59,7 @@ export function SecuritySettings() {
         onError: (error) => {
           toast.error(`Failed to save settings: ${error.message}`);
         },
-      }
+      },
     );
   };
 
@@ -105,17 +110,36 @@ export function SecuritySettings() {
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Label>Enable Audit Logs</Label>
+            <div className="flex items-center gap-2">
+              <Label>Enable Audit Logs</Label>
+              {!canAccess(Feature.AUDIT_LOGS) && (
+                <FeatureTierBadge
+                  feature={Feature.AUDIT_LOGS}
+                  className="h-5"
+                />
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               Track all user actions
             </p>
           </div>
-          <Switch
-            checked={settings.auditLogs}
-            onCheckedChange={(checked) =>
-              setSettings((s) => ({ ...s, auditLogs: checked }))
-            }
-          />
+          <div className="flex items-center gap-2">
+            {!canAccess(Feature.AUDIT_LOGS) ? (
+              <Button asChild variant="outline" size="sm" className="h-8">
+                <Link href="/upgrade">
+                  <Lock className="mr-2 h-3 w-3" />
+                  Upgrade
+                </Link>
+              </Button>
+            ) : (
+              <Switch
+                checked={settings.auditLogs}
+                onCheckedChange={(checked) =>
+                  setSettings((s) => ({ ...s, auditLogs: checked }))
+                }
+              />
+            )}
+          </div>
         </div>
         <Button className="w-full" onClick={handleSave} disabled={isSaving}>
           {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

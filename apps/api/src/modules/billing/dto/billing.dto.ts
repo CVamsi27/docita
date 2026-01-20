@@ -34,3 +34,21 @@ export class IntelligenceInfoResponseDto extends createZodDto(
 ) {}
 
 export class AnyResponseDto extends createZodDto(z.any()) {}
+
+// Tier change DTOs
+export const ChangeTierSchema = z.object({
+  tier: z.enum(['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE']),
+});
+
+export class ChangeTierDto extends createZodDto(ChangeTierSchema) {}
+
+export const TierChangeResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  newTier: z.string().optional(),
+  previousTier: z.string().optional(),
+});
+
+export class TierChangeResponseDto extends createZodDto(
+  TierChangeResponseSchema,
+) {}

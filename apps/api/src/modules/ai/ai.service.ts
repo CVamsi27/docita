@@ -134,13 +134,94 @@ interface OcrExtractionResult {
   documentType: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'GENERAL';
   confidence: number;
   fields: OcrExtractedFields;
-  suggestedCorrections?: Record<string, any>;
+  suggestedCorrections?: Record<string, string>;
 }
 
 interface FieldConfidenceConfig {
   medicalFields: number;
   contactFields: number;
   vitalFields: number;
+}
+
+// Interface for raw data from OCR/AI parsing
+interface OcrRawData {
+  firstName?: string;
+  lastName?: string;
+  patientId?: string;
+  age?: string | number;
+  dateOfBirth?: string;
+  gender?: string;
+  phoneNumber?: string;
+  email?: string;
+  bloodType?: string;
+  diagnosis?: string;
+  symptoms?: string[];
+  complaints?: string;
+  medicalHistory?: string[];
+  allergies?: string[];
+  physicalExamination?: string;
+  vitals?: {
+    bp?: string;
+    temp?: string | number;
+    pulse?: string | number;
+    respiratoryRate?: string | number;
+    spO2?: string | number;
+    weight?: string | number;
+    height?: string | number;
+    bmi?: string | number;
+  };
+  labValues?: {
+    hemoglobin?: string;
+    creatinine?: string;
+    glucose?: string;
+    [key: string]: string | undefined;
+  };
+  medications?: Array<{
+    name?: string;
+    dosage?: string;
+    frequency?: string;
+    route?: string;
+    duration?: string;
+    indication?: string;
+    strength?: string;
+    quantity?: string;
+  }>;
+  prescriptionDate?: string;
+  prescriptionId?: string;
+  documentDate?: string;
+  visitDate?: string;
+  visitTime?: string;
+  expiryDate?: string;
+  nextVisitDate?: string;
+  referralDate?: string;
+  doctorName?: string;
+  doctorLicense?: string;
+  doctorSpecialization?: string;
+  clinicName?: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
+  referralTo?: string;
+  notes?: string;
+  followUpRecommendations?: string[];
+  invoice?: {
+    invoiceNumber?: string;
+    invoiceDate?: string;
+    totalAmount?: string | number;
+    components?: Array<{
+      description?: string;
+      amount?: string | number;
+      quantity?: string | number;
+    }>;
+    consultationFee?: string | number;
+    testsFee?: string | number;
+    procedureFee?: string | number;
+    medicationFee?: string | number;
+    discount?: string | number;
+    discountPercentage?: string | number;
+    taxAmount?: string | number;
+    paymentMethod?: string;
+    paymentStatus?: string;
+  };
 }
 
 interface PrescriptionAnalysisRequest {
@@ -1136,7 +1217,7 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
    * Normalize parsed OCR fields with confidence scores
    */
   private normalizeOcrFields(
-    data: any,
+    data: OcrRawData | null | undefined,
     config: FieldConfidenceConfig,
   ): OcrExtractedFields {
     const fieldConfidence: Record<string, number> = {};
@@ -1163,13 +1244,19 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
       return 0.75;
     };
 
+    // Helper function to convert value to string
+    const toStr = (val: string | number | undefined): string =>
+      val !== undefined && val !== null ? String(val) : '';
+
     // Process each field with confidence scoring
     const result: OcrExtractedFields = {
       firstName: data?.firstName || '',
       lastName: data?.lastName || '',
-      age: data?.age || '',
+      age: toStr(data?.age),
       dateOfBirth: data?.dateOfBirth || '',
-      gender: data?.gender || 'OTHER',
+      gender: ['MALE', 'FEMALE', 'OTHER'].includes(data?.gender || '')
+        ? (data?.gender as 'MALE' | 'FEMALE' | 'OTHER')
+        : 'OTHER',
       phoneNumber: data?.phoneNumber || '',
       email: data?.email || '',
       bloodType: data?.bloodType || '',
@@ -1177,26 +1264,26 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
 
       diagnosis: data?.diagnosis || '',
       symptoms: Array.isArray(data?.symptoms)
-        ? data.symptoms.filter((s: any) => s)
+        ? data.symptoms.filter((s) => s)
         : [],
-      complaints: data?.complaints || '',
+      complaints: data?.complaints ? [data.complaints] : [],
       medicalHistory: Array.isArray(data?.medicalHistory)
-        ? data.medicalHistory.filter((m: any) => m)
+        ? data.medicalHistory.filter((m) => m)
         : [],
       allergies: Array.isArray(data?.allergies)
-        ? data.allergies.filter((a: any) => a)
+        ? data.allergies.filter((a) => a)
         : [],
       physicalExamination: data?.physicalExamination || '',
 
       vitals: {
         bp: data?.vitals?.bp || '',
-        temp: data?.vitals?.temp || '',
-        pulse: data?.vitals?.pulse || '',
-        respiratoryRate: data?.vitals?.respiratoryRate || '',
-        spO2: data?.vitals?.spO2 || '',
-        weight: data?.vitals?.weight || '',
-        height: data?.vitals?.height || '',
-        bmi: data?.vitals?.bmi || '',
+        temp: toStr(data?.vitals?.temp),
+        pulse: toStr(data?.vitals?.pulse),
+        respiratoryRate: toStr(data?.vitals?.respiratoryRate),
+        spO2: toStr(data?.vitals?.spO2),
+        weight: toStr(data?.vitals?.weight),
+        height: toStr(data?.vitals?.height),
+        bmi: toStr(data?.vitals?.bmi),
       },
 
       labValues: {
@@ -1208,8 +1295,8 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
 
       medications: Array.isArray(data?.medications)
         ? data.medications
-            .filter((m: any) => m?.name)
-            .map((m: any) => ({
+            .filter((m) => m?.name)
+            .map((m) => ({
               name: m.name || '',
               dosage: m.dosage || '',
               frequency: m.frequency || '',
@@ -1240,30 +1327,30 @@ Numeric values should be cleaned (remove currency symbols, % signs) and preserve
 
       notes: data?.notes || '',
       followUpRecommendations: Array.isArray(data?.followUpRecommendations)
-        ? data.followUpRecommendations.filter((r: any) => r)
+        ? data.followUpRecommendations.filter((r) => r)
         : [],
 
       invoice: data?.invoice
         ? {
             invoiceNumber: data.invoice.invoiceNumber || '',
             invoiceDate: data.invoice.invoiceDate || '',
-            totalAmount: data.invoice.totalAmount || '',
+            totalAmount: toStr(data.invoice.totalAmount),
             components: Array.isArray(data.invoice.components)
               ? data.invoice.components
-                  .filter((c: any) => c?.description)
-                  .map((c: any) => ({
+                  .filter((c) => c?.description)
+                  .map((c) => ({
                     description: c.description || '',
-                    amount: c.amount || '',
-                    quantity: c.quantity || '',
+                    amount: toStr(c.amount),
+                    quantity: toStr(c.quantity),
                   }))
               : [],
-            consultationFee: data.invoice.consultationFee || '',
-            testsFee: data.invoice.testsFee || '',
-            procedureFee: data.invoice.procedureFee || '',
-            medicationFee: data.invoice.medicationFee || '',
-            discount: data.invoice.discount || '',
-            discountPercentage: data.invoice.discountPercentage || '',
-            taxAmount: data.invoice.taxAmount || '',
+            consultationFee: toStr(data.invoice.consultationFee),
+            testsFee: toStr(data.invoice.testsFee),
+            procedureFee: toStr(data.invoice.procedureFee),
+            medicationFee: toStr(data.invoice.medicationFee),
+            discount: toStr(data.invoice.discount),
+            discountPercentage: toStr(data.invoice.discountPercentage),
+            taxAmount: toStr(data.invoice.taxAmount),
             paymentMethod: data.invoice.paymentMethod || '',
             paymentStatus: data.invoice.paymentStatus || '',
           }

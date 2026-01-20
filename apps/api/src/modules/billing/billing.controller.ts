@@ -1,4 +1,11 @@
-import { Controller, Get, Post, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../auth/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
@@ -8,6 +15,8 @@ import {
   InvoiceListResponseDto,
   PaymentMethodListResponseDto,
   CheckoutSessionResponseDto,
+  ChangeTierDto,
+  TierChangeResponseDto,
 } from './dto/billing.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -55,5 +64,12 @@ export class BillingController {
   @ZodSerializerDto(CheckoutSessionResponseDto)
   async createCheckoutSessionAlias(@Request() req: AuthRequest) {
     return this.billingService.createCheckoutSession(req.user.clinicId);
+  }
+
+  @Post('change-tier')
+  @Roles('ADMIN', 'ADMIN_DOCTOR')
+  @ZodSerializerDto(TierChangeResponseDto)
+  async changeTier(@Request() req: AuthRequest, @Body() body: ChangeTierDto) {
+    return this.billingService.changeTier(req.user.clinicId, body.tier);
   }
 }

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -25,6 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import { FormFieldGroup } from "@workspace/ui/components";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import {
   ClinicAppSettings,
@@ -33,6 +38,15 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
+
+const customFieldSchema = z.object({
+  name: requiredStringSchema("Field Name"),
+  type: z.enum(["Text", "Number", "Date", "Select", "Boolean"]),
+  required: z.boolean(),
+});
+
+type CustomFieldFormValues = z.infer<typeof customFieldSchema>;
 
 export function CustomFieldsSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -41,11 +55,25 @@ export function CustomFieldsSettings() {
 
   const [fields, setFields] = useState<CustomField[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newField, setNewField] = useState<CustomField>({
-    name: "",
-    type: "Text",
-    required: false,
+
+  const form = useForm<CustomFieldFormValues>({
+    resolver: zodResolver(customFieldSchema),
+    defaultValues: {
+      name: "",
+      type: "Text",
+      required: false,
+    },
   });
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      form.reset({
+        name: "",
+        type: "Text",
+        required: false,
+      });
+    }
+  }, [isDialogOpen, form]);
 
   useEffect(() => {
     if (clinic) {
@@ -54,13 +82,11 @@ export function CustomFieldsSettings() {
     }
   }, [clinic]);
 
-  const handleAddField = () => {
-    if (!newField.name) return;
-    const updatedFields = [...fields, newField];
+  const handleAddField = (data: CustomFieldFormValues) => {
+    const updatedFields = [...fields, data];
     setFields(updatedFields);
     saveFields(updatedFields);
     setIsDialogOpen(false);
-    setNewField({ name: "", type: "Text", required: false });
   };
 
   const handleDeleteField = (index: number) => {
@@ -79,7 +105,7 @@ export function CustomFieldsSettings() {
         onError: (error) => {
           toast.error(`Failed to save custom fields: ${error.message}`);
         },
-      }
+      },
     );
   };
 
@@ -154,58 +180,92 @@ export function CustomFieldsSettings() {
               Create a new custom field for patient profiles.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Field Name</Label>
-              <Input
-                id="name"
-                value={newField.name}
-                onChange={(e) =>
-                  setNewField({ ...newField, name: e.target.value })
-                }
-                placeholder="e.g., Blood Type"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="type">Field Type</Label>
-              <Select
-                value={newField.type}
-                onValueChange={(val) => setNewField({ ...newField, type: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Text">Text</SelectItem>
-                  <SelectItem value="Number">Number</SelectItem>
-                  <SelectItem value="Date">Date</SelectItem>
-                  <SelectItem value="Select">Select</SelectItem>
-                  <SelectItem value="Boolean">Yes/No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="required">Required Field</Label>
-              <Switch
-                id="required"
-                checked={newField.required}
-                onCheckedChange={(checked) =>
-                  setNewField({ ...newField, required: checked })
-                }
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddField}
-              disabled={!newField.name || isSaving}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleAddField)}
+              className="space-y-4 py-4"
             >
-              {isSaving ? "Saving..." : "Add Field"}
-            </Button>
-          </DialogFooter>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label="Field Name"
+                    required
+                    error={form.formState.errors.name?.message}
+                  >
+                    <FormControl>
+                      <Input placeholder="e.g., Blood Type" {...field} />
+                    </FormControl>
+                  </FormFieldGroup>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormFieldGroup
+                    label="Field Type"
+                    error={form.formState.errors.type?.message}
+                  >
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Text">Text</SelectItem>
+                        <SelectItem value="Number">Number</SelectItem>
+                        <SelectItem value="Date">Date</SelectItem>
+                        <SelectItem value="Select">Select</SelectItem>
+                        <SelectItem value="Boolean">Yes/No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormFieldGroup>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="required"
+                render={({ field }) => (
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Required Field</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Make this field mandatory
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Add Field"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </>

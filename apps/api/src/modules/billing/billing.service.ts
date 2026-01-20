@@ -112,4 +112,70 @@ export class BillingService {
         'Payment integration coming soon. Contact support@docita.in to upgrade.',
     };
   }
+
+  /**
+   * Change the tier for a clinic
+   * For development/testing: Directly updates the tier
+   * In production: This would integrate with Stripe for payment processing
+   */
+  async changeTier(
+    clinicId: string,
+    newTier: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    newTier?: string;
+    previousTier?: string;
+  }> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: {
+        id: true,
+        name: true,
+        tier: true,
+      },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clinic not found');
+    }
+
+    const previousTier = clinic.tier;
+
+    // Validate the tier value
+    const validTiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
+    if (!validTiers.includes(newTier)) {
+      return {
+        success: false,
+        message: `Invalid tier: ${newTier}. Valid tiers are: ${validTiers.join(', ')}`,
+      };
+    }
+
+    // For enterprise, we don't auto-upgrade - require sales contact
+    if (newTier === 'ENTERPRISE') {
+      return {
+        success: false,
+        message:
+          'Enterprise plans require a sales consultation. Our team will contact you shortly.',
+        previousTier,
+      };
+    }
+
+    // Update the clinic tier
+    // In production, this would happen after successful payment via Stripe webhook
+    await this.prisma.clinic.update({
+      where: { id: clinicId },
+      data: {
+        tier: newTier as 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE',
+        subscriptionStatus: 'active',
+      },
+    });
+
+    return {
+      success: true,
+      message: `Successfully changed tier from ${previousTier} to ${newTier}`,
+      newTier,
+      previousTier,
+    };
+  }
 }

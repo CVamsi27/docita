@@ -1,5 +1,7 @@
 "use client";
 
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { useDocumentsLogic } from "@/features/documents/hooks/use-documents-logic";
 import { DocumentsPageUI } from "@/features/documents/components/DocumentsPageUI";
 
@@ -17,16 +19,18 @@ export default function DocumentsPage() {
   } = useDocumentsLogic();
 
   return (
-    <DocumentsPageUI
-      documents={documents}
-      totalCount={totalDocuments}
-      loading={loading}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      sortConfig={sortConfig}
-      handleSort={handleSort}
-      handleView={handleView}
-      handleDownload={handleDownload}
-    />
+    <FeatureGate feature={Feature.DOCUMENT_ARCHIVAL} showLockedCard>
+      <DocumentsPageUI
+        documents={documents}
+        totalCount={totalDocuments}
+        loading={loading}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortConfig={sortConfig}
+        handleSort={handleSort}
+        handleView={handleView}
+        handleDownload={handleDownload}
+      />
+    </FeatureGate>
   );
 }

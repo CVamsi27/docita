@@ -1,5 +1,5 @@
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
+
 import { Input } from "@workspace/ui/components/input";
 import {
   Card,
@@ -40,60 +40,65 @@ export function PatientFamilyHistory({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 mb-4">
+          <div className="flex flex-col gap-2">
             {patient.familyHistory?.map((history) => (
-              <Badge
+              <div
                 key={history.id}
-                variant="outline"
-                className="pl-2 pr-1 py-1 h-auto bg-background hover:bg-muted/50 transition-colors flex items-center gap-2 border-primary/20"
+                className="flex items-center justify-between p-2.5 rounded-lg border bg-card hover:bg-muted/20 transition-colors group"
               >
-                <div className="flex flex-col text-xs">
-                  <span className="font-semibold">{history.condition}</span>
-                  <span className="text-muted-foreground">
-                    ({history.relationship})
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium text-sm">
+                    {history.condition}
+                  </span>
+                  <span className="text-muted-foreground text-xs bg-muted px-1.5 py-0.5 rounded-md w-fit">
+                    {history.relationship}
                   </span>
                 </div>
                 {!readOnly && (
                   <button
                     type="button"
                     onClick={() => onRemoveFamilyHistory(history.id!)}
-                    className="ml-1 hover:text-destructive transition-colors focus:outline-none"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </button>
                 )}
-              </Badge>
+              </div>
             ))}
             {(!patient.familyHistory || patient.familyHistory.length === 0) && (
-              <span className="text-sm text-muted-foreground italic">
-                No family history recorded
-              </span>
+              <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
+                <span className="text-sm text-muted-foreground">
+                  No family history recorded.
+                </span>
+              </div>
             )}
           </div>
           {!readOnly && (
-            <div className="flex gap-2 items-center mt-1">
-              <Input
-                placeholder="Condition (e.g. Diabetes)"
-                value={newFamilyCondition}
-                onChange={(e) => onNewFamilyConditionChange(e.target.value)}
-                className="h-8 text-sm flex-1"
-              />
+            <div className="flex gap-2 items-start pt-2 border-t border-border/40">
+              <div className="grid gap-2 flex-1">
+                <div className="relative">
+                  <Users className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Condition (e.g. Diabetes)"
+                    value={newFamilyCondition}
+                    onChange={(e) => onNewFamilyConditionChange(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
               <Input
                 placeholder="Relationship (e.g. Mother)"
                 value={newFamilyRelation}
                 onChange={(e) => onNewFamilyRelationChange(e.target.value)}
-                className="h-8 text-sm w-32"
+                className="w-36"
               />
               <Button
                 type="button"
-                size="sm"
-                variant="secondary"
                 onClick={onAddFamilyHistory}
                 disabled={
                   !newFamilyCondition.trim() || !newFamilyRelation.trim()
                 }
-                className="h-8"
               >
                 Add
               </Button>

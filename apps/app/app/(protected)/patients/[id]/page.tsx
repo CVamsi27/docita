@@ -191,7 +191,7 @@ export default function PatientDetailPage() {
         <TabsContent value="medical-history" className="mt-6">
           <PatientMedicalHistory
             patient={patient as PatientWithHistory}
-            readOnly={true}
+            readOnly={false}
           />
         </TabsContent>
 

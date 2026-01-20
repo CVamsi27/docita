@@ -19,6 +19,7 @@ test.describe('Smart Authentication Flow', () => {
         firstName: "Test",
         lastName: "Doctor",
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
     expect(registerRes.ok()).toBeTruthy();
@@ -34,6 +35,7 @@ test.describe('Smart Authentication Flow', () => {
         email: `clinic${Date.now()}@test.com`,
         phone: "1234567890",
         address: "123 Test St",
+        tier: "ENTERPRISE",
       },
     });
     expect(clinicRes.ok()).toBeTruthy();
@@ -45,6 +47,7 @@ test.describe('Smart Authentication Flow', () => {
         doctorId: userData.user.id,
         clinicId: clinic.id,
         role: "DOCTOR",
+        clinicName: "Test Clinic",
       },
     });
     expect(assignRes.ok()).toBeTruthy();

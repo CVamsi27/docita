@@ -21,6 +21,9 @@ async function main() {
         sslMode === 'verify-ca'
       ) {
         url.searchParams.set('sslmode', 'verify-full');
+        if (!url.port) {
+          url.port = '5432';
+        }
         connectionString = url.toString();
       }
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import { ClinicRegistrationForm } from "./ClinicRegistrationForm";
 import { useRouter } from "next/navigation";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 
 export function ClinicOnboardingWizard() {
   const router = useRouter();
@@ -9,6 +10,9 @@ export function ClinicOnboardingWizard() {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-8">
       <div className="text-center space-y-4">
+        <div className="flex justify-center mb-6">
+          <DocitaLogo />
+        </div>
         <h1 className="text-3xl font-bold">Welcome to Docita</h1>
         <p className="text-muted-foreground">
           Complete your clinic registration to get started.

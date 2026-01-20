@@ -76,6 +76,10 @@ export class SubscriptionService {
    * Get subscription details for a clinic
    */
   async getSubscription(clinicId: string) {
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID is required');
+    }
+
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: {

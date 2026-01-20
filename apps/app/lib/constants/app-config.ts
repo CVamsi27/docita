@@ -57,7 +57,8 @@ export interface ClinicSettings {
   currency: string;
   timezone: string;
   appointmentDuration: number;
-  appointmentType?: string; // Added optional property based on usage inferred
+  appointmentType?: string;
+  clinicType?: string; // GENERAL, DENTAL, PEDIATRIC, etc.
 }
 
 export interface AppConfig {

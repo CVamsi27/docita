@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -8,40 +12,73 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Label } from "@workspace/ui/components/label";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import { FormFieldGroup } from "@workspace/ui/components";
+import {
+  requiredStringSchema,
+  emailSchema,
+} from "@/features/_shared/schemas/common.schemas";
 
-export interface ContactSalesFormData {
-  name: string;
-  email: string;
-  clinic: string;
-  message: string;
-}
+const contactSalesSchema = z.object({
+  name: requiredStringSchema("Name"),
+  email: emailSchema,
+  clinic: z.string().optional(),
+  message: requiredStringSchema("Message"),
+});
+
+type ContactSalesFormValues = z.infer<typeof contactSalesSchema>;
+
+export type ContactSalesFormData = ContactSalesFormValues;
 
 export interface ContactSalesModalUIProps {
   open: boolean;
-  formData: ContactSalesFormData;
+  defaultValues?: Partial<ContactSalesFormValues>;
   isSubmitting: boolean;
   submitted: boolean;
   error: string | null;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => void;
   onClose: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: ContactSalesFormValues) => void;
 }
 
 export function ContactSalesModalUI({
   open,
-  formData,
+  defaultValues,
   isSubmitting,
   submitted,
   error,
-  onChange,
   onClose,
   onSubmit,
 }: ContactSalesModalUIProps) {
+  const form = useForm<ContactSalesFormValues>({
+    resolver: zodResolver(contactSalesSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      clinic: "",
+      message: "",
+      ...defaultValues,
+    },
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: "",
+        email: "",
+        clinic: "",
+        message: "",
+        ...defaultValues,
+      });
+    }
+  }, [open, defaultValues, form]);
+
+  const handleSubmit = (data: ContactSalesFormValues) => {
+    onSubmit(data);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
@@ -68,83 +105,117 @@ export function ContactSalesModalUI({
               </p>
             </div>
           ) : (
-            <form onSubmit={onSubmit} className="space-y-4">
-              {error && (
-                <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-600">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="space-y-4"
+              >
+                {error && (
+                  <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-600">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
+                <FormField
+                  control={form.control}
                   name="name"
-                  value={formData.name}
-                  onChange={onChange}
-                  placeholder="Your name"
-                  required
-                  disabled={isSubmitting}
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Name"
+                      required
+                      error={form.formState.errors.name?.message}
+                    >
+                      <FormControl>
+                        <Input
+                          placeholder="Your name"
+                          {...field}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
+                <FormField
+                  control={form.control}
                   name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={onChange}
-                  placeholder="your@email.com"
-                  required
-                  disabled={isSubmitting}
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Email"
+                      required
+                      error={form.formState.errors.email?.message}
+                    >
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="your@email.com"
+                          {...field}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="clinic">Clinic Name</Label>
-                <Input
-                  id="clinic"
+                <FormField
+                  control={form.control}
                   name="clinic"
-                  value={formData.clinic}
-                  onChange={onChange}
-                  placeholder="Your clinic name"
-                  disabled={isSubmitting}
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Clinic Name"
+                      error={form.formState.errors.clinic?.message}
+                    >
+                      <FormControl>
+                        <Input
+                          placeholder="Your clinic name"
+                          {...field}
+                          value={field.value || ""}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="message">Message *</Label>
-                <Textarea
-                  id="message"
+                <FormField
+                  control={form.control}
                   name="message"
-                  value={formData.message}
-                  onChange={onChange}
-                  placeholder="Tell us about your needs..."
-                  rows={4}
-                  required
-                  disabled={isSubmitting}
+                  render={({ field }) => (
+                    <FormFieldGroup
+                      label="Message"
+                      required
+                      error={form.formState.errors.message?.message}
+                    >
+                      <FormControl>
+                        <Textarea
+                          placeholder="Tell us about your needs..."
+                          rows={4}
+                          {...field}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                    </FormFieldGroup>
+                  )}
                 />
-              </div>
 
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send Inquiry"}
-                </Button>
-              </div>
-            </form>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Sending..." : "Send Inquiry"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           )}
         </div>
       </DialogContent>

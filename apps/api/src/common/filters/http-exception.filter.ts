@@ -7,6 +7,8 @@ import {
   Inject,
   Optional,
   Logger,
+  ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
@@ -60,14 +62,35 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof ZodValidationException) {
       status = HttpStatus.BAD_REQUEST;
-      message = 'Validation failed';
       errorType = 'ZodValidationException';
       const zodError = exception.getZodError() as ZodErrorDetails;
-      details = zodError.errors;
+
+      // Transform into a map of { field: message }
+      const formattedErrors = zodError.errors.reduce(
+        (acc, err) => {
+          const field = err.path.join('.');
+          acc[field] = err.message;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      details = formattedErrors;
+      message = 'Validation failed. Please check the highlighted fields.';
+
       this.logger.error(
         'Zod Validation Error Details',
-        JSON.stringify(zodError.errors, null, 2),
+        JSON.stringify(formattedErrors, null, 2),
       );
+    } else if (
+      exception instanceof ForbiddenException ||
+      exception instanceof UnauthorizedException
+    ) {
+      status = exception.getStatus();
+      message = exception.message;
+      errorType = exception.name;
+      // Do not log stack trace for expected auth errors
+      this.logger.warn(`Auth Error: ${message} (${request.path})`);
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       errorType = exception.name || 'HttpException';
@@ -136,18 +159,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     } else {
       this.logger.error('Unhandled or Known exception type', exception);
-    }
-
-    if (exception instanceof Error) {
-      message = exception.message || message;
-      errorType = exception.name || 'Error';
-      errorStack = exception.stack;
-
-      this.logger.error('Unhandled error details', {
-        name: exception.name,
-        message: exception.message,
-        stack: exception.stack,
-      });
     }
 
     // Log error to monitoring service

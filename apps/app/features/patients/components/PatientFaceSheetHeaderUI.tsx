@@ -58,100 +58,124 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
   } = props;
 
   return (
-    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b shadow-sm pb-4 pt-2 -mx-6 px-6">
+    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b -mx-6 px-6 py-4 shadow-sm">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         {/* Patient Identity */}
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary border-2 border-primary/20">
+          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary border border-primary/10">
             {initials}
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 {lastName}, {firstName}
               </h1>
-              <Badge variant="outline" className="font-mono text-xs">
+              <Badge
+                variant="secondary"
+                className="font-mono text-xs font-normal text-muted-foreground bg-muted/50 border-input"
+              >
                 MRN: {mrn || "N/A"}
               </Badge>
             </div>
-            <div className="text-sm text-muted-foreground flex items-center gap-3 mt-1">
+            <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="font-medium text-foreground">{age}</span>
-              <span>•</span>
-              <span>{gender}</span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <span className="font-medium text-xs">DOB:</span>{" "}
-                {new Date(dateOfBirth).toLocaleDateString()}
-              </span>
+              <span className="text-muted-foreground/40">•</span>
+              <span className="capitalize">{gender?.toLowerCase()}</span>
+              <span className="text-muted-foreground/40">•</span>
+              <span>DOB: {new Date(dateOfBirth).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Safety Alerts Banner */}
-        <div className="flex flex-wrap gap-2 items-center justify-end">
-          {/* Code Status Badge */}
-          {codeStatusLabel && (
+        {/* Safety Alerts Banner & Quick Info */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-wrap gap-2 items-center justify-end">
+            {/* Safety Badges - Usage of colors is semantic here, kept distinct but cleaner */}
+            {codeStatusLabel && (
+              <Badge
+                className={`px-2.5 py-0.5 font-medium border ${
+                  isFullCode
+                    ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-50"
+                    : "bg-red-50 text-red-700 border-red-200 hover:bg-red-50"
+                }`}
+              >
+                <ShieldAlert className="w-3 h-3 mr-1.5" />
+                {codeStatusLabel}
+              </Badge>
+            )}
+
+            {isIsolation && isolationStatusLabel && (
+              <Badge className="px-2.5 py-0.5 bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-50 font-medium border">
+                <AlertTriangle className="w-3 h-3 mr-1.5" />
+                {isolationStatusLabel}
+              </Badge>
+            )}
+
+            {fallRisk && (
+              <Badge className="px-2.5 py-0.5 bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-50 font-medium border">
+                ⚠️ FALL RISK
+              </Badge>
+            )}
+
             <Badge
-              className={`px-3 py-1 font-bold border-2 ${
-                isFullCode
-                  ? "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-100"
-                  : "bg-red-100 text-red-700 border-red-200 hover:bg-red-100"
+              variant={hasAllergies ? "destructive" : "secondary"}
+              className={`px-2.5 py-0.5 font-medium border ${
+                hasAllergies
+                  ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-50"
+                  : "bg-green-50 text-green-700 border-green-200 hover:bg-green-50"
               }`}
             >
-              <ShieldAlert className="w-3 h-3 mr-1.5" />
-              {codeStatusLabel}
+              {hasAllergies ? `Allergies: ${allergies}` : "NKA"}
             </Badge>
-          )}
+          </div>
 
-          {/* Isolation Badge */}
-          {isIsolation && isolationStatusLabel && (
-            <Badge className="px-3 py-1 bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100 font-bold border-2">
-              <AlertTriangle className="w-3 h-3 mr-1.5" />
-              {isolationStatusLabel}
-            </Badge>
+          {/* Quick Info - Compact Row */}
+          {(insuranceProvider || emergencyContactName) && (
+            <div className="hidden md:flex items-center gap-4 text-xs text-muted-foreground">
+              {insuranceProvider && (
+                <div
+                  className="flex items-center gap-1.5"
+                  title={
+                    insurancePolicyNumber
+                      ? `Policy: ${insurancePolicyNumber}`
+                      : undefined
+                  }
+                >
+                  <Building2 className="h-3 w-3 opacity-70" />
+                  <span className="truncate max-w-[150px]">
+                    {insuranceProvider}
+                  </span>
+                </div>
+              )}
+              {emergencyContactName && (
+                <div
+                  className="flex items-center gap-1.5"
+                  title={`${emergencyContactRelation}: ${emergencyContactPhone}`}
+                >
+                  <Phone className="h-3 w-3 opacity-70" />
+                  <span className="truncate max-w-[150px]">
+                    {emergencyContactName}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
-
-          {/* Fall Risk */}
-          {fallRisk && (
-            <Badge className="px-3 py-1 bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 font-bold border-2">
-              ⚠️ FALL RISK
-            </Badge>
-          )}
-
-          {/* Allergies */}
-          <Badge
-            variant={hasAllergies ? "destructive" : "secondary"}
-            className={`px-3 py-1 font-bold border-2 ${
-              hasAllergies
-                ? "bg-red-50 text-red-600 border-red-200"
-                : "bg-green-50 text-green-700 border-green-200"
-            }`}
-          >
-            {hasAllergies
-              ? `Allergies: ${allergies}`
-              : "NKA (No Known Allergies)"}
-          </Badge>
         </div>
       </div>
 
-      {/* Quick Info Bar - Insurance & Emergency */}
+      {/* Mobile Quick Info */}
       {(insuranceProvider || emergencyContactName) && (
-        <div className="mt-3 pt-3 border-t grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
+        <div className="md:hidden mt-4 pt-3 border-t grid grid-cols-1 gap-2 text-xs text-muted-foreground">
           {insuranceProvider && (
             <div className="flex items-center gap-2">
               <Building2 className="h-3 w-3" />
-              <span className="font-semibold">Insurance:</span>{" "}
-              {insuranceProvider}
-              {insurancePolicyNumber && ` (Policy: ${insurancePolicyNumber})`}
+              <span>{insuranceProvider}</span>
             </div>
           )}
           {emergencyContactName && (
-            <div className="flex items-center gap-2 justify-end">
+            <div className="flex items-center gap-2">
               <Phone className="h-3 w-3" />
-              <span className="font-semibold">Emergency:</span>{" "}
-              {emergencyContactName}
-              {emergencyContactPhone && ` (${emergencyContactPhone})`}
-              {emergencyContactRelation && ` - ${emergencyContactRelation}`}
+              <span>{emergencyContactName}</span>
             </div>
           )}
         </div>

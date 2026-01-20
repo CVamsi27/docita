@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { Feature, getTierInfo } from "@/lib/tier-config";
 import { getFeatureDetails } from "../../config/feature-config";
 
@@ -33,29 +34,53 @@ export function NextTierPromotion({
   if (!nextTierInfo) return null;
 
   return (
-    <Card className="border-primary/50 bg-primary/5">
+    <Card className="relative overflow-hidden border-2 border-primary/30 bg-linear-to-br from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50">
+      {/* Decorative gradient blur */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 dark:bg-primary/20" />
+
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-primary/20 text-primary border-primary/30 dark:bg-primary/30">
+                <Zap className="h-3 w-3 mr-1" />
+                Recommended
+              </Badge>
+            </div>
+            <CardTitle className="flex items-center gap-2 text-xl">
               Upgrade to {nextTierInfo.name}
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-5 w-5 text-primary" />
             </CardTitle>
-            <CardDescription>{nextTierInfo.description}</CardDescription>
+            <CardDescription className="text-base">
+              {nextTierInfo.description}
+            </CardDescription>
           </div>
-          <Button onClick={onContactSales}>Contact Sales</Button>
+          <Button
+            onClick={onContactSales}
+            className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+          >
+            Upgrade Now
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-2 md:grid-cols-2">
+        <p className="text-sm font-medium text-muted-foreground mb-3">
+          Unlock these features:
+        </p>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {nextTierFeatures?.features
             .slice(0, 6)
             .map(({ feature, details }) => {
               const Icon = details.icon;
               return (
-                <div key={feature} className="flex items-center gap-2 text-sm">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <span>{details.name}</span>
+                <div
+                  key={feature}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-background/50 dark:bg-slate-800/50 border border-border/50"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">{details.name}</span>
                 </div>
               );
             })}

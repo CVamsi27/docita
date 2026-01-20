@@ -196,7 +196,8 @@ model Patient {
   queueTokens     QueueToken[]
   whatsappLogs    WhatsappLog[]
 
-  // Structured medical data relations
+  // Soft Delete (DPDP Compliance)
+  deletedAt         DateTime?
   medicalConditions PatientMedicalCondition[]
   patientAllergies  PatientAllergy[]
   familyHistory     PatientFamilyHistory[]
@@ -215,6 +216,7 @@ model Patient {
   @@index([codeStatus])
   @@index([clinicId, lastName, firstName]) // Name search optimization
   @@index([clinicId, createdAt]) // Recent patients query
+  @@index([deletedAt]) // Soft delete query optimization
 }
 
 // ============================================================================

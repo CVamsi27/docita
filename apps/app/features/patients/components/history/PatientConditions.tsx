@@ -27,55 +27,57 @@ export function PatientConditions({
         <Heart className="h-4 w-4 text-primary" />
         Problem List
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mb-3">
         {patient.medicalConditions?.map((condition) => (
           <Badge
             key={condition.id}
             variant="outline"
-            className="pl-2 pr-1 py-1 h-7 bg-background hover:bg-muted/50 transition-colors flex items-center gap-2 border-primary/20"
+            className="pl-2 pr-1 py-1.5 h-auto text-sm bg-background hover:bg-muted/50 transition-colors flex items-center gap-2 border-primary/20"
           >
             <span className="font-medium">{condition.conditionName}</span>
             {!readOnly && (
               <button
                 type="button"
                 onClick={() => onRemoveCondition(condition.id!)}
-                className="ml-1 hover:text-destructive transition-colors focus:outline-none"
+                className="ml-1 p-0.5 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors focus:outline-none"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </Badge>
         ))}
         {(!patient.medicalConditions ||
           patient.medicalConditions.length === 0) && (
-          <span className="text-sm text-muted-foreground italic">
-            No active problems
-          </span>
+          <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
+            <span className="text-sm text-muted-foreground">
+              No medical conditions known.
+            </span>
+          </div>
         )}
       </div>
       {!readOnly && (
-        <div className="flex gap-2 max-w-sm mt-1">
-          <Input
-            placeholder="Add problem..."
-            value={newCondition}
-            onChange={(e) => onNewConditionChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onAddCondition();
-              }
-            }}
-            className="h-8 text-sm"
-          />
+        <div className="flex gap-2 items-center pt-2 border-t border-border/40">
+          <div className="relative flex-1">
+            <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Add new condition (e.g. Hypertension)"
+              value={newCondition}
+              onChange={(e) => onNewConditionChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onAddCondition();
+                }
+              }}
+              className="pl-9"
+            />
+          </div>
           <Button
             type="button"
-            size="sm"
-            variant="secondary"
             onClick={onAddCondition}
             disabled={!newCondition.trim()}
-            className="h-8"
           >
-            <Plus className="h-3 w-3" />
+            Add
           </Button>
         </div>
       )}

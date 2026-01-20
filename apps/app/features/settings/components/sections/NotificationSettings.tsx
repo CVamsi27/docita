@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -16,24 +19,45 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+} from "@workspace/ui/components/form";
+
+const notificationSettingsSchema = z.object({
+  emailNotifications: z.boolean(),
+  smsNotifications: z.boolean(),
+  pushNotifications: z.boolean(),
+  appointmentAlerts: z.boolean(),
+  reportAlerts: z.boolean(),
+});
+
+type NotificationSettingsFormValues = z.infer<
+  typeof notificationSettingsSchema
+>;
 
 export function NotificationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState<ClinicAppSettings>({
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    appointmentAlerts: true,
-    reportAlerts: true,
+  const form = useForm<NotificationSettingsFormValues>({
+    resolver: zodResolver(notificationSettingsSchema),
+    defaultValues: {
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      appointmentAlerts: true,
+      reportAlerts: true,
+    },
   });
 
   useEffect(() => {
     if (clinic) {
       const s = (clinic.settings as ClinicAppSettings) || {};
-      setSettings({
+      form.reset({
         emailNotifications: s.emailNotifications ?? true,
         smsNotifications: s.smsNotifications ?? false,
         pushNotifications: s.pushNotifications ?? true,
@@ -41,26 +65,17 @@ export function NotificationSettings() {
         reportAlerts: s.reportAlerts ?? true,
       });
     }
-  }, [clinic]);
+  }, [clinic, form]);
 
-  const handleSave = () => {
-    updateSettings(
-      {
-        emailNotifications: settings.emailNotifications,
-        smsNotifications: settings.smsNotifications,
-        pushNotifications: settings.pushNotifications,
-        appointmentAlerts: settings.appointmentAlerts,
-        reportAlerts: settings.reportAlerts,
+  const onSubmit = (data: NotificationSettingsFormValues) => {
+    updateSettings(data, {
+      onSuccess: () => {
+        toast.success("Notification preferences saved successfully");
       },
-      {
-        onSuccess: () => {
-          toast.success("Notification preferences saved successfully");
-        },
-        onError: (error) => {
-          toast.error(`Failed to save preferences: ${error.message}`);
-        },
-      }
-    );
+      onError: (error) => {
+        toast.error(`Failed to save preferences: ${error.message}`);
+      },
+    });
   };
 
   if (isLoading) {
@@ -85,62 +100,83 @@ export function NotificationSettings() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div className="space-y-1">
-                <Label>Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive email updates
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.emailNotifications}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, emailNotifications: checked }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
-              <div className="space-y-1">
-                <Label>SMS Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive SMS alerts
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.smsNotifications}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, smsNotifications: checked }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              <div className="space-y-1">
-                <Label>Push Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Browser push notifications
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={settings.pushNotifications}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, pushNotifications: checked }))
-              }
-            />
-          </div>
-          <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Preferences
-          </Button>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="emailNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 p-2">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div className="space-y-1">
+                        <Label className="text-base">Email Notifications</Label>
+                        <CardDescription>Receive email updates</CardDescription>
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="smsNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 p-2">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="h-4 w-4 text-muted-foreground" />
+                      <div className="space-y-1">
+                        <Label className="text-base">SMS Notifications</Label>
+                        <CardDescription>Receive SMS alerts</CardDescription>
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pushNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 p-2">
+                    <div className="flex items-center gap-3">
+                      <Bell className="h-4 w-4 text-muted-foreground" />
+                      <div className="space-y-1">
+                        <Label className="text-base">Push Notifications</Label>
+                        <CardDescription>
+                          Browser push notifications
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <Button className="w-full" type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Preferences
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

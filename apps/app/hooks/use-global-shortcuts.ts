@@ -28,7 +28,7 @@ interface UseGlobalShortcutsOptions {
  * - Cmd+H: Go to Dashboard
  * - Cmd+P: Go to Patients
  * - Cmd+A: Go to Appointments
- * - Cmd+Q: Go to Queue
+ * - Cmd+Q: Go to Consultation/Queue
  *
  * Consultation shortcuts (when in consultation):
  * - Cmd+S: Save current consultation
@@ -48,7 +48,7 @@ export function useGlobalShortcuts({
   const pathname = usePathname();
 
   const isInConsultation = pathname?.startsWith("/consultation/") || false;
-  const isOnQueue = pathname === "/queue" || pathname === "/";
+  const isOnQueue = pathname === "/consultation" || pathname === "/";
   const isOnDashboard = pathname === "/";
 
   const handleKeyDown = useCallback(
@@ -79,7 +79,7 @@ export function useGlobalShortcuts({
           case "q":
             // Cmd+Q: Go to Queue
             event.preventDefault();
-            router.push("/queue");
+            router.push("/consultation");
             break;
 
           case "s":
@@ -169,7 +169,7 @@ export const SHORTCUT_HINTS = {
     { keys: ["⌘", "H"], description: "Dashboard" },
     { keys: ["⌘", "P"], description: "Patients" },
     { keys: ["⌘", "A"], description: "Appointments" },
-    { keys: ["⌘", "Q"], description: "Queue" },
+    { keys: ["⌘", "Q"], description: "Today's Queue" },
   ],
   queue: [
     { keys: ["N"], description: "Next patient" },

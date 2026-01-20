@@ -1,6 +1,9 @@
-import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -8,23 +11,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form";
+import {
+  phoneSchema,
+  requiredStringSchema,
+} from "@/features/_shared/schemas/common.schemas";
 
-export interface MedicineReminderFormData {
-  medicineName: string;
-  dosage: string;
-  frequency: string;
-  reminderTime: string;
-  patientPhone: string;
-}
+const medicineReminderSchema = z.object({
+  medicineName: requiredStringSchema("Medicine Name"),
+  dosage: requiredStringSchema("Dosage"),
+  frequency: z.string().min(1, "Frequency is required"),
+  reminderTime: requiredStringSchema("Reminder Time"),
+  patientPhone: phoneSchema.optional().or(z.literal("")),
+});
+
+type MedicineReminderFormValues = z.infer<typeof medicineReminderSchema>;
+
+export type MedicineReminderFormData = MedicineReminderFormValues;
 
 export interface MedicineReminderDialogUIProps {
   isOpen: boolean;
-  formData: MedicineReminderFormData;
+  defaultValues?: Partial<MedicineReminderFormValues>;
   isLoading: boolean;
   onClose: () => void;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectChange: (name: string, value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (data: MedicineReminderFormValues) => void;
 }
 
 const frequencyOptions = [
@@ -39,13 +49,41 @@ const frequencyOptions = [
 
 export function MedicineReminderDialogUI({
   isOpen,
-  formData,
+  defaultValues,
   isLoading,
   onClose,
-  onInputChange,
-  onSelectChange,
   onSubmit,
 }: MedicineReminderDialogUIProps) {
+  const form = useForm<MedicineReminderFormValues>({
+    resolver: zodResolver(medicineReminderSchema),
+    defaultValues: {
+      medicineName: "",
+      dosage: "",
+      frequency: "once_daily",
+      reminderTime: "09:00",
+      patientPhone: "",
+      ...defaultValues,
+    },
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        medicineName: "",
+        dosage: "",
+        frequency: "once_daily",
+        reminderTime: "09:00",
+        patientPhone: "",
+        ...defaultValues,
+      });
+    }
+  }, [isOpen, defaultValues, form]);
+
+  const handleSubmit = (data: MedicineReminderFormValues) => {
+    onSubmit(data);
+  };
+
   return (
     <CRUDDialog
       open={isOpen}
@@ -53,82 +91,109 @@ export function MedicineReminderDialogUI({
       title="Set Medicine Reminder"
       description="Configure automatic WhatsApp reminders for patient medications"
       isLoading={isLoading}
-      onSubmit={onSubmit}
+      onSubmit={form.handleSubmit(handleSubmit)}
       submitLabel={isLoading ? "Creating..." : "Create Reminder"}
     >
-      <form className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="medicineName">
-            Medicine Name <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="medicineName"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
             name="medicineName"
-            placeholder="e.g., Aspirin, Metformin"
-            value={formData.medicineName}
-            onChange={onInputChange}
-            required
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Medicine Name"
+                required
+                error={form.formState.errors.medicineName?.message}
+              >
+                <FormControl>
+                  <Input placeholder="e.g., Aspirin, Metformin" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
           />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="dosage">
-            Dosage <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="dosage"
+          <FormField
+            control={form.control}
             name="dosage"
-            placeholder="e.g., 500mg, 1 tablet, 5ml"
-            value={formData.dosage}
-            onChange={onInputChange}
-            required
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Dosage"
+                required
+                error={form.formState.errors.dosage?.message}
+              >
+                <FormControl>
+                  <Input placeholder="e.g., 500mg, 1 tablet, 5ml" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
           />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="frequency">Frequency</Label>
-          <Select
-            value={formData.frequency}
-            onValueChange={(value) => onSelectChange("frequency", value)}
-          >
-            <SelectTrigger id="frequency">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {frequencyOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <FormField
+            control={form.control}
+            name="frequency"
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Frequency"
+                error={form.formState.errors.frequency?.message}
+              >
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger id="frequency">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {frequencyOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormFieldGroup>
+            )}
+          />
 
-        <div className="space-y-2">
-          <Label htmlFor="reminderTime">
-            Reminder Time <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="reminderTime"
+          <FormField
+            control={form.control}
             name="reminderTime"
-            type="time"
-            value={formData.reminderTime}
-            onChange={onInputChange}
-            required
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Reminder Time"
+                required
+                error={form.formState.errors.reminderTime?.message}
+              >
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+              </FormFieldGroup>
+            )}
           />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="patientPhone">Patient Phone Number</Label>
-          <Input
-            id="patientPhone"
+          <FormField
+            control={form.control}
             name="patientPhone"
-            placeholder="+1234567890 (optional - auto-detected if empty)"
-            value={formData.patientPhone}
-            onChange={onInputChange}
+            render={({ field }) => (
+              <FormFieldGroup
+                label="Patient Phone Number"
+                error={form.formState.errors.patientPhone?.message}
+              >
+                <FormControl>
+                  <Input
+                    placeholder="+1234567890 (optional - auto-detected if empty)"
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+              </FormFieldGroup>
+            )}
           />
-        </div>
-      </form>
+        </form>
+      </Form>
     </CRUDDialog>
   );
 }

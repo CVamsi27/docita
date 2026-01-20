@@ -23,7 +23,8 @@ test.describe("Clinic Registration Flow", () => {
     await page.fill('input[id="name"]', clinicName);
     // Select Clinic Type
     await page.click('button[role="combobox"]'); // Trigger for Select
-    await page.click('div[role="option"] >> text=General Practice'); 
+    await expect(page.getByRole("option", { name: "General Medicine" })).toBeVisible();
+    await page.getByRole("option", { name: "General Medicine" }).click(); 
     
     await page.fill('input[id="email"]', clinicEmail);
     await page.fill('input[id="phone"]', randomPhone);
@@ -39,23 +40,50 @@ test.describe("Clinic Registration Flow", () => {
     await page.fill('input[id="password"]', "Test@123456"); // Meets regex requirements
     await page.fill('input[id="adminPhone"]', randomPhone);
 
-    await page.click('button:has-text("Next: Compliance & Legal")');
+    await page.click('button:has-text("Next: Select Plan")');
 
-    // 4. Compliance & Legal
+    // 3. Plan Selection (Step 3) - Select Free Plan to skip payment
+    await expect(page.getByText("Choose Your Plan")).toBeVisible();
+    
+    // Find Capture/Free plan card - might need specific text selector
+    // Based on PlanSelectionStep.tsx, it shows "Free"
+    await page.click('text="Free"');
+    
+    // Click Continue
+    await page.click('button:has-text("Continue with")');
+
+    // 4. Team Invite (Step 5 - Payment skipped)
+    // Check if we are on Team Invite step
+    await expect(page.getByText("Invite Team Members")).toBeVisible();
+    
+    // Skip team invite
+    await page.click('button:has-text("Skip for now")');
+
+    // 5. Compliance & Legal (Step 6)
     await expect(page.getByText("Compliance & Legal")).toBeVisible();
     
     // Check all required legal checkboxes
     await page.check('#sla'); 
-    await page.check('#privacy');
+    // Privacy policy involves a consent modal
+    await page.click('#privacy'); // Triggers modal
+    await expect(page.getByText("Data Privacy & Consent Notice")).toBeVisible();
+    
+    // Check required consents in the modal
+    await page.check('#medical_records');
+    await page.check('#data_storage');
+    await page.check('#data_sharing');
+    
+    // Click Agree
+    await page.click('button:has-text("I Agree")');
+    
+    // Verify it is now checked
+    await expect(page.locator('#privacy')).toBeChecked();
     await page.check('#dpa');
     
     // Optional consent configuration
-    // Ensure requireConsent is unchecked (if we want to toggle it from default true)
-    // or just leave it. Let's uncheck it to test interaction.
     await page.uncheck('#requireConsent');
 
-    // 5. Submit and verify success
-    
+    // 6. Submit and verify success
     await page.click("button:has-text('Complete Registration')");
 
 

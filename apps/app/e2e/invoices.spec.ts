@@ -20,6 +20,7 @@ test.describe("Invoices", () => {
           firstName: "Dr.",
           lastName: "Invoice",
           role: "DOCTOR",
+        clinicName: "Test Clinic",
         },
       });
 

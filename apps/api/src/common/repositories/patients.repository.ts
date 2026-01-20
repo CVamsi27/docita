@@ -180,16 +180,68 @@ export class PatientsRepository extends BaseRepository<Patient> {
     id: string,
     data: Partial<Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Patient> {
-    const { tags, ...rest } = data;
+    const {
+      tags,
+      medicalConditions,
+      patientAllergies,
+      familyHistory,
+      surgicalHistory,
+      socialHistory,
+      ...rest
+    } = data as any; // Cast to access structured fields not yet in interface
+
+    const updateData: any = {
+      ...rest,
+      ...(rest.gender && { gender: rest.gender.toUpperCase() as Gender }),
+      ...(rest.dateOfBirth && {
+        dateOfBirth: new Date(rest.dateOfBirth as string),
+      }),
+    };
+
+    // Handle structured medical history (Replace Strategy for arrays)
+    if (medicalConditions) {
+      updateData.medicalConditions = {
+        deleteMany: {},
+        create: medicalConditions.map(
+          ({ id, patientId, ...item }: any) => item,
+        ),
+      };
+    }
+
+    if (patientAllergies) {
+      updateData.patientAllergies = {
+        deleteMany: {},
+        create: patientAllergies.map(({ id, patientId, ...item }: any) => item),
+      };
+    }
+
+    if (familyHistory) {
+      updateData.familyHistory = {
+        deleteMany: {},
+        create: familyHistory.map(({ id, patientId, ...item }: any) => item),
+      };
+    }
+
+    if (surgicalHistory) {
+      updateData.surgicalHistory = {
+        deleteMany: {},
+        create: surgicalHistory.map(({ id, patientId, ...item }: any) => item),
+      };
+    }
+
+    if (socialHistory) {
+      const { id, patientId, ...socialData } = socialHistory;
+      updateData.socialHistory = {
+        upsert: {
+          create: socialData,
+          update: socialData,
+        },
+      };
+    }
+
     const patient = await this.prisma.patient.update({
       where: { id },
-      data: {
-        ...(rest as any),
-        ...(rest.gender && { gender: rest.gender.toUpperCase() as Gender }),
-        ...(rest.dateOfBirth && {
-          dateOfBirth: new Date(rest.dateOfBirth as string),
-        }),
-      },
+      data: updateData,
     });
     return patient as unknown as Patient;
   }

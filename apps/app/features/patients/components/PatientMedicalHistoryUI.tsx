@@ -71,10 +71,12 @@ interface PatientMedicalHistoryUIProps {
   onRemoveFamilyHistory: (id: string) => void;
 
   // Social History
+  // Social History
   onSocialHistoryUpdate: (
     field: keyof PatientSocialHistory,
-    value: string
+    value: string,
   ) => void;
+  variant?: "default" | "consultation";
 }
 
 export function PatientMedicalHistoryUI({
@@ -109,7 +111,10 @@ export function PatientMedicalHistoryUI({
   onAddFamilyHistory,
   onRemoveFamilyHistory,
   onSocialHistoryUpdate,
+  variant = "default",
 }: PatientMedicalHistoryUIProps) {
+  const isCompact = variant === "consultation";
+
   const renderSpecialtySection = () => {
     const customData = patient.customData || {};
 
@@ -162,6 +167,18 @@ export function PatientMedicalHistoryUI({
       return null;
     }
 
+    if (isCompact) {
+      return (
+        <div className="mb-6 space-y-2">
+          <div className="flex items-center gap-2 font-medium">
+            {icon}
+            {title}
+          </div>
+          {component}
+        </div>
+      );
+    }
+
     return (
       <Card className="mb-6 border-l-4 border-l-primary/50">
         <CardHeader className="py-4">
@@ -178,31 +195,47 @@ export function PatientMedicalHistoryUI({
     );
   };
 
+  const ContentWrapper = isCompact
+    ? ({ children }: { children: React.ReactNode }) => (
+        <div className="space-y-6">{children}</div>
+      )
+    : ({ children }: { children: React.ReactNode }) => (
+        <Card>
+          <CardHeader className="py-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="h-5 w-5 text-blue-500" />
+                Patient Medical History
+              </CardTitle>
+              {readOnly && (
+                <Badge variant="outline" className="text-xs">
+                  Read Only
+                </Badge>
+              )}
+            </div>
+            {!readOnly && (
+              <CardDescription>
+                Add or remove conditions directly. Changes are saved
+                automatically.
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">{children}</CardContent>
+        </Card>
+      );
+
   return (
     <div className={className}>
       {renderSpecialtySection()}
-      <Card>
-        <CardHeader className="py-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <History className="h-5 w-5 text-blue-500" />
-              Patient Medical History
-            </CardTitle>
-            {readOnly && (
-              <Badge variant="outline" className="text-xs">
-                Read Only
-              </Badge>
-            )}
-          </div>
-          {!readOnly && (
-            <CardDescription>
-              Add or remove conditions directly. Changes are saved
-              automatically.
-            </CardDescription>
+
+      <ContentWrapper>
+        {/* Problem List */}
+        <div className="space-y-4">
+          {!isCompact ? null : (
+            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+              Conditions
+            </div>
           )}
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Problem List */}
           <PatientConditions
             patient={patient}
             readOnly={readOnly}
@@ -211,10 +244,21 @@ export function PatientMedicalHistoryUI({
             onAddCondition={onAddCondition}
             onRemoveCondition={onRemoveCondition}
           />
+        </div>
 
+        {isCompact ? (
           <div className="h-px bg-border/50" />
+        ) : (
+          <div className="h-px bg-border/50" />
+        )}
 
-          {/* Allergies */}
+        {/* Allergies */}
+        <div className="space-y-4">
+          {!isCompact ? null : (
+            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+              Allergies
+            </div>
+          )}
           <PatientAllergies
             patient={patient}
             readOnly={readOnly}
@@ -228,10 +272,21 @@ export function PatientMedicalHistoryUI({
             onCancelEditAllergy={onCancelEditAllergy}
             onEditingAllergyChange={onEditingAllergyChange}
           />
+        </div>
 
+        {isCompact ? (
           <div className="h-px bg-border/50" />
+        ) : (
+          <div className="h-px bg-border/50" />
+        )}
 
-          {/* Surgical History */}
+        {/* Surgical History */}
+        <div className="space-y-4">
+          {!isCompact ? null : (
+            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+              Surgeries
+            </div>
+          )}
           <PatientSurgeries
             patient={patient}
             readOnly={readOnly}
@@ -242,27 +297,41 @@ export function PatientMedicalHistoryUI({
             onAddSurgery={onAddSurgery}
             onRemoveSurgery={onRemoveSurgery}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </ContentWrapper>
 
       {/* Family History */}
-      <PatientFamilyHistory
-        patient={patient}
-        readOnly={readOnly}
-        newFamilyCondition={newFamilyCondition}
-        newFamilyRelation={newFamilyRelation}
-        onNewFamilyConditionChange={onNewFamilyConditionChange}
-        onNewFamilyRelationChange={onNewFamilyRelationChange}
-        onAddFamilyHistory={onAddFamilyHistory}
-        onRemoveFamilyHistory={onRemoveFamilyHistory}
-      />
+      <div className="mt-8">
+        {!isCompact ? null : (
+          <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
+            Family History
+          </div>
+        )}
+        <PatientFamilyHistory
+          patient={patient}
+          readOnly={readOnly}
+          newFamilyCondition={newFamilyCondition}
+          newFamilyRelation={newFamilyRelation}
+          onNewFamilyConditionChange={onNewFamilyConditionChange}
+          onNewFamilyRelationChange={onNewFamilyRelationChange}
+          onAddFamilyHistory={onAddFamilyHistory}
+          onRemoveFamilyHistory={onRemoveFamilyHistory}
+        />
+      </div>
 
       {/* Social History */}
-      <PatientSocialHistoryComp
-        patient={patient}
-        readOnly={readOnly}
-        onSocialHistoryUpdate={onSocialHistoryUpdate}
-      />
+      <div className="mt-8">
+        {!isCompact ? null : (
+          <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
+            Social History
+          </div>
+        )}
+        <PatientSocialHistoryComp
+          patient={patient}
+          readOnly={readOnly}
+          onSocialHistoryUpdate={onSocialHistoryUpdate}
+        />
+      </div>
     </div>
   );
 }

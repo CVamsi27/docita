@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 
 type AuthStep = "email" | "login" | "signup";
 
@@ -104,22 +105,8 @@ export default function AuthPage() {
       <Card className="z-10 w-full max-w-md border-0 shadow-2xl bg-card/80 backdrop-blur-xl">
         <CardHeader className="space-y-1 px-8 pt-8 pb-6">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-7 w-7"
-              >
-                <path d="M4.8 2.3A.3.3 0 1 0 4.8.9c-1.8 0-3 1.2-3 3 0 2.2 2.3 4.2 3 5 .7.8 3 2.8 3 5 0 1.8-1.2 3-3 3-.2 0-.3-.1-.3-.3" />
-                <path d="M19.2 2.3a.3.3 0 1 1 0-1.4c1.8 0 3 1.2 3 3 0 2.2-2.3 4.2-3 5-.7.8-3 2.8-3 5 0 1.8 1.2 3 3 3 .2 0 .3-.1.3-.3" />
-                <path d="M12 2v20" />
-                <path d="M22 17a10 10 0 0 1-20 0" />
-              </svg>
+            <div className="h-12 w-12 flex items-center justify-center">
+              <DocitaIcon className="h-12 w-12" />
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-center tracking-tight">

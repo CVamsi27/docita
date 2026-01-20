@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -16,48 +19,58 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+} from "@workspace/ui/components/form";
+
+const whatsappSettingsSchema = z.object({
+  whatsappAppointmentReminders: z.boolean(),
+  whatsappFollowUpMessages: z.boolean(),
+  whatsappBirthdayWishes: z.boolean(),
+  whatsappMedicineReminders: z.boolean(),
+});
+
+type WhatsAppSettingsFormValues = z.infer<typeof whatsappSettingsSchema>;
 
 export function WhatsAppAutomationSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateSettings, isPending: isSaving } =
     useUpdateClinicSettings();
 
-  const [settings, setSettings] = useState<ClinicAppSettings>({
-    whatsappAppointmentReminders: true,
-    whatsappFollowUpMessages: true,
-    whatsappBirthdayWishes: false,
-    whatsappMedicineReminders: true,
+  const form = useForm<WhatsAppSettingsFormValues>({
+    resolver: zodResolver(whatsappSettingsSchema),
+    defaultValues: {
+      whatsappAppointmentReminders: true,
+      whatsappFollowUpMessages: true,
+      whatsappBirthdayWishes: false,
+      whatsappMedicineReminders: true,
+    },
   });
 
   useEffect(() => {
     if (clinic) {
       const s = (clinic.settings as ClinicAppSettings) || {};
-      setSettings({
+      form.reset({
         whatsappAppointmentReminders: s.whatsappAppointmentReminders ?? true,
         whatsappFollowUpMessages: s.whatsappFollowUpMessages ?? true,
         whatsappBirthdayWishes: s.whatsappBirthdayWishes ?? false,
         whatsappMedicineReminders: s.whatsappMedicineReminders ?? true,
       });
     }
-  }, [clinic]);
+  }, [clinic, form]);
 
-  const handleSave = () => {
-    updateSettings(
-      {
-        whatsappAppointmentReminders: settings.whatsappAppointmentReminders,
-        whatsappFollowUpMessages: settings.whatsappFollowUpMessages,
-        whatsappBirthdayWishes: settings.whatsappBirthdayWishes,
-        whatsappMedicineReminders: settings.whatsappMedicineReminders,
+  const onSubmit = (data: WhatsAppSettingsFormValues) => {
+    updateSettings(data, {
+      onSuccess: () => {
+        toast.success("WhatsApp automation settings saved successfully");
       },
-      {
-        onSuccess: () => {
-          toast.success("WhatsApp automation settings saved successfully");
-        },
-        onError: (error) => {
-          toast.error(`Failed to save settings: ${error.message}`);
-        },
-      }
-    );
+      onError: (error) => {
+        toast.error(`Failed to save settings: ${error.message}`);
+      },
+    });
   };
 
   if (isLoading) {
@@ -82,79 +95,99 @@ export function WhatsAppAutomationSettings() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Appointment Reminders</Label>
-              <p className="text-sm text-muted-foreground">
-                Send reminders before appointments
-              </p>
-            </div>
-            <Switch
-              checked={settings.whatsappAppointmentReminders}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({
-                  ...s,
-                  whatsappAppointmentReminders: checked,
-                }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Follow-up Messages</Label>
-              <p className="text-sm text-muted-foreground">
-                Send follow-up reminders after visits
-              </p>
-            </div>
-            <Switch
-              checked={settings.whatsappFollowUpMessages}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({
-                  ...s,
-                  whatsappFollowUpMessages: checked,
-                }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Birthday Wishes</Label>
-              <p className="text-sm text-muted-foreground">
-                Send birthday greetings to patients
-              </p>
-            </div>
-            <Switch
-              checked={settings.whatsappBirthdayWishes}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({
-                  ...s,
-                  whatsappBirthdayWishes: checked,
-                }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Medicine Reminders</Label>
-              <p className="text-sm text-muted-foreground">
-                Send medication reminders to patients
-              </p>
-            </div>
-            <Switch
-              checked={settings.whatsappMedicineReminders}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({
-                  ...s,
-                  whatsappMedicineReminders: checked,
-                }))
-              }
-            />
-          </div>
-          <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
-          </Button>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="whatsappAppointmentReminders"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <Label className="text-base">Appointment Reminders</Label>
+                      <CardDescription>
+                        Send reminders before appointments
+                      </CardDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsappFollowUpMessages"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <Label className="text-base">Follow-up Messages</Label>
+                      <CardDescription>
+                        Send follow-up reminders after visits
+                      </CardDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsappBirthdayWishes"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <Label className="text-base">Birthday Wishes</Label>
+                      <CardDescription>
+                        Send birthday greetings to patients
+                      </CardDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsappMedicineReminders"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <Label className="text-base">Medicine Reminders</Label>
+                      <CardDescription>
+                        Send medication reminders to patients
+                      </CardDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <Button className="w-full" type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

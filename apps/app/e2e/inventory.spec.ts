@@ -17,6 +17,7 @@ test.describe("Inventory Management", () => {
           firstName: "Dr.",
           lastName: "Inventory",
           role: "DOCTOR",
+        clinicName: "Test Clinic",
         },
       });
 
@@ -36,6 +37,7 @@ test.describe("Inventory Management", () => {
           email: `clinic${Date.now()}@test.com`,
           phone: "1234567890",
           address: "123 Inventory St",
+        tier: "ENTERPRISE",
           city: "Inventory City",
           state: "IC",
           zipCode: "66666",

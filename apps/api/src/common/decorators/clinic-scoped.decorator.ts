@@ -101,10 +101,10 @@ export class ClinicScopedGuard implements CanActivate {
  */
 export function ValidateClinicScope(options?: {
   argIndex?: number;
-  emptyResult?: any;
+  emptyResult?: Record<string, unknown> | unknown[];
 }) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
@@ -116,7 +116,7 @@ export function ValidateClinicScope(options?: {
       count: 0,
     };
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       const clinicId = args[argIndex];
 
       if (!clinicId) {

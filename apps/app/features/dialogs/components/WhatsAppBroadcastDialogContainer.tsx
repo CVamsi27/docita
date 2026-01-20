@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateWhatsAppBroadcast } from "@/hooks/api/use-whatsapp";
 import {
@@ -24,26 +23,13 @@ export function WhatsAppBroadcastDialogContainer({
   onClose,
   onSuccess,
 }: WhatsAppBroadcastDialogContainerProps) {
-  const [formData, setFormData] =
-    useState<WhatsAppBroadcastFormData>(initialFormData);
   const { mutate: createBroadcast, isPending: isLoading } =
     useCreateWhatsAppBroadcast();
 
-  const resetForm = () => setFormData(initialFormData);
-  const handleFormChange = (data: Partial<WhatsAppBroadcastFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.campaignName || !formData.message) {
-      toast.error("Campaign name and message are required");
-      return;
-    }
-
-    createBroadcast(formData, {
+  const handleSubmit = (data: WhatsAppBroadcastFormData) => {
+    createBroadcast(data, {
       onSuccess: () => {
         toast.success("Campaign created successfully");
-        resetForm();
         onClose();
         onSuccess?.();
       },
@@ -52,17 +38,13 @@ export function WhatsAppBroadcastDialogContainer({
       },
     });
   };
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+
   return (
     <WhatsAppBroadcastDialogUI
       isOpen={isOpen}
-      formData={formData}
+      defaultValues={initialFormData}
       isLoading={isLoading}
-      onClose={handleClose}
-      onFormChange={handleFormChange}
+      onClose={onClose}
       onSubmit={handleSubmit}
     />
   );

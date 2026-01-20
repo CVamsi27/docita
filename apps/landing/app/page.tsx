@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { useState, useEffect } from "react";
 import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
 import {
@@ -224,6 +225,7 @@ export default function Page() {
       setShowStickyCTA(scrollY > 600 && !stickyDismissed);
     };
 
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [stickyDismissed]);
@@ -270,11 +272,8 @@ export default function Page() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Stethoscope className="h-6 w-6 text-primary" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Docita</span>
+          <div className="flex items-center gap-2 flex-1">
+            <DocitaLogo />
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -310,7 +309,7 @@ export default function Page() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1 justify-end">
             <LandingThemeToggle />
             <Link
               href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`}
@@ -1203,7 +1202,7 @@ export default function Page() {
 
       {/* AI & Automation Section */}
       <section className="px-6 py-24 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/40 via-slate-950 to-slate-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-purple-900/40 via-slate-950 to-slate-950" />
 
         <div className="mx-auto max-w-7xl relative z-10">
           <div className="grid gap-16 lg:grid-cols-2 items-center">
@@ -1214,7 +1213,7 @@ export default function Page() {
                   Powered by Docita Intelligence
                 </span>
               </div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-5xl mb-6 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-5xl mb-6 bg-linear-to-r from-white to-purple-200 bg-clip-text text-transparent">
                 Experience the Future of Care
               </h2>
               <p className="text-xl text-slate-400 mb-8 leading-relaxed">
@@ -1275,7 +1274,7 @@ export default function Page() {
 
             {/* Visual Side */}
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-20 blur-xl" />
+              <div className="absolute -inset-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-2xl opacity-20 blur-xl" />
               <Card className="relative bg-slate-900 border-slate-800 shadow-2xl overflow-hidden">
                 <CardHeader className="border-b border-slate-800 bg-slate-900/50">
                   <div className="flex items-center gap-2">
@@ -2475,18 +2474,17 @@ export default function Page() {
             <DialogTitle>Docita Demo</DialogTitle>
           </DialogHeader>
           <div className="aspect-video bg-black rounded-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="100%"
-              src={
-                process.env.NEXT_PUBLIC_DEMO_VIDEO_URL ||
-                "https://www.youtube.com/embed/dQw4w9WgXcQ"
-              }
-              title="Docita Demo"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <video
+              className="w-full h-full object-cover"
+              controls
+              autoPlay
+              preload="metadata"
+              poster="/demo-thumbnail.png"
+            >
+              <source src="/demo-video.webm" type="video/webm" />
+              <source src="/demo-video.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </DialogContent>
       </Dialog>

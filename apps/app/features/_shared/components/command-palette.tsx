@@ -12,7 +12,6 @@ import {
 } from "@workspace/ui/components/command";
 import {
   Calendar,
-  ClipboardList,
   FileText,
   Home,
   Package,
@@ -27,7 +26,7 @@ const navigationItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Patients", href: "/patients", icon: Users },
   { label: "Appointments", href: "/appointments", icon: Calendar },
-  { label: "Queue", href: "/queue", icon: ClipboardList },
+  { label: "Today's Queue", href: "/consultation", icon: Stethoscope },
   { label: "Invoices", href: "/invoices", icon: Receipt },
   { label: "Inventory", href: "/inventory", icon: Package },
   { label: "Documents", href: "/documents", icon: FileText },

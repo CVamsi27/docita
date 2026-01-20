@@ -23,46 +23,46 @@ export function PatientPageHeaderUI({
   if (!patient.id) return null;
 
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
           onClick={onBack}
-          className="rounded-full hover:bg-muted"
+          className="h-9 w-9 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+          aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+
+        <nav className="flex items-center text-sm font-medium">
           <span
-            className="cursor-pointer hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
             onClick={onNavigateToPatients}
           >
             Patients
           </span>
-          <span>/</span>
-          <span>
+          <span className="mx-2 text-muted-foreground/30">/</span>
+          <span className="text-foreground">
             {patient.firstName} {patient.lastName}
           </span>
-        </div>
+        </nav>
       </div>
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onEdit}>
+
+      <div className="flex items-center gap-2 self-end sm:self-auto">
+        <Button variant="outline" size="sm" onClick={onEdit} className="h-9">
           Edit Profile
         </Button>
         <FhirExportDialog
           patientId={patient.id}
           patientName={`${patient.firstName} ${patient.lastName}`}
         >
-          {/* FhirExportDialog likely expects children to be the trigger, or handles it. 
-             In page.tsx it was wrapped around a Button. 
-             Checking page.tsx:
-             <FhirExportDialog ...>
-                <Button ...><FileJson .../></Button>
-             </FhirExportDialog>
-             So we wrap the button.
-          */}
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            title="Export FHIR Data"
+          >
             <FileJson className="h-4 w-4" />
           </Button>
         </FhirExportDialog>

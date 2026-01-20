@@ -30,6 +30,9 @@ export class PrismaService
           sslMode === 'verify-ca'
         ) {
           url.searchParams.set('sslmode', 'verify-full');
+          if (!url.port) {
+            url.port = '5432';
+          }
           connectionString = url.toString();
         }
       }
@@ -72,6 +75,9 @@ export class PrismaService
             sslMode === 'verify-ca'
           ) {
             url.searchParams.set('sslmode', 'verify-full');
+            if (!url.port) {
+              url.port = '5432';
+            }
             readConnectionString = url.toString();
           }
         }

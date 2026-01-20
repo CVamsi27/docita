@@ -16,6 +16,7 @@ test.describe("Queue Management", () => {
           firstName: "Dr.",
           lastName: "Queue",
           role: "DOCTOR",
+        clinicName: "Test Clinic",
         },
       });
 

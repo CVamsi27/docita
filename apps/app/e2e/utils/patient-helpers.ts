@@ -44,6 +44,7 @@ export async function setupTestUser(
       firstName: "Dr.",
       lastName: "History",
       role: "DOCTOR",
+      clinicName: "Test Clinic",
     },
   });
 
@@ -70,6 +71,7 @@ export async function setupTestUser(
         email: `clinic${Date.now()}@test.com`,
         phone: "1234567890",
         address: "123 History St",
+        tier: "ENTERPRISE",
       },
     });
 

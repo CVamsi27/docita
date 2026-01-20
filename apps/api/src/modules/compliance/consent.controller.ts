@@ -74,4 +74,25 @@ export class ConsentController {
       ipAddress,
     );
   }
+
+  @Post('patients/:patientId/delete')
+  @HttpCode(200)
+  // TODO: Add Role Guard for ADMIN only
+  async deletePatientData(
+    @Param('patientId') patientId: string,
+    @Body() body: { reason: string; requestedBy: string },
+    @Req() req: Request,
+  ) {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    return this.dpdpService.handleErasureRequest(
+      {
+        patientId,
+        clinicId: req.user?.['clinicId'], // Assuming extracted from token
+        requestType: 'ERASURE' as any,
+        reason: body.reason,
+        requestedBy: body.requestedBy,
+      },
+      ipAddress,
+    );
+  }
 }

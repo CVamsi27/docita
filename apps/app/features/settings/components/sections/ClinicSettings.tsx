@@ -1,4 +1,7 @@
-import React from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { toast } from "sonner";
 import {
   useClinicSettings,
@@ -11,31 +14,48 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Label } from "@workspace/ui/components/label";
+import { FormFieldGroup } from "@workspace/ui/components";
 import { Button } from "@workspace/ui/components/button";
+import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
+import {
+  requiredStringSchema,
+  phoneSchema,
+} from "@/features/_shared/schemas/common.schemas";
+
+const clinicSettingsSchema = z.object({
+  name: requiredStringSchema("Clinic Name"),
+  address: requiredStringSchema("Address"),
+  phone: phoneSchema,
+});
+
+type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
 
 export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
-  const [formData, setFormData] = React.useState({
-    name: "",
-    address: "",
-    phone: "",
+
+  const form = useForm<ClinicSettingsFormValues>({
+    resolver: zodResolver(clinicSettingsSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      phone: "",
+    },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (clinic) {
-      setFormData({
+      form.reset({
         name: clinic.name || "",
         address: clinic.address || "",
         phone: clinic.phone || "",
       });
     }
-  }, [clinic]);
+  }, [clinic, form]);
 
-  const handleSubmit = () => {
-    updateClinic(formData, {
+  const handleSubmit = (data: ClinicSettingsFormValues) => {
+    updateClinic(data, {
       onSuccess: () => {
         toast.success("Clinic settings updated successfully");
       },
@@ -55,40 +75,65 @@ export function ClinicGeneralSettings() {
         <CardTitle>Clinic Information</CardTitle>
         <CardDescription>Basic clinic settings and information</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Clinic Name</Label>
-          <Input
-            placeholder="Enter clinic name"
-            value={formData.name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, name: e.target.value }))
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Address</Label>
-          <Input
-            placeholder="Enter address"
-            value={formData.address}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, address: e.target.value }))
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Phone Number</Label>
-          <Input
-            placeholder="Enter phone number"
-            value={formData.phone}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, phone: e.target.value }))
-            }
-          />
-        </div>
-        <Button className="w-full" onClick={handleSubmit} disabled={isPending}>
-          {isPending ? "Saving..." : "Save Changes"}
-        </Button>
+      <CardContent>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="Clinic Name"
+                  required
+                  error={form.formState.errors.name?.message}
+                >
+                  <FormControl>
+                    <Input placeholder="Enter clinic name" {...field} />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="Address"
+                  required
+                  error={form.formState.errors.address?.message}
+                >
+                  <FormControl>
+                    <Input placeholder="Enter address" {...field} />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="Phone Number"
+                  required
+                  error={form.formState.errors.phone?.message}
+                >
+                  <FormControl>
+                    <Input placeholder="Enter phone number" {...field} />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
+
+            <Button className="w-full" type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

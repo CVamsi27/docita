@@ -17,6 +17,7 @@ test.describe("Clinics Management", () => {
           firstName: "Dr.",
           lastName: "Clinics",
           role: "DOCTOR",
+        clinicName: "Test Clinic",
         },
       });
 

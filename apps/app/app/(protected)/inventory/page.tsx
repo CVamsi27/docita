@@ -1,7 +1,13 @@
 "use client";
 
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { InventoryPageUI } from "@/features/inventory/components/InventoryPageUI";
 
 export default function InventoryPage() {
-  return <InventoryPageUI />;
+  return (
+    <FeatureGate feature={Feature.INVENTORY} showLockedCard>
+      <InventoryPageUI />
+    </FeatureGate>
+  );
 }
