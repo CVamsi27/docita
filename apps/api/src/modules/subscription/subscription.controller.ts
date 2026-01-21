@@ -36,6 +36,7 @@ interface CreateCheckoutDto {
   tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
   billingCycle: 'MONTHLY' | 'YEARLY';
   referralCode?: string;
+  addOns?: string[];
 }
 
 interface ActivateSubscriptionDto {
@@ -44,6 +45,7 @@ interface ActivateSubscriptionDto {
   razorpaySignature: string;
   tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
   billingCycle: 'MONTHLY' | 'YEARLY';
+  addOns?: string[];
 }
 
 @Controller('subscription')
@@ -155,8 +157,15 @@ export class SubscriptionController {
     @Request() req: AuthRequest,
     @Query('tier') tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE',
     @Query('cycle') cycle: 'MONTHLY' | 'YEARLY',
+    @Query('addOns') addOnsRaw?: string,
   ) {
-    return this.billingService.previewUpgrade(req.user.clinicId, tier, cycle);
+    const addOns = addOnsRaw ? addOnsRaw.split(',') : [];
+    return this.billingService.previewUpgrade(
+      req.user.clinicId,
+      tier,
+      cycle,
+      addOns,
+    );
   }
 
   /**
@@ -174,6 +183,7 @@ export class SubscriptionController {
       dto.tier,
       dto.billingCycle,
       dto.referralCode,
+      dto.addOns || [],
     );
   }
 
@@ -194,6 +204,7 @@ export class SubscriptionController {
       dto.razorpaySignature,
       dto.tier,
       dto.billingCycle,
+      dto.addOns || [],
     );
   }
 

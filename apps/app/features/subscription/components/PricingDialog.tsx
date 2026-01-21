@@ -35,7 +35,7 @@ interface PricingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTier: Tier;
-  onSelectTier: (tier: TierName) => void;
+  onSelectTier: (tier: TierName, cycle: "MONTHLY" | "YEARLY") => void;
 }
 
 const TIER_ICONS: Record<TierName, React.ElementType> = {
@@ -301,7 +301,9 @@ export function PricingDialog({
                   )}
                   variant={isDowngrade ? "outline" : "default"}
                   disabled={isCurrentTier}
-                  onClick={() => onSelectTier(tierName)}
+                  onClick={() =>
+                    onSelectTier(tierName, isYearly ? "YEARLY" : "MONTHLY")
+                  }
                 >
                   {isCurrentTier
                     ? "Current Plan"

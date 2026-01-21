@@ -1,12 +1,6 @@
 name: Deploy API to Production
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/api/**"
-      - "packages/types/**"
-      - "packages/db/**"
   workflow_dispatch:
 
 env:

@@ -19,8 +19,8 @@ import { Button } from "@workspace/ui/components/button";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import {
-  requiredStringSchema,
   phoneSchema,
+  requiredStringSchema,
 } from "@/features/_shared/schemas/common.schemas";
 
 const clinicSettingsSchema = z.object({

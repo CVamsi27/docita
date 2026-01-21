@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   CommandDialog,
   CommandEmpty,
@@ -57,7 +58,18 @@ export function CommandPalette() {
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
+
+  const { canStartConsultation } = usePermissions();
+  const filteredQuickActions = useMemo(() => {
+    if (!canStartConsultation) {
+      return quickActions.filter(
+        (action) => action.label !== "Start Consultation",
+      );
+    }
+    return quickActions;
+  }, [canStartConsultation]);
 
   const runCommand = useCallback((command: () => void) => {
     setOpen(false);
@@ -81,7 +93,7 @@ export function CommandPalette() {
           ))}
         </CommandGroup>
         <CommandGroup heading="Quick Actions">
-          {quickActions.map((item) => (
+          {filteredQuickActions.map((item) => (
             <CommandItem
               key={item.action}
               onSelect={() => runCommand(() => router.push(item.action))}

@@ -11,4 +11,5 @@ export { AppearanceSettings } from "./sections/AppearanceSettings";
 export { CustomFieldsSettings } from "./sections/CustomFieldsSettings";
 export { ReminderSettingsUI as ReminderSettings } from "./ReminderSettingsUI";
 export { TemplatesSettingsUI as TemplatesSettings } from "./TemplatesSettingsUI";
+export { QueueSettings } from "./sections/QueueSettings";
 export { DoctorProfileModal, PaymentModal } from "./sections/SettingsModals";

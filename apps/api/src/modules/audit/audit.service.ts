@@ -359,4 +359,29 @@ export class AuditService {
       ipAddress,
     });
   }
+
+  /**
+   * Log patient medical history access (DPDP Compliance)
+   */
+  async logPatientAccess(
+    userId: string,
+    clinicId: string,
+    patientId: string,
+    accessType: 'VIEW_HISTORY' | 'VIEW_PROFILE' | 'EXPORT_DATA',
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
+    await this.logAction({
+      userId,
+      clinicId,
+      actionType: accessType,
+      resourceType: 'Patient',
+      resourceId: patientId,
+      ipAddress,
+      userAgent,
+      metadata: {
+        accessTime: new Date().toISOString(),
+      },
+    });
+  }
 }

@@ -17,8 +17,8 @@ import { AlertCircle, CheckCircle, Mail } from "lucide-react";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import {
-  requiredStringSchema,
   emailSchema,
+  requiredStringSchema,
 } from "@/features/_shared/schemas/common.schemas";
 
 const contactSalesSchema = z.object({

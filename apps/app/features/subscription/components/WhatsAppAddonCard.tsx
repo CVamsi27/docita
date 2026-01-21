@@ -8,11 +8,13 @@ import { cn } from "@workspace/ui/lib/utils";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
 
 interface WhatsAppAddonCardProps {
+  description?: string;
   currency?: string;
   isYearly?: boolean;
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   className?: string;
+  tier?: string;
 }
 
 const WHATSAPP_FEATURES = [
@@ -32,6 +34,7 @@ export function WhatsAppAddonCard({
   enabled,
   onToggle,
   className,
+  tier = "CORE", // Default tier if not provided
 }: WhatsAppAddonCardProps) {
   const { pricingConfig, isLoading } = usePricingConfig(currency);
 
@@ -41,13 +44,41 @@ export function WhatsAppAddonCard({
       addon.id === "WHATSAPP" || addon.name?.toLowerCase().includes("whatsapp"),
   );
 
-  const price = whatsappAddon?.pricing
-    ? isYearly
-      ? whatsappAddon.pricing.yearly
-      : whatsappAddon.pricing.monthly
-    : currency === "INR"
-      ? 799
-      : 19; // Fallback
+  // Get dynamic pricing based on tier
+  const tierKey = tier.toUpperCase();
+  // frontend type for pricingByTier might be loose, but backend sends AddOnPricing { basePrice, ... }
+  // We need to cast or access robustly
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pricingByTier = whatsappAddon?.pricingByTier as any;
+  const tierPricing = pricingByTier?.[tierKey];
+
+  // Calculate price (monthly vs yearly)
+  let displayPrice: string | number = "Loading...";
+
+  if (tierPricing) {
+    if (tierPricing.basePrice === "custom") {
+      displayPrice = "Custom";
+    } else {
+      const basePrice = Number(tierPricing.basePrice);
+      if (isYearly) {
+        // Apply annual discount
+        const annualDiscount = pricingConfig?.discounts?.annualPercent ?? 10;
+        const yearlyTotal = basePrice * 12 * (1 - annualDiscount / 100);
+        displayPrice = Math.round(yearlyTotal);
+      } else {
+        displayPrice = basePrice;
+      }
+    }
+  } else if (whatsappAddon?.pricing) {
+    // Fallback to legacy pricing structure if exists (though strictly Schema says it's per-tier now)
+    const p = whatsappAddon.pricing;
+    displayPrice = isYearly && p.yearly ? p.yearly : p.monthly || 799;
+  } else {
+    // Final fallback
+    displayPrice = currency === "INR" ? 799 : 19;
+  }
+
+  const price = displayPrice;
 
   const currencySymbol = currency === "INR" ? "₹" : "$";
 

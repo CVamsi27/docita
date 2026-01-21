@@ -41,7 +41,6 @@ export class DashboardService {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const clinicFilter = { clinicId };
-    const patientClinicFilter = { patient: { clinicId } };
 
     const [
       totalPatients,
@@ -75,7 +74,9 @@ export class DashboardService {
         },
       }),
       this.prisma.appointment.count({ where: clinicFilter }),
-      this.prisma.prescription.count({ where: patientClinicFilter }),
+      this.prisma.prescription.count({
+        where: { appointment: { clinicId } },
+      }),
       this.prisma.appointment.findMany({
         where: clinicFilter,
         take: 5,

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -34,7 +34,6 @@ import { PrescriptionTemplatesModule } from './prescription-templates/prescripti
 import { MedicalCodingModule } from './medical-coding/medical-coding.module';
 import { ConfigModule as AppConfigModule } from './modules/config/config.module';
 import { PaymentGateway } from './gateways/payment.gateway';
-import { QueueModule } from './queue/queue.module';
 import { LabTestsModule } from './lab-tests/lab-tests.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FeedbackModule } from './feedback/feedback.module';
@@ -49,6 +48,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { IpdModule } from './ipd/ipd.module';
 import { PerformanceModule } from './performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 
 // Extensibility Infrastructure
 import { EventsModule } from './common/events';
@@ -113,7 +113,6 @@ import { CommonServicesModule } from './common/services';
     PrescriptionTemplatesModule,
     MedicalCodingModule,
     AppConfigModule,
-    QueueModule,
     LabTestsModule,
     InventoryModule,
     FeedbackModule,
@@ -135,6 +134,11 @@ import { CommonServicesModule } from './common/services';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Global Tenant Context Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantContextInterceptor,
     },
   ],
 })

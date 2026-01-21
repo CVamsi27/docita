@@ -2,7 +2,6 @@ import { Injectable, Optional } from '@nestjs/common';
 import { Patient, CreatePatientInput } from '@workspace/types';
 import { PatientsRepository } from '../common/repositories';
 import { DomainEventService, DomainEvents } from '../common/events';
-import { EncryptionService } from '../common/encryption.service';
 
 /**
  * Service for patient-related business logic.
@@ -16,7 +15,6 @@ import { EncryptionService } from '../common/encryption.service';
 export class PatientsService {
   constructor(
     private readonly patientsRepository: PatientsRepository,
-    private readonly encryptionService: EncryptionService,
     @Optional() private readonly eventService?: DomainEventService,
   ) {}
 
@@ -35,23 +33,19 @@ export class PatientsService {
     // For now, we assume simple listing. Search on encrypted fields won't work out-of-the-box without deterministic encryption or blind indexing
     const result = await this.patientsRepository.findAll(clinicId, options);
 
-    // Decrypt sensitive data for each patient
-    const decryptedItems = result.items.map((patient) =>
-      this.encryptionService.decryptPatientData(patient),
-    );
+    // Data is automatically decrypted by Prisma Middleware "EncryptionMiddleware"
+    // const decryptedItems = result.items.map((patient) =>
+    //   this.encryptionService.decryptPatientData(patient),
+    // );
 
-    return {
-      ...result,
-      items: decryptedItems,
-    };
+    return result;
   }
 
   /**
    * Find a single patient by ID
    */
   async findOne(id: string): Promise<Patient> {
-    const patient = await this.patientsRepository.findOneOrFail(id);
-    return this.encryptionService.decryptPatientData(patient);
+    return this.patientsRepository.findOneOrFail(id);
   }
 
   /**
@@ -62,17 +56,13 @@ export class PatientsService {
       throw new Error('Clinic ID is required to create a patient');
     }
 
-    // Encrypt sensitive data before saving
-    // Cast to ensure clinicId is treated as string since we checked it
-    const encryptedData = this.encryptionService.encryptPatientData({
+    // Encryption is handled by Prisma Middleware "EncryptionMiddleware" transparently
+    const patient = await this.patientsRepository.create({
       ...data,
       clinicId: data.clinicId,
     });
 
-    const patient = await this.patientsRepository.create(encryptedData);
-
-    // Decrypt for return value
-    const decryptedPatient = this.encryptionService.decryptPatientData(patient);
+    const decryptedPatient = patient;
 
     // Emit event for other modules to react (only if eventService is available)
     if (this.eventService) {
@@ -108,19 +98,13 @@ export class PatientsService {
   ): Promise<Patient> {
     const oldPatient = await this.patientsRepository.findOne(id);
 
-    // Encrypt sensitive data if present in update
-    const encryptedUpdateData = this.encryptionService.encryptPatientData(data);
+    // Encryption is handled by Prisma Middleware "EncryptionMiddleware" transparently
+    // const encryptedUpdateData = this.encryptionService.encryptPatientData(data);
 
-    const patient = await this.patientsRepository.update(
-      id,
-      encryptedUpdateData,
-    );
+    const patient = await this.patientsRepository.update(id, data);
 
-    // Decrypt for return value
-    const decryptedPatient = this.encryptionService.decryptPatientData(patient);
-    const decryptedOldPatient = oldPatient
-      ? this.encryptionService.decryptPatientData(oldPatient)
-      : null;
+    const decryptedPatient = patient;
+    const decryptedOldPatient = oldPatient;
 
     // Emit event with changes (only if eventService is available)
     if (this.eventService && context) {
@@ -166,7 +150,7 @@ export class PatientsService {
 
     // Emit event (only if eventService is available)
     if (this.eventService && context && patientRaw) {
-      const patient = this.encryptionService.decryptPatientData(patientRaw);
+      const patient = patientRaw;
       const mrn = patient.mrn;
       this.eventService.emit(
         DomainEvents.PATIENT_DELETED,

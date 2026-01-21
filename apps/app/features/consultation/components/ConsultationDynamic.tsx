@@ -34,6 +34,7 @@ import {
   Appointment,
   GrowthChartData,
   OphthalmologyExamData,
+  Patient,
 } from "@workspace/types";
 
 interface ClinicalDocumentationDynamicProps {
@@ -129,7 +130,8 @@ export const ClinicalDocumentationDynamic: FC<
   );
 
   // Use fetched patient or fallback to appointment data patient
-  const patient = fetchedPatient || (appointmentData?.patient as any); // TODO: Fix type
+  const patient =
+    fetchedPatient || (appointmentData?.patient as unknown as Patient); // TODO: Fix type correctly in AppointmentData
   const createPrescription = useCreatePrescription();
 
   // Initialize data

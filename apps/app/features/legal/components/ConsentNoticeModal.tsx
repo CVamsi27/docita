@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { Shield, Mail, Globe } from "lucide-react";
+import { Globe, Mail, Shield } from "lucide-react";
 
 // Supported languages for consent notice (22 Scheduled Indian Languages + English)
 const SUPPORTED_LANGUAGES = [
@@ -148,7 +148,7 @@ export function ConsentNoticeModal({
   onOpenChange,
   onConsent,
   onDecline,
-  userType = "patient",
+  userType: _userType = "patient",
 }: ConsentNoticeModalProps) {
   const [language, setLanguage] = useState("en");
   const [consents, setConsents] = useState<Record<string, boolean>>({

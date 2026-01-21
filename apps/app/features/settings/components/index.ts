@@ -11,10 +11,7 @@ export {
 export { PrescriptionDefaultsSettingsContainer } from "./PrescriptionDefaultsSettingsContainer";
 export { PrescriptionDefaultsSettingsContainer as PrescriptionDefaultsSettings } from "./PrescriptionDefaultsSettingsContainer";
 
-// QueueSettings (Container pattern)
-export { QueueSettingsUI, type QueueSettingsUIProps } from "./QueueSettingsUI";
-export { QueueSettingsContainer } from "./QueueSettingsContainer";
-export { QueueSettingsContainer as QueueSettings } from "./QueueSettingsContainer";
+
 
 // Member Management (API-connected - uses useClinicMembers hook)
 export { MemberManagementSettings } from "./MemberManagementSettings";
@@ -36,6 +33,7 @@ export {
   AppearanceSettings,
   DoctorProfileModal,
   PaymentModal,
+  QueueSettings,
 } from "./SettingsComponents";
 
 // Dynamic Settings Stubs
@@ -54,7 +52,7 @@ export {
   PatientFormDialogDynamic,
   BulkImportDialogDynamic,
   FhirExportDialogDynamic,
-  QueueSettingsDialogDynamic,
+
   AddWalkInDialogDynamic,
   WhatsAppSettingsDialogDynamic,
   WhatsAppBroadcastDialogDynamic,

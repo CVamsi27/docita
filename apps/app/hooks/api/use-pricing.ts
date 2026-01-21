@@ -33,7 +33,7 @@ interface AddOnInfo {
     yearly: number;
     currency: string;
   };
-  pricingByTier?: Record<string, { monthly: number; yearly: number }>;
+  pricingByTier?: Record<string, { monthly: number | string; yearly: number | string }>;
 }
 
 interface PricingConfig {

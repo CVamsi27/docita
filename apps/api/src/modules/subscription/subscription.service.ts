@@ -14,6 +14,7 @@ import {
   FEATURE_DISPLAY,
   INTELLIGENCE_ADDONS,
   INTELLIGENCE_BUNDLE_DISCOUNT,
+  WHATSAPP_ADDON_PRICING,
   TierName,
 } from '@workspace/types';
 
@@ -69,6 +70,14 @@ export class SubscriptionService {
         pricing: TIER_PRICING['INTELLIGENCE'],
         features: INTELLIGENCE_FEATURES,
       },
+      addOns: [
+        {
+          id: 'WHATSAPP',
+          name: 'WhatsApp Integration',
+          description: 'Connect with patients where they are most active',
+          pricing: WHATSAPP_ADDON_PRICING as any, // Cast to any or helper if needed, Zod will validate shape
+        },
+      ],
     };
   }
 

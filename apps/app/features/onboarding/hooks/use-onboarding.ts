@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { OnboardingData } from "../schemas/onboarding.schemas";
 
 interface UseOnboardingReturn {

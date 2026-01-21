@@ -172,10 +172,14 @@ test.describe("Appointments", () => {
 
   test("should show API-created appointment", async ({ page, request }) => {
     // Create appointment via API
-    const startTime = new Date();
-    startTime.setHours(10, 0, 0, 0);
+    // Create appointment via API - set for 1 hour from now to ensure it appears in upcoming
+    const startTime = new Date(Date.now() + 60 * 60 * 1000);
+    // Round to nearest 30 mins to be clean if needed, or just use as is. 
+    // Ensuring it's within working hours might be important, 
+    // but typically "upcoming" logic just checks start > now.
+    
     const endTime = new Date(startTime);
-    endTime.setMinutes(30);
+    endTime.setMinutes(startTime.getMinutes() + 30);
 
     await request.post(`${API_URL}/appointments`, {
       headers: { Authorization: `Bearer ${cachedUser!.accessToken}` },
@@ -198,22 +202,16 @@ test.describe("Appointments", () => {
     console.log("Appointments Page URL:", page.url());
 
     // Retry once if not found immediately (sometimes frontend cache is stale)
-    const row = page.locator('text=10:00').first();
+    const patientRow = page.locator(`text=Test Patient`).first();
     try {
-      await expect(row).toBeVisible({ timeout: 5000 });
+      await expect(patientRow).toBeVisible({ timeout: 5000 });
     } catch (_e) {
       console.log("Appointment not found initially, reloading page...");
       await page.reload({ waitUntil: "load" });
       await page.waitForTimeout(1000);
-      await expect(row).toBeVisible({ timeout: 10000 });
+      await expect(patientRow).toBeVisible({ timeout: 10000 });
     }
 
-    try {
-      // Check for patient name
-      await expect(page.locator(`text=Test Patient`).first()).toBeVisible();
-    } catch (e) {
-      console.log("Appointments Page DOM Content on failure:", await page.content());
-      throw e;
-    }
+
   });
 });

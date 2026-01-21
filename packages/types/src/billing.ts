@@ -23,7 +23,4 @@ export const PaymentMethodSchema = z.object({
     brand: z.string(),
 });
 
-export const CheckoutSessionSchema = z.object({
-    sessionId: z.string(),
-    url: z.string().url().optional(),
-});
+

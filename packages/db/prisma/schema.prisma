@@ -196,6 +196,9 @@ model Patient {
   queueTokens     QueueToken[]
   whatsappLogs    WhatsappLog[]
 
+  // ABDM Compliance
+  abhaAddress String?
+
   // Soft Delete (DPDP Compliance)
   deletedAt         DateTime?
   medicalConditions PatientMedicalCondition[]
@@ -217,6 +220,7 @@ model Patient {
   @@index([clinicId, lastName, firstName]) // Name search optimization
   @@index([clinicId, createdAt]) // Recent patients query
   @@index([deletedAt]) // Soft delete query optimization
+  @@index([abhaAddress])
 }
 
 // ============================================================================
@@ -1729,6 +1733,10 @@ model Consent {
   documentUrl     String? // Signed consent form
   templateVersion String? // Version of consent template used
   notes           String?
+
+  // Digital Consent Audit (DPDP Compliance)
+  ipAddress String?
+  userAgent String?
 
   // Audit trail
   createdBy String? // Staff who created record

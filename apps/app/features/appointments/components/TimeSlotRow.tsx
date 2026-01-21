@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
 import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic";
+import { usePermissions } from "@/hooks/use-permissions";
 
 // Helper to check if a time slot overlaps with an appointment
 const isAppointmentInSlot = (
@@ -65,7 +66,8 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     onStartConsultation,
     onCancelClick,
     onNoShowClick,
-    userRole,
+    // userRole is now handled internally via usePermissions
+    userRole: _userRole,
   }) => {
     const slotAppointments = useMemo(
       () =>
@@ -74,6 +76,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
         ),
       [appointments, slotTime, selectedDate],
     );
+    const { canStartConsultation } = usePermissions();
 
     return (
       <div
@@ -172,22 +175,19 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                           In Queue
                         </Badge>
                       )}
-                      {userRole &&
-                        !["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"].includes(
-                          userRole,
-                        ) && (
-                          <Button
-                            size="sm"
-                            variant={
-                              apt.status === "completed" ? "outline" : "default"
-                            }
-                            onClick={() => onStartConsultation(apt.id!)}
-                            className="h-8 text-xs"
-                          >
-                            <Stethoscope className="mr-1 h-3.5 w-3.5" />
-                            {apt.status === "completed" ? "View" : "Start"}
-                          </Button>
-                        )}
+                      {canStartConsultation && (
+                        <Button
+                          size="sm"
+                          variant={
+                            apt.status === "completed" ? "outline" : "default"
+                          }
+                          onClick={() => onStartConsultation(apt.id!)}
+                          className="h-8 text-xs"
+                        >
+                          <Stethoscope className="mr-1 h-3.5 w-3.5" />
+                          {apt.status === "completed" ? "View" : "Start"}
+                        </Button>
+                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button

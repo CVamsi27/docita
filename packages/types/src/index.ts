@@ -31,7 +31,7 @@ export * from "./onboarding";
 export * from "./referrals";
 export * from "./super-admin";
 export * from "./whatsapp";
-export * from "./queue";
+
 export * from "./inventory";
 export * from "./feedback";
 export * from "./contact";

@@ -40,6 +40,7 @@ import {
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { useRazorpay } from "@/hooks/use-razorpay";
 
 export default function UpgradePage() {
   const { currentTier, hasIntelligence, canAccess, setTier } =
@@ -53,6 +54,11 @@ export default function UpgradePage() {
   const [selectedTier, setSelectedTier] = useState<TierName | null>(null);
   const [enableWhatsApp, setEnableWhatsApp] = useState(false);
 
+  const { isLoaded, openCheckout } = useRazorpay();
+  const [selectedCycle, setSelectedCycle] = useState<"MONTHLY" | "YEARLY">(
+    "MONTHLY",
+  );
+
   // Check if user can access this page (ADMIN, ADMIN_DOCTOR, or SUPER_ADMIN)
   const canAccessPage =
     user?.role === "ADMIN" ||
@@ -63,44 +69,123 @@ export default function UpgradePage() {
   const canChangeTier = canAccessPage;
 
   // Handlers defined before early return to satisfy React Hooks rules
-  const handleSelectTier = useCallback((tier: TierName) => {
-    setSelectedTier(tier);
-    setShowPricingDialog(false);
-    setShowTierChangeDialog(true);
-  }, []);
+  const handleSelectTier = useCallback(
+    (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
+      setSelectedTier(tier);
+      setSelectedCycle(cycle);
+      setShowPricingDialog(false);
+      setShowTierChangeDialog(true);
+    },
+    [],
+  );
 
   const handleConfirmTierChange = useCallback(async () => {
     if (!selectedTier || !token) return;
 
     const apiUrl =
       process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-    const response = await fetch(`${apiUrl}/billing/change-tier`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        tier: selectedTier,
-        addOns: enableWhatsApp ? ["WHATSAPP"] : [],
-      }),
-    });
 
-    const data = await response.json();
+    try {
+      // 1. Create Checkout Session
+      const createRes = await fetch(`${apiUrl}/subscription/billing/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tier: selectedTier,
+          billingCycle: selectedCycle,
+          addOns: enableWhatsApp ? ["WHATSAPP"] : [],
+        }),
+      });
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to change tier");
+      const createData = await createRes.json();
+      if (!createRes.ok) {
+        throw new Error(createData.message || "Failed to initiate checkout");
+      }
+
+      const { orderId, amountCents, currency, razorpayKeyId } = createData;
+
+      // 2. Open Razorpay Checkout
+      await openCheckout({
+        key: razorpayKeyId,
+        amount: amountCents,
+        currency: currency,
+        name: "Docita Subscription",
+        description: `Upgrade to ${selectedTier} Plan`,
+        order_id: orderId,
+        handler: async (response: unknown) => {
+          const data = response as {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          };
+          try {
+            // 3. Activate Subscription
+            const activateRes = await fetch(
+              `${apiUrl}/subscription/billing/activate`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  razorpayPaymentId: data.razorpay_payment_id,
+                  razorpayOrderId: data.razorpay_order_id,
+                  razorpaySignature: data.razorpay_signature,
+                  tier: selectedTier,
+                  billingCycle: selectedCycle,
+                  addOns: enableWhatsApp ? ["WHATSAPP"] : [],
+                }),
+              },
+            );
+
+            const activateData = await activateRes.json();
+            if (!activateRes.ok) {
+              throw new Error(activateData.message || "Activation failed");
+            }
+
+            // Success Update
+            setTier(selectedTier);
+            setShowTierChangeDialog(false);
+            await queryClient.invalidateQueries({
+              queryKey: ["billing-status"],
+            });
+            await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+            toast.success(`Successfully subscribed to ${selectedTier}`);
+          } catch (err: unknown) {
+            const errorMessage =
+              err instanceof Error
+                ? err.message
+                : "Payment verification failed";
+            toast.error(errorMessage);
+          }
+        },
+        prefill: {
+          name: user?.name || "Clinic Admin",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#0F172A", // Slate 900
+        },
+      });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to process upgrade";
+      toast.error(errorMessage);
     }
-
-    // Update local state immediately
-    setTier(selectedTier);
-
-    // Invalidate queries to refresh subscription status
-    await queryClient.invalidateQueries({ queryKey: ["billing-status"] });
-    await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-
-    toast.success(data.message || `Successfully upgraded to ${selectedTier}`);
-  }, [selectedTier, token, setTier, enableWhatsApp, queryClient]);
+  }, [
+    selectedTier,
+    selectedCycle,
+    token,
+    setTier,
+    enableWhatsApp,
+    queryClient,
+    openCheckout,
+    user,
+  ]);
 
   // Redirect non-admin users to dashboard
   useEffect(() => {
@@ -116,6 +201,11 @@ export default function UpgradePage() {
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
+  }
+
+  // Ensure Razorpay script is loaded before allowing interactions
+  if (!isLoaded) {
+    // Optional: show loading state for script
   }
 
   // Get all features grouped by tier
@@ -328,6 +418,7 @@ export default function UpgradePage() {
             currency="INR"
             isYearly={false}
             enabled={enableWhatsApp}
+            tier={currentTierInfo.name} // Pass current tier name for dynamic pricing
             onToggle={setEnableWhatsApp}
           />
         </div>

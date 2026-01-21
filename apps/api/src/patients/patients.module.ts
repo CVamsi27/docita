@@ -7,8 +7,10 @@ import { PatientsRepository } from '../common/repositories';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 
+import { AuditModule } from '../modules/audit/audit.module';
+
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, AuditModule],
   controllers: [PatientsController, MedicalHistoryController],
   providers: [PatientsService, MedicalHistoryService, PatientsRepository],
   exports: [PatientsService, PatientsRepository],

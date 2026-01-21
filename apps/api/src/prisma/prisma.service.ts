@@ -7,6 +7,9 @@ import {
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { tenantExtension } from '../common/extensions/tenant.extension';
+import { encryptionExtension } from '../common/extensions/encryption.extension';
+import { tenantStorage } from '../common/middleware/tenant.middleware';
 
 @Injectable()
 export class PrismaService
@@ -91,13 +94,18 @@ export class PrismaService
       const readPool = new Pool({ connectionString: readConnectionString });
       const readAdapter = new PrismaPg(readPool);
 
-      this.readReplica = new PrismaClient({
+      const rawReadClient = new PrismaClient({
         adapter: readAdapter,
         log:
           process.env.NODE_ENV === 'development'
             ? ['warn', 'error']
             : ['error'],
       });
+
+      // Apply extensions to read replica
+      this.readReplica = rawReadClient
+        .$extends(encryptionExtension)
+        .$extends(tenantExtension) as unknown as PrismaClient;
       this.logger.log('Read replica client initialized');
     } else {
       this.logger.log('Read replica not configured, using primary for reads');
@@ -116,6 +124,14 @@ export class PrismaService
   async onModuleInit() {
     try {
       await this.$connect();
+
+      // Apply extensions (DPDP Compliance & Tenant Isolation)
+      // Since we are using driver adapters, legacy middleware ($use) is not supported.
+      // We use $extends and mutate the singleton instance.
+      const extended =
+        this.$extends(encryptionExtension).$extends(tenantExtension);
+      Object.assign(this, extended);
+
       this.logger.log('Primary database connection established');
 
       if (this.readReplica) {
@@ -136,5 +152,13 @@ export class PrismaService
       await this.readReplica.$disconnect();
       this.logger.log('Read replica connection closed');
     }
+  }
+
+  /**
+   * Run a function bypassing tenant restrictions.
+   * Useful for system tasks, schedulers, and admin operations.
+   */
+  async runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
+    return tenantStorage.run({ bypassed: true }, fn);
   }
 }

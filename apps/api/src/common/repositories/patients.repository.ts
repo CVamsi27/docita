@@ -86,7 +86,10 @@ export class PatientsRepository extends BaseRepository<Patient> {
 
     const limit = options?.limit ?? 50;
 
-    const where: Record<string, unknown> = { clinicId };
+    const where: Record<string, unknown> = {
+      clinicId,
+      deletedAt: null,
+    };
 
     if (options?.search) {
       where.OR = this.buildSearchConditions(options.search);
@@ -250,8 +253,11 @@ export class PatientsRepository extends BaseRepository<Patient> {
    * Delete a patient
    */
   async delete(id: string): Promise<void> {
-    await this.prisma.patient.delete({
+    await this.prisma.patient.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 

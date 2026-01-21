@@ -95,6 +95,8 @@ export class EncryptionService {
       'address',
       'emergencyContactPhone',
       'emergencyContactName',
+      'firstName',
+      'lastName',
     ];
 
     const encryptedPatient = { ...patient };
@@ -120,6 +122,8 @@ export class EncryptionService {
       'address',
       'emergencyContactPhone',
       'emergencyContactName',
+      'firstName',
+      'lastName',
     ];
 
     const decryptedPatient = { ...patient };

@@ -260,7 +260,7 @@ export const AddAppointmentDialogDynamic: FC<FlexibleModalProps> = () => null;
 export const PatientFormDialogDynamic: FC<FlexibleModalProps> = () => null;
 export const BulkImportDialogDynamic: FC<FlexibleModalProps> = () => null;
 export const FhirExportDialogDynamic: FC<FlexibleModalProps> = () => null;
-export const QueueSettingsDialogDynamic: FC<FlexibleModalProps> = () => null;
+
 export const AddWalkInDialogDynamic: FC<FlexibleModalProps> = () => null;
 export const WhatsAppSettingsDialogDynamic: FC<FlexibleModalProps> = () => null;
 export const WhatsAppBroadcastDialogDynamic: FC<FlexibleModalProps> = () =>

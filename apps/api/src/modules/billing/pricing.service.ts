@@ -261,8 +261,8 @@ export class PricingService {
           ],
         },
       ],
-      addOns: {
-        whatsapp: {
+      addOns: [
+        {
           id: 'WHATSAPP',
           name: 'WhatsApp Integration',
           description: 'Automated patient communication via WhatsApp',
@@ -278,7 +278,7 @@ export class PricingService {
             'Delivery reports',
           ],
         },
-        intelligence: {
+        {
           id: 'INTELLIGENCE',
           name: 'Docita Intelligence',
           description: 'AI-powered clinical assistant',
@@ -296,7 +296,7 @@ export class PricingService {
           ],
           creditCosts: AI_CREDIT_COSTS,
         },
-      },
+      ],
       discounts: DISCOUNT_CONFIG,
       referralRewards: referralRewards,
       discountPercents: {

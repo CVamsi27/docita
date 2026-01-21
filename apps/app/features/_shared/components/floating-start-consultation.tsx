@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -20,6 +21,7 @@ export function FloatingStartConsultation({
   minimized = false,
 }: FloatingStartConsultationProps) {
   const router = useRouter();
+  const { canStartConsultation } = usePermissions();
   const [isMinimized, setIsMinimized] = useState(minimized);
 
   const handleStartConsultation = () => {
@@ -33,6 +35,11 @@ export function FloatingStartConsultation({
   };
 
   if (!patientId && !appointmentId) {
+    return null;
+  }
+
+  // Check permission directly
+  if (!canStartConsultation) {
     return null;
   }
 

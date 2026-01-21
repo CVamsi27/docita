@@ -7,9 +7,11 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { MedicalHistoryService } from './medical-history.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuditService } from '../modules/audit/audit.service';
 
 import {
   CreateMedicalConditionDto,
@@ -22,7 +24,10 @@ import {
 @Controller('patients/:patientId/medical-history')
 @UseGuards(JwtAuthGuard)
 export class MedicalHistoryController {
-  constructor(private readonly medicalHistoryService: MedicalHistoryService) {}
+  constructor(
+    private readonly medicalHistoryService: MedicalHistoryService,
+    private readonly auditService: AuditService,
+  ) {}
 
   // ========== Medical Conditions ==========
   @Get('conditions')
@@ -156,7 +161,27 @@ export class MedicalHistoryController {
 
   // ========== Complete Medical History ==========
   @Get()
-  getFullMedicalHistory(@Param('patientId') patientId: string) {
+  async getFullMedicalHistory(
+    @Param('patientId') patientId: string,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    const clinicId = req.user?.clinicId;
+    const ipAddress = req.ip;
+    const userAgent = req.headers?.['user-agent'];
+
+    // Log access for audit trail (DPDP Compliance)
+    if (userId && clinicId) {
+      await this.auditService.logPatientAccess(
+        userId,
+        clinicId,
+        patientId,
+        'VIEW_HISTORY',
+        ipAddress,
+        userAgent,
+      );
+    }
+
     return this.medicalHistoryService.getFullMedicalHistory(patientId);
   }
 }

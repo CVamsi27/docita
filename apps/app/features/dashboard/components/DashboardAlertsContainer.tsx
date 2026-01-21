@@ -8,6 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
+import { usePermissions } from "@/hooks/use-permissions";
 import { AlertItem, DashboardAlertsUI } from "./DashboardAlertsUI";
 
 interface DashboardAlertsContainerProps {
@@ -142,13 +143,25 @@ export function DashboardAlertsContainer({
     dismissedAlerts,
   ]);
 
+  const { canStartConsultation } = usePermissions();
+  const filteredAlerts = useMemo(() => {
+    if (!canStartConsultation) {
+      return alerts.filter(
+        (alert) =>
+          alert.action?.label !== "Start Consultation" &&
+          alert.action?.label !== "Open Queue",
+      );
+    }
+    return alerts;
+  }, [alerts, canStartConsultation]);
+
   const handleDismissAlert = (id: string) => {
     setDismissedAlerts((prev) => [...prev, id]);
   };
 
   return (
     <DashboardAlertsUI
-      alerts={alerts}
+      alerts={filteredAlerts}
       progressPercentage={progressPercentage}
       todayAppointments={todayAppointments}
       completedAppointments={completedAppointments}
