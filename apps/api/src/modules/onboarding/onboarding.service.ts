@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
 import * as bcrypt from 'bcrypt';
 import type { PaymentData } from '@workspace/types';

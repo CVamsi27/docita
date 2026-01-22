@@ -6,7 +6,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { MonitoringService } from '../../monitoring/monitoring.service';
+import { MonitoringService } from '../monitoring/monitoring.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';

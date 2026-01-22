@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Tier, Feature, FEATURE_TIER_MAP } from '../../auth/tier.decorator';
+import { Tier, Feature, FEATURE_TIER_MAP } from '../auth/tier.decorator';
 import { ClinicTier } from '@workspace/db';
 import {
   TIER_PRICING,

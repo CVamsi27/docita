@@ -8,7 +8,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { AuditModule } from '../audit/audit.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+
+import { RazorpayPaymentProvider } from './providers/razorpay.provider';
 
 @Module({
   imports: [
@@ -28,7 +30,11 @@ import { PaymentGateway } from '../../gateways/payment.gateway';
     PaymentsService,
     PaymentRetryService,
     PrismaService,
-    PaymentGateway,
+    PaymentWebSocketGateway,
+    {
+      provide: 'IPaymentProvider',
+      useClass: RazorpayPaymentProvider,
+    },
   ],
   exports: [PaymentsService, PaymentRetryService],
 })

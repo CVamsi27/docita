@@ -1,27 +1,28 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { AppLogger } from './common/services/logger.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
-import { PatientsModule } from './patients/patients.module';
-import { AppointmentsModule } from './appointments/appointments.module';
-import { AuthModule } from './auth/auth.module';
-import { PrescriptionsModule } from './prescriptions/prescriptions.module';
-import { InvoicesModule } from './invoices/invoices.module';
-import { DocumentsModule } from './documents/documents.module';
-import { ImportsModule } from './imports/imports.module';
+import { PatientsModule } from './modules/patients/patients.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { PrescriptionsModule } from './modules/prescriptions/prescriptions.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { ImportsModule } from './modules/imports/imports.module';
 import { ConfigModule } from '@nestjs/config';
 
-import { DashboardModule } from './dashboard/dashboard.module';
-import { UploadsModule } from './uploads/uploads.module';
-import { TemplatesModule } from './templates/templates.module';
-import { CustomFieldsModule } from './custom-fields/custom-fields.module';
-import { AnalyticsModule } from './analytics/analytics.module';
-import { RemindersModule } from './reminders/reminders.module';
-import { ClinicsModule } from './clinics/clinics.module';
-import { DoctorClinicsModule } from './doctor-clinics/doctor-clinics.module';
-import { DoctorsModule } from './doctors/doctors.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { TemplatesModule } from './modules/templates/templates.module';
+import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
+import { ClinicsModule } from './modules/clinics/clinics.module';
+import { DoctorClinicsModule } from './modules/doctor-clinics/doctor-clinics.module';
+import { DoctorsModule } from './modules/doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
@@ -30,23 +31,23 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { BillingModule } from './modules/billing/billing.module';
-import { PrescriptionTemplatesModule } from './prescription-templates/prescription-templates.module';
-import { MedicalCodingModule } from './medical-coding/medical-coding.module';
+import { PrescriptionTemplatesModule } from './modules/prescription-templates/prescription-templates.module';
+import { MedicalCodingModule } from './modules/medical-coding/medical-coding.module';
 import { ConfigModule as AppConfigModule } from './modules/config/config.module';
-import { PaymentGateway } from './gateways/payment.gateway';
-import { LabTestsModule } from './lab-tests/lab-tests.module';
-import { InventoryModule } from './inventory/inventory.module';
-import { FeedbackModule } from './feedback/feedback.module';
-import { MonitoringModule } from './monitoring/monitoring.module';
+import { PaymentWebSocketGateway } from './gateways/payment.websocket.gateway';
+import { LabTestsModule } from './modules/lab-tests/lab-tests.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
-import { FhirModule } from './fhir/fhir.module';
-import { UsersModule } from './users/users.module';
-import { ContactModule } from './contact/contact.module';
+import { FhirModule } from './modules/fhir/fhir.module';
+import { UsersModule } from './modules/users/users.module';
+import { ContactModule } from './modules/contact/contact.module';
 import { AIModule } from './modules/ai/ai.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
-import { IpdModule } from './ipd/ipd.module';
-import { PerformanceModule } from './performance/performance.module';
+import { IpdModule } from './modules/ipd/ipd.module';
+import { PerformanceModule } from './modules/performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 
@@ -129,7 +130,7 @@ import { CommonServicesModule } from './common/services';
   controllers: [AppController],
   providers: [
     AppService,
-    PaymentGateway,
+    PaymentWebSocketGateway,
     // Apply rate limiting globally
     {
       provide: APP_GUARD,
@@ -140,6 +141,12 @@ import { CommonServicesModule } from './common/services';
       provide: APP_INTERCEPTOR,
       useClass: TenantContextInterceptor,
     },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard, // Global Role Guard - verify if needed globally or per controller
+    // },
+    AppLogger,
   ],
+  exports: [AppLogger],
 })
 export class AppModule {}

@@ -5,7 +5,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+import { IPaymentProvider } from './providers/payment.provider.interface';
 
 // Mock Razorpay
 jest.mock('razorpay', () => {
@@ -25,7 +26,8 @@ describe('PaymentsService', () => {
   let whatsappService: jest.Mocked<WhatsappService>;
   let whatsappTemplates: jest.Mocked<WhatsappTemplatesService>;
   let pushNotifications: jest.Mocked<PushNotificationService>;
-  let paymentGateway: jest.Mocked<PaymentGateway>;
+  let paymentGateway: jest.Mocked<PaymentWebSocketGateway>;
+  let paymentProvider: jest.Mocked<IPaymentProvider>;
 
   const mockPatient = {
     id: 'patient-1',
@@ -107,6 +109,15 @@ describe('PaymentsService', () => {
       emitPaymentUpdate: jest.fn(),
     };
 
+    const mockPaymentProvider = {
+      createPaymentLink: jest.fn().mockResolvedValue({
+        id: 'plink_test123',
+        short_url: 'https://rzp.io/test123',
+        status: 'created',
+      }),
+      verifySignature: jest.fn().mockReturnValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentsService,
@@ -114,7 +125,8 @@ describe('PaymentsService', () => {
         { provide: WhatsappService, useValue: mockWhatsappService },
         { provide: WhatsappTemplatesService, useValue: mockWhatsappTemplates },
         { provide: PushNotificationService, useValue: mockPushNotifications },
-        { provide: PaymentGateway, useValue: mockPaymentGateway },
+        { provide: PaymentWebSocketGateway, useValue: mockPaymentGateway },
+        { provide: 'IPaymentProvider', useValue: mockPaymentProvider },
       ],
     }).compile();
 
@@ -123,7 +135,8 @@ describe('PaymentsService', () => {
     whatsappService = module.get(WhatsappService);
     whatsappTemplates = module.get(WhatsappTemplatesService);
     pushNotifications = module.get(PushNotificationService);
-    paymentGateway = module.get(PaymentGateway);
+    paymentGateway = module.get(PaymentWebSocketGateway);
+    paymentProvider = module.get('IPaymentProvider');
   });
 
   it('should be defined', () => {

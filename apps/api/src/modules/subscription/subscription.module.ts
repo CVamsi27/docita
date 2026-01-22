@@ -9,7 +9,7 @@ import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { RazorpaySubscriptionGateway } from '../../gateways/razorpay-subscription.gateway';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ReferralsModule } from '../referrals/referrals.module';
 
 @Module({
@@ -22,7 +22,7 @@ import { ReferralsModule } from '../referrals/referrals.module';
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,
-    PaymentGateway,
+    PaymentWebSocketGateway,
   ],
   exports: [SubscriptionService, SubscriptionBillingService],
 })

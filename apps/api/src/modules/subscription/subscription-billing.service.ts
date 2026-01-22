@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { PaymentProvider } from '../../gateways/payment-gateway.interface';
 import { ClinicTier, BillingCycle, Prisma } from '@workspace/db';
 import {
@@ -60,7 +60,7 @@ export class SubscriptionBillingService {
   constructor(
     private prisma: PrismaService,
     private gatewayFactory: PaymentGatewayFactory,
-    private paymentGateway: PaymentGateway,
+    private paymentGateway: PaymentWebSocketGateway,
   ) {}
 
   // =========================================================================

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import {
@@ -52,7 +52,7 @@ describe('SubscriptionBillingService', () => {
         SubscriptionBillingService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: PaymentGatewayFactory, useValue: mockPaymentGatewayFactory },
-        { provide: PaymentGateway, useValue: {} }, // WebSocket gateway mock if needed
+        { provide: PaymentWebSocketGateway, useValue: {} }, // WebSocket gateway mock if needed
         { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();

@@ -1,11 +1,15 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
-import { PaymentGateway } from '../../gateways/payment.gateway';
-import Razorpay from 'razorpay';
-import * as crypto from 'crypto';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+import { IPaymentProvider } from './providers/payment.provider.interface';
 
 interface PaymentSessionWithRelations {
   id: string;
@@ -49,20 +53,15 @@ interface RazorpayWebhookPayload {
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private razorpay: Razorpay;
 
   constructor(
     private prisma: PrismaService,
     private whatsapp: WhatsappService,
     private whatsappTemplates: WhatsappTemplatesService,
     private pushNotifications: PushNotificationService,
-    private paymentGateway: PaymentGateway,
-  ) {
-    this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || 'test_key',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || 'test_secret',
-    });
-  }
+    private paymentGateway: PaymentWebSocketGateway,
+    @Inject('IPaymentProvider') private paymentProvider: IPaymentProvider,
+  ) {}
 
   async createPaymentSession(dto: {
     invoiceId: string;
@@ -114,8 +113,8 @@ export class PaymentsService {
 
     let paymentLink: any = null;
     try {
-      paymentLink = await this.razorpay.paymentLink.create({
-        amount: amountInPaise,
+      const link = await this.paymentProvider.createPaymentLink({
+        amount: dto.amount,
         currency: dto.currency,
         description: dto.description || `Invoice #${invoice.id.slice(0, 8)}`,
         customer: {
@@ -123,16 +122,16 @@ export class PaymentsService {
           email: patient.email || undefined,
           contact: patient.phoneNumber,
         },
-        notify: {
-          sms: false,
-          email: false,
-        },
-        reminder_enable: false,
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
-        callback_method: 'get',
+        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
       });
+
+      paymentLink = {
+        id: link.id,
+        short_url: link.shortUrl, // Legacy mapping
+        ...link.raw,
+      };
     } catch (error) {
-      this.logger.error('Failed to create Razorpay payment link', error);
+      this.logger.error('Failed to create payment link', error);
       throw new BadRequestException('Failed to create payment link');
     }
 
@@ -278,9 +277,9 @@ export class PaymentsService {
     payload: RazorpayWebhookPayload,
     signature: string,
   ) {
-    const isValid = this.verifyRazorpaySignature(payload, signature);
+    const isValid = this.paymentProvider.verifySignature(payload, signature);
     if (!isValid) {
-      this.logger.error('Invalid Razorpay webhook signature');
+      this.logger.error('Invalid webhook signature');
       throw new BadRequestException('Invalid signature');
     }
 
@@ -473,20 +472,7 @@ export class PaymentsService {
     }
   }
 
-  private verifyRazorpaySignature(
-    payload: RazorpayWebhookPayload,
-    signature: string,
-  ): boolean {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    if (!webhookSecret) return true;
-
-    const expectedSignature = crypto
-      .createHmac('sha256', webhookSecret)
-      .update(JSON.stringify(payload))
-      .digest('hex');
-
-    return expectedSignature === signature;
-  }
+  // Removed verifyRazorpaySignature as it is now delegated to the provider
 
   async getPaymentSession(id: string) {
     return this.prisma.paymentSession.findUnique({

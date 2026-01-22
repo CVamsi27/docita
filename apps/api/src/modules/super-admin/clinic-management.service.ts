@@ -4,8 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PaymentGateway } from '../../gateways/payment.gateway';
-import { ClinicTier, Prisma } from '@workspace/db';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+import { ClinicTier, Prisma, Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
@@ -18,12 +18,16 @@ import type {
   UpdateAdminDto,
 } from '@workspace/types';
 import type { UpdateClinicDto } from './dto/clinic-management.dto';
+import { ClinicFactory } from '../clinics/factories/clinic.factory';
+import { UserFactory } from '../users/factories/user.factory';
 
 @Injectable()
 export class ClinicManagementService {
   constructor(
     private prisma: PrismaService,
-    private paymentGateway: PaymentGateway,
+    private paymentGateway: PaymentWebSocketGateway,
+    private clinicFactory: ClinicFactory,
+    private userFactory: UserFactory,
   ) {}
 
   async getAllClinics(options?: { cursor?: string; limit?: number }) {
@@ -65,22 +69,27 @@ export class ClinicManagementService {
 
     const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
 
+    const clinicInput = this.clinicFactory.create({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      tier: (data.tier && data.tier !== 'INTELLIGENCE'
+        ? data.tier
+        : 'CORE') as ClinicTier,
+    });
+
+    const userInput = this.userFactory.create(Role.ADMIN, {
+      email: data.adminEmail,
+      name: data.adminName,
+      passwordHash: hashedPassword,
+    });
+
     return this.prisma.clinic.create({
       data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        tier: (data.tier && data.tier !== 'INTELLIGENCE'
-          ? data.tier
-          : 'CORE') as ClinicTier,
+        ...clinicInput,
         users: {
-          create: {
-            email: data.adminEmail,
-            name: data.adminName,
-            password: hashedPassword,
-            role: 'ADMIN',
-          },
+          create: userInput,
         },
       },
       include: {

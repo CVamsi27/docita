@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AIService } from './ai.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { MonitoringService } from '../../monitoring/monitoring.service';
+import { MonitoringService } from '../monitoring/monitoring.service';
 
 describe('AIService', () => {
   let service: AIService;

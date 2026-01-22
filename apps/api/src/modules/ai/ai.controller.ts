@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AIService } from './ai.service';
-import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import { TierGuard } from '../../auth/tier.guard';
-import { RequireFeature, Feature } from '../../auth/tier.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TierGuard } from '../auth/tier.guard';
+import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import {

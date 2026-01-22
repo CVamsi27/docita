@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
-import { PaymentGateway } from '../../gateways/payment.gateway';
+import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ClinicTier, BillingCycle } from '@workspace/db';
 
 interface RazorpaySubscriptionEntity {
@@ -44,7 +44,7 @@ export class SubscriptionWebhookService {
     private prisma: PrismaService,
     private billingService: SubscriptionBillingService,
     private gatewayFactory: PaymentGatewayFactory,
-    private paymentGateway: PaymentGateway,
+    private paymentGateway: PaymentWebSocketGateway,
   ) {}
 
   async processWebhook(

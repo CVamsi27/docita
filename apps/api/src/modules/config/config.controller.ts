@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ConfigService } from './config.service';
-import { Public } from '../../auth/public.decorator';
+import { Public } from '../auth/public.decorator';
 import {
   FormOptionsResponseDto,
   AppConstantsResponseDto,

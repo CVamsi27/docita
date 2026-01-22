@@ -15,7 +15,7 @@ import {
   Headers,
   RawBodyRequest,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto } from './dto/send-template.dto';
 import { MetaWebhookPayload } from './types/webhook.types';

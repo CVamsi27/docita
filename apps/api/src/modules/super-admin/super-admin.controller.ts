@@ -8,9 +8,9 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import { RolesGuard } from '../../auth/roles.guard';
-import { Roles } from '../../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { ClinicTier } from '@workspace/db';
 import { ClinicManagementService } from './clinic-management.service';
 import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
@@ -38,7 +38,7 @@ import {
   SuperAdminUserResponseDto,
   SuccessResponseDto,
 } from './dto/super-admin.dto';
-import { ClinicResponseDto } from '../../clinics/dto/clinics.dto';
+import { ClinicResponseDto } from '../clinics/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('super-admin')

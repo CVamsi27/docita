@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
-import { MonitoringService } from '../../monitoring/monitoring.service';
+import { MonitoringService } from '../../modules/monitoring/monitoring.service';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodIssue } from 'zod';
 

@@ -2,6 +2,9 @@ import { PrismaClient } from '@workspace/db';
 import { execSync } from 'child_process';
 import path from 'path';
 
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+
 let prisma: PrismaClient;
 
 export function setupTestDatabase() {
@@ -13,13 +16,9 @@ export function setupTestDatabase() {
     );
   }
 
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: testDbUrl,
-      },
-    },
-  } as any); // Cast to any to bypass strict type check for now if datasources is internal or protected
+  const pool = new Pool({ connectionString: testDbUrl });
+  const adapter = new PrismaPg(pool);
+  prisma = new PrismaClient({ adapter });
 
   // Run migrations for test database
   try {
