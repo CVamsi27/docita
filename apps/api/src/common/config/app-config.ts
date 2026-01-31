@@ -8,7 +8,14 @@ import { z } from 'zod';
 export const EnvSchema = z.object({
   // Required - App will not start without these
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_SECRET: z
+    .string()
+    .min(1, 'JWT_SECRET is required')
+    .refine((val) => {
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd && val.length < 32) return false;
+      return true;
+    }, 'JWT_SECRET must be at least 32 characters in production'),
 
   // Optional with defaults
   NODE_ENV: z
