@@ -8,6 +8,14 @@ import { ConfigService } from '@nestjs/config';
       isGlobal: true,
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        // FORCE MEMORY CACHE (Redis disabled per user request)
+        console.warn('Redis disabled by configuration. Using in-memory cache.');
+        return {
+          isGlobal: true,
+          ttl: 300000,
+        };
+
+        /*
         const redisUrl = configService.get<string>('REDIS_URL');
 
         if (!redisUrl) {
@@ -23,6 +31,7 @@ import { ConfigService } from '@nestjs/config';
             url: redisUrl,
             ttl: 300000, // 5 minutes default TTL
             isGlobal: true,
+            isGlobal: true,
           };
         } catch {
           console.warn('Redis store not available, using in-memory cache');
@@ -31,6 +40,7 @@ import { ConfigService } from '@nestjs/config';
             ttl: 300000,
           };
         }
+        */
       },
     }),
   ],

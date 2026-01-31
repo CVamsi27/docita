@@ -30,7 +30,6 @@ interface AuthRequest {
 
 @Controller('prescriptions')
 @UseGuards(JwtAuthGuard, TierGuard)
-@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 export class PrescriptionsController {
   constructor(private readonly prescriptionsService: PrescriptionsService) {}
 
@@ -54,6 +53,7 @@ export class PrescriptionsController {
   }
 
   @Post()
+  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   @ZodSerializerDto(PrescriptionResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({

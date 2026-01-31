@@ -33,7 +33,6 @@ interface AuthRequest {
 
 @Controller('invoices')
 @UseGuards(JwtAuthGuard, TierGuard)
-@RequireFeature(Feature.INVOICING)
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
@@ -65,6 +64,7 @@ export class InvoicesController {
   }
 
   @Post()
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
@@ -74,6 +74,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   update(@Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, dto);

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
+// import { BullModule } from '@nestjs/bull';
+import { MockBullModule as BullModule } from '../../common/mocks/mock-bull.module';
 import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';

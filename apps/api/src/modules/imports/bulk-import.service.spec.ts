@@ -39,6 +39,9 @@ describe('BulkImportService', () => {
 
     service = module.get<BulkImportService>(BulkImportService);
     prismaService = module.get<PrismaService>(PrismaService);
+
+    // Silence error logs during tests
+    jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
 
   it('should be defined', () => {

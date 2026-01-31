@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
+// import { BullModule } from '@nestjs/bull';
+import { MockBullModule as BullModule } from '../../common/mocks/mock-bull.module';
 import { PaymentsService } from './payments.service';
 import { PaymentRetryService } from './payment-retry.service';
 import { PaymentsController } from './payments.controller';

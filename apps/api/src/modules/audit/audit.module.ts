@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
+// import { BullModule } from '@nestjs/bull';
+import { MockBullModule as BullModule } from '../../common/mocks/mock-bull.module';
 import { AuditService } from './audit.service';
 import { AuditController } from './audit.controller';
 import { AuditEventListener } from './audit-event.listener';

@@ -45,6 +45,9 @@ describe('AuditService', () => {
 
     service = module.get<AuditService>(AuditService);
     prismaService = module.get<PrismaService>(PrismaService);
+
+    // Silence error logs during tests
+    jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
 
   it('should be defined', () => {
