@@ -8,6 +8,12 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import {
@@ -24,11 +30,14 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('check-email')
+  @ApiOperation({ summary: 'Check if email exists' })
+  @ApiResponse({ status: 200, description: 'Email check result' })
   @ZodSerializerDto(CheckEmailResponseDto)
   async checkEmail(@Body() dto: CheckEmailDto) {
     const exists = await this.authService.checkEmailExists(dto.email);
@@ -36,6 +45,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Successfully logged in' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @ZodSerializerDto(LoginResponseDto)
   async login(@Body() dto: LoginDto) {
     const user = await this.authService.validateUser(dto.email, dto.password);
@@ -46,6 +58,9 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiOperation({ summary: 'Register new user and clinic' })
+  @ApiResponse({ status: 201, description: 'Successfully registered' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
   @ZodSerializerDto(RegisterResponseDto)
   async register(@Body() dto: RegisterDto) {
     return this.authService.register({
@@ -58,6 +73,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ZodSerializerDto(ChangePasswordResponseDto)
   async changePassword(
     @Request() req: AuthenticatedRequest,
@@ -73,6 +92,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('validate')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Validate current session' })
+  @ApiResponse({ status: 200, description: 'Session is valid' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ZodSerializerDto(ValidateSessionResponseDto)
   validate(@Request() req: AuthenticatedRequest) {
     return {

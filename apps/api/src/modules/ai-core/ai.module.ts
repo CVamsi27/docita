@@ -6,6 +6,6 @@ import { AiFactory } from './factories/ai.factory';
 @Module({
   imports: [ConfigModule],
   providers: [AiService, AiFactory],
-  exports: [AiService],
+  exports: [AiService, AiFactory],
 })
 export class AiModule {}

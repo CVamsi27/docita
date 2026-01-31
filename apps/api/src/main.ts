@@ -5,12 +5,22 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { MonitoringService } from './modules/monitoring/monitoring.service';
-import { getCorsOrigins } from './common/config/app-config';
+import {
+  getCorsOrigins,
+  validateEnv,
+  isDevelopment,
+} from './common/config/app-config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import compression from 'compression';
+import helmet from 'helmet';
 
+// Load environment variables first
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+// Validate environment configuration (fail fast if invalid)
+validateEnv();
 
 // Suppress TimeoutNegativeWarning from third-party libraries
 // This occurs when a calculated timeout value is negative (Node corrects to 1ms)
@@ -24,6 +34,9 @@ process.on('warning', (warning) => {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Security Headers
+  app.use(helmet());
+
   // Get monitoring service for filters and interceptors
   const monitoringService = app.get(MonitoringService);
 
@@ -36,8 +49,7 @@ async function bootstrap() {
   // Global interceptor for request logging and performance monitoring
   app.useGlobalInterceptors(new RequestLoggingInterceptor(monitoringService));
 
-  // Global cache interceptor for response caching
-  app.useGlobalInterceptors(new CacheInterceptor());
+  // Global cache interceptor is now registered in AppModule to support DI
 
   // Enable compression (gzip/brotli) for responses
   app.use(
@@ -74,6 +86,41 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
+
+  // Swagger/OpenAPI Documentation (only in development)
+  if (isDevelopment()) {
+    const config = new DocumentBuilder()
+      .setTitle('Docita API')
+      .setDescription(
+        'Healthcare practice management API for appointments, patients, prescriptions, and billing.',
+      )
+      .setVersion('1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Enter JWT token',
+        },
+        'JWT-auth',
+      )
+      .addTag('auth', 'Authentication endpoints')
+      .addTag('patients', 'Patient management')
+      .addTag('appointments', 'Appointment scheduling')
+      .addTag('prescriptions', 'Prescription management')
+      .addTag('invoices', 'Billing and invoices')
+      .addTag('clinics', 'Clinic management')
+      .addTag('whatsapp', 'WhatsApp messaging')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+    console.log('📚 Swagger docs available at /api/docs');
+  }
 
   const port = process.env.PORT || 3001;
   const server = await app.listen(port);

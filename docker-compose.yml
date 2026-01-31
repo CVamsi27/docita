@@ -24,13 +24,33 @@ services:
           ignore:
             - node_modules/
 
-  # Placeholder for API service if needed later
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/api/Dockerfile
-  #   ports:
-  #     - "3001:3001"
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://docita:docita@db:5432/docita?schema=public&sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    depends_on:
+      - db
+      - redis
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/api
+          target: /app/apps/api
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./packages/types/src
+          target: /app/packages/types/src
 
   # Local PostgreSQL for development
   # Production uses Neon Serverless PostgreSQL
@@ -45,5 +65,14 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
 volumes:
   db_data:
+
+networks:
+  default:
+    name: docita-network

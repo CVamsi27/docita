@@ -14,6 +14,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
+import { settingsApi } from "../../api/settings.api";
 
 const changePasswordSchema = z
   .object({
@@ -39,14 +40,17 @@ export function ChangePasswordSettings() {
   });
 
   const handleSubmit = async (data: ChangePasswordFormValues) => {
-    // TODO: Implement actual API call
-    console.log("Password change requested", data);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast.success("Password updated successfully");
-    form.reset();
+    try {
+      await settingsApi.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      toast.success("Password updated successfully");
+      form.reset();
+    } catch (error) {
+      // Error is handled by global interceptor or toast
+      console.error("Failed to change password", error);
+    }
   };
 
   return (

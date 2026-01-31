@@ -4,21 +4,23 @@
  */
 
 import * as crypto from 'crypto';
-import { Patient } from '@workspace/types';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16; // 128 bits
 const TAG_LENGTH = 16; // 128 bits
 
+@Injectable()
 export class EncryptionService {
   private readonly logger = new Logger(EncryptionService.name);
   private encryptionKey: Buffer;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     // In production, load from secure environment variable or key management service
-    const key = process.env.ENCRYPTION_KEY || this.generateKey();
+    const key =
+      this.configService.get<string>('ENCRYPTION_KEY') || this.generateKey();
     this.encryptionKey = Buffer.from(key, 'hex');
   }
 
@@ -155,5 +157,3 @@ export class EncryptionService {
     return crypto.randomBytes(length).toString('hex');
   }
 }
-
-export const encryptionService = new EncryptionService();

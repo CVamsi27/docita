@@ -1,3 +1,108 @@
+import { z } from 'zod';
+
+/**
+ * Environment variable validation schema.
+ * Validates all required and optional env vars at startup.
+ * Uses Zod for type-safe validation with clear error messages.
+ */
+export const EnvSchema = z.object({
+  // Required - App will not start without these
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+
+  // Optional with defaults
+  NODE_ENV: z
+    .enum(['development', 'staging', 'production'])
+    .default('development'),
+  PORT: z.coerce.number().default(3001),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+
+  // Optional - Features gracefully degrade if not set
+  APP_URL: z.string().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().optional(),
+  CORS_ORIGINS: z.string().optional(),
+
+  // Payment (Razorpay)
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+
+  // WhatsApp
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+
+  // AI
+  AI_API_KEY: z.string().optional(),
+
+  // Google Cloud (OCR)
+  GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
+  GOOGLE_CLOUD_CREDENTIALS_JSON: z.string().optional(),
+
+  // OCR Thresholds
+  OCR_CONFIDENCE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.75),
+  OCR_MEDICAL_FIELD_THRESHOLD: z.coerce.number().min(0).max(1).default(0.8),
+  OCR_CONTACT_FIELD_THRESHOLD: z.coerce.number().min(0).max(1).default(0.65),
+
+  // Redis
+  REDIS_URL: z.string().optional(),
+});
+
+export type EnvConfig = z.infer<typeof EnvSchema>;
+
+let validatedEnv: EnvConfig | null = null;
+
+/**
+ * Validates environment variables at startup.
+ * Call this before starting the application.
+ * Exits with code 1 if validation fails.
+ */
+export function validateEnv(): EnvConfig {
+  if (validatedEnv) return validatedEnv;
+
+  const result = EnvSchema.safeParse(process.env);
+
+  if (!result.success) {
+    console.error('\n❌ Environment configuration validation failed:\n');
+    const formatted = result.error.format();
+
+    // Print each error in a readable format
+    Object.entries(formatted).forEach(([key, value]) => {
+      if (
+        key !== '_errors' &&
+        typeof value === 'object' &&
+        '_errors' in value
+      ) {
+        const errors = (value as { _errors: string[] })._errors;
+        if (errors.length > 0) {
+          console.error(`  • ${key}: ${errors.join(', ')}`);
+        }
+      }
+    });
+
+    console.error(
+      '\nPlease check your .env file and ensure all required variables are set.',
+    );
+    console.error('See .env.example for a template.\n');
+    process.exit(1);
+  }
+
+  validatedEnv = result.data;
+  return validatedEnv;
+}
+
+/**
+ * Gets a validated environment variable.
+ * Must call validateEnv() first.
+ */
+export function getEnv(): EnvConfig {
+  if (!validatedEnv) {
+    throw new Error(
+      'Environment not validated. Call validateEnv() before accessing env vars.',
+    );
+  }
+  return validatedEnv;
+}
+
 export function getCorsOrigins(): string[] {
   const envOrigins = process.env.CORS_ORIGINS;
   if (envOrigins) {
@@ -93,5 +198,7 @@ export default {
   getEnvironment,
   isProduction,
   isDevelopment,
+  validateEnv,
+  getEnv,
   CONFIG,
 };

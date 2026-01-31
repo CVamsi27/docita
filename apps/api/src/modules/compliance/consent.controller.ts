@@ -10,10 +10,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { DPDPComplianceService } from './dpdp-compliance.service';
-import { ConsentType, ConsentStatus } from '@workspace/db';
+import { ConsentType, ConsentStatus, Role } from '@workspace/db';
 import { Request } from 'express';
 import { z } from 'zod';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 const recordConsentSchema = z.object({
   patientId: z.string(),
@@ -76,8 +79,9 @@ export class ConsentController {
   }
 
   @Post('patients/:patientId/delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(200)
-  // TODO: Add Role Guard for ADMIN only
   async deletePatientData(
     @Param('patientId') patientId: string,
     @Body() body: { reason: string; requestedBy: string },

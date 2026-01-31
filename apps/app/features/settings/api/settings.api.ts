@@ -48,4 +48,7 @@ export const settingsApi = {
   getReminderSettings: () => api.get<ReminderSettings>("/settings/reminders"),
   updateReminderSettings: (data: Partial<ReminderSettings>) =>
     api.patch<ReminderSettings>("/settings/reminders", data),
+  // Security
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post("/auth/change-password", data),
 };

@@ -50,6 +50,7 @@ import { IpdModule } from './modules/ipd/ipd.module';
 import { PerformanceModule } from './modules/performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 
 // Extensibility Infrastructure
 import { EventsModule } from './common/events';
@@ -140,6 +141,11 @@ import { CommonServicesModule } from './common/services';
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantContextInterceptor,
+    },
+    // Global Cache Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
     // {
     //   provide: APP_GUARD,

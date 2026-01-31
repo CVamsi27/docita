@@ -9,6 +9,7 @@ import { WhatsappModule } from '../../modules/whatsapp/whatsapp.module';
 import { EncryptionService } from '../encryption.service';
 import { DPDPComplianceService } from '../../modules/compliance/dpdp-compliance.service';
 import { AuditModule } from '../../modules/audit/audit.module';
+import { ComplianceModule } from '../../modules/compliance/compliance.module';
 
 /**
  * Common Services Module
@@ -23,7 +24,7 @@ import { AuditModule } from '../../modules/audit/audit.module';
  */
 @Global()
 @Module({
-  imports: [PrismaModule, WhatsappModule, AuditModule],
+  imports: [PrismaModule, WhatsappModule, AuditModule, ComplianceModule],
   providers: [
     FeatureFlagService,
     FeatureFlagGuard,
@@ -31,7 +32,6 @@ import { AuditModule } from '../../modules/audit/audit.module';
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
-    DPDPComplianceService,
   ],
   exports: [
     FeatureFlagService,
@@ -40,7 +40,7 @@ import { AuditModule } from '../../modules/audit/audit.module';
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
-    DPDPComplianceService,
+    ComplianceModule,
   ],
 })
 export class CommonServicesModule {}

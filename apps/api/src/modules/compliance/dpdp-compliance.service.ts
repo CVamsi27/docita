@@ -7,6 +7,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConsentType, ConsentStatus } from '@workspace/db';
+import { AnonymizationFactory } from './factories/anonymization.factory';
+import { DataExportFactory } from './factories/data-export.factory';
 
 export enum DataSubjectRight {
   ACCESS = 'ACCESS', // Right to access data
@@ -45,6 +47,8 @@ export class DPDPComplianceService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private anonymizationFactory: AnonymizationFactory,
+    private dataExportFactory: DataExportFactory,
   ) {}
 
   /**
@@ -156,21 +160,10 @@ export class DPDPComplianceService {
     data: DataSubjectRequest,
     ipAddress?: string,
   ): Promise<any> {
-    // Retrieve all patient data
-    const patientData = await this.prisma.patient.findUnique({
-      where: { id: data.patientId },
-      include: {
-        appointments: true,
-        prescriptions: true,
-        documents: true,
-        invoices: true,
-        medicalConditions: true,
-        patientAllergies: true,
-        familyHistory: true,
-        socialHistory: true,
-        immunizations: true,
-      },
-    });
+    // Retrieve all patient data using factory
+    const patientData = await this.dataExportFactory.exportPatientData(
+      data.patientId,
+    );
 
     // Audit log
     await this.auditService.logAction({
@@ -245,8 +238,10 @@ export class DPDPComplianceService {
       );
     }
 
-    // Anonymize instead of delete (for medical records retention)
-    const anonymizedPatient = await this.anonymizePatient(data.patientId);
+    // Anonymize instead of delete (for medical records retention) using factory
+    const anonymizedPatient = await this.anonymizationFactory.anonymizePatient(
+      data.patientId,
+    );
 
     // Audit log
     await this.auditService.logAction({
@@ -275,8 +270,10 @@ export class DPDPComplianceService {
     data: DataSubjectRequest,
     ipAddress?: string,
   ): Promise<any> {
-    // Export patient data in machine-readable format (JSON)
-    const exportData = await this.exportPatientData(data.patientId);
+    // Export patient data in machine-readable format (JSON) using factory
+    const exportData = await this.dataExportFactory.exportPatientData(
+      data.patientId,
+    );
 
     // Audit log
     await this.auditService.logAction({
@@ -287,7 +284,7 @@ export class DPDPComplianceService {
       resourceId: data.patientId,
       metadata: {
         format: 'JSON',
-        recordCount: Object.keys(exportData).length,
+        recordCount: exportData.patient ? 1 : 0, // Simplified metric
       },
       ipAddress,
     });
@@ -297,28 +294,6 @@ export class DPDPComplianceService {
     );
 
     return exportData;
-  }
-
-  /**
-   * Anonymize patient data
-   */
-  private async anonymizePatient(patientId: string): Promise<any> {
-    const randomId = `ANON-${Date.now()}`;
-
-    return await this.prisma.patient.update({
-      where: { id: patientId },
-      data: {
-        firstName: 'Anonymous',
-        lastName: 'Patient',
-        email: `${randomId}@anonymized.local`,
-        phoneNumber: '0000000000',
-        address: null,
-        dateOfBirth: new Date('1900-01-01'),
-        emergencyContactName: null,
-        emergencyContactPhone: null,
-        whatsappConsent: false,
-      },
-    });
   }
 
   /**
@@ -353,43 +328,6 @@ export class DPDPComplianceService {
     }
 
     return obligations;
-  }
-
-  /**
-   * Export patient data in portable format
-   */
-  private async exportPatientData(patientId: string): Promise<any> {
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: patientId },
-      include: {
-        appointments: {
-          include: {
-            vitalSign: true,
-            diagnoses: true,
-            procedures: true,
-          },
-        },
-        prescriptions: {
-          include: {
-            medications: true,
-          },
-        },
-        documents: true,
-        invoices: true,
-        medicalConditions: true,
-        patientAllergies: true,
-        familyHistory: true,
-        socialHistory: true,
-        immunizations: true,
-      },
-    });
-
-    return {
-      exportDate: new Date().toISOString(),
-      format: 'JSON',
-      version: '1.0',
-      patient: patient,
-    };
   }
 
   /**

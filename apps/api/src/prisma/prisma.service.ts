@@ -8,8 +8,9 @@ import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { tenantExtension } from '../common/extensions/tenant.extension';
-import { encryptionExtension } from '../common/extensions/encryption.extension';
+import { createEncryptionExtension } from '../common/extensions/encryption.extension';
 import { tenantStorage } from '../common/middleware/tenant.middleware';
+import { EncryptionService } from '../common/encryption.service';
 
 @Injectable()
 export class PrismaService
@@ -19,7 +20,7 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
   private readReplica?: PrismaClient;
 
-  constructor() {
+  constructor(private encryptionService: EncryptionService) {
     let connectionString = process.env.DATABASE_URL;
 
     // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
@@ -104,7 +105,7 @@ export class PrismaService
 
       // Apply extensions to read replica
       this.readReplica = rawReadClient
-        .$extends(encryptionExtension)
+        .$extends(createEncryptionExtension(this.encryptionService))
         .$extends(tenantExtension) as unknown as PrismaClient;
       this.logger.log('Read replica client initialized');
     } else {
@@ -128,8 +129,9 @@ export class PrismaService
       // Apply extensions (DPDP Compliance & Tenant Isolation)
       // Since we are using driver adapters, legacy middleware ($use) is not supported.
       // We use $extends and mutate the singleton instance.
-      const extended =
-        this.$extends(encryptionExtension).$extends(tenantExtension);
+      const extended = this.$extends(
+        createEncryptionExtension(this.encryptionService),
+      ).$extends(tenantExtension);
       Object.assign(this, extended);
 
       this.logger.log('Primary database connection established');
