@@ -3,9 +3,9 @@ import { Module, DynamicModule } from '@nestjs/common';
 export interface Queue {
   add(data: any, opts?: any): Promise<any>;
   add(name: string, data: any, opts?: any): Promise<any>;
-  process(callback: Function): Promise<void>;
-  process(name: string, callback: Function): Promise<void>;
-  on(event: string, callback: Function): void;
+  process(callback: (...args: any[]) => any): Promise<void>;
+  process(name: string, callback: (...args: any[]) => any): Promise<void>;
+  on(event: string, callback: (...args: any[]) => any): void;
 }
 
 export const getQueueToken = (name: string) => `BullQueue_${name}`;
@@ -16,12 +16,17 @@ export class MockBullModule {
     const providers = options.map((option) => ({
       provide: getQueueToken(option.name),
       useValue: {
-        add: async () => {
-          console.warn(`[MockQueue] Job added to queue: ${option.name} (Redis Disabled)`);
-          return { id: 'mock-job-id' };
+        add: () => {
+          console.warn(
+            `[MockQueue] Job added to queue: ${option.name} (Redis Disabled)`,
+          );
+          return Promise.resolve({ id: 'mock-job-id' });
         },
-        process: async () => {
-           console.warn(`[MockQueue] Process handler registered for: ${option.name} (No-op)`);
+        process: () => {
+          console.warn(
+            `[MockQueue] Process handler registered for: ${option.name} (No-op)`,
+          );
+          return Promise.resolve();
         },
         on: () => {},
       } as Queue,
@@ -30,15 +35,15 @@ export class MockBullModule {
     return {
       module: MockBullModule,
       providers: providers,
-      exports: providers.map(p => p.provide),
+      exports: providers.map((p) => p.provide),
     };
   }
 
-    // Mock forRoot to prevent errors if we accidentally use it, 
-    // though we are replacing imports so it shouldn't be called.
-    static forRoot(): DynamicModule {
-        return {
-            module: MockBullModule,
-        };
-    }
+  // Mock forRoot to prevent errors if we accidentally use it,
+  // though we are replacing imports so it shouldn't be called.
+  static forRoot(): DynamicModule {
+    return {
+      module: MockBullModule,
+    };
+  }
 }

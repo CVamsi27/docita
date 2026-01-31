@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
     NestCacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         // FORCE MEMORY CACHE (Redis disabled per user request)
         console.warn('Redis disabled by configuration. Using in-memory cache.');
         return {
