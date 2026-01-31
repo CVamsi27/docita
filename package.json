@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "start": "pnpm --filter @docita/api run start:prod",
     "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --filter=@docita/landing",
     "dev:app": "turbo dev --filter=@docita/app --filter=@docita/api",
