@@ -5,6 +5,7 @@ import { WhatsappController } from './whatsapp.controller';
 import { ResponseHandlerService } from './response-handler.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { WhatsappEventListener } from './listeners/whatsapp.listener';
 
 @Module({
   imports: [PrismaModule],
@@ -14,6 +15,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
     WhatsappTemplatesService,
     ResponseHandlerService,
     StaffNotificationService,
+    WhatsappEventListener,
   ],
   exports: [
     WhatsappService,

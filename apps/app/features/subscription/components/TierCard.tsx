@@ -10,6 +10,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Tier, TierInfo } from "@/lib/tier-config";
 import { PlanFeature, PlanFeatures } from "./PlanFeatures";
 import { Building2, Crown, Rocket, Sparkles, Zap } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
 
 interface TierCardProps {
   tier: Tier;
@@ -75,15 +76,20 @@ export function TierCard({
   isCurrentTier,
   isLocked,
   className,
-}: TierCardProps) {
+  currentTierValue,
+  onSelect,
+}: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
   const Icon = TIER_ICONS[tierName] || Zap;
   const gradient = TIER_GRADIENTS[tierName] || TIER_GRADIENTS.CAPTURE;
 
+  const isUpgrade = currentTierValue !== undefined && tier > currentTierValue;
+  const isDowngrade = currentTierValue !== undefined && tier < currentTierValue;
+
   return (
     <Card
       className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
+        "relative overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col",
         "bg-linear-to-br border-2",
         gradient.card,
         isCurrentTier && "border-primary ring-2 ring-primary/20 shadow-lg",
@@ -117,9 +123,31 @@ export function TierCard({
         </div>
         <p className="text-xs text-muted-foreground mt-2">{info.description}</p>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 flex-1">
         <PlanFeatures features={features} maxDisplay={5} />
       </CardContent>
+      {onSelect && (
+        <div className="p-4 pt-0 mt-auto">
+          <Button
+            className={cn(
+              "w-full",
+              isCurrentTier && "bg-muted text-muted-foreground",
+              isUpgrade &&
+                "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+              isDowngrade && "bg-background hover:bg-muted border-primary/20",
+            )}
+            variant={isDowngrade ? "outline" : "default"}
+            disabled={isCurrentTier}
+            onClick={onSelect}
+          >
+            {isCurrentTier
+              ? "Current Plan"
+              : isUpgrade
+                ? "Upgrade"
+                : "Downgrade"}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

@@ -40,29 +40,61 @@ export const createEncryptionExtension = (
           // Execute query
           const result = await query(args);
 
-          // Decrypt on Response (Read)
-          if (
-            [
-              'findUnique',
-              'findFirst',
-              'findMany',
-              'create',
-              'update',
-              'upsert',
-              'delete',
-            ].includes(operation) &&
-            result
-          ) {
-            if (Array.isArray(result)) {
-              return result.map((item) =>
-                encryptionService.decryptPatientData(item),
-              );
-            } else {
-              return encryptionService.decryptPatientData(result);
-            }
-          }
-
           return result;
+        },
+      },
+    },
+    result: {
+      patient: {
+        email: {
+          needs: { email: true },
+          compute(patient) {
+            return patient.email
+              ? encryptionService.decrypt(patient.email)
+              : patient.email;
+          },
+        },
+        phoneNumber: {
+          needs: { phoneNumber: true },
+          compute(patient) {
+            return encryptionService.decrypt(patient.phoneNumber);
+          },
+        },
+        address: {
+          needs: { address: true },
+          compute(patient) {
+            return patient.address
+              ? encryptionService.decrypt(patient.address)
+              : patient.address;
+          },
+        },
+        emergencyContactPhone: {
+          needs: { emergencyContactPhone: true },
+          compute(patient) {
+            return patient.emergencyContactPhone
+              ? encryptionService.decrypt(patient.emergencyContactPhone)
+              : patient.emergencyContactPhone;
+          },
+        },
+        emergencyContactName: {
+          needs: { emergencyContactName: true },
+          compute(patient) {
+            return patient.emergencyContactName
+              ? encryptionService.decrypt(patient.emergencyContactName)
+              : patient.emergencyContactName;
+          },
+        },
+        firstName: {
+          needs: { firstName: true },
+          compute(patient) {
+            return encryptionService.decrypt(patient.firstName);
+          },
+        },
+        lastName: {
+          needs: { lastName: true },
+          compute(patient) {
+            return encryptionService.decrypt(patient.lastName);
+          },
         },
       },
     },

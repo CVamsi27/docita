@@ -52,6 +52,11 @@ export class WhatsappService {
    * Send a text message via WhatsApp Cloud API
    */
   async sendMessage({ to, message }: { to: string; message: string }) {
+    if (!this.phoneNumberId || !this.accessToken) {
+      this.logger.warn('WhatsApp not configured, skipping send');
+      return { success: false, messageId: 'skipped-no-config' };
+    }
+
     const cleanPhone = this.normalizePhoneNumber(to);
 
     try {
@@ -125,6 +130,11 @@ export class WhatsappService {
       index?: number;
     }>;
   }) {
+    if (!this.phoneNumberId || !this.accessToken) {
+      this.logger.warn('WhatsApp not configured, skipping template send');
+      return { success: false, messageId: 'skipped-no-config' };
+    }
+
     const cleanPhone = this.normalizePhoneNumber(to);
 
     try {
@@ -191,6 +201,11 @@ export class WhatsappService {
     headerText?: string;
     footerText?: string;
   }) {
+    if (!this.phoneNumberId || !this.accessToken) {
+      this.logger.warn('WhatsApp not configured, skipping interactive message');
+      return { success: false, messageId: 'skipped-no-config' };
+    }
+
     const cleanPhone = this.normalizePhoneNumber(to);
 
     // WhatsApp allows max 3 buttons
@@ -783,9 +798,155 @@ export class WhatsappService {
       },
     });
 
-    return {
-      totalPatients,
-      subscribers,
+    return { totalPatients, subscribers };
+  }
+
+  // ==========================================================================
+  // System / Automated Notifications
+  // ==========================================================================
+
+  async sendPrescriptionSystem(id: string, clinicId: string) {
+    // Log context for system actions
+    this.logger.log(`System triggering prescription WhatsApp for ${id}`);
+
+    // We can reuse the logic but bypass the role check by passing a system role
+    // Or we can just duplicate the core logic to be safe and explicit
+    return this.resendPrescription(clinicId, 'system', 'ADMIN', id);
+  }
+
+  async sendInvoiceSystem(id: string, clinicId: string) {
+    this.logger.log(`System triggering invoice WhatsApp for ${id}`);
+    return this.resendInvoice(clinicId, 'system', 'ADMIN', id);
+  }
+
+  async sendAppointmentConfirmation(id: string, clinicId: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        patient: {
+          select: { firstName: true, lastName: true, phoneNumber: true },
+        },
+        doctor: { select: { name: true } },
+        clinic: { select: { name: true, address: true } },
+      },
+    });
+
+    if (!appointment || !appointment.patient.phoneNumber) return;
+
+    const variables = {
+      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      doctorName: appointment.doctor.name,
+      date: appointment.startTime.toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      time: appointment.startTime.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      clinicName: appointment.clinic.name,
+      location: appointment.clinic.address || 'Clinic',
     };
+
+    const resolved = await this.templatesService.resolveTemplate(
+      'appointment_confirmation',
+      variables,
+      clinicId,
+    );
+
+    if (resolved) {
+      const message = this.templatesService.getMessageForMode(resolved);
+      const result = await this.sendMessage({
+        to: appointment.patient.phoneNumber,
+        message,
+      });
+
+      await this.logSystemMessage(
+        clinicId,
+        appointment.patientId,
+        message,
+        result.messageId,
+        'appointment_confirmation',
+      );
+    }
+  }
+
+  async sendAppointmentUpdate(
+    id: string,
+    clinicId: string,
+    type: 'CANCELLED' | 'RESCHEDULED',
+  ) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        patient: {
+          select: { firstName: true, lastName: true, phoneNumber: true },
+        },
+        doctor: { select: { name: true } },
+        clinic: { select: { name: true } },
+      },
+    });
+
+    if (!appointment || !appointment.patient.phoneNumber) return;
+
+    const variables = {
+      patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+      doctorName: appointment.doctor.name,
+      newDate: appointment.startTime.toLocaleDateString('en-IN'),
+      newTime: appointment.startTime.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      clinicName: appointment.clinic.name,
+    };
+
+    const templateName =
+      type === 'CANCELLED'
+        ? 'appointment_cancelled'
+        : 'appointment_rescheduled';
+
+    const resolved = await this.templatesService.resolveTemplate(
+      templateName,
+      variables,
+      clinicId,
+    );
+
+    if (resolved) {
+      const message = this.templatesService.getMessageForMode(resolved);
+      const result = await this.sendMessage({
+        to: appointment.patient.phoneNumber,
+        message,
+      });
+
+      await this.logSystemMessage(
+        clinicId,
+        appointment.patientId,
+        message,
+        result.messageId,
+        templateName,
+      );
+    }
+  }
+
+  private async logSystemMessage(
+    clinicId: string,
+    patientId: string,
+    message: string,
+    messageId: string,
+    type: string,
+  ) {
+    await this.prisma.whatsappLog.create({
+      data: {
+        clinicId,
+        patientId,
+        type,
+        phoneNumber: 'system', // or fetch from patient
+        message,
+        status: 'sent',
+        providerMessageId: messageId,
+      },
+    });
   }
 }

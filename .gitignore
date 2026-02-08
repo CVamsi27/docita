@@ -69,3 +69,8 @@ apps/api/src/seed-admin.ts
 # Nx / Turborepo caches
 .nx
 **/.nx
+
+# Misc logs
+*.log
+check_env.js
+test_output.log

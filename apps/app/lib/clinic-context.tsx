@@ -12,7 +12,7 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 
-interface Clinic {
+export interface Clinic {
   id: string;
   name: string;
   address?: string;
@@ -38,6 +38,7 @@ interface Clinic {
   features?: Record<string, boolean>;
   trialEndsAt?: string;
   subscriptionStatus?: string;
+  whatsappAutomation?: { enabled: boolean };
   openingTime?: string; // HH:mm format
   closingTime?: string; // HH:mm format
 }

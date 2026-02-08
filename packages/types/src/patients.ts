@@ -45,19 +45,19 @@ export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
 
 export const patientSchema = z.object({
   id: z.string().optional(),
-  mrn: z.string().optional(), // Medical Record Number
+  mrn: z.string().nullable().optional(), // Medical Record Number
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  preferredName: z.string().optional(),
-  pronouns: z.string().optional(),
+  preferredName: z.string().nullable().optional(),
+  pronouns: z.string().nullable().optional(),
   dateOfBirth: z.string().or(z.date()),
   gender: genderSchema,
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  email: z.string().email().optional().or(z.literal("")),
-  address: z.string().optional(),
+  email: z.string().email().nullable().optional().or(z.literal("")),
+  address: z.string().nullable().optional(),
   medicalHistory: z.array(z.string()).optional(),
-  bloodGroup: z.string().optional(),
-  allergies: z.string().optional(),
+  bloodGroup: z.string().nullable().optional(),
+  allergies: z.string().nullable().optional(),
   clinicId: z.string().optional(),
 
   // Hospital-Grade Demographics
@@ -94,15 +94,18 @@ export const patientSchema = z.object({
 export type Patient = z.infer<typeof patientSchema>;
 
 export const createPatientSchema = patientSchema.extend({
-  dateOfBirth: z.string().or(z.date()).refine(
-    (val: string | Date) => {
-      const date = new Date(val);
-      return !isNaN(date.getTime()) && date < new Date();
-    },
-    {
-      message: "Date of birth must be in the past",
-    },
-  ),
+  dateOfBirth: z
+    .string()
+    .or(z.date())
+    .refine(
+      (val: string | Date) => {
+        const date = new Date(val);
+        return !isNaN(date.getTime()) && date < new Date();
+      },
+      {
+        message: "Date of birth must be in the past",
+      },
+    ),
 });
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 

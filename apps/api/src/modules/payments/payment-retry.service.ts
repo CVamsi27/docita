@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { Cron } from '@nestjs/schedule';
 import type { PaymentRetryInvoice } from '@workspace/types';
+import { runWithTenant } from '../../common/middleware/tenant.middleware';
 
 export interface PaymentRetryData {
   invoiceId: string;
@@ -61,31 +62,33 @@ export class PaymentRetryService {
 
   @Cron('*/30 * * * *')
   async processPendingRetries(): Promise<void> {
-    try {
-      this.logger.debug('Processing pending payment retries...');
+    await runWithTenant({ bypassed: true }, async () => {
+      try {
+        this.logger.debug('Processing pending payment retries...');
 
-      const unpaidInvoices = await this.prisma.invoice.findMany({
-        where: {
-          status: 'UNPAID',
-        },
-        select: {
-          id: true,
-          patientId: true,
-          total: true,
-          status: true,
-          createdAt: true,
-        },
-        take: 100,
-      });
+        const unpaidInvoices = await this.prisma.invoice.findMany({
+          where: {
+            status: 'UNPAID',
+          },
+          select: {
+            id: true,
+            patientId: true,
+            total: true,
+            status: true,
+            createdAt: true,
+          },
+          take: 100,
+        });
 
-      this.logger.log(`Found ${unpaidInvoices.length} unpaid invoices`);
+        this.logger.log(`Found ${unpaidInvoices.length} unpaid invoices`);
 
-      for (const invoice of unpaidInvoices) {
-        this.attemptPayment(invoice);
+        for (const invoice of unpaidInvoices) {
+          this.attemptPayment(invoice);
+        }
+      } catch (error) {
+        this.logger.error(`Error processing pending retries: ${error.message}`);
       }
-    } catch (error) {
-      this.logger.error(`Error processing pending retries: ${error.message}`);
-    }
+    });
   }
 
   /**

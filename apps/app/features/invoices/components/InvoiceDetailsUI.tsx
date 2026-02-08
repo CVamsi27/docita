@@ -44,6 +44,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     formatDate,
     numberToWords,
     router,
+    clinic,
   } = useInvoiceDetailsLogic(invoiceId);
 
   if (isLoading) {
@@ -116,7 +117,11 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
 
       <div ref={printRef} className="print:p-0">
         <Card className="border-none shadow-sm print:shadow-none print:border">
-          <InvoiceHeader invoice={invoice} formatDate={formatDate} />
+          <InvoiceHeader
+            invoice={invoice}
+            formatDate={formatDate}
+            clinic={clinic}
+          />
 
           <CardContent className="p-6 md:p-8">
             <InvoiceBillTo invoice={invoice} />

@@ -4,7 +4,7 @@ export { DoctorAvailabilitySettings } from "./sections/DoctorAvailabilitySetting
 export { ClinicGeneralSettings } from "./sections/ClinicSettings";
 export { SecuritySettings } from "./sections/SecuritySettings";
 export { ChangePasswordSettings } from "./sections/ChangePasswordSettings";
-export { BillingSettings } from "./sections/BillingSettings";
+
 export { SubscriptionSettings } from "./sections/SubscriptionSettings";
 export { DoctorManagementSettings } from "./sections/DoctorManagementSettings";
 export { AppearanceSettings } from "./sections/AppearanceSettings";

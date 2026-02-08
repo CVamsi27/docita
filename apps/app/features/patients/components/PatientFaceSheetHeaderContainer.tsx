@@ -40,7 +40,7 @@ export function PatientFaceSheetHeaderContainer({
     <PatientFaceSheetHeaderUI
       firstName={patient.firstName}
       lastName={patient.lastName}
-      mrn={patient.mrn}
+      mrn={patient.mrn ?? undefined}
       age={age}
       gender={patient.gender || "UNKNOWN"}
       dateOfBirth={patient.dateOfBirth!}
@@ -52,13 +52,13 @@ export function PatientFaceSheetHeaderContainer({
       isolationStatusLabel={isolationStatusLabel}
       isIsolation={isIsolation}
       fallRisk={patient.fallRisk}
-      allergies={patient.allergies}
+      allergies={patient.allergies ?? undefined}
       hasAllergies={hasAllergies}
-      insuranceProvider={patient.insuranceProvider}
-      insurancePolicyNumber={patient.insurancePolicyNumber}
-      emergencyContactName={patient.emergencyContactName}
-      emergencyContactPhone={patient.emergencyContactPhone}
-      emergencyContactRelation={patient.emergencyContactRelation}
+      insuranceProvider={patient.insuranceProvider ?? undefined}
+      insurancePolicyNumber={patient.insurancePolicyNumber ?? undefined}
+      emergencyContactName={patient.emergencyContactName ?? undefined}
+      emergencyContactPhone={patient.emergencyContactPhone ?? undefined}
+      emergencyContactRelation={patient.emergencyContactRelation ?? undefined}
     />
   );
 }

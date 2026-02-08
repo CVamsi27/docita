@@ -28,6 +28,7 @@ import {
 } from "@workspace/ui/components/card";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp-button";
 import type { Prescription } from "@workspace/types";
+import { useClinic } from "@/lib/clinic-context";
 
 export type SortKey = "date" | "patient" | "diagnosis" | "medications";
 export type SortDirection = "asc" | "desc";
@@ -52,6 +53,8 @@ export function PrescriptionsTable({
   onSort,
   onDownloadPDF,
 }: PrescriptionsTableProps) {
+  const { clinic } = useClinic();
+
   const SortableHeader = ({
     column,
     label,
@@ -174,8 +177,9 @@ export function PrescriptionsTable({
                       <WhatsAppButton
                         phoneNumber={prescription.patient.phoneNumber}
                         message={`Hello ${prescription.patient.firstName}, here is your prescription from ${
+                          clinic?.name ||
                           process.env["NEXT_PUBLIC_CLINIC_NAME"] ||
-                          "Docita Clinic"
+                          "Clinic"
                         }.`}
                         variant="ghost"
                         label=""

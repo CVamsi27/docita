@@ -201,14 +201,12 @@ describe('Patients (e2e)', () => {
         .send({
           firstName: 'UpdatedName',
           email: 'updated@test.com',
-        });
+        })
+        .expect(200);
 
-      // API may return 200 or 400 depending on validation
-      expect([200, 400]).toContain(response.status);
-      if (response.status === 200) {
-        expect(response.body.firstName).toBe('UpdatedName');
-        expect(response.body.email).toBe('updated@test.com');
-      }
+      expect(response.body.firstName).toBe('UpdatedName');
+      expect(response.body.email).toBe('updated@test.com');
+      expect(response.body.id).toBe(patient.id);
     });
   });
 

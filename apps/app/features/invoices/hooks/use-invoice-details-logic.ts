@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useClinic } from "@/lib/clinic-context";
 
 import { useInvoice } from "@/hooks/api/use-billing";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import { InvoiceItem } from "@workspace/types";
 
 export const useInvoiceDetailsLogic = (invoiceId: string) => {
   const router = useRouter();
+  const { clinic } = useClinic();
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
@@ -85,5 +87,6 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
     formatDate,
     numberToWords,
     router,
+    clinic,
   };
 };

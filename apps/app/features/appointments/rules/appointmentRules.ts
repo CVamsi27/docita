@@ -1,11 +1,5 @@
-
 import type { Appointment } from "@workspace/types";
-import {
-  differenceInMinutes,
-  isAfter,
-  isBefore,
-  isToday,
-} from "date-fns";
+import { differenceInMinutes, isAfter, isBefore, isToday } from "date-fns";
 
 /**
  * Appointment Business Rules
@@ -153,7 +147,7 @@ export const validateAppointmentData = (
   if (data.startTime && data.endTime) {
     const start = new Date(data.startTime);
     const end = new Date(data.endTime);
-    if (isAfter(start, end)) {
+    if (!isBefore(start, end)) {
       errors.push("End time must be after start time");
     }
   }

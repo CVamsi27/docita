@@ -13,6 +13,8 @@ describe("DailyProgress Business Rules", () => {
     expect(calculateProgress(10, 10)).toBe(100);
     expect(calculateProgress(0, 10)).toBe(0);
     expect(calculateProgress(7, 0)).toBe(0);
+    expect(calculateProgress(15, 10)).toBe(150); // > 100% allowed for over-performance
+    expect(calculateProgress(-5, 10)).toBe(-50); // Negative progress handling
   });
 
   it("should determine status color based on percentage", () => {
@@ -26,6 +28,8 @@ describe("DailyProgress Business Rules", () => {
     expect(getStatusColor(80)).toBe("green");
     expect(getStatusColor(60)).toBe("amber");
     expect(getStatusColor(30)).toBe("red");
+    expect(getStatusColor(120)).toBe("green"); // > 100%
+    expect(getStatusColor(-10)).toBe("red"); // Negative
   });
 });
 
@@ -64,8 +68,14 @@ describe("DashboardAlerts Business Rules", () => {
     };
 
     expect(getGreeting(9)).toBe("Good morning");
+    expect(getGreeting(11)).toBe("Good morning");
+    expect(getGreeting(12)).toBe("Good afternoon"); // Boundary
     expect(getGreeting(14)).toBe("Good afternoon");
+    expect(getGreeting(16)).toBe("Good afternoon");
+    expect(getGreeting(17)).toBe("Good evening"); // Boundary
     expect(getGreeting(19)).toBe("Good evening");
+    expect(getGreeting(23)).toBe("Good evening");
+    expect(getGreeting(0)).toBe("Good morning"); // Midnight
   });
 });
 

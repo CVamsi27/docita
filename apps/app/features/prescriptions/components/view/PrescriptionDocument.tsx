@@ -53,42 +53,53 @@ export function PrescriptionDocument({
     <Card className="print:shadow-none print:border-2 print:border-gray-300">
       <CardHeader className="space-y-4 pb-4">
         {/* Clinic Header */}
-        <div className="flex justify-between items-start border-b-2 border-primary pb-4">
-          <div className="flex items-start gap-4">
-            {clinicInfo?.logo && (
-              <Image
-                src={clinicInfo.logo}
-                alt="Clinic Logo"
-                width={64}
-                height={64}
-                className="h-16 w-16 object-contain"
-              />
-            )}
-            <div>
-              <h1 className="text-2xl font-bold text-primary">
+        {/* Clinic Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-primary pb-6 gap-4">
+          <div className="flex items-start gap-4 max-w-[70%]">
+            {clinicInfo?.logo ? (
+              <div className="item-start pt-1">
+                <Image
+                  src={clinicInfo.logo}
+                  alt="Clinic Logo"
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 object-contain rounded-md"
+                />
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-1">
+              <h1 className="text-2xl font-bold text-primary leading-tight">
                 {clinicInfo?.name || "Medical Clinic"}
               </h1>
               {clinicInfo?.address && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                   {clinicInfo.address}
                 </p>
               )}
-              <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                {clinicInfo?.phone && <span>📞 {clinicInfo.phone}</span>}
-                {clinicInfo?.email && <span>✉️ {clinicInfo.email}</span>}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
+                {clinicInfo?.phone && (
+                  <span className="flex items-center gap-1">
+                    <span className="opacity-70">📞</span> {clinicInfo.phone}
+                  </span>
+                )}
+                {clinicInfo?.email && (
+                  <span className="flex items-center gap-1">
+                    <span className="opacity-70">✉️</span> {clinicInfo.email}
+                  </span>
+                )}
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <p className="font-bold text-lg">Dr. {doctorName}</p>
+          <div className="text-left md:text-right w-full md:w-auto mt-2 md:mt-0 bg-muted/20 p-3 rounded-lg md:bg-transparent md:p-0">
+            <p className="font-bold text-lg text-primary">Dr. {doctorName}</p>
             {doctorInfo?.qualification && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-medium">
                 {doctorInfo.qualification}
               </p>
             )}
             {doctorInfo?.registrationNumber && (
-              <p className="text-sm font-medium text-primary">
-                Reg. No: {doctorInfo.registrationNumber}
+              <p className="text-xs font-mono mt-1 text-primary/80">
+                Reg: {doctorInfo.registrationNumber}
               </p>
             )}
           </div>

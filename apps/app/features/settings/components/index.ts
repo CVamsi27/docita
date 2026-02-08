@@ -26,7 +26,7 @@ export {
   ClinicGeneralSettings,
   SecuritySettings,
   ChangePasswordSettings,
-  BillingSettings,
+
   SubscriptionSettings,
   DoctorManagementSettings,
   TemplatesSettings,

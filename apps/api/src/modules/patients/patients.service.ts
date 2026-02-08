@@ -58,8 +58,18 @@ export class PatientsService {
 
     // Encryption is handled by Prisma Middleware "EncryptionMiddleware" transparently
     const patient = await this.patientsRepository.create({
-      ...data,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phoneNumber: data.phoneNumber,
+      email: data.email || undefined,
+      address: data.address || undefined,
+      gender: data.gender,
+      dateOfBirth: data.dateOfBirth,
+      bloodGroup: data.bloodGroup || undefined,
+      allergies: data.allergies || undefined,
+      medicalHistory: data.medicalHistory,
       clinicId: data.clinicId,
+      tags: data.tags?.map((t) => ({ tag: t.tag, color: t.color })),
     });
 
     const decryptedPatient = patient;

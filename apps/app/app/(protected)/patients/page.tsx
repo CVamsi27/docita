@@ -2,9 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
-import { usePatients } from "@/hooks/api/use-patients";
-import { Feature, Patient } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { usePatients } from "@/features/patients/hooks/usePatients";
+import { Patient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -365,10 +364,8 @@ function PatientsContent() {
 
 export default function PatientsPage() {
   return (
-    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
-      <Suspense fallback={<div>Loading...</div>}>
-        <PatientsContent />
-      </Suspense>
-    </FeatureGate>
+    <Suspense fallback={<div>Loading...</div>}>
+      <PatientsContent />
+    </Suspense>
   );
 }

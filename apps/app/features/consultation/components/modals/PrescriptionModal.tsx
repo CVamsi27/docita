@@ -50,7 +50,7 @@ export function PrescriptionModal({
   const { data: lastRxData } = usePatientPrescriptions(
     patientId || "",
     { limit: 1 },
-    { enabled: !!patientId }
+    { enabled: !!patientId },
   );
 
   const lastRx = lastRxData?.items?.[0];
@@ -90,6 +90,7 @@ export function PrescriptionModal({
       });
 
       toast.success("Prescription created");
+
       onSaved?.();
       onOpenChange?.(false);
       setMedications([
@@ -111,7 +112,7 @@ export function PrescriptionModal({
   const updateMedication = (
     index: number,
     field: keyof Medication,
-    value: string
+    value: string,
   ) => {
     const newMeds = [...medications];
     newMeds[index] = { ...newMeds[index], [field]: value };

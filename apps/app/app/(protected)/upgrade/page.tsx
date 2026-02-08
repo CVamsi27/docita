@@ -26,21 +26,30 @@ import { TierCard } from "@/features/subscription/components/TierCard";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
 import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
-import { IntelligenceAddon } from "@/features/subscription/components/cards/IntelligenceAddon";
-import { WhatsAppAddonCard } from "@/features/subscription/components/WhatsAppAddonCard";
-import { cn } from "@workspace/ui/lib/utils";
 import {
-  CreditCard,
   Crown,
+  FileText,
+  MessageCircle,
   Receipt,
   Sparkles,
   TrendingUp,
-  Zap,
 } from "lucide-react";
+import {
+  AddonCard,
+  AddonFeature,
+} from "@/features/subscription/components/AddonCard";
+import { cn } from "@workspace/ui/lib/utils";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { useRazorpay } from "@/hooks/use-razorpay";
+import { useClinic } from "@/lib/clinic-context";
+import { usePricingConfig } from "@/hooks/api/use-pricing";
+import { TrustSection } from "@/features/subscription/components/TrustSection";
+import { FaqSection } from "@/features/subscription/components/FaqSection";
+import { ComparisonTable } from "@/features/subscription/components/ComparisonTable";
+import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
+import { InvoiceHistoryDialog } from "@/features/subscription/components/InvoiceHistoryDialog";
 
 export default function UpgradePage() {
   const { currentTier, hasIntelligence, canAccess, setTier } =
@@ -52,11 +61,170 @@ export default function UpgradePage() {
   const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TierName | null>(null);
-  const [enableWhatsApp, setEnableWhatsApp] = useState(false);
+  const [purchasingAddon, setPurchasingAddon] = useState<string | null>(null);
+
+  // Phase 3 States
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<{
+    planName: string;
+    amount?: number;
+    transactionId?: string;
+    isAddon?: boolean;
+  }>({ planName: "" });
+  const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
 
   const { isLoaded, openCheckout } = useRazorpay();
   const [selectedCycle, setSelectedCycle] = useState<"MONTHLY" | "YEARLY">(
     "MONTHLY",
+  );
+
+  const { clinic } = useClinic();
+  const { pricingConfig } = usePricingConfig("INR");
+
+  const currentTierInfo = getTierInfo(currentTier);
+
+  // Determine if clinic has WhatsApp add-on
+  // We check features overrides or whatsappAutomation settings
+  const hasWhatsApp =
+    !!clinic?.features?.["WHATSAPP"] || !!clinic?.whatsappAutomation?.enabled;
+
+  // Calculate WhatsApp Price
+  const whatsappAddon = pricingConfig?.addOns?.find(
+    (addon) =>
+      addon.id === "WHATSAPP" || addon.name?.toLowerCase().includes("whatsapp"),
+  );
+
+  // Get pricing for current tier
+  const tierKey = currentTierInfo.name.toUpperCase();
+  const waPricingByTier = whatsappAddon?.pricingByTier;
+  const waTierPricing = waPricingByTier?.[tierKey];
+
+  let whatsappPrice = 799; // Default fallback
+
+  if (waTierPricing) {
+    const base = Number(waTierPricing.monthly);
+    if (!isNaN(base)) {
+      whatsappPrice = base;
+    }
+  } else if (whatsappAddon?.pricing?.monthly) {
+    whatsappPrice = whatsappAddon.pricing.monthly;
+  }
+
+  const handlePurchaseAddon = useCallback(
+    async (addonId: string, cycle: "MONTHLY" | "YEARLY") => {
+      if (!token) return;
+      setPurchasingAddon(addonId);
+
+      const apiUrl =
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+
+      try {
+        // 1. Create Checkout Session
+        const createRes = await fetch(
+          `${apiUrl}/subscription/billing/checkout`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              billingCycle: cycle,
+              addOns: [addonId],
+              // Pass current tier to ensure we don't accidentally upgrade tier
+              tier: currentTier,
+            }),
+          },
+        );
+
+        const createData = await createRes.json();
+        if (!createRes.ok) {
+          throw new Error(createData.message || "Failed to initiate checkout");
+        }
+
+        const { orderId, amountCents, currency, razorpayKeyId } = createData;
+
+        // 2. Open Razorpay Checkout
+        await openCheckout({
+          key: razorpayKeyId,
+          amount: amountCents,
+          currency: currency,
+          name: "Docita Subscription",
+          description: `Add-on: ${addonId}`,
+          order_id: orderId,
+          handler: async (response: unknown) => {
+            const data = response as {
+              razorpay_payment_id: string;
+              razorpay_order_id: string;
+              razorpay_signature: string;
+            };
+            try {
+              // 3. Activate Subscription
+              const activateRes = await fetch(
+                `${apiUrl}/subscription/billing/activate`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    razorpayPaymentId: data.razorpay_payment_id,
+                    razorpayOrderId: data.razorpay_order_id,
+                    razorpaySignature: data.razorpay_signature,
+                    billingCycle: cycle,
+                    addOns: [addonId],
+                    tier: currentTier,
+                  }),
+                },
+              );
+
+              const activateData = await activateRes.json();
+              if (!activateRes.ok) {
+                throw new Error(activateData.message || "Activation failed");
+              }
+
+              // Success Update
+              await queryClient.invalidateQueries({
+                queryKey: ["billing-status"],
+              });
+              await queryClient.invalidateQueries({
+                queryKey: ["subscription"],
+              });
+
+              // Show Success Modal
+              setSuccessData({
+                planName: addonId,
+                amount: amountCents ? amountCents / 100 : undefined,
+                transactionId: data.razorpay_payment_id,
+                isAddon: true,
+              });
+              setShowSuccessModal(true);
+            } catch (err: unknown) {
+              const errorMessage =
+                err instanceof Error
+                  ? err.message
+                  : "Payment verification failed";
+              toast.error(errorMessage);
+            }
+          },
+          prefill: {
+            name: user?.name || "Clinic Admin",
+            email: user?.email || "",
+          },
+          theme: {
+            color: "#0F172A",
+          },
+        });
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to process purchase";
+        toast.error(errorMessage);
+      } finally {
+        setPurchasingAddon(null);
+      }
+    },
+    [token, currentTier, openCheckout, user, queryClient],
   );
 
   // Check if user can access this page (ADMIN, ADMIN_DOCTOR, or SUPER_ADMIN)
@@ -96,7 +264,7 @@ export default function UpgradePage() {
         body: JSON.stringify({
           tier: selectedTier,
           billingCycle: selectedCycle,
-          addOns: enableWhatsApp ? ["WHATSAPP"] : [],
+          addOns: [], // Tier change doesn't include addons by default in new flow
         }),
       });
 
@@ -137,7 +305,7 @@ export default function UpgradePage() {
                   razorpaySignature: data.razorpay_signature,
                   tier: selectedTier,
                   billingCycle: selectedCycle,
-                  addOns: enableWhatsApp ? ["WHATSAPP"] : [],
+                  addOns: [],
                 }),
               },
             );
@@ -154,7 +322,15 @@ export default function UpgradePage() {
               queryKey: ["billing-status"],
             });
             await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-            toast.success(`Successfully subscribed to ${selectedTier}`);
+
+            // Show Success Modal
+            setSuccessData({
+              planName: `${selectedTier} Plan`,
+              amount: amountCents ? amountCents / 100 : undefined,
+              transactionId: data.razorpay_payment_id,
+              isAddon: false,
+            });
+            setShowSuccessModal(true);
           } catch (err: unknown) {
             const errorMessage =
               err instanceof Error
@@ -181,7 +357,6 @@ export default function UpgradePage() {
     selectedCycle,
     token,
     setTier,
-    enableWhatsApp,
     queryClient,
     openCheckout,
     user,
@@ -234,18 +409,61 @@ export default function UpgradePage() {
 
   const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
 
-  const currentTierInfo = getTierInfo(currentTier);
+  // Prepare Feature Lists for Addons
+  const intelligenceFeatures = featuresByTier
+    .find((t) => t.tier === Tier.INTELLIGENCE)
+    ?.features.map((f) => ({
+      feature: f.feature,
+      details: f.details,
+    })) as AddonFeature[];
+
+  const whatsappFeatures: AddonFeature[] = [
+    {
+      feature: "WA_MESSAGING" as Feature,
+      details: {
+        name: "WhatsApp Messaging",
+        description: "Send automated messages to patients on WhatsApp",
+        icon: MessageCircle,
+      },
+    },
+    {
+      feature: "WA_REMINDERS" as Feature,
+      details: {
+        name: "Appointment Reminders",
+        description: "Reduce no-shows with automated reminders",
+        icon: MessageCircle,
+      },
+    },
+    {
+      feature: "WA_DOCUMENT_SHARING" as Feature,
+      details: {
+        name: "Document Sharing",
+        description: "Share prescriptions and reports instantly",
+        icon: MessageCircle,
+      },
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 bg-linear-to-br from-background via-background to-muted/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/30 min-h-screen">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
-          Upgrade Your Plan
-        </h1>
-        <p className="text-muted-foreground">
-          Unlock powerful features to grow your practice
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+            Upgrade Your Plan
+          </h1>
+          <p className="text-muted-foreground">
+            Unlock powerful features to grow your practice
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowInvoiceHistory(true)}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Billing History
+        </Button>
       </div>
 
       {/* Current Plan Card */}
@@ -316,7 +534,7 @@ export default function UpgradePage() {
                 className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
                 <TrendingUp className="mr-2 h-4 w-4" />
-                Upgrade Plan
+                Change Plan
               </Button>
               <Button
                 variant="outline"
@@ -336,62 +554,8 @@ export default function UpgradePage() {
         </CardContent>
       </Card>
 
-      {/* Stats Row */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50 dark:border-blue-800/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/20 dark:bg-blue-500/30">
-                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                  {lockedFeatures.length}
-                </p>
-                <p className="text-sm text-blue-600/80 dark:text-blue-400/80">
-                  Features to Unlock
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-linear-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200/50 dark:border-emerald-800/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 dark:bg-emerald-500/30">
-                <CreditCard className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-                  {5 - currentTier}
-                </p>
-                <p className="text-sm text-emerald-600/80 dark:text-emerald-400/80">
-                  Tiers Available
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-linear-to-br from-violet-50 to-violet-100/50 dark:from-violet-950/30 dark:to-violet-900/20 border-violet-200/50 dark:border-violet-800/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/20 dark:bg-violet-500/30">
-                <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-violet-700 dark:text-violet-300">
-                  {hasIntelligence ? "Active" : "Available"}
-                </p>
-                <p className="text-sm text-violet-600/80 dark:text-violet-400/80">
-                  AI Intelligence
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Trust Section */}
+      <TrustSection />
 
       {/* Locked Features Summary */}
       <LockedFeatures lockedFeatures={lockedFeatures} />
@@ -405,28 +569,51 @@ export default function UpgradePage() {
         />
       )}
 
-      {/* Intelligence Add-on */}
-      {!hasIntelligence && (
-        <IntelligenceAddon featuresByTier={featuresByTier} />
-      )}
+      {/* Add-ons Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Powerful Add-ons</h2>
+          <p className="text-sm text-muted-foreground">
+            Enhance your plan with premium features
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Intelligence Add-on */}
+          <AddonCard
+            title="Docita Intelligence"
+            description="AI-Powered Add-on available for any tier. Smarter clinic management."
+            icon={Sparkles}
+            colorScheme="pink"
+            features={intelligenceFeatures || []}
+            isPurchased={hasIntelligence}
+            pricing={{ monthly: 499, yearly: 4999 }}
+            onPurchase={(cycle) => handlePurchaseAddon("INTELLIGENCE", cycle)}
+            isLoading={purchasingAddon === "INTELLIGENCE"}
+            currency={pricingConfig?.currency?.code || "INR"}
+          />
 
-      {/* WhatsApp Add-on */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Add-ons</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <WhatsAppAddonCard
-            currency="INR"
-            isYearly={false}
-            enabled={enableWhatsApp}
-            tier={currentTierInfo.name} // Pass current tier name for dynamic pricing
-            onToggle={setEnableWhatsApp}
+          {/* WhatsApp Add-on */}
+          <AddonCard
+            title="WhatsApp Integration"
+            description="Connect with patients on their favorite platform. Automate communication."
+            icon={MessageCircle}
+            colorScheme="green"
+            features={whatsappFeatures}
+            isPurchased={hasWhatsApp}
+            pricing={{
+              monthly: whatsappPrice,
+              yearly: whatsappPrice * 10,
+            }}
+            onPurchase={(cycle) => handlePurchaseAddon("WHATSAPP", cycle)}
+            isLoading={purchasingAddon === "WHATSAPP"}
+            currency={pricingConfig?.currency?.code || "INR"}
           />
         </div>
       </div>
 
       {/* All Tiers Comparison */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">All Plans & Features</h2>
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">All Plans & Features</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {featuresByTier
             .filter((t) => t.tier !== Tier.INTELLIGENCE)
@@ -438,10 +625,19 @@ export default function UpgradePage() {
                 features={features}
                 isCurrentTier={tier === currentTier}
                 isLocked={tier > currentTier}
+                currentTierValue={currentTier}
+                onSelect={
+                  canChangeTier
+                    ? () => handleSelectTier(Tier[tier] as TierName, "MONTHLY")
+                    : undefined
+                }
               />
             ))}
         </div>
       </div>
+
+      {/* Detailed Comparison */}
+      <ComparisonTable currentTier={currentTier} />
 
       {/* Contact CTA */}
       <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
@@ -486,6 +682,40 @@ export default function UpgradePage() {
         selectedTier={selectedTier}
         onConfirm={handleConfirmTierChange}
       />
+
+      <PaymentSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        {...successData}
+      />
+
+      <InvoiceHistoryDialog
+        open={showInvoiceHistory}
+        onOpenChange={setShowInvoiceHistory}
+      />
+
+      {/* Terms and Tax Info */}
+      <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
+        <p>
+          By upgrading, you agree to our{" "}
+          <a href="#" className="underline hover:text-foreground">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="underline hover:text-foreground">
+            Privacy Policy
+          </a>
+          .
+          <br />
+          Prices are exclusive of applicable taxes. Tax breakdown will be shown
+          at checkout.
+        </p>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="pb-10">
+        <FaqSection />
+      </div>
     </div>
   );
 }

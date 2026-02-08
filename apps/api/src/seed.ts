@@ -86,6 +86,27 @@ async function main() {
       },
     });
 
+    const adminDoctor = await prisma.user.upsert({
+      where: { email: 'admin.doctor@docita.work' },
+      update: {},
+      create: {
+        email: 'admin.doctor@docita.work',
+        password: hashedPassword,
+        name: 'Admin Doctor',
+        role: 'ADMIN_DOCTOR',
+        clinicId: defaultClinic.id,
+        specialization: 'GENERAL_PRACTICE',
+        hospitalRole: 'MEDICAL_DIRECTOR',
+        qualification: 'MBBS, MD (General Medicine)',
+        registrationNumber: 'KMC-2010-99887',
+        licenseNumber: 'KA-MED-2010-009988',
+        phoneNumber: '+91 9876543009',
+        bio: 'Medical Director with extensive experience in hospital administration and general practice.',
+        yearsOfExperience: 15,
+        consultationFee: 2000,
+      },
+    });
+
     const doctor1 = await prisma.user.upsert({
       where: { email: 'doctor@docita.work' },
       update: {},
@@ -299,7 +320,9 @@ async function main() {
 
     // Add additional specializations - delete existing first
     await prisma.doctorSpecialization.deleteMany({
-      where: { doctorId: { in: [doctor1.id, doctor2.id, doctor3.id] } },
+      where: {
+        doctorId: { in: [doctor1.id, doctor2.id, doctor3.id, adminDoctor.id] },
+      },
     });
 
     await prisma.doctorSpecialization.createMany({
@@ -323,6 +346,12 @@ async function main() {
           yearsOfPractice: 6,
         },
         {
+          doctorId: adminDoctor.id,
+          specialization: 'GENERAL_PRACTICE',
+          isPrimary: true,
+          yearsOfPractice: 15,
+        },
+        {
           doctorId: doctor3.id,
           specialization: 'DENTAL',
           isPrimary: true,
@@ -333,7 +362,9 @@ async function main() {
 
     // Create DoctorClinic entries to properly associate doctors with the default clinic
     await prisma.doctorClinic.deleteMany({
-      where: { doctorId: { in: [doctor1.id, doctor2.id, doctor3.id] } },
+      where: {
+        doctorId: { in: [doctor1.id, doctor2.id, doctor3.id, adminDoctor.id] },
+      },
     });
 
     await prisma.doctorClinic.createMany({
@@ -352,6 +383,12 @@ async function main() {
         },
         {
           doctorId: doctor3.id,
+          clinicId: defaultClinic.id,
+          role: 'doctor',
+          active: true,
+        },
+        {
+          doctorId: adminDoctor.id,
           clinicId: defaultClinic.id,
           role: 'doctor',
           active: true,

@@ -16,7 +16,7 @@ export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
             <p className="font-bold text-lg">
               {invoice.patient.firstName} {invoice.patient.lastName}
             </p>
-            <p>{invoice.patient.address || "Address not provided"}</p>
+            <p>{invoice.patient.address || "-"}</p>
             <p>{invoice.patient.email}</p>
             <p>{invoice.patient.phoneNumber}</p>
           </div>

@@ -325,7 +325,7 @@ export function checkAllergyContraindications(
   for (const [groupName, medications] of Object.entries(ALLERGY_GROUPS)) {
     // Check if patient allergic to this group
     const allergyInGroup = patientAllergies.some((allergy) =>
-      medicationInGroup(allergy.name, [groupName]),
+      medicationInGroup(allergy.name, [...medications, groupName]),
     );
 
     if (allergyInGroup) {

@@ -65,12 +65,14 @@ export const useInvoiceCreateLogic = () => {
       const payload = {
         ...data,
         total: totalAmount, // Include calculated total
-        // Ensure items have necessary structure if implied by API, but schema matches typical input
       };
 
       const result = await createInvoice.mutateAsync(payload);
       toast.success("Invoice created successfully");
-      router.push(`/invoices/${result.id}`);
+
+    requestAnimationFrame(() => {
+        router.push(`/invoices/${result.id}`);
+      });
     } catch (error) {
       toast.error("Failed to create invoice");
       console.error(error);

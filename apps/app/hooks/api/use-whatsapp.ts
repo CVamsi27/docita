@@ -56,6 +56,20 @@ export const useCreateWhatsAppBroadcast = () =>
     }
   >("/whatsapp/broadcast", "POST");
 
+// Dynamic mutations that accept ID as variable
+export const useSendPrescriptionWhatsApp = () =>
+  useAPIMutation<void, { id: string }>(
+    ({ id }) => `/whatsapp/resend-prescription/${id}`,
+    "POST",
+  );
+
+export const useSendInvoiceWhatsApp = () =>
+  useAPIMutation<void, { id: string }>(
+    ({ id }) => `/whatsapp/resend-invoice/${id}`,
+    "POST",
+  );
+
+// Existing static hooks (kept for backward compatibility if used)
 export const useResendPrescriptionWhatsApp = (id: string) =>
   useAPIMutation<void, void>(`/whatsapp/resend-prescription/${id}`, "POST");
 

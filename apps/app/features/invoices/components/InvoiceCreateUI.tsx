@@ -146,7 +146,7 @@ export const InvoiceCreateUI: FC = () => {
                     `items.${index}.${fieldName}` as import("react-hook-form").Path<
                       import("../hooks/use-invoice-create-logic").CreateInvoiceFormValues
                     >,
-                    value
+                    value,
                   );
                 }}
                 onRemoveItem={remove}

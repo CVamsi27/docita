@@ -4,12 +4,15 @@ import {
   ConflictException,
   Inject,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Appointment } from '@workspace/types';
 import { Prisma } from '@workspace/db';
 import { IAppointmentRepository } from './repositories/appointment.repository.interface';
 import { VitalsFactory } from '../patients/factories/vitals.factory';
 import { VitalSignInput } from '../patients/schemas/vitals.schema';
+import { AppointmentCreatedEvent } from './events/appointment-created.event';
+import { AppointmentUpdatedEvent } from './events/appointment-updated.event';
 
 @Injectable()
 export class AppointmentsService {
@@ -18,6 +21,7 @@ export class AppointmentsService {
     @Inject('IAppointmentRepository')
     private appointmentRepository: IAppointmentRepository,
     private vitalsFactory: VitalsFactory,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(
@@ -135,6 +139,13 @@ export class AppointmentsService {
 
     const appointment =
       await this.appointmentRepository.create(appointmentData);
+
+    // Emit event for notifications
+    this.eventEmitter.emit(
+      'appointment.created',
+      new AppointmentCreatedEvent(appointment.id, rest.clinicId),
+    );
+
     return appointment as unknown as Appointment;
   }
 
@@ -235,6 +246,28 @@ export class AppointmentsService {
       ...(shouldAutoComplete && { status: 'completed' }),
     };
 
+    // Fetch current status/clinicId if not already fetched
+    let oldStatus = 'unknown';
+    let oldStartTime: Date | undefined;
+    let targetClinicId = userClinicId;
+
+    // Always fetch current state to capture old values for event diffing
+    if (
+      !targetClinicId ||
+      (dataRecord.status && oldStatus === 'unknown') ||
+      startTime
+    ) {
+      const current = await this.prisma.appointment.findUnique({
+        where: { id },
+        select: { status: true, clinicId: true, startTime: true },
+      });
+      if (current) {
+        oldStatus = current.status;
+        targetClinicId = targetClinicId || current.clinicId;
+        oldStartTime = current.startTime;
+      }
+    }
+
     const appointment = await this.appointmentRepository.update(id, updateData);
 
     // Also update queue token status if exists
@@ -249,6 +282,21 @@ export class AppointmentsService {
           completedAt: new Date(),
         },
       });
+    }
+
+    // Emit update event if status changed or just general update
+    if (targetClinicId) {
+      this.eventEmitter.emit(
+        'appointment.updated',
+        new AppointmentUpdatedEvent(
+          id,
+          targetClinicId,
+          oldStatus,
+          (appointment as any).status,
+          appointment as unknown as Appointment,
+          oldStartTime,
+        ),
+      );
     }
 
     return appointment as unknown as Appointment;

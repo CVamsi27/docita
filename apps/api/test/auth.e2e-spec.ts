@@ -80,10 +80,10 @@ describe('Auth (e2e)', () => {
           email: user.email,
           password: 'Test@123456',
           name: 'Dr. Duplicate',
-        });
+        })
+        .expect(409);
 
-      // API returns 409 or 500 on duplicate email
-      expect([409, 500]).toContain(response.status);
+      expect(response.body.message).toMatch(/already exists|duplicate/i);
     });
 
     it('should reject weak password', async () => {
@@ -93,10 +93,10 @@ describe('Auth (e2e)', () => {
           email: 'test@test.com',
           password: '123',
           name: 'Dr. Test',
-        });
+        })
+        .expect(400);
 
-      // API may not validate password strength, so accept both 201 and 400
-      expect([200, 201, 400]).toContain(response.status);
+      expect(response.body.message).toBeDefined();
     });
   });
 
@@ -109,26 +109,28 @@ describe('Auth (e2e)', () => {
         .send({
           email: user.email,
           password: plainPassword,
-        });
+        })
+        .expect(201);
 
-      // Accept both 200 and 201 from login endpoint
-      expect([200, 201]).toContain(response.status);
       expect(response.body.access_token).toBeDefined();
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.id).toBeDefined();
       expect(response.body.user.email).toBe(user.email);
+      expect(response.body.user.password).toBeUndefined();
     });
 
     it('should reject invalid password', async () => {
-      const { user, plainPassword } = await factories.user();
+      const { user } = await factories.user();
 
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: user.email,
           password: 'WrongPassword123',
-        });
+        })
+        .expect(401);
 
-      // Should return either 401 (unauthorized) or an error response
-      expect([200, 201, 401]).toContain(response.status);
+      expect(response.body.message).toMatch(/invalid|incorrect|unauthorized/i);
     });
 
     it('should reject non-existent user', async () => {
@@ -137,10 +139,10 @@ describe('Auth (e2e)', () => {
         .send({
           email: 'nonexistent@test.com',
           password: 'Test@123456',
-        });
+        })
+        .expect(401);
 
-      // Should return 401 or similar error
-      expect([200, 201, 401]).toContain(response.status);
+      expect(response.body.message).toMatch(/invalid|not found|unauthorized/i);
     });
   });
 });

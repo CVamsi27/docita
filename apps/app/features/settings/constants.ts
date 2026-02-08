@@ -2,7 +2,7 @@ import {
   Bell,
   Building2,
   Calendar,
-  CreditCard,
+
   Crown,
   FileText,
   Layers,
@@ -30,16 +30,10 @@ export const settingsTabs = [
         description: "Staff & permissions",
       },
       {
-        value: "billing",
-        label: "Billing",
-        icon: CreditCard,
-        description: "Payments & invoices",
-      },
-      {
         value: "subscription",
-        label: "Subscription",
+        label: "Billing & Subscription",
         icon: Crown,
-        description: "Plan & usage",
+        description: "Plan, invoices & usage",
       },
     ],
   },

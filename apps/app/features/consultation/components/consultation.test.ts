@@ -18,7 +18,11 @@ describe("ConsultationTimer Business Rules", () => {
     };
 
     expect(formatTime(0)).toBe("0:00");
+    expect(formatTime(59)).toBe("0:59");
+    expect(formatTime(60)).toBe("1:00");
     expect(formatTime(65)).toBe("1:05");
+    expect(formatTime(3599)).toBe("59:59");
+    expect(formatTime(3600)).toBe("1:00:00");
     expect(formatTime(3661)).toBe("1:01:01");
     expect(formatTime(7325)).toBe("2:02:05");
   });

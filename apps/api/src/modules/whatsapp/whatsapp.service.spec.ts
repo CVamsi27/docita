@@ -40,6 +40,10 @@ describe('WhatsappService', () => {
 
     // Mock global fetch
     global.fetch = jest.fn();
+
+    // Mock env vars
+    process.env.META_PHONE_NUMBER_ID = '1234567890';
+    process.env.META_ACCESS_TOKEN = 'test_token';
   });
 
   afterEach(() => {

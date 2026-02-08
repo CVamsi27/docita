@@ -67,7 +67,7 @@ export function PrescriptionHeader({
             </Tooltip>
           </TooltipProvider>
         )}
-        <Button variant="outline" size="sm" onClick={onPrint}>
+        <Button onClick={onPrint}>
           <Printer className="mr-2 h-4 w-4" />
           Print
         </Button>

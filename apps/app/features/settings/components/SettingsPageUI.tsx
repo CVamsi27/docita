@@ -14,18 +14,17 @@ import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { RoleGuard } from "@/features/_shared/components/role-guard";
 import {
   AppearanceSettings,
-  BillingSettings,
   ClinicGeneralSettings,
   CustomFieldsSettings,
-  DoctorAvailabilitySettings as DoctorAvailabilitySettingsDynamic,
+  DoctorAvailabilitySettingsDynamic,
   MemberManagementSettings,
   NotificationSettings,
   ReminderSettings,
   SecuritySettings,
-  SubscriptionSettings as SubscriptionSettingsDynamic,
-  TemplatesSettings as TemplatesSettingsDynamic,
+  SubscriptionSettingsDynamic,
+  TemplatesSettingsDynamic,
   WhatsAppAutomationSettings,
-} from "@/features/settings/stubs";
+} from ".";
 import {
   PrescriptionDefaultsSettings,
   QueueSettings,
@@ -154,10 +153,6 @@ export function SettingsPageUI({
             <RoleGuard requiredPermission="manageClinic">
               <ClinicGeneralSettings />
             </RoleGuard>
-          </TabsContent>
-
-          <TabsContent value="billing" className="mt-0 space-y-6">
-            <BillingSettings />
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-0 space-y-6">

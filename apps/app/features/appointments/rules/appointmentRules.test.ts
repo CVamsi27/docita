@@ -59,6 +59,46 @@ describe("Appointment Business Rules", () => {
       };
       expect(canCheckIn(appointment as Appointment)).toBe(true);
     });
+
+    it("should allow check-in exactly 60 minutes before", () => {
+      const in60Minutes = new Date();
+      in60Minutes.setMinutes(in60Minutes.getMinutes() + 60);
+      const appointment = {
+        startTime: in60Minutes.toISOString(),
+        status: "scheduled" as const,
+      };
+      expect(canCheckIn(appointment as Appointment)).toBe(true);
+    });
+
+    it("should NOT allow check-in 61 minutes before", () => {
+      const in61Minutes = new Date();
+      in61Minutes.setMinutes(in61Minutes.getMinutes() + 61);
+      const appointment = {
+        startTime: in61Minutes.toISOString(),
+        status: "scheduled" as const,
+      };
+      expect(canCheckIn(appointment as Appointment)).toBe(false);
+    });
+
+    it("should allow check-in 15 minutes late", () => {
+      const ago15Minutes = new Date();
+      ago15Minutes.setMinutes(ago15Minutes.getMinutes() - 15);
+      const appointment = {
+        startTime: ago15Minutes.toISOString(),
+        status: "scheduled" as const,
+      };
+      expect(canCheckIn(appointment as Appointment)).toBe(true);
+    });
+
+    it("should NOT allow check-in 16 minutes late", () => {
+      const ago16Minutes = new Date();
+      ago16Minutes.setMinutes(ago16Minutes.getMinutes() - 16);
+      const appointment = {
+        startTime: ago16Minutes.toISOString(),
+        status: "scheduled" as const,
+      };
+      expect(canCheckIn(appointment as Appointment)).toBe(false);
+    });
   });
 
   describe("canCancel", () => {
@@ -124,6 +164,18 @@ describe("Appointment Business Rules", () => {
         doctorId: "456",
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() - 3600000).toISOString(),
+      };
+      const errors = validateAppointmentData(data);
+      expect(errors).toContain("End time must be after start time");
+    });
+
+    it("should return error if end time is equal to start time", () => {
+      const now = new Date().toISOString();
+      const data = {
+        patientId: "123",
+        doctorId: "456",
+        startTime: now,
+        endTime: now,
       };
       const errors = validateAppointmentData(data);
       expect(errors).toContain("End time must be after start time");
