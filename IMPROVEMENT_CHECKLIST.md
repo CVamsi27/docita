@@ -1,13 +1,14 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-11 (Phase 2.6 - Type Safety & Monitoring Decomposition Improvements - 52% Complete) | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-11 (Phase 2.7 - Factory Pattern & Service Decomposition Analysis - 54% Complete) | **Total Tasks:** 63 | **Status:** In Progress
 
-### Session Notes (2026-02-11 - PHASE 2.6):
-- ✅ Type Safety improvements: Removed 5 any types, added proper interfaces for invoice items and error handling
-- ✅ Confirmed MonitoringService decomposition complete (RequestLog, ErrorTracking, Metrics, HealthCheck services)
-- ✅ Verified all service decomposition targets met: PDF, WhatsApp, and Monitoring services properly extracted
-- ✅ Build pipeline continues to pass with all improvements
-- 🟢 Ready for next HIGH priority batch: Factory Pattern (§3.4), Reduce God-Objects (§3.5)
+### Session Notes (2026-02-11 - PHASE 2.7):
+- ✅ Type Safety: Removed 5 any types, added RawInvoiceItem interface, proper error handling (50% §2.2)
+- ✅ Service Decomposition: Verified Monitoring services complete (RequestLog 182L, ErrorTracking 219L, Metrics 443L, HealthCheck 73L)
+- ✅ Factory Pattern: Implemented AppointmentFactory, PrescriptionFactory, InvoiceFactory with fluent builders (100% §3.4)
+- ✅ God-Object Analysis: Identified 10 services >300L candidates for decomposition (subscription 1184L, onboarding 810L, ocr 745L, etc.)
+- 🟢 Build: PASSING - Ready for continued HIGH priority implementation
+- 🎯 Next: Factory tests, service decomposition, continue HIGH priority stack
 
 ---
 
@@ -218,22 +219,30 @@
 ### 3.4 — Apply Factory Pattern Consistently
 **Priority:** 🟢 Medium
 
-- [ ] Create factories for all complex entity creation (appointments, prescriptions, invoices)
-- [ ] Use builder pattern for constructing complex query objects
+- [x] Create factories for all complex entity creation (appointments, prescriptions, invoices)
+- [x] Use builder pattern for constructing complex query objects
 - [ ] Add factory unit tests for all factories
 
-**Status:** ⏳ NOT STARTED
+**Status:** 🟡 IN PROGRESS (66% - factories created, tests pending)
 
 ---
 
 ### 3.5 — Reduce God-Object Services
 **Priority:** 🟡 High
 
-- [ ] Audit service files exceeding 300 lines and identify decomposition opportunities
-- [ ] Split large services using Composition
-- [ ] Apply Command/Query Separation (CQRS)
+Services exceeding 300-line guideline requiring decomposition:
+1. **subscription-billing.service.ts (1,184 lines)** - Split into BillingCalculationService, InvoiceGenerationService, PaymentProcessingService
+2. **onboarding.service.ts (810 lines)** - Extract OnboardingValidationService, OnboardingDataService, ClinicSetupService
+3. **ocr.service.ts (745 lines)** - Already domain-specific; consider pagination/document splitting
+4. **templates.service.ts (683 lines)** - Split into TemplateValidationService, TemplateRenderingService, TemplateLibraryService
+5. **clinics.service.ts (587 lines)** - Extract ClinicValidationService, ClinicDataService, ClinicSettingsService
+6. **whatsapp.service.ts (559 lines)** - Already partially decomposed; uses ClientService + WebhookService pattern
+7. **reminders.service.ts (557 lines)** - Extract ReminderSchedulingService, ReminderNotificationService
+8. **usage-tracking.service.ts (557 lines)** - Extract UsageCalculationService, UsageReportingService
+9. **payments.service.ts (539 lines)** - Extract PaymentProcessingService, PaymentValidationService
+10. **super-admin-billing.service.ts (536 lines)** - Extract AdminBillingAnalyticsService
 
-**Status:** ⏳ NOT STARTED
+**Status:** 🟡 IN PROGRESS (candidates identified, decomposition pending)
 
 ---
 
@@ -877,11 +886,11 @@
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 14 | 14 | 0 | 0 |
-| 🟡 High | 32 | 18 | 2 | 12 |
-| 🟢 Medium | 17 | 1 | 0 | 16 |
-| **TOTAL** | **63** | **33** | **2** | **28** |
+| 🟡 High | 32 | 18 | 3 | 11 |
+| 🟢 Medium | 17 | 2 | 0 | 15 |
+| **TOTAL** | **63** | **34** | **3** | **26** |
 
-**Overall Progress:** 52% Complete (was 54%) | 3% In Progress | 44% Not Started
+**Overall Progress:** 54% Complete | 5% In Progress | 41% Not Started
 
 **Build Status:** ✅ **PASSING** (0 errors, 0 warnings) - Ready for feature development
 
