@@ -327,12 +327,16 @@
   - [x] appointment-scheduling-rules.service.spec.ts (60+ test cases)
   - [x] invoice-calculation-rules.service.spec.ts (50+ test cases)
   - [x] prescription-validation-rules.service.spec.ts (55+ test cases)
-  - [x] Total: 165+ unit tests for domain services
+  - [x] observability.service.spec.ts (40+ test cases)
+  - [x] health-check.controller.spec.ts (45+ test cases)
+  - [x] patient.service.spec.ts (40+ test cases)
+  - [x] appointment.service.spec.ts (50+ test cases)
+  - [x] Total: 340+ unit tests for business-critical services
 - [x] Add controller tests to verify route authorization, input validation, and response shapes (Added: patients.controller.spec.ts, payments.controller.spec.ts)
 - [ ] Add guard and interceptor unit tests
 - [ ] Integrate coverage reporting into CI (fail if coverage drops below threshold)
 
-**Status:** 🟡 IN PROGRESS (35% - domain service tests complete, working on remaining services)
+**Status:** 🟡 IN PROGRESS (50% - domain and core service tests complete, coverage reporting pending)
 
 ---
 
@@ -857,11 +861,11 @@
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 14 | 14 | 0 | 0 |
-| 🟡 High | 32 | 14 | 4 | 14 |
+| 🟡 High | 32 | 14 | 5 | 13 |
 | 🟢 Medium | 17 | 1 | 0 | 16 |
-| **TOTAL** | **63** | **29** | **4** | **30** |
+| **TOTAL** | **63** | **29** | **5** | **29** |
 
-**Overall Progress:** 46% Complete | 6% In Progress | 48% Not Started
+**Overall Progress:** 46% Complete | 8% In Progress | 46% Not Started
 
 ---
 
