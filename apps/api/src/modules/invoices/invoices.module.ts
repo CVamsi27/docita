@@ -5,6 +5,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { InvoiceEventsListener } from './events/invoice-events.listener';
 import { InvoicePdfService } from './invoice-pdf.service';
+import { InvoiceCalculationRulesService } from './domain-services/invoice-calculation-rules.service';
 import { CommonServicesModule } from '../../common/services/common-services.module';
 
 import { PrismaInvoiceRepository } from './repositories/prisma-invoice.repository';
@@ -16,11 +17,12 @@ import { PrismaInvoiceRepository } from './repositories/prisma-invoice.repositor
     InvoicesService,
     InvoiceEventsListener,
     InvoicePdfService,
+    InvoiceCalculationRulesService,
     {
       provide: 'IInvoiceRepository',
       useClass: PrismaInvoiceRepository,
     },
   ],
-  exports: [InvoicesService, InvoicePdfService],
+  exports: [InvoicesService, InvoicePdfService, InvoiceCalculationRulesService],
 })
 export class InvoicesModule {}
