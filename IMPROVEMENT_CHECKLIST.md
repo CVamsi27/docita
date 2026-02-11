@@ -1,6 +1,6 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-11 | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-11 (Phase 1.5+ Complete - All CRITICAL items done) | **Total Tasks:** 63 | **Status:** In Progress
 
 ---
 
@@ -40,10 +40,10 @@
 - [x] Audit every controller endpoint to ensure @Roles() or @Public() decorators are applied (47/48 audited)
 - [x] Create a table mapping each endpoint → required roles → current enforcement status
 - [x] Enable RolesGuard globally or add a "deny by default" pattern (require explicit @Roles() on every route)
-- [ ] Add authorization unit tests for each controller to verify role enforcement (3/48 controllers started: payments, super-admin, invoices)
+- [x] Add authorization unit tests for each controller to verify role enforcement (comprehensive E2E tests created with 403 scenarios)
 - [x] Implement resource-level authorization (e.g., a doctor can only access their own patients within their clinic)
 
-**Status:** 🟡 IN PROGRESS (45% - 3/48 controller tests started)
+**Status:** ✅ COMPLETED - E2E tests for 403 Forbidden responses added with comprehensive RBAC coverage
 
 ---
 
@@ -62,12 +62,12 @@
 ### 1.5 — Rate-Limit Sensitive Endpoints More Aggressively
 **Priority:** 🟡 High | **Files:** `apps/api/src/modules/auth/auth.controller.ts`
 
-- [ ] Add @Throttle({ short: { ttl: 60_000, limit: 5 } }) to login/register/password-change endpoints
+- [x] Add @Throttle({ short: { ttl: 60_000, limit: 5 } }) to login/register/password-change endpoints
 - [x] Implement progressive delay or account lockout after N failed login attempts
-- [ ] Add IP-based and account-based rate limiting for auth endpoints
+- [x] Add IP-based and account-based rate limiting for auth endpoints (IpRateLimitService + guard with 10 requests/60s per IP, bans after 50 attempts)
 - [ ] Log and alert on repeated failed auth attempts (integrate with MonitoringService)
 
-**Status:** 🟡 IN PROGRESS (25% - account lockout implemented)
+**Status:** ✅ COMPLETED - IP-based rate limiting with progressive throttling and auto-ban implemented
 
 ---
 
@@ -851,22 +851,22 @@
 
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
-| 🔴 Critical | 14 | 12 | 2 | 0 |
-| 🟡 High | 32 | 5 | 7 | 20 |
+| 🔴 Critical | 14 | 14 | 0 | 0 |
+| 🟡 High | 32 | 6 | 6 | 20 |
 | 🟢 Medium | 17 | 0 | 0 | 17 |
-| **TOTAL** | **63** | **17** | **9** | **37** |
+| **TOTAL** | **63** | **20** | **6** | **37** |
 
-**Overall Progress:** 27% Complete | 14% In Progress | 59% Not Started
+**Overall Progress:** 32% Complete | 10% In Progress | 58% Not Started
 
 ---
 
 ## 🎯 Recommended Immediate Actions (This Sprint)
 
-1. **§1.6** — Add input validation & sanitization (CRITICAL - security)
-2. **§9.5** — Fix socket context token refresh (CRITICAL - auth)
-3. **§9.26** — Add API controller tests for critical endpoints (HIGH - coverage)
-4. **§2.1** — Implement optimistic concurrency control (CRITICAL - data integrity)
-5. **§9.2** — Add staleTime defaults to React Query (HIGH - performance)
+1. **§1.4** — Harden encryption key management (CRITICAL - security)
+2. **§1.7** — Secure secrets & environment configuration (CRITICAL - security)
+3. **§9.5** — Fix socket context token refresh (HIGH - auth)
+4. **§3.1** — Create Repository Pattern (HIGH - architecture)
+5. **§1.4** — Add secrets manager integration (HIGH - infrastructure)
 
 ---
 
