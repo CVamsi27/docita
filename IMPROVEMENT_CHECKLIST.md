@@ -331,12 +331,14 @@
   - [x] health-check.controller.spec.ts (45+ test cases)
   - [x] patient.service.spec.ts (40+ test cases)
   - [x] appointment.service.spec.ts (50+ test cases)
-  - [x] Total: 340+ unit tests for business-critical services
+  - [x] roles.guard.spec.ts (15+ test cases)
+  - [x] request-context.interceptor.spec.ts (20+ test cases)
+  - [x] Total: 375+ unit tests for business-critical services & infrastructure
 - [x] Add controller tests to verify route authorization, input validation, and response shapes (Added: patients.controller.spec.ts, payments.controller.spec.ts)
-- [ ] Add guard and interceptor unit tests
+- [x] Add guard and interceptor unit tests
 - [ ] Integrate coverage reporting into CI (fail if coverage drops below threshold)
 
-**Status:** 🟡 IN PROGRESS (50% - domain and core service tests complete, coverage reporting pending)
+**Status:** 🟡 IN PROGRESS (85% - all service tests complete, CI integration pending)
 
 ---
 
