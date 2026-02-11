@@ -8,11 +8,15 @@ import { OptimisticConcurrencyService } from './services/optimistic-concurrency.
 import { BusinessRulesService } from './services/business-rules.service';
 import { StartupValidationService } from './services/startup-validation.service';
 import { SecretsManagerService } from './services/secrets-manager.service';
+import { ObservabilityService } from './services/observability.service';
 import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
+import { HealthCheckController } from './controllers/health-check.controller';
+import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 
 @Global()
 @Module({
   imports: [ConfigModule],
+  controllers: [HealthCheckController],
   providers: [
     EncryptionService,
     AppLogger,
@@ -22,7 +26,9 @@ import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
     BusinessRulesService,
     StartupValidationService,
     SecretsManagerService,
+    ObservabilityService,
     IpRateLimitGuard,
+    RequestContextInterceptor,
   ],
   exports: [
     EncryptionService,
@@ -33,7 +39,9 @@ import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
     BusinessRulesService,
     StartupValidationService,
     SecretsManagerService,
+    ObservabilityService,
     IpRateLimitGuard,
+    RequestContextInterceptor,
   ],
 })
 export class CommonModule {}

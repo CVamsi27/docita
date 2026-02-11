@@ -56,6 +56,7 @@ import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './common/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './common/interceptors/emergency-access.interceptor';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/roles.guard';
 import { CsrfInterceptor } from './common/interceptors/csrf.interceptor';
@@ -196,6 +197,11 @@ import { CommonServicesModule } from './common/services';
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
+    },
+    // Global Request Context (Correlation ID) - for Sentry integration
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestContextInterceptor,
     },
     // Global Tenant Context Interceptor
     {

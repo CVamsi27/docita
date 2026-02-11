@@ -8,6 +8,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { MonitoringService } from './modules/monitoring/monitoring.service';
+import { ObservabilityService } from './common/services/observability.service';
 import {
   getCorsOrigins,
   validateEnv,
@@ -39,14 +40,31 @@ process.on('warning', (warning) => {
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
+  // Initialize Sentry first (before creating NestJS app)
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
-    integrations: [nodeProfilingIntegration()],
+    integrations: [
+      nodeProfilingIntegration(),
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.OnUncaughtException(),
+      new Sentry.Integrations.OnUnhandledRejection(),
+    ],
     tracesSampleRate: parseFloat(
       process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1',
     ),
-    profilesSampleRate: 1.0,
+    profilesSampleRate:
+      process.env.NODE_ENV === 'production'
+        ? parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE || '0.1')
+        : 1.0,
+    maxBreadcrumbs: 50,
+    attachStacktrace: true,
+    initialScope: {
+      tags: {
+        service: 'docita-api',
+        version: process.env.APP_VERSION || '1.0.0',
+      },
+    },
   });
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -195,25 +213,40 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   const server = await app.listen(port);
 
+  // Get observability service for metrics tracking
+  const observabilityService = app.get(ObservabilityService);
+
   // Graceful shutdown handler for zero-downtime deployments
   // Allows active connections to drain before process exit
-  const gracefulShutdown = (signal: string) => {
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`\n📍 Received ${signal}, initiating graceful shutdown...`);
+
     // Stop accepting new connections
     server.close(async () => {
+      // Flush Sentry events before shutdown
+      await observabilityService.flush(5000);
+
       // Close NestJS app (closes database, caches, etc.)
       await app.close();
 
+      console.log('✅ Graceful shutdown complete');
       process.exit(0);
     });
 
     // Force exit after 15 seconds if connections don't drain
     setTimeout(() => {
-      console.error('Graceful shutdown timeout exceeded, forcing exit');
+      console.error(
+        '⚠️ Graceful shutdown timeout exceeded, forcing exit',
+      );
       process.exit(1);
     }, 15000);
   };
 
-  process.on('SIGTERM', gracefulShutdown);
-  process.on('SIGINT', gracefulShutdown);
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Fatal error during bootstrap:', error);
+  Sentry.captureException(error);
+  process.exit(1);
+});
