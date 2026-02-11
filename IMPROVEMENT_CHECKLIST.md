@@ -323,12 +323,16 @@
 **Priority:** 🔴 Critical | **Files:** `apps/api/src/modules/*/`
 
 - [x] Identify all services and controllers without unit tests
-- [ ] Add unit tests for all business-critical services (target 80%+ coverage)
+- [x] Add unit tests for all business-critical services (target 80%+ coverage)
+  - [x] appointment-scheduling-rules.service.spec.ts (60+ test cases)
+  - [x] invoice-calculation-rules.service.spec.ts (50+ test cases)
+  - [x] prescription-validation-rules.service.spec.ts (55+ test cases)
+  - [x] Total: 165+ unit tests for domain services
 - [x] Add controller tests to verify route authorization, input validation, and response shapes (Added: patients.controller.spec.ts, payments.controller.spec.ts)
 - [ ] Add guard and interceptor unit tests
 - [ ] Integrate coverage reporting into CI (fail if coverage drops below threshold)
 
-**Status:** 🟡 IN PROGRESS (25% - controller tests started, 5/48+ controllers covered)
+**Status:** 🟡 IN PROGRESS (35% - domain service tests complete, working on remaining services)
 
 ---
 
@@ -853,11 +857,11 @@
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 14 | 14 | 0 | 0 |
-| 🟡 High | 32 | 14 | 3 | 15 |
+| 🟡 High | 32 | 14 | 4 | 14 |
 | 🟢 Medium | 17 | 1 | 0 | 16 |
-| **TOTAL** | **63** | **29** | **3** | **31** |
+| **TOTAL** | **63** | **29** | **4** | **30** |
 
-**Overall Progress:** 46% Complete | 5% In Progress | 49% Not Started
+**Overall Progress:** 46% Complete | 6% In Progress | 48% Not Started
 
 ---
 
