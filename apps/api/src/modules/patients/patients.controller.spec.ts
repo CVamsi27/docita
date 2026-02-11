@@ -145,12 +145,7 @@ describe('PatientsController (Authorization)', () => {
         hasMore: false,
       });
 
-      await controller.findAll(
-        mockRequest as any,
-        '10',
-        undefined,
-        'john',
-      );
+      await controller.findAll(mockRequest as any, '10', undefined, 'john');
 
       expect(mockPatientsService.findAll).toHaveBeenCalledWith(
         'clinic-1',

@@ -155,7 +155,9 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     await this.prisma.prescription.delete({ where: { id } });
   }
 
-  async findPatientWithAllergies(patientId: string): Promise<any | null> {
+  async findPatientWithAllergies(
+    patientId: string,
+  ): Promise<{ id: string } | null> {
     return this.prisma.patient.findUnique({
       where: { id: patientId },
       include: {

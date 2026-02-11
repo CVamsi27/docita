@@ -161,9 +161,10 @@ export class AuthService {
           attempt: newFailedAttempts,
           maxAttempts: MAX_FAILED_ATTEMPTS,
           accountLocked: newFailedAttempts >= MAX_FAILED_ATTEMPTS,
-          accountLockedUntilMinutes: newFailedAttempts >= MAX_FAILED_ATTEMPTS
-            ? LOCKOUT_DURATION_MINUTES
-            : null,
+          accountLockedUntilMinutes:
+            newFailedAttempts >= MAX_FAILED_ATTEMPTS
+              ? LOCKOUT_DURATION_MINUTES
+              : null,
         },
       );
 

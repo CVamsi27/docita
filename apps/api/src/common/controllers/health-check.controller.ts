@@ -17,7 +17,7 @@ export class HealthCheckController {
    */
   @Public()
   @Get()
-  async ping(): Promise<{ status: 'ok'; timestamp: string }> {
+  ping(): { status: 'ok'; timestamp: string } {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -37,9 +37,14 @@ export class HealthCheckController {
     timestamp: string;
   }> {
     const health = await this.observability.getSystemHealth();
-    
+
     return {
-      status: health.status === 'healthy' ? 'ok' : health.status === 'degraded' ? 'degraded' : 'error',
+      status:
+        health.status === 'healthy'
+          ? 'ok'
+          : health.status === 'degraded'
+            ? 'degraded'
+            : 'error',
       service: 'docita-api',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
@@ -83,7 +88,7 @@ export class HealthCheckController {
    */
   @Public()
   @Get('/metrics')
-  async metrics(): Promise<Record<string, any>> {
+  metrics(): Record<string, any> {
     return this.observability.getMetricsSummary();
   }
 
@@ -92,11 +97,11 @@ export class HealthCheckController {
    */
   @Public()
   @Get('/system')
-  async systemMetrics(): Promise<{
+  systemMetrics(): {
     uptime: number;
     memory: NodeJS.MemoryUsage;
     timestamp: string;
-  }> {
+  } {
     return {
       uptime: process.uptime(),
       memory: process.memoryUsage(),

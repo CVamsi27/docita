@@ -143,7 +143,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
     it('should return 403 when STAFF tries to update appointment', async () => {
       const response = await request(app.getHttpServer())
-        .patch(`/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`)
+        .patch(
+          `/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`,
+        )
         .set('Authorization', `Bearer ${staffUser.token}`)
         .send({
           status: 'COMPLETED',
@@ -154,7 +156,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
     it('should return 403 when STAFF tries to delete appointment', async () => {
       const response = await request(app.getHttpServer())
-        .delete(`/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`)
+        .delete(
+          `/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`,
+        )
         .set('Authorization', `Bearer ${staffUser.token}`);
 
       expect(response.status).toBe(403);
@@ -163,7 +167,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
     it('should return 403 when DOCTOR tries to delete appointment', async () => {
       // Only ADMIN can delete appointments
       const response = await request(app.getHttpServer())
-        .delete(`/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`)
+        .delete(
+          `/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`,
+        )
         .set('Authorization', `Bearer ${doctorUser.token}`);
 
       expect(response.status).toBe(403);
@@ -243,7 +249,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .patch(`/api/v1/clinics/${testClinic.id}/prescriptions/${prescription.id}`)
+        .patch(
+          `/api/v1/clinics/${testClinic.id}/prescriptions/${prescription.id}`,
+        )
         .set('Authorization', `Bearer ${staffUser.token}`)
         .send({
           medications: [
@@ -299,7 +307,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .post(`/api/v1/clinics/${testClinic.id}/invoices/${invoice.id}/mark-paid`)
+        .post(
+          `/api/v1/clinics/${testClinic.id}/invoices/${invoice.id}/mark-paid`,
+        )
         .set('Authorization', `Bearer ${staffUser.token}`);
 
       expect(response.status).toBe(403);
@@ -387,7 +397,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
       expect(response.status).toBe(403);
       expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/forbidden|not authorized|permission/i);
+      expect(response.body.message).toMatch(
+        /forbidden|not authorized|permission/i,
+      );
     });
   });
 });

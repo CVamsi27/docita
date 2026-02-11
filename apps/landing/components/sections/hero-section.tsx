@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +53,6 @@ export function HeroSection() {
             View Demo
           </Button>
         </div>
-      </div>
       </div>
       <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
         <DialogContent className="sm:max-w-[800px]">

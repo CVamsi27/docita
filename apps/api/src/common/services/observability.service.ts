@@ -29,9 +29,7 @@ export class ObservabilityService {
     const sentryDsn = process.env.SENTRY_DSN;
 
     if (!sentryDsn) {
-      this.logger.warn(
-        'SENTRY_DSN not configured. Error tracking disabled.',
-      );
+      this.logger.warn('SENTRY_DSN not configured. Error tracking disabled.');
       return;
     }
 
@@ -112,8 +110,7 @@ export class ObservabilityService {
     metadata?: Record<string, any>,
   ): void {
     const correlationId =
-      Sentry.getCurrentScope()?.getContext('request')?.id ||
-      'unknown';
+      Sentry.getCurrentScope()?.getContext('request')?.id || 'unknown';
 
     const logEntry = {
       timestamp: new Date().toISOString(),

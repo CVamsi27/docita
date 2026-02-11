@@ -11,7 +11,10 @@ import PDFDocument from 'pdfkit';
 // Mock pdfkit
 jest.mock('pdfkit', () => {
   return jest.fn().mockImplementation(() => {
-    const listeners: Record<string, Function[]> = {};
+    const listeners: Record<
+      string,
+      Array<(...args: unknown[]) => unknown>
+    > = {};
     const docMock: any = {
       page: { width: 600, height: 800 },
       y: 100,

@@ -16,7 +16,11 @@ export const CreatePrescriptionSchema = createPrescriptionSchema.extend({
   doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
   doctorSpecialization: z.string().max(100).transform(stripHtmlTags).optional(),
   doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-  doctorRegistrationNumber: z.string().max(100).transform(stripHtmlTags).optional(),
+  doctorRegistrationNumber: z
+    .string()
+    .max(100)
+    .transform(stripHtmlTags)
+    .optional(),
   doctorLicenseNumber: z.string().max(100).transform(stripHtmlTags).optional(),
 });
 

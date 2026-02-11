@@ -12,7 +12,7 @@ describe('ObservabilityService', () => {
     service = module.get<ObservabilityService>(ObservabilityService);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clean up any pending metrics
     service.getMetricsSummary();
   });
@@ -139,7 +139,7 @@ describe('ObservabilityService', () => {
       expect(summary.length).toBeGreaterThan(0);
     });
 
-    it('should clear old metrics after expiration', async () => {
+    it('should clear old metrics after expiration', () => {
       service.recordMetric('test', 100, 'label');
       const summaryBefore = service.getMetricsSummary();
 
@@ -153,7 +153,7 @@ describe('ObservabilityService', () => {
   });
 
   describe('health checks', () => {
-    it('should check system health', async () => {
+    it('should check system health', () => {
       const health = service.getSystemHealth();
 
       expect(health).toBeDefined();
@@ -162,7 +162,7 @@ describe('ObservabilityService', () => {
       expect(health.uptime).toBeGreaterThanOrEqual(0);
     });
 
-    it('should include memory usage', async () => {
+    it('should include memory usage', () => {
       const health = service.getSystemHealth();
 
       expect(health.memory).toBeDefined();
@@ -190,9 +190,7 @@ describe('ObservabilityService', () => {
     it('should flush metrics', async () => {
       service.recordMetric('test_metric', 100, 'test');
 
-      expect(async () => {
-        await service.flush(1000);
-      }).not.toThrow();
+      await expect(service.flush(1000)).resolves.not.toThrow();
     });
 
     it('should complete within timeout', async () => {
@@ -210,14 +208,12 @@ describe('ObservabilityService', () => {
         service.recordMetric(`metric_${i}`, Math.random() * 1000, `label_${i}`);
       }
 
-      expect(async () => {
-        await service.flush(100); // Very short timeout
-      }).not.toThrow();
+      await expect(service.flush(100)).resolves.not.toThrow(); // Very short timeout
     });
   });
 
   describe('integration scenarios', () => {
-    it('should handle complete observability workflow', async () => {
+    it('should handle complete observability workflow', () => {
       // 1. Initialize
       service.initializeSentry({
         dsn: 'https://example@sentry.io/123456',
@@ -244,13 +240,17 @@ describe('ObservabilityService', () => {
       expect(metrics).toBeDefined();
 
       // 6. Capture an event
-      service.captureMessage('Request processed successfully', 'info', 'workflow');
+      service.captureMessage(
+        'Request processed successfully',
+        'info',
+        'workflow',
+      );
 
       // 7. Flush
       await service.flush(2000);
     });
 
-    it('should track error with context', async () => {
+    it('should track error with context', () => {
       const error = new Error('Database connection failed');
       const correlationId = 'corr-456';
 

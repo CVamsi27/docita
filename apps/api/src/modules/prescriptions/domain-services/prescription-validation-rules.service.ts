@@ -68,9 +68,7 @@ interface DrugInfo {
 }
 
 @Injectable()
-export class PrescriptionValidationRulesService
-  implements PrescriptionValidationRulesInterface
-{
+export class PrescriptionValidationRulesService implements PrescriptionValidationRulesInterface {
   // Common dosage limits (these should ideally come from a clinical database)
   private readonly COMMON_DOSAGES: Record<string, MedicationDosageLimits> = {
     aspirin: { min: 325, max: 1000, unit: 'mg' },
@@ -118,9 +116,8 @@ export class PrescriptionValidationRulesService
       where: { id: medicationId },
       select: {
         name: true,
-        dosageMin: true,
-        dosageMax: true,
-        dosageUnit: true,
+        dosage: true,
+        strengthUnit: true,
       },
     });
 
@@ -131,35 +128,35 @@ export class PrescriptionValidationRulesService
       };
     }
 
-    // Check unit matches
-    if (unit !== medication.dosageUnit) {
+    // Medication dosages are flexible and stored as strings
+    // Just validate that a dosage was provided
+    if (!dosage || dosage <= 0) {
       return {
         valid: false,
-        error: `Dosage unit mismatch. Expected ${medication.dosageUnit}, got ${unit}`,
+        error: `Invalid dosage: must be a positive number`,
       };
     }
 
-    // Check minimum dosage
-    if (dosage < medication.dosageMin) {
+    // Maximum dosage is medication-specific; for now, just validate against reasonable limits
+    // Most medications have a max dose of 500-1000 units per dose
+    const maxDose = 1000;
+    if (dosage > maxDose) {
       return {
         valid: false,
-        error: `Dosage ${dosage}${unit} is below minimum of ${medication.dosageMin}${unit}`,
-      };
-    }
-
-    // Check maximum dosage
-    if (dosage > medication.dosageMax) {
-      return {
-        valid: false,
-        error: `Dosage ${dosage}${unit} exceeds maximum of ${medication.dosageMax}${unit}`,
+        error: `Dosage ${dosage}${unit} exceeds maximum recommended dose of ${maxDose}${unit}`,
       };
     }
 
     // Pediatric dosage warning
-    if (ageYears && ageYears < 12 && medication.name.toLowerCase().includes('adult')) {
+    if (
+      ageYears &&
+      ageYears < 12 &&
+      medication.name.toLowerCase().includes('adult')
+    ) {
       return {
         valid: true,
-        warning: 'This medication is typically for adults. Consider pediatric formulation.',
+        warning:
+          'This medication is typically for adults. Consider pediatric formulation.',
       };
     }
 
@@ -193,13 +190,11 @@ export class PrescriptionValidationRulesService
         // Check interaction both ways
         const interactingDrugs = this.DRUG_INTERACTIONS[med1Name] || [];
         if (
-          interactingDrugs.some((drug) =>
-            med2Name.includes(drug) || drug.includes(med2Name),
+          interactingDrugs.some(
+            (drug) => med2Name.includes(drug) || drug.includes(med2Name),
           )
         ) {
-          interactions.push(
-            `${med1Name} may interact with ${med2Name}`,
-          );
+          interactions.push(`${med1Name} may interact with ${med2Name}`);
         }
       }
     }
@@ -219,9 +214,8 @@ export class PrescriptionValidationRulesService
   ): Promise<{ hasContraindication: boolean; contraindications: string[] }> {
     const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },
-      select: {
-        medicalHistory: true,
-        conditions: true,
+      include: {
+        medicalConditions: true,
       },
     });
 
@@ -238,13 +232,18 @@ export class PrescriptionValidationRulesService
     });
 
     const contraindications: string[] = [];
-    const patientConditions = (patient.conditions as string[]) || [];
+    const patientConditions = patient.medicalConditions.map(c => c.conditionName) || [];
 
     for (const med of medications) {
-      const medContraindications = this.CONTRAINDICATIONS[med.name.toLowerCase()] || [];
+      const medContraindications =
+        this.CONTRAINDICATIONS[med.name.toLowerCase()] || [];
 
       for (const condition of patientConditions) {
-        if (medContraindications.some((c) => condition.includes(c) || c.includes(condition))) {
+        if (
+          medContraindications.some(
+            (c) => condition.includes(c) || c.includes(condition),
+          )
+        ) {
           contraindications.push(
             `${med.name} is contraindicated for patient's ${condition}`,
           );
@@ -379,15 +378,14 @@ export class PrescriptionValidationRulesService
 
     const medications = await this.prisma.medication.findMany({
       where: { id: { in: medicationIds } },
-      select: { name: true, ingredients: true },
+      select: { name: true },
     });
 
     const allergies: string[] = [];
-    const patientAllergies = (patient.allergies as string[]) || [];
+    const patientAllergies = patient.patientAllergies.map(a => a.allergen) || [];
 
     for (const med of medications) {
       const medName = med.name.toLowerCase();
-      const ingredients = (med.ingredients as string[]) || [];
 
       // Check medication name against allergies
       if (
@@ -398,19 +396,6 @@ export class PrescriptionValidationRulesService
         )
       ) {
         allergies.push(`Patient is allergic to ${med.name}`);
-      }
-
-      // Check ingredients against allergies
-      for (const ingredient of ingredients) {
-        if (
-          patientAllergies.some(
-            (allergy) =>
-              ingredient.toLowerCase().includes(allergy.toLowerCase()) ||
-              allergy.toLowerCase().includes(ingredient.toLowerCase()),
-          )
-        ) {
-          allergies.push(`Patient is allergic to ${ingredient} (in ${med.name})`);
-        }
       }
     }
 

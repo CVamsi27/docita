@@ -243,11 +243,11 @@ describe('RequestContextInterceptor', () => {
           handle: jest.fn().mockReturnValue(of({})),
         } as unknown as CallHandler;
 
-        interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
-          () => {
+        interceptor
+          .intercept(mockExecutionContext, mockCallHandler)
+          .subscribe(() => {
             ids.add(mockRequest.id);
-          },
-        );
+          });
       }
 
       // Give time for all subscriptions to complete

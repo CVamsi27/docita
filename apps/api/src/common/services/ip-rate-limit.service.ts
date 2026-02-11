@@ -8,7 +8,10 @@ import { Request } from 'express';
 @Injectable()
 export class IpRateLimitService {
   // Map of IP -> { attempts: number, resetTime: timestamp }
-  private readonly ipAttempts = new Map<string, { count: number; resetTime: number }>();
+  private readonly ipAttempts = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
 
   private readonly WINDOW_MS = 60 * 1000; // 1 minute window
   private readonly MAX_ATTEMPTS_PER_IP = 10; // 10 requests per minute per IP

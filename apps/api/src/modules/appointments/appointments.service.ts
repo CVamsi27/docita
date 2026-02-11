@@ -280,8 +280,12 @@ export class AppointmentsService {
           dataRecord.version !== undefined &&
           currentVersion !== dataRecord.version
         ) {
+          const clientVersion =
+            typeof dataRecord.version === 'number'
+              ? dataRecord.version
+              : Number(dataRecord.version);
           throw new ConflictException(
-            `Appointment has been modified by another user. Expected version ${dataRecord.version}, but current version is ${currentVersion}. Please refresh and try again.`,
+            `Appointment has been modified by another user. Expected version ${clientVersion}, but current version is ${currentVersion}. Please refresh and try again.`,
           );
         }
       }

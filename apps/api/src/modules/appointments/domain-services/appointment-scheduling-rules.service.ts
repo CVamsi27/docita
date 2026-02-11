@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
@@ -27,10 +31,7 @@ export interface AppointmentSchedulingRulesInterface {
     endTime: Date,
   ): Promise<{ allowed: boolean; reason?: string }>;
 
-  calculateAppointmentDuration(
-    startTime: Date,
-    endTime: Date,
-  ): number;
+  calculateAppointmentDuration(startTime: Date, endTime: Date): number;
 
   validateSlotAvailability(
     doctorId: string,
@@ -129,34 +130,30 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     endTime: Date,
     excludeAppointmentId?: string,
   ): Promise<{ hasConflict: boolean; conflict?: any }> {
-    const conflictingAppointments =
-      await this.prisma.appointment.findMany({
-        where: {
-          doctorId,
-          clinicId,
-          status: {
-            in: [
-              AppointmentStatus.SCHEDULED,
-              AppointmentStatus.CONFIRMED,
-              AppointmentStatus.IN_PROGRESS,
-            ],
-          },
-          NOT: {
-            id: excludeAppointmentId,
-          },
-          // Check for time overlap: existing.start < new.end AND existing.end > new.start
-          AND: [
-            { startTime: { lt: endTime } },
-            { endTime: { gt: startTime } },
+    const conflictingAppointments = await this.prisma.appointment.findMany({
+      where: {
+        doctorId,
+        clinicId,
+        status: {
+          in: [
+            AppointmentStatus.SCHEDULED,
+            AppointmentStatus.CONFIRMED,
+            AppointmentStatus.IN_PROGRESS,
           ],
         },
-        select: {
-          id: true,
-          startTime: true,
-          endTime: true,
-          patient: { select: { name: true } },
+        NOT: {
+          id: excludeAppointmentId,
         },
-      });
+        // Check for time overlap: existing.start < new.end AND existing.end > new.start
+        AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        patient: { select: { name: true } },
+      },
+    });
 
     if (conflictingAppointments.length > 0) {
       return {
@@ -233,10 +230,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
         doctorId,
         clinicId,
         status: {
-          in: [
-            AppointmentStatus.SCHEDULED,
-            AppointmentStatus.CONFIRMED,
-          ],
+          in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
         },
         startTime: { gte: slotStartTime },
         endTime: { lte: slotEndTime },
@@ -280,7 +274,8 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       ],
     };
 
-    const allowed = validTransitions[currentStatus]?.includes(newStatus) ?? false;
+    const allowed =
+      validTransitions[currentStatus]?.includes(newStatus) ?? false;
 
     if (!allowed) {
       return {

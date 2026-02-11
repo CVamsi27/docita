@@ -156,9 +156,9 @@ describe('PaymentsController (Authorization)', () => {
         new Error('Amount must be positive'),
       );
 
-      await expect(
-        controller.createPaymentLink(InvalidDto),
-      ).rejects.toThrow('Amount must be positive');
+      await expect(controller.createPaymentLink(InvalidDto)).rejects.toThrow(
+        'Amount must be positive',
+      );
     });
 
     it('should validate required fields in CreatePaymentLinkDto', () => {

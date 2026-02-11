@@ -130,12 +130,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
         case 'P2014':
           status = HttpStatus.BAD_REQUEST;
-          message = 'The change you are trying to make violates a required relation';
+          message =
+            'The change you are trying to make violates a required relation';
           details = { code: 'P2014' };
           break;
         case 'P2016':
           status = HttpStatus.NOT_FOUND;
-          message = 'The query interpretation could not be matched to the database schema';
+          message =
+            'The query interpretation could not be matched to the database schema';
           details = { code: 'P2016' };
           break;
         case 'P2021':
@@ -244,10 +246,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       detail: message, // Human-readable explanation
       instance: request.path, // URI identifying the problem occurrence
       timestamp: new Date().toISOString(),
-      
+
       // Additional fields (only if applicable)
       ...(details && { validationErrors: details }),
-      
+
       // Only include stack trace and internal details in development
       ...(isDevelopment && errorStack && { stack: errorStack }),
       ...(isDevelopment && { errorType }),
@@ -273,3 +275,5 @@ export class AllExceptionsFilter implements ExceptionFilter {
       503: 'Service Unavailable',
     };
     return statusTexts[status] || 'Unknown Error';
+  }
+}

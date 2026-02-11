@@ -12,11 +12,11 @@ export class BusinessRulesService {
   /**
    * Validates appointment time ranges and constraints
    */
-  async validateAppointmentTimeRange(
+  validateAppointmentTimeRange(
     startTime: Date,
     endTime: Date,
     appointmentId?: string, // Exclude this appointment when checking overlaps
-  ): Promise<void> {
+  ): void {
     // Validate date/time consistency
     if (endTime <= startTime) {
       throw new BadRequestException('End time must be after start time');
@@ -24,13 +24,18 @@ export class BusinessRulesService {
 
     // Validate appointment is not in the past
     if (startTime < new Date()) {
-      throw new BadRequestException('Appointment must be scheduled in the future');
+      throw new BadRequestException(
+        'Appointment must be scheduled in the future',
+      );
     }
 
     // Validate reasonable appointment duration (30 min - 4 hours)
-    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    const durationMinutes =
+      (endTime.getTime() - startTime.getTime()) / (1000 * 60);
     if (durationMinutes < 30) {
-      throw new BadRequestException('Appointment duration must be at least 30 minutes');
+      throw new BadRequestException(
+        'Appointment duration must be at least 30 minutes',
+      );
     }
     if (durationMinutes > 240) {
       throw new BadRequestException(
@@ -55,10 +60,7 @@ export class BusinessRulesService {
         clinicId,
         id: excludeAppointmentId ? { not: excludeAppointmentId } : undefined,
         // Check if any appointment overlaps with requested time range
-        AND: [
-          { startTime: { lt: endTime } },
-          { endTime: { gt: startTime } },
-        ],
+        AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
         // Only check non-cancelled appointments
         status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
       },
@@ -74,12 +76,12 @@ export class BusinessRulesService {
   /**
    * Validates prescription medication data
    */
-  async validatePrescriptionMedication(
+  validatePrescriptionMedication(
     name: string,
     dosage: string,
     frequency: string,
     duration?: string,
-  ): Promise<void> {
+  ): void {
     // Validate required fields
     if (!name || name.trim().length === 0) {
       throw new BadRequestException('Medication name is required');
@@ -116,10 +118,10 @@ export class BusinessRulesService {
   /**
    * Validates invoice data and calculations
    */
-  async validateInvoice(
+  validateInvoice(
     items: Array<{ description: string; quantity: number; price: number }>,
     total: number,
-  ): Promise<void> {
+  ): void {
     if (!items || items.length === 0) {
       throw new BadRequestException('Invoice must have at least one item');
     }
@@ -143,7 +145,9 @@ export class BusinessRulesService {
 
       // Validate description
       if (!item.description || item.description.trim().length === 0) {
-        throw new BadRequestException(`Item ${index + 1}: Description is required`);
+        throw new BadRequestException(
+          `Item ${index + 1}: Description is required`,
+        );
       }
 
       // Calculate expected total
@@ -160,7 +164,9 @@ export class BusinessRulesService {
     // Validate invoice total is reasonable (not excessive)
     if (total > 10000000) {
       // 10 million currency units
-      throw new BadRequestException('Invoice total exceeds maximum allowed amount');
+      throw new BadRequestException(
+        'Invoice total exceeds maximum allowed amount',
+      );
     }
   }
 
@@ -169,7 +175,10 @@ export class BusinessRulesService {
    */
   validateCrossFieldConstraints(data: Record<string, any>): void {
     // If isPRN is true, prnInstructions should be required
-    if (data.isPRN && (!data.prnInstructions || data.prnInstructions.trim().length === 0)) {
+    if (
+      data.isPRN &&
+      (!data.prnInstructions || data.prnInstructions.trim().length === 0)
+    ) {
       throw new BadRequestException(
         'PRN instructions are required when medication is marked as needed',
       );
@@ -193,10 +202,7 @@ export class BusinessRulesService {
   /**
    * Validates appointment status transitions
    */
-  validateStatusTransition(
-    currentStatus: string,
-    newStatus: string,
-  ): void {
+  validateStatusTransition(currentStatus: string, newStatus: string): void {
     const validTransitions: Record<string, string[]> = {
       SCHEDULED: ['CONFIRMED', 'CANCELLED'],
       CONFIRMED: ['IN_PROGRESS', 'CANCELLED'],
@@ -206,7 +212,9 @@ export class BusinessRulesService {
     };
 
     if (!validTransitions[currentStatus]) {
-      throw new BadRequestException(`Unknown appointment status: ${currentStatus}`);
+      throw new BadRequestException(
+        `Unknown appointment status: ${currentStatus}`,
+      );
     }
 
     if (!validTransitions[currentStatus].includes(newStatus)) {

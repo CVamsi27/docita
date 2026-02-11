@@ -292,7 +292,9 @@ describe('Critical User Flow (e2e)', () => {
   describe('Step 4: Consultation & Vital Signs', () => {
     it('should record vitals during consultation', async () => {
       const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({ clinicId: clinic.id });
+      const { appointment } = await factories.appointment({
+        clinicId: clinic.id,
+      });
 
       const vitalResponse = await request(app.getHttpServer())
         .post(`/api/vital-signs`)
@@ -317,7 +319,9 @@ describe('Critical User Flow (e2e)', () => {
   describe('Step 5: Create Prescription', () => {
     it('should create prescription for appointment', async () => {
       const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({ clinicId: clinic.id });
+      const { appointment } = await factories.appointment({
+        clinicId: clinic.id,
+      });
 
       const response = await request(app.getHttpServer())
         .post(`/api/prescriptions`)
@@ -346,7 +350,9 @@ describe('Critical User Flow (e2e)', () => {
   describe('Step 6: Generate Invoice', () => {
     it('should create invoice for consultation', async () => {
       const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({ clinicId: clinic.id });
+      const { appointment } = await factories.appointment({
+        clinicId: clinic.id,
+      });
 
       const response = await request(app.getHttpServer())
         .post(`/api/invoices`)
@@ -374,7 +380,9 @@ describe('Critical User Flow (e2e)', () => {
 
     it('should process payment for invoice', async () => {
       const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({ clinicId: clinic.id });
+      const { appointment } = await factories.appointment({
+        clinicId: clinic.id,
+      });
 
       // Create invoice first
       const invoiceResponse = await request(app.getHttpServer())

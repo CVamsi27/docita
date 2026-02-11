@@ -59,7 +59,7 @@ export class ApiError extends AppError {
     message: string,
     statusCode: number,
     code: string = "API_ERROR",
-    public details?: any,
+    public details?: Record<string, unknown>,
   ) {
     super(message, code, statusCode);
   }

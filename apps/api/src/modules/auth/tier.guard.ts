@@ -75,7 +75,7 @@ export class TierGuard implements CanActivate {
     }
 
     // Map database tier to enum
-    const userTier = this.mapDbTierToEnum(clinic.tier as ClinicTier);
+    const userTier = this.mapDbTierToEnum(clinic.tier);
     const hasIntelligence =
       clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
 
@@ -136,7 +136,7 @@ export class TierGuard implements CanActivate {
   }
 
   private mapDbTierToEnum(dbTier: ClinicTier): Tier {
-    const tierMap: Record<ClinicTier | string, Tier> = {
+    const tierMap: Record<ClinicTier, Tier> = {
       [ClinicTier.CAPTURE]: Tier.CAPTURE,
       [ClinicTier.CORE]: Tier.CORE,
       [ClinicTier.PLUS]: Tier.PLUS,

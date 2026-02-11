@@ -10,7 +10,8 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class SecretsManagerService {
   private readonly logger = new Logger(SecretsManagerService.name);
-  private secretsCache: Map<string, { value: string; expiresAt: number }> = new Map();
+  private secretsCache: Map<string, { value: string; expiresAt: number }> =
+    new Map();
   private readonly CACHE_TTL_MS = 3600000; // 1 hour
 
   constructor(private configService: ConfigService) {
@@ -40,10 +41,10 @@ export class SecretsManagerService {
    * Get a secret value
    * Returns from cache if valid, otherwise fetches from provider
    */
-  async getSecret(
+  getSecret(
     secretName: string,
     options?: { cached?: boolean; ttl?: number },
-  ): Promise<string | undefined> {
+  ): string | undefined {
     const { cached = true, ttl = this.CACHE_TTL_MS } = options || {};
 
     // Check cache first
@@ -60,15 +61,12 @@ export class SecretsManagerService {
     // Fetch from provider
     let secretValue: string | undefined;
 
-    const provider = this.configService.get<string>(
-      'SECRETS_PROVIDER',
-      'env',
-    );
+    const provider = this.configService.get<string>('SECRETS_PROVIDER', 'env');
 
     if (provider === 'aws-secrets-manager') {
-      secretValue = await this.getFromAwsSecretsManager(secretName);
+      secretValue = this.getFromAwsSecretsManager(secretName);
     } else if (provider === 'vault') {
-      secretValue = await this.getFromHashiCorpVault(secretName);
+      secretValue = this.getFromHashiCorpVault(secretName);
     } else {
       // Default: environment variables
       secretValue = this.configService.get<string>(secretName);
@@ -88,13 +86,11 @@ export class SecretsManagerService {
   /**
    * Get multiple secrets at once
    */
-  async getSecrets(
+  getSecrets(
     secretNames: string[],
     options?: { cached?: boolean },
-  ): Promise<Record<string, string | undefined>> {
-    const secrets = await Promise.all(
-      secretNames.map((name) => this.getSecret(name, options)),
-    );
+  ): Record<string, string | undefined> {
+    const secrets = secretNames.map((name) => this.getSecret(name, options));
 
     return secretNames.reduce(
       (acc, name, index) => {
@@ -109,9 +105,7 @@ export class SecretsManagerService {
    * Fetch secret from AWS Secrets Manager
    * Requires AWS SDK and proper IAM permissions
    */
-  private async getFromAwsSecretsManager(
-    secretName: string,
-  ): Promise<string | undefined> {
+  private getFromAwsSecretsManager(secretName: string): string | undefined {
     try {
       // AWS Secrets Manager integration would go here
       // This requires: import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
@@ -134,9 +128,7 @@ export class SecretsManagerService {
    * Fetch secret from HashiCorp Vault
    * Requires Vault server and proper authentication
    */
-  private async getFromHashiCorpVault(
-    secretName: string,
-  ): Promise<string | undefined> {
+  private getFromHashiCorpVault(secretName: string): string | undefined {
     try {
       // HashiCorp Vault integration would go here
       // This requires: import * as Vault from 'node-vault';
@@ -159,11 +151,11 @@ export class SecretsManagerService {
    * Validate that critical secrets are available
    * Call this at startup to ensure all required secrets are set
    */
-  async validateRequiredSecrets(requiredSecrets: string[]): Promise<void> {
+  validateRequiredSecrets(requiredSecrets: string[]): void {
     const missing: string[] = [];
 
     for (const secretName of requiredSecrets) {
-      const value = await this.getSecret(secretName);
+      const value = this.getSecret(secretName);
       if (!value) {
         missing.push(secretName);
       }
@@ -172,7 +164,7 @@ export class SecretsManagerService {
     if (missing.length > 0) {
       throw new Error(
         `Missing required secrets: ${missing.join(', ')}. ` +
-        'Please ensure all critical secrets are configured in your secrets provider.',
+          'Please ensure all critical secrets are configured in your secrets provider.',
       );
     }
 
@@ -198,7 +190,7 @@ export class SecretsManagerService {
    * Rotate a secret (future enhancement)
    * Will trigger secret rotation in the provider
    */
-  async rotateSecret(secretName: string): Promise<void> {
+  rotateSecret(secretName: string): void {
     this.logger.log(`Rotating secret: ${secretName}`);
 
     // Clear cache to force refresh

@@ -26,5 +26,5 @@ export interface IPrescriptionRepository {
     data: Prisma.PrescriptionUpdateInput,
   ): Promise<Prescription>;
   delete(id: string): Promise<void>;
-  findPatientWithAllergies(patientId: string): Promise<any | null>;
+  findPatientWithAllergies(patientId: string): Promise<{ id: string } | null>;
 }

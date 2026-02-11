@@ -693,7 +693,7 @@ export class SubscriptionBillingService {
     this.paymentGateway.emitClinicUpdate(subscription.clinicId, {
       clinicId: subscription.clinicId,
       tier: 'CAPTURE',
-      subscriptionStatus: 'expired',
+      subscriptionStatus: SubscriptionStatus.EXPIRED,
     });
 
     this.logger.log(`Subscription expired for clinic ${subscription.clinicId}`);

@@ -60,6 +60,8 @@ export class PrescriptionsController {
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({
       ...dto,
+      appointmentId: dto.appointmentId || '',
+      doctorId: dto.doctorId || req.user.id,
       clinicId: req.user.clinicId,
     });
   }

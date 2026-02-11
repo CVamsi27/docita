@@ -72,11 +72,10 @@ async function bootstrap() {
 
   // Run startup validations before initializing the app
   try {
-    const { StartupValidationService } = await import(
-      './common/services/startup-validation.service'
-    );
+    const { StartupValidationService } =
+      await import('./common/services/startup-validation.service');
     const startupValidator = app.get(StartupValidationService);
-    await startupValidator.validate();
+    startupValidator.validate();
   } catch (error) {
     console.error(
       '❌ Startup validation failed. Cannot start application.',
@@ -218,7 +217,7 @@ async function bootstrap() {
 
   // Graceful shutdown handler for zero-downtime deployments
   // Allows active connections to drain before process exit
-  const gracefulShutdown = async (signal: string) => {
+  const gracefulShutdown = (signal: string) => {
     console.log(`\n📍 Received ${signal}, initiating graceful shutdown...`);
 
     // Stop accepting new connections
@@ -235,15 +234,17 @@ async function bootstrap() {
 
     // Force exit after 15 seconds if connections don't drain
     setTimeout(() => {
-      console.error(
-        '⚠️ Graceful shutdown timeout exceeded, forcing exit',
-      );
+      console.error('⚠️ Graceful shutdown timeout exceeded, forcing exit');
       process.exit(1);
     }, 15000);
   };
 
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => {
+    void gracefulShutdown('SIGTERM');
+  });
+  process.on('SIGINT', () => {
+    void gracefulShutdown('SIGINT');
+  });
 }
 bootstrap().catch((error) => {
   console.error('Fatal error during bootstrap:', error);

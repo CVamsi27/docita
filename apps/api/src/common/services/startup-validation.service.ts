@@ -16,7 +16,7 @@ export class StartupValidationService {
    * Call this from app bootstrap before starting the server
    * @throws Error if any validation fails
    */
-  async validate(): Promise<void> {
+  validate(): void {
     this.logger.debug('Running startup validations...');
 
     this.validateEncryptionKey();
@@ -43,7 +43,8 @@ export class StartupValidationService {
     if (!/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
       throw new Error(
         'ENCRYPTION_KEY must be exactly 64 hexadecimal characters (256-bit). ' +
-        'Current length: ' + encryptionKey.length,
+          'Current length: ' +
+          encryptionKey.length,
       );
     }
 
@@ -59,8 +60,8 @@ export class StartupValidationService {
       if (weakKeyPatterns.some((pattern) => pattern.test?.(encryptionKey))) {
         throw new Error(
           'ENCRYPTION_KEY appears to be a weak or default key. ' +
-          'Generate a cryptographically secure key: ' +
-          'node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+            'Generate a cryptographically secure key: ' +
+            "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
         );
       }
 
@@ -97,8 +98,8 @@ export class StartupValidationService {
     ) {
       throw new Error(
         'JWT_SECRET is set to a hardcoded test value. ' +
-        'Generate a secure secret: ' +
-        'node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+          'Generate a secure secret: ' +
+          "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
       );
     }
 
@@ -123,17 +124,20 @@ export class StartupValidationService {
     // Ensure it's not pointing to test/dev database in production
     const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
     if (nodeEnv === 'production') {
-      if (databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')) {
+      if (
+        databaseUrl.includes('localhost') ||
+        databaseUrl.includes('127.0.0.1')
+      ) {
         throw new Error(
           'DATABASE_URL in production is pointing to localhost. ' +
-          'Use a remote database URL.',
+            'Use a remote database URL.',
         );
       }
 
       if (databaseUrl.includes(':5432@localhost')) {
         throw new Error(
           'DATABASE_URL in production cannot use local PostgreSQL. ' +
-          'Configure a production database instance.',
+            'Configure a production database instance.',
         );
       }
 
@@ -167,7 +171,7 @@ export class StartupValidationService {
     if (missing.length > 0) {
       throw new Error(
         `Missing required production secrets: ${missing.join(', ')}. ` +
-        'All critical secrets must be set in production environment.',
+          'All critical secrets must be set in production environment.',
       );
     }
 

@@ -24,9 +24,8 @@ describe('HealthCheckController', () => {
     }).compile();
 
     controller = module.get<HealthCheckController>(HealthCheckController);
-    observabilityService = module.get<ObservabilityService>(
-      ObservabilityService,
-    );
+    observabilityService =
+      module.get<ObservabilityService>(ObservabilityService);
   });
 
   describe('health endpoint', () => {
@@ -183,7 +182,7 @@ describe('HealthCheckController', () => {
   });
 
   describe('metrics endpoint', () => {
-    it('should return current metrics', async () => {
+    it('should return current metrics', () => {
       const mockMetrics = [
         {
           name: 'request_latency',
@@ -204,13 +203,13 @@ describe('HealthCheckController', () => {
         mockMetrics,
       );
 
-      const result = await controller.metrics();
+      const result = controller.metrics();
 
       expect(result.metrics).toBeDefined();
       expect(result.metrics.length).toBe(2);
     });
 
-    it('should include metric statistics', async () => {
+    it('should include metric statistics', () => {
       const mockMetrics = [
         {
           name: 'request_latency',
@@ -224,7 +223,7 @@ describe('HealthCheckController', () => {
         mockMetrics,
       );
 
-      const result = await controller.metrics();
+      const result = controller.metrics();
 
       expect(result.metrics[0]).toHaveProperty('mean');
       expect(result.metrics[0]).toHaveProperty('count');
@@ -232,18 +231,18 @@ describe('HealthCheckController', () => {
       expect(result.metrics[0]).toHaveProperty('max');
     });
 
-    it('should return empty metrics if none recorded', async () => {
+    it('should return empty metrics if none recorded', () => {
       mockObservabilityService.getMetricsSummary.mockReturnValueOnce([]);
 
-      const result = await controller.metrics();
+      const result = controller.metrics();
 
       expect(result.metrics).toEqual([]);
     });
 
-    it('should include timestamp and collection time', async () => {
+    it('should include timestamp and collection time', () => {
       mockObservabilityService.getMetricsSummary.mockReturnValueOnce([]);
 
-      const result = await controller.metrics();
+      const result = controller.metrics();
 
       expect(result.timestamp).toBeDefined();
       expect(result.collectionTime).toBeDefined();
@@ -348,15 +347,15 @@ describe('HealthCheckController', () => {
       expect(dbHealth.connected).toBe(true);
 
       // Check system
-      const systemHealth = await controller.systemHealth();
+      const systemHealth = controller.systemHealth();
       expect(systemHealth.uptime).toBe(12345);
 
       // Check metrics
-      const metrics = await controller.metrics();
+      const metrics = controller.metrics();
       expect(metrics.metrics).toEqual([]);
     });
 
-    it('should handle system under stress', async () => {
+    it('should handle system under stress', () => {
       const mockHealth = {
         uptime: 7200,
         memory: {
@@ -379,11 +378,9 @@ describe('HealthCheckController', () => {
     });
 
     it('should gracefully handle observability service errors', async () => {
-      mockObservabilityService.getSystemHealth.mockImplementationOnce(
-        () => {
-          throw new Error('Health check failed');
-        },
-      );
+      mockObservabilityService.getSystemHealth.mockImplementationOnce(() => {
+        throw new Error('Health check failed');
+      });
 
       const result = await controller.liveness();
       expect(result).toBeDefined();

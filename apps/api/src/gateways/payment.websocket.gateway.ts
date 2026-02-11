@@ -27,7 +27,7 @@ interface ClinicUpdateData {
   clinicId: string;
   tier?: ClinicTier;
   intelligenceAddon?: string;
-  subscriptionStatus?: SubscriptionStatus | string;
+  subscriptionStatus?: SubscriptionStatus;
 }
 
 interface RateLimitTracker {

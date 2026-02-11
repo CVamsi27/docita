@@ -37,7 +37,7 @@ describe('WhatsappClientService', () => {
     it('should throw ServiceUnavailableException when API returns error', async () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
-        json: async () => ({ error: { message: 'API Error' } }),
+        json: jest.fn().mockResolvedValue({ error: { message: 'API Error' } }),
       });
 
       Object.defineProperty(service, 'phoneNumberId', { value: 'test' });

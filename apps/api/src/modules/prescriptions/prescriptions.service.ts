@@ -83,7 +83,7 @@ export class PrescriptionsService {
     }
 
     // Check for drug allergies
-    if (patient.patientAllergies && patient.patientAllergies.length > 0) {
+    if (patient && 'patientAllergies' in patient && patient.patientAllergies && patient.patientAllergies.length > 0) {
       const allergyCheck = checkPrescriptionAllergies(
         data.medications,
         patient.patientAllergies,

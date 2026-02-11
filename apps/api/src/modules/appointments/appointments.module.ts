@@ -17,6 +17,10 @@ import { PatientsModule } from '../patients/patients.module';
       useClass: PrismaAppointmentRepository,
     },
   ],
-  exports: [AppointmentsService, 'IAppointmentRepository', AppointmentSchedulingRulesService],
+  exports: [
+    AppointmentsService,
+    'IAppointmentRepository',
+    AppointmentSchedulingRulesService,
+  ],
 })
 export class AppointmentsModule {}

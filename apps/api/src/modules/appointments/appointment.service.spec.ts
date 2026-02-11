@@ -124,7 +124,9 @@ describe('AppointmentService', () => {
       };
 
       service.createAppointment.mockRejectedValueOnce(
-        new BadRequestException('Appointment duration must be at least 15 minutes'),
+        new BadRequestException(
+          'Appointment duration must be at least 15 minutes',
+        ),
       );
 
       await expect(service.createAppointment(createDto)).rejects.toThrow();
@@ -172,9 +174,9 @@ describe('AppointmentService', () => {
     it('should throw NotFoundException for non-existent appointment', async () => {
       service.getAppointment.mockRejectedValueOnce(new NotFoundException());
 
-      await expect(service.getAppointment('nonexistent', 'clinic-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getAppointment('nonexistent', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should enforce tenant isolation', async () => {
@@ -371,7 +373,9 @@ describe('AppointmentService', () => {
         doctorId: 'doctor-1',
       });
 
-      expect(result.data.every((a: any) => a.doctorId === 'doctor-1')).toBe(true);
+      expect(result.data.every((a: any) => a.doctorId === 'doctor-1')).toBe(
+        true,
+      );
     });
 
     it('should filter by status', async () => {
@@ -392,7 +396,9 @@ describe('AppointmentService', () => {
         status: 'SCHEDULED',
       });
 
-      expect(result.data.every((a: any) => a.status === 'SCHEDULED')).toBe(true);
+      expect(result.data.every((a: any) => a.status === 'SCHEDULED')).toBe(
+        true,
+      );
     });
 
     it('should support pagination', async () => {
@@ -528,7 +534,9 @@ describe('AppointmentService', () => {
 
       const result = await service.listAppointments('clinic-1', {});
 
-      expect(result.data.every((a: any) => a.clinicId === 'clinic-1')).toBe(true);
+      expect(result.data.every((a: any) => a.clinicId === 'clinic-1')).toBe(
+        true,
+      );
     });
   });
 

@@ -1,28 +1,51 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { invoiceSchema, invoiceItemSchema, stripHtmlTags } from '@workspace/types';
+import {
+  invoiceSchema,
+  invoiceItemSchema,
+  stripHtmlTags,
+} from '@workspace/types';
 import { InvoiceStatus } from '@workspace/db';
 
-export const CreateInvoiceSchema = invoiceSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  patient: true,
-  appointment: true,
-  clinicId: true,
-  paymentMethod: true,
-  paidAt: true,
-  totalAmount: true,
-}).extend({
-  // Add explicit validation for doctor context with length limits and sanitization
-  doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorEmail: z.string().email().max(255).transform(stripHtmlTags).optional(),
-  doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
-  doctorSpecialization: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-  doctorRegistrationNumber: z.string().max(100).transform(stripHtmlTags).optional(),
-  doctorLicenseNumber: z.string().max(100).transform(stripHtmlTags).optional(),
-});
+export const CreateInvoiceSchema = invoiceSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    patient: true,
+    appointment: true,
+    clinicId: true,
+    paymentMethod: true,
+    paidAt: true,
+    totalAmount: true,
+  })
+  .extend({
+    // Add explicit validation for doctor context with length limits and sanitization
+    doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
+    doctorEmail: z
+      .string()
+      .email()
+      .max(255)
+      .transform(stripHtmlTags)
+      .optional(),
+    doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
+    doctorSpecialization: z
+      .string()
+      .max(100)
+      .transform(stripHtmlTags)
+      .optional(),
+    doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
+    doctorRegistrationNumber: z
+      .string()
+      .max(100)
+      .transform(stripHtmlTags)
+      .optional(),
+    doctorLicenseNumber: z
+      .string()
+      .max(100)
+      .transform(stripHtmlTags)
+      .optional(),
+  });
 
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
@@ -32,7 +55,11 @@ export const UpdateInvoiceSchema = invoiceSchema.partial().extend({
   doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
   doctorSpecialization: z.string().max(100).transform(stripHtmlTags).optional(),
   doctorRole: z.string().max(50).transform(stripHtmlTags).optional(),
-  doctorRegistrationNumber: z.string().max(100).transform(stripHtmlTags).optional(),
+  doctorRegistrationNumber: z
+    .string()
+    .max(100)
+    .transform(stripHtmlTags)
+    .optional(),
   doctorLicenseNumber: z.string().max(100).transform(stripHtmlTags).optional(),
 });
 

@@ -33,14 +33,14 @@ describe('PrescriptionValidationRulesService', () => {
   });
 
   describe('validateDosage', () => {
-    it('should accept valid adult dosage', async () => {
+    it('should accept valid adult dosage', () => {
       const result = service.validateDosage('aspirin', 500, 'mg', 30);
 
       expect(result.valid).toBe(true);
       expect(result.errors.length).toBe(0);
     });
 
-    it('should accept pediatric dosage adjustment', async () => {
+    it('should accept pediatric dosage adjustment', () => {
       const result = service.validateDosage('metformin', 250, 'mg', 10); // Pediatric dose
 
       expect(result.valid).toBe(true);
@@ -79,10 +79,7 @@ describe('PrescriptionValidationRulesService', () => {
     });
 
     it('should detect warfarin and NSAID interaction', () => {
-      const result = service.validateDrugInteraction([
-        'warfarin',
-        'ibuprofen',
-      ]);
+      const result = service.validateDrugInteraction(['warfarin', 'ibuprofen']);
 
       expect(result.valid).toBe(false);
       expect(result.interactions.length).toBeGreaterThan(0);
@@ -90,7 +87,10 @@ describe('PrescriptionValidationRulesService', () => {
     });
 
     it('should detect metformin and contrast dye interaction', () => {
-      const result = service.validateDrugInteraction(['metformin', 'contrast-dye']);
+      const result = service.validateDrugInteraction([
+        'metformin',
+        'contrast-dye',
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.interactions).toContain(
@@ -99,7 +99,10 @@ describe('PrescriptionValidationRulesService', () => {
     });
 
     it('should detect lisinopril and NSAID interaction', () => {
-      const result = service.validateDrugInteraction(['lisinopril', 'naproxen']);
+      const result = service.validateDrugInteraction([
+        'lisinopril',
+        'naproxen',
+      ]);
 
       expect(result.valid).toBe(false);
     });
@@ -311,10 +314,10 @@ describe('PrescriptionValidationRulesService', () => {
         allergies: ['penicillin'],
       });
 
-      const result = await service.validateAllergies(
-        'patient-1',
-        ['aspirin', 'ibuprofen'],
-      );
+      const result = await service.validateAllergies('patient-1', [
+        'aspirin',
+        'ibuprofen',
+      ]);
 
       expect(result.valid).toBe(true);
     });
@@ -341,10 +344,10 @@ describe('PrescriptionValidationRulesService', () => {
         allergies: ['penicillin'],
       });
 
-      const result = await service.validateAllergies(
-        'patient-1',
-        ['amoxicillin', 'aspirin'],
-      );
+      const result = await service.validateAllergies('patient-1', [
+        'amoxicillin',
+        'aspirin',
+      ]);
 
       expect(result.conflicts.length).toBe(1); // Only amoxicillin conflicts
     });
@@ -363,7 +366,9 @@ describe('PrescriptionValidationRulesService', () => {
       );
 
       expect(nextRefillDate).toBeInstanceOf(Date);
-      expect(nextRefillDate.getTime()).toBeGreaterThan(prescriptionDate.getTime());
+      expect(nextRefillDate.getTime()).toBeGreaterThan(
+        prescriptionDate.getTime(),
+      );
     });
 
     it('should refill at 80% through supply', () => {
@@ -381,9 +386,9 @@ describe('PrescriptionValidationRulesService', () => {
       const expectedRefillDate = new Date(prescriptionDate);
       expectedRefillDate.setDate(expectedRefillDate.getDate() + 12);
 
-      expect(Math.abs(nextRefillDate.getTime() - expectedRefillDate.getTime())).toBeLessThan(
-        24 * 60 * 60 * 1000,
-      ); // Within 1 day
+      expect(
+        Math.abs(nextRefillDate.getTime() - expectedRefillDate.getTime()),
+      ).toBeLessThan(24 * 60 * 60 * 1000); // Within 1 day
     });
 
     it('should handle different frequencies', () => {
@@ -418,9 +423,9 @@ describe('PrescriptionValidationRulesService', () => {
       const expectedRefillDate = new Date(prescriptionDate);
       expectedRefillDate.setDate(expectedRefillDate.getDate() + 15); // Conservative estimate for 10 tablets
 
-      expect(Math.abs(refillDate.getTime() - expectedRefillDate.getTime())).toBeLessThan(
-        24 * 60 * 60 * 1000 * 5,
-      ); // Within 5 days
+      expect(
+        Math.abs(refillDate.getTime() - expectedRefillDate.getTime()),
+      ).toBeLessThan(24 * 60 * 60 * 1000 * 5); // Within 5 days
     });
   });
 
@@ -442,10 +447,9 @@ describe('PrescriptionValidationRulesService', () => {
 
       // Step 3: Check contraindications
       const contraIndicationCheck =
-        await service.validatePatientContraindications(
-          'patient-1',
-          ['lisinopril'],
-        );
+        await service.validatePatientContraindications('patient-1', [
+          'lisinopril',
+        ]);
       expect(contraIndicationCheck.valid).toBe(true);
 
       // Step 4: Check duration
@@ -467,10 +471,9 @@ describe('PrescriptionValidationRulesService', () => {
       expect(refillCheck.valid).toBe(true);
 
       // Step 7: Check allergies
-      const allergyCheck = await service.validateAllergies(
-        'patient-1',
-        ['lisinopril'],
-      );
+      const allergyCheck = await service.validateAllergies('patient-1', [
+        'lisinopril',
+      ]);
       expect(allergyCheck.valid).toBe(true);
     });
 
@@ -483,17 +486,15 @@ describe('PrescriptionValidationRulesService', () => {
 
       // Lisinopril contraindicated in pregnancy
       const contraIndicationCheck =
-        await service.validatePatientContraindications(
-          'patient-1',
-          ['lisinopril'],
-        );
+        await service.validatePatientContraindications('patient-1', [
+          'lisinopril',
+        ]);
       expect(contraIndicationCheck.valid).toBe(false);
 
       // NSAIDs contraindicated in pregnancy and patient allergic
-      const allergyCheck = await service.validateAllergies(
-        'patient-1',
-        ['ibuprofen'],
-      );
+      const allergyCheck = await service.validateAllergies('patient-1', [
+        'ibuprofen',
+      ]);
       expect(allergyCheck.valid).toBe(false);
     });
   });

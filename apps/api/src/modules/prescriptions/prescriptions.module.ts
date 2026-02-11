@@ -21,6 +21,10 @@ import { PrismaPrescriptionRepository } from './repositories/prisma-prescription
       useClass: PrismaPrescriptionRepository,
     },
   ],
-  exports: [PrescriptionsService, PrescriptionPdfService, PrescriptionValidationRulesService],
+  exports: [
+    PrescriptionsService,
+    PrescriptionPdfService,
+    PrescriptionValidationRulesService,
+  ],
 })
 export class PrescriptionsModule {}

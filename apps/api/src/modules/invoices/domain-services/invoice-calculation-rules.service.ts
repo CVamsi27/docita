@@ -13,10 +13,7 @@ export interface InvoiceCalculationRulesInterface {
     unitPrice: number,
   ): { amount: number; error?: string };
 
-  calculateTaxAmount(
-    subtotal: number,
-    taxRate: number,
-  ): number;
+  calculateTaxAmount(subtotal: number, taxRate: number): number;
 
   calculateDiscountAmount(
     subtotal: number,
@@ -31,14 +28,9 @@ export interface InvoiceCalculationRulesInterface {
 
   calculateTotal(invoice: InvoiceCalculationData): InvoiceCalculationResult;
 
-  calculateDueDate(
-    invoiceDate: Date,
-    paymentTermsDays: number,
-  ): Date;
+  calculateDueDate(invoiceDate: Date, paymentTermsDays: number): Date;
 
-  validatePricing(
-    items: PricingItem[],
-  ): { valid: boolean; errors: string[] };
+  validatePricing(items: PricingItem[]): { valid: boolean; errors: string[] };
 
   calculateLateFees(
     amount: number,
@@ -46,7 +38,9 @@ export interface InvoiceCalculationRulesInterface {
     lateFeePercentage: number,
   ): number;
 
-  recalculateInvoiceAmounts(invoiceId: string): Promise<InvoiceCalculationResult>;
+  recalculateInvoiceAmounts(
+    invoiceId: string,
+  ): Promise<InvoiceCalculationResult>;
 }
 
 interface PricingItem {
@@ -108,7 +102,9 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
       };
     }
 
-    const amount = Number((quantity * unitPrice).toFixed(this.ROUNDING_PRECISION));
+    const amount = Number(
+      (quantity * unitPrice).toFixed(this.ROUNDING_PRECISION),
+    );
 
     return { amount };
   }
@@ -169,7 +165,10 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
   /**
    * Calculate amount covered by insurance
    */
-  calculateInsuranceDeduction(amount: number, insuranceCoverage: number): number {
+  calculateInsuranceDeduction(
+    amount: number,
+    insuranceCoverage: number,
+  ): number {
     if (amount < 0 || insuranceCoverage < 0 || insuranceCoverage > 100) {
       return 0;
     }
@@ -263,18 +262,18 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
       }
 
       if (item.taxRate < 0 || item.taxRate > 1) {
-        errors.push(
-          `Item ${index + 1}: Tax rate must be between 0 and 1`,
-        );
+        errors.push(`Item ${index + 1}: Tax rate must be between 0 and 1`);
       }
 
       if (item.discountValue && item.discountValue < 0) {
-        errors.push(
-          `Item ${index + 1}: Discount value cannot be negative`,
-        );
+        errors.push(`Item ${index + 1}: Discount value cannot be negative`);
       }
 
-      if (item.discountType === 'PERCENTAGE' && item.discountValue && item.discountValue > 100) {
+      if (
+        item.discountType === 'PERCENTAGE' &&
+        item.discountValue &&
+        item.discountValue > 100
+      ) {
         errors.push(
           `Item ${index + 1}: Discount percentage cannot exceed 100%`,
         );
@@ -336,27 +335,25 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
       unitPrice: Number(item.unitPrice),
       taxRate: Number(item.taxRate) || this.DEFAULT_TAX_RATE,
       discountType: item.discountType,
-      discountValue: item.discountValue ? Number(item.discountValue) : undefined,
+      discountValue: item.discountValue
+        ? Number(item.discountValue)
+        : undefined,
     }));
 
     const subtotal = items.reduce((sum, item) => {
-      const { amount } = this.calculateItemAmount(item.quantity, item.unitPrice);
+      const { amount } = this.calculateItemAmount(
+        item.quantity,
+        item.unitPrice,
+      );
       return sum + amount;
     }, 0);
 
     const calculation = this.calculateTotal({
       items,
       subtotal,
-      discount: invoice.discountType
-        ? {
-            type: invoice.discountType as 'FIXED' | 'PERCENTAGE',
-            value: Number(invoice.discountValue || 0),
-          }
-        : undefined,
-      insuranceCoverage: invoice.insuranceCoverage
-        ? Number(invoice.insuranceCoverage)
-        : 0,
-      taxRate: invoice.taxRate ? Number(invoice.taxRate) : this.DEFAULT_TAX_RATE,
+      discount: undefined,
+      insuranceCoverage: 0,
+      taxRate: this.DEFAULT_TAX_RATE,
     });
 
     return calculation;

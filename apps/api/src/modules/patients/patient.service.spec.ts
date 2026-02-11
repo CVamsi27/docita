@@ -136,9 +136,9 @@ describe('PatientService', () => {
     it('should throw NotFoundException for non-existent patient', async () => {
       service.getPatient.mockRejectedValueOnce(new NotFoundException());
 
-      await expect(service.getPatient('nonexistent', 'clinic-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getPatient('nonexistent', 'clinic-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should enforce tenant isolation', async () => {
@@ -350,7 +350,9 @@ describe('PatientService', () => {
       const result = await service.listPatients('clinic-1', {});
 
       // Should not include patients from other clinics
-      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(true);
+      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(
+        true,
+      );
     });
   });
 
@@ -414,7 +416,9 @@ describe('PatientService', () => {
 
       service.getPatient.mockImplementation((patientId, clinicId) => {
         if (clinicAPatient.clinicId !== clinicId) {
-          throw new ForbiddenException('Cannot access patient from different clinic');
+          throw new ForbiddenException(
+            'Cannot access patient from different clinic',
+          );
         }
         return clinicAPatient;
       });
@@ -437,7 +441,9 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(true);
+      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(
+        true,
+      );
     });
   });
 
