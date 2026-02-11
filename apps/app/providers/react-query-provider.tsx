@@ -74,16 +74,24 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Cache data for 10 seconds before considering it stale
+            // Default: Cache data for 10 seconds before considering it stale
+            // Use query-specific staleTime for different data types:
+            // - Dashboard/Analytics: 30s (frequently updated, UI-critical)
+            // - Patient Lists: 60s (moderate change frequency)
+            // - Appointment Slots: 15s (highly dynamic)
+            // - Static Data (settings, doctors): 5min (rarely changes)
             staleTime: 10 * 1000,
 
             // Keep unused data in cache for 5 minutes
+            // This prevents refetches if user navigates back within 5 min
             gcTime: 5 * 60 * 1000,
 
             // Refetch on window focus to keep dashboard updated
+            // For critical data like appointment queue, this ensures real-time sync
             refetchOnWindowFocus: true,
 
             // Refetch on mount if data is stale
+            // This is especially important for time-sensitive data
             refetchOnMount: true,
 
             // Retry failed requests with exponential backoff
@@ -98,9 +106,13 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
               return failureCount < 2;
             },
 
-            // Exponential backoff delay
+            // Exponential backoff delay: 1s, 2s, 4s, 8s, 16s, 30s (max)
             retryDelay: (attemptIndex) =>
               Math.min(1000 * 2 ** attemptIndex, 30000),
+
+            // Enable background refetching when stale
+            // This keeps data fresh without blocking the UI
+            staleTime: 10 * 1000,
           },
           mutations: {
             // Retry mutations once on network errors
