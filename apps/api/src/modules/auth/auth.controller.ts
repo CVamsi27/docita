@@ -20,6 +20,7 @@ import { Response } from 'express';
 import { Public } from './public.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { IpRateLimitGuard } from '../../common/guards/ip-rate-limit.guard';
 import {
   LoginDto,
   RegisterDto,
@@ -89,6 +90,7 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(IpRateLimitGuard)
   @Throttle({
     short: {
       ttl: 60000,
@@ -119,6 +121,7 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(IpRateLimitGuard)
   @Throttle({
     short: {
       ttl: 60000,
