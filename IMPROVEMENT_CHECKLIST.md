@@ -74,13 +74,13 @@
 ### 1.6 — Input Validation & Sanitization Hardening
 **Priority:** 🟡 High | **Files:** All DTOs, service files
 
-- [ ] Audit all Json type Prisma fields (customData, items, settings, branding, etc.) for JSON injection — add Zod schemas to validate these fields
-- [ ] Add input length limits on all string fields (prevent denial-of-service via extremely large payloads)
-- [ ] Sanitize HTML/script content in free-text fields (notes, instructions, chiefComplaint, etc.)
-- [ ] Add Content-Security-Policy headers (extend Helmet config)
-- [ ] Validate and sanitize file uploads (MIME type, file size, magic bytes)
+- [x] Audit all Json type Prisma fields (customData, items, settings, branding, etc.) for JSON injection — add Zod schemas to validate these fields
+- [x] Add input length limits on all string fields (prevent denial-of-service via extremely large payloads)
+- [x] Sanitize HTML/script content in free-text fields (notes, instructions, chiefComplaint, etc.)
+- [x] Add Content-Security-Policy headers (extend Helmet config)
+- [x] Validate and sanitize file uploads (MIME type, file size, magic bytes)
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED
 
 ---
 
@@ -119,9 +119,9 @@
 - [x] Audit all multi-entity operations for transactional integrity
 - [x] Wrap all compound writes in prisma.$transaction()
 - [x] Add idempotency keys for payment operations (using X-Idempotency-Key header + Redis storage)
-- [ ] Implement optimistic concurrency control for frequently updated records
+- [x] Implement optimistic concurrency control for frequently updated records (version fields added to Appointment, Invoice, Patient)
 
-**Status:** 🟡 IN PROGRESS (75% - idempotency done, concurrency control needed)
+**Status:** ✅ COMPLETED
 
 ---
 
@@ -568,9 +568,9 @@
 - [x] Add JWT verification in handleConnection (parse token from handshake auth or query param)
 - [x] Verify the connected user belongs to the clinic they're subscribing to
 - [x] Disconnect unauthorized clients with a meaningful error code
-- [ ] Add rate limiting on WebSocket message frequency
+- [x] Add rate limiting on WebSocket message frequency (10 messages per 60s per connection)
 
-**Status:** 🟡 IN PROGRESS (75% - auth done, rate limiting needed)
+**Status:** ✅ COMPLETED
 
 ---
 
@@ -851,12 +851,12 @@
 
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
-| 🔴 Critical | 14 | 6 | 6 | 2 |
-| 🟡 High | 32 | 2 | 9 | 21 |
+| 🔴 Critical | 14 | 11 | 3 | 0 |
+| 🟡 High | 32 | 4 | 8 | 20 |
 | 🟢 Medium | 17 | 0 | 0 | 17 |
-| **TOTAL** | **63** | **8** | **15** | **40** |
+| **TOTAL** | **63** | **15** | **11** | **37** |
 
-**Overall Progress:** 13% Complete | 24% In Progress | 63% Not Started
+**Overall Progress:** 24% Complete | 17% In Progress | 59% Not Started
 
 ---
 

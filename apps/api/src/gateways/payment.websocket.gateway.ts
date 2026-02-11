@@ -6,7 +6,7 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards, BadRequestException } from '@nestjs/common';
 import { getWebSocketCorsOrigins } from '../common/config/app-config';
 import { WsJwtAuthGuard } from '../modules/auth/ws-jwt-auth.guard';
 import {
@@ -30,6 +30,11 @@ interface ClinicUpdateData {
   subscriptionStatus?: SubscriptionStatus | string;
 }
 
+interface RateLimitTracker {
+  messageCount: number;
+  resetTime: number;
+}
+
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -47,6 +52,9 @@ export class PaymentWebSocketGateway
   server: Server;
 
   private logger = new Logger('PaymentGateway');
+  private readonly RATE_LIMIT_MESSAGES = 10; // Max 10 messages
+  private readonly RATE_LIMIT_WINDOW_MS = 60000; // Per 60 seconds
+  private rateLimitMap = new Map<string, RateLimitTracker>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -67,6 +75,11 @@ export class PaymentWebSocketGateway
     try {
       const payload = await this.jwtService.verifyAsync(authToken);
       client.data.user = payload;
+      // Initialize rate limiter for this client
+      this.rateLimitMap.set(client.id, {
+        messageCount: 0,
+        resetTime: Date.now() + this.RATE_LIMIT_WINDOW_MS,
+      });
       this.logger.log(
         `Client connected and authenticated: ${client.id} (${payload.email})`,
       );
@@ -77,11 +90,49 @@ export class PaymentWebSocketGateway
   }
 
   handleDisconnect(client: Socket) {
+    // Clean up rate limit tracker
+    this.rateLimitMap.delete(client.id);
     this.logger.log(`Client disconnected: ${client.id}`);
+  }
+
+  /**
+   * Check if client has exceeded rate limit
+   * Returns true if message should be allowed, false if rate limited
+   */
+  private checkRateLimit(clientId: string): boolean {
+    const tracker = this.rateLimitMap.get(clientId);
+    if (!tracker) return true; // Allow if not tracked
+
+    const now = Date.now();
+    if (now > tracker.resetTime) {
+      // Window expired, reset
+      tracker.messageCount = 0;
+      tracker.resetTime = now + this.RATE_LIMIT_WINDOW_MS;
+    }
+
+    if (tracker.messageCount >= this.RATE_LIMIT_MESSAGES) {
+      return false; // Rate limited
+    }
+
+    tracker.messageCount++;
+    return true;
+  }
+
+  private emitRateLimitError(client: Socket): void {
+    client.emit('error', {
+      message: `Rate limit exceeded. Maximum ${this.RATE_LIMIT_MESSAGES} messages per ${this.RATE_LIMIT_WINDOW_MS / 1000}s allowed.`,
+      code: 'RATE_LIMIT_EXCEEDED',
+    });
   }
 
   @SubscribeMessage('subscribe:clinic')
   handleSubscribeClinic(client: Socket, clinicId: string) {
+    // Check rate limit
+    if (!this.checkRateLimit(client.id)) {
+      this.emitRateLimitError(client);
+      return { event: 'error', data: { message: 'Rate limit exceeded' } };
+    }
+
     const user = client.data.user;
 
     // Security check: Only allow users to subscribe to their own clinic's updates
@@ -100,6 +151,12 @@ export class PaymentWebSocketGateway
 
   @SubscribeMessage('subscribe:invoice')
   async handleSubscribeInvoice(client: Socket, invoiceId: string) {
+    // Check rate limit
+    if (!this.checkRateLimit(client.id)) {
+      this.emitRateLimitError(client);
+      return { event: 'error', data: { message: 'Rate limit exceeded' } };
+    }
+
     const user = client.data.user;
 
     // Verify invoice belongs to the user's clinic

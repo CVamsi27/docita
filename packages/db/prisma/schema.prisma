@@ -165,6 +165,7 @@ model Patient {
   medicalHistory String[] // Legacy field - kept for backward compatibility
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  version        Int      @default(1) // Optimistic concurrency control
   allergies      String? // Legacy field - kept for backward compatibility
   bloodGroup     String?
   clinicId       String
