@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Decimal } from '@prisma/client/runtime/library';
 
 /**
  * Invoice Calculation Rules Domain Service
@@ -320,9 +319,6 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
   ): Promise<InvoiceCalculationResult> {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
-      include: {
-        items: true,
-      },
     });
 
     if (!invoice) {
@@ -330,7 +326,9 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
     }
 
     // Recalculate line items
-    const items: PricingItem[] = invoice.items.map((item: any) => ({
+    const items: PricingItem[] = (
+      (invoice.items as unknown as any[]) || []
+    ).map((item: any) => ({
       quantity: item.quantity,
       unitPrice: Number(item.unitPrice),
       taxRate: Number(item.taxRate) || this.DEFAULT_TAX_RATE,

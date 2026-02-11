@@ -382,7 +382,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     });
 
     const allergies: string[] = [];
-    const patientAllergies = patient.patientAllergies.map(a => a.allergen) || [];
+    const patientAllergies = ((patient as any).patientAllergies || []).map((a: any) => a.allergen) || [];
 
     for (const med of medications) {
       const medName = med.name.toLowerCase();

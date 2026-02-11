@@ -1,5 +1,5 @@
-import { Controller, Get, Version, UseGuards } from '@nestjs/common';
-import { Public } from '../decorators/public.decorator';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Public } from '../../modules/auth/public.decorator';
 import { ObservabilityService } from '../services/observability.service';
 
 /**
@@ -7,7 +7,6 @@ import { ObservabilityService } from '../services/observability.service';
  * Provides public health check endpoints for monitoring and orchestration
  */
 @Controller('health')
-@Version('1')
 export class HealthCheckController {
   constructor(private observability: ObservabilityService) {}
 

@@ -85,11 +85,11 @@ export class AppointmentQueryBuilder {
   /**
    * Filter by specific status(es)
    */
-  withStatus(...statuses: string[]): this {
+  withStatus(...statuses: (string | AppointmentStatus)[]): this {
     if (statuses.length === 1) {
-      this.where.status = statuses[0];
+      this.where.status = statuses[0] as AppointmentStatus;
     } else {
-      this.where.status = { in: statuses };
+      this.where.status = { in: statuses as AppointmentStatus[] };
     }
     return this;
   }
@@ -346,8 +346,8 @@ export class InvoiceQueryBuilder {
     return this;
   }
 
-  withStatus(...statuses: string[]): this {
-    this.where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
+  withStatus(...statuses: (string | InvoiceStatus)[]): this {
+    this.where.status = statuses.length === 1 ? (statuses[0] as InvoiceStatus) : { in: statuses as InvoiceStatus[] };
     return this;
   }
 

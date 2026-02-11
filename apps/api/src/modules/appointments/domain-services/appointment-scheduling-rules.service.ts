@@ -151,7 +151,6 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
         id: true,
         startTime: true,
         endTime: true,
-        patient: { select: { name: true } },
       },
     });
 
@@ -176,7 +175,10 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     const timeOff = await this.prisma.doctorTimeOff.findMany({
       where: {
         doctorId,
-        AND: [{ startTime: { lt: endTime } }, { endTime: { gt: startTime } }],
+        AND: [
+          { startTime: { lt: endTime.toISOString() } }, 
+          { endTime: { gt: startTime.toISOString() } }
+        ],
       },
       select: {
         reason: true,
@@ -262,16 +264,17 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       ],
       [AppointmentStatus.CONFIRMED]: [
         AppointmentStatus.IN_PROGRESS,
+        AppointmentStatus.RESCHEDULING,
+        AppointmentStatus.CANCELLED,
+      ],
+      [AppointmentStatus.RESCHEDULING]: [
+        AppointmentStatus.CONFIRMED,
         AppointmentStatus.CANCELLED,
       ],
       [AppointmentStatus.IN_PROGRESS]: [AppointmentStatus.COMPLETED],
       [AppointmentStatus.COMPLETED]: [AppointmentStatus.COMPLETED], // Terminal state
       [AppointmentStatus.CANCELLED]: [AppointmentStatus.CANCELLED], // Terminal state
-      [AppointmentStatus.NO_SHOW]: [AppointmentStatus.RESCHEDULED],
-      [AppointmentStatus.RESCHEDULED]: [
-        AppointmentStatus.CONFIRMED,
-        AppointmentStatus.CANCELLED,
-      ],
+      [AppointmentStatus.NO_SHOW]: [AppointmentStatus.RESCHEDULING],
     };
 
     const allowed =
@@ -296,7 +299,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        patient: { select: { dateOfBirth: true, contactInfo: true } },
+        patient: { select: { dateOfBirth: true, phoneNumber: true, email: true } },
         vitalSign: true,
       },
     });
@@ -312,12 +315,12 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       missing.push('Patient date of birth');
     }
 
-    if (!appointment.patient?.contactInfo) {
-      missing.push('Patient contact info');
+    if (!appointment.patient?.phoneNumber && !appointment.patient?.email) {
+      missing.push('Patient contact information (phone or email)');
     }
 
     // Check vitals are recorded
-    if (!appointment.vitalSign || appointment.vitalSign.length === 0) {
+    if (!appointment.vitalSign) {
       missing.push('Patient vital signs');
     }
 

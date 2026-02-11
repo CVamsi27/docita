@@ -25,6 +25,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
   user: {
+    id: string;
     clinicId: string;
   };
 }
@@ -62,6 +63,8 @@ export class PrescriptionsController {
       ...dto,
       appointmentId: dto.appointmentId || '',
       doctorId: dto.doctorId || req.user.id,
+      doctorSpecialization: dto.doctorSpecialization as any,
+      doctorRole: dto.doctorRole as any,
       clinicId: req.user.clinicId,
     });
   }

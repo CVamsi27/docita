@@ -142,13 +142,16 @@ export class TierGuard implements CanActivate {
       [ClinicTier.PLUS]: Tier.PLUS,
       [ClinicTier.PRO]: Tier.PRO,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
-      // Legacy mappings for backward compatibility
+    } as Record<string, Tier>;
+
+    // Legacy mappings for backward compatibility
+    const legacyMap: Record<string, Tier> = {
       FREE: Tier.CAPTURE,
       STARTER: Tier.CORE,
       PROFESSIONAL: Tier.PRO,
     };
 
-    return tierMap[dbTier] ?? Tier.CAPTURE;
+    return tierMap[dbTier] ?? legacyMap[dbTier] ?? Tier.CAPTURE;
   }
 
   private getTierName(tier: Tier): string {

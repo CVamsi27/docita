@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { PrismaService } from '../services/prisma.service';
-import { RedisService } from '../../modules/redis/redis.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 /**
  * Observability Service
@@ -15,7 +14,6 @@ export class ObservabilityService {
 
   constructor(
     private prisma: PrismaService,
-    private redis: RedisService,
   ) {
     // Start periodic metrics flush
     this.startMetricsFlushing();
@@ -45,11 +43,7 @@ export class ObservabilityService {
           : 1.0,
       maxBreadcrumbs: 50,
       attachStacktrace: true,
-      integrations: [
-        new Sentry.Integrations.Http({ tracing: true }),
-        new Sentry.Integrations.OnUncaughtException(),
-        new Sentry.Integrations.OnUnhandledRejection(),
-      ],
+      integrations: [],
       // Add custom tags to all events
       initialScope: {
         tags: {
@@ -109,8 +103,9 @@ export class ObservabilityService {
     message: string,
     metadata?: Record<string, any>,
   ): void {
-    const correlationId =
-      Sentry.getCurrentScope()?.getContext('request')?.id || 'unknown';
+    const scope = Sentry.getCurrentScope();
+    const requestContext = scope?.getScopeData()?.contexts?.request as any;
+    const correlationId = requestContext?.id || 'unknown';
 
     const logEntry = {
       timestamp: new Date().toISOString(),
@@ -126,7 +121,8 @@ export class ObservabilityService {
 
     // Also log via Sentry if level is warning or error
     if (level === 'warn' || level === 'error') {
-      this.captureMessage(message, { ...logEntry }, level);
+      const sentryLevel = level === 'warn' ? 'warning' : 'error';
+      this.captureMessage(message, { ...logEntry }, sentryLevel);
     }
   }
 
@@ -228,26 +224,12 @@ export class ObservabilityService {
       };
     }
 
-    try {
-      // Check Redis connectivity
-      await this.redis.ping();
-      checks.redis = { status: 'connected', checked_at: new Date() };
-    } catch (error) {
-      checks.redis = {
-        status: 'disconnected',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-
     // Determine overall status
     const dbConnected = checks.database.status === 'connected';
-    const redisConnected = checks.redis.status === 'connected';
     let status: 'healthy' | 'degraded' | 'unhealthy';
 
-    if (dbConnected && redisConnected) {
+    if (dbConnected) {
       status = 'healthy';
-    } else if (dbConnected || redisConnected) {
-      status = 'degraded';
     } else {
       status = 'unhealthy';
     }

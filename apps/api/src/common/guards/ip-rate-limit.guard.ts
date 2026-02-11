@@ -2,7 +2,8 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  TooManyRequestsException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { IpRateLimitService } from '../services/ip-rate-limit.service';
@@ -26,19 +27,21 @@ export class IpRateLimitGuard implements CanActivate {
 
       if (remainingBanTime > 0) {
         // IP is banned
-        throw new TooManyRequestsException(
+        throw new HttpException(
           `IP address temporarily blocked. Try again in ${remainingBanTime} seconds.`,
+          HttpStatus.TOO_MANY_REQUESTS,
         );
       } else {
         // Rate limit exceeded but not yet banned
-        throw new TooManyRequestsException(
+        throw new HttpException(
           'Too many authentication attempts. Please try again later.',
+          HttpStatus.TOO_MANY_REQUESTS,
         );
       }
     }
 
     // Attach IP to request for logging/auditing
-    request.ip = ip;
+    (request as any).clientIp = ip;
 
     return true;
   }

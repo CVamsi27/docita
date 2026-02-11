@@ -59,7 +59,7 @@ export type Weekday = z.infer<typeof weekdaySchema>;
 
 // Invoice Status
 export const invoiceStatusSchema = z.enum([
-    "pending", "paid", "overdue", "cancelled",
+    "PENDING", "PAID", "OVERDUE", "CANCELLED", "PARTIALLY_PAID",
 ]);
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
 

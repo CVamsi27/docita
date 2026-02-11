@@ -13,7 +13,6 @@ import { VitalsFactory } from '../patients/factories/vitals.factory';
 import { VitalSignInput } from '../patients/schemas/vitals.schema';
 import { AppointmentCreatedEvent } from './events/appointment-created.event';
 import { AppointmentUpdatedEvent } from './events/appointment-updated.event';
-import { AppointmentStatus } from '@workspace/db';
 
 @Injectable()
 export class AppointmentsService {

@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import * as Sentry from '@sentry/nestjs';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 
 /**
@@ -25,7 +25,7 @@ export class RequestContextInterceptor implements NestInterceptor {
     const correlationId =
       (request.headers['x-correlation-id'] as string) ||
       (request.headers['x-request-id'] as string) ||
-      uuidv4();
+      randomUUID();
 
     // Set correlation ID in response header for client reference
     response.setHeader('x-correlation-id', correlationId);

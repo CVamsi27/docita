@@ -46,9 +46,6 @@ async function bootstrap() {
     environment: process.env.NODE_ENV || 'development',
     integrations: [
       nodeProfilingIntegration(),
-      new Sentry.Integrations.Http({ tracing: true }),
-      new Sentry.Integrations.OnUncaughtException(),
-      new Sentry.Integrations.OnUnhandledRejection(),
     ],
     tracesSampleRate: parseFloat(
       process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1',

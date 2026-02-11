@@ -50,14 +50,14 @@ export class StartupValidationService {
 
     // In production, require strong entropy (not default/test keys)
     if (nodeEnv === 'production') {
-      const weakKeyPatterns = [
-        /^0+$/, // All zeros
+      const weakKeyPatterns: RegExp[] = [
+        /^0+$/i, // All zeros
         /^f+$/i, // All 'f'
         /^(01)+$/i, // Repeating pattern
-        /^123456789abcdef0/.test(encryptionKey.toLowerCase()), // Sequential
+        /^123456789abcdef0/, // Sequential
       ];
 
-      if (weakKeyPatterns.some((pattern) => pattern.test?.(encryptionKey))) {
+      if (weakKeyPatterns.some((pattern) => pattern.test(encryptionKey.toLowerCase()))) {
         throw new Error(
           'ENCRYPTION_KEY appears to be a weak or default key. ' +
             'Generate a cryptographically secure key: ' +

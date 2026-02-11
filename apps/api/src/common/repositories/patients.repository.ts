@@ -466,7 +466,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
           in: [
             AppointmentStatus.COMPLETED,
             AppointmentStatus.IN_PROGRESS,
-            AppointmentStatus.CHECKED_IN,
           ],
         },
       },

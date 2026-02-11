@@ -248,7 +248,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
 
       // Additional fields (only if applicable)
-      ...(details && { validationErrors: details }),
+      ...(details && typeof details === 'object' ? { validationErrors: details } : {}),
 
       // Only include stack trace and internal details in development
       ...(isDevelopment && errorStack && { stack: errorStack }),
