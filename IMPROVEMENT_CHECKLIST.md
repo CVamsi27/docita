@@ -91,9 +91,9 @@
 - [x] Remove hardcoded fallback JWT secret ('dev-only-secret-do-not-use-in-prod') from auth.module.ts (Removed from jwt.strategy.ts, now throws error if not set)
 - [x] Add integrity check: verify ENCRYPTION_KEY length is exactly 64 hex chars at startup
 - [x] Document encryption key generation and backup procedures
-- [ ] Consider integrating a secrets manager (AWS SSM, HashiCorp Vault) for production
+- [x] Integrate a secrets manager (AWS SSM, HashiCorp Vault) for production with SecretsManagerService
 
-**Status:** 🟡 IN PROGRESS (80% - hardcoded secret removed, secrets manager integration pending)
+**Status:** ✅ COMPLETED - SecretsManagerService with multi-provider support and caching
 
 ---
 
@@ -544,10 +544,10 @@
 - [x] Remove the blanket invalidateQueries({}) from fetchAPI
 - [x] Migrate all mutations to use the hook-factory.ts pattern, which invalidates only relevant query keys
 - [x] Audit existing custom hooks in apps/app/hooks/api/ to ensure targeted invalidation
-- [ ] Add staleTime defaults to prevent unnecessary refetching
-- [ ] Refetch on window focus should be enabled for critical queries (Dashboard, Queue)
+- [x] Add staleTime defaults to prevent unnecessary refetching (query-type specific constants)
+- [x] Refetch on window focus enabled for critical queries (Dashboard, Queue)
 
-**Status:** 🟡 IN PROGRESS (60% - blanket invalidation removed, staleTime defaults pending)
+**Status:** ✅ COMPLETED - React Query optimized with differentiated staleTime by data type
 
 ---
 
