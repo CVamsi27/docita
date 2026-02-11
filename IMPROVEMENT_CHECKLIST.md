@@ -142,12 +142,12 @@
 ### 2.3 — Data Validation at Service Layer
 **Priority:** 🟡 High
 
-- [ ] Add business rule validation in services (e.g., appointment overlap detection, valid time ranges, prescription medication dosage bounds)
-- [ ] Validate date/time consistency (e.g., endTime > startTime, expiryDate > issueDate)
-- [ ] Add cross-field validation for medical data (e.g., if isPRN is true, prnInstructions should be required)
-- [ ] Ensure all numeric fields (dosage, quantity, price) have reasonable bounds
+- [x] Add business rule validation in services (e.g., appointment overlap detection, valid time ranges, prescription medication dosage bounds)
+- [x] Validate date/time consistency (e.g., endTime > startTime, expiryDate > issueDate)
+- [x] Add cross-field validation for medical data (e.g., if isPRN is true, prnInstructions should be required)
+- [x] Ensure all numeric fields (dosage, quantity, price) have reasonable bounds
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED
 
 ---
 
@@ -851,12 +851,12 @@
 
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
-| 🔴 Critical | 14 | 11 | 3 | 0 |
-| 🟡 High | 32 | 4 | 8 | 20 |
+| 🔴 Critical | 14 | 12 | 2 | 0 |
+| 🟡 High | 32 | 5 | 7 | 20 |
 | 🟢 Medium | 17 | 0 | 0 | 17 |
-| **TOTAL** | **63** | **15** | **11** | **37** |
+| **TOTAL** | **63** | **17** | **9** | **37** |
 
-**Overall Progress:** 24% Complete | 17% In Progress | 59% Not Started
+**Overall Progress:** 27% Complete | 14% In Progress | 59% Not Started
 
 ---
 
