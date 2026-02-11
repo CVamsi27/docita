@@ -47,6 +47,17 @@ jobs:
       - name: Test (Unit)
         run: pnpm test -- --coverage
 
+      - name: Check Coverage Thresholds
+        run: |
+          echo "Checking coverage thresholds for @docita/api..."
+          if [ ! -d "apps/api/coverage" ]; then
+            echo "Warning: No coverage data found"
+            exit 1
+          fi
+          # Parse coverage.json and check thresholds
+          node scripts/check-coverage.js
+        continue-on-error: false
+
       - name: Upload Coverage Reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -56,6 +67,33 @@ jobs:
             **/coverage/
             !**/node_modules/**
           retention-days: 14
+
+      - name: Comment Coverage Report on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('apps/api/coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+            const comment = `## Coverage Report
+
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${total.lines.pct.toFixed(2)}% |
+            | Statements | ${total.statements.pct.toFixed(2)}% |
+            | Functions | ${total.functions.pct.toFixed(2)}% |
+            | Branches | ${total.branches.pct.toFixed(2)}% |
+
+            **Target:** Lines ≥ 80%, Statements ≥ 80%, Functions ≥ 80%, Branches ≥ 75%`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+        continue-on-error: true
 
   security-audit:
     name: Security Audit
