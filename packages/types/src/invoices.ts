@@ -2,10 +2,11 @@ import { z } from "zod";
 import { invoiceStatusSchema } from "./users";
 import { PaymentMethod } from "./payments";
 import { patientSchema } from "./patients";
+import { stripHtmlTags } from "./sanitization";
 
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
-  description: z.string(),
+  description: z.string().max(255).transform(stripHtmlTags),
   quantity: z.number().min(1),
   price: z.number().min(0),
 });
@@ -18,9 +19,9 @@ export const invoiceSchema = z.object({
   patientId: z.string(),
   clinicId: z.string().optional(),
   items: z.array(invoiceItemSchema),
-  notes: z.string().optional(),
-  total: z.number(),
-  totalAmount: z.number().optional(),
+  notes: z.string().max(2000).optional().transform(stripHtmlTags),
+  total: z.number().min(0),
+  totalAmount: z.number().min(0).optional(),
   status: invoiceStatusSchema,
   paymentMethod: z.nativeEnum(PaymentMethod).optional(),
   paidAt: z.string().or(z.date()).optional(),

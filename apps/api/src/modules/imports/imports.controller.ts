@@ -15,8 +15,9 @@ import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
 import { ImportSessionService } from './import-session.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import {
   ImportPatientFieldsResponseDto,
@@ -33,7 +34,8 @@ interface AuthRequest {
 }
 
 @Controller('imports')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@UseGuards(TierGuard)
 export class ImportsController {
   constructor(
     private readonly importsService: ImportsService,

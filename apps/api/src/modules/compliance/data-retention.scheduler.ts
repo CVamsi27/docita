@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { EncryptionService } from '../../common/encryption.service';
+import { ArchivalService } from './archival.service';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -12,6 +13,7 @@ export class DataRetentionScheduler {
     private prisma: PrismaService,
     private auditService: AuditService,
     private encryptionService: EncryptionService,
+    private archivalService: ArchivalService,
   ) {}
 
   /**
@@ -22,11 +24,20 @@ export class DataRetentionScheduler {
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 
-    // 1. Identify soft-deleted records older than 30 days (Permanent Deletion)
+    // 1. Audit Log Archival (90 days)
+    await this.archivalService.archiveAuditLogs(90);
+
+    // 2. WhatsApp Log Archival (180 days)
+    await this.archivalService.archiveWhatsappLogs(180);
+
+    // 3. Appointment Archival (2 years)
+    await this.archivalService.archiveAppointments(2);
+
+    // 4. Identify soft-deleted records older than 30 days (Permanent Deletion)
     // We keep soft-deleted for 30 days grace period, then anonymize
     await this.processSoftDeletedRecords();
 
-    // 2. Identify inactive patient records older than 3 years (Archival/Anonymization)
+    // 5. Identify inactive patient records older than 3 years (Archival/Anonymization)
     // For now, we just log them as we need specific clinic policies for action
     await this.flagExpiredRecords();
   }

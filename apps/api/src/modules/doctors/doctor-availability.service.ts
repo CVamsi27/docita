@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, AppointmentStatus } from '@workspace/db';
 
 // DayOfWeek type matching schema
 type DayOfWeek =
@@ -367,7 +367,9 @@ export class DoctorAvailabilityService {
         clinicId,
         doctorId: { in: doctorIds },
         startTime: { gte: startOfDay, lte: endOfDay },
-        status: { notIn: ['cancelled', 'no-show'] },
+        status: {
+          notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+        },
       },
       select: {
         doctorId: true,

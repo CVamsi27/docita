@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  checkConditionContraindications,
   checkAllergyContraindications,
+  checkConditionContraindications,
   checkDrugDrugContraindications,
   checkMedicationContraindications,
 } from "./contraindication-checker";

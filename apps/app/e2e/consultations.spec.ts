@@ -129,7 +129,9 @@ test.describe("Consultation Flow", () => {
     // Strict: Verify consultation page loaded with patient name
     const patientName = `${cachedPatient!.firstName} ${cachedPatient!.lastName}`;
     try {
-      await expect(page.getByText(patientName)).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByRole("heading", { name: patientName, level: 1 }),
+      ).toBeVisible({ timeout: 10000 });
     } catch (e) {
       console.log(`Expected patient name: "${patientName}"`);
       console.log(
@@ -149,7 +151,7 @@ test.describe("Consultation Flow", () => {
   test("should show loading state initially", async ({ page, request }) => {
     // Create appointment first
     const startTime = new Date();
-    startTime.setMinutes(startTime.getMinutes() + 15);
+    startTime.setMinutes(startTime.getMinutes() + 60);
     const endTime = new Date(startTime);
     endTime.setMinutes(endTime.getMinutes() + 30);
 

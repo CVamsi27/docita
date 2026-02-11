@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Headers, HttpCode } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
+import { Public } from '../auth/public.decorator';
 
 interface RazorpayPaymentLinkEntity {
   id: string;
@@ -22,6 +23,7 @@ interface RazorpayWebhookPayload {
 export class WebhooksController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
+  @Public()
   @Post('razorpay')
   @HttpCode(200)
   async handleRazorpayWebhook(

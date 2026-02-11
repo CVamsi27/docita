@@ -9,8 +9,9 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
 
@@ -29,7 +30,8 @@ interface AuthRequest {
 }
 
 @Controller('prescription-templates')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@UseGuards(TierGuard)
 @RequireFeature(Feature.PRESCRIPTION_TEMPLATES)
 export class PrescriptionTemplatesController {
   constructor(

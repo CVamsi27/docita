@@ -10,6 +10,8 @@ import {
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import {
   WebVitalDto,
@@ -24,11 +26,37 @@ import {
 } from './dto/monitoring.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
+import { ArchivalService } from '../compliance/archival.service';
+
 @Controller('monitoring')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN)
+@UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_ANALYTICS)
 export class MonitoringController {
-  constructor(private readonly monitoringService: MonitoringService) {}
+  constructor(
+    private readonly monitoringService: MonitoringService,
+    private readonly archivalService: ArchivalService,
+  ) {}
+
+  @Post('archive')
+  @ZodSerializerDto(AnyResponseDto)
+  async manualArchive(
+    @Body('auditDays') auditDays = 90,
+    @Body('whatsappDays') whatsappDays = 180,
+    @Body('appointmentYears') appointmentYears = 2,
+  ) {
+    const results = await Promise.all([
+      this.archivalService.archiveAuditLogs(auditDays),
+      this.archivalService.archiveWhatsappLogs(whatsappDays),
+      this.archivalService.archiveAppointments(appointmentYears),
+    ]);
+
+    return {
+      auditLogsArchived: results[0],
+      whatsappLogsArchived: results[1],
+      appointmentsArchived: results[2],
+    };
+  }
 
   @Get('requests')
   @ZodSerializerDto(RequestStatsResponseDto)

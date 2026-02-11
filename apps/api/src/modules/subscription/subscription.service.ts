@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Tier, Feature, FEATURE_TIER_MAP } from '../auth/tier.decorator';
-import { ClinicTier } from '@workspace/db';
+import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -115,7 +115,7 @@ export class SubscriptionService {
       tierFeatures,
       intelligenceFeatures:
         clinic.intelligenceAddon === 'ACTIVE' ? INTELLIGENCE_FEATURES : [],
-      isTrialing: clinic.subscriptionStatus === 'trial',
+      isTrialing: clinic.subscriptionStatus === SubscriptionStatus.TRIALING,
       trialDaysRemaining: clinic.trialEndsAt
         ? Math.max(
             0,
@@ -148,8 +148,8 @@ export class SubscriptionService {
 
     // Check subscription status
     if (
-      clinic.subscriptionStatus !== 'active' &&
-      clinic.subscriptionStatus !== 'trial'
+      clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
     ) {
       return false;
     }
@@ -194,7 +194,7 @@ export class SubscriptionService {
       where: { id: clinicId },
       data: {
         tier: newTier as ClinicTier,
-        subscriptionStatus: 'active',
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
       },
     });
   }
@@ -223,7 +223,7 @@ export class SubscriptionService {
       where: { id: clinicId },
       data: {
         tier: tier as ClinicTier,
-        subscriptionStatus: 'trial',
+        subscriptionStatus: SubscriptionStatus.TRIALING,
         trialEndsAt,
       },
     });

@@ -18,6 +18,7 @@ export const patientsApi = {
     if (params?.limit) searchParams.set("limit", String(params.limit));
     if (params?.cursor) searchParams.set("cursor", params.cursor);
     if (params?.search) searchParams.set("search", params.search);
+    searchParams.set("_cb", String(Date.now()));
     const query = searchParams.toString();
     return api.get<{
       items: Patient[];

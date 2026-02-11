@@ -54,6 +54,17 @@ export class RateLimitError extends AppError {
   }
 }
 
+export class ApiError extends AppError {
+  constructor(
+    message: string,
+    statusCode: number,
+    code: string = "API_ERROR",
+    public details?: any,
+  ) {
+    super(message, code, statusCode);
+  }
+}
+
 /**
  * Error Handler Utilities
  */

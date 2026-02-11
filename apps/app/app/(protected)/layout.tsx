@@ -12,6 +12,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@workspace/ui/components/resizable";
+import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 
 export default function ProtectedLayout({
   children,
@@ -45,7 +46,7 @@ export default function ProtectedLayout({
                   <span className="font-bold text-lg">Docita</span>
                 </header>
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                  {children}
+                  <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
                 </main>
               </div>
             </ResizablePanel>

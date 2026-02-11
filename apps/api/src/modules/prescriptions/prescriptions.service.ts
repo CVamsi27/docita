@@ -3,9 +3,10 @@ import {
   NotFoundException,
   Logger,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { PDFGeneratorService } from '../../common/services/pdf-generator.service';
+import { PrescriptionPdfService } from './prescription-pdf.service';
+import { IPrescriptionRepository } from './repositories/prescription.repository.interface';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from './events/prescription-created.event';
 import {
@@ -26,125 +27,21 @@ export class PrescriptionsService {
   private readonly logger = new Logger(PrescriptionsService.name);
 
   constructor(
-    private prisma: PrismaService,
-    private pdfGenerator: PDFGeneratorService,
+    @Inject('IPrescriptionRepository')
+    private readonly repository: IPrescriptionRepository,
+    private pdfService: PrescriptionPdfService,
     private eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
-    if (!clinicId) {
-      return [];
-    }
-
-    const { search, date } = params || {};
-    const whereCallback: Prisma.PrescriptionWhereInput = {
-      patient: { clinicId },
-    };
-
-    if (search) {
-      whereCallback.OR = [
-        {
-          patient: {
-            OR: [
-              { firstName: { contains: search, mode: 'insensitive' } },
-              { lastName: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        },
-        {
-          medications: {
-            some: {
-              name: { contains: search, mode: 'insensitive' },
-            },
-          },
-        },
-      ];
-    }
-
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
-
-      whereCallback.createdAt = {
-        gte: startDate,
-        lte: endDate,
-      };
-    }
-
-    try {
-      return await this.prisma.prescription.findMany({
-        where: whereCallback,
-        include: {
-          medications: true,
-          patient: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              phoneNumber: true,
-              gender: true,
-              dateOfBirth: true,
-            },
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-    } catch (error: unknown) {
-      const err = error as Error;
-      this.logger.error(
-        `Failed to find prescriptions: ${err.message}`,
-        err.stack,
-      );
-      throw error;
-    }
+    return this.repository.findAll({
+      clinicId,
+      ...params,
+    });
   }
 
   async findOne(id: string) {
-    const prescription = await this.prisma.prescription.findUnique({
-      where: { id },
-      include: {
-        medications: true,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-            email: true,
-            gender: true,
-            dateOfBirth: true,
-            clinic: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
-                phone: true,
-                email: true,
-                logo: true,
-              },
-            },
-          },
-        },
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            qualification: true,
-            registrationNumber: true,
-            signatureUrl: true,
-          },
-        },
-      },
-    });
+    const prescription = await this.repository.findById(id);
 
     if (!prescription) {
       throw new NotFoundException(`Prescription with ID ${id} not found`);
@@ -165,7 +62,6 @@ export class PrescriptionsService {
       duration: string;
       route?: string;
     }>;
-    // Doctor context for audit trail (Phase 5)
     doctorName?: string;
     doctorEmail?: string;
     doctorPhone?: string;
@@ -176,20 +72,9 @@ export class PrescriptionsService {
     clinicId?: string;
   }) {
     // Fetch patient with allergies for validation
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: data.patientId },
-      include: {
-        patientAllergies: {
-          where: { allergyType: 'DRUG' },
-          select: {
-            allergen: true,
-            allergyType: true,
-            severity: true,
-            reaction: true,
-          },
-        },
-      },
-    });
+    const patient = await this.repository.findPatientWithAllergies(
+      data.patientId,
+    );
 
     if (!patient) {
       throw new NotFoundException(
@@ -240,40 +125,27 @@ export class PrescriptionsService {
       }
     }
 
-    const prescription = await this.prisma.prescription.create({
-      data: {
-        appointmentId: data.appointmentId,
-        patientId: data.patientId,
-        doctorId: data.doctorId,
-        instructions: data.instructions,
-        // Save doctor context snapshot (Phase 5)
-        doctorName: data.doctorName,
-        doctorEmail: data.doctorEmail,
-        doctorPhone: data.doctorPhone,
-        doctorSpecialization: data.doctorSpecialization || null,
-        doctorRole: data.doctorRole || null,
-        doctorRegistrationNumber: data.doctorRegistrationNumber,
-        doctorLicenseNumber: data.doctorLicenseNumber,
-        medications: {
-          create: data.medications.map((med) => ({
-            name: med.name,
-            dosage: med.dosage,
-            frequency: med.frequency,
-            duration: med.duration,
-            route: med.route || 'PO',
-          })),
-        },
-      },
-      include: {
-        medications: true,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
+    const prescription = await this.repository.create({
+      appointment: { connect: { id: data.appointmentId } },
+      patient: { connect: { id: data.patientId } },
+      doctor: { connect: { id: data.doctorId } },
+      instructions: data.instructions,
+      // Save doctor context snapshot (Phase 5)
+      doctorName: data.doctorName,
+      doctorEmail: data.doctorEmail,
+      doctorPhone: data.doctorPhone,
+      doctorSpecialization: data.doctorSpecialization || null,
+      doctorRole: data.doctorRole || null,
+      doctorRegistrationNumber: data.doctorRegistrationNumber,
+      doctorLicenseNumber: data.doctorLicenseNumber,
+      medications: {
+        create: data.medications.map((med) => ({
+          name: med.name,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration,
+          route: med.route || 'PO',
+        })),
       },
     });
 
@@ -294,10 +166,17 @@ export class PrescriptionsService {
     locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
     const prescription = await this.findOne(id);
-    const patientAge = calculateAge(prescription.patient.dateOfBirth);
-    const clinic = prescription.patient.clinic;
+    // findOne uses repository.findById which uses include patient.
 
-    return this.pdfGenerator.generatePrescription({
+    // Safety check for relations
+    const prescriptionWithRelations = prescription as any;
+
+    const patientAge = calculateAge(
+      prescriptionWithRelations.patient.dateOfBirth,
+    );
+    const clinic = prescriptionWithRelations.patient.clinic;
+
+    return this.pdfService.generate({
       prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
       clinic: {
         name: clinic?.name || process.env.CLINIC_NAME || 'Docita Clinic',
@@ -306,20 +185,26 @@ export class PrescriptionsService {
         email: clinic?.email || process.env.CLINIC_EMAIL,
       },
       doctor: {
-        name: prescription.doctor.name,
-        qualification: prescription.doctor.qualification || undefined,
-        registrationNumber: prescription.doctor.registrationNumber || undefined,
-        signatureUrl: prescription.doctor.signatureUrl || undefined,
+        name: prescriptionWithRelations.doctor.name,
+        qualification:
+          prescriptionWithRelations.doctor.qualification || undefined,
+        registrationNumber:
+          prescriptionWithRelations.doctor.registrationNumber || undefined,
+        signatureUrl:
+          prescriptionWithRelations.doctor.signatureUrl || undefined,
       },
       patient: {
-        name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-        phoneNumber: prescription.patient.phoneNumber,
-        email: prescription.patient.email || undefined,
-        gender: prescription.patient.gender || undefined,
+        name: `${prescriptionWithRelations.patient.firstName} ${prescriptionWithRelations.patient.lastName}`,
+        phoneNumber: prescriptionWithRelations.patient.phoneNumber,
+        email: prescriptionWithRelations.patient.email || undefined,
+        gender: prescriptionWithRelations.patient.gender || undefined,
         age: patientAge ?? undefined,
-        patientId: prescription.patient.id.slice(0, 8).toUpperCase(),
+        patientId: prescriptionWithRelations.patient.id
+          .slice(0, 8)
+          .toUpperCase(),
+        // TODO: Pass allergies if available in the fetch
       },
-      medications: prescription.medications.map((med) => ({
+      medications: prescriptionWithRelations.medications.map((med) => ({
         name: med.name,
         dosage: med.dosage,
         route: med.route || 'PO',
@@ -327,7 +212,7 @@ export class PrescriptionsService {
         duration: med.duration,
       })),
       instructions: prescription.instructions || undefined,
-      date: new Date(prescription.createdAt),
+      date: new Date(), // Use current date for PDF generation time
       validityDays: 30,
     });
   }

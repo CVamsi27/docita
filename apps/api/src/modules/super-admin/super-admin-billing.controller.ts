@@ -8,6 +8,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -20,6 +22,7 @@ import { SuperAdminBillingService } from './super-admin-billing.service';
 
 @Controller('super-admin/billing')
 @ApiTags('Super Admin - Billing')
+@Roles(Role.SUPER_ADMIN)
 @ApiBearerAuth()
 export class SuperAdminBillingController {
   constructor(private readonly billingService: SuperAdminBillingService) {}

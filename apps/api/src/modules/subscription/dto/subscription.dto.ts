@@ -43,4 +43,39 @@ export class UpgradePreviewResponseDto extends createZodDto(
   UpgradePreviewSchema,
 ) {}
 
+// Request DTOs
+export const CreateCheckoutSchema = z.object({
+  tier: z.enum(['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE']),
+  billingCycle: z.enum(['MONTHLY', 'YEARLY']),
+  referralCode: z.string().optional(),
+  addOns: z.array(z.string()).optional(),
+});
+export class CreateCheckoutRequestDto extends createZodDto(
+  CreateCheckoutSchema,
+) {}
+
+export const ActivateSubscriptionSchema = z.object({
+  razorpayPaymentId: z.string(),
+  razorpayOrderId: z.string(),
+  razorpaySignature: z.string(),
+  tier: z.enum(['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE']),
+  billingCycle: z.enum(['MONTHLY', 'YEARLY']),
+  addOns: z.array(z.string()).optional(),
+});
+export class ActivateSubscriptionRequestDto extends createZodDto(
+  ActivateSubscriptionSchema,
+) {}
+
+export const UpgradeTierSchema = z.object({
+  tier: z.string(),
+});
+export class UpgradeTierRequestDto extends createZodDto(UpgradeTierSchema) {}
+
+export const SetIntelligenceSchema = z.object({
+  enabled: z.boolean(),
+});
+export class SetIntelligenceRequestDto extends createZodDto(
+  SetIntelligenceSchema,
+) {}
+
 export class AnyResponseDto extends createZodDto(z.any()) {}

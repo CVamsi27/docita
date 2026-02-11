@@ -1,4 +1,4 @@
-import { Prisma } from '@workspace/db';
+import { Prisma, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 
 /**
  * Query Builder for Appointments.
@@ -98,7 +98,9 @@ export class AppointmentQueryBuilder {
    * Exclude cancelled and no-show appointments
    */
   excludeCancelled(): this {
-    this.where.status = { notIn: ['cancelled', 'no-show'] };
+    this.where.status = {
+      notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+    };
     return this;
   }
 
@@ -350,7 +352,7 @@ export class InvoiceQueryBuilder {
   }
 
   unpaid(): this {
-    return this.withStatus('pending', 'overdue');
+    return this.withStatus(InvoiceStatus.PENDING, InvoiceStatus.OVERDUE);
   }
 
   inDateRange(start: Date, end: Date): this {

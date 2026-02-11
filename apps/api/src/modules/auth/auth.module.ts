@@ -27,15 +27,19 @@ if (!jwtSecret && process.env.NODE_ENV === 'production') {
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') ||
-          'dev-only-secret-do-not-use-in-prod',
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
-            '7d') as any,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET is not defined');
+        }
+        return {
+          secret: secret,
+          signOptions: {
+            expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+              '7d') as any,
+          },
+        };
+      },
     }),
   ],
   providers: [

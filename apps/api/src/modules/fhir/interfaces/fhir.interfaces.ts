@@ -245,6 +245,40 @@ export interface FhirImmunization extends FhirResource {
   reaction?: Array<{ date?: string; detail?: { reference: string } }>;
 }
 
+export interface FhirAppointment extends FhirResource {
+  resourceType: 'Appointment';
+  status:
+    | 'proposed'
+    | 'pending'
+    | 'booked'
+    | 'arrived'
+    | 'fulfilled'
+    | 'cancelled'
+    | 'noshow'
+    | 'entered-in-error'
+    | 'checked-in'
+    | 'waitlist';
+  appointmentType?: {
+    coding: Array<{ system: string; code: string; display: string }>;
+  };
+  reasonCode?: Array<{
+    coding: Array<{ system: string; code: string; display: string }>;
+    text?: string;
+  }>;
+  description?: string;
+  start?: string;
+  end?: string;
+  created?: string;
+  comment?: string;
+  participant: Array<{
+    actor?: { reference: string; display?: string };
+    status: 'accepted' | 'declined' | 'tentative' | 'needs-action';
+    type?: Array<{
+      coding: Array<{ system: string; code: string; display: string }>;
+    }>;
+  }>;
+}
+
 export interface FhirBundle extends FhirResource {
   resourceType: 'Bundle';
   type:

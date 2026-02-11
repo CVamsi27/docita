@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { AppLogger } from './common/services/logger.service';
+import { BullModule } from '@nestjs/bull';
+import { LoggerModule } from 'nestjs-pino';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -12,7 +14,7 @@ import { PrescriptionsModule } from './modules/prescriptions/prescriptions.modul
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { ImportsModule } from './modules/imports/imports.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
@@ -51,6 +53,12 @@ import { PerformanceModule } from './modules/performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from './common/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from './common/interceptors/emergency-access.interceptor';
+import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
+import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
+import { RolesGuard } from './modules/auth/roles.guard';
+import { CsrfInterceptor } from './common/interceptors/csrf.interceptor';
 
 // Extensibility Infrastructure
 import { EventsModule } from './common/events';
@@ -62,28 +70,62 @@ import { CommonServicesModule } from './common/services';
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
+            : undefined,
+        autoLogging: false, // We use our own interceptor or turn this on
+        serializers: {
+          req: (req) => ({
+            id: req.id,
+            method: req.method,
+            url: req.url,
+          }),
+        },
+      },
+    }),
+    PrometheusModule.register({
+      path: '/metrics',
+    }),
     // Rate limiting: 100 requests per minute per IP
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000, // 1 second
-        limit: 10, // 10 requests per second
-      },
-      {
-        name: 'medium',
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-      {
-        name: 'long',
-        ttl: 3600000, // 1 hour
-        limit: 1000, // 1000 requests per hour
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            name: 'short',
+            ttl: 1000,
+            limit: 10,
+          },
+          {
+            name: 'medium',
+            ttl: 60000,
+            limit: 100,
+          },
+          {
+            name: 'long',
+            ttl: 3600000,
+            limit: 1000,
+          },
+        ],
+        skipIf: () => config.get('NODE_ENV') === 'test',
+      }),
+    }),
     // Extensibility Infrastructure (must be early in the import list)
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        redis: configService.get('REDIS_URL') || 'redis://localhost:6379',
+      }),
+      inject: [ConfigService],
+    }),
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
@@ -131,11 +173,29 @@ import { CommonServicesModule } from './common/services';
   controllers: [AppController],
   providers: [
     AppService,
-    PaymentWebSocketGateway,
+    AppService,
     // Apply rate limiting globally
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    // Global CSRF Protection
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CsrfInterceptor,
+    },
+    // Global Request Tracing
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestIdInterceptor,
     },
     // Global Tenant Context Interceptor
     {
@@ -147,12 +207,17 @@ import { CommonServicesModule } from './common/services';
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: RolesGuard, // Global Role Guard - verify if needed globally or per controller
-    // },
-    AppLogger,
+    // Global Patient Audit Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PatientDataAuditInterceptor,
+    },
+    // Global Break-the-Glass Interceptor (Emergency Access)
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: BreakTheGlassInterceptor,
+    },
   ],
-  exports: [AppLogger],
+  exports: [],
 })
 export class AppModule {}

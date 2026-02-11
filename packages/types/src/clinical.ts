@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripHtmlTags } from "./sanitization";
 import { vitalSignSchema } from "./vitals";
 export const generalExaminationSchema = z.object({
   // Consciousness
@@ -15,12 +16,12 @@ export const generalExaminationSchema = z.object({
   edema: z.boolean().optional(),
 
   // Notes for each
-  pallorNotes: z.string().optional(),
-  icterusNotes: z.string().optional(),
-  cyanosisNotes: z.string().optional(),
-  clubbingNotes: z.string().optional(),
-  lymphadenopathyNotes: z.string().optional(),
-  edemaLocation: z.string().optional(), // e.g., "bilateral pedal edema"
+  pallorNotes: z.string().max(500).optional().transform(stripHtmlTags),
+  icterusNotes: z.string().max(500).optional().transform(stripHtmlTags),
+  cyanosisNotes: z.string().max(500).optional().transform(stripHtmlTags),
+  clubbingNotes: z.string().max(500).optional().transform(stripHtmlTags),
+  lymphadenopathyNotes: z.string().max(500).optional().transform(stripHtmlTags),
+  edemaLocation: z.string().max(255).optional().transform(stripHtmlTags), // e.g., "bilateral pedal edema"
 
   // Nutritional Status
   nutritionStatus: z
@@ -31,7 +32,7 @@ export const generalExaminationSchema = z.object({
     .optional(),
 
   // Additional notes
-  generalNotes: z.string().optional(),
+  generalNotes: z.string().max(2000).optional().transform(stripHtmlTags),
 });
 export type GeneralExamination = z.infer<typeof generalExaminationSchema>;
 
@@ -44,10 +45,10 @@ export const systemicExaminationSchema = z.object({
       rhythm: z
         .enum(["REGULAR", "IRREGULAR", "IRREGULARLY_IRREGULAR"])
         .optional(),
-      heartSounds: z.string().optional(), // e.g., "S1 S2 heard, no murmurs"
-      jvp: z.string().optional(), // Jugular Venous Pressure
-      peripheralPulses: z.string().optional(),
-      notes: z.string().optional(),
+      heartSounds: z.string().max(500).optional().transform(stripHtmlTags), // e.g., "S1 S2 heard, no murmurs"
+      jvp: z.string().max(100).optional().transform(stripHtmlTags), // Jugular Venous Pressure
+      peripheralPulses: z.string().max(200).optional().transform(stripHtmlTags),
+      notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
@@ -55,11 +56,11 @@ export const systemicExaminationSchema = z.object({
   rs: z
     .object({
       respiratoryRate: z.number().optional(),
-      breathSounds: z.string().optional(), // e.g., "Bilateral vesicular breath sounds"
-      additionalSounds: z.string().optional(), // Crackles, wheezes, rhonchi
+      breathSounds: z.string().max(500).optional().transform(stripHtmlTags), // e.g., "Bilateral vesicular breath sounds"
+      additionalSounds: z.string().max(500).optional().transform(stripHtmlTags), // Crackles, wheezes, rhonchi
       chestMovement: z.enum(["NORMAL", "REDUCED", "ASYMMETRIC"]).optional(),
-      percussion: z.string().optional(),
-      notes: z.string().optional(),
+      percussion: z.string().max(200).optional().transform(stripHtmlTags),
+      notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
@@ -68,13 +69,17 @@ export const systemicExaminationSchema = z.object({
     .object({
       shape: z.enum(["FLAT", "DISTENDED", "SCAPHOID", "NORMAL"]).optional(),
       tenderness: z.boolean().optional(),
-      tendernessLocation: z.string().optional(),
-      organomegaly: z.string().optional(), // Hepatomegaly, splenomegaly
+      tendernessLocation: z
+        .string()
+        .max(255)
+        .optional()
+        .transform(stripHtmlTags),
+      organomegaly: z.string().max(255).optional().transform(stripHtmlTags), // Hepatomegaly, splenomegaly
       bowelSounds: z
         .enum(["NORMAL", "HYPERACTIVE", "HYPOACTIVE", "ABSENT"])
         .optional(),
       ascites: z.boolean().optional(),
-      notes: z.string().optional(),
+      notes: z.string().max(1000).optional(),
     })
     .optional(),
 
@@ -84,12 +89,12 @@ export const systemicExaminationSchema = z.object({
       consciousness: z
         .enum(["CONSCIOUS", "DROWSY", "STUPOR", "COMA"])
         .optional(),
-      cranialNerves: z.string().optional(),
-      motorFunction: z.string().optional(),
-      sensoryFunction: z.string().optional(),
-      reflexes: z.string().optional(),
-      coordination: z.string().optional(),
-      notes: z.string().optional(),
+      cranialNerves: z.string().max(1000).optional().transform(stripHtmlTags),
+      motorFunction: z.string().max(1000).optional().transform(stripHtmlTags),
+      sensoryFunction: z.string().max(1000).optional().transform(stripHtmlTags),
+      reflexes: z.string().max(500).optional().transform(stripHtmlTags),
+      coordination: z.string().max(500).optional().transform(stripHtmlTags),
+      notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
@@ -99,41 +104,45 @@ export const systemicExaminationSchema = z.object({
       gait: z
         .enum(["NORMAL", "ANTALGIC", "ATAXIC", "SPASTIC", "OTHER"])
         .optional(),
-      jointExamination: z.string().optional(),
-      muscleStrength: z.string().optional(),
-      deformities: z.string().optional(),
-      notes: z.string().optional(),
+      jointExamination: z
+        .string()
+        .max(1000)
+        .optional()
+        .transform(stripHtmlTags),
+      muscleStrength: z.string().max(500).optional().transform(stripHtmlTags),
+      deformities: z.string().max(500).optional().transform(stripHtmlTags),
+      notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
   // Skin / Integumentary
   skin: z
     .object({
-      color: z.string().optional(),
-      texture: z.string().optional(),
-      lesions: z.string().optional(),
-      rashes: z.string().optional(),
-      notes: z.string().optional(),
+      color: z.string().max(100).optional().transform(stripHtmlTags),
+      texture: z.string().max(100).optional().transform(stripHtmlTags),
+      lesions: z.string().max(1000).optional().transform(stripHtmlTags),
+      rashes: z.string().max(1000).optional().transform(stripHtmlTags),
+      notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
   // Local Examination (for specific complaints)
-  localExamination: z.string().optional(),
+  localExamination: z.string().max(2000).optional().transform(stripHtmlTags),
 
   // Additional systemic examination notes
-  additionalNotes: z.string().optional(),
+  additionalNotes: z.string().max(2000).optional(),
 });
 export type SystemicExamination = z.infer<typeof systemicExaminationSchema>;
 
 // Clinical Investigations ordered
 export const clinicalInvestigationSchema = z.object({
   id: z.string().optional(),
-  name: z.string(),
+  name: z.string().max(255),
   category: z.enum(["LABORATORY", "IMAGING", "SPECIAL", "OTHER"]).optional(),
   status: z.enum(["ORDERED", "PENDING", "COMPLETED", "CANCELLED"]).optional(),
-  result: z.string().optional(),
-  normalRange: z.string().optional(),
-  notes: z.string().optional(),
+  result: z.string().max(2000).optional(),
+  normalRange: z.string().max(100).optional(),
+  notes: z.string().max(1000).optional(),
   orderedAt: z.string().or(z.date()).optional(),
   completedAt: z.string().or(z.date()).optional(),
 });
@@ -605,15 +614,19 @@ export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 // Full Clinical Note in SOAP format
 export const clinicalNoteSchema = z.object({
   // Subjective
-  chiefComplaint: z.string().optional(),
-  treatmentHistory: z.string().optional(), // Previous treatments attempted for the current condition
-  historyOfPresentIllness: z.string().optional(),
-  pastMedicalHistory: z.string().optional(),
-  familyHistory: z.string().optional(),
-  socialHistory: z.string().optional(),
-  reviewOfSystems: z.string().optional(),
-  allergies: z.string().optional(),
-  currentMedications: z.string().optional(),
+  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
+  treatmentHistory: z.string().max(5000).optional().transform(stripHtmlTags), // Previous treatments attempted for the current condition
+  historyOfPresentIllness: z
+    .string()
+    .max(5000)
+    .optional()
+    .transform(stripHtmlTags),
+  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags),
+  familyHistory: z.string().max(2000).optional().transform(stripHtmlTags),
+  socialHistory: z.string().max(2000).optional().transform(stripHtmlTags),
+  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags),
+  allergies: z.string().max(2000).optional().transform(stripHtmlTags),
+  currentMedications: z.string().max(5000).optional().transform(stripHtmlTags),
 
   // Objective
   vitalSigns: vitalSignSchema.optional(),
@@ -630,27 +643,35 @@ export const clinicalNoteSchema = z.object({
   psychiatryExam: psychiatryExamDataSchema.optional(),
 
   // Assessment
-  provisionalDiagnosis: z.string().optional(),
-  differentialDiagnosis: z.string().optional(),
-  clinicalImpression: z.string().optional(),
+  provisionalDiagnosis: z
+    .string()
+    .max(1000)
+    .optional()
+    .transform(stripHtmlTags),
+  differentialDiagnosis: z
+    .string()
+    .max(2000)
+    .optional()
+    .transform(stripHtmlTags),
+  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags),
 
   // Plan
   investigations: z.array(clinicalInvestigationSchema).optional(),
-  finalDiagnosis: z.string().optional(),
-  treatmentPlan: z.string().optional(),
+  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags),
+  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags),
   prescriptions: z
     .array(
       z.object({
-        name: z.string(),
-        dosage: z.string(),
-        frequency: z.string(),
-        duration: z.string(),
-        route: z.string().default("PO"),
+        name: z.string().max(255),
+        dosage: z.string().max(100),
+        frequency: z.string().max(100),
+        duration: z.string().max(100),
+        route: z.string().max(50).default("PO"),
       }),
     )
     .optional(),
-  followUpPlan: z.string().optional(),
-  patientEducation: z.string().optional(),
+  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags),
+  patientEducation: z.string().max(5000).optional().transform(stripHtmlTags),
 });
 export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
 

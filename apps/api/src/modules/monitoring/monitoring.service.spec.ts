@@ -1,98 +1,119 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MonitoringService } from './monitoring.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { MonitoringFactory } from './factories/monitoring.factory';
+import { RequestLogService } from './services/request-log.service';
+import { ErrorTrackingService } from './services/error-tracking.service';
+import { MetricsService } from './services/metrics.service';
+import { HealthCheckService } from './services/health-check.service';
 
 describe('MonitoringService', () => {
   let service: MonitoringService;
-  let prisma: PrismaService;
-  let factory: MonitoringFactory;
+  let requestLogService: RequestLogService;
+  let errorTrackingService: ErrorTrackingService;
+  let metricsService: MetricsService;
+  let healthCheckService: HealthCheckService;
 
-  const mockPrismaService = {
-    apiRequest: {
-      createMany: jest.fn(),
-      count: jest.fn(),
-      aggregate: jest.fn(),
-      groupBy: jest.fn(),
-      findMany: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    errorLog: {
-      createMany: jest.fn(),
-      count: jest.fn(),
-      groupBy: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    systemMetric: {
-      create: jest.fn(),
-      createMany: jest.fn(),
-      findMany: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    $queryRaw: jest.fn(),
+  const mockRequestLogService = {
+    logRequest: jest.fn(),
+    getRequestStats: jest.fn(),
+    cleanupOldRequests: jest.fn(),
   };
 
-  const mockFactory = {
-    createApiRequest: jest.fn(),
-    createErrorLog: jest.fn(),
+  const mockErrorTrackingService = {
+    logError: jest.fn(),
+    getErrorStats: jest.fn(),
+    resolveError: jest.fn(),
+    resolveMultipleErrors: jest.fn(),
+    cleanupOldErrors: jest.fn(),
+  };
+
+  const mockMetricsService = {
+    recordMetric: jest.fn(),
+    recordSystemMetrics: jest.fn(),
+    recordFeatureUsage: jest.fn(),
+    recordCacheMetric: jest.fn(),
+    recordDatabaseMetric: jest.fn(),
+    getSystemMetrics: jest.fn(),
+    getPerformanceMetrics: jest.fn(),
+    aggregateHourlyMetrics: jest.fn(),
+    getAggregatedPerformance: jest.fn(),
+    recordWebVital: jest.fn(),
+    getWebVitals: jest.fn(),
+    cleanupOldMetrics: jest.fn(),
+  };
+
+  const mockHealthCheckService = {
+    getSystemHealth: jest.fn(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MonitoringService,
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: MonitoringFactory, useValue: mockFactory },
+        { provide: RequestLogService, useValue: mockRequestLogService },
+        { provide: ErrorTrackingService, useValue: mockErrorTrackingService },
+        { provide: MetricsService, useValue: mockMetricsService },
+        { provide: HealthCheckService, useValue: mockHealthCheckService },
       ],
     }).compile();
 
     service = module.get<MonitoringService>(MonitoringService);
-    prisma = module.get<PrismaService>(PrismaService);
-    factory = module.get<MonitoringFactory>(MonitoringFactory);
+    requestLogService = module.get<RequestLogService>(RequestLogService);
+    errorTrackingService =
+      module.get<ErrorTrackingService>(ErrorTrackingService);
+    metricsService = module.get<MetricsService>(MetricsService);
+    healthCheckService = module.get<HealthCheckService>(HealthCheckService);
 
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    // Manually trigger cleanup to clear any timers
-    service.onModuleDestroy();
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
-  describe('logRequest', () => {
-    it('should validate data and add to buffer', () => {
-      const data = {
-        method: 'GET',
-        path: '/test',
-        statusCode: 200,
-        duration: 10,
-      };
-
-      const validated = { ...data, clinicId: 'test-clinic' };
-      mockFactory.createApiRequest.mockReturnValue(validated);
-
+  describe('Delegation Tests', () => {
+    it('logRequest should delegate to RequestLogService', () => {
+      const data: any = { method: 'GET', path: '/test' };
       service.logRequest(data);
-
-      expect(factory.createApiRequest).toHaveBeenCalledWith(data);
-      // Access private buffer for testing if needed, or spy on flushBuffers
+      expect(requestLogService.logRequest).toHaveBeenCalledWith(data);
     });
-  });
 
-  describe('logError', () => {
-    it('should validate data and add to buffer', () => {
-      const data = {
-        type: 'Error',
-        message: 'Test Error',
-      };
-
-      const validated = { ...data, severity: 'ERROR' };
-      mockFactory.createErrorLog.mockReturnValue(validated);
-
+    it('logError should delegate to ErrorTrackingService', () => {
+      const data: any = { message: 'Error' };
       service.logError(data);
+      expect(errorTrackingService.logError).toHaveBeenCalledWith(data);
+    });
 
-      expect(factory.createErrorLog).toHaveBeenCalledWith(data);
+    it('getSystemHealth should delegate to HealthCheckService', async () => {
+      await service.getSystemHealth();
+      expect(healthCheckService.getSystemHealth).toHaveBeenCalled();
+    });
+
+    it('recordMetric should delegate to MetricsService', async () => {
+      await service.recordMetric('CPU_USAGE' as any, 100);
+      expect(metricsService.recordMetric).toHaveBeenCalledWith(
+        'CPU_USAGE',
+        100,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('cleanupOldData should delegate to all services', async () => {
+      mockRequestLogService.cleanupOldRequests.mockResolvedValue(10);
+      mockErrorTrackingService.cleanupOldErrors.mockResolvedValue(5);
+      mockMetricsService.cleanupOldMetrics.mockResolvedValue(20);
+
+      const result = await service.cleanupOldData(30);
+
+      expect(requestLogService.cleanupOldRequests).toHaveBeenCalledWith(30);
+      expect(errorTrackingService.cleanupOldErrors).toHaveBeenCalledWith(30);
+      expect(metricsService.cleanupOldMetrics).toHaveBeenCalledWith(30);
+
+      expect(result).toEqual({
+        requestsDeleted: 10,
+        errorsDeleted: 5,
+        metricsDeleted: 20,
+      });
     });
   });
 });

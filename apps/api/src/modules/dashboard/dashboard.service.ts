@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AppointmentStatus } from '@workspace/db';
 
 @Injectable()
 export class DashboardService {
@@ -105,7 +106,7 @@ export class DashboardService {
           gte: today,
         },
         status: {
-          in: ['scheduled', 'confirmed'],
+          in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
         },
       },
       take: 4,
@@ -133,6 +134,7 @@ export class DashboardService {
       todayAppointments,
       activePrescriptions,
       pendingReports: 0, // Placeholder
+      monthlyRevenue: 0, // Placeholder
     };
 
     // Cache the result for 60 seconds

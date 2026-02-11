@@ -1,14 +1,24 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ReminderSettings } from '@workspace/db';
+import {
+  ReminderSettings,
+  AppointmentStatus,
+  WhatsappLogStatus,
+} from '@workspace/db';
 import {
   formatDate,
   formatTime,
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 
 interface AppointmentForReminder {
@@ -51,8 +61,7 @@ export class RemindersService {
 
   constructor(
     private prisma: PrismaService,
-    @Inject(forwardRef(() => WhatsappService))
-    private whatsappService: WhatsappService,
+    private whatsappClient: WhatsappClientService,
     @Inject(forwardRef(() => WhatsappTemplatesService))
     private templatesService: WhatsappTemplatesService,
   ) {}
@@ -121,7 +130,7 @@ Thank you,
             lte: reminderTime,
           },
           status: {
-            in: ['scheduled', 'confirmed'],
+            in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
           },
         },
         include: {
@@ -220,7 +229,7 @@ Thank you,
             lt: thirtyFiveMinFromNow,
           },
           status: {
-            in: ['scheduled', 'confirmed'],
+            in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
           },
         },
         include: {
@@ -399,7 +408,7 @@ Thank you,
       const message = this.templatesService.getMessageForMode(resolved);
 
       // Send WhatsApp message
-      await this.whatsappService.sendMessage({
+      await this.whatsappClient.sendMessage({
         to: appointment.patient.phoneNumber,
         message,
       });
@@ -412,7 +421,7 @@ Thank you,
           phoneNumber: appointment.patient.phoneNumber,
           message,
           type: 'reminder',
-          status: 'sent',
+          status: WhatsappLogStatus.SENT,
         },
       });
 
@@ -525,7 +534,7 @@ Thank you,
     });
 
     if (!appointment) {
-      throw new Error('Appointment not found');
+      throw new NotFoundException('Appointment not found');
     }
 
     const settings = await this.getSettings();

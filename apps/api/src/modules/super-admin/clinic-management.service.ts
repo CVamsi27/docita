@@ -5,19 +5,18 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
-import { ClinicTier, Prisma, Role } from '@workspace/db';
+import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
 } from '../../common/select-fragments';
 import { paginateWithCursor } from '../../common/pagination.helper';
-import type {
-  CreateClinicDto,
-  CreateAdminDto,
-  UpdateAdminDto,
-} from '@workspace/types';
-import type { UpdateClinicDto } from './dto/clinic-management.dto';
+import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
+import {
+  SuperAdminCreateClinicDto,
+  SuperAdminUpdateClinicDto,
+} from './dto/clinic-management.dto';
 import { ClinicFactory } from '../clinics/factories/clinic.factory';
 import { UserFactory } from '../users/factories/user.factory';
 
@@ -54,7 +53,7 @@ export class ClinicManagementService {
     return doctorClinics.map((dc) => dc.doctor);
   }
 
-  async createClinic(data: CreateClinicDto) {
+  async createClinic(data: SuperAdminCreateClinicDto) {
     const existingClinic = await this.prisma.clinic.findFirst({
       where: { email: data.email },
     });
@@ -74,9 +73,7 @@ export class ClinicManagementService {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      tier: (data.tier && data.tier !== 'INTELLIGENCE'
-        ? data.tier
-        : 'CORE') as ClinicTier,
+      tier: data.tier || ClinicTier.CORE,
     });
 
     const userInput = this.userFactory.create(Role.ADMIN, {
@@ -122,12 +119,12 @@ export class ClinicManagementService {
     });
     this.paymentGateway.emitClinicUpdate(id, {
       clinicId: id,
-      subscriptionStatus: active ? 'active' : 'inactive',
+      subscriptionStatus: active ? SubscriptionStatus.ACTIVE : 'inactive',
     });
     return clinic;
   }
 
-  async updateClinic(id: string, data: UpdateClinicDto) {
+  async updateClinic(id: string, data: SuperAdminUpdateClinicDto) {
     const clinic = await this.prisma.clinic.update({
       where: { id },
       data: data as any,
@@ -136,7 +133,9 @@ export class ClinicManagementService {
       this.paymentGateway.emitClinicUpdate(id, {
         clinicId: id,
         tier: data.tier,
-        subscriptionStatus: data.active ? 'active' : 'inactive',
+        subscriptionStatus: data.active
+          ? SubscriptionStatus.ACTIVE
+          : 'inactive',
       });
     }
     return clinic;

@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappService } from '../../modules/whatsapp/whatsapp.service';
+
+import { UsersService } from '../../modules/users/users.service';
+import { WhatsappClientService } from '../../modules/whatsapp/whatsapp-client.service';
 
 /**
  * Configuration for sending WhatsApp notifications
@@ -60,7 +62,8 @@ export class WhatsAppNotificationService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly whatsapp: WhatsappService,
+    private readonly usersService: UsersService,
+    private readonly whatsappClient: WhatsappClientService,
   ) {}
 
   /**
@@ -91,7 +94,7 @@ export class WhatsAppNotificationService {
 
     // Send the message
     try {
-      const result = await this.whatsapp.sendMessage({
+      const result = await this.whatsappClient.sendMessage({
         to: config.phoneNumber,
         message: config.message,
       });

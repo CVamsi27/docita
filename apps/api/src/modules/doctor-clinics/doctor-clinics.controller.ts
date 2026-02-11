@@ -16,8 +16,11 @@ import {
   DoctorClinicListResponseDto,
 } from './dto/doctor-clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('doctor-clinics')
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class DoctorClinicsController {
   constructor(private readonly doctorClinicsService: DoctorClinicsService) {}
 

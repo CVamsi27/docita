@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AuthService } from '../auth/auth.service';
 import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
+import { SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import type { PaymentData } from '@workspace/types';
 import {
@@ -111,7 +112,7 @@ export class OnboardingService {
     }
 
     // Update session data
-    session.data = { ...session.data, [this.getStepDataKey(step)]: data };
+    session.data = { ...session.data, ...data };
     session.currentStep = this.getNextStep(step);
     if (!session.completedSteps.includes(step)) {
       session.completedSteps.push(step);
@@ -194,7 +195,7 @@ export class OnboardingService {
               plan: 'CAPTURE',
               billingCycle: 'MONTHLY',
               basePriceCents: 0,
-              status: 'ACTIVE',
+              status: SubscriptionStatus.ACTIVE,
               currentPeriodStart: new Date(),
               currentPeriodEnd: new Date(
                 Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -281,7 +282,7 @@ export class OnboardingService {
         role: result.adminUser.role,
         clinicId: result.clinic.id,
       };
-      const authCredentials = this.authService.login({
+      const authCredentials = await this.authService.login({
         ...authPayload,
         clinicId: result.clinic.id,
       } as any);
@@ -442,7 +443,9 @@ export class OnboardingService {
         plan: planData.tier,
         billingCycle: planData.billingCycle,
         basePriceCents: priceCents,
-        status: paymentData?.razorpayPaymentId ? 'ACTIVE' : 'PENDING',
+        status: paymentData?.razorpayPaymentId
+          ? SubscriptionStatus.ACTIVE
+          : 'PENDING',
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         // Set appropriate usage limits based on tier

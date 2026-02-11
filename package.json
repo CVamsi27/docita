@@ -18,9 +18,13 @@
     "test:e2e": "turbo test --filter=@docita/app",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "postinstall": "pnpm --filter @workspace/db run db:generate"
+    "postinstall": "pnpm --filter @workspace/db run db:generate",
+    "db:generate": "pnpm --filter @workspace/db run db:generate",
+    "db:push": "pnpm --filter @workspace/db run db:push",
+    "db:migrate": "pnpm --filter @workspace/db run db:migrate"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "baseline-browser-mapping": "^2.9.19",
@@ -36,9 +40,6 @@
     "node": ">=20"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines"
-    ]
+    "ignoredBuiltDependencies": []
   }
 }

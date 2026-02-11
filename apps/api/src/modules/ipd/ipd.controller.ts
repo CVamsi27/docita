@@ -14,6 +14,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FacilityType } from '@workspace/types';
 import { FacilityTypeGuard } from '../auth/clinic-type.guard';
 import { RequireFacilityType } from '../auth/clinic-type.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 import {
   CreateWardDto,
   CreateRoomDto,
@@ -35,8 +38,9 @@ interface AuthRequest {
 }
 
 @Controller('ipd')
-@UseGuards(JwtAuthGuard, FacilityTypeGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, FacilityTypeGuard)
 @RequireFacilityType(FacilityType.HOSPITAL)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class IpdController {
   constructor(private readonly ipdService: IpdService) {}
 

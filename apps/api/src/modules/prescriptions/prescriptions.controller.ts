@@ -11,9 +11,10 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 
 import {
   CreatePrescriptionDto,
@@ -29,7 +30,8 @@ interface AuthRequest {
 }
 
 @Controller('prescriptions')
-@UseGuards(JwtAuthGuard, TierGuard)
+@UseGuards(TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class PrescriptionsController {
   constructor(private readonly prescriptionsService: PrescriptionsService) {}
 

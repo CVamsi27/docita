@@ -15,8 +15,11 @@ import {
   CustomFieldListResponseDto,
 } from './dto/custom-fields.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('custom-fields')
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class CustomFieldsController {
   constructor(private readonly customFieldsService: CustomFieldsService) {}
 

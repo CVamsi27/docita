@@ -16,8 +16,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { AuthenticatedRequest } from '../../common/middleware/tenant-context.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuthenticatedRequest } from '@workspace/types';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import {
   DocumentResponseDto,
@@ -26,7 +27,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('documents')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 

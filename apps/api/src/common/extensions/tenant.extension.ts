@@ -16,6 +16,35 @@ const TENANT_SCOPED_MODELS = [
   'CustomField',
   'PrescriptionTemplate',
   'ClinicalTemplate',
+  'User',
+  'DoctorSchedule',
+  'DoctorTimeOff',
+  'AuditLog',
+  'AuditLogArchive',
+  'AppointmentArchive',
+  'WhatsappLog',
+  'WhatsappLogArchive',
+  'ErrorLog',
+  'Feedback',
+  'InventoryItem',
+  'InventoryMovement',
+  'LabTestOrder',
+  'Consent',
+  'QueueToken',
+  'BulkImportJob',
+  'ImportJob',
+  'OcrDocument',
+  'StaffNotification',
+  'ReminderSettings',
+  'AppointmentReminder',
+  'PaymentSession',
+  'Subscription',
+  'SubscriptionPayment',
+  'AnalyticsSnapshot',
+  'Ward',
+  'Room',
+  'Bed',
+  'Admission',
 ];
 
 export const tenantExtension = Prisma.defineExtension({
@@ -24,7 +53,9 @@ export const tenantExtension = Prisma.defineExtension({
     $allModels: {
       async $allOperations({ model, operation, args, query }) {
         // Skip if not tenant scoped
+        // console.log('TenantExtension checking model:', model);
         if (!model || !TENANT_SCOPED_MODELS.includes(model)) {
+          // console.log('TenantExtension skipping model:', model);
           return query(args);
         }
 

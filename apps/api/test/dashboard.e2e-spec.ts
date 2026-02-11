@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -33,11 +36,21 @@ describe('Dashboard (e2e)', () => {
       .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
       .useValue(mockWhatsappService)
+      .overrideProvider(APP_INTERCEPTOR)
+      .useValue({
+        intercept: (context: any, next: any) => next.handle(),
+      })
+      .overrideProvider(CACHE_MANAGER)
+      .useValue({
+        get: () => Promise.resolve(null),
+        set: () => Promise.resolve(null),
+        del: () => Promise.resolve(null),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
-    app.useLogger(false);
-    app.useGlobalPipes(new ValidationPipe());
+    // app.useLogger(false); // Enable logger to see errors
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);

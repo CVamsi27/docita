@@ -5,7 +5,7 @@ import {
   AppointmentSearchParams,
   PaginatedResult,
 } from './appointment.repository.interface';
-import { Appointment, Prisma } from '@workspace/db';
+import { Appointment, Prisma, AppointmentStatus } from '@workspace/db';
 import { paginateWithCursor } from '../../../common/pagination.helper';
 import {
   APPOINTMENT_CARD_SELECT,
@@ -230,7 +230,9 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   ): Promise<Appointment[]> {
     const where: Prisma.AppointmentWhereInput = {
       doctorId,
-      status: { notIn: ['cancelled', 'no-show'] },
+      status: {
+        notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+      },
       OR: [
         { startTime: { lte: startTime }, endTime: { gt: startTime } }, // Starts during existing
         { startTime: { lt: endTime }, endTime: { gte: endTime } }, // Ends during existing

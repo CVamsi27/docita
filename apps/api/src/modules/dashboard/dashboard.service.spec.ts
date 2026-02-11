@@ -97,6 +97,7 @@ describe('DashboardService', () => {
         todayAppointments: 8,
         activePrescriptions: 25,
         pendingReports: 0,
+        monthlyRevenue: 0,
       });
 
       expect(mockPrismaService.patient.count).toHaveBeenCalledTimes(2);

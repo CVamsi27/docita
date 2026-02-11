@@ -1,24 +1,29 @@
 import { Controller, Get } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
-import { HealthService, HealthCheckResult } from './health.service';
+import {
+  HealthCheck,
+  HealthCheckService,
+  MemoryHealthIndicator,
+} from '@nestjs/terminus';
+import { PrismaHealthIndicator } from './health/prisma.health';
+import { Public } from '../auth/public.decorator';
 
 @Controller('health')
+@Public()
 @SkipThrottle()
 export class HealthController {
-  constructor(private readonly healthService: HealthService) {}
+  constructor(
+    private health: HealthCheckService,
+    private db: PrismaHealthIndicator,
+    private memory: MemoryHealthIndicator,
+  ) {}
 
   @Get()
-  async check(): Promise<HealthCheckResult> {
-    return this.healthService.getHealth();
-  }
-
-  @Get('live')
-  liveness(): Promise<{ status: string }> {
-    return Promise.resolve({ status: 'ok' });
-  }
-
-  @Get('ready')
-  async readiness(): Promise<{ status: string; database: boolean }> {
-    return this.healthService.getReadiness();
+  @HealthCheck()
+  check() {
+    return this.health.check([
+      () => this.db.isHealthy('database'),
+      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024), // 150MB
+    ]);
   }
 }

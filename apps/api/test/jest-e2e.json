@@ -21,9 +21,10 @@
     "^@workspace/db/(.*)$": "<rootDir>/../../../packages/db/src/$1",
     "^@workspace/types$": "<rootDir>/../../../packages/types/src/index.ts",
     "^@workspace/types/(.*)$": "<rootDir>/../../../packages/types/src/$1",
-    "^@workspace/utils$": "<rootDir>/../../../packages/utils/dist/index.cjs",
-    "^@workspace/utils/(.*)$": "<rootDir>/../../../packages/utils/dist/$1",
-    "^@workspace/(.*)$": "<rootDir>/../../../packages/$1/src/index.ts"
+    "^@workspace/utils$": "<rootDir>/../../../packages/utils/src/index.ts",
+    "^@workspace/utils/(.*)$": "<rootDir>/../../../packages/utils/src/$1",
+    "^@workspace/(.*)$": "<rootDir>/../../../packages/$1/src/index.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   },
   "setupFiles": ["./setup-env.ts"],
   "collectCoverageFrom": [

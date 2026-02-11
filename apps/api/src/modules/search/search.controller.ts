@@ -6,13 +6,20 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SearchService, SearchEntityType } from './search.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthenticatedRequest } from '@workspace/types';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 
 @ApiTags('search')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
 @Controller('search')
+@Roles(
+  Role.ADMIN,
+  Role.DOCTOR,
+  Role.RECEPTIONIST,
+  Role.ADMIN_DOCTOR,
+  Role.SUPER_ADMIN,
+)
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 

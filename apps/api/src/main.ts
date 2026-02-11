@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { VersioningType } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
+import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
@@ -15,6 +18,8 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import compression from 'compression';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 
 // Load environment variables first
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -31,11 +36,31 @@ process.on('warning', (warning) => {
   console.warn(warning);
 });
 
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    integrations: [nodeProfilingIntegration()],
+    tracesSampleRate: parseFloat(
+      process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1',
+    ),
+    profilesSampleRate: 1.0,
+  });
+
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
+
+  // Request body size limits
+  app.use(json({ limit: '1mb' }));
+  app.use(urlencoded({ limit: '1mb', extended: true }));
 
   // Security Headers
   app.use(helmet());
+
+  // Cookie Parser
+  app.use(cookieParser());
 
   // Get monitoring service for filters and interceptors
   const monitoringService = app.get(MonitoringService);
@@ -48,6 +73,7 @@ async function bootstrap() {
 
   // Global interceptor for request logging and performance monitoring
   app.useGlobalInterceptors(new RequestLoggingInterceptor(monitoringService));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   // Global cache interceptor is now registered in AppModule to support DI
 
@@ -86,6 +112,11 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
 
   // Swagger/OpenAPI Documentation (only in development)
   if (isDevelopment()) {

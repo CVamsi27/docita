@@ -3,9 +3,10 @@ import { InvoicesService } from './invoices.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 import { PaymentsService } from '../payments/payments.service';
-import { PDFGeneratorService } from '../../common/services/pdf-generator.service';
+import { InvoicePdfService } from './invoice-pdf.service';
 import { WhatsAppNotificationService } from '../../common/services/whatsapp-notification.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { InvoiceStatus } from '@workspace/db';
 
 describe('InvoicesService', () => {
   let service: InvoicesService;
@@ -35,7 +36,7 @@ describe('InvoicesService', () => {
     appointmentId: 'appointment-1',
     patientId: 'patient-1',
     total: 1500.5,
-    status: 'pending',
+    status: InvoiceStatus.PENDING,
     items: [
       { description: 'Consultation', quantity: 1, price: 500 },
       { description: 'Lab Test', quantity: 2, price: 500.25 },
@@ -86,8 +87,8 @@ describe('InvoicesService', () => {
       createPaymentSession: jest.fn().mockResolvedValue(mockPaymentSession),
     };
 
-    const mockPDFGenerator = {
-      generateInvoice: jest.fn().mockResolvedValue(Buffer.from('PDF content')),
+    const mockPdfService = {
+      generate: jest.fn().mockResolvedValue(Buffer.from('PDF content')),
     };
 
     const mockWhatsAppNotification = {
@@ -107,8 +108,7 @@ describe('InvoicesService', () => {
           useValue: mockWhatsAppNotification,
         },
         { provide: PaymentsService, useValue: mockPaymentsService },
-        PDFGeneratorService,
-        { provide: PDFGeneratorService, useValue: mockPDFGenerator },
+        { provide: InvoicePdfService, useValue: mockPdfService },
         { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
@@ -129,7 +129,7 @@ describe('InvoicesService', () => {
       const createData = {
         patientId: 'patient-1',
         total: 1500.5,
-        status: 'pending',
+        status: InvoiceStatus.PENDING,
         items: [{ description: 'Test', quantity: 1, price: 1500.5 }],
       };
 
@@ -143,7 +143,7 @@ describe('InvoicesService', () => {
       const createData = {
         patientId: 'patient-1',
         total: 1000,
-        status: 'pending',
+        status: InvoiceStatus.PENDING,
         items: [{ description: 'Consultation', quantity: 1, price: 1000 }],
         doctorName: 'Dr. Smith',
         doctorEmail: 'dr.smith@clinic.com',
@@ -168,7 +168,7 @@ describe('InvoicesService', () => {
       const createData = {
         patientId: 'patient-1',
         total: 1000,
-        status: 'pending',
+        status: InvoiceStatus.PENDING,
         items: [{ description: 'Test', quantity: 1, price: 1000 }],
         clinicId: 'clinic-1',
       };
@@ -188,7 +188,7 @@ describe('InvoicesService', () => {
       const createData = {
         patientId: 'patient-1',
         total: 1000,
-        status: 'pending',
+        status: InvoiceStatus.PENDING,
         items: [{ description: 'Test', quantity: 1, price: 1000 }],
       };
 
@@ -234,13 +234,13 @@ describe('InvoicesService', () => {
   describe('update', () => {
     it('should update invoice status', async () => {
       const result = await service.update('invoice-123456789', {
-        status: 'paid',
+        status: InvoiceStatus.PAID,
       });
 
       expect(result).toBeDefined();
       expect(prismaService.invoice.update).toHaveBeenCalledWith({
         where: { id: 'invoice-123456789' },
-        data: expect.objectContaining({ status: 'paid' }),
+        data: expect.objectContaining({ status: InvoiceStatus.PAID }),
         select: expect.any(Object),
       });
     });

@@ -4,6 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import type { SystemLogEntry } from '@workspace/types';
 
 @Injectable()
@@ -104,7 +105,7 @@ export class SuperAdminLogService {
       logs.push({
         id: `apt-${apt.id}`,
         timestamp: apt.createdAt.toISOString(),
-        level: apt.status === 'cancelled' ? 'WARNING' : 'INFO',
+        level: apt.status === AppointmentStatus.CANCELLED ? 'WARNING' : 'INFO',
         module: 'Appointments',
         message: `Appointment ${apt.status}`,
         details: apt.clinic?.name,
@@ -126,7 +127,7 @@ export class SuperAdminLogService {
       logs.push({
         id: `inv-${inv.id}`,
         timestamp: inv.createdAt.toISOString(),
-        level: inv.status === 'cancelled' ? 'WARNING' : 'INFO',
+        level: inv.status === InvoiceStatus.CANCELLED ? 'WARNING' : 'INFO',
         module: 'Billing',
         message: `Invoice ${inv.status}: ₹${inv.total}`,
       });

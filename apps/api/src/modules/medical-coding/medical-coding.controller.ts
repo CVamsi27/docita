@@ -10,7 +10,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { MedicalCodingService } from './medical-coding.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import {
   AddFavoriteDto,
@@ -24,7 +25,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('medical-coding')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 @RequireFeature(Feature.MEDICAL_CODING)
 export class MedicalCodingController {
   constructor(private readonly medicalCodingService: MedicalCodingService) {}

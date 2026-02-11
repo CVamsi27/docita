@@ -8,6 +8,8 @@ import { DataExportFactory } from './factories/data-export.factory';
 import { DataRetentionScheduler } from './data-retention.scheduler';
 import { AuthModule } from '../auth/auth.module';
 
+import { ArchivalService } from './archival.service';
+
 @Module({
   imports: [PrismaModule, AuditModule, AuthModule],
   controllers: [ConsentController],
@@ -16,7 +18,8 @@ import { AuthModule } from '../auth/auth.module';
     AnonymizationFactory,
     DataExportFactory,
     DataRetentionScheduler,
+    ArchivalService,
   ],
-  exports: [DPDPComplianceService],
+  exports: [DPDPComplianceService, ArchivalService],
 })
 export class ComplianceModule {}

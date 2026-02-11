@@ -10,20 +10,20 @@ const prismaClientSingleton = () => {
   if (process.env.DATABASE_URL) {
     try {
       const url = new URL(process.env.DATABASE_URL);
-      const sslMode = url.searchParams.get('sslmode');
+      const sslMode = url.searchParams.get("sslmode");
       if (
-        sslMode === 'require' ||
-        sslMode === 'prefer' ||
-        sslMode === 'verify-ca'
+        sslMode === "require" ||
+        sslMode === "prefer" ||
+        sslMode === "verify-ca"
       ) {
-        url.searchParams.set('sslmode', 'verify-full');
+        url.searchParams.set("sslmode", "verify-full");
         connectionString = url.toString();
       }
     } catch (error) {
       // If URL parsing fails, we fallback to the original string.
       // This might happen if the connection string involves placeholders or isn't a valid URL format.
       console.warn(
-        'Failed to parse DATABASE_URL for SSL mode adjustment',
+        "Failed to parse DATABASE_URL for SSL mode adjustment",
         error,
       );
     }
@@ -45,3 +45,12 @@ export default prisma;
 if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
 
 export * from "@prisma/client";
+
+export {
+  AppointmentStatus,
+  InvoiceStatus,
+  QueueTokenStatus,
+  PaymentSessionStatus,
+  WhatsappLogStatus,
+  SubscriptionStatus,
+} from "@prisma/client";

@@ -8,8 +8,10 @@ import {
   Query,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ReferralsService } from './referrals.service';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
+import { Public } from '../auth/public.decorator';
 import {
   ApplyReferralDto,
   ReferralCodeResponseDto,
@@ -28,7 +30,7 @@ interface AuthRequest {
 }
 
 @Controller('referrals')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class ReferralsController {
   private readonly logger = new Logger(ReferralsController.name);
 
@@ -64,6 +66,7 @@ export class ReferralsController {
   /**
    * Validate a referral code (public endpoint during signup)
    */
+  @Public()
   @Get('validate')
   @ZodSerializerDto(ReferralValidationResponseDto)
   async validateReferralCode(

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -39,7 +40,7 @@ describe('Prescriptions (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useLogger(false);
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
@@ -93,7 +94,13 @@ describe('Prescriptions (e2e)', () => {
 
   describe('POST /prescriptions', () => {
     it('should create prescription', async () => {
+      const appointment = await factories.appointment(
+        patientId,
+        doctorId,
+        clinicId,
+      );
       const prescriptionData = {
+        appointmentId: appointment.id,
         patientId,
         doctorId,
         medications: [
@@ -104,7 +111,7 @@ describe('Prescriptions (e2e)', () => {
             duration: '5 days',
           },
         ],
-        notes: 'After meals',
+        instructions: 'After meals',
       };
 
       const response = await request(app.getHttpServer())
@@ -128,10 +135,16 @@ describe('Prescriptions (e2e)', () => {
 
   describe('GET /prescriptions/:id', () => {
     it('should get prescription details', async () => {
+      const appointment = await factories.appointment(
+        patientId,
+        doctorId,
+        clinicId,
+      );
       const createRes = await request(app.getHttpServer())
         .post('/prescriptions')
         .set('Authorization', `Bearer ${token}`)
         .send({
+          appointmentId: appointment.id,
           patientId,
           doctorId,
           medications: [

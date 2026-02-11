@@ -13,7 +13,12 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { PaymentProvider } from '../../gateways/payment-gateway.interface';
-import { ClinicTier, BillingCycle, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  BillingCycle,
+  Prisma,
+  SubscriptionStatus,
+} from '@workspace/db';
 import {
   TIER_PRICING,
   ANNUAL_DISCOUNT_PERCENT,
@@ -304,7 +309,10 @@ export class SubscriptionBillingService {
     }
 
     // Check if this is an upgrade (existing subscription)
-    if (clinic.subscription && clinic.subscription.status === 'ACTIVE') {
+    if (
+      clinic.subscription &&
+      clinic.subscription.status === SubscriptionStatus.ACTIVE
+    ) {
       const preview = await this.previewProration(
         clinicId,
         tier,
@@ -401,7 +409,7 @@ export class SubscriptionBillingService {
         billingCycle: cycle,
         basePriceCents: priceCents,
         currency: 'INR',
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
       },
@@ -409,7 +417,7 @@ export class SubscriptionBillingService {
         plan: tier,
         billingCycle: cycle,
         basePriceCents: priceCents,
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         scheduledChange: Prisma.DbNull,
@@ -445,7 +453,7 @@ export class SubscriptionBillingService {
       where: { id: clinicId },
       data: {
         tier,
-        subscriptionStatus: 'active',
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
         features: {
           // Merge existing features with new add-on features
           ...(typeof clinicId === 'string' ? {} : {}), // Placeholder to avoid syntax error if needed, actually we need to fetch existing features or use Prisma's deep merge if supported, typically json replace.
@@ -468,7 +476,7 @@ export class SubscriptionBillingService {
     this.paymentGateway.emitClinicUpdate(clinicId, {
       clinicId,
       tier,
-      subscriptionStatus: 'active',
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
     });
 
     this.logger.log(
@@ -538,7 +546,9 @@ export class SubscriptionBillingService {
       data: {
         cancelAtPeriodEnd,
         cancelledAt: new Date(),
-        status: cancelAtPeriodEnd ? 'ACTIVE' : 'CANCELLED',
+        status: cancelAtPeriodEnd
+          ? SubscriptionStatus.ACTIVE
+          : SubscriptionStatus.CANCELLED,
       },
     });
 
@@ -548,7 +558,7 @@ export class SubscriptionBillingService {
         where: { id: clinicId },
         data: {
           tier: 'CAPTURE',
-          subscriptionStatus: 'cancelled',
+          subscriptionStatus: SubscriptionStatus.CANCELLED,
         },
       });
     }
@@ -648,7 +658,7 @@ export class SubscriptionBillingService {
   async enterGracePeriod(subscriptionId: string): Promise<void> {
     await this.prisma.subscription.update({
       where: { id: subscriptionId },
-      data: { status: 'GRACE' },
+      data: { status: SubscriptionStatus.GRACE },
     });
   }
 
@@ -667,14 +677,14 @@ export class SubscriptionBillingService {
       // Update subscription status
       this.prisma.subscription.update({
         where: { id: subscriptionId },
-        data: { status: 'EXPIRED' },
+        data: { status: SubscriptionStatus.EXPIRED },
       }),
       // Downgrade clinic to CAPTURE
       this.prisma.clinic.update({
         where: { id: subscription.clinicId },
         data: {
           tier: 'CAPTURE',
-          subscriptionStatus: 'expired',
+          subscriptionStatus: SubscriptionStatus.EXPIRED,
         },
       }),
     ]);

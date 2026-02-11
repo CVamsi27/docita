@@ -7,6 +7,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
+import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 
 @Injectable()
@@ -145,7 +146,7 @@ export class SuperAdminAnalyticsService {
           this.prisma.invoice.aggregate({
             where: {
               createdAt: { gte: start, lte: end },
-              status: 'PAID',
+              status: InvoiceStatus.PAID,
             },
             _sum: { total: true },
           }),
@@ -158,7 +159,7 @@ export class SuperAdminAnalyticsService {
           this.prisma.invoice.findMany({
             where: {
               createdAt: { gte: start, lte: end },
-              status: 'PAID',
+              status: InvoiceStatus.PAID,
             },
             select: { total: true },
           }),
@@ -241,7 +242,10 @@ export class SuperAdminAnalyticsService {
           where: { createdAt: { gte: oneDayAgo } },
         }),
         this.prisma.paymentSession.count({
-          where: { status: 'failed', createdAt: { gte: oneDayAgo } },
+          where: {
+            status: PaymentSessionStatus.FAILED,
+            createdAt: { gte: oneDayAgo },
+          },
         }),
         this.prisma.paymentSession.count({
           where: { createdAt: { gte: oneDayAgo } },

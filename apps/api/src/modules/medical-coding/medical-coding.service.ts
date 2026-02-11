@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AppointmentStatus } from '@workspace/db';
 
 @Injectable()
 export class MedicalCodingService {
@@ -214,7 +215,7 @@ export class MedicalCodingService {
     return this.prisma.appointment.findMany({
       where: {
         clinicId,
-        status: 'completed',
+        status: AppointmentStatus.COMPLETED,
         diagnoses: {
           none: {},
         },

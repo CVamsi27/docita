@@ -1,6 +1,7 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { MedicationValidationService } from './medication-validation.service';
-import { AuthGuard } from '@nestjs/passport';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import {
   CheckDrugInteractionsDto,
   ValidateDosageDto,
@@ -18,7 +19,7 @@ interface AuthRequest {
 }
 
 @Controller('medications')
-@UseGuards(AuthGuard('jwt'))
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class MedicationValidationController {
   constructor(private medicationService: MedicationValidationService) {}
 

@@ -27,13 +27,19 @@ export const useInvoice = (id: string) =>
   );
 
 export const useCreateInvoice = () =>
-  useAPIMutation<Invoice, CreateInvoiceInput>("/invoices", "POST");
+  useAPIMutation<Invoice, CreateInvoiceInput>("/invoices", "POST", {
+    invalidateKeys: [["invoices"]],
+  });
 
 export const useUpdateInvoice = (id: string) =>
-  useAPIMutation<Invoice, Partial<Invoice>>(`/invoices/${id}`, "PATCH");
+  useAPIMutation<Invoice, Partial<Invoice>>(`/invoices/${id}`, "PATCH", {
+    invalidateKeys: [["invoices"], ["invoices", id]],
+  });
 
 export const useDeleteInvoice = (id: string) =>
-  useAPIMutation<void, void>(`/invoices/${id}`, "DELETE");
+  useAPIMutation<void, void>(`/invoices/${id}`, "DELETE", {
+    invalidateKeys: [["invoices"]],
+  });
 
 export const useBillingStatus = () =>
   useAPIQuery<{

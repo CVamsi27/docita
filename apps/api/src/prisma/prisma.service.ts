@@ -11,6 +11,7 @@ import { tenantExtension } from '../common/extensions/tenant.extension';
 import { createEncryptionExtension } from '../common/extensions/encryption.extension';
 import { tenantStorage } from '../common/middleware/tenant.middleware';
 import { EncryptionService } from '../common/encryption.service';
+import { slowQueryExtension } from '../common/extensions/logging.extension';
 
 @Injectable()
 export class PrismaService
@@ -131,7 +132,9 @@ export class PrismaService
       // We use $extends and mutate the singleton instance.
       const extended = this.$extends(
         createEncryptionExtension(this.encryptionService),
-      ).$extends(tenantExtension);
+      )
+        .$extends(tenantExtension)
+        .$extends(slowQueryExtension);
       Object.assign(this, extended);
 
       this.logger.log('Primary database connection established');

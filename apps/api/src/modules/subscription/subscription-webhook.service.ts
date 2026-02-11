@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
-import { ClinicTier, BillingCycle } from '@workspace/db';
+import { ClinicTier, BillingCycle, SubscriptionStatus } from '@workspace/db';
 
 interface RazorpaySubscriptionEntity {
   id: string;
@@ -136,13 +136,13 @@ export class SubscriptionWebhookService {
         plan: tier,
         billingCycle: cycle,
         basePriceCents: 0, // Will be updated from payment
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         razorpaySubscriptionId: subscription.id,
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
       },
       update: {
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         razorpaySubscriptionId: subscription.id,
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
@@ -154,7 +154,7 @@ export class SubscriptionWebhookService {
       where: { id: clinicId },
       data: {
         tier,
-        subscriptionStatus: 'active',
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
       },
     });
 
@@ -162,7 +162,7 @@ export class SubscriptionWebhookService {
     this.paymentGateway.emitClinicUpdate(clinicId, {
       clinicId,
       tier,
-      subscriptionStatus: 'active',
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
     });
 
     this.logger.log(
@@ -186,7 +186,7 @@ export class SubscriptionWebhookService {
     await this.prisma.subscription.update({
       where: { clinicId },
       data: {
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         currentPeriodEnd: periodEnd,
       },
     });
@@ -217,12 +217,12 @@ export class SubscriptionWebhookService {
     // Mark as past due - payment retry pending
     await this.prisma.subscription.update({
       where: { clinicId },
-      data: { status: 'PAST_DUE' },
+      data: { status: SubscriptionStatus.PAST_DUE },
     });
 
     await this.prisma.clinic.update({
       where: { id: clinicId },
-      data: { subscriptionStatus: 'past_due' },
+      data: { subscriptionStatus: SubscriptionStatus.PAST_DUE },
     });
 
     this.logger.log(`Subscription pending for clinic ${clinicId}`);
@@ -252,7 +252,7 @@ export class SubscriptionWebhookService {
 
     await this.prisma.subscription.update({
       where: { clinicId },
-      data: { status: 'CANCELLED' },
+      data: { status: SubscriptionStatus.CANCELLED },
     });
 
     this.logger.log(`Subscription cancelled for clinic ${clinicId}`);

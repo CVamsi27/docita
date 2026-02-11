@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { ZodValidationPipe } from 'nestjs-zod';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -29,9 +31,13 @@ describe('AppointmentsController (e2e)', () => {
     // 3. Initialize App
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(getPrismaInstance())
+      .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     // 4. Seed Data

@@ -1,4 +1,9 @@
-import { PrismaClient } from '@workspace/db';
+import {
+  PrismaClient,
+  AppointmentStatus,
+  InvoiceStatus,
+  ApprovalStatus,
+} from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
@@ -506,7 +511,7 @@ async function main() {
         clinicId: defaultClinic.id,
         startTime: new Date(today.setHours(9, 0, 0, 0)),
         endTime: new Date(today.setHours(9, 30, 0, 0)),
-        status: 'completed',
+        status: AppointmentStatus.COMPLETED,
         type: 'consultation',
         notes: 'Regular checkup for diabetes management',
       },
@@ -555,7 +560,7 @@ async function main() {
         appointmentId: apt1.id,
         patientId: patients[0].id,
         total: 1500,
-        status: 'paid',
+        status: InvoiceStatus.PAID,
         items: [
           { description: 'Consultation Fee', quantity: 1, price: 800 },
           { description: 'Prescription', quantity: 1, price: 200 },
@@ -571,7 +576,7 @@ async function main() {
         clinicId: defaultClinic.id,
         startTime: new Date(tomorrow.setHours(10, 0, 0, 0)),
         endTime: new Date(tomorrow.setHours(10, 30, 0, 0)),
-        status: 'confirmed',
+        status: AppointmentStatus.CONFIRMED,
         type: 'follow-up',
         notes: 'Follow-up for asthma treatment',
       },
@@ -584,7 +589,7 @@ async function main() {
         clinicId: defaultClinic.id,
         startTime: new Date(nextWeek.setHours(14, 0, 0, 0)),
         endTime: new Date(nextWeek.setHours(14, 30, 0, 0)),
-        status: 'scheduled',
+        status: AppointmentStatus.SCHEDULED,
         type: 'check-up',
         notes: 'Arthritis pain assessment',
       },
@@ -597,7 +602,7 @@ async function main() {
         clinicId: defaultClinic.id,
         startTime: new Date(new Date().setHours(15, 0, 0, 0)),
         endTime: new Date(new Date().setHours(15, 30, 0, 0)),
-        status: 'confirmed',
+        status: AppointmentStatus.CONFIRMED,
         type: 'consultation',
         notes: 'First visit - general health checkup',
       },
@@ -610,7 +615,7 @@ async function main() {
         clinicId: defaultClinic.id,
         startTime: new Date(new Date(tomorrow).setHours(11, 0, 0, 0)),
         endTime: new Date(new Date(tomorrow).setHours(11, 30, 0, 0)),
-        status: 'scheduled',
+        status: AppointmentStatus.SCHEDULED,
         type: 'consultation',
         notes: 'Migraine consultation',
       },

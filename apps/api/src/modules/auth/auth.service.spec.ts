@@ -79,6 +79,14 @@ describe('AuthService', () => {
               create: jest.fn(),
               findUnique: jest.fn(),
             },
+            refreshToken: {
+              create: jest.fn(),
+              findUnique: jest.fn(),
+              update: jest.fn(),
+            },
+            runUnrestricted: jest
+              .fn()
+              .mockImplementation((callback) => callback()),
           },
         },
         {
@@ -173,8 +181,8 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return access token and user info', () => {
-      const result = service.login(mockUserWithoutPassword);
+    it('should return access token and user info', async () => {
+      const result = await service.login(mockUserWithoutPassword);
 
       expect(result).toHaveProperty('access_token', 'mock-jwt-token');
       expect(result).toHaveProperty('user');

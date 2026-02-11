@@ -1,4 +1,4 @@
-import { Appointment, Prisma } from '@workspace/db';
+import { Appointment, Prisma, AppointmentStatus } from '@workspace/db';
 
 export interface AppointmentSearchParams {
   clinicId: string;
@@ -8,7 +8,7 @@ export interface AppointmentSearchParams {
   doctorId?: string;
   userId?: string; // For role-based filtering
   userRole?: string;
-  status?: string[];
+  status?: AppointmentStatus[];
   search?: string;
   cursor?: string;
   limit?: number;

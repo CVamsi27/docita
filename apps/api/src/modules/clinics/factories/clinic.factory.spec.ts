@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicFactory } from './clinic.factory';
 import { SettingsFactory } from './settings.factory';
 import { ClinicTier } from '@workspace/db';
-import { SettingsFactory } from './settings.factory';
 
 describe('ClinicFactory', () => {
   let factory: ClinicFactory;

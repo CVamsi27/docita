@@ -133,7 +133,12 @@ describe('IpdService', () => {
 
   describe('createWard', () => {
     it('should create a new ward', async () => {
-      const wardData = { name: 'ICU', clinicId: 'clinic-123', floor: 2 };
+      const wardData = {
+        name: 'ICU',
+        clinicId: 'clinic-123',
+        floor: '2',
+        capacity: 20,
+      };
       mockPrismaService.ward.create.mockResolvedValue({
         id: 'new-ward',
         ...wardData,

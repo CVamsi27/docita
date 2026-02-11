@@ -67,12 +67,17 @@ export const usePatientAppointments = (patientId: string) =>
   );
 
 export const useCreateAppointment = () =>
-  useAPIMutation<Appointment, CreateAppointmentInput>("/appointments", "POST");
+  useAPIMutation<Appointment, CreateAppointmentInput>("/appointments", "POST", {
+    invalidateKeys: [["appointments"]],
+  });
 
 export const useUpdateAppointment = (id: string) =>
   useAPIMutation<Appointment, UpdateAppointmentInput>(
     `/appointments/${id}`,
     "PUT",
+    {
+      invalidateKeys: [["appointments"], ["appointments", id]],
+    },
   );
 
 export const useInfiniteAppointments = (options?: {

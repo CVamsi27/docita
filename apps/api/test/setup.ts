@@ -18,15 +18,26 @@ export function setupTestDatabase() {
 
   const pool = new Pool({ connectionString: testDbUrl });
   const adapter = new PrismaPg(pool);
-  prisma = new PrismaClient({ adapter });
+  const rawPrisma = new PrismaClient({ adapter });
+
+  // Mock runUnrestricted which is missing in plain PrismaClient
+  // but present in PrismaService
+  prisma = Object.assign(rawPrisma, {
+    runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
+      // For tests, we can just run the function directly
+      // as tenant isolation is usually not the focus of these E2E tests
+      // or we can import tenantStorage if needed.
+      return fn();
+    },
+  }) as any;
 
   // Run migrations for test database
   try {
-    execSync('npx prisma migrate deploy', {
+    execSync('npx prisma db push --accept-data-loss --force-reset', {
       cwd: path.join(__dirname, '../../..', 'packages/db'),
       env: {
         ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL,
+        DATABASE_URL: testDbUrl,
       },
       stdio: 'pipe',
     });
@@ -45,6 +56,7 @@ export async function resetDatabase() {
 
   // Clear all tables in correct order (respecting foreign keys)
   const tables = [
+    'RefreshToken',
     'SubscriptionReminder',
     'SubscriptionPayment',
     'Subscription',

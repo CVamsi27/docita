@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -37,7 +38,7 @@ describe('Subscription (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useLogger(false);
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
@@ -88,10 +89,10 @@ describe('Subscription (e2e)', () => {
     });
   });
 
-  describe('GET /subscription/status', () => {
+  describe('GET /subscription', () => {
     it('should return current subscription status', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription/status')
+        .get('/subscription')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -100,16 +101,14 @@ describe('Subscription (e2e)', () => {
     });
 
     it('should reject unauthenticated request', async () => {
-      await request(app.getHttpServer())
-        .get('/subscription/status')
-        .expect(401);
+      await request(app.getHttpServer()).get('/subscription').expect(401);
     });
   });
 
-  describe('GET /subscription/tier-config', () => {
+  describe('GET /subscription/config', () => {
     it('should return tier configuration', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription/tier-config')
+        .get('/subscription/config')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -117,10 +116,10 @@ describe('Subscription (e2e)', () => {
     });
   });
 
-  describe('GET /subscription/billing/details', () => {
+  describe('GET /subscription/billing', () => {
     it('should return billing details for clinic', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription/billing/details')
+        .get('/subscription/billing')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -136,7 +135,12 @@ describe('Subscription (e2e)', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(response.body).toHaveProperty('amountCents');
+      // Returns priceCents for new/inactive subscriptions
+      if (response.body.isNewSubscription) {
+        expect(response.body).toHaveProperty('priceCents');
+      } else {
+        expect(response.body).toHaveProperty('chargeCents');
+      }
     });
   });
 
@@ -191,13 +195,13 @@ describe('Subscription (e2e)', () => {
     });
   });
 
-  describe('POST /subscription/intelligence', () => {
+  describe('PUT /subscription/intelligence', () => {
     it('should enable intelligence addon', async () => {
       const response = await request(app.getHttpServer())
-        .post('/subscription/intelligence')
+        .put('/subscription/intelligence')
         .set('Authorization', `Bearer ${token}`)
         .send({ enabled: true })
-        .expect(201);
+        .expect(200);
 
       expect(response.body).toBeDefined();
     });

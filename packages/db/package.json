@@ -16,7 +16,8 @@
     "db:backup": "bash scripts/safe-migrate.sh backup",
     "db:studio": "prisma studio",
     "seed:cpt": "npx ts-node prisma/seed-cpt.ts",
-    "seed:icd": "npx ts-node prisma/seed-icd.ts"
+    "seed:icd": "npx ts-node prisma/seed-icd.ts",
+    "db:analyze-indexes": "npx ts-node scripts/analyze-indexes.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

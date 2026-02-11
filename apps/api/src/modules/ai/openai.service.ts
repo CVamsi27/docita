@@ -1,0 +1,116 @@
+import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import OpenAI from 'openai';
+
+@Injectable()
+export class OpenaiService {
+  private readonly logger = new Logger(OpenaiService.name);
+  private openai: OpenAI;
+  private readonly modelType: string;
+  private readonly requestTimeout: number;
+  private readonly cacheEnabled: boolean;
+  private readonly cacheTTL: number;
+
+  constructor(
+    private configService: ConfigService,
+    @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
+  ) {
+    this.modelType = this.configService.get('OPENAI_MODEL') || 'gpt-4-turbo';
+    this.requestTimeout = parseInt(
+      this.configService.get('AI_REQUEST_TIMEOUT') || '5000',
+    );
+    this.cacheEnabled = this.configService.get('AI_CACHE_ENABLED') !== 'false';
+    this.cacheTTL = parseInt(this.configService.get('AI_CACHE_TTL') || '86400');
+
+    const apiKey = this.configService.get('OPENAI_API_KEY');
+    if (!apiKey) {
+      this.logger.warn('OpenAI API key not configured.');
+    } else {
+      this.openai = new OpenAI({ apiKey });
+    }
+  }
+
+  get client() {
+    return this.openai;
+  }
+
+  get config() {
+    return {
+      modelType: this.modelType,
+      requestTimeout: this.requestTimeout,
+      cacheEnabled: this.cacheEnabled,
+      cacheTTL: this.cacheTTL,
+    };
+  }
+
+  async callChatCompletion<T = any>(params: {
+    systemPrompt: string;
+    userPrompt: string;
+    temperature?: number;
+    jsonMode?: boolean;
+    cacheKeyPrefix?: string;
+    cacheKeyData?: unknown;
+  }): Promise<T> {
+    const {
+      systemPrompt,
+      userPrompt,
+      temperature = 0.3,
+      jsonMode = true,
+      cacheKeyPrefix,
+      cacheKeyData,
+    } = params;
+
+    if (
+      this.cacheEnabled &&
+      this.cacheManager &&
+      cacheKeyPrefix &&
+      cacheKeyData
+    ) {
+      const cacheKey = `${cacheKeyPrefix}:${Buffer.from(JSON.stringify(cacheKeyData)).toString('base64')}`;
+      const cached = await this.cacheManager.get<T>(cacheKey);
+      if (cached) return cached;
+    }
+
+    if (!this.openai) {
+      throw new Error('OpenAI client not initialized');
+    }
+
+    const response = await Promise.race([
+      this.openai.chat.completions.create({
+        model: this.modelType,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature,
+        response_format: jsonMode ? { type: 'json_object' } : undefined,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('OpenAI request timeout')),
+          this.requestTimeout,
+        ),
+      ),
+    ]);
+
+    const content = (response as OpenAI.Chat.Completions.ChatCompletion)
+      .choices?.[0]?.message?.content;
+    if (!content) throw new Error('Empty response from OpenAI');
+
+    const result = jsonMode ? JSON.parse(content) : content;
+
+    if (
+      this.cacheEnabled &&
+      this.cacheManager &&
+      cacheKeyPrefix &&
+      cacheKeyData
+    ) {
+      const cacheKey = `${cacheKeyPrefix}:${Buffer.from(JSON.stringify(cacheKeyData)).toString('base64')}`;
+      await this.cacheManager.set(cacheKey, result, this.cacheTTL * 1000);
+    }
+
+    return result as T;
+  }
+}

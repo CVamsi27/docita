@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const APP_URL = process.env["APP_URL"] || "http://localhost:3000";
+const APP_URL = process.env["APP_URL"] || "http://127.0.0.1:3000";
 
 /**
  * Read environment variables from file.
@@ -34,6 +34,14 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    /* Increase navigation timeout for slow dev server compilation */
+    navigationTimeout: 60000,
+    actionTimeout: 30000,
+  },
+
+  /* Expect timeout for assertions */
+  expect: {
+    timeout: 15000,
   },
 
   /* Configure projects for major browsers */

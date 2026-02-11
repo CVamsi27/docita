@@ -3,12 +3,24 @@ import { InvoicesService } from './invoices.service';
 import { InvoicesController } from './invoices.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentsModule } from '../payments/payments.module';
-import { InvoiceEventsListener } from './events/invoice-events.listener'; // Import listener
+import { InvoiceEventsListener } from './events/invoice-events.listener';
+import { InvoicePdfService } from './invoice-pdf.service';
+import { CommonServicesModule } from '../../common/services/common-services.module';
+
+import { PrismaInvoiceRepository } from './repositories/prisma-invoice.repository';
 
 @Module({
-  imports: [PrismaModule, PaymentsModule],
+  imports: [PrismaModule, PaymentsModule, CommonServicesModule],
   controllers: [InvoicesController],
-  providers: [InvoicesService, InvoiceEventsListener], // Add listener to providers
-  exports: [InvoicesService],
+  providers: [
+    InvoicesService,
+    InvoiceEventsListener,
+    InvoicePdfService,
+    {
+      provide: 'IInvoiceRepository',
+      useClass: PrismaInvoiceRepository,
+    },
+  ],
+  exports: [InvoicesService, InvoicePdfService],
 })
 export class InvoicesModule {}

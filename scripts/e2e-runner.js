@@ -2,6 +2,7 @@
 const { spawn } = require("child_process");
 const net = require("net");
 const path = require("path");
+const fs = require("fs");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const APP_DIR = path.join(REPO_ROOT, "apps", "app");
@@ -32,14 +33,21 @@ console.log("Press Ctrl+C to stop.");
 
 // Force IPv4 for reliable local connection
 const ENV_VARS = {
-    ...process.env,
-    API_URL: "http://127.0.0.1:3001/api",
-    NEXT_PUBLIC_API_URL: "http://127.0.0.1:3001/api",
+  ...process.env,
+  API_URL: "http://127.0.0.1:3001/api",
+  NEXT_PUBLIC_API_URL: "http://127.0.0.1:3001/api",
 };
 
-// Use detached: false (default), but maybe we need to be careful with pnpm.
-// A common issue is pnpm spawning children and not passing signals.
-// We'll stick to default for now but ensure we catch SIGINT.
+// Clean .next directory before starting dev server.
+// turbo's build step creates .next in production mode, which conflicts with
+// the dev server's development mode and causes ENOENT build manifest errors.
+const nextDir = path.join(APP_DIR, ".next");
+if (fs.existsSync(nextDir)) {
+  console.log(
+    "Cleaning .next directory to avoid production/development mode conflict...",
+  );
+  fs.rmSync(nextDir, { recursive: true, force: true });
+}
 
 const apiProc = spawn("pnpm", ["--filter", "@docita/api", "run", "dev"], {
   cwd: REPO_ROOT,
@@ -66,7 +74,7 @@ function shutdown(code = 0) {
       console.log(`Killing ${name}...`);
       // Try SIGINT first (graceful)
       proc.kill("SIGINT");
-      
+
       // Force kill if it doesn't exit quickly?
       // Since we don't have tree-kill, we rely on pnpm handling this.
       // If needed, user can manually pkill/killAll.
@@ -79,10 +87,10 @@ function shutdown(code = 0) {
 
   // Aggressively kill ports to ensure no zombies
   try {
-    const killPorts = require('./kill-ports');
+    const killPorts = require("./kill-ports");
     killPorts();
   } catch (e) {
-    console.error('Failed to run kill-ports:', e);
+    console.error("Failed to run kill-ports:", e);
   }
 
   // Give them a moment to cleanup, then hard exit
@@ -103,14 +111,16 @@ process.on("SIGTERM", () => {
 });
 
 apiProc.on("exit", (code) => {
-  if (!finished) console.error("API process exited unexpectedly with code", code);
-  // Don't necessarily shutdown immediately if dev server restarts, 
+  if (!finished)
+    console.error("API process exited unexpectedly with code", code);
+  // Don't necessarily shutdown immediately if dev server restarts,
   // but for CI/test runner usually bad.
   // shutdown(code || 1); // Optional: decide if API death kills everything
 });
 
 appProc.on("exit", (code) => {
-  if (!finished) console.error("App process exited unexpectedly with code", code);
+  if (!finished)
+    console.error("App process exited unexpectedly with code", code);
 });
 
 (async () => {
@@ -123,7 +133,7 @@ appProc.on("exit", (code) => {
     // Run Playwright tests in app
     const args = process.argv.slice(2);
     const testArgs = args.length > 0 ? args : ["e2e/"];
-    
+
     testProc = spawn("pnpm", ["exec", "playwright", "test", ...testArgs], {
       cwd: APP_DIR,
       stdio: "inherit",

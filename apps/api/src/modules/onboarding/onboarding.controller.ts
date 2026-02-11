@@ -22,6 +22,9 @@ import {
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 
+import { Public } from '../auth/public.decorator';
+
+@Public()
 @Controller('onboarding')
 export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}

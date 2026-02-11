@@ -1,8 +1,9 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappService } from './whatsapp.service';
+import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappTemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
+import { AppointmentStatus } from '@workspace/db';
 import {
   formatDate,
   formatTime,
@@ -66,8 +67,7 @@ export class ResponseHandlerService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => WhatsappService))
-    private readonly whatsappService: WhatsappService,
+    private readonly whatsappClient: WhatsappClientService,
     private readonly templatesService: WhatsappTemplatesService,
     private readonly staffNotification: StaffNotificationService,
   ) {}
@@ -191,18 +191,18 @@ export class ResponseHandlerService {
     appointmentId: string,
     responseType: PatientResponseType,
   ): Promise<void> {
-    let newStatus: string | null = null;
+    let newStatus: AppointmentStatus | null = null;
 
     switch (responseType) {
       case 'CONFIRM':
       case 'ON_THE_WAY':
-        newStatus = 'confirmed';
+        newStatus = AppointmentStatus.CONFIRMED;
         break;
       case 'CANCEL':
-        newStatus = 'cancelled';
+        newStatus = AppointmentStatus.CANCELLED;
         break;
       case 'RESCHEDULE':
-        newStatus = 'rescheduling'; // Custom status for follow-up
+        newStatus = AppointmentStatus.RESCHEDULING;
         break;
       case 'DELAY':
         // Keep current status, just note the delay
@@ -253,20 +253,20 @@ export class ResponseHandlerService {
         break;
       case 'RESCHEDULE':
         // For reschedule, we'll send a custom message
-        await this.whatsappService.sendMessage({
+        await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
           message: `📅 *Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
         });
         return;
       case 'CANCEL':
-        await this.whatsappService.sendMessage({
+        await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
           message: `❌ *Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
         });
         return;
       default:
         // Unknown response - acknowledge receipt
-        await this.whatsappService.sendMessage({
+        await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
           message: `Thank you for your message. Our staff at ${appointment.clinic.name} will get back to you shortly.`,
         });
@@ -281,7 +281,7 @@ export class ResponseHandlerService {
 
     if (resolved) {
       const message = this.templatesService.getMessageForMode(resolved);
-      await this.whatsappService.sendMessage({
+      await this.whatsappClient.sendMessage({
         to: appointment.patient.phoneNumber,
         message,
       });

@@ -11,14 +11,15 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ClinicsModule } from '../clinics/clinics.module';
 import { UsersModule } from '../users/users.module';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-  imports: [PrismaModule, ClinicsModule, UsersModule],
+  imports: [PrismaModule, ClinicsModule, UsersModule, PaymentsModule],
   controllers: [SuperAdminController, SuperAdminBillingController],
   providers: [
     SuperAdminBillingService,
     PrismaService,
-    PaymentWebSocketGateway,
+    PrismaService,
     ClinicManagementService,
     SuperAdminAnalyticsService,
     SuperAdminLogService,

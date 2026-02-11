@@ -216,6 +216,7 @@ export function createAPIClient(config: APIClientConfig) {
       try {
         const response = await fetch(url, {
           ...requestConfig,
+          credentials: "include",
           signal: controller.signal,
         });
 
@@ -231,8 +232,8 @@ export function createAPIClient(config: APIClientConfig) {
 
           const error = new APIRequestError(
             (errorData as { message?: string })?.message ||
-            response.statusText ||
-            "Request failed",
+              response.statusText ||
+              "Request failed",
             {
               status: response.status,
               statusText: response.statusText,
@@ -460,6 +461,7 @@ export function createAPIClient(config: APIClientConfig) {
       const response = await fetch(buildURL(endpoint), {
         ...restOptions,
         method: "POST",
+        credentials: "include",
         headers: {
           ...defaultHeaders,
           ...authHeaders,

@@ -23,6 +23,9 @@ export const useSaveVitals = (appointmentId: string) =>
   useAPIMutation<VitalSign, Partial<VitalSign>>(
     `/appointments/${appointmentId}/vitals`,
     "POST",
+    {
+      invalidateKeys: [["vitals"]],
+    },
   );
 
 // Prescriptions
@@ -64,16 +67,24 @@ export const useCreatePrescription = () =>
   useAPIMutation<Prescription, CreatePrescriptionInput>(
     "/prescriptions",
     "POST",
+    {
+      invalidateKeys: [["prescriptions"]],
+    },
   );
 
 export const useUpdatePrescription = (id: string) =>
   useAPIMutation<Prescription, Partial<Prescription>>(
     `/prescriptions/${id}`,
     "PATCH",
+    {
+      invalidateKeys: [["prescriptions"], ["prescriptions", id]],
+    },
   );
 
 export const useDeletePrescription = (id: string) =>
-  useAPIMutation<void, void>(`/prescriptions/${id}`, "DELETE");
+  useAPIMutation<void, void>(`/prescriptions/${id}`, "DELETE", {
+    invalidateKeys: [["prescriptions"]],
+  });
 
 // Lab Tests
 export const useLabTests = () =>
@@ -97,7 +108,9 @@ export const useCreateLabTestOrder = () =>
       appointmentId?: string;
       notes?: string;
     }
-  >("/lab-tests/orders", "POST");
+  >("/lab-tests/orders", "POST", {
+    invalidateKeys: [["lab-tests"], ["lab-test-orders"]],
+  });
 
 export const useUpdateLabTestOrder = (id: string) =>
   useAPIMutation<
@@ -108,7 +121,9 @@ export const useUpdateLabTestOrder = (id: string) =>
       resultUrl?: string;
       notes?: string;
     }
-  >(`/lab-tests/orders/${id}`, "PATCH");
+  >(`/lab-tests/orders/${id}`, "PATCH", {
+    invalidateKeys: [["lab-tests"], ["lab-test-orders"]],
+  });
 
 export const useLabTestOrders = (filters?: {
   search?: string;

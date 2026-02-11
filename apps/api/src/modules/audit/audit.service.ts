@@ -71,63 +71,65 @@ export class AuditService {
    * Create audit log entry in database (Phase 2: Using AuditLog table)
    */
   async createAuditLog(data: AuditLogData): Promise<any> {
-    try {
-      // Verify clinic and user exist
-      const [clinic, user] = await Promise.all([
-        this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
-        this.prisma.user.findUnique({ where: { id: data.userId } }),
-      ]);
+    return this.prisma.runUnrestricted(async () => {
+      try {
+        // Verify clinic and user exist
+        const [clinic, user] = await Promise.all([
+          this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
+          this.prisma.user.findUnique({ where: { id: data.userId } }),
+        ]);
 
-      if (!clinic) {
-        throw new BadRequestException(`Clinic ${data.clinicId} not found`);
-      }
+        if (!clinic) {
+          throw new BadRequestException(`Clinic ${data.clinicId} not found`);
+        }
 
-      if (!user) {
-        throw new BadRequestException(`User ${data.userId} not found`);
-      }
+        if (!user) {
+          throw new BadRequestException(`User ${data.userId} not found`);
+        }
 
-      // Create audit log entry in AuditLog table (Phase 2)
-      const auditLog = await this.prisma.auditLog.create({
-        data: {
+        // Create audit log entry in AuditLog table (Phase 2)
+        const auditLog = await this.prisma.auditLog.create({
+          data: {
+            clinicId: data.clinicId,
+            userId: data.userId,
+            action: data.actionType,
+            entityType: data.resourceType,
+            entityId: data.resourceId,
+            newValue: data.changes as any,
+          },
+        });
+
+        this.logger.log(
+          `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
+        );
+
+        // Return audit log entry
+        const auditData = {
+          id: auditLog.id,
           clinicId: data.clinicId,
           userId: data.userId,
-          action: data.actionType,
-          entityType: data.resourceType,
-          entityId: data.resourceId,
-          newValue: data.changes as any,
-        },
-      });
+          actionType: data.actionType,
+          resourceType: data.resourceType,
+          resourceId: data.resourceId,
+          changes: data.changes,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          metadata: data.metadata,
+          createdAt: new Date(),
+        };
 
-      this.logger.log(
-        `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
-      );
+        // Log to monitoring for immediate visibility
+        this.logger.debug(`Audit log: ${JSON.stringify(auditData)}`);
 
-      // Return audit log entry
-      const auditData = {
-        id: auditLog.id,
-        clinicId: data.clinicId,
-        userId: data.userId,
-        actionType: data.actionType,
-        resourceType: data.resourceType,
-        resourceId: data.resourceId,
-        changes: data.changes,
-        ipAddress: data.ipAddress,
-        userAgent: data.userAgent,
-        metadata: data.metadata,
-        createdAt: new Date(),
-      };
-
-      // Log to monitoring for immediate visibility
-      this.logger.debug(`Audit log: ${JSON.stringify(auditData)}`);
-
-      return auditData;
-    } catch (error) {
-      this.logger.error(
-        `Failed to create audit log: ${error.message}`,
-        error.stack,
-      );
-      throw error;
-    }
+        return auditData;
+      } catch (error) {
+        this.logger.error(
+          `Failed to create audit log: ${error.message}`,
+          error.stack,
+        );
+        throw error;
+      }
+    });
   }
 
   /**

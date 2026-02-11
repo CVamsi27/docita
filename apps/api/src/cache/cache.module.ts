@@ -8,39 +8,36 @@ import { ConfigService } from '@nestjs/config';
       isGlobal: true,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        // FORCE MEMORY CACHE (Redis disabled per user request)
-        console.warn('Redis disabled by configuration. Using in-memory cache.');
-        return {
-          isGlobal: true,
-          ttl: 300000,
-        };
-
-        /*
         const redisUrl = configService.get<string>('REDIS_URL');
 
         if (!redisUrl) {
+          console.log('No REDIS_URL found, using in-memory cache');
           return {
             isGlobal: true,
             ttl: 300000, // 5 minutes default TTL
           };
         }
+
         try {
-          const redisStore = await import('cache-manager-redis-store');
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const redisStore = require('cache-manager-redis-store');
+          console.log(`Initializing Redis cache at ${redisUrl}`);
           return {
-            store: redisStore.default,
+            store: redisStore,
             url: redisUrl,
-            ttl: 300000, // 5 minutes default TTL
+            ttl: 300000,
             isGlobal: true,
-            isGlobal: true,
-          };
-        } catch {
-          console.warn('Redis store not available, using in-memory cache');
+          } as any;
+        } catch (error) {
+          console.warn(
+            'Failed to initialize Redis store, using in-memory cache',
+            error,
+          );
           return {
             isGlobal: true,
             ttl: 300000,
           };
         }
-        */
       },
     }),
   ],

@@ -13,6 +13,9 @@ import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 
 import {
   CreateInventoryItemDto,
@@ -32,8 +35,9 @@ interface AuthRequest {
 }
 
 @Controller('inventory')
-@UseGuards(JwtAuthGuard, TierGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
 @RequireFeature(Feature.INVENTORY)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 

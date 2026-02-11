@@ -4,7 +4,11 @@
  * Provides helpers for implementing optimistic updates in mutations.
  */
 
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  UseMutationResult,
+} from "@tanstack/react-query";
 
 /**
  * Local paginated list interface for optimistic updates
@@ -15,27 +19,14 @@ interface PaginatedList<T> {
   nextCursor?: string;
   count?: number;
 }
-interface _OptimisticContext<T> {
-  previousData: T | undefined;
-  queryKey: readonly unknown[];
-}
-
-/**
- * Options for optimistic updates
- */
-interface _OptimisticUpdateOptions<T, TVariables> {
-  /** Query key to update optimistically */
-  queryKey: readonly unknown[];
-  /** Function to update cached data optimistically */
-  updater: (old: T | undefined, variables: TVariables) => T;
-}
 
 /**
  * Create an optimistic update mutation with automatic rollback on error.
+ * Wraps @tanstack/react-query useMutation.
  *
  * @example
  * ```typescript
- * const { mutate } = useOptimisticMutation<Patient, UpdatePatientInput>({
+ * const mutation = useOptimisticMutation<Patient, UpdatePatientInput>({
  *   mutationFn: (data) => api.patch(`/patients/${id}`, data),
  *   queryKey: ['patients', 'detail', id],
  *   updater: (old, input) => ({ ...old, ...input }),
@@ -46,51 +37,71 @@ export function useOptimisticMutation<TData, TVariables>(options: {
   mutationFn: (variables: TVariables) => Promise<TData>;
   queryKey: readonly unknown[];
   updater: (old: TData | undefined, variables: TVariables) => TData;
-  onSuccess?: (data: TData, variables: TVariables) => void;
-  onError?: (error: Error, variables: TVariables) => void;
+  onSuccess?: (
+    data: TData,
+    variables: TVariables,
+    context: { previousData: TData | undefined } | undefined,
+  ) => void;
+  onError?: (
+    error: unknown,
+    variables: TVariables,
+    context: { previousData: TData | undefined } | undefined,
+  ) => void;
+  onSettled?: (
+    data: TData | undefined,
+    error: unknown | null,
+    variables: TVariables,
+    context: { previousData: TData | undefined } | undefined,
+  ) => void;
   invalidateOnSuccess?: boolean;
-}) {
+}): UseMutationResult<
+  TData,
+  unknown,
+  TVariables,
+  { previousData: TData | undefined }
+> {
   const queryClient = useQueryClient();
-  const {
-    mutationFn,
-    queryKey,
-    updater,
-    onSuccess,
-    onError,
-    invalidateOnSuccess = true,
-  } = options;
 
-  return {
-    mutate: async (variables: TVariables) => {
+  return useMutation<
+    TData,
+    unknown,
+    TVariables,
+    { previousData: TData | undefined }
+  >({
+    mutationFn: options.mutationFn,
+    onMutate: async (variables: TVariables) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: options.queryKey });
 
-      // Snapshot previous value
-      const previousData = queryClient.getQueryData<TData>(queryKey);
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData<TData>(options.queryKey);
 
       // Optimistically update to the new value
-      queryClient.setQueryData<TData>(queryKey, (old) =>
-        updater(old, variables),
+      queryClient.setQueryData<TData>(options.queryKey, (old) =>
+        options.updater(old, variables),
       );
 
-      try {
-        const result = await mutationFn(variables);
-
-        // Invalidate to get fresh data if configured
-        if (invalidateOnSuccess) {
-          await queryClient.invalidateQueries({ queryKey });
-        }
-
-        onSuccess?.(result, variables);
-        return result;
-      } catch (error) {
-        // Rollback to previous value on error
-        queryClient.setQueryData(queryKey, previousData);
-        onError?.(error as Error, variables);
-        throw error;
-      }
+      // Return a context object with the snapshotted value
+      return { previousData };
     },
-  };
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousData !== undefined) {
+        queryClient.setQueryData(options.queryKey, context.previousData);
+      }
+      options.onError?.(err, variables, context);
+    },
+    onSuccess: (data, variables, context) => {
+      options.onSuccess?.(data, variables, context);
+    },
+    onSettled: (data, error, variables, context) => {
+      // Always refetch after error or success to ensure server state is synced
+      if (options.invalidateOnSuccess !== false) {
+        queryClient.invalidateQueries({ queryKey: options.queryKey });
+      }
+      options.onSettled?.(data, error, variables, context);
+    },
+  });
 }
 
 /**

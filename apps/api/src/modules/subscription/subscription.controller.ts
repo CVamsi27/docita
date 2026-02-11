@@ -23,6 +23,10 @@ import {
   CheckoutSessionResponseDto,
   UpgradePreviewResponseDto,
   AnyResponseDto,
+  CreateCheckoutRequestDto,
+  ActivateSubscriptionRequestDto,
+  UpgradeTierRequestDto,
+  SetIntelligenceRequestDto,
 } from './dto/subscription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -30,22 +34,6 @@ interface AuthRequest {
   user: {
     clinicId: string;
   };
-}
-
-interface CreateCheckoutDto {
-  tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
-  billingCycle: 'MONTHLY' | 'YEARLY';
-  referralCode?: string;
-  addOns?: string[];
-}
-
-interface ActivateSubscriptionDto {
-  razorpayPaymentId: string;
-  razorpayOrderId: string;
-  razorpaySignature: string;
-  tier: 'CAPTURE' | 'CORE' | 'PLUS' | 'PRO' | 'ENTERPRISE';
-  billingCycle: 'MONTHLY' | 'YEARLY';
-  addOns?: string[];
 }
 
 @Controller('subscription')
@@ -64,6 +52,7 @@ export class SubscriptionController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(SubscriptionResponseDto)
   async getSubscription(@Request() req: AuthRequest) {
     return this.subscriptionService.getSubscription(req.user.clinicId);
@@ -84,53 +73,58 @@ export class SubscriptionController {
   }
 
   @Post('upgrade')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_DOCTOR')
   @ZodSerializerDto(SubscriptionResponseDto)
   async upgradeTier(
     @Request() req: AuthRequest,
-    @Body() body: { tier: string },
+    @Body() body: UpgradeTierRequestDto,
   ) {
-    return this.subscriptionService.upgradeTier(req.user.clinicId, body.tier);
+    await this.subscriptionService.upgradeTier(req.user.clinicId, body.tier);
+    return this.subscriptionService.getSubscription(req.user.clinicId);
   }
 
   @Put('intelligence')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_DOCTOR')
   @ZodSerializerDto(SubscriptionResponseDto)
   async setIntelligence(
     @Request() req: AuthRequest,
-    @Body() body: { enabled: boolean },
+    @Body() body: SetIntelligenceRequestDto,
   ) {
-    return this.subscriptionService.setIntelligenceAddon(
+    await this.subscriptionService.setIntelligenceAddon(
       req.user.clinicId,
       body.enabled,
     );
+    return this.subscriptionService.getSubscription(req.user.clinicId);
   }
 
   @Post(':clinicId/trial')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
   @ZodSerializerDto(SubscriptionResponseDto)
   async startTrial(
     @Param('clinicId') clinicId: string,
     @Body() body: { tier: string; days?: number },
   ) {
-    return this.subscriptionService.startTrial(
+    await this.subscriptionService.startTrial(
       clinicId,
       body.tier,
       body.days || 14,
     );
+    return this.subscriptionService.getSubscription(clinicId);
   }
 
   @Put(':clinicId/features')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
   @ZodSerializerDto(SubscriptionResponseDto)
   async setFeatureOverrides(
     @Param('clinicId') clinicId: string,
     @Body() body: { features: Record<string, boolean> },
   ) {
-    return this.subscriptionService.setFeatureOverrides(
-      clinicId,
-      body.features,
-    );
+    await this.subscriptionService.setFeatureOverrides(clinicId, body.features);
+    return this.subscriptionService.getSubscription(clinicId);
   }
 
   // =========================================================================
@@ -142,6 +136,7 @@ export class SubscriptionController {
    */
   @Get('billing')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(AnyResponseDto) // Custom object likely
   async getBillingDetails(@Request() req: AuthRequest) {
     return this.billingService.getClinicBillingDetails(req.user.clinicId);
@@ -152,6 +147,7 @@ export class SubscriptionController {
    */
   @Get('billing/preview')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(UpgradePreviewResponseDto)
   async previewUpgrade(
     @Request() req: AuthRequest,
@@ -173,15 +169,16 @@ export class SubscriptionController {
    */
   @Post('billing/checkout')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(CheckoutSessionResponseDto)
   async createCheckout(
     @Request() req: AuthRequest,
-    @Body() dto: CreateCheckoutDto,
+    @Body() dto: CreateCheckoutRequestDto,
   ) {
     return this.billingService.createCheckout(
       req.user.clinicId,
-      dto.tier,
-      dto.billingCycle,
+      dto.tier as any,
+      dto.billingCycle as any,
       dto.referralCode,
       dto.addOns || [],
     );
@@ -192,20 +189,22 @@ export class SubscriptionController {
    */
   @Post('billing/activate')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(SubscriptionResponseDto)
   async activateSubscription(
     @Request() req: AuthRequest,
-    @Body() dto: ActivateSubscriptionDto,
+    @Body() dto: ActivateSubscriptionRequestDto,
   ) {
-    return this.billingService.activateSubscription(
+    await this.billingService.activateSubscription(
       req.user.clinicId,
       dto.razorpayPaymentId,
       dto.razorpayOrderId,
       dto.razorpaySignature,
-      dto.tier,
-      dto.billingCycle,
+      dto.tier as any,
+      dto.billingCycle as any,
       dto.addOns || [],
     );
+    return this.subscriptionService.getSubscription(req.user.clinicId);
   }
 
   /**
@@ -213,6 +212,7 @@ export class SubscriptionController {
    */
   @Post('billing/cancel')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(SubscriptionResponseDto)
   async cancelSubscription(
     @Request() req: AuthRequest,

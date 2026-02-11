@@ -1,8 +1,3 @@
-/**
- * Subscription Webhooks Controller
- * Handles Razorpay webhooks for subscription events
- */
-
 import {
   Controller,
   Post,
@@ -16,12 +11,14 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import type { RazorpayWebhookPayload } from '@workspace/types';
+import { Public } from '../auth/public.decorator';
 
 @Controller('webhooks/subscriptions')
 @SkipThrottle()
 export class SubscriptionWebhooksController {
   constructor(private readonly webhookService: SubscriptionWebhookService) {}
 
+  @Public()
   @Post('razorpay')
   @HttpCode(200)
   async handleRazorpayWebhook(

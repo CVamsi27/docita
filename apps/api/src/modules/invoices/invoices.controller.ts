@@ -13,9 +13,10 @@ import {
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import type { Response } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { Roles } from '../auth/roles.decorator';
+import { Role, InvoiceStatus } from '@workspace/db';
 
 import {
   CreateInvoiceDto,
@@ -32,7 +33,8 @@ interface AuthRequest {
 }
 
 @Controller('invoices')
-@UseGuards(JwtAuthGuard, TierGuard)
+@UseGuards(TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
@@ -43,7 +45,7 @@ export class InvoicesController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
     @Query('patientId') patientId?: string,
-    @Query('status') status?: string,
+    @Query('status') status?: InvoiceStatus,
     @Query('date') date?: string,
     @Query('search') search?: string,
   ) {

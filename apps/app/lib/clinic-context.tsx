@@ -157,14 +157,11 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       isFetchingRef.current = true;
       lastFetchTimeRef.current = now;
 
-      const token = localStorage.getItem("docita_token");
-      if (!token) return;
-
       const apiUrl =
         process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
       const response = await fetch(`${apiUrl}/clinic/settings`, {
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });

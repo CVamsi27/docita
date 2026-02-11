@@ -20,11 +20,13 @@ import {
   PaginatedAppointmentResponseDto,
   VitalSignResponseDto,
 } from './dto/appointments.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { CacheDuration } from '../../common/interceptors/cache.interceptor';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
+import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 interface AuthRequest {
   user: {
@@ -34,14 +36,29 @@ interface AuthRequest {
   };
 }
 
+@ApiTags('appointments')
 @Controller('appointments')
-@UseGuards(JwtAuthGuard, TierGuard)
+@UseGuards(TierGuard)
 @RequireFeature(Feature.CALENDAR_SLOTS)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Get()
   @CacheDuration('no-cache')
+  @ApiOperation({ summary: 'List all appointments' })
+  @ApiQuery({ name: 'date', required: false })
+  @ApiQuery({ name: 'startDate', required: false })
+  @ApiQuery({ name: 'endDate', required: false })
+  @ApiQuery({ name: 'patientId', required: false })
+  @ApiQuery({ name: 'doctorId', required: false })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by patient name or doctor',
+  })
+  @ApiQuery({ name: 'cursor', required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ZodSerializerDto(PaginatedAppointmentResponseDto)
   findAll(
     @Request() req: AuthRequest,

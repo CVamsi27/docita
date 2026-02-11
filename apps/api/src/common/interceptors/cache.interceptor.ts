@@ -31,9 +31,11 @@ export class CacheInterceptor implements NestInterceptor {
       const handler = context.getHandler();
       const cacheMetadata = Reflect.getMetadata('cache-duration', handler);
 
-      // If explicit no-cache, skip everything
-      if (cacheMetadata === 'no-cache') {
-        this.applyNoCacheHeaders(response);
+      // If no cache metadata (opt-in) or explicit no-cache, skip
+      if (cacheMetadata === undefined || cacheMetadata === 'no-cache') {
+        if (cacheMetadata === 'no-cache') {
+          this.applyNoCacheHeaders(response);
+        }
         return next.handle();
       }
 
@@ -43,7 +45,7 @@ export class CacheInterceptor implements NestInterceptor {
         const cachedResponse = await this.cacheManager.get(key);
         if (cachedResponse) {
           // If hit, apply headers and return cached data
-          // We assume usage of cacheMetadata or default for headers
+          console.log(`[CACHE] HIT: key=${key}`);
           const duration = cacheMetadata || 300;
           this.applyCacheHeaders(response, duration, cachedResponse, request);
           return of(cachedResponse);
@@ -56,6 +58,7 @@ export class CacheInterceptor implements NestInterceptor {
       // 2. Proceed to handler and cache result
       return next.handle().pipe(
         map((data) => {
+          console.log(`[CACHE] MISS: key=${key}`);
           const duration = cacheMetadata || 300;
           this.applyCacheHeaders(response, duration, data, request);
 
@@ -73,7 +76,9 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   private generateKey(request: any): string {
-    return request.url;
+    const user = request.user;
+    const clinicId = user?.clinicId || 'public';
+    return `${clinicId}:${request.url}`;
   }
 
   private applyNoCacheHeaders(response: any) {
@@ -92,7 +97,7 @@ export class CacheInterceptor implements NestInterceptor {
 
     response.setHeader(
       'Cache-Control',
-      `public, max-age=${duration}, s-maxage=${duration}`,
+      `private, no-cache, must-revalidate, max-age=${duration}`,
     );
 
     // Add ETag for conditional requests (304 Not Modified responses)
@@ -117,7 +122,7 @@ export class CacheInterceptor implements NestInterceptor {
       }
     }
 
-    response.setHeader('Vary', 'Accept-Encoding');
+    response.setHeader('Vary', 'Authorization, Accept-Encoding');
   }
 }
 

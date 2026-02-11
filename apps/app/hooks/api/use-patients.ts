@@ -78,13 +78,19 @@ export const usePatientMedicalHistoryTimeline = (patientId: string) =>
   );
 
 export const useCreatePatient = () =>
-  useAPIMutation<Patient, CreatePatientInput>("/patients", "POST");
+  useAPIMutation<Patient, CreatePatientInput>("/patients", "POST", {
+    invalidateKeys: [["patients"]],
+  });
 
 export const useUpdatePatient = (id: string) =>
-  useAPIMutation<Patient, UpdatePatientInput>(`/patients/${id}`, "PUT");
+  useAPIMutation<Patient, UpdatePatientInput>(`/patients/${id}`, "PUT", {
+    invalidateKeys: [["patients"], ["patients", id]],
+  });
 
 export const useDeletePatient = (id: string) =>
-  useAPIMutation<void, void>(`/patients/${id}`, "DELETE");
+  useAPIMutation<void, void>(`/patients/${id}`, "DELETE", {
+    invalidateKeys: [["patients"]],
+  });
 
 export const useTodaysPatients = (doctorId?: string, search?: string) =>
   useAPIQuery<{

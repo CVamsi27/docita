@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
@@ -24,6 +25,7 @@ describe('PaymentsService', () => {
   let service: PaymentsService;
   let prismaService: jest.Mocked<PrismaService>;
   let whatsappService: jest.Mocked<WhatsappService>;
+  let whatsappClient: jest.Mocked<WhatsappClientService>;
   let whatsappTemplates: jest.Mocked<WhatsappTemplatesService>;
   let pushNotifications: jest.Mocked<PushNotificationService>;
   let paymentGateway: jest.Mocked<PaymentWebSocketGateway>;
@@ -85,9 +87,22 @@ describe('PaymentsService', () => {
       whatsappLog: {
         create: jest.fn().mockResolvedValue({}),
       },
+      $transaction: jest.fn().mockImplementation((input) => {
+        if (Array.isArray(input)) {
+          return Promise.all(input);
+        }
+        if (typeof input === 'function') {
+          return input(mockPrismaService);
+        }
+        return Promise.resolve(input);
+      }),
     };
 
     const mockWhatsappService = {
+      sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
+    };
+
+    const mockWhatsappClient = {
       sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
     };
 
@@ -123,6 +138,7 @@ describe('PaymentsService', () => {
         PaymentsService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: WhatsappService, useValue: mockWhatsappService },
+        { provide: WhatsappClientService, useValue: mockWhatsappClient },
         { provide: WhatsappTemplatesService, useValue: mockWhatsappTemplates },
         { provide: PushNotificationService, useValue: mockPushNotifications },
         { provide: PaymentWebSocketGateway, useValue: mockPaymentGateway },
@@ -133,6 +149,7 @@ describe('PaymentsService', () => {
     service = module.get<PaymentsService>(PaymentsService);
     prismaService = module.get(PrismaService);
     whatsappService = module.get(WhatsappService);
+    whatsappClient = module.get(WhatsappClientService);
     whatsappTemplates = module.get(WhatsappTemplatesService);
     pushNotifications = module.get(PushNotificationService);
     paymentGateway = module.get(PaymentWebSocketGateway);
@@ -240,7 +257,7 @@ describe('PaymentsService', () => {
 
       expect(result.success).toBe(true);
       expect(result.messageId).toBe('msg-123');
-      expect(whatsappService.sendMessage).toHaveBeenCalledWith({
+      expect(whatsappClient.sendMessage).toHaveBeenCalledWith({
         to: mockPatient.phoneNumber,
         message: expect.any(String),
       });
@@ -379,7 +396,7 @@ describe('PaymentsService', () => {
         }),
         mockClinic.id,
       );
-      expect(whatsappService.sendMessage).toHaveBeenCalled();
+      expect(whatsappClient.sendMessage).toHaveBeenCalled();
     });
 
     it('should handle payment_link.expired event', async () => {
@@ -437,7 +454,7 @@ describe('PaymentsService', () => {
       await service.handleRazorpayWebhook(validPayload, '');
 
       expect(pushNotifications.sendPaymentConfirmation).not.toHaveBeenCalled();
-      expect(whatsappService.sendMessage).not.toHaveBeenCalled();
+      expect(whatsappClient.sendMessage).not.toHaveBeenCalled();
     });
   });
 

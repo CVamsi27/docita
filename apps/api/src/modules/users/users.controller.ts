@@ -7,10 +7,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
 import { UpdateProfileDto, UserResponseDto } from './dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 
 interface AuthRequest {
   user: {
@@ -22,7 +22,13 @@ interface AuthRequest {
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(
+    Role.ADMIN,
+    Role.DOCTOR,
+    Role.RECEPTIONIST,
+    Role.ADMIN_DOCTOR,
+    Role.SUPER_ADMIN,
+  )
   @Put('profile')
   @ZodSerializerDto(UserResponseDto)
   async updateProfile(

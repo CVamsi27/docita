@@ -7,12 +7,13 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Appointment } from '@workspace/types';
-import { Prisma } from '@workspace/db';
+import { Prisma, AppointmentStatus } from '@workspace/db';
 import { IAppointmentRepository } from './repositories/appointment.repository.interface';
 import { VitalsFactory } from '../patients/factories/vitals.factory';
 import { VitalSignInput } from '../patients/schemas/vitals.schema';
 import { AppointmentCreatedEvent } from './events/appointment-created.event';
 import { AppointmentUpdatedEvent } from './events/appointment-updated.event';
+import { AppointmentStatus } from '@workspace/db';
 
 @Injectable()
 export class AppointmentsService {
@@ -37,7 +38,7 @@ export class AppointmentsService {
       search?: string;
       userId?: string;
       userRole?: string;
-      status?: string[];
+      status?: AppointmentStatus[];
     },
   ) {
     const result = await this.appointmentRepository.findAll({
@@ -128,7 +129,7 @@ export class AppointmentsService {
       id: undefined,
       startTime: startTime,
       endTime: endTime,
-      status: rest.status as string,
+      status: rest.status as AppointmentStatus,
       type: rest.type as string,
       notes: rest.notes as string | undefined,
       observations: rest.observations as string | undefined,
@@ -223,7 +224,7 @@ export class AppointmentsService {
         where: { id },
         select: { status: true },
       });
-      if (currentAppointment?.status === 'in-progress') {
+      if (currentAppointment?.status === AppointmentStatus.IN_PROGRESS) {
         shouldAutoComplete = true;
       }
     }
@@ -243,45 +244,74 @@ export class AppointmentsService {
         investigations: investigations as Prisma.InputJsonValue,
       }),
       // Auto-complete if saving clinical documentation for in-progress appointment
-      ...(shouldAutoComplete && { status: 'completed' }),
+      ...(shouldAutoComplete && { status: AppointmentStatus.COMPLETED }),
     };
 
-    // Fetch current status/clinicId if not already fetched
+    // Fetch current status/clinicId and version for optimistic locking
     let oldStatus = 'unknown';
     let oldStartTime: Date | undefined;
     let targetClinicId = userClinicId;
+    let currentVersion: number | undefined;
 
-    // Always fetch current state to capture old values for event diffing
+    // Always fetch current state to capture old values for event diffing and version check
     if (
       !targetClinicId ||
       (dataRecord.status && oldStatus === 'unknown') ||
-      startTime
+      startTime ||
+      dataRecord.version !== undefined
     ) {
       const current = await this.prisma.appointment.findUnique({
         where: { id },
-        select: { status: true, clinicId: true, startTime: true },
+        select: {
+          status: true,
+          clinicId: true,
+          startTime: true,
+          version: true,
+        },
       });
       if (current) {
         oldStatus = current.status;
         targetClinicId = targetClinicId || current.clinicId;
         oldStartTime = current.startTime;
+        currentVersion = current.version;
+
+        // Optimistic concurrency check: if client provided version, validate it
+        if (
+          dataRecord.version !== undefined &&
+          currentVersion !== dataRecord.version
+        ) {
+          throw new ConflictException(
+            `Appointment has been modified by another user. Expected version ${dataRecord.version}, but current version is ${currentVersion}. Please refresh and try again.`,
+          );
+        }
       }
     }
 
-    const appointment = await this.appointmentRepository.update(id, updateData);
+    let appointment: any;
 
-    // Also update queue token status if exists
     if (shouldAutoComplete) {
-      await this.prisma.queueToken.updateMany({
-        where: {
-          appointmentId: id,
-          status: 'in-progress',
-        },
-        data: {
-          status: 'completed',
-          completedAt: new Date(),
-        },
+      // Atomic: update appointment + queue token in a single transaction
+      appointment = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.appointment.update({
+          where: { id },
+          data: updateData as any,
+        });
+
+        await tx.queueToken.updateMany({
+          where: {
+            appointmentId: id,
+            status: AppointmentStatus.IN_PROGRESS,
+          },
+          data: {
+            status: AppointmentStatus.COMPLETED,
+            completedAt: new Date(),
+          },
+        });
+
+        return updated;
       });
+    } else {
+      appointment = await this.appointmentRepository.update(id, updateData);
     }
 
     // Emit update event if status changed or just general update
@@ -292,7 +322,7 @@ export class AppointmentsService {
           id,
           targetClinicId,
           oldStatus,
-          (appointment as any).status,
+          appointment.status,
           appointment as unknown as Appointment,
           oldStartTime,
         ),

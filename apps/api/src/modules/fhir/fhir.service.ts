@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import {
   FhirAllergyIntolerance,
+  FhirAppointment,
   FhirBundle,
   FhirCondition,
   FhirImmunization,
@@ -24,6 +25,7 @@ import { FhirMedicationFactory } from './factories/fhir-medication.factory';
 import { FhirConditionFactory } from './factories/fhir-condition.factory';
 import { FhirAllergyFactory } from './factories/fhir-allergy.factory';
 import { FhirImmunizationFactory } from './factories/fhir-immunization.factory';
+import { FhirAppointmentFactory } from './factories/fhir-appointment.factory';
 
 @Injectable()
 export class FhirService {
@@ -35,6 +37,7 @@ export class FhirService {
     private conditionFactory: FhirConditionFactory,
     private allergyFactory: FhirAllergyFactory,
     private immunizationFactory: FhirImmunizationFactory,
+    private appointmentFactory: FhirAppointmentFactory,
   ) {}
 
   /**
@@ -203,6 +206,43 @@ export class FhirService {
   }
 
   /**
+   * Map appointments to FHIR R4 Appointment resources (NEW)
+   */
+  async getAppointments(
+    patientId: string,
+    clinicId: string,
+  ): Promise<FhirAppointment[]> {
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        patientId,
+        clinicId,
+      },
+      orderBy: { startTime: 'desc' },
+      take: 50,
+    });
+
+    return this.appointmentFactory.createMany(appointments);
+  }
+
+  /**
+   * Get single FHIR Appointment resource
+   */
+  async getAppointmentResource(
+    appointmentId: string,
+    clinicId: string,
+  ): Promise<FhirAppointment> {
+    const appointment = await this.prisma.appointment.findFirst({
+      where: { id: appointmentId, clinicId },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment ${appointmentId} not found`);
+    }
+
+    return this.appointmentFactory.create(appointment);
+  }
+
+  /**
    * Get complete patient bundle with all resources
    */
   async getPatientBundle(
@@ -221,6 +261,7 @@ export class FhirService {
     const conditions = await this.getConditions(patientId, clinicId);
     const allergies = await this.getAllergyIntolerances(patientId, clinicId);
     const immunizations = await this.getImmunizations(patientId, clinicId);
+    const appointments = await this.getAppointments(patientId, clinicId);
 
     const entries: Array<{ fullUrl: string; resource: FhirResource }> = [
       {
@@ -247,6 +288,10 @@ export class FhirService {
 
     immunizations.forEach((imm) => {
       entries.push({ fullUrl: `Immunization/${imm.id}`, resource: imm });
+    });
+
+    appointments.forEach((appt) => {
+      entries.push({ fullUrl: `Appointment/${appt.id}`, resource: appt });
     });
 
     return {
@@ -364,6 +409,12 @@ export class FhirService {
               profile:
                 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization',
               interaction: [{ code: 'search-type' }],
+              searchParam: [{ name: 'patient', type: 'reference' }],
+            },
+            {
+              type: 'Appointment',
+              profile: 'http://hl7.org/fhir/StructureDefinition/Appointment',
+              interaction: [{ code: 'read' }, { code: 'search-type' }],
               searchParam: [{ name: 'patient', type: 'reference' }],
             },
             {

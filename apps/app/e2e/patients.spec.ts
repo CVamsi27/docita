@@ -1,131 +1,112 @@
-import { expect, Page, test } from "@playwright/test";
+import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api";
 
-let authToken: string;
-let clinicId: string;
+/**
+ * Setup a fresh doctor and clinic for each test to ensure absolute isolation.
+ * This prevents worker collision and shared state issues.
+ */
+async function setupDoctorAndClinic(request: APIRequestContext) {
+  const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const userEmail = `doctor${uniqueId}@test.com`;
+  const userPassword = "Test@123456";
 
-test.describe("Patient Management", () => {
-  test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  console.log(`[SETUP] Creating doctor: ${userEmail}`);
 
-    // Setup: Create clinic and user via API
-    const userEmail = `doctor${Date.now()}@test.com`;
-    const userPassword = "Test@123456";
-
-    const registerRes = await page.request.post(`${API_URL}/auth/register`, {
-      data: {
-        email: userEmail,
-        password: userPassword,
-        firstName: "Dr",
-        lastName: "Test",
-        role: "DOCTOR",
-        clinicName: "Test Clinic",
-      },
-    });
-
-    const user = (await registerRes.json()) as Record<string, unknown>;
-    const regData = user as Record<string, unknown>;
-    // If register didn't create a clinic association, create a clinic and assign
-    let token: string | null = null;
-    try {
-      token =
-        (regData?.access_token as string) ||
-        (regData?.accessToken as string) ||
-        null;
-
-      // Create clinic
-      const clinicRes = await page.request.post(`${API_URL}/clinics`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: {
-          name: "Patients Test Clinic",
-          email: `clinic${Date.now()}@test.com`,
-          phone: "1234567890",
-          address: "123 Test St",
-        tier: "ENTERPRISE",
-        },
-      });
-
-      if (clinicRes.ok()) {
-        const clinic = (await clinicRes.json()) as Record<string, unknown>;
-        clinicId = (clinic?.id as string) || "";
-
-        // Assign doctor to clinic
-        const userInfo = (regData?.user as Record<string, unknown>) || regData;
-        const doctorId = (userInfo?.id as string) || (regData?.id as string);
-        const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
-          headers: { Authorization: `Bearer ${token}` },
-          data: { doctorId, clinicId: clinic.id, role: "doctor" },
-        });
-
-        if (assignRes.ok()) {
-          // Re-login to refresh token
-          const loginRes = await page.request.post(`${API_URL}/auth/login`, {
-            data: { email: userEmail, password: userPassword },
-          });
-          if (loginRes.ok()) {
-            const loginData = (await loginRes.json()) as Record<
-              string,
-              unknown
-            >;
-            authToken =
-              (loginData?.access_token as string) ||
-              (loginData?.accessToken as string) ||
-              "";
-            clinicId =
-              ((loginData?.user as Record<string, unknown>)
-                ?.clinicId as string) || clinicId;
-            // keep user info for frontend localStorage
-            // store minimal user info to satisfy client checks
-            (regData as Record<string, unknown>).user =
-              loginData?.user || regData?.user;
-          }
-        }
-      }
-    } catch (_err) {
-      // Fallback to a login if anything fails
-      const loginRes = await page.request.post(`${API_URL}/auth/login`, {
-        data: {
-          email: userEmail,
-          password: userPassword,
-        },
-      });
-
-      const loginData = (await loginRes.json()) as Record<string, unknown>;
-      authToken =
-        (loginData?.access_token as string) ||
-        (loginData?.accessToken as string) ||
-        "";
-      clinicId =
-        ((loginData?.user as Record<string, unknown>)?.clinicId as string) ||
-        clinicId;
-    }
-
-    // Save minimal user info from registration/login for later localStorage injection
-    const storedUser = (regData?.user as Record<string, unknown>) || regData;
-    const minimalUser = {
-      id: (storedUser?.id as string) || (storedUser?.userId as string) || null,
-      email: (storedUser?.email as string) || null,
-      clinicId: (storedUser?.clinicId as string) || clinicId || null,
-      role: (storedUser?.role as string) || "DOCTOR",
-    };
-    // store globally so loginAsDoctor can construct docita_user
-    (globalThis as unknown as Record<string, unknown>).__E2E_REG_USER =
-      minimalUser;
-    await context.close();
+  const registerRes = await request.post(`${API_URL}/auth/register`, {
+    data: {
+      email: userEmail,
+      password: userPassword,
+      firstName: "Dr",
+      lastName: "Test",
+      role: "DOCTOR",
+      clinicName: "Test Clinic",
+    },
   });
 
-  test("should create patient successfully", async ({ page }) => {
-    // Setup: Login first
-    await loginAsDoctor(page);
+  if (!registerRes.ok()) {
+    throw new Error(
+      `Registration failed: ${registerRes.status()} ${await registerRes.text()}`,
+    );
+  }
 
-    // Navigate to patients or create patient page
-    await page
-      .goto("/dashboard/patients", { waitUntil: "load" })
-      .catch(() => {
-        // Page might not exist in all deployments
-      });
+  const regData = (await registerRes.json()) as Record<string, unknown>;
+  const token =
+    (regData?.access_token as string) ||
+    (regData?.accessToken as string) ||
+    null;
+
+  // Create clinic
+  const clinicRes = await request.post(`${API_URL}/clinics`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      name: "Patients Test Clinic",
+      email: `clinic${uniqueId}@test.com`,
+      phone: "1234567890",
+      address: "123 Test St",
+      tier: "ENTERPRISE",
+    },
+  });
+
+  if (!clinicRes.ok()) {
+    throw new Error(
+      `Clinic creation failed: ${clinicRes.status()} ${await clinicRes.text()}`,
+    );
+  }
+
+  const clinic = (await clinicRes.json()) as Record<string, unknown>;
+  const clinicId = (clinic?.id as string) || "";
+
+  // Assign doctor to clinic
+  const userInfo = (regData?.user as Record<string, unknown>) || regData;
+  const doctorId = (userInfo?.id as string) || (regData?.id as string);
+  const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { doctorId, clinicId: clinic.id, role: "doctor" },
+  });
+
+  if (!assignRes.ok()) {
+    throw new Error(
+      `Clinic assignment failed: ${assignRes.status()} ${await assignRes.text()}`,
+    );
+  }
+
+  // Re-login to refresh token with clinic association
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
+    data: { email: userEmail, password: userPassword },
+  });
+
+  if (!loginRes.ok()) {
+    throw new Error(
+      `Login failed: ${loginRes.status()} ${await loginRes.text()}`,
+    );
+  }
+
+  const loginData = (await loginRes.json()) as Record<string, unknown>;
+  const refreshedToken =
+    (loginData?.access_token as string) ||
+    (loginData?.accessToken as string) ||
+    "";
+  const finalClinicId =
+    ((loginData?.user as Record<string, unknown>)?.clinicId as string) ||
+    clinicId;
+
+  console.log(`[SETUP] Completed: clinicId=${finalClinicId}`);
+
+  return {
+    authToken: refreshedToken,
+    clinicId: finalClinicId,
+    user: loginData.user,
+  };
+}
+
+test.describe("Patient Management", () => {
+  test("should create patient successfully", async ({ page, request }) => {
+    const { authToken, clinicId, user } = await setupDoctorAndClinic(request);
+    await loginAsDoctor(page, authToken, clinicId, user);
+
+    // Navigate to patients page
+    await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
     // Look for "Add Patient" or "Create Patient" button
     const addButton = page
@@ -134,13 +115,13 @@ test.describe("Patient Management", () => {
       )
       .first();
 
-    if (await addButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await addButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await addButton.click();
 
       // Fill form
       await page.fill('input[placeholder*="First"]', "John");
       await page.fill('input[placeholder*="Last"]', "Doe");
-      await page.fill('input[placeholder*="Phone"]', "9876543210");
+      await page.fill('input[placeholder*="Phone"]', "9996543210");
       await page.selectOption('select[name="gender"]', "MALE");
       await page.fill('input[type="date"]', "1990-01-01");
 
@@ -148,7 +129,7 @@ test.describe("Patient Management", () => {
       await page.click('button[type="submit"]');
 
       // Wait for success or navigation
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
 
       // Check URL or success message
       const url = page.url();
@@ -160,127 +141,68 @@ test.describe("Patient Management", () => {
     }
   });
 
-  test("should display patient list", async ({ page }) => {
+  test("should display patient list", async ({ page, request }) => {
+    const { authToken, clinicId, user } = await setupDoctorAndClinic(request);
+
     // Create test patient via API
-    const patientRes = await page.request.post(`${API_URL}/patients`, {
+    const patientRes = await request.post(`${API_URL}/patients`, {
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
       data: {
         firstName: "Jane",
         lastName: "Doe",
-        phoneNumber: "9876543211",
+        phoneNumber: "9996543211",
         gender: "FEMALE",
         dateOfBirth: "1990-05-15",
         clinicId,
       },
     });
 
-    if (!patientRes.ok()) {
-      console.log("Patient creation failed", patientRes.status(), await patientRes.text());
-    }
     expect(patientRes.ok()).toBeTruthy();
 
-    // DEBUG: Monitor API response - setup BEFORE navigation
-    page.on('console', msg => {
-      if (msg.type() === 'error' || msg.type() === 'warning')
-        console.log(`BROWSER CONSOLE: ${msg.text()}`);
-    });
+    await loginAsDoctor(page, authToken, clinicId, user);
 
-    // Catch ALL requests to patients endpoint
-    page.on('request', request => {
-      if (request.url().includes('/patients')) console.log('>>', request.method(), request.url());
-    });
-    page.on('response', response => {
-      if (response.url().includes('/patients')) console.log('<<', response.status(), response.url());
-    });
+    await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
-    // Setup listener
-    const patientsResponsePromise = page.waitForResponse(
-      (resp) => resp.url().includes("/patients"),
-      { timeout: 10000 }
-    ).catch(() => null);
+    // Patient should be visible
+    const patientName = page.locator("text=Jane").first();
+    await expect(patientName).toBeVisible({ timeout: 10000 });
 
-    // Navigate to patients page
-    await loginAsDoctor(page);
-    await page
-      .goto("/patients", { waitUntil: "load" })
-      .catch(() => {
-        // Page might not exist
-      });
-
-    const patientsResponse = await patientsResponsePromise;
-
-    if (patientsResponse) {
-      console.log(`Patients API Status: ${patientsResponse.status()}`);
-    } else {
-      console.log("Patients API request not found or timed out");
-    }
-
-    // DEBUG: Check UI State
-    if (await page.locator('text=No patients found').isVisible()) {
-      console.log("UI: 'No patients found' is visible");
-    }
-
-    // Patient should be visible or list should load
-    // use robust wait
-    const patientName = page.locator('text=Jane').first();
-    if (await page.locator('text=error').isVisible()) {
-      console.log("Found error text on page:", await page.locator('text=error').textContent());
-    }
-    console.log("Current Page URL:", page.url());
-    // await page.screenshot({ path: 'patients-list.png' });
-
-    try {
-      await expect(patientName).toBeVisible({ timeout: 10000 });
-    } catch (e) {
-      console.log("DOM Content on failure:", await page.content());
-      throw e;
-    }
-
-    // Test Navigation: Click on a patient to go to details
-    const firstPatientRow = page.locator('table tbody tr, [role="grid"] [role="row"]').first();
-    // OR look for the text of the patient name
-    const patientNameLink = page.locator('text=Jane Doe').first();
-
+    // Click on patient to verify detailed page
+    const patientNameLink = page.locator("text=Jane Doe").first();
     if (await patientNameLink.isVisible()) {
       await patientNameLink.click();
       await page.waitForURL(/\/patients\//);
-      // Verify details page loaded
-      try {
-        await expect(page.locator('text=Jane').first()).toBeVisible({ timeout: 10000 });
-      } catch (e) {
-        console.log("Details Page DOM Content on failure:", await page.content());
-        throw e;
-      }
-    } else if (await firstPatientRow.isVisible()) {
-      await firstPatientRow.click();
-      await page.waitForURL(/\/patients\//);
+      await expect(page.locator("text=Jane").first()).toBeVisible({
+        timeout: 5000,
+      });
     }
   });
 
-  test("should search patients by name", async ({ page }) => {
+  test("should search patients by name", async ({ page, request }) => {
+    const { authToken, clinicId, user } = await setupDoctorAndClinic(request);
+
     // Create test patient
-    await page.request.post(`${API_URL}/patients`, {
+    const searchableRes = await request.post(`${API_URL}/patients`, {
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
       data: {
         firstName: "SearchablePatient",
         lastName: "Test",
-        phoneNumber: "9876543212",
+        phoneNumber: "9996543212",
         gender: "MALE",
         dateOfBirth: "1990-01-01",
         clinicId,
       },
     });
 
-    await loginAsDoctor(page);
-    await page
-      .goto("/dashboard/patients", { waitUntil: "load" })
-      .catch(() => {
-        // Page might not exist
-      });
+    expect(searchableRes.ok()).toBeTruthy();
+    console.log(`[TEST] Searchable Patient created for clinic: ${clinicId}`);
+
+    await loginAsDoctor(page, authToken, clinicId, user);
+    await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
     // Look for search input
     const searchInput = page
@@ -289,27 +211,32 @@ test.describe("Patient Management", () => {
       )
       .first();
 
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
       await searchInput.fill("SearchablePatient");
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
 
       // Results should appear
-      const resultVisible = await page.locator("SearchablePatient").count();
-      expect(resultVisible).toBeGreaterThan(0);
+      const result = page.locator("text=SearchablePatient").first();
+      await expect(result).toBeVisible({ timeout: 5000 });
     }
   });
 
-  test("should show error on invalid form submission", async ({ page }) => {
-    await loginAsDoctor(page);
+  test("should show error on invalid form submission", async ({
+    page,
+    request,
+  }) => {
+    const { authToken, clinicId, user } = await setupDoctorAndClinic(request);
+    await loginAsDoctor(page, authToken, clinicId, user);
 
     // Navigate to create patient page
+    await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
     const addButton = page
       .locator(
         'button:has-text("Add Patient"), button:has-text("Create Patient"), button:has-text("New Patient")',
       )
       .first();
 
-    if (await addButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await addButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await addButton.click();
 
       // Try to submit empty form
@@ -317,106 +244,83 @@ test.describe("Patient Management", () => {
       await submitButton.click();
 
       // Check for validation errors or form still visible
-      await page.waitForTimeout(500);
-
+      await page.waitForTimeout(1000);
       const formStillVisible = await page.locator("input").first().isVisible();
       expect(formStillVisible).toBeTruthy();
     }
   });
 
-  test("should handle clinic data isolation", async ({ page }) => {
+  test("should handle clinic data isolation", async ({ page, request }) => {
     // This test verifies that patients are isolated by clinic
-    // Create another clinic/doctor via API
-    const otherDoctorEmail = `doctor${Date.now()}other@test.com`;
-    const otherDoctorPassword = "Test@123456";
+    const clinicA = await setupDoctorAndClinic(request);
+    const clinicB = await setupDoctorAndClinic(request);
 
-    const otherRegisterRes = await page.request.post(
-      `${API_URL}/auth/register`,
-      {
-        data: {
-          email: otherDoctorEmail,
-          password: otherDoctorPassword,
-          firstName: "Dr",
-          lastName: "Other",
-          role: "DOCTOR",
-        clinicName: "Test Clinic",
-        },
-      },
-    );
-
-    const _otherUser = await otherRegisterRes.json();
-
-    // Login as other doctor
-    const otherLoginRes = await page.request.post(`${API_URL}/auth/login`, {
+    // Create patient in Clinic A
+    await request.post(`${API_URL}/patients`, {
+      headers: { Authorization: `Bearer ${clinicA.authToken}` },
       data: {
-        email: otherDoctorEmail,
-        password: otherDoctorPassword,
+        firstName: "ClinicA-Patient",
+        lastName: "Test",
+        phoneNumber: "8881234567",
+        gender: "MALE",
+        dateOfBirth: "1990-01-01",
+        clinicId: clinicA.clinicId,
       },
     });
 
-    const otherLoginData = await otherLoginRes.json();
+    // Login as Clinic B doctor
+    await loginAsDoctor(
+      page,
+      clinicB.authToken,
+      clinicB.clinicId,
+      clinicB.user,
+    );
+    await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
-    // Fetch patients for this doctor (should be empty or different)
-    const patientsRes = await page.request.get(`${API_URL}/patients`, {
-      headers: {
-        Authorization: `Bearer ${otherLoginData.access_token}`,
-      },
-    });
+    // Should NOT see Clinic A patient
+    // Should not count loading state as a patient
+    const loadingState = page.locator("text=Loading patients...");
+    await expect(loadingState).not.toBeVisible({ timeout: 5000 });
 
-    const patients = await patientsRes.json();
+    const patientA = page.locator("text=ClinicA-Patient").first();
+    await expect(patientA).not.toBeVisible({ timeout: 5000 });
 
-    // Should not have patients from other clinic
-    expect(Array.isArray(patients.items)).toBeTruthy();
+    // Should see empty state or list
+    const noPatients = page.locator("text=No patients found").first();
+    const tableRows = page.locator("table tbody tr").count();
+    expect(
+      (await noPatients.isVisible()) || (await tableRows) === 0,
+    ).toBeTruthy();
   });
 });
 
-async function loginAsDoctor(page: Page) {
-   
-  // Try to login or navigate to dashboard
-  // Prefer injecting token into localStorage for reliable auth during e2e
-  if (!(await page.url()).includes("/dashboard")) {
-    // token variable should be set in the test scope (authToken)
-    if (typeof authToken !== "undefined" && authToken) {
-      // Construct a minimal user object for the frontend
-      const e2eUser = (globalThis as unknown as Record<string, unknown>)
-        .__E2E_REG_USER as Record<string, unknown> | undefined;
-      const storedUser = e2eUser || {
-        id: null,
-        email: null,
-        clinicId: clinicId || null,
-        role: "DOCTOR",
-        clinicName: "Test Clinic",
-      };
+async function loginAsDoctor(
+  page: Page,
+  token: string,
+  clinicId: string,
+  user: Record<string, unknown>,
+) {
+  const userForStorage = JSON.stringify({
+    ...user,
+    clinicId: clinicId,
+    role: "DOCTOR",
+  });
 
-      const userForStorage = JSON.stringify({
-        id: (storedUser?.id as string) || null,
-        email: (storedUser?.email as string) || null,
-        clinicId: (storedUser?.clinicId as string) || clinicId || null,
-        role: (storedUser?.role as string) || "DOCTOR",
-      });
+  // Navigate to "/" first to ensure we are on the correct origin
+  await page.goto("/", { waitUntil: "networkidle" }).catch(() => {});
 
-      await page.addInitScript(
-        (args: { t: string; u: string }) => {
-          try {
-            const { t, u } = args;
-            localStorage.setItem("docita_token", t);
-            localStorage.setItem("docita_user", u);
-          } catch {
-            // noop
-          }
-        },
-        { t: authToken, u: userForStorage },
-      );
+  // Inject credentials into localStorage
+  await page.evaluate(
+    (args: { t: string; u: string }) => {
+      localStorage.clear();
+      localStorage.setItem("docita_token", args.t);
+      localStorage.setItem("docita_user", args.u);
+    },
+    { t: token, u: userForStorage },
+  );
 
-      await page
-        .goto("/dashboard", { waitUntil: "load" })
-        .catch(() => null);
-      await page.waitForTimeout(500);
-      return;
-    }
-
-    // Fallback: navigate to login
-    await page.goto("/login").catch(() => null);
-    await page.waitForTimeout(500);
-  }
+  // Navigate to dashboard and wait for it to load
+  await page.goto("/dashboard", { waitUntil: "load" });
+  // Minor wait to ensure app processes the local storage and stabilizes
+  await page.waitForTimeout(1000);
 }

@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
 import { FeatureFlagGuard } from '../guards/feature-flag.guard';
 import { PDFGeneratorService } from './pdf-generator.service';
+import { BasePdfService } from './base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '../decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../prisma/prisma.module';
@@ -10,6 +11,7 @@ import { EncryptionService } from '../encryption.service';
 import { DPDPComplianceService } from '../../modules/compliance/dpdp-compliance.service';
 import { AuditModule } from '../../modules/audit/audit.module';
 import { ComplianceModule } from '../../modules/compliance/compliance.module';
+import { UsersModule } from '../../modules/users/users.module';
 
 /**
  * Common Services Module
@@ -24,7 +26,13 @@ import { ComplianceModule } from '../../modules/compliance/compliance.module';
  */
 @Global()
 @Module({
-  imports: [PrismaModule, WhatsappModule, AuditModule, ComplianceModule],
+  imports: [
+    PrismaModule,
+    WhatsappModule,
+    AuditModule,
+    ComplianceModule,
+    UsersModule,
+  ],
   providers: [
     FeatureFlagService,
     FeatureFlagGuard,
@@ -32,15 +40,14 @@ import { ComplianceModule } from '../../modules/compliance/compliance.module';
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
+    BasePdfService,
   ],
   exports: [
-    FeatureFlagService,
-    FeatureFlagGuard,
-    PDFGeneratorService,
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
     ComplianceModule,
+    BasePdfService,
   ],
 })
 export class CommonServicesModule {}

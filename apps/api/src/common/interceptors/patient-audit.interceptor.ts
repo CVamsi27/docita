@@ -51,6 +51,8 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                 url.includes('/patients') ||
                 url.includes('/appointments') ||
                 url.includes('/prescriptions') ||
+                url.includes('/invoices') ||
+                url.includes('/documents') ||
                 url.includes('/records')
               ) {
                 const userId = (user as any).id;

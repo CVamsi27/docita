@@ -1,6 +1,7 @@
 import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { AuditService, AuditLogFilter } from './audit.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 import {
   AnyAuditResponseDto,
   PaginatedAuditLogResponseDto,
@@ -8,7 +9,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('audit-logs')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.SUPER_ADMIN)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 

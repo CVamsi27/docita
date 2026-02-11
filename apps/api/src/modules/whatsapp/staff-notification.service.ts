@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from './whatsapp.service';
+import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappTemplatesService } from './templates.service';
 import { Prisma } from '@workspace/db';
 import type {
@@ -32,9 +33,10 @@ export class StaffNotificationService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly whatsappClient: WhatsappClientService,
+    private readonly templatesService: WhatsappTemplatesService,
     @Inject(forwardRef(() => WhatsappService))
     private readonly whatsappService: WhatsappService,
-    private readonly templatesService: WhatsappTemplatesService,
   ) {}
 
   /**
@@ -193,7 +195,8 @@ export class StaffNotificationService {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to create in-app notification for user ${userId}: ${error}`,
+        `Failed to create in-app notification for user ${userId}`,
+        error,
       );
     }
   }
@@ -224,7 +227,7 @@ export class StaffNotificationService {
         if (resolved) {
           const messageContent =
             this.templatesService.getMessageForMode(resolved);
-          await this.whatsappService.sendMessage({
+          await this.whatsappClient.sendMessage({
             to: phoneNumber,
             message: messageContent,
           });
@@ -234,13 +237,14 @@ export class StaffNotificationService {
 
       // Fallback to simple message
       const formattedMessage = `🔔 *Staff Alert*\n\n*${title}*\n\n${message}`;
-      await this.whatsappService.sendMessage({
+      await this.whatsappClient.sendMessage({
         to: phoneNumber,
         message: formattedMessage,
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send WhatsApp notification to ${phoneNumber}: ${error}`,
+        `Failed to send WhatsApp notification to ${phoneNumber}`,
+        error,
       );
     }
   }

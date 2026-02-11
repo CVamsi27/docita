@@ -3,6 +3,7 @@ import { ClinicsService } from './clinics.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ClinicFactory } from './factories/clinic.factory';
 import { SettingsFactory } from './factories/settings.factory';
+import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
@@ -52,7 +53,7 @@ describe('ClinicsService', () => {
     name: 'Dr. Test',
     email: 'doctor@test.com',
     password: 'hashedPassword',
-    role: 'DOCTOR',
+    role: Role.DOCTOR,
     clinicId: 'clinic-123',
     phoneNumber: '9876543210',
     specialization: 'GENERAL_PRACTICE',

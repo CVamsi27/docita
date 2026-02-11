@@ -11,7 +11,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { DoctorAvailabilityService } from './doctor-availability.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 
@@ -31,7 +32,8 @@ interface AuthRequest {
 }
 
 @Controller('doctor-availability')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
 @RequireFeature(Feature.CALENDAR_SLOTS)
 export class DoctorAvailabilityController {
   constructor(

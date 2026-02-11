@@ -1,7 +1,8 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TierGuard } from '../auth/tier.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import {
   OverviewStatsResponseDto,
@@ -21,7 +22,8 @@ interface AuthRequest {
 }
 
 @Controller('analytics')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_ANALYTICS)
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}

@@ -72,5 +72,5 @@ apps/api/src/seed-admin.ts
 
 # Misc logs
 *.log
-check_env.js
-test_output.log
+*.js
+*.txt

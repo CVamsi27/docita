@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useEffect, useState } from "react";
+import { ApiError } from "@/lib/errors";
 
 // ✅ OPTIMIZATION: Web Vitals monitoring for performance tracking
 async function reportWebVitals() {
@@ -86,16 +87,14 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             refetchOnMount: true,
 
             // Retry failed requests with exponential backoff
-            retry: (failureCount, error: unknown) => {
-              // Don't retry on 4xx errors (client errors)
-              const httpError = error as
-                | { response?: { status?: number } }
-                | undefined;
-              const status = httpError?.response?.status;
-              if (typeof status === "number" && status >= 400 && status < 500) {
-                return false;
+            retry: (failureCount, error) => {
+              if (error instanceof ApiError) {
+                // Don't retry on 4xx errors (client errors)
+                if (error.statusCode >= 400 && error.statusCode < 500) {
+                  return false;
+                }
               }
-              // Retry up to 2 times for other errors
+              // Retry up to 2 times for other errors (network or 5xx)
               return failureCount < 2;
             },
 

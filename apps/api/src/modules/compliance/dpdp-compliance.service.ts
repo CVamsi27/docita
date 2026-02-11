@@ -6,7 +6,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { ConsentType, ConsentStatus } from '@workspace/db';
+import {
+  ConsentType,
+  ConsentStatus,
+  InvoiceStatus,
+  AppointmentStatus,
+} from '@workspace/db';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
 
@@ -306,7 +311,7 @@ export class DPDPComplianceService {
     const unpaidInvoices = await this.prisma.invoice.count({
       where: {
         patientId,
-        status: { in: ['pending', 'overdue'] },
+        status: { in: [InvoiceStatus.PENDING, InvoiceStatus.OVERDUE] },
       },
     });
 
@@ -319,7 +324,7 @@ export class DPDPComplianceService {
       where: {
         patientId,
         startTime: { gte: new Date() },
-        status: { not: 'cancelled' },
+        status: { not: AppointmentStatus.CANCELLED },
       },
     });
 

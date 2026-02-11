@@ -1,19 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, Invoice } from '@workspace/db';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Prisma, Invoice, InvoiceStatus } from '@workspace/db';
 import {
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
 } from '../../common/select-fragments';
-import { BaseService } from '../../common/services/base.service';
-import { PDFGeneratorService } from '../../common/services/pdf-generator.service';
+import { InvoicePdfService } from './invoice-pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InvoiceGeneratedEvent } from './events/invoice-generated.event';
 import type { InvoiceItem } from '@workspace/types';
+
 import {
   validateSpecialization,
   validateHospitalRole,
 } from './enum-validators';
+import { IInvoiceRepository } from './repositories/invoice.repository.interface';
 
 /**
  * InvoicesService extends BaseService to leverage standardized CRUD patterns
@@ -26,125 +26,45 @@ import {
  * - Factory: PDFGeneratorService creates PDF documents
  */
 @Injectable()
-export class InvoicesService extends BaseService<Invoice> {
+export class InvoicesService {
   constructor(
-    prisma: PrismaService,
-    private readonly pdfGenerator: PDFGeneratorService,
+    @Inject('IInvoiceRepository')
+    private readonly repository: IInvoiceRepository,
+    private readonly pdfService: InvoicePdfService,
     private readonly eventEmitter: EventEmitter2,
-  ) {
-    super(prisma, 'invoice', 'Invoice');
-  }
+  ) {}
 
-  // ============================================================================
-  // BaseService Template Method Implementations
-  // ============================================================================
-
-  protected getListSelect() {
-    return INVOICE_CARD_SELECT;
-  }
-
-  protected getDetailSelect() {
-    return INVOICE_DETAIL_SELECT;
-  }
-
-  // @ts-expect-error - Method signature mismatch with base class unrelated to functional usage in this service context
   async findAll(
     clinicId: string,
     params?: {
       cursor?: string;
       limit?: number;
       patientId?: string;
-      status?: string;
+      status?: InvoiceStatus;
       date?: string;
       search?: string;
     },
   ) {
-    const { cursor, limit, patientId, status, date, search } = params || {};
-
-    if (!clinicId) {
-      return { items: [], count: 0, nextCursor: undefined, hasMore: false };
-    }
-
-    const where: Prisma.InvoiceWhereInput =
-      this.buildClinicWhereClause(clinicId);
-
-    if (patientId) {
-      where.patientId = patientId;
-    }
-
-    if (status && status !== 'all') {
-      where.status = status;
-    }
-
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
-
-      where.createdAt = {
-        gte: startDate,
-        lte: endDate,
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        {
-          patient: {
-            OR: [
-              { firstName: { contains: search, mode: 'insensitive' } },
-              { lastName: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        },
-      ];
-    }
-
-    // Use Prisma directly to support complex filtering alongside pagination
-    // Or call super.findAll if it supports extra where clauses?
-    // Looking at common/services/base.service.ts would be ideal but for now we'll impl directly to be safe and explicit.
-
-    const items = await this.prisma.invoice.findMany({
-      where,
-      take: limit ? limit + 1 : undefined,
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { createdAt: 'desc' },
-      select: this.getListSelect(),
+    return this.repository.findAll({
+      clinicId,
+      ...params,
     });
+  }
 
-    let nextCursor: string | undefined = undefined;
-    if (limit && items.length > limit) {
-      const nextItem = items.pop();
-      nextCursor = nextItem?.id;
+  async findOne(id: string) {
+    const invoice = await this.repository.findById(id);
+    if (!invoice) {
+      throw new NotFoundException(`Invoice ${id} not found`);
     }
-
-    return {
-      items,
-      nextCursor,
-      hasMore: !!nextCursor,
-      count: items.length, // Approximate count of fetched page
-    };
+    return invoice;
   }
-
-  /**
-   * Invoices don't have direct clinicId - they're linked via patient
-   */
-  protected buildClinicWhereClause(clinicId: string) {
-    return { patient: { clinicId } };
-  }
-
-  // ============================================================================
-  // Create Invoice with WhatsApp Notification
-  // ============================================================================
 
   async create(data: {
     appointmentId?: string;
     patientId: string;
     total: number;
-    status: string;
+    status: InvoiceStatus;
     items: InvoiceItem[];
-    // Doctor context for audit trail (Phase 5)
     doctorName?: string;
     doctorEmail?: string;
     doctorPhone?: string;
@@ -154,43 +74,23 @@ export class InvoicesService extends BaseService<Invoice> {
     doctorLicenseNumber?: string;
     clinicId?: string;
   }) {
-    const invoice = await this.prisma.invoice.create({
-      data: {
-        appointmentId: data.appointmentId,
-        patientId: data.patientId,
-        total: data.total,
-        status: data.status,
-        items: data.items as unknown as Prisma.InputJsonValue,
-        // Save doctor context snapshot (Phase 5)
-        doctorName: data.doctorName,
-        doctorEmail: data.doctorEmail,
-        doctorPhone: data.doctorPhone,
-        doctorSpecialization: validateSpecialization(data.doctorSpecialization),
-        doctorRole: validateHospitalRole(data.doctorRole),
-        doctorRegistrationNumber: data.doctorRegistrationNumber,
-        doctorLicenseNumber: data.doctorLicenseNumber,
-      },
-      select: {
-        id: true,
-        appointmentId: true,
-        patientId: true,
-        total: true,
-        status: true,
-        items: true,
-        createdAt: true,
-        updatedAt: true,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-      },
+    const invoice = await this.repository.create({
+      appointment: data.appointmentId
+        ? { connect: { id: data.appointmentId } }
+        : undefined,
+      patient: { connect: { id: data.patientId } },
+      total: data.total,
+      status: data.status,
+      items: data.items as unknown as Prisma.InputJsonValue,
+      doctorName: data.doctorName,
+      doctorEmail: data.doctorEmail,
+      doctorPhone: data.doctorPhone,
+      doctorSpecialization: validateSpecialization(data.doctorSpecialization),
+      doctorRole: validateHospitalRole(data.doctorRole),
+      doctorRegistrationNumber: data.doctorRegistrationNumber,
+      doctorLicenseNumber: data.doctorLicenseNumber,
     });
 
-    // Emit event for side effects (notifications, payments, etc.)
     if (data.clinicId) {
       this.eventEmitter.emit(
         'invoice.generated',
@@ -201,103 +101,80 @@ export class InvoicesService extends BaseService<Invoice> {
     return invoice;
   }
 
-  // ============================================================================
-  // WhatsApp Notification (uses WhatsAppNotificationService)
-  // ============================================================================
-
-  // ============================================================================
-  // Update Invoice
-  // ============================================================================
-
   async update(
     id: string,
-    data: { status?: string; total?: number; items?: InvoiceItem[] },
+    data: { status?: InvoiceStatus; total?: number; items?: InvoiceItem[] },
   ) {
-    // Verify invoice exists first using BaseService
-    await this.findOne(id);
+    await this.findOne(id); // Ensure exists
 
-    return this.prisma.invoice.update({
-      where: { id },
-      data: {
-        ...data,
-        items: data.items
-          ? (data.items as unknown as Prisma.InputJsonValue)
-          : undefined,
-      },
-      select: {
-        id: true,
-        appointmentId: true,
-        patientId: true,
-        total: true,
-        status: true,
-        items: true,
-        createdAt: true,
-        updatedAt: true,
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-      },
+    return this.repository.update(id, {
+      ...data,
+      items: data.items
+        ? (data.items as unknown as Prisma.InputJsonValue)
+        : undefined,
     });
   }
 
-  // ============================================================================
-  // PDF Generation (uses PDFGeneratorService)
-  // ============================================================================
+  async remove(id: string): Promise<void> {
+    await this.repository.delete(id);
+  }
 
   async generatePDF(id: string): Promise<Buffer> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id },
-      select: INVOICE_DETAIL_SELECT,
-    });
-
-    if (!invoice) {
-      throw new Error(`Invoice ${id} not found`);
-    }
+    const invoice = await this.findOne(id);
 
     const items = invoice.items as unknown as Array<InvoiceItem>;
+    // invoice returned by findOne -> repository.findById uses INVOICE_DETAIL_SELECT.
+    // INVOICE_DETAIL_SELECT includes patient, patient.clinic, appointment.doctor.
+    // Check types. generic Invoice type from @workspace/db might not have these relations optional in strict sense,
+    // but repository return type is Invoice. We cast it in repo.
 
-    // Get clinic info from patient relation
-    const clinic = invoice.patient.clinic;
+    // We need to ensure the data is there. The select fragment ensures it.
+    // Types might need casting if Invoice type doesn't have relations by default.
+    // Usually prisma client types include relations as optional.
 
-    return this.pdfGenerator.generateInvoice({
+    const invoiceWithRelations = invoice as any; // Cast for accessing relations safely if strict typing complains
+
+    const clinic = invoiceWithRelations.patient?.clinic;
+
+    return this.pdfService.generate({
       invoiceId: invoice.id.slice(0, 8).toUpperCase(),
       clinic: {
         name: clinic?.name || process.env.CLINIC_NAME || 'Docita Clinic',
         address: clinic?.address || process.env.CLINIC_ADDRESS,
         phone: clinic?.phone || process.env.CLINIC_PHONE,
         email: clinic?.email || process.env.CLINIC_EMAIL,
-        gstin:
-          (clinic as { gstin?: string })?.gstin || process.env.CLINIC_GSTIN,
+        gstin: clinic?.gstin || process.env.CLINIC_GSTIN,
       },
       patient: {
-        name: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-        phoneNumber: invoice.patient.phoneNumber,
-        email: invoice.patient.email || undefined,
-        address: invoice.patient.address || undefined,
-        patientId: invoice.patient.id.slice(0, 8).toUpperCase(),
+        name: `${invoiceWithRelations.patient.firstName} ${invoiceWithRelations.patient.lastName}`,
+        phoneNumber: invoiceWithRelations.patient.phoneNumber,
+        email: invoiceWithRelations.patient.email || undefined,
+        address: invoiceWithRelations.patient.address || undefined,
+        patientId: invoiceWithRelations.patient.id.slice(0, 8).toUpperCase(),
       },
-      doctor: invoice.appointment?.doctor
+      doctor: invoiceWithRelations.appointment?.doctor
         ? {
-            name: invoice.appointment.doctor.name,
+            name: invoiceWithRelations.appointment.doctor.name,
             qualification:
-              invoice.appointment.doctor.qualification || undefined,
+              invoiceWithRelations.appointment.doctor.qualification ||
+              undefined,
             registrationNumber:
-              invoice.appointment.doctor.registrationNumber || undefined,
+              invoiceWithRelations.appointment.doctor.registrationNumber ||
+              undefined,
           }
-        : undefined,
+        : {
+            name: invoiceWithRelations.doctorName || 'Doctor',
+            qualification:
+              invoiceWithRelations.doctorSpecialization || undefined,
+            registrationNumber:
+              invoiceWithRelations.doctorRegistrationNumber || undefined,
+          },
       items: items.map((item) => ({
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.price,
         amount: item.quantity * item.price,
       })),
-      subtotal: invoice.total,
-      total: invoice.total,
       status: invoice.status.toUpperCase(),
       date: new Date(invoice.createdAt),
     });

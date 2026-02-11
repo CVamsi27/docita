@@ -8,9 +8,8 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 import { ClinicTier } from '@workspace/db';
 import { ClinicManagementService } from './clinic-management.service';
 import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
@@ -18,8 +17,8 @@ import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
 import { SuperAdminBillingService } from './super-admin-billing.service';
 import {
-  CreateClinicDto,
-  UpdateClinicDto,
+  SuperAdminCreateClinicDto,
+  SuperAdminUpdateClinicDto,
   CreateAdminDto,
   UpdateAdminDto,
 } from './dto/clinic-management.dto';
@@ -42,8 +41,7 @@ import { ClinicResponseDto } from '../clinics/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('super-admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN')
+@Roles(Role.SUPER_ADMIN)
 export class SuperAdminController {
   constructor(
     private readonly clinicService: ClinicManagementService,
@@ -73,7 +71,7 @@ export class SuperAdminController {
 
   @Post('clinics')
   @ZodSerializerDto(ClinicResponseDto)
-  async createClinic(@Body() data: CreateClinicDto) {
+  async createClinic(@Body() data: SuperAdminCreateClinicDto) {
     return this.clinicService.createClinic(data);
   }
 
@@ -97,7 +95,10 @@ export class SuperAdminController {
 
   @Patch('clinics/:id')
   @ZodSerializerDto(ClinicResponseDto)
-  async updateClinic(@Param('id') id: string, @Body() data: UpdateClinicDto) {
+  async updateClinic(
+    @Param('id') id: string,
+    @Body() data: SuperAdminUpdateClinicDto,
+  ) {
     return this.clinicService.updateClinic(id, data);
   }
 

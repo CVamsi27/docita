@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { genderSchema } from "./users";
 import { codeStatusSchema } from "./medical";
+import { stripHtmlTags } from "./sanitization";
 export const patientTagSchema = z.object({
   id: z.string(),
   tag: z.string(),
@@ -45,40 +46,48 @@ export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
 
 export const patientSchema = z.object({
   id: z.string().optional(),
-  mrn: z.string().nullable().optional(), // Medical Record Number
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  preferredName: z.string().nullable().optional(),
-  pronouns: z.string().nullable().optional(),
+  mrn: z.string().max(50).nullable().optional(), // Medical Record Number
+  firstName: z.string().min(1, "First name is required").max(100),
+  lastName: z.string().min(1, "Last name is required").max(100),
+  preferredName: z.string().max(100).nullable().optional(),
+  pronouns: z.string().max(50).nullable().optional(),
   dateOfBirth: z.string().or(z.date()),
   gender: genderSchema,
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  email: z.string().email().nullable().optional().or(z.literal("")),
-  address: z.string().nullable().optional(),
-  medicalHistory: z.array(z.string()).optional(),
-  bloodGroup: z.string().nullable().optional(),
-  allergies: z.string().nullable().optional(),
+  phoneNumber: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(20),
+  email: z.string().email().max(255).nullable().optional().or(z.literal("")),
+  address: z.string().max(500).nullable().optional().transform(stripHtmlTags),
+  medicalHistory: z.array(z.string().max(255)).optional(),
+  bloodGroup: z.string().max(10).nullable().optional(),
+  allergies: z
+    .string()
+    .max(1000)
+    .nullable()
+    .optional()
+    .transform(stripHtmlTags),
   clinicId: z.string().optional(),
 
   // Hospital-Grade Demographics
-  race: z.string().optional(),
-  ethnicity: z.string().optional(),
-  preferredLanguage: z.string().optional(),
-  maritalStatus: z.string().optional(),
+  race: z.string().max(50).optional(),
+  ethnicity: z.string().max(50).optional(),
+  preferredLanguage: z.string().max(50).optional(),
+  maritalStatus: z.string().max(50).optional(),
 
   // Hospital Safety
   isolationStatus: isolationStatusSchema.default("NONE"),
   fallRisk: z.boolean().default(false),
 
   // Insurance Information
-  insuranceProvider: z.string().optional(),
-  insurancePolicyNumber: z.string().optional(),
-  insuranceGroupNumber: z.string().optional(),
+  insuranceProvider: z.string().max(100).optional(),
+  insurancePolicyNumber: z.string().max(100).optional(),
+  insuranceGroupNumber: z.string().max(100).optional(),
 
   // Emergency Contact
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
+  emergencyContactName: z.string().max(100).optional(),
+  emergencyContactPhone: z.string().max(20).optional(),
+  emergencyContactRelation: z.string().max(50).optional(),
 
   // Patient Safety - Code Status (DNR/Full Code)
   codeStatus: codeStatusSchema.optional(),
@@ -89,7 +98,9 @@ export const patientSchema = z.object({
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
   tags: z.array(patientTagSchema).optional(),
-  customData: z.record(z.unknown()).optional(),
+  customData: z
+    .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+    .optional(),
 });
 export type Patient = z.infer<typeof patientSchema>;
 
@@ -198,15 +209,15 @@ export type ConditionSourceType = z.infer<typeof conditionSourceTypeSchema>;
 export const patientMedicalConditionSchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  conditionName: z.string().min(1, "Condition name is required"),
-  icdCode: z.string().optional(),
+  conditionName: z.string().min(1, "Condition name is required").max(255),
+  icdCode: z.string().max(20).optional(),
   conditionType: medicalConditionTypeSchema.default("CHRONIC"),
   status: conditionStatusSchema.default("ACTIVE"),
   severity: conditionSeveritySchema.optional(),
   diagnosedDate: z.string().or(z.date()).optional(),
   resolvedDate: z.string().or(z.date()).optional(),
-  diagnosedBy: z.string().optional(),
-  notes: z.string().optional(),
+  diagnosedBy: z.string().max(100).optional().transform(stripHtmlTags),
+  notes: z.string().max(2000).optional().transform(stripHtmlTags),
   sourceType: conditionSourceTypeSchema.default("MANUAL"),
   sourceAppointmentId: z.string().optional(),
   createdAt: z.string().or(z.date()).optional(),
@@ -265,15 +276,19 @@ export const ALLERGY_SEVERITY_COLORS: Record<AllergySeverity, string> = {
 export const patientAllergySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  allergen: z.string().min(1, "Allergen is required"),
+  allergen: z
+    .string()
+    .min(1, "Allergen is required")
+    .max(255)
+    .transform(stripHtmlTags),
   allergyType: allergyTypeSchema.default("DRUG"),
   severity: allergySeveritySchema.default("MODERATE"),
-  reaction: z.string().optional(),
+  reaction: z.string().max(500).optional().transform(stripHtmlTags),
   onsetDate: z.string().or(z.date()).optional(),
-  verifiedBy: z.string().optional(),
+  verifiedBy: z.string().max(100).optional().transform(stripHtmlTags),
   verifiedAt: z.string().or(z.date()).optional(),
   isVerified: z.boolean().default(false),
-  notes: z.string().optional(),
+  notes: z.string().max(2000).optional(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
 });
@@ -283,10 +298,14 @@ export type PatientAllergy = z.infer<typeof patientAllergySchema>;
 export const patientFamilyHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  condition: z.string().min(1, "Condition is required"),
-  relationship: z.string().min(1, "Relationship is required"),
+  condition: z.string().min(1, "Condition is required").max(255),
+  relationship: z
+    .string()
+    .min(1, "Relationship is required")
+    .max(100)
+    .transform(stripHtmlTags),
   ageAtOnset: z.number().optional(),
-  notes: z.string().optional(),
+  notes: z.string().max(2000).optional(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
 });
@@ -334,13 +353,13 @@ export const patientSocialHistorySchema = z.object({
   smokingPackYears: z.number().optional(),
   smokingQuitDate: z.string().or(z.date()).optional(),
   alcoholUse: alcoholUseStatusSchema.optional(),
-  alcoholFrequency: z.string().optional(),
-  substanceUse: z.string().optional(),
-  occupation: z.string().optional(),
-  occupationalHazards: z.string().optional(),
-  exerciseFrequency: z.string().optional(),
-  dietaryRestrictions: z.string().optional(),
-  notes: z.string().optional(),
+  alcoholFrequency: z.string().max(100).optional().transform(stripHtmlTags),
+  substanceUse: z.string().max(255).optional().transform(stripHtmlTags),
+  occupation: z.string().max(100).optional().transform(stripHtmlTags),
+  occupationalHazards: z.string().max(255).optional().transform(stripHtmlTags),
+  exerciseFrequency: z.string().max(100).optional().transform(stripHtmlTags),
+  dietaryRestrictions: z.string().max(255).optional().transform(stripHtmlTags),
+  notes: z.string().max(2000).optional().transform(stripHtmlTags),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
 });
@@ -350,12 +369,12 @@ export type PatientSocialHistory = z.infer<typeof patientSocialHistorySchema>;
 export const patientSurgicalHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  procedureName: z.string().min(1, "Procedure name is required"),
+  procedureName: z.string().min(1, "Procedure name is required").max(255),
   procedureDate: z.string().or(z.date()).optional(),
-  hospital: z.string().optional(),
-  surgeon: z.string().optional(),
-  complications: z.string().optional(),
-  notes: z.string().optional(),
+  hospital: z.string().max(255).optional(),
+  surgeon: z.string().max(100).optional(),
+  complications: z.string().max(1000).optional().transform(stripHtmlTags),
+  notes: z.string().max(2000).optional().transform(stripHtmlTags),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
 });

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@workspace/db';
+import { PrismaClient, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 let prisma: PrismaClient;
@@ -72,7 +72,7 @@ export const factories = {
         startTime,
         endTime: new Date(startTime.getTime() + 30 * 60000),
         type: 'consultation',
-        status: 'scheduled',
+        status: AppointmentStatus.SCHEDULED,
         ...overrides,
       },
     });
@@ -85,6 +85,18 @@ export const factories = {
         clinicId,
         role: 'doctor',
         active: true,
+      },
+    });
+  },
+
+  invoice: async (patientId: string, overrides = {}) => {
+    return prisma.invoice.create({
+      data: {
+        patientId,
+        total: 100,
+        status: InvoiceStatus.PENDING,
+        items: [{ description: 'Consultation', amount: 100 }],
+        ...overrides,
       },
     });
   },

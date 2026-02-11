@@ -8,26 +8,32 @@ datasource db {
 }
 
 model User {
-  id                        String                 @id @default(cuid())
-  email                     String                 @unique
-  password                  String
-  name                      String
-  role                      Role                   @default(DOCTOR)
-  clinicId                  String?
-  createdAt                 DateTime               @default(now())
-  updatedAt                 DateTime               @updatedAt
-  qualification             String?
-  registrationNumber        String?
-  signatureUrl              String?
-  bio                       String?
-  consultationFee           Float?
-  hospitalRole              HospitalRole?
-  licenseExpiry             DateTime?
-  licenseNumber             String?
-  phoneNumber               String?
-  profilePhotoUrl           String?
-  specialization            Specialization?
-  yearsOfExperience         Int?
+  id                 String          @id @default(cuid())
+  email              String          @unique
+  password           String
+  name               String
+  role               Role            @default(DOCTOR)
+  clinicId           String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  qualification      String?
+  registrationNumber String?
+  signatureUrl       String?
+  bio                String?
+  consultationFee    Float?
+  hospitalRole       HospitalRole?
+  licenseExpiry      DateTime?
+  licenseNumber      String?
+  phoneNumber        String?
+  profilePhotoUrl    String?
+  specialization     Specialization?
+  yearsOfExperience  Int?
+
+  // Account security: failed login tracking and lockout
+  failedLoginAttempts Int       @default(0) // Consecutive failed login attempts
+  lastFailedLoginAt   DateTime? // Timestamp of last failed login
+  accountLockedUntil  DateTime? // Account locked until this time
+
   appointments              Appointment[]
   auditLogs                 AuditLog[]
   bulkImportJobs            BulkImportJob[]
@@ -44,6 +50,7 @@ model User {
   queueTokens               QueueToken[]
   staffNotifications        StaffNotification[]
   admissions                Admission[]
+  refreshTokens             RefreshToken[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
 
   @@index([clinicId])
@@ -404,6 +411,16 @@ enum AppointmentPriority {
   EMERGENCY
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  RESCHEDULING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
 model PatientTag {
   id        String  @id @default(cuid())
   patientId String
@@ -428,12 +445,13 @@ model Appointment {
   doctorId                String
   startTime               DateTime
   endTime                 DateTime
-  status                  String                @default("scheduled")
+  status                  AppointmentStatus     @default(SCHEDULED)
   type                    String
   notes                   String?
   consultationNotes       String?
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @updatedAt
+  version                 Int                   @default(1) // Optimistic concurrency control
   clinicId                String
   observations            String?
   chiefComplaint          String?
@@ -608,10 +626,11 @@ model Invoice {
   appointmentId            String?          @unique
   patientId                String
   total                    Float
-  status                   String           @default("pending")
+  status                   InvoiceStatus    @default(PENDING)
   items                    Json
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
+  version                  Int              @default(1) // Optimistic concurrency control
   // WhatsApp sharing approval workflow
   approvalStatus           ApprovalStatus   @default(PENDING)
   approvedById             String?
@@ -729,32 +748,32 @@ model AppointmentReminder {
 }
 
 model Clinic {
-  id                      String            @id @default(cuid())
+  id                      String             @id @default(cuid())
   name                    String
   address                 String
   phone                   String
   email                   String
   website                 String?
   logo                    String?
-  active                  Boolean           @default(true)
-  tier                    ClinicTier        @default(CAPTURE)
-  type                    ClinicType        @default(GENERAL)
+  active                  Boolean            @default(true)
+  tier                    ClinicTier         @default(CAPTURE)
+  type                    ClinicType         @default(GENERAL)
   settings                Json?
-  timezone                String            @default("Asia/Kolkata")
-  locale                  String            @default("en-IN")
-  currency                String            @default("INR")
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
-  subscriptionStatus      String            @default("active")
+  timezone                String             @default("Asia/Kolkata")
+  locale                  String             @default("en-IN")
+  currency                String             @default("INR")
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  subscriptionStatus      SubscriptionStatus @default(ACTIVE)
   branding                Json?
   features                Json?
   whatsappAutomation      Json? // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
-  intelligenceAddon       IntelligenceAddon @default(NONE)
+  intelligenceAddon       IntelligenceAddon  @default(NONE)
   trialEndsAt             DateTime?
-  avgConsultationMinutes  Int               @default(15)
-  lateArrivalGraceMinutes Int               @default(30)
-  queueBufferMinutes      Int               @default(10)
-  useDoctorQueues         Boolean           @default(false)
+  avgConsultationMinutes  Int                @default(15)
+  lateArrivalGraceMinutes Int                @default(30)
+  queueBufferMinutes      Int                @default(10)
+  useDoctorQueues         Boolean            @default(false)
 
   // MRN Configuration
   mrnPrefix String? // Prefix for MRN (e.g., "DOC", "CLI")
@@ -842,19 +861,19 @@ model DoctorClinic {
 }
 
 model PaymentSession {
-  id                String    @id @default(cuid())
+  id                String               @id @default(cuid())
   clinicId          String
   invoiceId         String?
   patientId         String?
-  provider          String    @default("razorpay")
+  provider          String               @default("razorpay")
   providerSessionId String?
   paymentLink       String?
   shortUrl          String?
   amount            Int
-  currency          String    @default("INR")
-  status            String    @default("created")
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  currency          String               @default("INR")
+  status            PaymentSessionStatus @default(CREATED)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
   paidAt            DateTime?
   failedAt          DateTime?
   expiresAt         DateTime?
@@ -863,9 +882,9 @@ model PaymentSession {
   whatsappSentAt    DateTime?
   whatsappMessageId String?
   whatsappStatus    String?
-  clinic            Clinic    @relation(fields: [clinicId], references: [id])
-  invoice           Invoice?  @relation(fields: [invoiceId], references: [id])
-  patient           Patient?  @relation(fields: [patientId], references: [id])
+  clinic            Clinic               @relation(fields: [clinicId], references: [id])
+  invoice           Invoice?             @relation(fields: [invoiceId], references: [id])
+  patient           Patient?             @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
   @@index([invoiceId])
@@ -874,26 +893,26 @@ model PaymentSession {
 }
 
 model WhatsappLog {
-  id                String    @id @default(cuid())
+  id                String            @id @default(cuid())
   clinicId          String
   patientId         String?
   paymentSessionId  String?
   invoiceId         String?
   prescriptionId    String?
   type              String
-  provider          String    @default("meta")
+  provider          String            @default("meta")
   providerMessageId String?
   phoneNumber       String
   message           String
-  status            String    @default("queued")
+  status            WhatsappLogStatus @default(QUEUED)
   requestBody       Json?
   responseBody      Json?
   errorMessage      String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   deliveredAt       DateTime?
-  clinic            Clinic    @relation(fields: [clinicId], references: [id])
-  patient           Patient?  @relation(fields: [patientId], references: [id])
+  clinic            Clinic            @relation(fields: [clinicId], references: [id])
+  patient           Patient?          @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
   @@index([patientId])
@@ -1030,6 +1049,48 @@ enum ApprovalStatus {
   AUTO_APPROVED // Auto-approved (sent by doctor)
 }
 
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+  PARTIALLY_PAID
+  OVERDUE
+}
+
+enum QueueTokenStatus {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentSessionStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+  EXPIRED
+}
+
+enum WhatsappLogStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+enum OcrDocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model IcdCode {
   id          String               @id @default(cuid())
   code        String               @unique
@@ -1136,23 +1197,23 @@ model ImportJob {
 }
 
 model OcrDocument {
-  id                    String    @id @default(cuid())
+  id                    String            @id @default(cuid())
   clinicId              String
   patientId             String?
   sourceUrl             String
   processedUrl          String?
-  documentType          String    @default("UNKNOWN")
+  documentType          String            @default("UNKNOWN")
   ocrText               String?
   extractedData         Json?
   confidence            Float?
   fieldConfidenceScores Json? // Per-field confidence scores
   suggestedCorrections  Json? // AI-suggested corrections
-  status                String    @default("pending")
+  status                OcrDocumentStatus @default(PENDING)
   reviewedBy            String?
   reviewedAt            DateTime?
   corrections           Json?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
   // Relationship to feedback for learning
   feedbacks OcrFeedback[]
@@ -1200,29 +1261,29 @@ model PatientMergeSuggestion {
 }
 
 model QueueToken {
-  id                String       @id @default(cuid())
+  id                String           @id @default(cuid())
   clinicId          String
-  appointmentId     String?      @unique
+  appointmentId     String?          @unique
   patientId         String
   tokenNumber       Int
-  status            String       @default("waiting")
-  priority          Int          @default(0)
+  status            QueueTokenStatus @default(WAITING)
+  priority          Int              @default(0)
   notes             String?
   calledAt          DateTime?
   completedAt       DateTime?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
   consultationEnd   DateTime?
   consultationStart DateTime?
   doctorId          String?
-  estimatedDuration Int          @default(15)
+  estimatedDuration Int              @default(15)
   estimatedWaitTime Int?
   scheduledTime     DateTime?
-  tokenType         String       @default("walk-in")
-  appointment       Appointment? @relation(fields: [appointmentId], references: [id])
-  clinic            Clinic       @relation(fields: [clinicId], references: [id])
-  doctor            User?        @relation(fields: [doctorId], references: [id])
-  patient           Patient      @relation(fields: [patientId], references: [id])
+  tokenType         String           @default("walk-in")
+  appointment       Appointment?     @relation(fields: [appointmentId], references: [id])
+  clinic            Clinic           @relation(fields: [clinicId], references: [id])
+  doctor            User?            @relation(fields: [doctorId], references: [id])
+  patient           Patient          @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
   @@index([doctorId])
@@ -2162,6 +2223,7 @@ model Subscription {
   basePriceCents Int // Base tier price in paise
   currency       String             @default("INR")
   status         SubscriptionStatus @default(ACTIVE)
+  version        Int                @default(1) // Optimistic concurrency control
 
   // Discounts applied
   discountsApplied     Json? // Array of { type: DiscountType, percentOff: number }
@@ -2656,4 +2718,116 @@ model Admission {
   @@index([patientId])
   @@index([bedId])
   @@index([status])
+}
+
+model RefreshToken {
+  id              String    @id @default(cuid())
+  token           String    @unique
+  expiresAt       DateTime
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revokedAt       DateTime?
+  replacedByToken String? // ID of the token that replaced this one
+  tokenFamily     String? // Family ID for detecting token reuse attacks (same family = valid rotation chain)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([token])
+  @@index([tokenFamily]) // Index for token reuse attack detection
+}
+
+// --- Archival Tables (§6.3) ---
+
+model AuditLogArchive {
+  id           String   @id
+  clinicId     String
+  userId       String
+  action       String
+  entityType   String
+  entityId     String
+  oldValue     Json?
+  newValue     Json?
+  ipAddress    String?
+  userAgent    String?
+  status       String
+  errorMessage String?
+  metadata     Json?
+  createdAt    DateTime
+  archivedAt   DateTime @default(now())
+
+  @@index([clinicId])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+model WhatsappLogArchive {
+  id                String    @id
+  clinicId          String
+  patientId         String?
+  paymentSessionId  String?
+  invoiceId         String?
+  prescriptionId    String?
+  type              String
+  provider          String
+  providerMessageId String?
+  phoneNumber       String
+  message           String
+  status            String
+  requestBody       Json?
+  responseBody      Json?
+  errorMessage      String?
+  createdAt         DateTime
+  updatedAt         DateTime
+  deliveredAt       DateTime?
+  archivedAt        DateTime  @default(now())
+
+  @@index([clinicId])
+  @@index([phoneNumber])
+  @@index([createdAt])
+}
+
+model AppointmentArchive {
+  id                      String              @id
+  patientId               String
+  doctorId                String
+  startTime               DateTime
+  endTime                 DateTime
+  status                  String
+  type                    String
+  notes                   String?
+  consultationNotes       String?
+  createdAt               DateTime
+  updatedAt               DateTime
+  clinicId                String
+  observations            String?
+  chiefComplaint          String?
+  treatmentHistory        String?
+  clinicalImpression      String?
+  differentialDiagnosis   String?
+  finalDiagnosis          String?
+  followUpPlan            String?
+  generalExamination      Json?
+  historyOfPresentIllness String?
+  investigations          Json?
+  pastMedicalHistory      String?
+  provisionalDiagnosis    String?
+  reviewOfSystems         String?
+  systemicExamination     Json?
+  treatmentPlan           String?
+  dentalChart             Json?
+  growthData              Json?
+  ophthalmologyExam       Json?
+  cardiologyExam          Json?
+  gynecologyExam          Json?
+  dermatologyExam         Json?
+  psychiatryExam          Json?
+  encounterSummary        String?
+  priority                AppointmentPriority
+  archivedAt              DateTime            @default(now())
+
+  @@index([clinicId])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([startTime])
 }

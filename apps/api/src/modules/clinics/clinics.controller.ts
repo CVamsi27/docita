@@ -13,12 +13,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ClinicsService } from './clinics.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 import {
   CreateClinicDto,
   UpdateClinicDto,
-  CreateDoctorDto,
-  CreateReceptionistDto,
+  ClinicCreateDoctorDto,
+  ClinicCreateReceptionistDto,
   ClinicSettingsDto,
   ClinicResponseDto,
   ClinicListResponseDto,
@@ -35,6 +36,7 @@ interface AuthRequest {
 }
 
 @Controller('clinics')
+@Roles(Role.SUPER_ADMIN)
 export class ClinicsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 
@@ -79,12 +81,12 @@ export class ClinicsController {
     return this.clinicsService.getClinicStats(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @Post(':clinicId/doctors')
   @ZodSerializerDto(UserResponseDto)
   async createDoctor(
     @Param('clinicId') clinicId: string,
-    @Body() dto: CreateDoctorDto,
+    @Body() dto: ClinicCreateDoctorDto,
     @Request() req: AuthRequest,
   ) {
     // Only clinic admins can create doctors
@@ -96,7 +98,13 @@ export class ClinicsController {
     return this.clinicsService.createDoctor(clinicId, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(
+    Role.ADMIN,
+    Role.DOCTOR,
+    Role.RECEPTIONIST,
+    Role.ADMIN_DOCTOR,
+    Role.SUPER_ADMIN,
+  )
   @Get(':clinicId/doctors')
   // @ZodSerializerDto(UserListResponseDto) - Assuming array of UserResponseDto
   // Since we haven't created UserListResponseDto, let's leave it for now or create it.
@@ -106,12 +114,12 @@ export class ClinicsController {
     return this.clinicsService.getDoctors(clinicId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @Post(':clinicId/receptionists')
   @ZodSerializerDto(UserResponseDto)
   async createReceptionist(
     @Param('clinicId') clinicId: string,
-    @Body() dto: CreateReceptionistDto,
+    @Body() dto: ClinicCreateReceptionistDto,
     @Request() req: AuthRequest,
   ) {
     // Only clinic admins can create receptionists
@@ -123,7 +131,13 @@ export class ClinicsController {
     return this.clinicsService.createReceptionist(clinicId, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Roles(
+    Role.ADMIN,
+    Role.DOCTOR,
+    Role.RECEPTIONIST,
+    Role.ADMIN_DOCTOR,
+    Role.SUPER_ADMIN,
+  )
   @Get(':clinicId/receptionists')
   async getReceptionists(@Param('clinicId') clinicId: string) {
     return this.clinicsService.getReceptionists(clinicId);
@@ -131,7 +145,7 @@ export class ClinicsController {
 }
 
 @Controller('clinic')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class ClinicSettingsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 

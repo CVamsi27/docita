@@ -2,7 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   getMonthRange,
   getLastNDaysRange,
@@ -215,15 +215,17 @@ export class OperationalAnalyticsFactory {
     const [total, booked, completed, cancelled, noShow] = await Promise.all([
       readClient.appointment.count({ where }),
       readClient.appointment.count({
-        where: { ...where, status: 'confirmed' },
+        where: { ...where, status: AppointmentStatus.CONFIRMED },
       }),
       readClient.appointment.count({
-        where: { ...where, status: 'completed' },
+        where: { ...where, status: AppointmentStatus.COMPLETED },
       }),
       readClient.appointment.count({
-        where: { ...where, status: 'cancelled' },
+        where: { ...where, status: AppointmentStatus.CANCELLED },
       }),
-      readClient.appointment.count({ where: { ...where, status: 'no_show' } }),
+      readClient.appointment.count({
+        where: { ...where, status: AppointmentStatus.NO_SHOW },
+      }),
     ]);
 
     const result: AppointmentSnapshot = {
@@ -315,7 +317,7 @@ export class OperationalAnalyticsFactory {
     const uncodedVisits = await this.prisma.appointment.findMany({
       where: {
         clinicId,
-        status: 'completed',
+        status: AppointmentStatus.COMPLETED,
         diagnoses: {
           none: {},
         },

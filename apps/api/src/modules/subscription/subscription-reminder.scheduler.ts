@@ -7,7 +7,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
-import { ClinicTier } from '@workspace/db';
+import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 
 // Type for subscription with related clinic data
 interface SubscriptionWithRelations {
@@ -68,7 +68,9 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
       const expiringSubscriptions = await this.prisma.subscription.findMany({
         where: {
           currentPeriodEnd: { gte: startOfDay, lte: endOfDay },
-          status: { in: ['ACTIVE', 'TRIALING'] },
+          status: {
+            in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+          },
         },
         include: {
           clinic: {
@@ -108,7 +110,7 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
 
     const expiredGraceSubscriptions = await this.prisma.subscription.findMany({
       where: {
-        status: 'GRACE',
+        status: SubscriptionStatus.GRACE,
         currentPeriodEnd: { lte: graceExpireDate },
       },
       include: { clinic: true },
@@ -134,7 +136,9 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
     const expiringCount = await this.prisma.subscription.count({
       where: {
         currentPeriodEnd: { gte: now, lte: oneWeekFromNow },
-        status: { in: ['ACTIVE', 'TRIALING'] },
+        status: {
+          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+        },
       },
     });
 
@@ -145,7 +149,7 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
     });
 
     const graceCount = await this.prisma.subscription.count({
-      where: { status: 'GRACE' },
+      where: { status: SubscriptionStatus.GRACE },
     });
 
     const summary = {
@@ -184,7 +188,7 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
 
       if (
         subscription &&
-        subscription.status === 'ACTIVE' &&
+        subscription.status === SubscriptionStatus.ACTIVE &&
         subscription.currentPeriodStart > oneDayAgo
       ) {
         await this.prisma.clinic.update({
@@ -284,11 +288,14 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
     await this.prisma.$transaction([
       this.prisma.subscription.update({
         where: { id: subscription.id },
-        data: { status: 'EXPIRED' },
+        data: { status: SubscriptionStatus.EXPIRED },
       }),
       this.prisma.clinic.update({
         where: { id: clinic.id },
-        data: { tier: 'CAPTURE', subscriptionStatus: 'expired' },
+        data: {
+          tier: ClinicTier.CAPTURE,
+          subscriptionStatus: SubscriptionStatus.EXPIRED,
+        },
       }),
     ]);
 

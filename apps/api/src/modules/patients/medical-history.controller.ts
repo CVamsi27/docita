@@ -10,7 +10,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { MedicalHistoryService } from './medical-history.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { AuditService } from '../audit/audit.service';
 
 import {
@@ -22,7 +23,7 @@ import {
 } from './dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class MedicalHistoryController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,

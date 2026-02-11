@@ -11,9 +11,15 @@ import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { RazorpaySubscriptionGateway } from '../../gateways/razorpay-subscription.gateway';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ReferralsModule } from '../referrals/referrals.module';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-  imports: [PrismaModule, ScheduleModule.forRoot(), ReferralsModule],
+  imports: [
+    PrismaModule,
+    ScheduleModule.forRoot(),
+    ReferralsModule,
+    PaymentsModule,
+  ],
   controllers: [SubscriptionController, SubscriptionWebhooksController],
   providers: [
     SubscriptionService,
@@ -22,7 +28,7 @@ import { ReferralsModule } from '../referrals/referrals.module';
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,
-    PaymentWebSocketGateway,
+    RazorpaySubscriptionGateway,
   ],
   exports: [SubscriptionService, SubscriptionBillingService],
 })

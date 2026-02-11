@@ -8,7 +8,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/app/Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -19,8 +19,8 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./apps/web
-          target: /app/apps/web
+          path: ./apps/app
+          target: /app/apps/app
           ignore:
             - node_modules/
 
@@ -65,13 +65,26 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  # Test PostgreSQL
+  db_test:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=docita
+      - POSTGRES_PASSWORD=docita
+      - POSTGRES_DB=docita_test
+    volumes:
+      - db_test_data:/var/lib/postgresql/data
+
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6381:6379"
 
 volumes:
   db_data:
+  db_test_data:
 
 networks:
   default:

@@ -8,6 +8,7 @@ import { FhirMedicationFactory } from './factories/fhir-medication.factory';
 import { FhirConditionFactory } from './factories/fhir-condition.factory';
 import { FhirAllergyFactory } from './factories/fhir-allergy.factory';
 import { FhirImmunizationFactory } from './factories/fhir-immunization.factory';
+import { FhirAppointmentFactory } from './factories/fhir-appointment.factory';
 
 @Module({
   imports: [PrismaModule],
@@ -20,6 +21,7 @@ import { FhirImmunizationFactory } from './factories/fhir-immunization.factory';
     FhirConditionFactory,
     FhirAllergyFactory,
     FhirImmunizationFactory,
+    FhirAppointmentFactory,
   ],
   exports: [FhirService],
 })

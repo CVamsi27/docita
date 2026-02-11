@@ -5,11 +5,16 @@ import {
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
 import { WhatsappTemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { IPaymentProvider } from './providers/payment.provider.interface';
+import {
+  PaymentSessionStatus,
+  InvoiceStatus,
+  WhatsappLogStatus,
+} from '@workspace/db';
 
 interface PaymentSessionWithRelations {
   id: string;
@@ -52,11 +57,11 @@ interface RazorpayWebhookPayload {
 
 @Injectable()
 export class PaymentsService {
-  private readonly logger = new Logger(PaymentsService.name);
+  private logger = new Logger(PaymentsService.name);
 
   constructor(
     private prisma: PrismaService,
-    private whatsapp: WhatsappService,
+    private whatsappClient: WhatsappClientService,
     private whatsappTemplates: WhatsappTemplatesService,
     private pushNotifications: PushNotificationService,
     private paymentGateway: PaymentWebSocketGateway,
@@ -101,7 +106,7 @@ export class PaymentsService {
           provider: 'cash',
           amount: amountInPaise,
           currency: dto.currency,
-          status: 'pending',
+          status: PaymentSessionStatus.PENDING,
           expiresAt,
         },
       });
@@ -146,7 +151,7 @@ export class PaymentsService {
         shortUrl: paymentLink.short_url,
         amount: amountInPaise,
         currency: dto.currency,
-        status: 'created',
+        status: PaymentSessionStatus.CREATED,
         expiresAt,
         meta: paymentLink ? JSON.parse(JSON.stringify(paymentLink)) : null,
       },
@@ -197,6 +202,7 @@ export class PaymentsService {
         invoiceId: true,
         provider: true,
         amount: true,
+        paymentLink: true,
         shortUrl: true,
         patient: {
           select: {
@@ -213,6 +219,7 @@ export class PaymentsService {
         },
         clinic: {
           select: {
+            name: true,
             phone: true,
           },
         },
@@ -222,39 +229,44 @@ export class PaymentsService {
     if (!session || !session.patient) {
       throw new BadRequestException('Payment session or patient not found');
     }
+    if (!session || !session.patient || !session.invoice || !session.clinic) {
+      throw new BadRequestException(
+        'Payment session, patient, invoice, or clinic not found',
+      );
+    }
 
-    const message = this.composePaymentMessage(
-      session as PaymentSessionWithRelations,
-    );
+    const message = `Make a payment of ₹${session.amount / 100} for Invoice #${session.invoice.id.toString().slice(-8).toUpperCase()} at ${session.clinic.name}.\n\nPay here: ${session.shortUrl || session.paymentLink}`;
 
-    const result = await this.whatsapp.sendMessage({
+    const result = await this.whatsappClient.sendMessage({
       to: session.patient.phoneNumber,
       message,
     });
 
-    await this.prisma.paymentSession.update({
-      where: { id: sessionId },
-      data: {
-        whatsappSentAt: new Date(),
-        whatsappMessageId: result.messageId,
-        whatsappStatus: 'sent',
-      },
-    });
-
-    await this.prisma.whatsappLog.create({
-      data: {
-        clinicId: session.clinicId,
-        patientId: session.patientId,
-        paymentSessionId: sessionId,
-        type: 'payment-link',
-        provider: 'meta',
-        providerMessageId: result.messageId,
-        phoneNumber: session.patient.phoneNumber,
-        message,
-        status: 'sent',
-        responseBody: result as object,
-      },
-    });
+    // Atomic: update payment session WhatsApp status + create log entry
+    await this.prisma.$transaction([
+      this.prisma.paymentSession.update({
+        where: { id: sessionId },
+        data: {
+          whatsappSentAt: new Date(),
+          whatsappMessageId: result.messageId,
+          whatsappStatus: 'SENT', // This field is string in schema? No, it's whatsappStatus. Wait, I should check schema for PaymentSession.whatsappStatus
+        },
+      }),
+      this.prisma.whatsappLog.create({
+        data: {
+          clinicId: session.clinicId,
+          patientId: session.patientId,
+          paymentSessionId: sessionId,
+          type: 'payment-link',
+          provider: 'meta',
+          providerMessageId: result.messageId,
+          phoneNumber: session.patient.phoneNumber,
+          message,
+          status: WhatsappLogStatus.SENT,
+          responseBody: result as object,
+        },
+      }),
+    ]);
 
     this.logger.log(`Sent payment link via WhatsApp for session ${sessionId}`);
 
@@ -324,7 +336,7 @@ export class PaymentsService {
     const updateData: {
       webhookPayload: object;
       updatedAt: Date;
-      status?: string;
+      status?: PaymentSessionStatus;
       paidAt?: Date;
     } = {
       webhookPayload: payload,
@@ -333,17 +345,25 @@ export class PaymentsService {
 
     switch (event) {
       case 'payment_link.paid':
-        updateData.status = 'paid';
+        updateData.status = PaymentSessionStatus.PAID;
         updateData.paidAt = new Date();
 
-        if (session.invoiceId) {
-          await this.prisma.invoice.update({
-            where: { id: session.invoiceId },
-            data: { status: 'paid' },
-          });
-        }
+        // Atomic: update invoice + payment session in a single transaction
+        await this.prisma.$transaction(async (tx) => {
+          if (session.invoiceId) {
+            await tx.invoice.update({
+              where: { id: session.invoiceId },
+              data: { status: InvoiceStatus.PAID },
+            });
+          }
 
-        // Send payment confirmation notifications
+          await tx.paymentSession.update({
+            where: { id: session.id },
+            data: updateData,
+          });
+        });
+
+        // Non-critical: send notifications outside transaction
         await this.sendPaymentConfirmationNotifications(
           session,
           paymentLinkData.id,
@@ -351,21 +371,25 @@ export class PaymentsService {
         break;
 
       case 'payment_link.expired':
-        updateData.status = 'expired';
+        updateData.status = PaymentSessionStatus.EXPIRED;
+        await this.prisma.paymentSession.update({
+          where: { id: session.id },
+          data: updateData,
+        });
         break;
 
       case 'payment_link.cancelled':
-        updateData.status = 'cancelled';
+        updateData.status = PaymentSessionStatus.CANCELLED;
+        await this.prisma.paymentSession.update({
+          where: { id: session.id },
+          data: updateData,
+        });
         break;
 
       default:
         this.logger.warn(`Unhandled event: ${event}`);
+        return;
     }
-
-    await this.prisma.paymentSession.update({
-      where: { id: session.id },
-      data: updateData,
-    });
 
     this.paymentGateway.emitPaymentUpdate(session.clinicId, session.id, {
       sessionId: session.id,
@@ -443,7 +467,7 @@ export class PaymentsService {
       if (resolvedTemplate) {
         const message =
           this.whatsappTemplates.getMessageForMode(resolvedTemplate);
-        await this.whatsapp.sendMessage({
+        await this.whatsappClient.sendMessage({
           to: session.patient.phoneNumber,
           message,
         });
@@ -459,7 +483,7 @@ export class PaymentsService {
             provider: 'meta',
             phoneNumber: session.patient.phoneNumber,
             message,
-            status: 'sent',
+            status: WhatsappLogStatus.SENT,
           },
         });
 

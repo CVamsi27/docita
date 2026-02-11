@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { invoiceSchema } from '@workspace/types';
+import { InvoiceStatus } from '@workspace/db';
 
 const InvoiceItemSchema = z.object({
   description: z.string(),
@@ -12,7 +13,7 @@ export const CreateInvoiceSchema = z.object({
   appointmentId: z.string().optional(),
   patientId: z.string(),
   total: z.number().nonnegative(),
-  status: z.string(), // Could be enum
+  status: z.nativeEnum(InvoiceStatus),
   items: z.array(InvoiceItemSchema),
   // Doctor context
   doctorName: z.string().optional(),
@@ -27,7 +28,7 @@ export const CreateInvoiceSchema = z.object({
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
 export const UpdateInvoiceSchema = z.object({
-  status: z.string().optional(),
+  status: z.nativeEnum(InvoiceStatus).optional(),
   total: z.number().nonnegative().optional(),
   items: z.array(InvoiceItemSchema).optional(),
 });

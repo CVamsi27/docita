@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -38,7 +39,7 @@ describe('Invoices (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useLogger(false);
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
@@ -95,8 +96,9 @@ describe('Invoices (e2e)', () => {
     it('should create invoice', async () => {
       const invoiceData = {
         patientId,
-        items: [{ description: 'Consultation', quantity: 1, unitPrice: 500 }],
+        items: [{ description: 'Consultation', quantity: 1, price: 500 }],
         status: 'DRAFT',
+        total: 500,
       };
 
       const response = await request(app.getHttpServer())
@@ -126,8 +128,9 @@ describe('Invoices (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           patientId,
-          items: [{ description: 'Consultation', quantity: 1, unitPrice: 500 }],
+          items: [{ description: 'Consultation', quantity: 1, price: 500 }],
           status: 'DRAFT',
+          total: 500,
         });
 
       const invoiceId = createRes.body.id;
@@ -155,8 +158,9 @@ describe('Invoices (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           patientId,
-          items: [{ description: 'Consultation', quantity: 1, unitPrice: 500 }],
+          items: [{ description: 'Consultation', quantity: 1, price: 500 }],
           status: 'DRAFT',
+          total: 500,
         });
 
       const invoiceId = createRes.body.id;

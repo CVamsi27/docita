@@ -8,11 +8,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import type { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('imports')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class BulkImportController {
   constructor(private readonly bulkImportService: BulkImportService) {}
 

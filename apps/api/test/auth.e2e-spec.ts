@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -36,7 +37,7 @@ describe('Auth (e2e)', () => {
     app = moduleFixture.createNestApplication();
     // Disable logging in tests to suppress expected error messages
     app.useLogger(false);
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
@@ -59,8 +60,9 @@ describe('Auth (e2e)', () => {
         .send({
           email: 'newdoctor@test.com',
           password: 'Test@123456',
-          name: 'Dr. Smith',
-          role: 'DOCTOR',
+          firstName: 'Dr.',
+          lastName: 'Smith',
+          clinicName: 'Test Clinic',
         })
         .expect(201);
 
@@ -79,7 +81,9 @@ describe('Auth (e2e)', () => {
         .send({
           email: user.email,
           password: 'Test@123456',
-          name: 'Dr. Duplicate',
+          firstName: 'Dr.',
+          lastName: 'Duplicate',
+          clinicName: 'Duplicate Clinic',
         })
         .expect(409);
 
@@ -92,7 +96,9 @@ describe('Auth (e2e)', () => {
         .send({
           email: 'test@test.com',
           password: '123',
-          name: 'Dr. Test',
+          firstName: 'Dr.',
+          lastName: 'Test',
+          clinicName: 'Weak Password Clinic',
         })
         .expect(400);
 

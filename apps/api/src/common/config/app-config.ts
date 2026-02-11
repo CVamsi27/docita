@@ -16,6 +16,11 @@ export const EnvSchema = z.object({
       if (isProd && val.length < 32) return false;
       return true;
     }, 'JWT_SECRET must be at least 32 characters in production'),
+  ENCRYPTION_KEY: z
+    .string()
+    .min(1, 'ENCRYPTION_KEY is required')
+    .length(64, 'ENCRYPTION_KEY must be exactly 64 hex characters (256-bit)')
+    .regex(/^[0-9a-fA-F]+$/, 'ENCRYPTION_KEY must be a valid hex string'),
 
   // Optional with defaults
   NODE_ENV: z
@@ -124,6 +129,9 @@ export function getCorsOrigins(): string[] {
     'http://localhost:3003', // landing dev
     'http://localhost:3000', // app dev
     'http://localhost:3002', // admin dev
+    'http://127.0.0.1:3003',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3002',
   ];
 }
 export function getWebSocketCorsOrigins(): string[] {

@@ -6,6 +6,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { API_URL } from "./api-config";
+import { ApiError } from "./errors";
 
 export { API_URL };
 
@@ -142,7 +143,6 @@ export async function fetchAPI<T>(
 ): Promise<T> {
   const token = getAuthToken();
 
-  // Don't set Content-Type for FormData - browser will set it automatically with boundary
   const headers: HeadersInit = {
     ...(!(options?.body instanceof FormData) && {
       "Content-Type": "application/json",
@@ -158,43 +158,57 @@ export async function fetchAPI<T>(
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
 
     if (!response.ok) {
       // Handle 401 Unauthorized - token is invalid or expired
       if (response.status === 401) {
         handleAuthError();
-        throw new Error("Session expired. Please log in again.");
+        throw new ApiError(
+          "Session expired. Please log in again.",
+          401,
+          "UNAUTHORIZED",
+        );
       }
 
       // Handle other errors
-      const error = await response
-        .json()
-        .catch(() => ({ message: "An error occurred" }));
-      throw new Error(
-        error.message || `HTTP error! status: ${response.status}`,
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (_e) {
+        errorData = { message: `HTTP error! status: ${response.status}` };
+      }
+
+      throw new ApiError(
+        errorData.message || `HTTP error! status: ${response.status}`,
+        response.status,
+        errorData.code || "API_ERROR",
+        errorData.details,
       );
     }
 
     return response.json();
   } catch (error) {
-    // Re-throw with better error messaging
-    if (error instanceof Error) {
+    if (error instanceof ApiError) {
       throw error;
     }
-    throw new Error("Failed to fetch from API");
+    throw new ApiError(
+      error instanceof Error ? error.message : "Failed to fetch from API",
+      500,
+      "NETWORK_ERROR",
+    );
   }
 }
 
 export function useAPIQuery<T>(
   key: unknown[],
   endpoint: string,
-  options?: Omit<UseQueryOptions<T>, "queryKey" | "queryFn">,
+  options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
 ) {
-  return useQuery<T>({
+  return useQuery<T, ApiError>({
     queryKey: key,
     queryFn: () => fetchAPI<T>(endpoint),
-    enabled: true, // Default to enabled, can be overridden in options
     ...options,
   });
 }
@@ -202,11 +216,13 @@ export function useAPIQuery<T>(
 export function useAPIMutation<TData, TVariables>(
   endpoint: string | ((variables: TVariables) => string),
   method: "POST" | "PUT" | "DELETE" | "PATCH" = "POST",
-  options?: UseMutationOptions<TData, Error, TVariables>,
+  options?: UseMutationOptions<TData, ApiError, TVariables> & {
+    invalidateKeys?: unknown[][];
+  },
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, Error, TVariables>({
+  return useMutation<TData, ApiError, TVariables>({
     mutationFn: (variables) => {
       const url =
         typeof endpoint === "function" ? endpoint(variables) : endpoint;
@@ -220,12 +236,20 @@ export function useAPIMutation<TData, TVariables>(
         body,
       });
     },
-    onSuccess: () => {
-      // Invalidate all queries but wait for refetch to complete
-      void queryClient.invalidateQueries({});
-    },
     ...options,
+    onSuccess: async (data, variables, context, mutationContext) => {
+      if (options?.invalidateKeys) {
+        await Promise.all(
+          options.invalidateKeys.map((key) =>
+            queryClient.invalidateQueries({ queryKey: key }),
+          ),
+        );
+      }
+      // Blanket invalidation removed as per §9.2 for better performance
+
+      if (options?.onSuccess) {
+        await options.onSuccess(data, variables, context, mutationContext);
+      }
+    },
   });
 }
-
-

@@ -86,7 +86,9 @@ export class SuperAdminBillingService {
     });
 
     const activeSubscriptions = subscriptions.filter(
-      (s) => s.status === 'ACTIVE' || s.status === 'TRIALING',
+      (s) =>
+        s.status === SubscriptionStatus.ACTIVE ||
+        s.status === SubscriptionStatus.TRIALING,
     );
 
     const mrr = activeSubscriptions.reduce((sum, s) => {
@@ -99,7 +101,9 @@ export class SuperAdminBillingService {
 
     const thirtyDaysAgo = this.subDays(new Date(), 30);
     const cancelledRecently = subscriptions.filter(
-      (s) => s.status === 'CANCELLED' && new Date(s.updatedAt) > thirtyDaysAgo,
+      (s) =>
+        s.status === SubscriptionStatus.CANCELLED &&
+        new Date(s.updatedAt) > thirtyDaysAgo,
     ).length;
 
     const totalActive = activeSubscriptions.length;
@@ -128,7 +132,8 @@ export class SuperAdminBillingService {
     const expiringSubscriptions = subscriptions
       .filter(
         (s) =>
-          (s.status === 'ACTIVE' || s.status === 'TRIALING') &&
+          (s.status === SubscriptionStatus.ACTIVE ||
+            s.status === SubscriptionStatus.TRIALING) &&
           new Date(s.currentPeriodEnd) <= sevenDaysFromNow &&
           new Date(s.currentPeriodEnd) > new Date(),
       )
@@ -146,7 +151,7 @@ export class SuperAdminBillingService {
       }));
 
     const gracePeriodSubscriptions = subscriptions
-      .filter((s) => s.status === 'GRACE')
+      .filter((s) => s.status === SubscriptionStatus.GRACE)
       .map((s) => ({
         id: s.id,
         clinicId: s.clinicId,
@@ -197,8 +202,9 @@ export class SuperAdminBillingService {
       mrr: mrr / 100,
       arr: arr / 100,
       activeSubscriptions: activeSubscriptions.length,
-      trialSubscriptions: subscriptions.filter((s) => s.status === 'TRIALING')
-        .length,
+      trialSubscriptions: subscriptions.filter(
+        (s) => s.status === SubscriptionStatus.TRIALING,
+      ).length,
       churnRate,
       subscriptionsByTier,
       subscriptionsByStatus,
@@ -275,7 +281,9 @@ export class SuperAdminBillingService {
 
     const subscriptions = await this.prisma.subscription.findMany({
       where: {
-        status: { in: ['ACTIVE', 'TRIALING'] },
+        status: {
+          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+        },
         currentPeriodEnd: { lte: futureDate, gte: new Date() },
       },
       include: {
@@ -385,7 +393,7 @@ export class SuperAdminBillingService {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (subscription.status !== 'GRACE') {
+    if (subscription.status !== SubscriptionStatus.GRACE) {
       throw new BadRequestException('Subscription is not in grace period');
     }
 
@@ -428,7 +436,7 @@ export class SuperAdminBillingService {
       where: { id: clinicId },
       data: {
         tier: data.newTier,
-        subscriptionStatus: 'active',
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
       },
     });
 

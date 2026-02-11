@@ -1,4 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { CacheDuration } from '../../common/interceptors/cache.interceptor';
 import { ConfigService } from './config.service';
 import { Public } from '../auth/public.decorator';
 import {
@@ -20,6 +21,7 @@ export class ConfigController {
    */
   @Public()
   @Get('form-options')
+  @CacheDuration(3600)
   @ZodSerializerDto(FormOptionsResponseDto)
   getFormOptions() {
     return this.configService.getFormOptions();
@@ -30,6 +32,7 @@ export class ConfigController {
    */
   @Public()
   @Get('constants')
+  @CacheDuration(3600)
   @ZodSerializerDto(AppConstantsResponseDto)
   getConstants() {
     return this.configService.getConstants();
@@ -40,6 +43,7 @@ export class ConfigController {
    */
   @Public()
   @Get('patient-import-fields')
+  @CacheDuration(3600)
   @ZodSerializerDto(PatientImportFieldsResponseDto)
   getPatientImportFields() {
     return this.configService.getPatientImportFields();
@@ -50,6 +54,7 @@ export class ConfigController {
    */
   @Public()
   @Get('defaults')
+  @CacheDuration(3600)
   @ZodSerializerDto(AppDefaultsResponseDto)
   getDefaults() {
     return this.configService.getDefaults();
@@ -61,6 +66,7 @@ export class ConfigController {
    */
   @Public()
   @Get()
+  @CacheDuration(3600)
   @ZodSerializerDto(AppConfigResponseDto)
   async getAppConfig(@Query('clinicId') clinicId?: string) {
     return this.configService.getAppConfig(clinicId);

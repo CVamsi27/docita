@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StorageProvider, StorageFile } from './storage.provider';
 
 @Injectable()
 export class UploadsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storageProvider: StorageProvider,
+  ) {}
 
   async createSession() {
     const expiresAt = new Date();
@@ -28,16 +32,16 @@ export class UploadsService {
     return session;
   }
 
-  async updateSession(id: string, filePath: string) {
-    // In a real app, upload to cloud storage and get public URL
-    // For this demo, we'll just pretend the file path is the URL
-    // or use a placeholder since the OCR is simulated anyway.
+  async updateSession(id: string, file: StorageFile) {
+    // 1. Upload to storage (sanitizes, validates, and strips EXIF)
+    const fileUrl = await this.storageProvider.upload(file, 'documents');
 
+    // 2. Update DB
     return this.prisma.uploadSession.update({
       where: { id },
       data: {
         status: 'uploaded',
-        fileUrl: filePath, // In real app: 'https://s3...'
+        fileUrl,
       },
     });
   }

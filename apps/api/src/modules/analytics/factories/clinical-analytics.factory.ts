@@ -2,7 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   DiseaseTrendPoint,
   TopCondition,
@@ -202,7 +202,7 @@ export class ClinicalAnalyticsFactory {
   ) {
     const where: Prisma.AppointmentWhereInput = {
       clinicId,
-      status: 'completed',
+      status: AppointmentStatus.COMPLETED,
     };
 
     if (startDate || endDate) {
@@ -290,7 +290,7 @@ export class ClinicalAnalyticsFactory {
   ) {
     const where: Prisma.AppointmentWhereInput = {
       clinicId,
-      status: 'completed',
+      status: AppointmentStatus.COMPLETED,
       diagnoses: {
         some: {},
       },

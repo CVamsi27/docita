@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
-import { usePatients } from "@/features/patients/hooks/usePatients";
+import { apiHooks } from "@/lib/api-hooks";
 import { Patient } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -35,7 +35,7 @@ import { format } from "date-fns";
 import {
   AddPatientDialog,
   EditPatientDialog,
-} from "@/features/patients/components";
+} from "@/features/_shared/components/misc-stubs";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -45,7 +45,7 @@ function PatientsContent() {
     isLoading: loading,
     error: queryError,
     refetch,
-  } = usePatients();
+  } = apiHooks.usePatients();
   // Note: Doctors should see all patients, not filtered by appointments
   // Appointments API call removed to improve performance
   const error = queryError ? (queryError as Error).message : null;

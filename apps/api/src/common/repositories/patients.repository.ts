@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Patient } from '@workspace/types';
-import { Gender } from '@workspace/db';
+import { Gender, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import {
   BaseRepository,
   PaginationOptions,
@@ -119,8 +119,11 @@ export class PatientsRepository extends BaseRepository<Patient> {
    * Find a single patient by ID
    */
   async findOne(id: string): Promise<Patient | null> {
-    const patient = await this.prisma.patient.findUnique({
-      where: { id },
+    const patient = await this.prisma.patient.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
       select: this.getDetailSelect(),
     });
     return patient as unknown as Patient | null;
@@ -347,10 +350,12 @@ export class PatientsRepository extends BaseRepository<Patient> {
 
     const now = new Date();
     const completedAppointments = appointments.filter(
-      (apt) => apt.status === 'completed',
+      (apt) => apt.status === AppointmentStatus.COMPLETED,
     );
     const scheduledAppointments = appointments.filter(
-      (apt) => apt.status === 'scheduled' || apt.status === 'confirmed',
+      (apt) =>
+        apt.status === AppointmentStatus.SCHEDULED ||
+        apt.status === AppointmentStatus.CONFIRMED,
     );
 
     // Calculate total visits (completed appointments)
@@ -378,10 +383,10 @@ export class PatientsRepository extends BaseRepository<Patient> {
     // Calculate adherence rate
     // Adherence = completed / (completed + no-show + cancelled)
     const noShowAppointments = appointments.filter(
-      (apt) => apt.status === 'no-show',
+      (apt) => apt.status === AppointmentStatus.NO_SHOW,
     ).length;
     const cancelledAppointments = appointments.filter(
-      (apt) => apt.status === 'cancelled',
+      (apt) => apt.status === AppointmentStatus.CANCELLED,
     ).length;
 
     const totalRelevantAppointments =
@@ -457,7 +462,13 @@ export class PatientsRepository extends BaseRepository<Patient> {
     const appointments = await this.prisma.appointment.findMany({
       where: {
         patientId,
-        status: { in: ['completed', 'in-progress', 'checked-in'] },
+        status: {
+          in: [
+            AppointmentStatus.COMPLETED,
+            AppointmentStatus.IN_PROGRESS,
+            AppointmentStatus.CHECKED_IN,
+          ],
+        },
       },
       select: {
         id: true,

@@ -15,7 +15,8 @@ import {
   Headers,
   RawBodyRequest,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto } from './dto/send-template.dto';
 import { MetaWebhookPayload } from './types/webhook.types';
@@ -32,11 +33,19 @@ import { ZodSerializerDto } from 'nestjs-zod';
 
 // ... (comments elided for brevity if not strictly needed)
 
+import { Public } from '../auth/public.decorator';
+
+import { WhatsappWebhookService } from './whatsapp-webhook.service';
+
 @Controller('whatsapp')
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class WhatsappController {
   private readonly logger = new Logger(WhatsappController.name);
 
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(
+    private readonly whatsappService: WhatsappService,
+    private readonly whatsappWebhook: WhatsappWebhookService,
+  ) {}
 
   // ==========================================================================
   // Template Management
@@ -46,7 +55,6 @@ export class WhatsappController {
    * List all templates for the clinic
    */
   @Get('templates')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(WhatsappTemplateListResponseDto)
   async listTemplates(@Req() req: Request) {
     const user = req.user as { clinicId: string };
@@ -60,7 +68,6 @@ export class WhatsappController {
    * Get default template names
    */
   @Get('templates/defaults')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(WhatsappDefaultTemplatesResponseDto)
   getDefaultTemplates() {
     return this.whatsappService.getDefaultTemplateNames();
@@ -70,7 +77,6 @@ export class WhatsappController {
    * Seed default templates for clinic
    */
   @Post('templates/seed')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(SuccessResponseDto)
   async seedTemplates(@Req() req: Request) {
     const user = req.user as { clinicId: string };
@@ -89,7 +95,6 @@ export class WhatsappController {
    * Send a template-based WhatsApp message
    */
   @Post('send')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(WhatsappMessageResponseDto)
   async sendTemplateMessage(@Req() req: Request, @Body() dto: SendTemplateDto) {
     const user = req.user as { clinicId: string; id: string };
@@ -104,7 +109,6 @@ export class WhatsappController {
    * Resend prescription via WhatsApp
    */
   @Post('resend-prescription/:id')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(SuccessResponseDto)
   async resendPrescription(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { clinicId: string; id: string; role: string };
@@ -120,7 +124,6 @@ export class WhatsappController {
    * Resend invoice via WhatsApp
    */
   @Post('resend-invoice/:id')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(SuccessResponseDto)
   async resendInvoice(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { clinicId: string; id: string; role: string };
@@ -143,6 +146,7 @@ export class WhatsappController {
   /**
    * Meta webhook verification (GET request)
    */
+  @Public()
   @Get('webhook')
   handleWebhookVerification(
     @Query('hub.mode') mode: string,
@@ -153,7 +157,7 @@ export class WhatsappController {
 
     if (
       mode === 'subscribe' &&
-      token === this.whatsappService.getVerifyToken()
+      token === this.whatsappWebhook.getVerifyToken()
     ) {
       this.logger.log('Webhook verified successfully');
       return parseInt(challenge, 10);
@@ -166,6 +170,7 @@ export class WhatsappController {
   /**
    * Meta incoming message webhook
    */
+  @Public()
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleIncomingWebhook(
@@ -174,7 +179,7 @@ export class WhatsappController {
     @Headers('x-hub-signature-256') signature: string,
   ) {
     if (req.rawBody && signature) {
-      const isValid = this.whatsappService.validateWebhookSignature(
+      const isValid = this.whatsappWebhook.validateWebhookSignature(
         req.rawBody,
         signature,
       );
@@ -189,10 +194,10 @@ export class WhatsappController {
         for (const change of entry.changes || []) {
           const value = change.value;
           if (value.messages && value.messages.length > 0) {
-            await this.whatsappService.processIncomingMessages(value);
+            await this.whatsappWebhook.processIncomingMessages(value);
           }
           if (value.statuses && value.statuses.length > 0) {
-            await this.whatsappService.processStatusUpdates(value);
+            await this.whatsappWebhook.processStatusUpdates(value);
           }
         }
       }
@@ -211,7 +216,6 @@ export class WhatsappController {
    * Get WhatsApp message logs for the clinic
    */
   @Get('logs')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(WhatsappLogListResponseDto)
   async getLogs(
     @Req() req: Request,
@@ -239,7 +243,6 @@ export class WhatsappController {
    * Approve a prescription for WhatsApp sharing
    */
   @Post('approve-prescription/:id')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(SuccessResponseDto)
   async approvePrescription(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; role: string };
@@ -261,7 +264,6 @@ export class WhatsappController {
    * Approve an invoice for WhatsApp sharing
    */
   @Post('approve-invoice/:id')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; role: string };
@@ -283,7 +285,6 @@ export class WhatsappController {
    * Get WhatsApp statistics for the clinic
    */
   @Get('stats')
-  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(WhatsappStatsResponseDto)
   async getStats(@Req() req: Request) {
     const user = req.user as { clinicId: string };

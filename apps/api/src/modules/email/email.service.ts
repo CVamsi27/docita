@@ -6,6 +6,7 @@ import {
   EmailSendResult,
   EMAIL_PROVIDER,
 } from './providers/email-provider.interface';
+import { escapeHtml } from '@workspace/utils';
 
 /**
  * Email service that abstracts email delivery through configurable providers.
@@ -28,12 +29,15 @@ export class EmailService {
     name: string,
     clinicName: string,
   ): Promise<EmailSendResult> {
+    const safeName = escapeHtml(name);
+    const safeClinicName = escapeHtml(clinicName);
+
     return this.emailProvider.send({
       to: email,
-      subject: `Welcome to Docita - ${clinicName}`,
+      subject: `Welcome to Docita - ${safeClinicName}`,
       html: `
-        <h1>Welcome, ${name}!</h1>
-        <p>Your clinic <strong>${clinicName}</strong> has been successfully registered on Docita.</p>
+        <h1>Welcome, ${safeName}!</h1>
+        <p>Your clinic <strong>${safeClinicName}</strong> has been successfully registered on Docita.</p>
         <p>You can now start managing your practice efficiently.</p>
         <p>
           <a href="${process.env.APP_URL || 'https://app.docita.work'}" 
@@ -90,17 +94,21 @@ export class EmailService {
       minute: '2-digit',
     });
 
+    const safePatientName = escapeHtml(patientName);
+    const safeDoctorName = escapeHtml(doctorName);
+    const safeClinicName = escapeHtml(clinicName);
+
     return this.emailProvider.send({
       to: email,
-      subject: `Appointment Reminder - ${clinicName}`,
+      subject: `Appointment Reminder - ${safeClinicName}`,
       html: `
         <h1>Appointment Reminder</h1>
-        <p>Dear ${patientName},</p>
+        <p>Dear ${safePatientName},</p>
         <p>This is a reminder for your upcoming appointment:</p>
         <ul>
-          <li><strong>Doctor:</strong> Dr. ${doctorName}</li>
+          <li><strong>Doctor:</strong> Dr. ${safeDoctorName}</li>
           <li><strong>Date & Time:</strong> ${formattedDate}</li>
-          <li><strong>Clinic:</strong> ${clinicName}</li>
+          <li><strong>Clinic:</strong> ${safeClinicName}</li>
         </ul>
         <p>Please arrive 10 minutes before your scheduled time.</p>
       `,

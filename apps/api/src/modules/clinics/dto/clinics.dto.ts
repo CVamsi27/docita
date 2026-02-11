@@ -89,6 +89,8 @@ export const CreateDoctorSchema = CreateStaffSchema.extend({
   registrationNumber: z.string().optional(),
 });
 
-export class CreateDoctorDto extends createZodDto(CreateDoctorSchema) {}
+export class ClinicCreateDoctorDto extends createZodDto(CreateDoctorSchema) {}
 
-export class CreateReceptionistDto extends createZodDto(CreateStaffSchema) {}
+export class ClinicCreateReceptionistDto extends createZodDto(
+  CreateStaffSchema,
+) {}

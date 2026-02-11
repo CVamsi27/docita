@@ -14,7 +14,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { FhirService } from './fhir.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import {
   FhirResourceDto,
   FhirBundleDto,
@@ -24,7 +25,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import type { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('fhir')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 export class FhirController {
   constructor(private readonly fhirService: FhirService) {}
 
@@ -106,6 +107,36 @@ export class FhirController {
     const clinicId = req.user.clinicId;
     if (!clinicId) throw new Error('Clinic ID required');
     return this.fhirService.getAllergyIntolerances(patientId, clinicId);
+  }
+
+  /**
+   * Get FHIR Appointment resource
+   * GET /fhir/Appointment/:id
+   */
+  @Get('Appointment/:id')
+  @ZodSerializerDto(FhirResourceDto)
+  async getAppointment(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
+    return this.fhirService.getAppointmentResource(id, clinicId);
+  }
+
+  /**
+   * Get FHIR Appointment resources for a patient
+   * GET /fhir/Appointment?patient=:patientId
+   */
+  @Get('Appointment')
+  @ZodSerializerDto(FhirResourceListDto)
+  async getAppointments(
+    @Query('patient') patientId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const clinicId = req.user.clinicId;
+    if (!clinicId) throw new Error('Clinic ID required');
+    return this.fhirService.getAppointments(patientId, clinicId);
   }
 
   /**

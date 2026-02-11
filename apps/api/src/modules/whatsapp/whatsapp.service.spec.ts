@@ -1,19 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappTemplatesService } from './templates.service';
+import { WhatsappClientService } from './whatsapp-client.service';
+import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { ResponseHandlerService } from './response-handler.service';
 import { StaffNotificationService } from './staff-notification.service';
 
 describe('WhatsappService', () => {
   let service: WhatsappService;
+  let module: TestingModule;
 
   const mockPrismaService = {
     whatsappLog: {
       create: jest.fn(),
     },
     clinic: {
-      findUnique: jest.fn(),
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({ id: 'clinic-123', name: 'Test Clinic' }),
     },
   };
 
@@ -26,11 +32,19 @@ describe('WhatsappService', () => {
   const mockStaffNotification = {};
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const mockWhatsappClient = {
+      sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
+    };
+
+    const mockWhatsappWebhook = {};
+
+    module = await Test.createTestingModule({
       providers: [
         WhatsappService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: WhatsappTemplatesService, useValue: mockTemplatesService },
+        { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        { provide: WhatsappWebhookService, useValue: mockWhatsappWebhook },
         { provide: ResponseHandlerService, useValue: mockResponseHandler },
         { provide: StaffNotificationService, useValue: mockStaffNotification },
       ],
@@ -54,60 +68,41 @@ describe('WhatsappService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('sendMessage', () => {
-    it('should send a text message successfully', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ messages: [{ id: 'wamid.123' }] }),
-      });
-
-      const result = await service.sendMessage({
-        to: '+919876543210',
-        message: 'Hello World',
-      });
-
-      expect(result).toEqual({ success: true, messageId: 'wamid.123' });
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/messages'),
-        expect.objectContaining({
-          method: 'POST',
-          body: expect.stringContaining('"to":"919876543210"'),
-        }),
-      );
-    });
-
-    it('should throw error on API failure', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        json: () =>
-          Promise.resolve({ error: { message: 'Invalid phone number' } }),
-      });
-
-      await expect(
-        service.sendMessage({ to: '123', message: 'Hi' }),
-      ).rejects.toThrow('Invalid phone number');
-    });
-  });
-
-  describe('sendTemplate', () => {
+  describe('handleSendTemplate', () => {
     it('should send a template message', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ messages: [{ id: 'wamid.template' }] }),
+      // Mock template resolution
+      mockTemplatesService.resolveTemplate.mockResolvedValue({
+        name: 'hello_world',
+        language: 'en_US',
+        components: [],
       });
-
-      const result = await service.sendTemplate({
-        to: '9876543210',
-        templateName: 'hello_world',
-      });
-
-      expect(result).toEqual({ success: true, messageId: 'wamid.template' });
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          body: expect.stringContaining('"type":"template"'),
-        }),
+      mockTemplatesService.getMessageForMode.mockReturnValue(
+        'Hello World Template Message',
       );
+
+      // Call handleSendTemplate directly as it's the new method
+      const result = await service.handleSendTemplate(
+        'clinic-123',
+        'user-123',
+        {
+          templateId: 'hello_world',
+          variables: {},
+          phoneNumber: '9876543210',
+          patientId: 'patient-123',
+        },
+      );
+
+      expect(result).toEqual({
+        success: true,
+        messageId: 'msg-123',
+        templateId: 'hello_world',
+      });
+
+      const client = module.get(WhatsappClientService);
+      expect(client.sendMessage).toHaveBeenCalledWith({
+        to: '9876543210',
+        message: 'Hello World Template Message',
+      });
     });
   });
 });

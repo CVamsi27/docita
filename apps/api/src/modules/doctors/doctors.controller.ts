@@ -11,8 +11,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Specialization, HospitalRole } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
+import { Specialization, HospitalRole, Role } from '@workspace/db';
 
 import {
   CreateDoctorDto,
@@ -34,7 +34,7 @@ interface AuthRequest {
 }
 
 @Controller('doctors')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
@@ -61,35 +61,26 @@ export class DoctorsController {
   }
 
   @Post()
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
   async create(@Request() req: AuthRequest, @Body() dto: CreateDoctorDto) {
-    // Only ADMIN and ADMIN_DOCTOR can create members
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
-      throw new ForbiddenException('Only admins can create members');
-    }
     return this.doctorsService.create(req.user.clinicId, dto);
   }
 
   @Put(':id')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
   async update(
     @Request() req: AuthRequest,
     @Param('id') id: string,
     @Body() dto: UpdateDoctorDto,
   ) {
-    // Only ADMIN and ADMIN_DOCTOR can update members
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
-      throw new ForbiddenException('Only admins can update members');
-    }
     return this.doctorsService.update(id, dto);
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async remove(@Request() req: AuthRequest, @Param('id') id: string) {
-    // Only ADMIN and ADMIN_DOCTOR can delete members
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'ADMIN_DOCTOR') {
-      throw new ForbiddenException('Only admins can delete members');
-    }
     return this.doctorsService.remove(id);
   }
 

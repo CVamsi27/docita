@@ -11,7 +11,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import {
   ReminderSettingsDto,
   SendReminderDto,
@@ -28,7 +29,7 @@ interface AuthRequest {
 }
 
 @Controller('reminders')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class RemindersController {
   constructor(private readonly remindersService: RemindersService) {}
 

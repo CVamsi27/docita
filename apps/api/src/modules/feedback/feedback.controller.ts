@@ -12,7 +12,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 
 import {
   CreateFeedbackDto,
@@ -42,7 +43,13 @@ interface FeedbackFiltersQuery {
 }
 
 @Controller('feedback')
-@UseGuards(JwtAuthGuard)
+@Roles(
+  Role.ADMIN,
+  Role.DOCTOR,
+  Role.RECEPTIONIST,
+  Role.ADMIN_DOCTOR,
+  Role.SUPER_ADMIN,
+)
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 

@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Request } from 'express';
 
 import { ConfigService } from '@nestjs/config';
 
@@ -14,30 +15,50 @@ interface JwtPayload {
   clinicId: string | null;
 }
 
+/**
+ * Extract JWT from HttpOnly cookie first, then fall back to Bearer header.
+ * This enables secure cookie-based auth while maintaining backward compatibility.
+ */
+function cookieThenBearerExtractor(req: Request): string | null {
+  // 1. Try HttpOnly cookie
+  if (req?.cookies?.access_token) {
+    return req.cookies.access_token;
+  }
+  // 2. Fall back to Authorization header
+  return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
+    const jwtSecret = configService.get<string>('JWT_SECRET');
+    if (!jwtSecret) {
+      throw new Error(
+        'CRITICAL: JWT_SECRET is not set in environment. Authentication is non-functional.',
+      );
+    }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieThenBearerExtractor,
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('JWT_SECRET') ||
-        'dev-only-secret-do-not-use-in-prod',
+      secretOrKey: jwtSecret,
     });
   }
 
   async validate(payload: JwtPayload) {
+    console.log('Validating payload:', JSON.stringify(payload));
     // Check if user still exists in database
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
 
     if (!user) {
+      console.warn('User not found for sub:', payload.sub);
       throw new UnauthorizedException('User not found');
     }
+    console.log('User validated:', user.id);
 
     return {
       id: payload.sub,

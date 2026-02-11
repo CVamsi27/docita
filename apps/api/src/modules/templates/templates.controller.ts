@@ -9,6 +9,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 
 interface TemplateField {
   id: string;
@@ -33,6 +35,7 @@ interface UpdateTemplateDto {
 }
 
 @Controller('templates')
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 

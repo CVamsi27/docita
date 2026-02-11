@@ -10,6 +10,8 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { EmergencyAccess } from '../../common/decorators/emergency-access.decorator';
 import { PatientsService } from './patients.service';
 import {
   CreatePatientDto,
@@ -17,8 +19,9 @@ import {
   PatientResponseDto,
   PaginatedPatientResponseDto,
 } from './dto/patients.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@workspace/db';
 
 interface AuthRequest {
   user: {
@@ -26,12 +29,17 @@ interface AuthRequest {
   };
 }
 
+@ApiTags('patients')
 @Controller('patients')
-@UseGuards(JwtAuthGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all patients' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'cursor', required: false })
+  @ApiQuery({ name: 'search', required: false })
   @ZodSerializerDto(PaginatedPatientResponseDto)
   findAll(
     @Request() req: AuthRequest,
@@ -47,6 +55,7 @@ export class PatientsController {
   }
 
   @Get(':id')
+  @EmergencyAccess()
   @ZodSerializerDto(PatientResponseDto)
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);

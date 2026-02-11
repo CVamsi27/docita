@@ -13,6 +13,11 @@ import {
   Feature,
   FEATURE_TIER_MAP,
 } from './tier.decorator';
+import {
+  SubscriptionStatus,
+  IntelligenceAddon,
+  ClinicTier,
+} from '@workspace/db';
 
 @Injectable()
 export class TierGuard implements CanActivate {
@@ -61,8 +66,8 @@ export class TierGuard implements CanActivate {
 
     // Check subscription status
     if (
-      clinic.subscriptionStatus !== 'active' &&
-      clinic.subscriptionStatus !== 'trial'
+      clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
     ) {
       throw new ForbiddenException(
         'Subscription is not active. Please renew your subscription.',
@@ -70,8 +75,9 @@ export class TierGuard implements CanActivate {
     }
 
     // Map database tier to enum
-    const userTier = this.mapDbTierToEnum(clinic.tier);
-    const hasIntelligence = clinic.intelligenceAddon === 'ACTIVE';
+    const userTier = this.mapDbTierToEnum(clinic.tier as ClinicTier);
+    const hasIntelligence =
+      clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
 
     // Check for custom feature overrides
     const featureOverrides = (clinic.features as Record<string, boolean>) || {};
@@ -129,13 +135,13 @@ export class TierGuard implements CanActivate {
     return true;
   }
 
-  private mapDbTierToEnum(dbTier: string): Tier {
-    const tierMap: Record<string, Tier> = {
-      CAPTURE: Tier.CAPTURE,
-      CORE: Tier.CORE,
-      PLUS: Tier.PLUS,
-      PRO: Tier.PRO,
-      ENTERPRISE: Tier.ENTERPRISE,
+  private mapDbTierToEnum(dbTier: ClinicTier): Tier {
+    const tierMap: Record<ClinicTier | string, Tier> = {
+      [ClinicTier.CAPTURE]: Tier.CAPTURE,
+      [ClinicTier.CORE]: Tier.CORE,
+      [ClinicTier.PLUS]: Tier.PLUS,
+      [ClinicTier.PRO]: Tier.PRO,
+      [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
       // Legacy mappings for backward compatibility
       FREE: Tier.CAPTURE,
       STARTER: Tier.CORE,

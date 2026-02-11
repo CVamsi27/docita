@@ -179,6 +179,9 @@ const ROUTE_LEGEND: Record<string, string> = {
  * const pdf = await pdfGenerator.generateInvoice(invoiceData);
  * ```
  */
+/**
+ * @deprecated Use dedicated services: PrescriptionPdfService, InvoicePdfService, etc.
+ */
 @Injectable()
 export class PDFGeneratorService {
   private readonly logger = new Logger(PDFGeneratorService.name);

@@ -437,6 +437,7 @@ export const INVOICE_CARD_SELECT = {
  */
 export const INVOICE_DETAIL_SELECT = {
   id: true,
+  patientId: true,
   total: true,
   status: true,
   items: true,

@@ -10,6 +10,7 @@ import {
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '../../modules/monitoring/monitoring.service';
@@ -159,6 +160,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     } else {
       this.logger.error('Unhandled or Known exception type', exception);
+    }
+
+    // Capture critical errors in Sentry
+    if ((status as number) >= 500) {
+      Sentry.captureException(exception, {
+        user: {
+          id: (request.user as RequestUser)?.id,
+          username: (request.user as RequestUser)?.clinicId,
+        },
+        extra: {
+          path: request.path,
+          method: request.method,
+          body: request.body,
+        },
+      });
     }
 
     // Log error to monitoring service

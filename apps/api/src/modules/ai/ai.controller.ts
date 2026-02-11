@@ -10,7 +10,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AIService } from './ai.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Role } from '@workspace/db';
+import { Roles } from '../auth/roles.decorator';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { diskStorage } from 'multer';
@@ -25,7 +26,8 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('ai')
-@UseGuards(JwtAuthGuard, TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@UseGuards(TierGuard)
 export class AIController {
   constructor(private readonly aiService: AIService) {}
 

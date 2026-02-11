@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  ClinicType,
+  Prisma,
+  SubscriptionStatus,
+} from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 interface CreateClinicData {
@@ -89,7 +94,9 @@ export class ClinicsService {
         // Override active from factory if needed or keep default.
         // Also keep the existing subscriptionStatus logic
         subscriptionStatus:
-          process.env.NODE_ENV === 'production' ? undefined : 'trial',
+          process.env.NODE_ENV === 'production'
+            ? undefined
+            : SubscriptionStatus.TRIALING,
       },
     });
   }

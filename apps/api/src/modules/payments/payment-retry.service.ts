@@ -4,6 +4,7 @@ import { Queue } from 'bull';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { Cron } from '@nestjs/schedule';
+import { InvoiceStatus } from '@workspace/db';
 import type { PaymentRetryInvoice } from '@workspace/types';
 import { runWithTenant } from '../../common/middleware/tenant.middleware';
 
@@ -68,7 +69,7 @@ export class PaymentRetryService {
 
         const unpaidInvoices = await this.prisma.invoice.findMany({
           where: {
-            status: 'UNPAID',
+            status: InvoiceStatus.PENDING,
           },
           select: {
             id: true,

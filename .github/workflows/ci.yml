@@ -45,4 +45,140 @@ jobs:
         run: pnpm build
 
       - name: Test (Unit)
-        run: pnpm test
+        run: pnpm test -- --coverage
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            **/coverage/
+            !**/node_modules/**
+          retention-days: 14
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.4.1
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Audit Dependencies
+        run: pnpm audit --prod
+        continue-on-error: true # Allow failure for now until vulnerabilities are fixed
+
+  validate-migrations:
+    name: Validate Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.4.1
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate Migrations
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5432/docita
+        run: pnpm db:deploy
+
+  frontend-bundle-analysis:
+    name: Frontend Bundle Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.4.1
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Analyze Bundle
+        env:
+          ANALYZE: "true"
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm --filter @docita/app run build:analyze
+
+  api-e2e-tests:
+    name: API E2E Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.4.1
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+      - name: Run API E2E Tests
+        env:
+          DATABASE_URL_TEST: postgresql://docita:password@localhost:5432/docita_test
+          DATABASE_URL: postgresql://docita:password@localhost:5432/docita_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          NODE_ENV: development
+        run: pnpm --filter @docita/api run test:e2e

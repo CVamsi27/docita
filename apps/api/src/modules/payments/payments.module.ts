@@ -12,9 +12,11 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     WhatsappModule,
     AuditModule,
     NotificationsModule,
@@ -37,6 +39,6 @@ import { RazorpayPaymentProvider } from './providers/razorpay.provider';
       useClass: RazorpayPaymentProvider,
     },
   ],
-  exports: [PaymentsService, PaymentRetryService],
+  exports: [PaymentsService, PaymentRetryService, PaymentWebSocketGateway],
 })
 export class PaymentsModule {}

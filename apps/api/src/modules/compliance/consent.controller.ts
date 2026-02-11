@@ -41,10 +41,12 @@ type RecordConsentDto = z.infer<typeof recordConsentSchema>;
 type WithdrawConsentDto = z.infer<typeof withdrawConsentSchema>;
 
 @Controller('consent')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ConsentController {
   constructor(private readonly dpdpService: DPDPComplianceService) {}
 
   @Post()
+  @Roles(Role.DOCTOR, Role.ADMIN)
   @HttpCode(201)
   async recordConsent(
     @Body(new ZodValidationPipe(recordConsentSchema)) data: RecordConsentDto,
@@ -55,6 +57,7 @@ export class ConsentController {
   }
 
   @Get('history')
+  @Roles(Role.DOCTOR, Role.ADMIN)
   async getConsentHistory(
     @Query('patientId') patientId: string,
     @Query('clinicId') clinicId: string,
@@ -63,6 +66,7 @@ export class ConsentController {
   }
 
   @Post(':consentId/withdraw')
+  @Roles(Role.DOCTOR, Role.ADMIN)
   async withdrawConsent(
     @Param('consentId') consentId: string,
     @Body(new ZodValidationPipe(withdrawConsentSchema))
@@ -79,7 +83,6 @@ export class ConsentController {
   }
 
   @Post('patients/:patientId/delete')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @HttpCode(200)
   async deletePatientData(
