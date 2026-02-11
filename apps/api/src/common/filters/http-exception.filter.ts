@@ -122,18 +122,49 @@ export class AllExceptionsFilter implements ExceptionFilter {
           status = HttpStatus.CONFLICT;
           const fields = (exception.meta?.target as string[]) || ['field'];
           message = `A record with this ${fields.join(', ')} already exists`;
+          details = {
+            field: fields[0],
+            constraint: 'unique',
+          };
           break;
         }
+        case 'P2014':
+          status = HttpStatus.BAD_REQUEST;
+          message = 'The change you are trying to make violates a required relation';
+          details = { code: 'P2014' };
+          break;
+        case 'P2016':
+          status = HttpStatus.NOT_FOUND;
+          message = 'The query interpretation could not be matched to the database schema';
+          details = { code: 'P2016' };
+          break;
+        case 'P2021':
+          status = HttpStatus.INTERNAL_SERVER_ERROR;
+          message = 'The table does not exist in the current database';
+          details = { code: 'P2021' };
+          break;
         case 'P2025':
           status = HttpStatus.NOT_FOUND;
           message = 'The requested record was not found';
+          details = { code: 'P2025' };
           break;
         case 'P2003':
           status = HttpStatus.BAD_REQUEST;
           message = 'Invalid reference: the related record does not exist';
+          details = {
+            field: (exception.meta?.field_name as string) || 'unknown',
+            code: 'P2003',
+          };
+          break;
+        case 'P2019':
+          status = HttpStatus.INTERNAL_SERVER_ERROR;
+          message = 'Database input parsing error - malformed input data';
+          details = { code: 'P2019' };
           break;
         default:
+          status = HttpStatus.INTERNAL_SERVER_ERROR;
           message = 'Database error occurred';
+          details = { code: exception.code };
       }
     } else if (exception instanceof Prisma.PrismaClientValidationError) {
       status = HttpStatus.BAD_REQUEST;
@@ -202,12 +233,43 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    response.status(status).json({
-      statusCode: status,
-      message,
-      details,
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+
+    // Build RFC 7807 Problem Details response
+    // https://tools.ietf.org/html/rfc7807
+    const problemDetails = {
+      type: `about:blank`, // URI identifying the error type
+      title: this.getErrorTitle(status), // HTTP status text
+      status, // HTTP status code
+      detail: message, // Human-readable explanation
+      instance: request.path, // URI identifying the problem occurrence
       timestamp: new Date().toISOString(),
-      path: request.path,
-    });
+      
+      // Additional fields (only if applicable)
+      ...(details && { validationErrors: details }),
+      
+      // Only include stack trace and internal details in development
+      ...(isDevelopment && errorStack && { stack: errorStack }),
+      ...(isDevelopment && { errorType }),
+    };
+
+    response.status(status).json(problemDetails);
   }
-}
+
+  /**
+   * Get human-readable error title for HTTP status
+   */
+  private getErrorTitle(status: number): string {
+    const statusTexts: Record<number, string> = {
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      409: 'Conflict',
+      422: 'Unprocessable Entity',
+      429: 'Too Many Requests',
+      500: 'Internal Server Error',
+      502: 'Bad Gateway',
+      503: 'Service Unavailable',
+    };
+    return statusTexts[status] || 'Unknown Error';
