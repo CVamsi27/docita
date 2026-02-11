@@ -6,6 +6,7 @@ import { IdempotencyService } from './services/idempotency.service';
 import { IpRateLimitService } from './services/ip-rate-limit.service';
 import { OptimisticConcurrencyService } from './services/optimistic-concurrency.service';
 import { BusinessRulesService } from './services/business-rules.service';
+import { StartupValidationService } from './services/startup-validation.service';
 import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
 
 @Global()
@@ -18,6 +19,7 @@ import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
     IpRateLimitService,
     OptimisticConcurrencyService,
     BusinessRulesService,
+    StartupValidationService,
     IpRateLimitGuard,
   ],
   exports: [
@@ -27,6 +29,7 @@ import { IpRateLimitGuard } from './guards/ip-rate-limit.guard';
     IpRateLimitService,
     OptimisticConcurrencyService,
     BusinessRulesService,
+    StartupValidationService,
     IpRateLimitGuard,
   ],
 })

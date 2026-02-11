@@ -52,6 +52,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
 
+  // Run startup validations before initializing the app
+  try {
+    const { StartupValidationService } = await import(
+      './common/services/startup-validation.service'
+    );
+    const startupValidator = app.get(StartupValidationService);
+    await startupValidator.validate();
+  } catch (error) {
+    console.error(
+      '❌ Startup validation failed. Cannot start application.',
+      error instanceof Error ? error.message : error,
+    );
+    process.exit(1);
+  }
+
   // Request body size limits
   app.use(json({ limit: '1mb' }));
   app.use(urlencoded({ limit: '1mb', extended: true }));
