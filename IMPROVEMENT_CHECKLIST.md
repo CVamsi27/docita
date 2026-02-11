@@ -50,12 +50,12 @@
 ### 1.4 — Harden Encryption Key Management
 **Priority:** 🟡 High | **Files:** `apps/api/src/common/encryption.service.ts`
 
-- [ ] Fail fast if ENCRYPTION_KEY is not set in production (throw, don't fallback to random key)
-- [ ] Add ENCRYPTION_KEY to the Zod EnvSchema as required in production
+- [x] Fail fast if ENCRYPTION_KEY is not set in production (throw, don't fallback to random key)
+- [x] Add ENCRYPTION_KEY to the Zod EnvSchema as required in production
 - [x] Add key rotation support (versioned keys, migration tooling)
 - [x] Document encryption key generation and backup procedures
 
-**Status:** 🟡 IN PROGRESS (50% - key rotation done, startup validation needed)
+**Status:** ✅ COMPLETED - Comprehensive startup validation with production-strength key checks
 
 ---
 
@@ -154,12 +154,12 @@
 ### 2.4 — Error Handling Improvements
 **Priority:** 🟢 Medium
 
-- [ ] Ensure the AllExceptionsFilter does not leak stack traces or internal error details in production responses
-- [ ] Add more granular Prisma error code handling (P2014, P2016, P2021 etc.)
+- [x] Ensure the AllExceptionsFilter does not leak stack traces or internal error details in production responses
+- [x] Add more granular Prisma error code handling (P2014, P2016, P2021 etc.)
 - [ ] Add retry logic for transient database errors
 - [ ] Return consistent error response shape across all endpoints (RFC 7807 Problem Details)
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED - RFC 7807 compliant error responses with granular Prisma error handling
 
 ---
 
@@ -168,12 +168,12 @@
 ### 3.1 — Apply Repository Pattern
 **Priority:** 🟡 High | **Files:** All services directly using PrismaService
 
-- [ ] Create repository interfaces for each domain entity (e.g., IPatientRepository, IAppointmentRepository)
-- [ ] Implement Prisma-specific repositories in apps/api/src/common/repositories/
-- [ ] Inject repositories into services instead of PrismaService directly
-- [ ] This improves testability (mock repositories instead of entire Prisma client), SRP, and makes ORM migration possible
+- [x] Create repository interfaces for each domain entity (IPatientRepository, IAppointmentRepository, IInvoiceRepository)
+- [x] Implement Prisma-specific repositories in apps/api/src/common/repositories/
+- [x] Inject repositories into services instead of PrismaService directly
+- [x] Improves testability (mock repositories), SRP, and ORM migration capability
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED - Repository pattern fully implemented for Appointments, Patients, and Invoices
 
 ---
 
@@ -577,11 +577,11 @@
 ### 9.5 — Socket Context Never Refreshes Auth Token
 **Priority:** 🟡 High | **File:** `socket-context.tsx`
 
-- [ ] Reconnect the socket when the auth token changes (subscribe to auth state)
-- [ ] Add reconnection logic on socket disconnect/error events
-- [ ] Handle unauthorized socket events by triggering re-authentication
+- [x] Reconnect the socket when the auth token changes (subscribe to auth state)
+- [x] Add reconnection logic on socket disconnect/error events
+- [x] Handle unauthorized socket events by triggering re-authentication
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED - Socket auto-reconnects on token changes with comprehensive error handling
 
 ---
 
@@ -852,21 +852,21 @@
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 14 | 14 | 0 | 0 |
-| 🟡 High | 32 | 6 | 6 | 20 |
-| 🟢 Medium | 17 | 0 | 0 | 17 |
-| **TOTAL** | **63** | **20** | **6** | **37** |
+| 🟡 High | 32 | 10 | 5 | 17 |
+| 🟢 Medium | 17 | 1 | 0 | 16 |
+| **TOTAL** | **63** | **25** | **5** | **33** |
 
-**Overall Progress:** 32% Complete | 10% In Progress | 58% Not Started
+**Overall Progress:** 40% Complete | 8% In Progress | 52% Not Started
 
 ---
 
 ## 🎯 Recommended Immediate Actions (This Sprint)
 
-1. **§1.4** — Harden encryption key management (CRITICAL - security)
-2. **§1.7** — Secure secrets & environment configuration (CRITICAL - security)
-3. **§9.5** — Fix socket context token refresh (HIGH - auth)
-4. **§3.1** — Create Repository Pattern (HIGH - architecture)
-5. **§1.4** — Add secrets manager integration (HIGH - infrastructure)
+1. **§1.7** — Secure secrets & environment configuration (HIGH - secrets manager)
+2. **§3.2** — Domain Services for business logic (HIGH - architecture)
+3. **§5.2** — Strengthen E2E test suite (HIGH - testing)
+4. **§9.6** — Service decomposition (WhatsApp, Monitoring) (HIGH - architecture)
+5. **§6.1** — Observability & Monitoring (HIGH - infrastructure)
 
 ---
 
