@@ -31,7 +31,6 @@ export interface PrescriptionValidationRulesInterface {
 
   validateFrequency(
     frequency: string,
-    medication: any,
   ): { valid: boolean; error?: string };
 
   validateRefills(
@@ -302,7 +301,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
    */
   validateFrequency(
     frequency: string,
-    medication: any,
   ): { valid: boolean; error?: string } {
     const validFrequencies = [
       'OD',
@@ -382,7 +380,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     });
 
     const allergies: string[] = [];
-    const patientAllergies = ((patient as any).patientAllergies || []).map((a: any) => a.allergen) || [];
+    const patientAllergies = ((patient as any).patientAllergies || []).map((a: any) => a.allergen ?? '') || [];
 
     for (const med of medications) {
       const medName = med.name.toLowerCase();

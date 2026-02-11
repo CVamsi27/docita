@@ -56,9 +56,9 @@ export class UsageTrackingService {
           metadata: metadata ? JSON.stringify(metadata) : undefined,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       // Ignore duplicate key errors (event already recorded)
-      if (error.code === 'P2002') {
+      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
         this.logger.debug(`Duplicate usage event ignored: ${eventKey}`);
         return;
       }

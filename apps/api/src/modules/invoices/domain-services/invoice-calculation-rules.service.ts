@@ -42,6 +42,17 @@ export interface InvoiceCalculationRulesInterface {
   ): Promise<InvoiceCalculationResult>;
 }
 
+/**
+ * Raw invoice item from database (JSON field)
+ */
+interface RawInvoiceItem {
+  quantity?: number | string;
+  unitPrice?: number | string;
+  taxRate?: number | string;
+  discountType?: 'FIXED' | 'PERCENTAGE' | string;
+  discountValue?: number | string;
+}
+
 interface PricingItem {
   quantity: number;
   unitPrice: number;
@@ -79,6 +90,29 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
   private readonly ROUNDING_PRECISION = 2; // 2 decimal places
 
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Convert raw invoice items to properly typed PricingItem
+   */
+  private convertToPricingItems(rawItems: unknown[]): PricingItem[] {
+    if (!Array.isArray(rawItems)) {
+      return [];
+    }
+
+    return rawItems
+      .map((item: any) => {
+        // Safely convert to PricingItem with defaults
+        const converted: PricingItem = {
+          quantity: Number(item?.quantity ?? 0) || 0,
+          unitPrice: Number(item?.unitPrice ?? 0) || 0,
+          taxRate: Number(item?.taxRate ?? this.DEFAULT_TAX_RATE) || this.DEFAULT_TAX_RATE,
+          discountType: item?.discountType === 'FIXED' || item?.discountType === 'PERCENTAGE' ? item.discountType : undefined,
+          discountValue: item?.discountValue ? Number(item.discountValue) : undefined,
+        };
+        return converted;
+      })
+      .filter(item => item.quantity > 0 && item.unitPrice > 0);
+  }
 
   /**
    * Calculate line item amount (quantity * unit price)
@@ -326,17 +360,9 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
     }
 
     // Recalculate line items
-    const items: PricingItem[] = (
-      (invoice.items as unknown as any[]) || []
-    ).map((item: any) => ({
-      quantity: item.quantity,
-      unitPrice: Number(item.unitPrice),
-      taxRate: Number(item.taxRate) || this.DEFAULT_TAX_RATE,
-      discountType: item.discountType,
-      discountValue: item.discountValue
-        ? Number(item.discountValue)
-        : undefined,
-    }));
+    const items: PricingItem[] = this.convertToPricingItems(
+      (invoice.items as unknown[]) || []
+    );
 
     const subtotal = items.reduce((sum, item) => {
       const { amount } = this.calculateItemAmount(
