@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ConflictException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +13,8 @@ import { Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
 import { UserFactory } from '../users/factories/user.factory';
 import { ClinicFactory } from '../clinics/factories/clinic.factory';
+import { MonitoringService } from '../monitoring/monitoring.service';
+import { ObservabilityService } from '../../common/services/observability.service';
 import { nanoid } from 'nanoid';
 
 interface UserWithoutPassword {
@@ -41,12 +44,16 @@ interface ChangePasswordData {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     @Inject('IPasswordPolicy') private passwordPolicy: IPasswordPolicy,
     private userFactory: UserFactory,
     private clinicFactory: ClinicFactory,
+    private monitoringService: MonitoringService,
+    private observability: ObservabilityService,
   ) {}
 
   async checkEmailExists(email: string): Promise<boolean> {
@@ -105,6 +112,17 @@ export class AuthService {
               lastFailedLoginAt: null,
             },
           });
+
+          // Log successful login after previous failures (security check-in)
+          this.observability.logStructured(
+            'info',
+            'Successful login after failed attempts',
+            {
+              userId: user.id,
+              email: user.email,
+              previousFailedAttempts: user.failedLoginAttempts,
+            },
+          );
         }
 
         const { password, ...result } = user;
@@ -132,6 +150,42 @@ export class AuthService {
         where: { id: user.id },
         data: updateData,
       });
+
+      // Log failed auth attempt for security monitoring
+      this.observability.logStructured(
+        'warn',
+        'Failed login attempt recorded',
+        {
+          userId: user.id,
+          email: user.email,
+          attempt: newFailedAttempts,
+          maxAttempts: MAX_FAILED_ATTEMPTS,
+          accountLocked: newFailedAttempts >= MAX_FAILED_ATTEMPTS,
+          accountLockedUntilMinutes: newFailedAttempts >= MAX_FAILED_ATTEMPTS
+            ? LOCKOUT_DURATION_MINUTES
+            : null,
+        },
+      );
+
+      // Alert on account lockout
+      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+        this.observability.captureMessage(
+          `Account locked: ${user.email} due to ${MAX_FAILED_ATTEMPTS} failed login attempts`,
+          {
+            userId: user.id,
+            email: user.email,
+            failedAttempts: newFailedAttempts,
+            lockoutDuration: `${LOCKOUT_DURATION_MINUTES} minutes`,
+          },
+          'warning',
+        );
+
+        // Record error metric
+        this.observability.recordMetric('auth_account_lockout_total', 1, {
+          email: user.email,
+          reason: 'max_failed_attempts',
+        });
+      }
 
       // Throw appropriate error message
       if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
