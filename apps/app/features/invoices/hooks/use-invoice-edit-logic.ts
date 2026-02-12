@@ -16,7 +16,7 @@ export const invoiceItemSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
@@ -35,7 +35,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
-      status: "pending",
+      status: "PENDING",
       discount: 0,
       notes: "",
       items: [{ description: "", quantity: 1, price: 0 }],
@@ -59,8 +59,8 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
 
       form.reset({
         status: ((safeInvoice.status as string) === "created"
-          ? "pending"
-          : safeInvoice.status) as "pending" | "paid" | "overdue" | "cancelled",
+          ? "PENDING"
+          : safeInvoice.status) as "PENDING" | "PAID" | "OVERDUE" | "CANCELLED",
         discount: safeInvoice.discount || 0,
         notes: safeInvoice.notes || "",
         items: safeInvoice.items?.map((item) => ({

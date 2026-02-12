@@ -1,12 +1,12 @@
 /**
  * Billing History Service
- * 
+ *
  * Handles billing history and invoice retrieval:
  * - Payment history
  * - Subscription details
  * - Upcoming invoices
  * - Billing information
- * 
+ *
  * Single Responsibility: Billing data retrieval and history management
  */
 

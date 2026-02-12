@@ -1,12 +1,12 @@
 /**
  * Billing Calculation Service
- * 
+ *
  * Handles all pricing and calculation logic:
  * - Tier pricing retrieval
  * - Proration calculations
  * - Add-on pricing
  * - Discount calculations
- * 
+ *
  * Single Responsibility: Pricing and calculation math only
  */
 

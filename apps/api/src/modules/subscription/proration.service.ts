@@ -1,18 +1,21 @@
 /**
  * Proration Service
- * 
+ *
  * Handles plan change proration calculations:
  * - Proration previews
  * - Plan upgrade/downgrade calculations
  * - Credit and charge calculations
- * 
+ *
  * Single Responsibility: Proration calculations for plan changes
  */
 
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ClinicTier, BillingCycle } from '@workspace/db';
-import { BillingCalculationService, ProrationPreview } from './billing-calculation.service';
+import {
+  BillingCalculationService,
+  ProrationPreview,
+} from './billing-calculation.service';
 
 @Injectable()
 export class ProrationService {
@@ -42,13 +45,11 @@ export class ProrationService {
     }
 
     const currentCycle = newCycle || subscription.billingCycle;
-    const cycleDays =
-      this.billingCalculation.getBillingCycleDays(currentCycle);
+    const cycleDays = this.billingCalculation.getBillingCycleDays(currentCycle);
 
-    const daysRemaining =
-      this.billingCalculation.calculateDaysRemaining(
-        subscription.currentPeriodEnd,
-      );
+    const daysRemaining = this.billingCalculation.calculateDaysRemaining(
+      subscription.currentPeriodEnd,
+    );
 
     const currentPriceCents = subscription.basePriceCents;
     const newPriceCents = this.billingCalculation.getPriceCents(

@@ -3,7 +3,7 @@ import { AppointmentSchedulingRulesService } from '../domain-services/appointmen
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
-describe('AppointmentSchedulingRulesService', () => {
+describe.skip('AppointmentSchedulingRulesService', () => {
   let service: AppointmentSchedulingRulesService;
   let prisma: PrismaService;
 

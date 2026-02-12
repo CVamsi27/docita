@@ -293,6 +293,7 @@ export const ClinicalDocumentationDynamic: FC<
               ...p,
               dosageForm: "TABLET", // Default to TABLET if not specified
               sigCode: "QD", // Default to QD if not specified
+              prnInstructions: p.instructions || "",
             })),
             notes: "Created from consultation",
           });

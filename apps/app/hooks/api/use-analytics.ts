@@ -6,6 +6,7 @@ import {
   RevenueByCPT,
 } from "@workspace/types";
 import { useAPIQuery } from "../../lib/api-core";
+import { ApiError } from "@/lib/errors";
 
 export const useAnalyticsOverview = () =>
   useAPIQuery<AnalyticsOverview>(
@@ -153,7 +154,8 @@ export const useAuditLogs = (
       action: string;
       entityType: string;
       createdAt: Date;
-    }>
+    }>,
+    ApiError
   >,
 ) =>
   useAPIQuery<

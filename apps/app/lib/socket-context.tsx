@@ -100,10 +100,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       console.error("Socket connection error:", err);
       setIsConnected(false);
 
+      const errorPayload =
+        err && typeof err === "object"
+          ? (err as { data?: { content?: { message?: string } } }).data
+          : undefined;
+
       // If 401 (Unauthorized), trigger re-authentication
       if (
         err.message === "Unauthorized" ||
-        err.data?.content?.message === "Unauthorized"
+        errorPayload?.content?.message === "Unauthorized"
       ) {
         console.warn("Socket: Unauthorized error, logging out user");
         logout();

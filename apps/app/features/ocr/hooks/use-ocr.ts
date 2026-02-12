@@ -147,6 +147,9 @@ export const useOCR = () => {
         dateOfBirth: new Date(
           new Date().getFullYear() - (parseInt(formData.age) || 0),
         ).toISOString(),
+        address: formData.address || "",
+        allergies:
+          formData.allergies.length > 0 ? formData.allergies.join(", ") : "",
         medicalHistory: [formData.diagnosis],
         isolationStatus: "NONE",
         fallRisk: false,
@@ -161,7 +164,15 @@ export const useOCR = () => {
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
         type: "consultation",
         status: "confirmed",
+        consultationNotes: "",
+        notes: "",
         observations: formData.diagnosis,
+        provisionalDiagnosis: "",
+        differentialDiagnosis: "",
+        clinicalImpression: "",
+        finalDiagnosis: "",
+        treatmentPlan: "",
+        followUpPlan: "",
       });
 
       // 3. Save Vitals separately if appointment was created successfully

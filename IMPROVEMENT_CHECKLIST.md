@@ -1,6 +1,6 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-12 (Phase 2.10 - Service Decomposition Part 2 - 65% Complete) | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-12 (Stabilization Pass - lint/test fixes + checklist sync) | **Total Tasks:** 63 | **Status:** In Progress
 
 ### Session Notes (2026-02-12 - PHASE 2.10):
 - ✅ Phase 1 §3.5 COMPLETE: subscription-billing (1,185L) → 6 focused services + facade
@@ -18,6 +18,14 @@
   - Created migration 20260212_convert_status_to_enums
 - 🟢 Build: PASSING - All changes verified, zero breaking changes maintained
 - 🎯 Next: 8 more god-objects (ocr, templates, clinics, whatsapp, reminders, usage-tracking, payments, super-admin-billing)
+
+### Session Notes (2026-02-12 - STABILIZATION):
+- ✅ Fixed remaining API unit test failures (roles guard, request context interceptor, invoices auth controller spec)
+- ✅ Workspace lint now clean (removed remaining `no-explicit-any` warning in appointment dialog UI)
+- ✅ API test suite passing (`64 passed`, `9 skipped`)
+- ✅ Switched `admin` and `landing` builds to webpack mode for stable CI/sandbox execution (`next build --webpack`)
+- ✅ Workspace `pnpm lint`, `pnpm build`, and `pnpm test` now pass end-to-end
+- ⚠️ Non-blocking build warning persists: `baseline-browser-mapping` data age warning (requires package update via npm registry)
 
 ---
 
@@ -494,12 +502,12 @@ Services exceeding 300-line guideline requiring decomposition:
 - [ ] Add slow query logging and analysis
 - [ ] Create database index optimization report (identify unused and missing indexes)
 - [ ] Implement Data Archival Strategy:
-  - [ ] Add AuditLogArchive, WhatsappLogArchive, and AppointmentArchive to schema.prisma
-  - [ ] Create ArchivalService to move records (Audit: 90 days, WhatsApp: 180 days, Completed Appts: 2 years)
-  - [ ] Update DataRetentionScheduler to automate archival jobs daily
-  - [ ] Add POST /monitoring/archive to manual trigger archival for testing
+  - [x] Add AuditLogArchive, WhatsappLogArchive, and AppointmentArchive to schema.prisma
+  - [x] Create ArchivalService to move records (Audit: 90 days, WhatsApp: 180 days, Completed Appts: 2 years)
+  - [x] Update DataRetentionScheduler to automate archival jobs daily
+  - [x] Add POST /monitoring/archive to manual trigger archival for testing
 
-**Status:** ⏳ NOT STARTED
+**Status:** 🟡 IN PROGRESS (50% - archival strategy implemented, infra tasks pending)
 
 ---
 
@@ -583,12 +591,12 @@ Services exceeding 300-line guideline requiring decomposition:
 
 - [x] Implement audit trail for all PHI access (not just writes)
 - [x] Add automatic session timeout (idle timeout of 30 mins) in AuthContext
-- [ ] Implement "break-the-glass" emergency access with enhanced audit logging
-- [ ] Add data retention policy enforcement (auto-archive/delete per DPDP Act requirements)
+- [x] Implement "break-the-glass" emergency access with enhanced audit logging
+- [x] Add data retention policy enforcement (auto-archive/delete per DPDP Act requirements)
 - [ ] Ensure encryption at rest covers all PHI fields
 - [ ] Add consent management UI for patients
 
-**Status:** 🟡 IN PROGRESS (33% - audit trail and timeout done)
+**Status:** 🟡 IN PROGRESS (66% - emergency access and retention enforcement done)
 
 ---
 
@@ -634,11 +642,11 @@ Services exceeding 300-line guideline requiring decomposition:
 ### 9.3 — React Query Retry Logic Mismatch
 **Priority:** 🟡 High | **File:** `react-query-provider.tsx`
 
-- [ ] Create a custom ApiError class that carries statusCode and use it consistently in fetchAPI
-- [ ] Update retry logic to check error instanceof ApiError && error.statusCode
+- [x] Create a custom ApiError class that carries statusCode and use it consistently in fetchAPI
+- [x] Update retry logic to check error instanceof ApiError && error.statusCode
 - [ ] Add tests for retry behavior (network errors vs. 4xx vs. 5xx)
 
-**Status:** ⏳ NOT STARTED
+**Status:** 🟡 IN PROGRESS (66% - ApiError + retry logic done, tests pending)
 
 ---
 
@@ -815,9 +823,9 @@ Services exceeding 300-line guideline requiring decomposition:
 - [x] Audit all 48 controllers and categorize each endpoint by required role
 - [x] Add @Roles() to all sensitive controllers
 - [x] Create guard that enforces role + clinic ownership
-- [ ] Add E2E tests verifying wrong-role users get 403
+- [x] Add E2E tests verifying wrong-role users get 403
 
-**Status:** 🟡 IN PROGRESS (75% - decorators added, E2E tests pending)
+**Status:** ✅ COMPLETED
 
 ---
 

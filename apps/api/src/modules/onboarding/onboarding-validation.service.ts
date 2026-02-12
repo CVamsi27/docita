@@ -123,9 +123,7 @@ export class OnboardingValidationService {
       throw new BadRequestException('SLA must be accepted to proceed');
     }
     if (!slaData.acceptedDataProcessingTerms) {
-      throw new BadRequestException(
-        'Data processing terms must be accepted',
-      );
+      throw new BadRequestException('Data processing terms must be accepted');
     }
     if (!slaData.acceptedPrivacyPolicy) {
       throw new BadRequestException('Privacy policy must be accepted');

@@ -1,4 +1,3 @@
-import { Outfit } from "next/font/google";
 import "@workspace/ui/globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Providers } from "@/features/_shared/components/providers";
@@ -8,12 +7,6 @@ import { LoginLayout } from "@/features/_shared/components/login-layout";
 
 // Disable static generation for this route
 export const dynamic = "force-dynamic";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-});
 
 export const metadata = {
   title: "Docita - Clinic OS",
@@ -34,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${outfit.className} bg-background text-foreground antialiased overflow-x-hidden`}
+        className="font-sans bg-background text-foreground antialiased overflow-x-hidden"
       >
         <Providers>
           <ReactQueryProvider>

@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InvoicesController } from './invoices.controller';
 import { InvoicesService } from './invoices.service';
 import { RolesGuard } from '../auth/roles.guard';
+import { TierGuard } from '../auth/tier.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { Role } from '@workspace/db';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('InvoicesController - Authorization', () => {
   let controller: InvoicesController;
@@ -25,6 +27,14 @@ describe('InvoicesController - Authorization', () => {
         {
           provide: InvoicesService,
           useValue: mockInvoicesService,
+        },
+        {
+          provide: TierGuard,
+          useValue: { canActivate: jest.fn().mockResolvedValue(true) },
+        },
+        {
+          provide: PrismaService,
+          useValue: { clinic: { findUnique: jest.fn() } },
         },
         Reflector,
       ],
@@ -69,17 +79,17 @@ describe('InvoicesController - Authorization', () => {
 
     it('should deny PHARMACIST access to invoices endpoints', () => {
       const context = createMockExecutionContext(Role.PHARMACIST);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny NURSE access to invoices endpoints', () => {
       const context = createMockExecutionContext(Role.NURSE);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny SUPER_ADMIN access to invoices endpoints', () => {
       const context = createMockExecutionContext(Role.SUPER_ADMIN);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
   });
 

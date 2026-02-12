@@ -416,11 +416,13 @@ describe('PatientService', () => {
 
       service.getPatient.mockImplementation((patientId, clinicId) => {
         if (clinicAPatient.clinicId !== clinicId) {
-          throw new ForbiddenException(
-            'Cannot access patient from different clinic',
+          return Promise.reject(
+            new ForbiddenException(
+              'Cannot access patient from different clinic',
+            ),
           );
         }
-        return clinicAPatient;
+        return Promise.resolve(clinicAPatient);
       });
 
       await expect(

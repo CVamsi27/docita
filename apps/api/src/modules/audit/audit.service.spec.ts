@@ -22,7 +22,9 @@ describe('AuditService', () => {
           provide: PrismaService,
           useValue: {
             auditLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: jest
+                .fn()
+                .mockImplementation(({ data }) => Promise.resolve(data)),
               findMany: jest.fn().mockResolvedValue([]),
               count: jest.fn().mockResolvedValue(0),
             },
@@ -34,6 +36,9 @@ describe('AuditService', () => {
                 .fn()
                 .mockResolvedValue({ id: 'user-1', role: 'ADMIN' }),
             },
+            runUnrestricted: jest
+              .fn()
+              .mockImplementation((callback) => callback()),
           },
         },
         {

@@ -88,32 +88,32 @@ describe('SuperAdminController - Authorization', () => {
 
     it('should deny ADMIN access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.ADMIN);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny DOCTOR access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.DOCTOR);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny RECEPTIONIST access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.RECEPTIONIST);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny ADMIN_DOCTOR access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.ADMIN_DOCTOR);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny PHARMACIST access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.PHARMACIST);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
     it('should deny NURSE access to super-admin endpoints', () => {
       const context = createMockExecutionContext(Role.NURSE);
-      expect(rolesGuard.canActivate(context)).toBe(false);
+      expect(() => rolesGuard.canActivate(context)).toThrow();
     });
   });
 

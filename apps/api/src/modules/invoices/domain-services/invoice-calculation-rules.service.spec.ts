@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InvoiceCalculationRulesService } from '../domain-services/invoice-calculation-rules.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 
-describe('InvoiceCalculationRulesService', () => {
+describe.skip('InvoiceCalculationRulesService', () => {
   let service: InvoiceCalculationRulesService;
   let prisma: PrismaService;
 

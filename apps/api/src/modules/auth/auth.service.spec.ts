@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserFactory } from '../users/factories/user.factory';
 import { ClinicFactory } from '../clinics/factories/clinic.factory';
+import { MonitoringService } from '../monitoring/monitoring.service';
+import { ObservabilityService } from '../../common/services/observability.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 
@@ -124,6 +126,21 @@ describe('AuthService', () => {
               tier: 'CORE',
               active: true,
             })),
+          },
+        },
+        {
+          provide: MonitoringService,
+          useValue: {
+            logError: jest.fn(),
+            trackMetric: jest.fn(),
+          },
+        },
+        {
+          provide: ObservabilityService,
+          useValue: {
+            logStructured: jest.fn(),
+            captureMessage: jest.fn(),
+            recordMetric: jest.fn(),
           },
         },
       ],

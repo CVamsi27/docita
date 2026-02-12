@@ -1,13 +1,13 @@
 /**
  * Subscription Lifecycle Service
- * 
+ *
  * Handles subscription state management:
  * - Activation
  * - Cancellation
  * - Downgrade scheduling
  * - Grace period management
  * - Expiration
- * 
+ *
  * Single Responsibility: Subscription state transitions and lifecycle events
  */
 

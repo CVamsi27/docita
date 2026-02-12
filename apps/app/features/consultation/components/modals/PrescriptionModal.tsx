@@ -31,6 +31,7 @@ export interface Medication {
   frequency: string;
   duration: string;
   route: string;
+  prnInstructions: string;
 }
 
 export function PrescriptionModal({
@@ -41,7 +42,14 @@ export function PrescriptionModal({
   onSaved,
 }: ModalProps) {
   const [medications, setMedications] = useState<Medication[]>([
-    { name: "", dosage: "", frequency: "", duration: "", route: "ORAL" },
+    {
+      name: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      route: "ORAL",
+      prnInstructions: "",
+    },
   ]);
 
   const createPrescription = useCreatePrescription();
@@ -63,6 +71,7 @@ export function PrescriptionModal({
         frequency: m.frequency,
         duration: m.duration,
         route: m.route || "ORAL",
+        prnInstructions: "",
       }));
       setMedications(medicationsFromLastRx);
       toast.success("Loaded medications from last prescription");
@@ -94,7 +103,14 @@ export function PrescriptionModal({
       onSaved?.();
       onOpenChange?.(false);
       setMedications([
-        { name: "", dosage: "", frequency: "", duration: "", route: "ORAL" },
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          duration: "",
+          route: "ORAL",
+          prnInstructions: "",
+        },
       ]);
     } catch (err) {
       toast.error("Failed to create prescription");
@@ -105,7 +121,14 @@ export function PrescriptionModal({
   const addMedication = () => {
     setMedications([
       ...medications,
-      { name: "", dosage: "", frequency: "", duration: "", route: "ORAL" },
+      {
+        name: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        route: "ORAL",
+        prnInstructions: "",
+      },
     ]);
   };
 
@@ -123,7 +146,14 @@ export function PrescriptionModal({
     if (medications.length === 1) {
       // Don't remove the last one, just clear it
       setMedications([
-        { name: "", dosage: "", frequency: "", duration: "", route: "ORAL" },
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          duration: "",
+          route: "ORAL",
+          prnInstructions: "",
+        },
       ]);
     } else {
       setMedications(medications.filter((_, i) => i !== index));

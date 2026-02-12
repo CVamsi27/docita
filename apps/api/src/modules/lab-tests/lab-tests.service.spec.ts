@@ -242,8 +242,8 @@ describe('LabTestsService', () => {
   describe('getStats', () => {
     it('should return order statistics', async () => {
       mockPrismaService.labTestOrder.findMany.mockResolvedValue([
-        { ...mockLabTestOrder, status: 'ordered', createdAt: new Date() },
-        { ...mockLabTestOrder, status: 'completed', createdAt: new Date() },
+        { ...mockLabTestOrder, status: 'ORDERED', createdAt: new Date() },
+        { ...mockLabTestOrder, status: 'COMPLETED', createdAt: new Date() },
       ]);
 
       const result = await service.getStats('clinic-123');

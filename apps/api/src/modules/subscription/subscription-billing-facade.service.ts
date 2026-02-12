@@ -1,6 +1,6 @@
 /**
  * Subscription Billing Service (Facade)
- * 
+ *
  * Orchestrates subscription billing operations by delegating to specialized services:
  * - BillingCalculationService: Pricing and proration math
  * - SubscriptionCheckoutService: Checkout and payment initiation
@@ -8,7 +8,7 @@
  * - ReferralService: Referral program
  * - BillingHistoryService: History and reporting
  * - ProrationService: Plan change calculations
- * 
+ *
  * This service acts as a facade, coordinating operations across multiple domains
  * while keeping each service focused on a single responsibility.
  */
@@ -25,8 +25,14 @@ import { PaymentProvider } from '../../gateways/payment-gateway.interface';
 import { ClinicTier, BillingCycle, SubscriptionStatus } from '@workspace/db';
 
 // Import specialized services
-import { BillingCalculationService, ProrationPreview } from './billing-calculation.service';
-import { SubscriptionCheckoutService, CheckoutResult } from './subscription-checkout.service';
+import {
+  BillingCalculationService,
+  ProrationPreview,
+} from './billing-calculation.service';
+import {
+  SubscriptionCheckoutService,
+  CheckoutResult,
+} from './subscription-checkout.service';
 import { SubscriptionLifecycleService } from './subscription-lifecycle.service';
 import { ReferralService } from './referral.service';
 import { BillingHistoryService } from './billing-history.service';
@@ -196,7 +202,12 @@ export class SubscriptionBillingService {
     newCycle?: BillingCycle,
     addOns: string[] = [],
   ): Promise<void> {
-    return this.lifecycle.scheduleDowngrade(clinicId, newTier, newCycle, addOns);
+    return this.lifecycle.scheduleDowngrade(
+      clinicId,
+      newTier,
+      newCycle,
+      addOns,
+    );
   }
 
   /**

@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { IpRateLimitGuard } from '../../common/guards/ip-rate-limit.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -28,6 +29,8 @@ describe('AuthController', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(IpRateLimitGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
     controller = module.get<AuthController>(AuthController);
@@ -52,21 +55,29 @@ describe('AuthController', () => {
   describe('login', () => {
     it('should return token on successful login', async () => {
       const user = { id: '1', email: 'test@example.com' };
-      const token = { accessToken: 'token', user };
+      const token = { access_token: 'token', refresh_token: 'refresh', user };
+      const response = { cookie: jest.fn() } as any;
       mockAuthService.validateUser.mockResolvedValue(user);
       mockAuthService.login.mockReturnValue(token);
 
-      const result = await controller.login({
-        email: 'test@example.com',
-        password: 'password',
-      });
+      const result = await controller.login(
+        {
+          email: 'test@example.com',
+          password: 'password',
+        },
+        response,
+      );
       expect(result).toEqual(token);
     });
 
     it('should throw UnauthorizedException on invalid credentials', async () => {
+      const response = { cookie: jest.fn() } as any;
       mockAuthService.validateUser.mockResolvedValue(null);
       await expect(
-        controller.login({ email: 'test@example.com', password: 'wrong' }),
+        controller.login(
+          { email: 'test@example.com', password: 'wrong' },
+          response,
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -88,9 +99,15 @@ describe('AuthController', () => {
         clinicName: dto.clinicName,
       };
 
-      mockAuthService.register.mockResolvedValue({ id: '1', ...expectedCall });
+      const response = { cookie: jest.fn() } as any;
+      mockAuthService.register.mockResolvedValue({
+        id: '1',
+        ...expectedCall,
+        access_token: 'token',
+        refresh_token: 'refresh',
+      });
 
-      await controller.register(dto);
+      await controller.register(dto, response);
       expect(mockAuthService.register).toHaveBeenCalledWith(expectedCall);
     });
   });

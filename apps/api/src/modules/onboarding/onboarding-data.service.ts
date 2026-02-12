@@ -1,5 +1,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { OnboardingStep, OnboardingProgressDto } from './dto/create-clinic-onboarding.dto';
+import {
+  OnboardingStep,
+  OnboardingProgressDto,
+} from './dto/create-clinic-onboarding.dto';
 import type { CompleteOnboardingDto } from './dto/create-clinic-onboarding.dto';
 
 interface OnboardingSession {
@@ -56,9 +59,7 @@ export class OnboardingDataService {
     const session = this.onboardingSessions.get(onboardingId);
 
     if (!session) {
-      throw new BadRequestException(
-        'Onboarding session not found or expired',
-      );
+      throw new BadRequestException('Onboarding session not found or expired');
     }
 
     const key = this.getStepDataKey(step);
@@ -87,9 +88,7 @@ export class OnboardingDataService {
   getOnboardingProgress(onboardingId: string): OnboardingProgressDto {
     const session = this.onboardingSessions.get(onboardingId);
     if (!session) {
-      throw new BadRequestException(
-        'Onboarding session not found or expired',
-      );
+      throw new BadRequestException('Onboarding session not found or expired');
     }
 
     return {
@@ -106,9 +105,7 @@ export class OnboardingDataService {
   getSessionData(onboardingId: string): Partial<CompleteOnboardingDto> {
     const session = this.onboardingSessions.get(onboardingId);
     if (!session) {
-      throw new BadRequestException(
-        'Onboarding session not found or expired',
-      );
+      throw new BadRequestException('Onboarding session not found or expired');
     }
     return session.data;
   }

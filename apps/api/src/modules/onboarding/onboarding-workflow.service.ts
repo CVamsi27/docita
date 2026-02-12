@@ -268,9 +268,7 @@ export class OnboardingWorkflowService {
       });
 
       createdCount++;
-      this.logger.log(
-        `Created staff member: ${newUser.id} (${member.email})`,
-      );
+      this.logger.log(`Created staff member: ${newUser.id} (${member.email})`);
     }
 
     return createdCount;

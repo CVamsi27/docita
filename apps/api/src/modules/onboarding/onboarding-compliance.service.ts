@@ -33,9 +33,7 @@ export class OnboardingComplianceService {
     }
 
     if (!slaData.acceptedDataProcessingTerms) {
-      throw new BadRequestException(
-        'Data processing terms must be accepted',
-      );
+      throw new BadRequestException('Data processing terms must be accepted');
     }
 
     if (!slaData.acceptedPrivacyPolicy) {
@@ -124,9 +122,7 @@ export class OnboardingComplianceService {
       },
     });
 
-    this.logger.log(
-      `Configured consent management for clinic: ${clinicId}`,
-    );
+    this.logger.log(`Configured consent management for clinic: ${clinicId}`);
   }
 
   /**
@@ -151,9 +147,7 @@ export class OnboardingComplianceService {
         true,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to log audit action: ${error?.message}`,
-      );
+      this.logger.error(`Failed to log audit action: ${error?.message}`);
     }
   }
 }

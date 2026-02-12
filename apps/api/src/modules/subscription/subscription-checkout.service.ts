@@ -1,12 +1,12 @@
 /**
  * Subscription Checkout Service
- * 
+ *
  * Handles checkout creation and payment initiation:
  * - Razorpay customer management
  * - Order creation
  * - Checkout initialization
  * - Payment method management
- * 
+ *
  * Single Responsibility: Checkout flow management and payment initiation
  */
 
@@ -88,7 +88,7 @@ export class SubscriptionCheckoutService {
 
   /**
    * Create checkout for new subscription or upgrade
-   * 
+   *
    * Note: This is a public method but handles referrals - referral application is handled
    * by ReferralService in a separate layer for better separation of concerns
    */
@@ -111,11 +111,12 @@ export class SubscriptionCheckoutService {
     // Ensure customer exists in Razorpay
     const customerId = await this.ensureRazorpayCustomer(clinicId);
 
-    let amountCents =
-      amountCentsOverride || this.billingCalculation.getPriceCents(tier, cycle, addOns);
+    const amountCents =
+      amountCentsOverride ||
+      this.billingCalculation.getPriceCents(tier, cycle, addOns);
 
     // Check if this is an upgrade (existing subscription)
-    let subscriptionId = clinic.subscription?.id;
+    const subscriptionId = clinic.subscription?.id;
     if (
       clinic.subscription &&
       clinic.subscription.status === SubscriptionStatus.ACTIVE

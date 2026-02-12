@@ -1,11 +1,11 @@
 /**
  * Referral Service
- * 
+ *
  * Handles referral program logic:
  * - Referral discount application
  * - Credit application on first payment
  * - Referral tracking and rewards
- * 
+ *
  * Single Responsibility: Referral program management and credit tracking
  */
 
@@ -124,7 +124,6 @@ export class ReferralService {
       select: {
         referralCreditsMonths: true,
         referralCode: true,
-
       },
     });
 

@@ -42,7 +42,7 @@ describe('PaymentsService', () => {
   const mockInvoice = {
     id: 'invoice-123456789',
     total: 1000,
-    status: 'pending',
+    status: 'PENDING',
   };
 
   const mockClinic = {
@@ -62,7 +62,7 @@ describe('PaymentsService', () => {
     shortUrl: 'https://rzp.io/test123',
     amount: 100000,
     currency: 'INR',
-    status: 'created',
+    status: 'CREATED',
   };
 
   beforeEach(async () => {
@@ -74,7 +74,7 @@ describe('PaymentsService', () => {
       },
       invoice: {
         findUnique: jest.fn().mockResolvedValue(mockInvoice),
-        update: jest.fn().mockResolvedValue({ ...mockInvoice, status: 'paid' }),
+        update: jest.fn().mockResolvedValue({ ...mockInvoice, status: 'PAID' }),
       },
       paymentSession: {
         create: jest.fn().mockResolvedValue(mockPaymentSession),
@@ -82,7 +82,7 @@ describe('PaymentsService', () => {
         findUnique: jest.fn().mockResolvedValue(mockPaymentSession),
         update: jest
           .fn()
-          .mockResolvedValue({ ...mockPaymentSession, status: 'paid' }),
+          .mockResolvedValue({ ...mockPaymentSession, status: 'PAID' }),
       },
       whatsappLog: {
         create: jest.fn().mockResolvedValue({}),
@@ -128,7 +128,7 @@ describe('PaymentsService', () => {
       createPaymentLink: jest.fn().mockResolvedValue({
         id: 'plink_test123',
         short_url: 'https://rzp.io/test123',
-        status: 'created',
+        status: 'CREATED',
       }),
       verifySignature: jest.fn().mockReturnValue(true),
     };
@@ -191,7 +191,7 @@ describe('PaymentsService', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             provider: 'cash',
-            status: 'pending',
+            status: 'PENDING',
           }),
         }),
       );
@@ -288,7 +288,7 @@ describe('PaymentsService', () => {
         data: expect.objectContaining({
           whatsappSentAt: expect.any(Date),
           whatsappMessageId: 'msg-123',
-          whatsappStatus: 'sent',
+          whatsappStatus: 'SENT',
         }),
       });
     });
@@ -323,7 +323,7 @@ describe('PaymentsService', () => {
             id: 'plink_test123',
             amount: 100000,
             currency: 'INR',
-            status: 'paid',
+            status: 'PAID',
             short_url: 'https://rzp.io/test123',
           },
         },
@@ -345,7 +345,7 @@ describe('PaymentsService', () => {
       expect(prismaService.paymentSession.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            status: 'paid',
+            status: 'PAID',
             paidAt: expect.any(Date),
           }),
         }),
@@ -357,7 +357,7 @@ describe('PaymentsService', () => {
 
       expect(prismaService.invoice.update).toHaveBeenCalledWith({
         where: { id: mockPaymentSession.invoiceId },
-        data: { status: 'paid' },
+        data: { status: 'PAID' },
       });
     });
 
@@ -368,7 +368,7 @@ describe('PaymentsService', () => {
         mockClinic.id,
         mockPaymentSession.id,
         expect.objectContaining({
-          status: 'paid',
+          status: 'PAID',
           paidAt: expect.any(Date),
         }),
       );
@@ -410,7 +410,7 @@ describe('PaymentsService', () => {
       expect(prismaService.paymentSession.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            status: 'expired',
+            status: 'EXPIRED',
           }),
         }),
       );
@@ -427,7 +427,7 @@ describe('PaymentsService', () => {
       expect(prismaService.paymentSession.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            status: 'cancelled',
+            status: 'CANCELLED',
           }),
         }),
       );

@@ -110,9 +110,7 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             retryDelay: (attemptIndex) =>
               Math.min(1000 * 2 ** attemptIndex, 30000),
 
-            // Enable background refetching when stale
-            // This keeps data fresh without blocking the UI
-            staleTime: 10 * 1000,
+            // Enable background refetching when stale (via settings above)
           },
           mutations: {
             // Retry mutations once on network errors

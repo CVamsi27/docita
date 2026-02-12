@@ -1,8 +1,5 @@
-import { Outfit } from "next/font/google";
 import "@workspace/ui/globals.css";
 import { Providers } from "./providers";
-
-const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Docita - Modern Clinic Management Software",
@@ -18,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${outfit.className} bg-background text-foreground antialiased`}
+        className="font-sans bg-background text-foreground antialiased"
       >
         <Providers>{children}</Providers>
       </body>

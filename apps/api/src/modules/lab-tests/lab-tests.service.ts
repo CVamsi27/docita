@@ -129,12 +129,12 @@ export class LabTestsService {
     if (status && status !== 'all') {
       // Map string status to enum
       const statusMap: Record<string, LabTestOrderStatus> = {
-        'ordered': LabTestOrderStatus.ORDERED,
-        'pending': LabTestOrderStatus.PENDING,
-        'completed': LabTestOrderStatus.COMPLETED,
-        'cancelled': LabTestOrderStatus.CANCELLED,
+        ordered: LabTestOrderStatus.ORDERED,
+        pending: LabTestOrderStatus.PENDING,
+        completed: LabTestOrderStatus.COMPLETED,
+        cancelled: LabTestOrderStatus.CANCELLED,
       };
-      const enumStatus = statusMap[status as string];
+      const enumStatus = statusMap[status];
       if (enumStatus) {
         where.status = enumStatus;
       }
@@ -229,7 +229,7 @@ export class LabTestsService {
     const updateData: Record<string, unknown> = { ...validatedUpdate };
 
     // Map string status to enum values for database storage
-    const statusStr = (data.status as string | undefined);
+    const statusStr = data.status as string | undefined;
     if (statusStr === 'sample_collected') {
       updateData.collectedAt = new Date();
       updateData.status = LabTestOrderStatus.PENDING;
@@ -261,16 +261,19 @@ export class LabTestsService {
     });
 
     return {
-      pending: orders.filter((o) => o.status === LabTestOrderStatus.ORDERED).length,
-      inProgress: orders.filter((o) =>
-        o.status === LabTestOrderStatus.PENDING,
-      ).length,
-      completed: orders.filter((o) => o.status === LabTestOrderStatus.COMPLETED).length,
+      pending: orders.filter((o) => o.status === LabTestOrderStatus.ORDERED)
+        .length,
+      inProgress: orders.filter((o) => o.status === LabTestOrderStatus.PENDING)
+        .length,
+      completed: orders.filter((o) => o.status === LabTestOrderStatus.COMPLETED)
+        .length,
       // For now, we'll count orders from today as potentially urgent
       urgent: orders.filter((o) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return o.createdAt >= today && o.status !== LabTestOrderStatus.COMPLETED;
+        return (
+          o.createdAt >= today && o.status !== LabTestOrderStatus.COMPLETED
+        );
       }).length,
       total: orders.length,
     };

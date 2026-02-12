@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
@@ -148,7 +148,9 @@ export function useAppointmentForm({
   ]);
 
   const form = useForm<CreateAppointmentInput>({
-    resolver: zodResolver(createAppointmentSchema),
+    resolver: zodResolver(
+      createAppointmentSchema,
+    ) as Resolver<CreateAppointmentInput>,
     defaultValues,
   });
 

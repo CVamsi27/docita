@@ -64,14 +64,28 @@ export function usePrescriptionForm({
   const createPrescription = useCreatePrescription();
   const [instructions, setInstructions] = useState("");
   const [medications, setMedications] = useState<PrescriptionMedication[]>([
-    { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
+    {
+      name: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      route: "PO",
+      prnInstructions: "",
+    },
   ]);
   const [validations, setValidations] = useState<MedicationValidation[]>([]);
 
   const addMedication = () => {
     setMedications([
       ...medications,
-      { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
+      {
+        name: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        route: "PO",
+        prnInstructions: "",
+      },
     ]);
   };
 
@@ -216,7 +230,14 @@ export function usePrescriptionForm({
       });
 
       setMedications([
-        { name: "", dosage: "", frequency: "", duration: "", route: "PO" },
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          duration: "",
+          route: "PO",
+          prnInstructions: "",
+        },
       ]);
       setInstructions("");
       setValidations([]);

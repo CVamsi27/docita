@@ -104,6 +104,8 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         conditionName: conditionName.trim(),
         conditionType: "CHRONIC",
         status: "ACTIVE",
+        diagnosedBy: "",
+        notes: "",
         sourceType: "MANUAL",
       };
       handleUpdate(
@@ -137,6 +139,8 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         allergen: allergen.trim(),
         severity: severity as PatientAllergy["severity"],
         allergyType: allergyType as PatientAllergy["allergyType"],
+        reaction: "",
+        verifiedBy: "",
         isVerified: false,
       };
       handleUpdate(
@@ -181,6 +185,8 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         patientId,
         procedureName: procedureName.trim(),
         procedureDate: procedureDate || undefined,
+        complications: "",
+        notes: "",
       };
       handleUpdate(
         { surgicalHistory: [...currentSurgeries, newEntry] },
@@ -239,6 +245,13 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentSocial = patient.socialHistory || {
         patientId,
+        alcoholFrequency: "",
+        substanceUse: "",
+        occupation: "",
+        occupationalHazards: "",
+        exerciseFrequency: "",
+        dietaryRestrictions: "",
+        notes: "",
       };
       handleUpdate({
         socialHistory: {
@@ -254,12 +267,13 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   const updateCustomData = useCallback(
     (key: string, value: unknown) => {
       if (!patient) return;
-      const currentCustomData = (patient.customData as Record<string, unknown>) || {};
+      const currentCustomData =
+        (patient.customData as Record<string, unknown>) || {};
       handleUpdate({
         customData: {
           ...currentCustomData,
           [key]: value,
-        },
+        } as PatientWithMedicalHistory["customData"],
       });
     },
     [patient, handleUpdate]

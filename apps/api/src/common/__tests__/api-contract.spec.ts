@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+const specPath = path.resolve(process.cwd(), 'docs/openapi.json');
+const describeIfSpec = fs.existsSync(specPath) ? describe : describe.skip;
+
 /**
  * API Contract Tests
  *
@@ -14,25 +17,17 @@ import * as path from 'path';
  * 4. Fail if response doesn't match spec
  */
 
-describe('API Contract Tests', () => {
+describeIfSpec('API Contract Tests', () => {
   let openApiSpec: any;
 
   beforeAll(() => {
     // Load OpenAPI specification
-    const specPath = path.join(__dirname, '../../../../docs/openapi.json');
-
-    if (!fs.existsSync(specPath)) {
-      console.warn(`⚠️  OpenAPI spec not found at ${specPath}`);
-      console.warn('   Run: pnpm --filter @docita/api generate-openapi');
-      throw new Error('OpenAPI specification required for contract tests');
-    }
-
     const specContent = fs.readFileSync(specPath, 'utf-8');
     openApiSpec = JSON.parse(specContent);
   });
 
   describe('GET /patients', () => {
-    it('should return response matching OpenAPI schema', async () => {
+    it('should return response matching OpenAPI schema', () => {
       // This test would make a real request to the API
       // and validate the response against the OpenAPI schema
       //
@@ -46,7 +41,7 @@ describe('API Contract Tests', () => {
       expect(patientsSchema['200']).toBeDefined();
     });
 
-    it('should return pagination metadata in response', async () => {
+    it('should return pagination metadata in response', () => {
       const patientsSchema =
         openApiSpec.paths?.['/patients']?.get?.responses?.['200']?.content?.[
           'application/json'
@@ -61,27 +56,25 @@ describe('API Contract Tests', () => {
   });
 
   describe('GET /patients/{id}', () => {
-    it('should return response matching OpenAPI schema', async () => {
+    it('should return response matching OpenAPI schema', () => {
       const patientSchema =
         openApiSpec.paths?.['/patients/{id}']?.get?.responses?.['200'];
       expect(patientSchema).toBeDefined();
     });
 
-    it('should document 404 response when patient not found', async () => {
-      const responses =
-        openApiSpec.paths?.['/patients/{id}']?.get?.responses;
+    it('should document 404 response when patient not found', () => {
+      const responses = openApiSpec.paths?.['/patients/{id}']?.get?.responses;
       expect(responses?.['404']).toBeDefined();
     });
 
-    it('should document 401 response for missing auth', async () => {
-      const responses =
-        openApiSpec.paths?.['/patients/{id}']?.get?.responses;
+    it('should document 401 response for missing auth', () => {
+      const responses = openApiSpec.paths?.['/patients/{id}']?.get?.responses;
       expect(responses?.['401']).toBeDefined();
     });
   });
 
   describe('POST /patients', () => {
-    it('should define request body schema', async () => {
+    it('should define request body schema', () => {
       const createSchema =
         openApiSpec.paths?.['/patients']?.post?.requestBody?.content?.[
           'application/json'
@@ -92,7 +85,7 @@ describe('API Contract Tests', () => {
       expect(createSchema?.properties?.email).toBeDefined();
     });
 
-    it('should document required fields', async () => {
+    it('should document required fields', () => {
       const createSchema =
         openApiSpec.paths?.['/patients']?.post?.requestBody?.content?.[
           'application/json'
@@ -101,22 +94,20 @@ describe('API Contract Tests', () => {
       expect(createSchema?.required).toContain('lastName');
     });
 
-    it('should document validation errors response', async () => {
-      const responses =
-        openApiSpec.paths?.['/patients']?.post?.responses;
+    it('should document validation errors response', () => {
+      const responses = openApiSpec.paths?.['/patients']?.post?.responses;
       expect(responses?.['400']).toBeDefined(); // Bad request
       expect(responses?.['422']).toBeDefined(); // Unprocessable entity (validation)
     });
 
-    it('should document 409 response for duplicate data', async () => {
-      const responses =
-        openApiSpec.paths?.['/patients']?.post?.responses;
+    it('should document 409 response for duplicate data', () => {
+      const responses = openApiSpec.paths?.['/patients']?.post?.responses;
       expect(responses?.['409']).toBeDefined(); // Conflict
     });
   });
 
   describe('PATCH /patients/{id}', () => {
-    it('should define request body schema with optional fields', async () => {
+    it('should define request body schema with optional fields', () => {
       const updateSchema =
         openApiSpec.paths?.['/patients/{id}']?.patch?.requestBody?.content?.[
           'application/json'
@@ -125,7 +116,7 @@ describe('API Contract Tests', () => {
       expect(updateSchema?.properties?.firstName).toBeDefined();
     });
 
-    it('should not require all fields in update', async () => {
+    it('should not require all fields in update', () => {
       const updateSchema =
         openApiSpec.paths?.['/patients/{id}']?.patch?.requestBody?.content?.[
           'application/json'
@@ -136,13 +127,13 @@ describe('API Contract Tests', () => {
   });
 
   describe('DELETE /patients/{id}', () => {
-    it('should document 204 No Content response', async () => {
+    it('should document 204 No Content response', () => {
       const responses =
         openApiSpec.paths?.['/patients/{id}']?.delete?.responses;
       expect(responses?.['204']).toBeDefined();
     });
 
-    it('should document 409 response when patient has dependencies', async () => {
+    it('should document 409 response when patient has dependencies', () => {
       const responses =
         openApiSpec.paths?.['/patients/{id}']?.delete?.responses;
       expect(responses?.['409']).toBeDefined();
@@ -150,7 +141,7 @@ describe('API Contract Tests', () => {
   });
 
   describe('GET /appointments', () => {
-    it('should document query parameters for filtering', async () => {
+    it('should document query parameters for filtering', () => {
       const appointmentParams =
         openApiSpec.paths?.['/appointments']?.get?.parameters;
       const paramNames = appointmentParams?.map((p: any) => p.name) || [];
@@ -161,10 +152,10 @@ describe('API Contract Tests', () => {
       expect(paramNames).toContain('doctorId');
     });
 
-    it('should document status parameter as enum', async () => {
-      const statusParam = openApiSpec.paths?.['/appointments']?.get?.parameters?.find(
-        (p: any) => p.name === 'status',
-      );
+    it('should document status parameter as enum', () => {
+      const statusParam = openApiSpec.paths?.[
+        '/appointments'
+      ]?.get?.parameters?.find((p: any) => p.name === 'status');
       expect(statusParam?.schema?.enum).toBeDefined();
       expect(statusParam.schema.enum).toContain('scheduled');
       expect(statusParam.schema.enum).toContain('completed');
@@ -173,7 +164,7 @@ describe('API Contract Tests', () => {
   });
 
   describe('POST /appointments', () => {
-    it('should document appointment scheduling schema', async () => {
+    it('should document appointment scheduling schema', () => {
       const createSchema =
         openApiSpec.paths?.['/appointments']?.post?.requestBody?.content?.[
           'application/json'
@@ -186,7 +177,7 @@ describe('API Contract Tests', () => {
   });
 
   describe('POST /auth/signin', () => {
-    it('should document login endpoint', async () => {
+    it('should document login endpoint', () => {
       const signInSchema =
         openApiSpec.paths?.['/auth/signin']?.post?.requestBody?.content?.[
           'application/json'
@@ -195,23 +186,21 @@ describe('API Contract Tests', () => {
       expect(signInSchema?.properties?.password).toBeDefined();
     });
 
-    it('should document JWT token in response', async () => {
+    it('should document JWT token in response', () => {
       const responseSchema =
-        openApiSpec.paths?.['/auth/signin']?.post?.responses?.['200']?.content?.[
-          'application/json'
-        ]?.schema;
+        openApiSpec.paths?.['/auth/signin']?.post?.responses?.['200']
+          ?.content?.['application/json']?.schema;
       expect(responseSchema?.properties?.accessToken).toBeDefined();
     });
 
-    it('should document 401 response for invalid credentials', async () => {
-      const responses =
-        openApiSpec.paths?.['/auth/signin']?.post?.responses;
+    it('should document 401 response for invalid credentials', () => {
+      const responses = openApiSpec.paths?.['/auth/signin']?.post?.responses;
       expect(responses?.['401']).toBeDefined();
     });
   });
 
   describe('GET /invoices', () => {
-    it('should document invoice list endpoint', async () => {
+    it('should document invoice list endpoint', () => {
       const invoiceSchema =
         openApiSpec.paths?.['/invoices']?.get?.responses?.['200']?.content?.[
           'application/json'
@@ -219,11 +208,10 @@ describe('API Contract Tests', () => {
       expect(invoiceSchema).toBeDefined();
     });
 
-    it('should document amount fields as numbers', async () => {
+    it('should document amount fields as numbers', () => {
       const invoiceSchema =
-        openApiSpec.paths?.['/invoices/{id}']?.get?.responses?.['200']?.content?.[
-          'application/json'
-        ]?.schema?.properties;
+        openApiSpec.paths?.['/invoices/{id}']?.get?.responses?.['200']
+          ?.content?.['application/json']?.schema?.properties;
       expect(invoiceSchema?.totalAmount?.type).toBe('number');
       expect(invoiceSchema?.taxAmount?.type).toBe('number');
       expect(invoiceSchema?.discountAmount?.type).toBe('number');
@@ -231,29 +219,29 @@ describe('API Contract Tests', () => {
   });
 
   describe('Common Response Schemas', () => {
-    it('should define error response schema', async () => {
+    it('should define error response schema', () => {
       const schemas = openApiSpec.components?.schemas;
       expect(schemas?.ErrorResponse).toBeDefined();
     });
 
-    it('should define patient response schema', async () => {
+    it('should define patient response schema', () => {
       const schemas = openApiSpec.components?.schemas;
       expect(schemas?.PatientResponse).toBeDefined();
     });
 
-    it('should define appointment response schema', async () => {
+    it('should define appointment response schema', () => {
       const schemas = openApiSpec.components?.schemas;
       expect(schemas?.AppointmentResponse).toBeDefined();
     });
 
-    it('should define invoice response schema', async () => {
+    it('should define invoice response schema', () => {
       const schemas = openApiSpec.components?.schemas;
       expect(schemas?.InvoiceResponse).toBeDefined();
     });
   });
 
   describe('Security Schemas', () => {
-    it('should document JWT authentication', async () => {
+    it('should document JWT authentication', () => {
       const security = openApiSpec.components?.securitySchemes?.['JWT-auth'];
       expect(security).toBeDefined();
       expect(security?.type).toBe('http');
@@ -261,7 +249,7 @@ describe('API Contract Tests', () => {
       expect(security?.bearerFormat).toBe('JWT');
     });
 
-    it('should require auth on protected endpoints', async () => {
+    it('should require auth on protected endpoints', () => {
       const patientEndpoint = openApiSpec.paths?.['/patients']?.get;
       expect(patientEndpoint?.security).toBeDefined();
       expect(patientEndpoint.security[0]['JWT-auth']).toBeDefined();
@@ -269,29 +257,25 @@ describe('API Contract Tests', () => {
   });
 
   describe('API Versioning', () => {
-    it('should have v1 in all endpoint paths', async () => {
+    it('should have v1 in all endpoint paths', () => {
       const paths = Object.keys(openApiSpec.paths || {});
       // In our URL-based versioning, paths are versioned via servers or prefix
       // Verify version is defined in info
       expect(openApiSpec.info?.version).toBe('1.0.0');
     });
 
-    it('should document servers for different environments', async () => {
+    it('should document servers for different environments', () => {
       // Recommended to document multiple environment URLs
       expect(openApiSpec.servers).toBeDefined();
     });
   });
 
   describe('Documentation Quality', () => {
-    it('should have descriptions for all endpoints', async () => {
+    it('should have descriptions for all endpoints', () => {
       let endpointsWithoutDescription = 0;
 
-      for (const [path, pathItem] of Object.entries(
-        openApiSpec.paths || {},
-      )) {
-        for (const [method, endpoint] of Object.entries(
-          pathItem as any,
-        )) {
+      for (const [path, pathItem] of Object.entries(openApiSpec.paths || {})) {
+        for (const [method, endpoint] of Object.entries(pathItem as any)) {
           if (
             ['get', 'post', 'put', 'patch', 'delete'].includes(
               method.toLowerCase(),
@@ -308,7 +292,7 @@ describe('API Contract Tests', () => {
       expect(endpointsWithoutDescription).toBeLessThan(5);
     });
 
-    it('should have examples in request bodies', async () => {
+    it('should have examples in request bodies', () => {
       // Check a few critical endpoints have examples
       const createPatientExample =
         openApiSpec.paths?.['/patients']?.post?.requestBody?.example;

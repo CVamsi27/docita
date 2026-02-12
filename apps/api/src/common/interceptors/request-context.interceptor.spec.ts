@@ -21,6 +21,7 @@ describe('RequestContextInterceptor', () => {
       const mockRequest = {
         headers: {},
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -43,7 +44,7 @@ describe('RequestContextInterceptor', () => {
           expect(mockRequest.id).toBeDefined();
           expect(typeof mockRequest.id).toBe('string');
           expect(mockResponse.setHeader).toHaveBeenCalledWith(
-            'X-Correlation-ID',
+            'x-correlation-id',
             mockRequest.id,
           );
           done();
@@ -59,6 +60,7 @@ describe('RequestContextInterceptor', () => {
           'x-correlation-id': providedCorrelationId,
         },
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -80,7 +82,7 @@ describe('RequestContextInterceptor', () => {
         () => {
           expect(mockRequest.id).toBe(providedCorrelationId);
           expect(mockResponse.setHeader).toHaveBeenCalledWith(
-            'X-Correlation-ID',
+            'x-correlation-id',
             providedCorrelationId,
           );
           done();
@@ -93,6 +95,7 @@ describe('RequestContextInterceptor', () => {
       const mockRequest = {
         headers: {},
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -114,7 +117,7 @@ describe('RequestContextInterceptor', () => {
         () => {
           expect(mockResponse.setHeader).toHaveBeenCalled();
           const calls = mockResponse.setHeader.mock.calls;
-          expect(calls.some((c: any[]) => c[0] === 'X-Correlation-ID')).toBe(
+          expect(calls.some((c: any[]) => c[0] === 'x-correlation-id')).toBe(
             true,
           );
           done();
@@ -130,6 +133,7 @@ describe('RequestContextInterceptor', () => {
           'X-Correlation-Id': providedCorrelationId, // Different casing
         },
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -161,6 +165,7 @@ describe('RequestContextInterceptor', () => {
       const mockRequest = {
         headers: {},
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -192,6 +197,7 @@ describe('RequestContextInterceptor', () => {
       const mockRequest = {
         headers: {},
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {
@@ -226,6 +232,7 @@ describe('RequestContextInterceptor', () => {
         const mockRequest = {
           headers: {},
           id: undefined,
+          get: jest.fn().mockReturnValue('jest-agent'),
         };
 
         const mockResponse = {
@@ -261,6 +268,7 @@ describe('RequestContextInterceptor', () => {
       const mockRequest = {
         headers: {},
         id: undefined,
+        get: jest.fn().mockReturnValue('jest-agent'),
       };
 
       const mockResponse = {

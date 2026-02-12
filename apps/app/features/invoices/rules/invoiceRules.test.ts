@@ -38,26 +38,26 @@ describe("Invoice Business Rules", () => {
 
   describe("isInvoiceOverdue", () => {
     it("should return false for paid invoices", () => {
-      const invoice = { status: "paid", dueDate: new Date().toISOString() };
+      const invoice = { status: "PAID", dueDate: new Date().toISOString() };
       expect(isInvoiceOverdue(invoice)).toBe(false);
     });
 
     it("should return false if due date is missing", () => {
-      const invoice = { status: "pending" };
+      const invoice = { status: "PENDING" };
       expect(isInvoiceOverdue(invoice)).toBe(false);
     });
 
     it("should return true for past due dates", () => {
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 1);
-      const invoice = { status: "pending", dueDate: pastDate.toISOString() };
+      const invoice = { status: "PENDING", dueDate: pastDate.toISOString() };
       expect(isInvoiceOverdue(invoice)).toBe(true);
     });
 
     it("should return false for future due dates", () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 1);
-      const invoice = { status: "pending", dueDate: futureDate.toISOString() };
+      const invoice = { status: "PENDING", dueDate: futureDate.toISOString() };
       expect(isInvoiceOverdue(invoice)).toBe(false);
     });
   });
@@ -65,12 +65,12 @@ describe("Invoice Business Rules", () => {
   describe("canEditInvoice", () => {
     it("should allow editing draft or pending invoices", () => {
       expect(canEditInvoice({ status: "draft" })).toBe(true);
-      expect(canEditInvoice({ status: "pending" })).toBe(true);
+      expect(canEditInvoice({ status: "PENDING" })).toBe(true);
     });
 
     it("should NOT allow editing paid or cancelled invoices", () => {
-      expect(canEditInvoice({ status: "paid" })).toBe(false);
-      expect(canEditInvoice({ status: "cancelled" })).toBe(false);
+      expect(canEditInvoice({ status: "PAID" })).toBe(false);
+      expect(canEditInvoice({ status: "CANCELLED" })).toBe(false);
     });
   });
 

@@ -108,7 +108,7 @@ export function BillingModal({
         appointmentId,
         items: finalItems,
         notes: `Generated from consultation. Payment Mode: ${paymentMode}`,
-        status: "pending",
+        status: "PENDING",
         total: Number(calculations.total.toFixed(2)),
       });
 

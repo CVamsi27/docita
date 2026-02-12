@@ -21,8 +21,8 @@ export function EditInvoiceDialogContainer({
 }: EditInvoiceDialogContainerProps) {
   const lastInvoiceIdRef = useRef<string | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>(() => invoice?.items || []);
-  const [status, setStatus] = useState<string>(
-    () => invoice?.status || "pending",
+  const [status, setStatus] = useState<Invoice["status"]>(
+    () => invoice?.status || "PENDING",
   );
   const [loading, setLoading] = useState(false);
   const invoiceStatusOptions = useFormOptions("invoiceStatus");
@@ -32,7 +32,7 @@ export function EditInvoiceDialogContainer({
     lastInvoiceIdRef.current = invoice?.id ?? null;
     if (invoice) {
       setItems(invoice.items || []);
-      setStatus(invoice.status || "pending");
+      setStatus(invoice.status || "PENDING");
     }
   }
   const addItem = () =>
@@ -55,6 +55,18 @@ export function EditInvoiceDialogContainer({
   };
   const calculateTotal = () =>
     items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  const handleStatusChange = (nextStatus: string) => {
+    const normalized = nextStatus.toUpperCase();
+    if (
+      normalized === "PAID" ||
+      normalized === "PENDING" ||
+      normalized === "OVERDUE" ||
+      normalized === "CANCELLED" ||
+      normalized === "PARTIALLY_PAID"
+    ) {
+      setStatus(normalized);
+    }
+  };
   const handleSubmit = () => {
     if (!invoice?.id) return;
     setLoading(true);
@@ -62,12 +74,7 @@ export function EditInvoiceDialogContainer({
       try {
         await updateInvoiceMutation.mutateAsync({
           items,
-          status: status as
-            | "pending"
-            | "paid"
-            | "cancelled"
-            | "overdue"
-            | undefined,
+          status,
           total: calculateTotal(),
         });
         toast.success("Invoice updated successfully");
@@ -93,7 +100,7 @@ export function EditInvoiceDialogContainer({
       loading={loading}
       statusOptions={invoiceStatusOptions}
       onOpenChange={onOpenChange}
-      onStatusChange={setStatus}
+      onStatusChange={handleStatusChange}
       onAddItem={addItem}
       onRemoveItem={removeItem}
       onUpdateItem={updateItem}

@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolesGuard } from './roles.guard';
+import { RolesGuard } from '../../modules/auth/roles.guard';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
   let reflector: Reflector;
 
   const mockReflector = {
-    get: jest.fn(),
+    getAllAndOverride: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -27,11 +27,14 @@ describe('RolesGuard', () => {
   });
 
   describe('canActivate', () => {
-    it('should allow request when no roles are required', () => {
-      mockReflector.get.mockReturnValueOnce(undefined); // No roles required
+    it('should deny request when no roles are required (deny-by-default)', () => {
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(undefined); // No roles required
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'DOCTOR' },
@@ -41,14 +44,17 @@ describe('RolesGuard', () => {
 
       const result = guard.canActivate(mockExecutionContext);
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('should allow request when user has required role', () => {
-      mockReflector.get.mockReturnValueOnce(['DOCTOR', 'ADMIN']);
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(['DOCTOR', 'ADMIN']);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'DOCTOR', clinicId: 'clinic-1' },
@@ -62,10 +68,13 @@ describe('RolesGuard', () => {
     });
 
     it('should deny request when user lacks required role', () => {
-      mockReflector.get.mockReturnValueOnce(['ADMIN']);
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(['ADMIN']);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'PATIENT', clinicId: 'clinic-1' },
@@ -73,16 +82,17 @@ describe('RolesGuard', () => {
         }),
       } as unknown as ExecutionContext;
 
-      const result = guard.canActivate(mockExecutionContext);
-
-      expect(result).toBe(false);
+      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
 
     it('should deny request when user is not authenticated', () => {
-      mockReflector.get.mockReturnValueOnce(['DOCTOR']);
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(['DOCTOR']);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: undefined,
@@ -90,17 +100,18 @@ describe('RolesGuard', () => {
         }),
       } as unknown as ExecutionContext;
 
-      const result = guard.canActivate(mockExecutionContext);
-
-      expect(result).toBe(false);
+      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
 
     it('should handle multiple required roles', () => {
       const requiredRoles = ['DOCTOR', 'NURSE', 'ADMIN'];
-      mockReflector.get.mockReturnValueOnce(requiredRoles);
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(requiredRoles);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'NURSE', clinicId: 'clinic-1' },
@@ -114,10 +125,13 @@ describe('RolesGuard', () => {
     });
 
     it('should reject superfluous roles not in required list', () => {
-      mockReflector.get.mockReturnValueOnce(['DOCTOR']);
+      mockReflector.getAllAndOverride
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(['DOCTOR']);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'SUPER_ADMIN', clinicId: 'clinic-1' },
@@ -125,9 +139,7 @@ describe('RolesGuard', () => {
         }),
       } as unknown as ExecutionContext;
 
-      const result = guard.canActivate(mockExecutionContext);
-
-      expect(result).toBe(false);
+      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
   });
 });

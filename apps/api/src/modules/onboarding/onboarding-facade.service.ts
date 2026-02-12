@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { SubscriptionStatus } from '@workspace/db';
@@ -85,9 +81,7 @@ export class OnboardingService {
   ): Promise<OnboardingResult> {
     const session = this.dataService.getSessionData(onboardingId);
     if (!session) {
-      throw new BadRequestException(
-        'Onboarding session not found or expired',
-      );
+      throw new BadRequestException('Onboarding session not found or expired');
     }
 
     let clinicId: string | undefined;
@@ -96,9 +90,8 @@ export class OnboardingService {
 
     try {
       // Validate all required steps are completed
-      const validation = this.validationService.validateOnboardingCompletion(
-        completeData,
-      );
+      const validation =
+        this.validationService.validateOnboardingCompletion(completeData);
       if (!validation.valid) {
         return {
           success: false,

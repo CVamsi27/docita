@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingService } from './onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import { AuthService } from '../auth/auth.service';
-import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
+import { OnboardingDataService } from './onboarding-data.service';
+import { OnboardingValidationService } from './onboarding-validation.service';
+import { OnboardingWorkflowService } from './onboarding-workflow.service';
+import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { BadRequestException } from '@nestjs/common';
 import {
   OnboardingStep,
@@ -14,9 +16,11 @@ import {
 describe('OnboardingService', () => {
   let service: OnboardingService;
   let prismaService: PrismaService;
-  let auditService: AuditService;
   let authService: AuthService;
-  let subscriptionBillingService: SubscriptionBillingService;
+  let dataService: OnboardingDataService;
+  let validationService: OnboardingValidationService;
+  let workflowService: OnboardingWorkflowService;
+  let complianceService: OnboardingComplianceService;
 
   const mockPrismaService = {
     $transaction: jest.fn((callback) => callback(mockPrismaService)),
@@ -47,36 +51,103 @@ describe('OnboardingService', () => {
     },
   };
 
-  const mockAuditService = {
-    logAction: jest.fn(),
-  };
-
   const mockAuthService = {
     login: jest.fn(),
   };
-
-  const mockSubscriptionBillingService = {};
+  const sessionStore = new Map<string, any>();
+  const mockDataService = {
+    initializeOnboarding: jest.fn(() => {
+      const onboardingId = `test_${Date.now()}`;
+      sessionStore.set(onboardingId, {});
+      return { onboardingId };
+    }),
+    updateOnboardingData: jest.fn(
+      (onboardingId: string, step: OnboardingStep, data: any) => {
+        if (!sessionStore.has(onboardingId)) {
+          throw new BadRequestException('Onboarding session not found');
+        }
+        const existing = sessionStore.get(onboardingId) || {};
+        sessionStore.set(onboardingId, {
+          ...existing,
+          ...data,
+          currentStep: step,
+        });
+      },
+    ),
+    getOnboardingProgress: jest.fn((onboardingId: string) => {
+      const data = sessionStore.get(onboardingId);
+      if (!data) throw new BadRequestException('Onboarding session not found');
+      return {
+        onboardingId,
+        currentStep: OnboardingStep.ADMIN_ACCOUNT,
+        completedSteps: [OnboardingStep.CLINIC_DETAILS],
+        data,
+      };
+    }),
+    getSessionData: jest.fn((onboardingId: string) =>
+      sessionStore.get(onboardingId),
+    ),
+    clearSession: jest.fn((onboardingId: string) =>
+      sessionStore.delete(onboardingId),
+    ),
+  };
+  const mockValidationService = {
+    validateOnboardingCompletion: jest.fn((completeData: any) => {
+      if (!completeData?.clinicDetails) {
+        return { valid: false, errors: ['Clinic details are required'] };
+      }
+      return { valid: true, errors: [] };
+    }),
+  };
+  const mockWorkflowService = {
+    createClinic: jest.fn().mockResolvedValue({ id: 'clinic_123' }),
+    createAdminUser: jest.fn().mockResolvedValue({
+      id: 'user_123',
+      email: 'admin@clinic.com',
+      role: 'ADMIN',
+      name: 'Admin User',
+    }),
+    createSubscription: jest.fn().mockResolvedValue({ id: 'sub_123' }),
+    createStaffMembers: jest.fn().mockResolvedValue(0),
+    initializeClinicSettings: jest.fn().mockResolvedValue(undefined),
+  };
+  const mockComplianceService = {
+    recordSLAAgreement: jest.fn().mockResolvedValue(undefined),
+    configureConsentManagement: jest.fn().mockResolvedValue(undefined),
+    logOnboardingEvent: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: AuditService, useValue: mockAuditService },
         { provide: AuthService, useValue: mockAuthService },
+        { provide: OnboardingDataService, useValue: mockDataService },
         {
-          provide: SubscriptionBillingService,
-          useValue: mockSubscriptionBillingService,
+          provide: OnboardingValidationService,
+          useValue: mockValidationService,
+        },
+        { provide: OnboardingWorkflowService, useValue: mockWorkflowService },
+        {
+          provide: OnboardingComplianceService,
+          useValue: mockComplianceService,
         },
       ],
     }).compile();
 
     service = module.get<OnboardingService>(OnboardingService);
     prismaService = module.get<PrismaService>(PrismaService);
-    auditService = module.get<AuditService>(AuditService);
     authService = module.get<AuthService>(AuthService);
-    subscriptionBillingService = module.get<SubscriptionBillingService>(
-      SubscriptionBillingService,
+    dataService = module.get<OnboardingDataService>(OnboardingDataService);
+    validationService = module.get<OnboardingValidationService>(
+      OnboardingValidationService,
+    );
+    workflowService = module.get<OnboardingWorkflowService>(
+      OnboardingWorkflowService,
+    );
+    complianceService = module.get<OnboardingComplianceService>(
+      OnboardingComplianceService,
     );
   });
 
@@ -215,22 +286,19 @@ describe('OnboardingService', () => {
       expect(result.clinicId).toBe('clinic_123');
       expect(result.access_token).toBe('valid_token');
 
-      // Verify audit log was called
-      expect(auditService.logAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          actionType: 'CLINIC_ONBOARDED',
-          clinicId: 'clinic_123',
-        }),
-        true,
+      expect(complianceService.logOnboardingEvent).toHaveBeenCalledWith(
+        'user_123',
+        'clinic_123',
+        'CLINIC_ONBOARDED',
+        expect.any(Object),
       );
     });
 
     it('should fail if clinic email exists', async () => {
       const { onboardingId } = service.initializeOnboarding();
-
-      mockPrismaService.clinic.findFirst.mockResolvedValue({
-        id: 'existing_clinic',
-      });
+      mockWorkflowService.createClinic.mockRejectedValueOnce(
+        new Error('Clinic with this email already exists'),
+      );
 
       const result = await service.completeOnboarding(
         onboardingId,

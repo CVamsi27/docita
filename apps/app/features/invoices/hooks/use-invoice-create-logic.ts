@@ -10,7 +10,7 @@ import { invoiceItemSchema } from "./use-invoice-edit-logic";
 
 export const createInvoiceSchema = z.object({
   patientId: z.string().min(1, "Patient is required"),
-  status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
@@ -36,7 +36,7 @@ export const useInvoiceCreateLogic = () => {
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       patientId: "",
-      status: "pending",
+      status: "PENDING",
       discount: 0,
       notes: "",
       items: [{ description: "", quantity: 1, price: 0 }],
@@ -64,6 +64,7 @@ export const useInvoiceCreateLogic = () => {
       
       const payload = {
         ...data,
+        notes: data.notes ?? "",
         total: totalAmount, // Include calculated total
       };
 
