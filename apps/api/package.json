@@ -22,6 +22,7 @@
     "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage",
     "test:all": "pnpm test && pnpm test:e2e",
     "test:ci": "jest --ci --coverage",
+    "generate-openapi": "ts-node scripts/generate-openapi.ts",
     "seed": "ts-node src/seed.ts",
     "seed:admin": "ts-node src/seed-admin.ts"
   },
