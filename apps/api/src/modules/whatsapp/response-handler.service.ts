@@ -1,7 +1,7 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
-import { WhatsappTemplatesService } from './templates.service';
+import { TemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { AppointmentStatus } from '@workspace/db';
 import {
@@ -68,7 +68,7 @@ export class ResponseHandlerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
-    private readonly templatesService: WhatsappTemplatesService,
+    private readonly templatesService: TemplatesService,
     private readonly staffNotification: StaffNotificationService,
   ) {}
 

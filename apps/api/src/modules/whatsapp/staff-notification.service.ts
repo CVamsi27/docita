@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappService } from './whatsapp.service';
 import { WhatsappClientService } from './whatsapp-client.service';
-import { WhatsappTemplatesService } from './templates.service';
+import { TemplatesService } from './templates.service';
 import { Prisma } from '@workspace/db';
 import type {
   StaffNotificationType,
@@ -34,7 +34,7 @@ export class StaffNotificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
-    private readonly templatesService: WhatsappTemplatesService,
+    private readonly templatesService: TemplatesService,
     @Inject(forwardRef(() => WhatsappService))
     private readonly whatsappService: WhatsappService,
   ) {}

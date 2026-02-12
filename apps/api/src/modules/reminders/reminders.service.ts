@@ -19,7 +19,7 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
-import { WhatsappTemplatesService } from '../whatsapp/templates.service';
+import { TemplatesService } from '../whatsapp/templates.service';
 
 interface AppointmentForReminder {
   id: string;
@@ -62,8 +62,8 @@ export class RemindersService {
   constructor(
     private prisma: PrismaService,
     private whatsappClient: WhatsappClientService,
-    @Inject(forwardRef(() => WhatsappTemplatesService))
-    private templatesService: WhatsappTemplatesService,
+    @Inject(forwardRef(() => TemplatesService))
+    private templatesService: TemplatesService,
   ) {}
 
   async getSettings() {

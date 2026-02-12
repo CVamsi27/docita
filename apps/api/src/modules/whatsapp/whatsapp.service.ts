@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappTemplatesService } from './templates.service';
+import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { SendTemplateDto } from './dto/send-template.dto';
@@ -29,7 +29,7 @@ export class WhatsappService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly templatesService: WhatsappTemplatesService,
+    private readonly templatesService: TemplatesService,
     private readonly whatsappClient: WhatsappClientService,
     private readonly whatsappWebhook: WhatsappWebhookService,
   ) {}

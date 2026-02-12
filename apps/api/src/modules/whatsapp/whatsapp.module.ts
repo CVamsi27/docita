@@ -1,6 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
-import { WhatsappTemplatesService } from './templates.service';
+import { TemplatesService } from './templates.service';
+import { TemplatesFacadeService } from './templates-facade.service';
+import { DefaultTemplatesService } from './default-templates.service';
+import { TemplateDataService } from './template-data.service';
+import { TemplateVariableService } from './template-variable.service';
+import { TemplateResolutionService } from './template-resolution.service';
+import { TemplateModeService } from './template-mode.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { WhatsappController } from './whatsapp.controller';
@@ -14,7 +20,15 @@ import { WhatsappEventListener } from './listeners/whatsapp.listener';
   controllers: [WhatsappController],
   providers: [
     WhatsappService,
-    WhatsappTemplatesService,
+    // Templates specialized services
+    DefaultTemplatesService,
+    TemplateDataService,
+    TemplateVariableService,
+    TemplateResolutionService,
+    TemplateModeService,
+    // Templates facade (exported as TemplatesService for backward compatibility)
+    TemplatesFacadeService,
+    { provide: 'TemplatesService', useClass: TemplatesFacadeService },
     WhatsappClientService,
     WhatsappWebhookService,
     ResponseHandlerService,
@@ -23,7 +37,7 @@ import { WhatsappEventListener } from './listeners/whatsapp.listener';
   ],
   exports: [
     WhatsappService,
-    WhatsappTemplatesService,
+    TemplatesFacadeService,
     WhatsappClientService,
     WhatsappWebhookService,
     ResponseHandlerService,

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
-import { WhatsappTemplatesService } from '../whatsapp/templates.service';
+import { TemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { IPaymentProvider } from './providers/payment.provider.interface';
@@ -62,7 +62,7 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private whatsappClient: WhatsappClientService,
-    private whatsappTemplates: WhatsappTemplatesService,
+    private whatsappTemplates: TemplatesService,
     private pushNotifications: PushNotificationService,
     private paymentGateway: PaymentWebSocketGateway,
     @Inject('IPaymentProvider') private paymentProvider: IPaymentProvider,
