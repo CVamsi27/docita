@@ -227,7 +227,7 @@ describe('WhatsappTemplatesService', () => {
         doctorName: 'Dr. Test',
       });
 
-      const message = service.getMessageForMode(resolved!);
+      const message = service.getMessageForMode(resolved);
 
       // Sandbox mode should include numbered reply options
       expect(message).toContain('1️⃣');

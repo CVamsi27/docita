@@ -21,10 +21,7 @@ export class TemplateVariableService {
    * Replace all template variables with values
    * Variables are formatted as {{variableName}}
    */
-  replaceVariables(
-    content: string,
-    variables: Record<string, string>,
-  ): string {
+  replaceVariables(content: string, variables: Record<string, string>): string {
     let result = content;
 
     for (const [key, value] of Object.entries(variables)) {

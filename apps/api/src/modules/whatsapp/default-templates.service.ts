@@ -28,7 +28,14 @@ export class DefaultTemplatesService {
     string,
     {
       name: string;
-      category: 'APPOINTMENT' | 'PRESCRIPTION' | 'INVOICE' | 'PAYMENT' | 'FOLLOW_UP' | 'MARKETING' | 'STAFF_NOTIFICATION';
+      category:
+        | 'APPOINTMENT'
+        | 'PRESCRIPTION'
+        | 'INVOICE'
+        | 'PAYMENT'
+        | 'FOLLOW_UP'
+        | 'MARKETING'
+        | 'STAFF_NOTIFICATION';
       content: string;
       variables: TemplateVariable[];
       buttonType: 'QUICK_REPLY' | 'CALL_TO_ACTION';

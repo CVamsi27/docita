@@ -130,7 +130,10 @@ export class TemplateResolutionService {
       resolvedButtons = template.buttons.map((button) => ({
         ...button,
         action: button.action
-          ? this.templateVariable.replaceVariables(button.action, filledVariables)
+          ? this.templateVariable.replaceVariables(
+              button.action,
+              filledVariables,
+            )
           : undefined,
       }));
     }
@@ -140,7 +143,8 @@ export class TemplateResolutionService {
     return {
       content: resolvedContent,
       buttons: resolvedButtons,
-      buttonType: (template.buttonType === 'NONE' ? 'QUICK_REPLY' : template.buttonType) as 'QUICK_REPLY' | 'CALL_TO_ACTION',
+      buttonType:
+        template.buttonType === 'NONE' ? 'QUICK_REPLY' : template.buttonType,
       textFallback: resolvedFallback,
       metaTemplateId: (template as any).metaTemplateId,
     };

@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
@@ -41,10 +40,21 @@ import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
   // Initialize Sentry first (before creating NestJS app)
+  // Safely load profiling integration, fall back if native binaries unavailable
+  const integrations: any[] = [];
+  try {
+    const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
+    integrations.push(nodeProfilingIntegration());
+  } catch (error) {
+    console.warn(
+      'Sentry CPU profiling not available for this Node version, continuing without profiling',
+    );
+  }
+
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
-    integrations: [nodeProfilingIntegration()],
+    integrations,
     tracesSampleRate: parseFloat(
       process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1',
     ),

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
-import { SubscriptionBillingService } from './subscription-billing-facade.service';
+import { SubscriptionBillingService } from './subscription-billing.service';
 import { SubscriptionWebhooksController } from './subscription-webhooks.controller';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
@@ -45,6 +45,7 @@ import { ProrationService } from './proration.service';
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,
+    PaymentWebSocketGateway,
   ],
   exports: [SubscriptionService, SubscriptionBillingService],
 })
