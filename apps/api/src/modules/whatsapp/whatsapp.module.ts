@@ -7,6 +7,11 @@ import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
 import { TemplateResolutionService } from './template-resolution.service';
 import { TemplateModeService } from './template-mode.service';
+import { ResendService } from './resend.service';
+import { SystemEventsService } from './system-events.service';
+import { ApprovalService } from './approval.service';
+import { MessagingService } from './messaging.service';
+import { TemplateMessageService } from './template-message.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { WhatsappController } from './whatsapp.controller';
@@ -19,7 +24,6 @@ import { WhatsappEventListener } from './listeners/whatsapp.listener';
   imports: [PrismaModule],
   controllers: [WhatsappController],
   providers: [
-    WhatsappService,
     // Templates specialized services
     DefaultTemplatesService,
     TemplateDataService,
@@ -29,6 +33,15 @@ import { WhatsappEventListener } from './listeners/whatsapp.listener';
     // Templates facade (exported as TemplatesService for backward compatibility)
     TemplatesFacadeService,
     { provide: 'TemplatesService', useClass: TemplatesFacadeService },
+    // WhatsApp service specialized services
+    ResendService,
+    SystemEventsService,
+    ApprovalService,
+    MessagingService,
+    TemplateMessageService,
+    // WhatsApp facade (main service)
+    WhatsappService,
+    // Infrastructure services
     WhatsappClientService,
     WhatsappWebhookService,
     ResponseHandlerService,
