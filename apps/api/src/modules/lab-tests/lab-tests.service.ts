@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { LabTestOrderStatus } from '@workspace/db';
 
 interface CreateLabTestOrderDto {
   patientId: string;
@@ -9,7 +10,7 @@ interface CreateLabTestOrderDto {
 }
 
 interface UpdateLabTestOrderDto {
-  status?: string;
+  status?: LabTestOrderStatus;
   result?: Record<string, unknown>;
   resultUrl?: string;
   notes?: string;
@@ -251,11 +252,11 @@ export class LabTestsService {
     });
 
     return {
-      pending: orders.filter((o) => o.status === 'ordered').length,
+      pending: orders.filter((o) => o.status === LabTestOrderStatus.ORDERED).length,
       inProgress: orders.filter((o) =>
-        ['sample_collected', 'processing'].includes(o.status),
+        [LabTestOrderStatus.PENDING].includes(o.status),
       ).length,
-      completed: orders.filter((o) => o.status === 'completed').length,
+      completed: orders.filter((o) => o.status === LabTestOrderStatus.COMPLETED).length,
       // For now, we'll count orders from today as potentially urgent
       urgent: orders.filter((o) => {
         const today = new Date();

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LabTestOrderStatus } from '@workspace/db';
 import {
   LabTestInput,
   LabTestSchema,
@@ -18,7 +19,7 @@ export class LabFactory {
     const validated = CreateLabOrderSchema.parse(data);
     return {
       ...validated,
-      status: 'ordered',
+      status: LabTestOrderStatus.ORDERED,
     };
   }
 
