@@ -82,17 +82,8 @@ export class LabTestsService {
 
     const { search, status, date } = params || {};
 
-    // Build the where clause incrementally
-    type WhereClause = {
-      clinicId: string;
-      OR?: Array<{
-        labTestId?: { in: string[] };
-        patientId?: { in: string[] };
-      }>;
-      status?: string;
-      createdAt?: { gte: Date; lte: Date };
-    };
-    const where: WhereClause = { clinicId };
+    // Build the where clause incrementally - use proper Prisma type
+    const where: any = { clinicId };
 
     // Handle Search - batch query for matching IDs
     if (search) {
@@ -136,7 +127,17 @@ export class LabTestsService {
     }
 
     if (status && status !== 'all') {
-      where.status = status;
+      // Map string status to enum
+      const statusMap: Record<string, LabTestOrderStatus> = {
+        'ordered': LabTestOrderStatus.ORDERED,
+        'pending': LabTestOrderStatus.PENDING,
+        'completed': LabTestOrderStatus.COMPLETED,
+        'cancelled': LabTestOrderStatus.CANCELLED,
+      };
+      const enumStatus = statusMap[status as string];
+      if (enumStatus) {
+        where.status = enumStatus;
+      }
     }
 
     if (date) {
@@ -227,10 +228,18 @@ export class LabTestsService {
     const validatedUpdate = this.labFactory.updateOrder(data);
     const updateData: Record<string, unknown> = { ...validatedUpdate };
 
-    if (data.status === 'sample_collected') {
+    // Map string status to enum values for database storage
+    const statusStr = (data.status as string | undefined);
+    if (statusStr === 'sample_collected') {
       updateData.collectedAt = new Date();
-    } else if (data.status === 'completed') {
+      updateData.status = LabTestOrderStatus.PENDING;
+    } else if (statusStr === 'completed') {
       updateData.completedAt = new Date();
+      updateData.status = LabTestOrderStatus.COMPLETED;
+    } else if (statusStr === 'cancelled') {
+      updateData.status = LabTestOrderStatus.CANCELLED;
+    } else if (statusStr === 'ordered') {
+      updateData.status = LabTestOrderStatus.ORDERED;
     }
 
     return this.prisma.labTestOrder.update({
@@ -254,14 +263,14 @@ export class LabTestsService {
     return {
       pending: orders.filter((o) => o.status === LabTestOrderStatus.ORDERED).length,
       inProgress: orders.filter((o) =>
-        [LabTestOrderStatus.PENDING].includes(o.status),
+        o.status === LabTestOrderStatus.PENDING,
       ).length,
       completed: orders.filter((o) => o.status === LabTestOrderStatus.COMPLETED).length,
       // For now, we'll count orders from today as potentially urgent
       urgent: orders.filter((o) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return o.createdAt >= today && o.status !== 'completed';
+        return o.createdAt >= today && o.status !== LabTestOrderStatus.COMPLETED;
       }).length,
       total: orders.length,
     };

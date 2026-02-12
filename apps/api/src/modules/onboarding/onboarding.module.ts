@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { OnboardingController } from './onboarding.controller';
 import { OnboardingService } from './onboarding.service';
+import { OnboardingDataService } from './onboarding-data.service';
+import { OnboardingValidationService } from './onboarding-validation.service';
+import { OnboardingWorkflowService } from './onboarding-workflow.service';
+import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
@@ -18,7 +22,13 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
     WhatsappModule,
   ],
   controllers: [OnboardingController],
-  providers: [OnboardingService],
+  providers: [
+    OnboardingDataService,
+    OnboardingValidationService,
+    OnboardingWorkflowService,
+    OnboardingComplianceService,
+    OnboardingService,
+  ],
   exports: [OnboardingService],
 })
 export class OnboardingModule {}

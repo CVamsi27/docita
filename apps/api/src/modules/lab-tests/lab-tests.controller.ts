@@ -95,6 +95,6 @@ export class LabTestsController {
   @Patch('orders/:id')
   @ZodSerializerDto(LabTestOrderResponseDto)
   updateOrder(@Param('id') id: string, @Body() dto: UpdateLabTestOrderDto) {
-    return this.labTestsService.updateOrder(id, dto);
+    return this.labTestsService.updateOrder(id, dto as any);
   }
 }

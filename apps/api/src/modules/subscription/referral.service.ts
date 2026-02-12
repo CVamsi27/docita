@@ -124,7 +124,7 @@ export class ReferralService {
       select: {
         referralCreditsMonths: true,
         referralCode: true,
-        referralCount: true,
+
       },
     });
 
