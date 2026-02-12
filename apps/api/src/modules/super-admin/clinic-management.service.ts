@@ -119,7 +119,9 @@ export class ClinicManagementService {
     });
     this.paymentGateway.emitClinicUpdate(id, {
       clinicId: id,
-      subscriptionStatus: active ? SubscriptionStatus.ACTIVE : SubscriptionStatus.EXPIRED,
+      subscriptionStatus: active
+        ? SubscriptionStatus.ACTIVE
+        : SubscriptionStatus.EXPIRED,
     });
     return clinic;
   }

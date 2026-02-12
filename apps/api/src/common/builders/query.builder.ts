@@ -347,7 +347,10 @@ export class InvoiceQueryBuilder {
   }
 
   withStatus(...statuses: (string | InvoiceStatus)[]): this {
-    this.where.status = statuses.length === 1 ? (statuses[0] as InvoiceStatus) : { in: statuses as InvoiceStatus[] };
+    this.where.status =
+      statuses.length === 1
+        ? (statuses[0] as InvoiceStatus)
+        : { in: statuses as InvoiceStatus[] };
     return this;
   }
 

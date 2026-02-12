@@ -105,13 +105,21 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
         const converted: PricingItem = {
           quantity: Number(item?.quantity ?? 0) || 0,
           unitPrice: Number(item?.unitPrice ?? 0) || 0,
-          taxRate: Number(item?.taxRate ?? this.DEFAULT_TAX_RATE) || this.DEFAULT_TAX_RATE,
-          discountType: item?.discountType === 'FIXED' || item?.discountType === 'PERCENTAGE' ? item.discountType : undefined,
-          discountValue: item?.discountValue ? Number(item.discountValue) : undefined,
+          taxRate:
+            Number(item?.taxRate ?? this.DEFAULT_TAX_RATE) ||
+            this.DEFAULT_TAX_RATE,
+          discountType:
+            item?.discountType === 'FIXED' ||
+            item?.discountType === 'PERCENTAGE'
+              ? item.discountType
+              : undefined,
+          discountValue: item?.discountValue
+            ? Number(item.discountValue)
+            : undefined,
         };
         return converted;
       })
-      .filter(item => item.quantity > 0 && item.unitPrice > 0);
+      .filter((item) => item.quantity > 0 && item.unitPrice > 0);
   }
 
   /**
@@ -361,7 +369,7 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
 
     // Recalculate line items
     const items: PricingItem[] = this.convertToPricingItems(
-      (invoice.items as unknown[]) || []
+      (invoice.items as unknown[]) || [],
     );
 
     const subtotal = items.reduce((sum, item) => {

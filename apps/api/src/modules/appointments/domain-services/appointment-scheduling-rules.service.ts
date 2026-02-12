@@ -176,8 +176,8 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
       where: {
         doctorId,
         AND: [
-          { startTime: { lt: endTime.toISOString() } }, 
-          { endTime: { gt: startTime.toISOString() } }
+          { startTime: { lt: endTime.toISOString() } },
+          { endTime: { gt: startTime.toISOString() } },
         ],
       },
       select: {
@@ -299,7 +299,9 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        patient: { select: { dateOfBirth: true, phoneNumber: true, email: true } },
+        patient: {
+          select: { dateOfBirth: true, phoneNumber: true, email: true },
+        },
         vitalSign: true,
       },
     });

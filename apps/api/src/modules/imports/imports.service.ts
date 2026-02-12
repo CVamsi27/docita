@@ -488,14 +488,9 @@ export class ImportsService {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(
-        `[IMPORT] OCR extraction failed: ${message}`,
-        stack,
-      );
+      this.logger.error(`[IMPORT] OCR extraction failed: ${message}`, stack);
       await unlink(filePath).catch(() => {});
-      throw new BadRequestException(
-        `Failed to process image: ${message}`,
-      );
+      throw new BadRequestException(`Failed to process image: ${message}`);
     }
   }
 }

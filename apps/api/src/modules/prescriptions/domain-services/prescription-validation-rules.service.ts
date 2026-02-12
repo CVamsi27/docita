@@ -29,9 +29,7 @@ export interface PrescriptionValidationRulesInterface {
     medicationId: string,
   ): { valid: boolean; error?: string };
 
-  validateFrequency(
-    frequency: string,
-  ): { valid: boolean; error?: string };
+  validateFrequency(frequency: string): { valid: boolean; error?: string };
 
   validateRefills(
     medicationType: string,
@@ -231,7 +229,8 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     });
 
     const contraindications: string[] = [];
-    const patientConditions = patient.medicalConditions.map(c => c.conditionName) || [];
+    const patientConditions =
+      patient.medicalConditions.map((c) => c.conditionName) || [];
 
     for (const med of medications) {
       const medContraindications =
@@ -299,9 +298,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
   /**
    * Validate medication frequency
    */
-  validateFrequency(
-    frequency: string,
-  ): { valid: boolean; error?: string } {
+  validateFrequency(frequency: string): { valid: boolean; error?: string } {
     const validFrequencies = [
       'OD',
       'BD',
@@ -380,7 +377,10 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     });
 
     const allergies: string[] = [];
-    const patientAllergies = ((patient as any).patientAllergies || []).map((a: any) => a.allergen ?? '') || [];
+    const patientAllergies =
+      ((patient as any).patientAllergies || []).map(
+        (a: any) => a.allergen ?? '',
+      ) || [];
 
     for (const med of medications) {
       const medName = med.name.toLowerCase();

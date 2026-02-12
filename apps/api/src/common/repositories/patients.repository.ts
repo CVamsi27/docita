@@ -463,10 +463,7 @@ export class PatientsRepository extends BaseRepository<Patient> {
       where: {
         patientId,
         status: {
-          in: [
-            AppointmentStatus.COMPLETED,
-            AppointmentStatus.IN_PROGRESS,
-          ],
+          in: [AppointmentStatus.COMPLETED, AppointmentStatus.IN_PROGRESS],
         },
       },
       select: {

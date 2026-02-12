@@ -57,7 +57,11 @@ export class StartupValidationService {
         /^123456789abcdef0/, // Sequential
       ];
 
-      if (weakKeyPatterns.some((pattern) => pattern.test(encryptionKey.toLowerCase()))) {
+      if (
+        weakKeyPatterns.some((pattern) =>
+          pattern.test(encryptionKey.toLowerCase()),
+        )
+      ) {
         throw new Error(
           'ENCRYPTION_KEY appears to be a weak or default key. ' +
             'Generate a cryptographically secure key: ' +

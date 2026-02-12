@@ -12,9 +12,7 @@ export class ObservabilityService {
   private metricsBuffer: Map<string, any> = new Map();
   private readonly METRICS_FLUSH_INTERVAL = 60000; // 1 minute
 
-  constructor(
-    private prisma: PrismaService,
-  ) {
+  constructor(private prisma: PrismaService) {
     // Start periodic metrics flush
     this.startMetricsFlushing();
   }
