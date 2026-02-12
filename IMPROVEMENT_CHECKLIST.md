@@ -1,16 +1,18 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-12 (Phase 2.8 - Subscription-Billing Decomposition Complete - 61% Complete) | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-12 (Phase 2.9 - Major Refactoring & Type Safety - 63% Complete) | **Total Tasks:** 63 | **Status:** In Progress
 
-### Session Notes (2026-02-12 - PHASE 2.8):
-- ✅ Phase 1 §3.5 COMPLETE: subscription-billing service (1,185L) decomposed into 6 focused services + facade
-  - BillingCalculationService (157L), SubscriptionCheckoutService (179L), SubscriptionLifecycleService (180L)
-  - ReferralService (150L), BillingHistoryService (220L), ProrationService (99L)
-  - SubscriptionBillingService facade (270L) orchestrates all with zero breaking changes
-- ✅ Module updated with DI for all new services, build verified, all dependencies correct
-- ✅ Created SUBSCRIPTION_BILLING_DECOMPOSITION_REPORT.md with complete strategy and testing plan
-- 🟢 Build: PASSING - Ready for unit tests and Phase 2 (onboarding.service)
-- 🎯 Next: Unit tests for decomposed services, continue HIGH priority god-object decomposition
+### Session Notes (2026-02-12 - PHASE 2.9):
+- ✅ Phase 1 §3.5 COMPLETE: subscription-billing (1,185L) → 6 focused services + facade
+  - BillingCalculationService, SubscriptionCheckoutService, SubscriptionLifecycleService
+  - ReferralService, BillingHistoryService, ProrationService
+  - SubscriptionBillingService facade orchestrates all with zero breaking changes
+- ✅ Phase 2 §9.13 COMPLETE: Converted String status fields to Enums
+  - Created LabTestOrderStatus, WhatsappConversationStatus, WhatsappMessageStatus enums
+  - Updated models and services to use enums
+  - Created migration 20260212_convert_status_to_enums
+- 🟢 Build: PASSING - All changes verified, zero breaking changes maintained
+- 🎯 Next: Continue HIGH priority items (onboarding.service decomposition, navigation improvements, tech debt cleanup)
 
 ---
 
@@ -953,15 +955,37 @@ Services exceeding 300-line guideline requiring decomposition:
 
 ---
 
-## 🎯 Recommended Immediate Actions (This Sprint)
+## 🎯 Recommended Immediate Actions (Next Session)
 
-1. **§3.5** — God-Object Service Decomposition (HIGH - start with subscription-billing.service 1,184 lines)
-2. **§4.1-4.6** — UI/Design System improvements (HIGH - can be parallel work)
-3. **§6.2** — CI/CD Pipeline Automation (HIGH - automation testing)
-4. **§5.3** — Frontend Testing (MEDIUM - after UI stabilizes)
-5. **§9.1-9.25** — Technical debt and documentation (MEDIUM)
+### High Impact, Medium Effort (Start Next):
+1. **§3.5 Phase 2** — Continue god-object decomposition with onboarding.service (810L)
+   - Follows same facade + 3-4 focused services pattern
+   - Est. time: 3-4 hours
+   - High impact on codebase maintainability
+
+2. **§4.2 Navigation & Layout Improvements** (Parallel work possible)
+   - Responsive sidebar, breadcrumbs, page headers, skeleton loading
+   - Est. time: 2-3 hours (can work with others)
+
+3. **§7.1 Technical Debt Cleanup** (Quick wins)
+   - Remove debug files, consolidate ESLint configs, clean .gitignore
+   - Est. time: 1-2 hours
+   - Immediate code quality improvement
+
+### Medium Impact, Low-Medium Effort:
+4. **§9.10** — Frontend Permissions Sync (Create packages/auth)
+   - Extract shared auth logic, DRY up apps/app and apps/admin
+   - Est. time: 2-3 hours
+
+5. **§9.8** — Landing Page Decomposition (113KB → components)
+   - Split into sections, add lazy loading, SSR support
+   - Est. time: 2-3 hours
+
+6. **§9.3** — React Query Retry Logic Fix (Custom ApiError)
+   - Create ApiError class with statusCode, update retry logic
+   - Est. time: 1-2 hours
 
 ---
 
-**Last Updated:** 2026-02-11  
-**Next Review:** 2026-02-18
+**Last Updated:** 2026-02-12  
+**Next Review:** 2026-02-19
