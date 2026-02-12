@@ -138,6 +138,9 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
     extractedText: string,
     fields: ParsedMedicalFields,
   ): Record<string, number> {
-    return this.confidenceScorer.generateConfidenceScores(extractedText, fields);
+    return this.confidenceScorer.generateConfidenceScores(
+      extractedText,
+      fields,
+    );
   }
 }
