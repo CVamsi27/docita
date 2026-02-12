@@ -85,6 +85,7 @@ export class AppointmentQueryBuilder {
   /**
    * Filter by specific status(es)
    */
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   withStatus(...statuses: (string | AppointmentStatus)[]): this {
     if (statuses.length === 1) {
       this.where.status = statuses[0] as AppointmentStatus;
@@ -346,6 +347,7 @@ export class InvoiceQueryBuilder {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   withStatus(...statuses: (string | InvoiceStatus)[]): this {
     this.where.status =
       statuses.length === 1

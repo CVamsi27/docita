@@ -49,6 +49,7 @@ interface RawInvoiceItem {
   quantity?: number | string;
   unitPrice?: number | string;
   taxRate?: number | string;
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   discountType?: 'FIXED' | 'PERCENTAGE' | string;
   discountValue?: number | string;
 }
