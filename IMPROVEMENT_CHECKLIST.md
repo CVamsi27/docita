@@ -1,18 +1,23 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-12 (Phase 2.9 - Major Refactoring & Type Safety - 63% Complete) | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-12 (Phase 2.10 - Service Decomposition Part 2 - 65% Complete) | **Total Tasks:** 63 | **Status:** In Progress
 
-### Session Notes (2026-02-12 - PHASE 2.9):
+### Session Notes (2026-02-12 - PHASE 2.10):
 - ✅ Phase 1 §3.5 COMPLETE: subscription-billing (1,185L) → 6 focused services + facade
   - BillingCalculationService, SubscriptionCheckoutService, SubscriptionLifecycleService
   - ReferralService, BillingHistoryService, ProrationService
   - SubscriptionBillingService facade orchestrates all with zero breaking changes
-- ✅ Phase 2 §9.13 COMPLETE: Converted String status fields to Enums
+- ✅ Phase 2 §3.5 COMPLETE: onboarding (810L) → 5 focused services + facade
+  - OnboardingDataService, OnboardingValidationService, OnboardingWorkflowService
+  - OnboardingComplianceService, OnboardingService facade
+  - 20% of god-object decomposition complete (2/10 services)
+  - Max service size: 810L → 290L (64% reduction)
+- ✅ Phase 3 §9.13 COMPLETE: Converted String status fields to Enums
   - Created LabTestOrderStatus, WhatsappConversationStatus, WhatsappMessageStatus enums
   - Updated models and services to use enums
   - Created migration 20260212_convert_status_to_enums
 - 🟢 Build: PASSING - All changes verified, zero breaking changes maintained
-- 🎯 Next: Continue HIGH priority items (onboarding.service decomposition, navigation improvements, tech debt cleanup)
+- 🎯 Next: 8 more god-objects (ocr, templates, clinics, whatsapp, reminders, usage-tracking, payments, super-admin-billing)
 
 ---
 
@@ -945,11 +950,11 @@ Services exceeding 300-line guideline requiring decomposition:
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 14 | 14 | 0 | 0 |
-| 🟡 High | 32 | 23 | 0 | 9 |
+| 🟡 High | 32 | 24 | 0 | 8 |
 | 🟢 Medium | 17 | 3 | 0 | 14 |
-| **TOTAL** | **63** | **40** | **0** | **23** |
+| **TOTAL** | **63** | **41** | **0** | **22** |
 
-**Overall Progress:** 63% Complete | 0% In Progress | 37% Not Started
+**Overall Progress:** 65% Complete | 0% In Progress | 35% Not Started
 
 **Build Status:** ✅ **PASSING** (0 errors, 0 warnings) - Ready for continued implementation
 
@@ -958,10 +963,14 @@ Services exceeding 300-line guideline requiring decomposition:
 ## 🎯 Recommended Immediate Actions (Next Session)
 
 ### High Impact, Medium Effort (Start Next):
-1. **§3.5 Phase 2** — Continue god-object decomposition with onboarding.service (810L)
-   - Follows same facade + 3-4 focused services pattern
+1. **§3.5 Phase 3** — Continue god-object decomposition with ocr.service (745L)
+   - Follows same facade + specialized services pattern
    - Est. time: 3-4 hours
-   - High impact on codebase maintainability
+   - Impactful for document processing pipeline
+
+2. **§3.5 Phase 4** — Decompose templates.service (683L)
+   - Est. time: 2-3 hours
+   - Enables template reusability across features
 
 2. **§4.2 Navigation & Layout Improvements** (Parallel work possible)
    - Responsive sidebar, breadcrumbs, page headers, skeleton loading
