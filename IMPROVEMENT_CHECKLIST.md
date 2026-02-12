@@ -1,23 +1,18 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-12 (Stabilization Pass - lint/test fixes + checklist sync) | **Total Tasks:** 63 | **Status:** In Progress
+**Last Updated:** 2026-02-12 (Phase 2.11 - OCR Decomposition) | **Total Tasks:** 63 | **Status:** 67% (42/63)
 
-### Session Notes (2026-02-12 - PHASE 2.10):
-- ✅ Phase 1 §3.5 COMPLETE: subscription-billing (1,185L) → 6 focused services + facade
-  - BillingCalculationService, SubscriptionCheckoutService, SubscriptionLifecycleService
-  - ReferralService, BillingHistoryService, ProrationService
-  - SubscriptionBillingService facade orchestrates all with zero breaking changes
-- ✅ Phase 2 §3.5 COMPLETE: onboarding (810L) → 5 focused services + facade
-  - OnboardingDataService, OnboardingValidationService, OnboardingWorkflowService
-  - OnboardingComplianceService, OnboardingService facade
-  - 20% of god-object decomposition complete (2/10 services)
-  - Max service size: 810L → 290L (64% reduction)
-- ✅ Phase 3 §9.13 COMPLETE: Converted String status fields to Enums
-  - Created LabTestOrderStatus, WhatsappConversationStatus, WhatsappMessageStatus enums
-  - Updated models and services to use enums
-  - Created migration 20260212_convert_status_to_enums
+### Session Notes (2026-02-12 - PHASE 2.11):
+- ✅ Phase 3 §3.5 COMPLETE: ocr.service (746L) → 5 focused services + facade
+  - ImagePreprocessorService (70L): Image preprocessing, resizing, grayscale, contrast
+  - TextExtractorService (90L): Tesseract initialization, worker lifecycle, OCR extraction
+  - DocumentClassifierService (50L): Document type detection (PRESCRIPTION, LAB_REPORT, CASE_SHEET, GENERAL)
+  - TextParserService (380L): Medical field extraction, regex-based parsing (consolidation point)
+  - ConfidenceScorerService (100L): Confidence score generation for extracted fields
+  - OCRFacadeService (130L): Main orchestrator maintaining identical public API
+  - Max service size: 746L → 380L (49% reduction) - 30% of god-object decomposition complete (3/10 services)
 - 🟢 Build: PASSING - All changes verified, zero breaking changes maintained
-- 🎯 Next: 8 more god-objects (ocr, templates, clinics, whatsapp, reminders, usage-tracking, payments, super-admin-billing)
+- 🎯 Next: 7 more god-objects (templates 683L, clinics 587L, whatsapp 559L, reminders 557L, usage-tracking 557L, payments 539L, super-admin 536L)
 
 ### Session Notes (2026-02-12 - STABILIZATION):
 - ✅ Fixed remaining API unit test failures (roles guard, request context interceptor, invoices auth controller spec)
@@ -962,7 +957,7 @@ Services exceeding 300-line guideline requiring decomposition:
 | 🟢 Medium | 17 | 3 | 0 | 14 |
 | **TOTAL** | **63** | **41** | **0** | **22** |
 
-**Overall Progress:** 65% Complete | 0% In Progress | 35% Not Started
+**Overall Progress:** 67% Complete | 0% In Progress | 33% Not Started
 
 **Build Status:** ✅ **PASSING** (0 errors, 0 warnings) - Ready for continued implementation
 
@@ -971,38 +966,38 @@ Services exceeding 300-line guideline requiring decomposition:
 ## 🎯 Recommended Immediate Actions (Next Session)
 
 ### High Impact, Medium Effort (Start Next):
-1. **§3.5 Phase 3** — Continue god-object decomposition with ocr.service (745L)
+1. **§3.5 Phase 4** — Continue god-object decomposition with templates.service (683L)
    - Follows same facade + specialized services pattern
-   - Est. time: 3-4 hours
-   - Impactful for document processing pipeline
-
-2. **§3.5 Phase 4** — Decompose templates.service (683L)
    - Est. time: 2-3 hours
-   - Enables template reusability across features
+   - Impactful for template management pipeline
 
-2. **§4.2 Navigation & Layout Improvements** (Parallel work possible)
+2. **§3.5 Phase 5** — Decompose clinics.service (587L)
+   - Est. time: 2-3 hours
+   - Enables clinic management feature scaling
+
+3. **§4.2 Navigation & Layout Improvements** (Parallel work possible)
    - Responsive sidebar, breadcrumbs, page headers, skeleton loading
    - Est. time: 2-3 hours (can work with others)
 
-3. **§7.1 Technical Debt Cleanup** (Quick wins)
+4. **§7.1 Technical Debt Cleanup** (Quick wins)
    - Remove debug files, consolidate ESLint configs, clean .gitignore
    - Est. time: 1-2 hours
    - Immediate code quality improvement
 
 ### Medium Impact, Low-Medium Effort:
-4. **§9.10** — Frontend Permissions Sync (Create packages/auth)
+5. **§9.10** — Frontend Permissions Sync (Create packages/auth)
    - Extract shared auth logic, DRY up apps/app and apps/admin
    - Est. time: 2-3 hours
 
-5. **§9.8** — Landing Page Decomposition (113KB → components)
+6. **§9.8** — Landing Page Decomposition (113KB → components)
    - Split into sections, add lazy loading, SSR support
    - Est. time: 2-3 hours
 
-6. **§9.3** — React Query Retry Logic Fix (Custom ApiError)
+7. **§9.3** — React Query Retry Logic Fix (Custom ApiError)
    - Create ApiError class with statusCode, update retry logic
    - Est. time: 1-2 hours
 
 ---
 
-**Last Updated:** 2026-02-12  
+**Last Updated:** 2026-02-12 (Phase 2.11 - OCR Decomposition)  
 **Next Review:** 2026-02-19
