@@ -1,6 +1,8 @@
 # 🎯 Docita — Comprehensive Production Improvement Plan
 
-**Last Updated:** 2026-02-13 (Phase 2.21 - Final Sprint) | **Total Tasks:** 63 | **Status:** 100% (63/63) ✅
+**Last Updated:** 2026-02-13 (Deep Audit — SOLID, Cleanup, Features — §10-§16) | **Total Tasks:** 120 | **Original Status:** 87% (55/63) | **Overall:** 46% (55/120)
+
+> **Strategic Focus Update (Feb 2026):** Patient portal, online booking, telehealth, mobile app, and marketplace features (§11.1-§11.3, §12.5, §12.13) have been **deferred to Future phase**. Current priority: core clinic workflows, code quality (SOLID principles, testing), and India-first features (i18n, ABDM, PWA).
 
 ### 🎉 SESSION SUMMARY - FINAL SPRINT COMPLETIONS (SESSION 2.21):
 
@@ -1008,58 +1010,1375 @@ Services exceeding 300-line guideline requiring decomposition:
 
 ---
 
-## 📊 Summary Progress
+---
 
+## 10. 🧹 Additional Technical Debt (Discovered 2026-02-13)
+
+### 10.1 — 13 API Modules Have Zero Test Coverage
+**Priority:** 🔴 Critical | **Files:** 13 modules in `apps/api/src/modules/`
+
+Modules with ZERO .spec.ts files:
+- [ ] `reminders/` (5 services — highest risk)
+- [ ] `email/` (1 service — sends PHI in emails)
+- [ ] `search/` (1 service — full-text search)
+- [ ] `templates/` (1 service — clinical templates)
+- [ ] `contact/` (1 service)
+- [ ] `custom-fields/` (1 service)
+- [ ] `doctor-clinics/` (1 service)
+- [ ] `feedback/` (1 service)
+- [ ] `medical-coding/` (1 service)
+- [ ] `medications/` (1 service)
+- [ ] `performance/` (1 service)
+- [ ] `referrals/` (1 service)
+- [ ] `config/` (1 service)
+
+Additionally, under-tested modules (service:test ratio):
+- [ ] `onboarding/` — 6 services, 1 test file
+- [ ] `super-admin/` — 5 services, 1 test file
+- [ ] `subscription/` — 10 services, 2 test files
+- [ ] `imports/` — 10 services, 2 test files
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.2 — Admin App Has Zero Tests
+**Priority:** 🟡 High | **Files:** `apps/admin/`
+
+- [ ] Set up Vitest/Jest for admin app
+- [ ] Add unit tests for admin dashboard components
+- [ ] Add tests for admin authentication flow
+- [ ] Add tests for billing/payment management views
+- [ ] Add E2E tests for critical admin workflows (user management, audit logs, system monitoring)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.3 — Frontend Error Tracking Not Connected to Monitoring
+**Priority:** 🔴 Critical | **Files:** `apps/app/components/common/error-boundary.tsx`
+
+- [ ] Integrate Sentry SDK in frontend ErrorBoundary (currently only `console.error`)
+- [ ] Add Sentry to admin app
+- [ ] Track unhandled promise rejections
+- [ ] Add user context (clinicId, userId, role) to error reports
+- [ ] Add breadcrumbs for user actions leading to errors
+- [ ] Configure source maps upload for production builds
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.4 — Remaining God-Object Services (Backend)
+**Priority:** 🟡 High | **Files:** Large service files
+
+Services still exceeding 500-line guideline:
+| Lines | File | Action |
+|-------|------|--------|
+| 3,166 | `apps/api/src/seed.ts` | Split into module-specific seed files |
+| 1,341 | `common/services/pdf-generator.service.ts` | Split by document type |
+| 1,184 | `subscription/subscription-billing.service.ts` | Facade exists but original untrimmed |
+| 557 | `billing/usage-tracking.service.ts` | Split: calculation + reporting |
+| 539 | `payments/payments.service.ts` | Split: processing + validation |
+| 536 | `super-admin/super-admin-billing.service.ts` | Split: analytics + reporting |
+| 517 | `doctors/doctor-availability.service.ts` | Split: schedule + conflict detection |
+| 516 | `subscription/subscription-billing-facade.service.ts` | Trim delegated logic |
+
+- [ ] Split seed.ts into per-module seed files (patients, appointments, clinics, etc.)
+- [ ] Decompose pdf-generator.service.ts — extract ReportPdfService, LabResultPdfService
+- [ ] Decompose usage-tracking.service.ts
+- [ ] Decompose payments.service.ts
+- [ ] Decompose super-admin-billing.service.ts
+- [ ] Decompose doctor-availability.service.ts
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.5 — Large Frontend Components Need Decomposition
+**Priority:** 🟡 High | **Files:** Various frontend components
+
+| Lines | File | Action |
+|-------|------|--------|
+| 721 | `apps/app/app/(protected)/upgrade/page.tsx` | Split: PlanComparison, FeatureMatrix, UpgradeForm |
+| 678 | `features/onboarding/components/ClinicRegistrationForm.tsx` | Split into multi-step wizard components |
+| 536 | `features/consultation/components/ConsultationDynamic.tsx` | Split: VitalsPanel, DiagnosisPanel, NotesPanel |
+| 532 | `features/patients/components/PatientTagManagerUI.tsx` | Split: TagList, TagEditor, TagFilter |
+| 409 | `lib/services/clinic-feature.service.ts` | Extract feature-group-specific logic |
+| 388 | `app/login/page.tsx` | Split: LoginForm, RegisterForm, ForgotPassword |
+
+- [ ] Decompose upgrade page into reusable plan/feature components
+- [ ] Convert ClinicRegistrationForm into a multi-step wizard
+- [ ] Split ConsultationDynamic into sub-panels
+- [ ] Simplify PatientTagManagerUI
+- [ ] Split login page into auth sub-components
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.6 — Missing Prisma Indexes for Query Performance
+**Priority:** 🟡 High | **Files:** `packages/db/prisma/schema.prisma`
+
+Models queried by foreign key but lacking `@@index`:
+- [ ] Add `@@index([patientId])` to `PatientSocialHistory`
+- [ ] Add `@@index([clinicId, status])` to `UploadSession`
+- [ ] Add `@@index([clinicId])` to `PrescriptionTemplate`
+- [ ] Add `@@index([clinicId])` to `ReminderSettings`
+- [ ] Audit all models with `clinicId` foreign key for missing indexes
+- [ ] Add composite indexes for common query patterns (e.g., `[clinicId, createdAt]`)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.7 — Frontend Features with Zero Unit Tests
+**Priority:** 🟡 High | **Files:** `apps/app/features/`
+
+11 of 21 feature directories have no unit tests:
+- [ ] `ai-assistant/` — AI interaction components
+- [ ] `analytics/` — Charts and reporting
+- [ ] `dialogs/` — Modal/dialog components
+- [ ] `excel/` — Excel import/export
+- [ ] `feedback/` — Feedback forms
+- [ ] `help/` — Help center
+- [ ] `legal/` — Privacy/terms pages
+- [ ] `mobile-upload/` — Mobile document upload
+- [ ] `ocr/` — Document scanning
+- [ ] `onboarding/` — Clinic registration wizard
+- [ ] `prescriptions/` — Prescription builder
+- [ ] `search/` — Global search
+- [ ] `subscription/` — Subscription management
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.8 — Shared Packages Have Minimal Tests
+**Priority:** 🟢 Medium | **Files:** `packages/`
+
+- [ ] Add tests for `packages/auth` — permission/role logic
+- [ ] Add tests for `packages/hooks` — shared React hooks
+- [ ] Add tests for `packages/utils` — utility functions (only 2 test files currently)
+- [ ] Add tests for `packages/types` — Zod schema validation tests
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.9 — CI/CD Pipeline Gaps
+**Priority:** 🟡 High | **Files:** `.github/workflows/`
+
+- [ ] Add frontend (Vercel) deployment workflow with preview deployments on PR
+- [ ] Add Dependabot or Renovate for automated dependency updates
+- [ ] Add bundle size analysis enforcement (fail CI if bundle grows beyond threshold)
+- [ ] Add staging environment workflow (deploy on merge to `develop`)
+- [ ] Add database migration dry-run validation in PR CI
+- [ ] Add lighthouse CI for performance regression detection
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.10 — Verify .env Files Not Committed to Git
+**Priority:** 🔴 Critical | **Files:** Various `.env` files
+
+9 `.env` files detected across the repo:
+- [ ] Verify `.env`, `.env.test` at root are in `.gitignore`
+- [ ] Verify `apps/app/.env`, `apps/api/.env` are in `.gitignore`
+- [ ] Verify `packages/db/.env` is in `.gitignore`
+- [ ] Rotate any secrets that may have been committed historically
+- [ ] Add git pre-commit hook to block `.env` file commits (exclude `.env.example`)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.11 — Accessibility (a11y) Is Critically Low
+**Priority:** 🟡 High | **Files:** All frontend components
+
+Only 9 out of 200+ component files use ARIA attributes.
+- [ ] Run axe-core automated audit on all pages and fix violations
+- [ ] Add `aria-label` to all icon buttons and interactive elements
+- [ ] Ensure all form inputs have associated `<label>` elements
+- [ ] Add `role` attributes to custom components (tabs, modals, menus)
+- [ ] Implement keyboard navigation for all interactive elements
+- [ ] Add skip-to-content link for screen reader users
+- [ ] Ensure color contrast meets WCAG 2.1 AA (4.5:1 for text)
+- [ ] Add `aria-live` regions for dynamic content (toast notifications, loading states)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 10.12 — Per-Feature Error Boundaries & Loading States
+**Priority:** 🟡 High | **Files:** `apps/app/app/(protected)/`
+
+Currently only 1 global ErrorBoundary and 1 loading state for the entire app.
+- [ ] Add `error.tsx` to: `/patients`, `/appointments`, `/consultation`, `/invoices`, `/settings`, `/analytics`
+- [ ] Add `loading.tsx` with skeleton UIs to each route group
+- [ ] Add `<Suspense>` boundaries within feature components
+- [ ] Add retry buttons in error fallback UIs
+- [ ] Add offline detection banner component
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 11. 🚀 Business Features — Patient-Facing Experience
+
+> **Note:** Items §11.1-§11.3, §12.5, and §12.13 (Patient Portal, Online Booking, Telehealth, Marketplace, Mobile App) are marked as **FUTURE** features and deferred for post-MVP launch. Current focus is on core clinic management workflows and code quality.
+
+### 11.1 — Patient Self-Service Portal
+**Priority:** ⏸️ Future (Deferred) | **Impact:** High (Patient Acquisition & Retention)
+
+Every major competitor (Practo, Zocdoc, DrChrono, SimplePractice) has a patient portal. Deferred until core clinic workflows are production-ready.
+
+- [ ] Create `apps/patient-portal/` Next.js app (or add public routes to `apps/app/`)
+- [ ] Patient registration & login (OTP-based for India market)
+- [ ] View upcoming and past appointments
+- [ ] View prescriptions and download PDF
+- [ ] View lab results and reports
+- [ ] View and pay invoices online (Razorpay integration)
+- [ ] Update personal information and medical history
+- [ ] Digital consent form signing
+- [ ] Secure messaging with clinic/doctor
+- [ ] Push notification support for appointment reminders
+
+**Est. Effort:** X-Large (4-6 weeks) | **Business Impact:** Critical for market launch
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 11.2 — Online Appointment Booking (Public)
+**Priority:** ⏸️ Future (Deferred) | **Impact:** High (Patient Acquisition)
+
+- [ ] Create a public clinic profile page (e.g., `booking.docita.work/clinic-slug`)
+- [ ] Display doctor profiles, specializations, and available slots
+- [ ] Allow patients to self-select doctor, date, and time slot
+- [ ] Integrate OTP verification for new patient booking
+- [ ] Support booking with/without payment (clinic configurable)
+- [ ] Generate a shareable booking link for each clinic/doctor
+- [ ] Add QR code generation for booking page (print in clinic)
+- [ ] Google Maps integration for clinic location
+- [ ] Embeddable booking widget for clinic websites (iframe/web component)
+- [ ] Support walk-in vs. pre-booked differentiation
+
+**Est. Effort:** Large (2-3 weeks) | **Business Impact:** Major patient acquisition channel
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 11.3 — Telehealth / Video Consultations
+**Priority:** ⏸️ Future (Deferred) | **Impact:** High (Revenue & Reach)
+
+Post-COVID essential feature. All major competitors offer this. Deferred until core workflows are stable.
+
+- [ ] Create `apps/api/src/modules/telehealth/` module
+- [ ] Integrate video SDK (Twilio Video, Daily.co, Jitsi, or 100ms)
+- [ ] Video consultation rooms with doctor/patient join flow
+- [ ] Waiting room functionality (patient waits, doctor admits)
+- [ ] In-call features: screen share, chat, file sharing
+- [ ] Auto-generate consultation record from video session
+- [ ] Support for audio-only calls (low bandwidth)
+- [ ] Recording capability (with patient consent) for medical records
+- [ ] Prescription generation during/after video consultation
+- [ ] Payment integration for teleconsultation fees
+- [ ] Schedule telehealth vs in-person appointment types
+
+**Est. Effort:** X-Large (3-5 weeks) | **Business Impact:** Expands addressable market significantly
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 11.4 — Internationalization (i18n) & Localization
+**Priority:** 🟡 High | **Impact:** High (Market Expansion)
+
+Critical for India market — patients and staff speak Hindi, Telugu, Tamil, Kannada, Malayalam, Bengali, etc.
+
+- [ ] Install and configure `next-intl` in all 3 frontend apps
+- [ ] Extract all hardcoded English strings to locale files
+- [ ] Set up locale files: `en`, `hi` (Hindi) minimum
+- [ ] Add language switcher component in clinic settings
+- [ ] Add patient-facing language selection (booking portal)
+- [ ] Localize date/time formats (DD/MM/YYYY for India)
+- [ ] Localize currency display (₹ formatting with INR conventions)
+- [ ] Localize prescription templates (bilingual prescriptions)
+- [ ] Add RTL support scaffolding for future Urdu/Arabic
+- [ ] Translate email and WhatsApp notification templates
+
+**Est. Effort:** Large (2-4 weeks) | **Business Impact:** Essential for India market penetration
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 11.5 — PWA & Offline Mode
+**Priority:** 🟡 High | **Impact:** High (User Experience for Rural/Mobile)
+
+Indian clinics often have intermittent connectivity. Mobile-first approach is essential.
+
+- [ ] Add `next-pwa` or Workbox service worker to `apps/app`
+- [ ] Create `manifest.json` with app name, icons, theme color
+- [ ] Implement offline-first strategy for patient list and recent appointments
+- [ ] Cache frequently accessed data using IndexedDB
+- [ ] Queue mutations during offline and sync when reconnected
+- [ ] Add install prompt ("Add to Home Screen") banner
+- [ ] Optimize for mobile viewport (verify all pages)
+- [ ] Add background sync for pending prescriptions and invoices
+- [ ] Show offline status indicator in app header
+
+**Est. Effort:** Medium (1-2 weeks) | **Business Impact:** Enables rural clinic adoption
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 12. 💰 Business Features — Revenue & Growth
+
+### 12.1 — Patient Engagement & CRM
+**Priority:** 🟡 High | **Impact:** Medium-High (Retention & Revenue)
+
+- [ ] Automated birthday and health anniversary wishes (WhatsApp/SMS/email)
+- [ ] Appointment recall system — remind patients due for follow-ups
+- [ ] Patient satisfaction surveys post-appointment (NPS)
+- [ ] Loyalty points program for repeat patients
+- [ ] Referral program for patient-to-patient referrals (track and reward)
+- [ ] Health tips and newsletter campaigns (segmented by condition)
+- [ ] Missed appointment follow-up automation
+- [ ] Treatment adherence tracking and reminders
+- [ ] Patient milestone celebrations (100th visit, treatment completion)
+
+**Est. Effort:** Large (2-3 weeks) | **Business Impact:** Increases patient LTV by 40-60%
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.2 — Advanced Analytics & Business Intelligence
+**Priority:** 🟡 High | **Impact:** Medium-High (Decision Making)
+
+Current analytics are basic dashboard metrics. Clinics need actionable insights.
+
+- [ ] Custom report builder (drag-and-drop fields, filters, grouping)
+- [ ] Scheduled report delivery (daily/weekly/monthly email)
+- [ ] Revenue analytics: by doctor, by service, by payer, by time period
+- [ ] Patient demographics dashboard (age, gender, location, conditions)
+- [ ] Appointment analytics: no-show rate, cancellation patterns, peak hours
+- [ ] Doctor performance metrics (patients seen, revenue generated, avg consultation time)
+- [ ] Cohort analysis (new vs. returning patients)
+- [ ] Revenue forecasting based on historical trends
+- [ ] Comparative analytics (this month vs. last, this year vs. last)
+- [ ] Exportable dashboards (PDF, Excel)
+- [ ] Real-time clinic occupancy dashboard
+
+**Est. Effort:** Large (2-4 weeks) | **Business Impact:** Key selling point for Pro/Enterprise tiers
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.3 — Multi-Channel Notifications (Beyond WhatsApp)
+**Priority:** 🟡 High | **Impact:** Medium (Patient Communication)
+
+Currently WhatsApp-only for notifications. Need broader reach.
+
+- [ ] SMS gateway integration (Twilio, MSG91, or Gupshup for India)
+- [ ] Push notifications (Firebase Cloud Messaging) for web and mobile
+- [ ] In-app notification center with read/unread, filtering, and search
+- [ ] Email notification templates (transactional emails via SendGrid/SES)
+- [ ] Notification preferences per patient (channel, frequency, opt-out)
+- [ ] Notification delivery tracking and analytics
+- [ ] Bulk notification campaigns (e.g., clinic closure, new service announcement)
+- [ ] Voice call reminders for critical appointments (IVR integration)
+
+**Est. Effort:** Medium (1-2 weeks per channel) | **Business Impact:** Reduces no-show rates by 30-50%
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.4 — Insurance & Claims Management
+**Priority:** 🟡 High | **Impact:** High (Revenue for Hospital/Enterprise)
+
+Critical for hospital-type clinics and Enterprise tier customers.
+
+- [ ] Insurance provider master database
+- [ ] Patient insurance policy management (add/verify/expire)
+- [ ] Pre-authorization workflow for procedures
+- [ ] Claim submission (electronic/manual) with status tracking
+- [ ] ERA (Electronic Remittance Advice) import and auto-posting
+- [ ] Insurance eligibility verification (real-time API)
+- [ ] Cashless insurance tie-up management
+- [ ] Explanation of Benefits (EOB) generation
+- [ ] Claim denial management and resubmission workflow
+- [ ] Insurance analytics (top payers, denial rates, average reimbursement time)
+
+**Est. Effort:** X-Large (4-6 weeks) | **Business Impact:** Unlocks hospital market segment
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.5 — Marketplace & Doctor Discovery
+**Priority:** ⏸️ Future (Deferred) | **Impact:** High (Patient Acquisition)
+
+A Practo/Zocdoc-style marketplace for patient acquisition. Deferred as it requires patient portal foundation.
+
+- [ ] Public doctor/clinic directory with search and filtering
+- [ ] Doctor profiles: qualifications, experience, specializations, reviews
+- [ ] Patient reviews and ratings system
+- [ ] Search by: specialty, location, availability, insurance, language
+- [ ] Featured/promoted listings (monetization opportunity)
+- [ ] SEO-optimized clinic and doctor profile pages
+- [ ] Integration with Google Business Profile
+- [ ] Clinic comparison feature
+- [ ] "Near Me" geolocation-based search
+
+**Est. Effort:** X-Large (4-6 weeks) | **Business Impact:** Major differentiator and acquisition channel
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.6 — Recurring Appointments & Waitlist
+**Priority:** 🟢 Medium | **Impact:** Medium (Efficiency)
+
+- [ ] Create recurring appointment series (weekly, biweekly, monthly)
+- [ ] Auto-generate appointments for recurring series
+- [ ] Manage series modifications (skip, reschedule, cancel series)
+- [ ] Cancellation waitlist — auto-notify patients when slots open
+- [ ] Waitlist priority management (first-come or priority-based)
+- [ ] Auto-book from waitlist with patient confirmation
+
+**Est. Effort:** Medium (1-2 weeks) | **Business Impact:** Improves scheduling efficiency
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.7 — Staff Management & Payroll
+**Priority:** 🟢 Medium | **Impact:** Medium (Operational Efficiency)
+
+- [ ] Staff profiles (non-doctor: receptionists, nurses, technicians)
+- [ ] Shift scheduling and roster management
+- [ ] Attendance tracking (clock-in/clock-out)
+- [ ] Leave management (apply, approve, track balances)
+- [ ] Basic payroll calculation (salary, deductions, bonuses)
+- [ ] Staff performance metrics (patients handled, tasks completed)
+- [ ] Role-based task assignment and tracking
+- [ ] Staff notification preferences
+
+**Est. Effort:** Large (2-3 weeks) | **Business Impact:** Valuable for multi-staff clinics
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.8 — Pharmacy & Dispensing Management
+**Priority:** 🟢 Medium | **Impact:** Medium (Revenue for Clinics with Pharmacy)
+
+Current inventory module is basic — no actual dispensing or POS workflow.
+
+- [ ] Medicine dispensing workflow tied to prescriptions
+- [ ] Auto-deduct inventory on dispensing
+- [ ] Batch and expiry tracking with alerts
+- [ ] Reorder level alerts with supplier management
+- [ ] Drug-drug interaction checking during dispensing
+- [ ] Pharmacy POS (point of sale) for walk-in purchases
+- [ ] GST-compliant pharmacy invoicing
+- [ ] Return and exchange management
+- [ ] Supplier purchase order management
+- [ ] Controlled substance tracking and reporting
+
+**Est. Effort:** Large (2-4 weeks) | **Business Impact:** Additional revenue stream for clinics
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.9 — Digital Consent & Patient Intake
+**Priority:** 🟢 Medium | **Impact:** Medium (Compliance & Efficiency)
+
+- [ ] Digital consent form builder (admin creates templates)
+- [ ] Patient signature capture (touch/mouse)
+- [ ] QR code-based patient intake (scan → fill form on phone)
+- [ ] Kiosk mode for in-clinic patient self-registration
+- [ ] Pre-visit questionnaire (symptoms, history, allergies)
+- [ ] Photo ID and insurance card capture
+- [ ] Consent versioning and audit trail
+- [ ] Bulk consent campaigns for existing patients (DPDP Act compliance)
+
+**Est. Effort:** Medium (1-2 weeks) | **Business Impact:** Reduces front-desk workload, ensures compliance
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.10 — Lab & Diagnostic Integration
+**Priority:** 🟢 Medium | **Impact:** Medium-High (Clinical Workflow)
+
+Current lab module is basic order tracking — no actual LIS integration.
+
+- [ ] HL7/FHIR-based lab information system (LIS) integration
+- [ ] Auto-import lab results from partner labs (API-based)
+- [ ] Critical value alerts for abnormal results
+- [ ] Trend visualization for patient lab values over time
+- [ ] Reference range customization by lab/instrument
+- [ ] Lab report PDF parsing and structured data extraction (leverage OCR)
+- [ ] Integration with diagnostic chains (Thyrocare, SRL, Metropolis for India)
+- [ ] Radiology/PACS integration for imaging orders and viewing
+
+**Est. Effort:** Large (3-4 weeks) | **Business Impact:** Differentiator for Pro/Enterprise tiers
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.11 — White-Labeling & Multi-Tenancy Enhancements
+**Priority:** 🟢 Medium | **Impact:** Medium (Enterprise Revenue)
+
+Enterprise tier promises white-labeling but implementation is unclear.
+
+- [ ] Custom domain mapping per clinic (clinic.example.com)
+- [ ] Custom branding: logo, colors, fonts per clinic
+- [ ] Clinic-branded patient portal and booking page
+- [ ] Clinic-branded email templates
+- [ ] Clinic-branded prescription and invoice PDFs
+- [ ] Remove Docita branding option for Enterprise tier
+- [ ] Custom landing page per clinic
+- [ ] SSO integration (SAML/OIDC) for enterprise clients
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Justifies Enterprise pricing
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.12 — ABDM & Government Health ID Integration (India-Specific)
+**Priority:** 🟡 High | **Impact:** High (Regulatory Compliance for India)
+
+ABDM (Ayushman Bharat Digital Mission) integration is becoming mandatory for healthcare providers in India.
+
+- [ ] ABHA (Ayushman Bharat Health Account) ID creation and linking
+- [ ] Health Information Provider (HIP) registration
+- [ ] Health Information User (HIU) registration
+- [ ] Consent-based health record sharing via ABDM
+- [ ] Integration with Health Facility Registry (HFR)
+- [ ] Integration with Healthcare Professional Registry (HPR)
+- [ ] PHR (Personal Health Record) app interoperability
+- [ ] NDHM health record format compliance
+
+**Est. Effort:** X-Large (4-6 weeks) | **Business Impact:** Regulatory compliance, government incentives
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.13 — Mobile App (Provider & Patient)
+**Priority:** ⏸️ Future (Deferred) | **Impact:** High (User Experience)
+
+India is a mobile-first market. Practo's dominance is built on its mobile app. Deferred until PWA and core features are finalized.
+
+- [ ] React Native or Flutter mobile app for providers (doctors/staff)
+  - [ ] Patient queue and checklist view
+  - [ ] Quick consultation notes (voice-to-text)
+  - [ ] Prescription generation on mobile
+  - [ ] Appointment management with push notifications
+  - [ ] Camera-based document/prescription scanning
+- [ ] Patient mobile app
+  - [ ] Appointment booking and management
+  - [ ] Prescription and report viewing
+  - [ ] In-app payment
+  - [ ] Push notification for reminders
+  - [ ] Telehealth video consultation
+  - [ ] Health record timeline
+- [ ] Share codebase with PWA where possible
+
+**Est. Effort:** X-Large (6-10 weeks) | **Business Impact:** Critical for India market adoption
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 12.14 — Revenue Optimization Features
+**Priority:** 🟢 Medium | **Impact:** Medium-High (Monetization)
+
+- [ ] Clinic website builder (simple drag-and-drop, hosted on docita subdomain)
+- [ ] Google Ads integration for clinics (managed PPC campaigns)
+- [ ] Refer-a-clinic program with commission tracking
+- [ ] API marketplace — third-party integrations as paid add-ons
+- [ ] Premium support tier with SLA-backed response times
+- [ ] Usage-based billing for AI features (per-query pricing)
+- [ ] Clinic success manager dashboard (customer health scores)
+- [ ] Churn prediction and proactive retention campaigns
+- [ ] Annual plan discounts with auto-renewal
+
+**Est. Effort:** Large (3-4 weeks) | **Business Impact:** Increases ARPU and reduces churn
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 13. 🏗️ SOLID Principles & Modern Design Patterns
+
+### 13.1 — Enable TypeScript Strict Mode (API)
+**Priority:** 🔴 Critical | **File:** `apps/api/tsconfig.json`
+
+The API tsconfig has dangerously relaxed settings contributing to 22+ `any` usages and untyped code.
+
+Current dangerous settings:
+| Setting | Current | Should Be |
+|---------|---------|-----------|
+| `strict` | not set | `true` |
+| `noImplicitAny` | `false` | `true` |
+| `strictBindCallApply` | `false` | `true` |
+| `noFallthroughCasesInSwitch` | `false` | `true` |
+
+- [ ] Enable `strict: true` in `apps/api/tsconfig.json`
+- [ ] Fix all resulting type errors incrementally (estimate: 50-100 fixes)
+- [ ] Enable `noFallthroughCasesInSwitch: true`
+- [ ] Add `@typescript-eslint/no-explicit-any` as error (not warning)
+- [ ] Track `any` count target: 22 → 0
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.2 — Migrate 98 Services from PrismaService to Repository Pattern
+**Priority:** 🔴 Critical | **Files:** 98 service files in `apps/api/src/modules/`
+
+98 services inject `PrismaService` directly; only 4 use the repository pattern. This violates Dependency Inversion and makes unit testing require full database mocks.
+
+- [ ] Make `PrismaModule` a `@Global()` module (remove 70+ individual `PrismaModule` imports)
+- [ ] Create repositories for top-priority modules:
+  - [ ] `DoctorsRepository` (doctors, availability, schedules)
+  - [ ] `ClinicsRepository` (clinics, settings, feature flags)
+  - [ ] `UsersRepository` (users, auth)
+  - [ ] `PrescriptionsRepository` (already partial)
+  - [ ] `LabTestsRepository`
+  - [ ] `WhatsappRepository` (messages, conversations, logs)
+  - [ ] `SubscriptionRepository` (subscriptions, payments, billing)
+- [ ] Migrate services in batches of 10 (10 sprints × 10 services)
+- [ ] Enforce lint rule: no direct `PrismaService` imports in module services
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.3 — Eliminate `process.env` Direct Access (50 occurrences)
+**Priority:** 🟡 High | **Files:** 50 locations across `apps/api/src/modules/`
+
+Services bypass NestJS `ConfigService` and access `process.env` directly in 50 places, bypassing the env validation and DI system.
+
+- [ ] Replace all 50 `process.env.*` usages with `ConfigService.get()` / `getOrThrow()`
+- [ ] Inject `ConfigService` via constructor in affected services
+- [ ] Add ESLint rule to ban `process.env` in module source files
+- [ ] Move auth module top-level `process.env.JWT_SECRET` check to `onModuleInit()`
+
+Affected modules: payments, invoices, referrals, imports, subscription, auth, email, whatsapp
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.4 — Fix Circular Dependencies (12 `forwardRef` usages)
+**Priority:** 🟡 High | **Files:** `reminders/`, `whatsapp/`
+
+12 `forwardRef` usages indicate circular dependency cycles:
+
+| Cycle | Files |
+|-------|-------|
+| Reminders ↔ WhatsApp | `reminder-scheduler.service.ts`, `reminder-notification.service.ts`, `reminders.module.ts` |
+| WhatsApp internal | `whatsapp-webhook.service.ts`, `staff-notification.service.ts`, `response-handler.service.ts` |
+
+- [ ] Replace Reminders → WhatsApp circular dep with event-based communication (use existing `EventsModule`)
+- [ ] Emit `ReminderDue` event from reminders module; WhatsApp module subscribes
+- [ ] Refactor WhatsApp module internal service graph to remove intra-module cycles
+- [ ] Remove all 12 `forwardRef` usages
+- [ ] Add `madge` or `dpdm` check to CI to prevent new circular deps
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.5 — Fix Error-Swallowing Anti-Patterns (20+ catch blocks)
+**Priority:** 🔴 Critical | **Files:** Payment & Import modules
+
+20+ catch blocks swallow errors silently (log without rethrow):
+
+| Module | Occurrences | Risk |
+|--------|-------------|------|
+| `payments/` | 7 | Silent payment failures |
+| `imports/` | 8+ | Silent data import errors |
+| `auth/` | 2 | Redundant catch-log-rethrow |
+| Other | 3+ | Various silent failures |
+
+- [ ] Audit all catch blocks in `payments/*.service.ts` — rethrow or handle explicitly
+- [ ] Audit all catch blocks in `imports/*.service.ts` — log + rethrow domain exceptions
+- [ ] Remove redundant catch-log-rethrow in `auth.controller.ts` (L117, L149)
+- [ ] Replace all `console.error()` with `this.logger.error()` (5 remaining occurrences)
+- [ ] Establish rule: every catch must either rethrow or explicitly document why it's silenced
+- [ ] Add ESLint `no-console` rule for service files
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.6 — Reduce Bloated Constructors (>5 dependencies)
+**Priority:** 🟢 Medium | **Files:** 7 services
+
+Services with excessive constructor dependencies (violates ISP):
+
+| Service | Deps | Fix |
+|---------|------|-----|
+| `SubscriptionBillingFacadeService` | 8 | Acceptable for facade |
+| `FhirService` | 8 | Split FHIR read/write |
+| `AuthService` | 7 | Extract token/session sub-service |
+| `PaymentsService` | 6 | Extract PaymentNotifier |
+| `OnboardingFacadeService` | 6 | Acceptable for facade |
+| `OnboardingService` | 6 | Extract validation sub-service |
+| `WhatsappFacadeService` | 6 | Acceptable for facade |
+
+- [ ] Extract `PaymentNotificationService` from `PaymentsService` (separate DB + notification + WebSocket)
+- [ ] Extract `TokenService` and `SessionService` from `AuthService`
+- [ ] Split `FhirService` into `FhirReadService` and `FhirWriteService`
+- [ ] Document facade pattern exceptions (facades are allowed >5 deps)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.7 — Add Missing DTO Validation on Controller Endpoints
+**Priority:** 🟡 High | **Files:** Various controllers
+
+Several endpoints use inline `@Body()` types instead of validated Zod DTOs:
+
+| Endpoint | File | Issue |
+|----------|------|-------|
+| Razorpay webhook | `webhooks.controller.ts` | Interface, no runtime validation |
+| Refresh token | `auth.controller.ts` | `@Body() body: { refresh_token?: string }` |
+| Create checkout | `subscription.controller.ts` | `@Body() body: { tier: string; days?: number }` |
+| Emergency access | `consent.controller.ts` | `@Body() body: { reason: string; requestedBy: string }` |
+| Multiple endpoints | `imports.controller.ts` | Inline body types |
+
+- [ ] Create Zod DTOs for all unvalidated endpoints (estimate: 15-20 DTOs)
+- [ ] Add `@UsePipes(ZodValidationPipe)` or use `@Body(new ZodValidationPipe(Schema))`
+- [ ] Add CI check: no inline `@Body()` type annotations without DTO class
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.8 — Add Response Serialization
+**Priority:** 🟢 Medium | **Files:** All controllers
+
+No usage of `ClassSerializerInterceptor`, `@Exclude()`, or `@Expose()` decorators. Response shaping is done manually, risking accidental PHI exposure.
+
+- [ ] Define response DTOs with `@Exclude()`/`@Expose()` for all patient-facing endpoints
+- [ ] Enable `ClassSerializerInterceptor` globally or per-controller
+- [ ] Ensure password hashes, internal IDs, and audit fields are never serialized
+- [ ] Add response DTO tests to verify no sensitive fields leak
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 13.9 — Fix Duplicate AppService Registration
+**Priority:** 🟢 Medium | **File:** `apps/api/src/app.module.ts` (line 176-177)
+
+`AppService` is listed **twice** in the providers array. Harmless but indicates sloppy module registration.
+
+- [ ] Remove duplicate `AppService` from `app.module.ts` providers
+- [ ] Audit all modules for duplicate provider registrations
+- [ ] Consider grouping related modules into domain aggregates (e.g., `ClinicalModule` bundling Patients, Appointments, Prescriptions)
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 14. 🧽 File Cleanup & Dead Code Removal
+
+### 14.1 — Remove Binary and One-Off Files from Git
+**Priority:** 🔴 Critical | **Files:** Various
+
+| File | Size | Issue | Action |
+|------|------|-------|--------|
+| `apps/api/eng.traineddata` | **5.0 MB** | Tesseract OCR binary committed to git | Download at Docker build time or use `.gitattributes` LFS |
+| `FINAL_PRODUCTION_VERIFICATION_2_23.md` | 9 KB | One-off verification doc in repo root | Move to `docs/archive/` or delete |
+
+- [ ] Remove `eng.traineddata` from git history using `git filter-repo` or BFG
+- [ ] Add `*.traineddata` to `.gitignore`
+- [ ] Add download step in `Dockerfile` or `postinstall` script
+- [ ] Move `FINAL_PRODUCTION_VERIFICATION_2_23.md` to `docs/archive/`
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 14.2 — Remove Dead Frontend Files
+**Priority:** 🟡 High | **Files:** 3 dead files
+
+| File | Lines | Issue |
+|------|-------|-------|
+| `apps/app/lib/accessibility.css` | 65 | **Never imported anywhere** — defines `.sr-only`, `:focus-visible` but dead |
+| `apps/app/lib/design-system.ts` | 130+ | Only imported by 1 file for duplicate `cn()` — 50+ files use the canonical version |
+| `packages/ui/src/COMPONENT_AUDIT.ts` | 374 | Zero imports — documentation masquerading as TypeScript code |
+
+- [ ] Delete `apps/app/lib/accessibility.css` (integrate styles into Tailwind global CSS if needed)
+- [ ] Delete `apps/app/lib/design-system.ts` (update `PatientBadgeUI.tsx` to use `@workspace/ui/lib/utils`)
+- [ ] Convert `packages/ui/src/COMPONENT_AUDIT.ts` to `COMPONENT_AUDIT.md` or delete
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 14.3 — Clean Up Scripts Directory
+**Priority:** 🟡 High | **Files:** `scripts/`
+
+8 ad-hoc test/debug scripts that should be formalized or removed:
+
+| Script | Assessment | Action |
+|--------|------------|--------|
+| `test-query.js` | Ad-hoc DB query test | Move to `apps/api/test/` or delete |
+| `test-smart-auth.js` | Ad-hoc auth test | Move to E2E tests or delete |
+| `test-db-connection.js` | Ad-hoc DB connection test | Move to health check tests or delete |
+| `check-clinic-appointments.js` | Debugging script | Delete |
+| `test-medical-coding-api.sh` | Ad-hoc API test | Move to E2E tests or delete |
+| `test-tenant-isolation.ts` | Isolation test | Move to `apps/api/test/` |
+| `embedded_med.ts` | Unclear purpose | Investigate and delete if unused |
+| `VERIFY_DYNAMIC_IMPORTS.sh` | One-off verification | Delete (already verified) |
+
+Keep: `kill-ports.js`, `e2e-runner.js`, `check-coverage.js`, `check_env.js`, `analyze-indexes.ts`, `run-test-report.sh`, `run-tests.sh`
+
+- [ ] Move useful test scripts to `apps/api/test/scripts/`
+- [ ] Delete obsolete ad-hoc scripts (8 files)
+- [ ] Add README.md to scripts/ documenting purpose of each remaining script
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 14.4 — Remove Unused Dependencies
+**Priority:** 🟡 High | **Files:** `apps/app/package.json`, `apps/api/package.json`
+
+**apps/app — 4 unused dependencies:**
+| Package | Evidence | Action |
+|---------|----------|--------|
+| `@docita/api` | Zero imports anywhere in `apps/app/` | Remove |
+| `@workspace/db` | Zero imports anywhere in `apps/app/` | Remove |
+| `react-intersection-observer` | Zero imports anywhere | Remove |
+| `react-resizable-panels` | Used via `@workspace/ui`, not directly | Remove from app (keep in UI package) |
+
+**apps/app — 3 nearly-unused dependencies:**
+| Package | Usage | Action |
+|---------|-------|--------|
+| `swr` | 1 file (`use-pricing.ts`) — rest of app uses React Query | Migrate to React Query, then remove |
+| `framer-motion` | 1 file (`PricingDialog.tsx`) — 12.8KB+ for one animation | Replace with CSS transitions |
+| `canvas-confetti` | 1 file (`PaymentSuccessModal.tsx`) | Keep but move `@types/canvas-confetti` to devDeps |
+
+**apps/api — @types in wrong section:**
+| Package | Action |
+|---------|--------|
+| `@types/bcrypt` | Move to `devDependencies` |
+| `@types/cache-manager` | Move to `devDependencies` |
+| `@types/passport-jwt` | Move to `devDependencies` |
+
+- [ ] Remove 4 unused deps from `apps/app/package.json`
+- [ ] Migrate `use-pricing.ts` from SWR to React Query, then remove `swr`
+- [ ] Replace `framer-motion` usage with CSS animations, then remove
+- [ ] Move `@types/*` to `devDependencies` in both apps
+- [ ] Run `pnpm dlx depcheck` across all apps to find remaining unused deps
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 14.5 — Align Framework Versions Across Apps
+**Priority:** 🟡 High | **Files:** `apps/*/package.json`
+
+Version mismatches create inconsistent behavior and build issues:
+
+| Package | apps/app | apps/landing | apps/admin |
+|---------|----------|-------------|------------|
+| `next` | `^15.5.8` | `16.0.9` | `16.0.9` |
+| `react` | `^19.1.2` | `19.2.1` | `19.2.1` |
+| `react-dom` | `^19.1.2` | `19.2.1` | `19.2.1` |
+
+- [ ] Upgrade `apps/app` to Next.js 16 (same as landing/admin)
+- [ ] Align React versions across all apps
+- [ ] Use `pnpm-workspace.yaml` catalog/overrides to enforce single versions
+- [ ] Add CI check for cross-app version drift
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 14.6 — Consolidate Duplicate Type Files
+**Priority:** 🟢 Medium | **Files:** `packages/types/src/`
+
+4 domain areas have duplicate type file pairs:
+
+| Pair | Action |
+|------|--------|
+| `onboarding.ts` + `onboarding-types.ts` | Merge into one file |
+| `payments.ts` + `payment-types.ts` | Merge into one file |
+| `ipd.ts` + `ipd-types.ts` | Merge into one file |
+| `super-admin.ts` + `super-admin-types.ts` | Merge into one file |
+
+- [ ] Audit each pair for overlap
+- [ ] Merge into single file per domain (keep the shorter name)
+- [ ] Update all imports across the monorepo
+- [ ] Enforce convention: one type file per domain
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 15. 🎨 UI Modernization & Design System
+
+### 15.1 — Consolidate Design Token System
+**Priority:** 🟡 High | **Files:** 3 conflicting token sources
+
+Three separate design token systems currently exist:
+1. `packages/ui/src/design-tokens.ts` — hex colors (`#f0f9ff`), used by Tailwind config
+2. `apps/app/lib/design-system.ts` — HSL colors (`hsl(222 47% 95%)`), 1 import (dead)
+3. `packages/ui/src/styles/globals.css` + `dark-mode.css` — CSS variables (actual tokens used)
+
+- [ ] Delete `apps/app/lib/design-system.ts` (dead file)
+- [ ] Make CSS variables in `globals.css` the single source of truth
+- [ ] Update `packages/ui/src/design-tokens.ts` to reference CSS variables
+- [ ] Reduce 42 hardcoded hex colors in `apps/app/` to Tailwind theme tokens
+- [ ] Create a `packages/ui/src/theme.ts` exporting typed token constants
+- [ ] Document approved color palette in Storybook or design doc
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 15.2 — Accessibility Overhaul
+**Priority:** 🔴 Critical | **Files:** All 311 frontend component files
+
+Only **14 ARIA attributes** across 311 component files. The unused `accessibility.css` was never integrated.
+
+- [ ] Install and run `axe-core` audit on all major pages
+- [ ] Add `aria-label` to every icon-only button (estimate: 50+ buttons)
+- [ ] Add `role` attributes to all custom interactive components
+- [ ] Ensure every `<input>` has an associated `<label>` (verify with automated checker)
+- [ ] Add keyboard navigation to: sidebar, modals, dropdowns, tab panels, command palette
+- [ ] Implement skip-to-content link in root layout
+- [ ] Add `aria-live="polite"` to toast notifications and loading indicators
+- [ ] Ensure color contrast meets WCAG 2.1 AA (4.5:1 minimum)
+- [ ] Add focus trap to all modals and dialogs
+- [ ] Integrate accessibility.css styles into Tailwind globals (then delete the dead file)
+- [ ] Target: >50 ARIA attributes (from 14), 0 axe violations on core pages
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 15.3 — Eliminate Inconsistent State Management
+**Priority:** 🟡 High | **Files:** `apps/app/hooks/`, `apps/app/lib/`
+
+Mixed state management with SWR and React Query (and barely-used Zustand):
+
+| Tool | Usage |
+|------|-------|
+| React Query | 17+ hooks — primary data fetcher |
+| SWR | **1 hook** (`use-pricing.ts`) — inconsistent |
+| React Context | 5 contexts (auth, clinic, socket, tier, config) |
+| Zustand | 2 tiny stores (navigation, permissions) |
+
+- [ ] Migrate `use-pricing.ts` from SWR to React Query (remove `swr` dep)
+- [ ] Evaluate Zustand stores — either expand usage or consolidate into Context
+- [ ] Standardize cache key naming convention across all React Query hooks
+- [ ] Document state management strategy in CONTRIBUTING.md
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 15.4 — Lazy Load Landing Page Sections
+**Priority:** 🟢 Medium | **File:** `apps/landing/app/page.tsx`
+
+The landing page renders 22 section components at once (3,981 lines total). While decomposed into files, all are loaded eagerly.
+
+- [ ] Wrap below-the-fold sections in `React.lazy()` + `<Suspense>`
+- [ ] Add `loading` placeholders for lazy sections (skeleton or shimmer)
+- [ ] Use `IntersectionObserver` to trigger loading when sections approach viewport
+- [ ] Add Lighthouse CI performance budget (LCP < 2.5s, CLS < 0.1)
+- [ ] Optimize images in landing page with Next.js `<Image>` component
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 15.5 — Modern UI Component Patterns
+**Priority:** 🟢 Medium | **Files:** `apps/app/features/`
+
+- [ ] Add compound component pattern for complex UIs (e.g., `<DataTable.Header>`, `<DataTable.Body>`)
+- [ ] Implement render props or slot pattern for customizable components
+- [ ] Add `React.memo` to heavy list item components (patient list, appointment cards)
+- [ ] Add `useDeferredValue` or `startTransition` for search inputs
+- [ ] Implement proper optimistic updates using React Query's `onMutate`
+- [ ] Add `ErrorBoundary` wrapper HOC for feature components: `withErrorBoundary(Component)`
+- [ ] Create standardized page layout component: `<PageLayout title description actions>`
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 16. 🌟 Additional Business Features
+
+### 16.1 — Smart Scheduling & AI Optimization
+**Priority:** 🟡 High | **Impact:** High (Operational Efficiency)
+
+Leverage existing AI module for scheduling intelligence.
+
+- [ ] AI-powered appointment duration prediction based on visit type and patient history
+- [ ] Intelligent doctor-patient matching (specialty, language, past rapport)
+- [ ] Auto-suggest optimal appointment slots to reduce gaps
+- [ ] Predictive no-show scoring (flag high-risk appointments for confirmation)
+- [ ] Smart waitlist matching (match cancelled slots to waiting patients)
+- [ ] Overbooking recommendations based on historical no-show patterns
+- [ ] Peak hour analysis and suggested staffing levels
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Reduces no-shows by 20-30%, increases utilization
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.2 — Clinical Templates Marketplace
+**Priority:** 🟢 Medium | **Impact:** Medium-High (User Adoption)
+
+Allow clinics to share/sell clinical templates, making the platform stickier.
+
+- [ ] Template store with categories (specialty, document type, procedure)
+- [ ] Clinic-created templates with sharing options (public, private, paid)
+- [ ] Import/export templates between clinics
+- [ ] Template versioning and update notifications
+- [ ] Community ratings and reviews for templates
+- [ ] Pre-built starter template packs per specialty (dental, cardiology, pediatrics, etc.)
+- [ ] Revenue sharing for premium template creators
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Increases stickiness and network effects
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.3 — Multi-Branch & Chain Clinic Management
+**Priority:** 🟡 High | **Impact:** High (Enterprise Revenue)
+
+Enhance existing multi-clinic for chain operations.
+
+- [ ] Central dashboard for all branches (unified analytics)
+- [ ] Inter-branch patient transfer with record sharing
+- [ ] Cross-branch doctor scheduling (floating doctors)
+- [ ] Centralized inventory management across branches
+- [ ] Branch-level and chain-level reporting
+- [ ] Standardized protocols and SOPs across branches
+- [ ] Central admin with branch-level admin delegation
+- [ ] Consolidated billing and payment collection
+
+**Est. Effort:** Large (3-4 weeks) | **Business Impact:** Key differentiator for Enterprise tier
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.4 — Automated Compliance & Reporting
+**Priority:** 🟡 High | **Impact:** Medium-High (Regulatory)
+
+Indian healthcare regulations require specific reporting and compliance.
+
+- [ ] Auto-generate NABH accreditation reports (if applicable)
+- [ ] MCI (Medical Council of India) compliance reporting
+- [ ] Drug controller reporting for controlled substances
+- [ ] Automated GST filing data export for clinic billing
+- [ ] Clinical quality indicators tracking (infection rates, readmission rates)
+- [ ] Privacy impact assessments under DPDP Act
+- [ ] Configurable compliance checklists per state/country
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Reduces compliance burden, justifies premium pricing
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.5 — Integration Hub / API Platform
+**Priority:** 🟢 Medium | **Impact:** Medium (Extensibility)
+
+Open up the platform for third-party integrations.
+
+- [ ] REST API with API key authentication for clinic developers
+- [ ] Webhook system for real-time event notifications (appointment created, payment received)
+- [ ] OAuth 2.0 provider for third-party app authorization
+- [ ] Pre-built integrations: Google Calendar, Outlook, Tally (accounting), Zoho Books
+- [ ] Zapier/Make.com integration for no-code automation
+- [ ] Developer documentation portal with interactive API explorer
+- [ ] Rate limiting and usage quotas per API key
+- [ ] Marketplace for third-party integrations (paid add-ons)
+
+**Est. Effort:** Large (3-5 weeks) | **Business Impact:** Creates platform ecosystem, makes switching costly
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.6 — Smart Prescription Features
+**Priority:** 🟡 High | **Impact:** High (Clinical Safety)
+
+Enhance existing prescription module with clinical intelligence.
+
+- [ ] Drug-drug interaction checking (using open drug databases)
+- [ ] Allergy cross-reference alerts when prescribing
+- [ ] Dosage calculators (pediatric weight-based, renal adjustment)
+- [ ] Generic drug substitution suggestions with cost comparison
+- [ ] E-prescription standards compliance (NMC/MCI format for India)
+- [ ] Prescription auto-fill from diagnosis (evidence-based protocols)
+- [ ] Medication adherence tracking via patient portal
+- [ ] Drug formulary integration (hospital/insurance formulary lookup)
+- [ ] QR code on prescriptions for pharmacy verification
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Clinical safety differentiator, regulatory compliance
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+### 16.7 — Patient Health Timeline
+**Priority:** 🟢 Medium | **Impact:** Medium-High (User Experience)
+
+Unified chronological view of patient's entire health journey.
+
+- [ ] Visual timeline of all visits, prescriptions, lab results, documents
+- [ ] Filterable by: date range, type (visit, lab, prescription, imaging)
+- [ ] Side-by-side comparison of lab values over time (trend charts)
+- [ ] Growth chart integration for pediatric patients
+- [ ] Chronic disease management tracking (diabetes, hypertension dashboards)
+- [ ] Downloadable health summary report (for patient/referral)
+- [ ] Family health tree visualization
+- [ ] Vaccination schedule tracker with reminders
+
+**Est. Effort:** Medium (2-3 weeks) | **Business Impact:** Improves clinical decision-making, patient retention
+
+**Status:** ⏳ NOT STARTED
+
+---
+
+## 📊 Updated Summary Progress
+
+### Original Tasks (§1-§9)
 | Priority | Total | Completed | In Progress | Not Started |
 |----------|-------|-----------|-------------|------------|
 | 🔴 Critical | 13 | 13 | 0 | 0 |
 | 🟡 High | 32 | 31 | 0 | 1 |
 | 🟢 Medium | 18 | 3 | 0 | 15 |
-| **TOTAL** | **63** | **55** | **0** | **8** |
+| **Subtotal** | **63** | **55** | **0** | **8** |
 
-**Overall Progress:** 87% Complete | 0% In Progress | 13% Not Started
+### Technical Debt (§10)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| 🔴 Critical | 3 | 0 | 3 |
+| 🟡 High | 8 | 0 | 8 |
+| 🟢 Medium | 1 | 0 | 1 |
+| **Subtotal** | **12** | **0** | **12** |
 
-**Build Status:** ✅ **PASSING** (0 errors, 0 warnings) - Ready for continued implementation
+### SOLID Principles & Patterns (§13)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| 🔴 Critical | 3 | 0 | 3 |
+| 🟡 High | 3 | 0 | 3 |
+| 🟢 Medium | 3 | 0 | 3 |
+| **Subtotal** | **9** | **0** | **9** |
+
+### File Cleanup (§14)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| 🔴 Critical | 1 | 0 | 1 |
+| 🟡 High | 4 | 0 | 4 |
+| 🟢 Medium | 1 | 0 | 1 |
+| **Subtotal** | **6** | **0** | **6** |
+
+### UI Modernization (§15)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| 🔴 Critical | 1 | 0 | 1 |
+| 🟡 High | 2 | 0 | 2 |
+| 🟢 Medium | 2 | 0 | 2 |
+| **Subtotal** | **5** | **0** | **5** |
+
+### Business Features — Patient-Facing (§11)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| ⏸️ Future (Deferred) | 3 | 0 | 3 |
+| 🟡 High | 2 | 0 | 2 |
+| **Subtotal** | **5** | **0** | **5** |
+
+### Business Features — Revenue & Growth (§12)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| ⏸️ Future (Deferred) | 2 | 0 | 2 |
+| 🟡 High | 3 | 0 | 3 |
+| 🟢 Medium | 8 | 0 | 8 |
+| **Subtotal** | **13** | **0** | **13** |
+
+### Additional Business Features (§16)
+| Priority | Total | Completed | Not Started |
+|----------|-------|-----------|-------------|
+| 🟡 High | 4 | 0 | 4 |
+| 🟢 Medium | 3 | 0 | 3 |
+| **Subtotal** | **7** | **0** | **7** |
+
+### Grand Total
+| Category | Total | Completed | Remaining |
+|----------|-------|-----------|-----------|
+| Original (§1-§9) | 63 | 55 | 8 |
+| Tech Debt (§10) | 12 | 0 | 12 |
+| SOLID & Patterns (§13) | 9 | 0 | 9 |
+| File Cleanup (§14) | 6 | 0 | 6 |
+| UI Modernization (§15) | 5 | 0 | 5 |
+| Patient-Facing (§11) | 5 | 0 | 5 |
+| Revenue & Growth (§12) | 13 | 0 | 13 |
+| Additional Features (§16) | 7 | 0 | 7 |
+| **GRAND TOTAL** | **120** | **55** | **65** |
+
+**Original Progress:** 87% Complete (55/63)
+**Overall Progress:** 46% Complete (55/120) — with all new items
+**Build Status:** ✅ **PASSING** (0 errors, 0 warnings)
 
 ---
 
-## 🎯 Recommended Immediate Actions (Next Session)
+## 📈 Quantified Code Quality Metrics
 
-### High Impact, Medium Effort (Start Next):
-1. **§3.5 Phase 6** — Continue god-object decomposition with whatsapp.service (559L)
-   - Follows same facade + specialized services pattern
-   - Est. time: 2-3 hours
-   - Core messaging and conversation handling
-
-2. **§3.5 Phase 7** — Decompose reminders.service (557L)
-   - Est. time: 2-3 hours
-   - Reminder lifecycle and scheduling
-
-3. **§4.2 Navigation & Layout Improvements** (Parallel work possible)
-   - Responsive sidebar, breadcrumbs, page headers, skeleton loading
-   - Est. time: 2-3 hours (can work with others)
-
-4. **§7.1 Technical Debt Cleanup** (Quick wins)
-   - Remove debug files, consolidate ESLint configs, clean .gitignore
-   - Est. time: 1-2 hours
-   - Immediate code quality improvement
-
-### Medium Impact, Low-Medium Effort:
-5. **§9.10** — Frontend Permissions Sync (Create packages/auth)
-   - Extract shared auth logic, DRY up apps/app and apps/admin
-   - Est. time: 2-3 hours
-
-6. ✅ **§9.8** — Landing Page Decomposition - COMPLETED
-   - Refactored 594L pricing section into 3 reusable components
-   - Created PricingTierCard, PricingAddon, pricing utilities
-   - Reduced code duplication, improved maintainability
-   - Time taken: 1.5 hours
-
-7. **§9.3** — React Query Retry Logic Fix (Custom ApiError)
-   - Create ApiError class with statusCode, update retry logic
-   - Est. time: 1-2 hours
+| Metric | Current | Target | Priority |
+|--------|---------|--------|----------|
+| `any` type usages in API services | **22** | 0 | 🔴 Critical |
+| `PrismaService` direct injections | **98** | <10 | 🔴 Critical |
+| `process.env` direct accesses | **50** | 0 | 🟡 High |
+| `forwardRef` circular deps | **12** | 0 | 🟡 High |
+| `console.log/error/warn` in services | **5** | 0 | 🟢 Medium |
+| ARIA attributes in frontend | **14** | >100 | 🔴 Critical |
+| Hardcoded hex colors in frontend | **42** | <5 | 🟢 Medium |
+| Inline `style={{}}` in frontend | **17** | <5 | 🟢 Medium |
+| Services >500 lines | **8** | 0 | 🟡 High |
+| Frontend components >500 lines | **4** | 0 | 🟡 High |
+| API modules with zero tests | **13** | 0 | 🔴 Critical |
+| Frontend features with zero tests | **11** | <3 | 🟡 High |
+| Unused dependencies | **4** | 0 | 🟡 High |
+| Dead files | **3** | 0 | 🟡 High |
 
 ---
 
-**Last Updated:** 2026-02-12 (Phase 2.13 - Clinics Decomposition)  
-**Next Review:** 2026-02-19
+## 📈 Competitive Scorecard
+
+| Capability | Docita | Practo | Zocdoc | DrChrono | SimplePractice |
+|-----------|--------|--------|--------|----------|----------------|
+| EHR/EMR | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Scheduling | ✅ (staff) | ✅ (self+staff) | ✅ (self) | ✅ | ✅ |
+| Billing | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Prescriptions | ✅ | ✅ | ❌ | ✅ | Limited |
+| Lab Orders | ✅ (basic) | ✅ | ❌ | ✅ (integrated) | ❌ |
+| WhatsApp Integration | **✅ Strong** | ✅ | ❌ | ❌ | ❌ |
+| AI Features | **✅ (add-on)** | Limited | ❌ | ✅ | ❌ |
+| Multi-clinic/IPD | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Patient Portal | ⏸️ Future | ✅ | ✅ | ✅ | ✅ |
+| Online Booking | ⏸️ Future | ✅ | ✅ (core) | ✅ | ✅ |
+| Telehealth | ⏸️ Future | ✅ | ✅ | ✅ | ✅ |
+| Mobile App | ⏸️ Future | ✅ | ✅ | ✅ | ✅ |
+| Insurance/Claims | ❌ Missing | Limited | ❌ | ✅ | ✅ |
+| i18n/Multilingual | ❌ Missing | ✅ | ✅ | ✅ | ✅ |
+| Marketplace | ⏸️ Future | ✅ (core) | ✅ (core) | ❌ | ❌ |
+
+**Key Differentiators (Docita Strengths):**
+- 💬 **WhatsApp Integration** — Unique in India market, competitors don't offer this
+- 🤖 **AI Clinical Assistant** — Voice-to-text, ICD-10 coding, drug interactions
+- 🏥 **Multi-clinic + IPD** — Hospital-grade features uncommon in SMB tools
+- 💰 **Competitive pricing** — ₹799/mo vs Practo ₹5,000+/mo
+
+**Strategic Focus (2026):**
+- 🎯 **Core Clinic Workflows** — Perfect the EHR, scheduling, billing, prescriptions foundation
+- 🔧 **Code Quality & Architecture** — SOLID principles, testing, TypeScript strict mode
+- 🇮🇳 **India-First Features** — i18n (Hindi+), ABDM integration, offline-first PWA
+- ⏸️ **Patient-Facing Deferred** — Portal, telehealth, mobile app planned post-core stability
+
+---
+
+## 🎯 Recommended Roadmap (Priority Order)
+
+### Phase 0 — Code Quality Sprint (Week 1) 🔴
+_Fix critical code quality issues before any feature work_
+1. **§13.1** — Enable TypeScript strict mode
+2. **§13.5** — Fix error-swallowing anti-patterns (20+ catch blocks)
+3. **§14.1** — Remove 5MB binary + dead files from git
+4. **§14.2** — Delete 3 dead frontend files
+5. **§14.4** — Remove 4 unused dependencies
+6. **§13.9** — Fix duplicate AppService registration
+
+### Phase 1 — Foundation (Weeks 2-4) 🔴
+_Close critical technical gaps_
+7. **§10.1** — Add tests for 13 untested API modules
+8. **§10.3** — Frontend Sentry integration
+9. **§15.2** — Accessibility overhaul (14 → 100+ ARIA attributes)
+10. **§13.3** — Eliminate 50 `process.env` direct accesses
+11. **§14.5** — Align Next.js versions across apps
+
+### Phase 2 — Architecture (Weeks 4-7) 🟡
+_SOLID principles enforcement_
+12. **§13.2** — Migrate top services to repository pattern
+13. **§13.4** — Fix circular dependencies (12 `forwardRef` removals)
+14. **§13.7** — Add DTO validation to 15+ unvalidated endpoints
+15. **§15.1** — Consolidate design token system
+16. **§15.3** — Eliminate SWR, standardize on React Query
+
+### Phase 3 — Code Quality & Refactoring (Weeks 7-12) 🟡
+_SOLID principles, god-object decomposition, test coverage_
+12. **§13.2** — Migrate top services to repository pattern
+13. **§13.4** — Fix circular dependencies (12 `forwardRef` removals)
+14. **§13.7** — Add DTO validation to 15+ unvalidated endpoints
+15. **§15.1** — Consolidate design token system
+16. **§15.3** — Eliminate SWR, standardize on React Query
+17. **§10.4** — Decompose remaining god-object services
+18. **§16.6** — Smart prescription features (drug interactions, dosage calc)
+
+### Phase 4 — Market Readiness (Weeks 12-16) 🟡
+_Make the product competitive in India_
+19. **§11.4** — i18n (English + Hindi minimum)
+20. **§11.5** — PWA & offline mode
+21. **§12.3** — Multi-channel notifications (SMS + push)
+22. **§12.12** — ABDM health ID integration
+23. **§16.1** — Smart scheduling & AI optimization
+
+### Phase 5 — Growth & Revenue (Weeks 16-24) 🟢
+_Scale the business_
+24. **§12.1** — Patient engagement & CRM
+25. **§12.2** — Advanced analytics & BI
+26. **§12.4** — Insurance & claims management
+27. **§16.3** — Multi-branch & chain clinic management
+28. **§12.7** — Staff management & payroll
+
+### Phase 6 — Enterprise & Platform (Weeks 24+) 🟢
+_Premium features for larger customers_
+29. **§12.8** — Pharmacy & dispensing management
+30. **§12.10** — Lab & diagnostic integration
+31. **§12.11** — White-labeling & multi-tenancy
+32. **§16.5** — Integration hub / API platform
+33. **§16.7** — Patient health timeline
+
+### ⏸️ Future Phase — Patient-Facing Platform (Post-Launch)
+_Large features requiring mature core platform_
+34. **§11.1** — Patient self-service portal
+35. **§11.2** — Online appointment booking (public)
+36. **§11.3** — Telehealth / video consultations
+37. **§12.5** — Marketplace & doctor discovery
+38. **§12.13** — Mobile app (provider + patient)
+
+---
+
+**Last Updated:** 2026-02-13 (Deep Audit — added §13-§16, SOLID, Cleanup, UI, Features)
+**Next Review:** 2026-02-20

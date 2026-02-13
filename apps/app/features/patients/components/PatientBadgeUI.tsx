@@ -3,7 +3,7 @@
  * Pure presentational components for patient badges and cards
  */
 
-import { cn } from "@/lib/design-system";
+import { cn } from "@workspace/ui/lib/utils";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Avatar,

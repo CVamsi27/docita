@@ -76,7 +76,8 @@ export class DatabaseIndexOptimizationService {
         ),
       }));
     } catch (error) {
-      this.logger.error(`Failed to analyze indexes: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to analyze indexes: ${errorMsg}`);
       return [];
     }
   }
@@ -125,7 +126,8 @@ export class DatabaseIndexOptimizationService {
         ),
       }));
     } catch (error) {
-      this.logger.error(`Failed to find missing indexes: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to find missing indexes: ${errorMsg}`);
       return [];
     }
   }
@@ -158,7 +160,8 @@ export class DatabaseIndexOptimizationService {
         bloatPercent: parseFloat(row.bloat_percent) || 0,
       }));
     } catch (error) {
-      this.logger.error(`Failed to get index bloat: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to get index bloat: ${errorMsg}`);
       return [];
     }
   }

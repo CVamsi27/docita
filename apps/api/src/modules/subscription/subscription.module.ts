@@ -9,7 +9,6 @@ import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { RazorpaySubscriptionGateway } from '../../gateways/razorpay-subscription.gateway';
-import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ReferralsModule } from '../referrals/referrals.module';
 import { PaymentsModule } from '../payments/payments.module';
 
@@ -45,7 +44,7 @@ import { ProrationService } from './proration.service';
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,
-    PaymentWebSocketGateway,
+    // PaymentWebSocketGateway is provided and exported by PaymentsModule
   ],
   exports: [SubscriptionService, SubscriptionBillingService],
 })

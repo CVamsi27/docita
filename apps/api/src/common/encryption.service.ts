@@ -171,7 +171,7 @@ export class EncryptionService {
    * @param patient - Patient object
    * @returns Patient with encrypted sensitive fields
    */
-  encryptPatientData<T>(patient: T): T {
+  encryptPatientData<T extends Record<string, any>>(patient: T): T {
     const sensitiveFields = [
       'email',
       'phoneNumber',
@@ -180,13 +180,14 @@ export class EncryptionService {
       'emergencyContactName',
       'firstName',
       'lastName',
-    ];
+    ] as const;
 
     const encryptedPatient = { ...patient };
 
     for (const field of sensitiveFields) {
-      if (patient[field]) {
-        encryptedPatient[field] = this.encrypt(patient[field] as string);
+      const value = patient[field as keyof T];
+      if (value) {
+        (encryptedPatient as Record<string, any>)[field] = this.encrypt(value as string);
       }
     }
 
@@ -207,13 +208,14 @@ export class EncryptionService {
       'emergencyContactName',
       'firstName',
       'lastName',
-    ];
+    ] as const;
 
     const decryptedPatient = { ...patient };
 
     for (const field of sensitiveFields) {
-      if (patient[field]) {
-        decryptedPatient[field] = this.decrypt(patient[field] as string);
+      const value = patient[field as keyof T];
+      if (value) {
+        (decryptedPatient as Record<string, any>)[field] = this.decrypt(value as string);
       }
     }
 

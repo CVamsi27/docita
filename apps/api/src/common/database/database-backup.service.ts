@@ -15,7 +15,7 @@ const execAsync = promisify(exec);
 @Injectable()
 export class DatabaseBackupService {
   private readonly logger = new Logger(DatabaseBackupService.name);
-  private readonly backupDir = process.env.BACKUP_DIR || '/backups/postgresql';
+  private backupDir = process.env.BACKUP_DIR || '/backups/postgresql';
   private readonly retentionDays = parseInt(
     process.env.BACKUP_RETENTION_DAYS || '30',
     10,
@@ -29,9 +29,28 @@ export class DatabaseBackupService {
    * Ensure backup directory exists with proper permissions
    */
   private ensureBackupDirectory(): void {
-    if (!fs.existsSync(this.backupDir)) {
-      fs.mkdirSync(this.backupDir, { recursive: true, mode: 0o755 });
-      this.logger.log(`Created backup directory: ${this.backupDir}`);
+    try {
+      if (!fs.existsSync(this.backupDir)) {
+        fs.mkdirSync(this.backupDir, { recursive: true, mode: 0o755 });
+        this.logger.log(`Created backup directory: ${this.backupDir}`);
+      }
+    } catch (err: any) {
+      this.logger.warn(
+        `Failed to create configured backup directory ${this.backupDir}: ${err?.message}. Falling back to project-local backups.`,
+      );
+
+      const fallback = path.join(process.cwd(), 'backups', 'postgresql');
+
+      try {
+        if (!fs.existsSync(fallback)) {
+          fs.mkdirSync(fallback, { recursive: true, mode: 0o755 });
+        }
+        this.backupDir = fallback;
+        this.logger.log(`Using fallback backup directory: ${this.backupDir}`);
+      } catch (fallbackErr: any) {
+        this.logger.error(`Failed to create fallback backup directory: ${fallbackErr?.message}`);
+        // Do not throw — allow application to start; operations will fail later with clearer errors
+      }
     }
   }
 
@@ -58,7 +77,8 @@ export class DatabaseBackupService {
 
       return { success: true, filepath, size: stats.size };
     } catch (error) {
-      this.logger.error(`Full backup failed: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Full backup failed: ${errorMsg}`);
       throw error;
     }
   }
@@ -85,7 +105,8 @@ export class DatabaseBackupService {
 
       return { success: true, filepath, size: stats.size };
     } catch (error) {
-      this.logger.error(`Schema backup failed: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Schema backup failed: ${errorMsg}`);
       throw error;
     }
   }
@@ -114,7 +135,8 @@ export class DatabaseBackupService {
         message: `Database restored from ${path.basename(backupFilepath)}`,
       };
     } catch (error) {
-      this.logger.error(`Database restore failed: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Database restore failed: ${errorMsg}`);
       throw error;
     }
   }
@@ -141,11 +163,12 @@ export class DatabaseBackupService {
         message: 'Backup is valid and readable',
       };
     } catch (error) {
-      this.logger.warn(`Backup verification failed: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Backup verification failed: ${errorMsg}`);
       return {
         success: true,
         valid: false,
-        message: `Backup is corrupted: ${error.message}`,
+        message: `Backup is corrupted: ${errorMsg}`,
       };
     }
   }
@@ -173,7 +196,8 @@ export class DatabaseBackupService {
         })
         .sort((a, b) => b.created.getTime() - a.created.getTime());
     } catch (error) {
-      this.logger.error(`Failed to list backups: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to list backups: ${errorMsg}`);
       return [];
     }
   }
@@ -211,7 +235,8 @@ export class DatabaseBackupService {
         );
       }
     } catch (error) {
-      this.logger.error(`Backup cleanup failed: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Backup cleanup failed: ${errorMsg}`);
     }
 
     return { deleted: deletedCount, freedSpace };

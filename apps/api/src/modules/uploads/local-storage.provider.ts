@@ -48,7 +48,8 @@ export class LocalStorageProvider extends StorageProvider {
       // In a real app, this would be served by static middleware
       return `/uploads/${folder}/${filename}`;
     } catch (error) {
-      this.logger.error(`Failed to upload file: ${error.message}`);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to upload file: ${errorMsg}`);
       throw new BadRequestException('Invalid file format or upload failed');
     }
   }

@@ -174,7 +174,6 @@ import { CommonServicesModule } from './common/services';
   controllers: [AppController],
   providers: [
     AppService,
-    AppService,
     // Apply rate limiting globally
     {
       provide: APP_GUARD,

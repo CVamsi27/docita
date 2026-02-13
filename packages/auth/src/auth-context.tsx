@@ -241,7 +241,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     canAccess,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return React.createElement(AuthContext.Provider, { value }, children);
 }
 
 /**
