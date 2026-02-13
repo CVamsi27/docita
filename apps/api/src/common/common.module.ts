@@ -17,6 +17,9 @@ import { SlowQueryLoggingService } from './database/slow-query-logging.service';
 import { DatabaseIndexOptimizationService } from './database/database-index-optimization.service';
 import { DatabasePoolingService } from './database/database-pooling.service';
 import { DatabaseOperationsController } from './controllers/database-operations.controller';
+import { RedisCachingService } from './services/redis-caching.service';
+import { N1QueryDetectionService } from './services/n1-query-detection.service';
+import { CursorPaginationService } from './services/cursor-pagination.service';
 
 @Global()
 @Module({
@@ -38,6 +41,9 @@ import { DatabaseOperationsController } from './controllers/database-operations.
     SlowQueryLoggingService,
     DatabaseIndexOptimizationService,
     DatabasePoolingService,
+    RedisCachingService,
+    N1QueryDetectionService,
+    CursorPaginationService,
   ],
   exports: [
     EncryptionService,
@@ -55,6 +61,9 @@ import { DatabaseOperationsController } from './controllers/database-operations.
     SlowQueryLoggingService,
     DatabaseIndexOptimizationService,
     DatabasePoolingService,
+    RedisCachingService,
+    N1QueryDetectionService,
+    CursorPaginationService,
   ],
 })
 export class CommonModule {}
