@@ -203,7 +203,13 @@ describe('ClinicsService', () => {
         ...mockClinic,
         users: [],
         _count: { patients: 5, appointments: 10 },
-      };
+        intelligenceAddon: false,
+        avgConsultationMinutes: 30,
+        lateArrivalGraceMinutes: 5,
+        queueBufferMinutes: 10,
+        defaultInvoiceCurrency: 'INR',
+        invoiceNumberFormat: 'INV-{clinic_id}-{date}-{sequence}',
+      } as any;
       jest
         .spyOn(prismaService.clinic, 'findUnique')
         .mockResolvedValue(clinicWithUsers);

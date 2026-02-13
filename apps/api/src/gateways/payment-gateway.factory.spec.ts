@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentGatewayFactory } from './payment-gateway.factory';
 import { RazorpaySubscriptionGateway } from './razorpay-subscription.gateway';
-import { PaymentProvider } from './payment-gateway.interface';
+import { PaymentProvider, IPaymentGateway } from './payment-gateway.interface';
 
 describe('PaymentGatewayFactory', () => {
   let factory: PaymentGatewayFactory;

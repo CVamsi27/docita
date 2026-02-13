@@ -179,7 +179,7 @@ function NavItemComponent({
           className="w-full justify-start"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+          <Icon className="h-4 w-4 mr-2 shrink-0" />
           {!isCollapsed && (
             <>
               <span className="flex-1 text-left">{item.title}</span>
@@ -229,7 +229,7 @@ function NavItemComponent({
         className="w-full justify-start"
         title={isCollapsed ? item.title : undefined}
       >
-        <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+        <Icon className="h-4 w-4 mr-2 shrink-0" />
         {!isCollapsed && (
           <>
             <span className="flex-1 text-left">{item.title}</span>
