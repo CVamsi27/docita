@@ -4,7 +4,6 @@
  */
 
 import Link from "next/link";
-import { ReactNode } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { CheckCircle2 } from "lucide-react";
 import {

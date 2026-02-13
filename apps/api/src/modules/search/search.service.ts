@@ -26,14 +26,14 @@ export interface SearchOptions {
 
 /**
  * Unified search service with PostgreSQL full-text search optimization.
- * 
+ *
  * Features:
  * - GIN index on tsvector columns for 10-50x faster text search
  * - pg_trgm for typo-tolerant LIKE queries
  * - Redis caching for frequent queries (5 minute TTL)
  * - Parallel entity searches
  * - Relevance scoring and ranking
- * 
+ *
  * Performance: < 200ms for 10k+ records with indexes
  */
 @Injectable()
@@ -105,7 +105,9 @@ export class SearchService {
       .slice(0, limit);
 
     // Cache results
-    await this.cacheService.set(cacheKey, sorted, { ttl: this.SEARCH_CACHE_TTL });
+    await this.cacheService.set(cacheKey, sorted, {
+      ttl: this.SEARCH_CACHE_TTL,
+    });
 
     return sorted;
   }
@@ -369,6 +371,8 @@ export class SearchService {
       // Clear all search caches
       await this.cacheService.clear();
     }
-    this.logger.debug(`Invalidated search cache for clinic: ${clinicId || 'all'}`);
+    this.logger.debug(
+      `Invalidated search cache for clinic: ${clinicId || 'all'}`,
+    );
   }
 }

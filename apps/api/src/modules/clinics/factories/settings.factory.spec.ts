@@ -18,9 +18,9 @@ describe('SettingsFactory', () => {
       const defaults = factory.createDefault();
 
       expect(defaults).toBeDefined();
-      expect(defaults.workingDays).toContain('Monday');
-      expect(defaults.workingDays.length).toBe(6);
-      expect(defaults.consultationDuration).toBe(30);
+      expect(defaults?.workingDays).toContain('Monday');
+      expect(defaults?.workingDays?.length).toBe(6);
+      expect(defaults?.consultationDuration).toBe(30);
     });
 
     it('should have default reminder settings', () => {

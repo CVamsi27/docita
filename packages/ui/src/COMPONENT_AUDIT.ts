@@ -4,8 +4,6 @@
  * Generated: Phase 2.19 - Design System Implementation
  */
 
-import type { ReactNode } from 'react';
-
 export interface ComponentAuditItem {
   name: string;
   path: string;

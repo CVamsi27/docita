@@ -254,6 +254,6 @@ select {
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   * {
-    @apply !transition-none !animate-none;
+    @apply transition-none! animate-none!;
   }
 }

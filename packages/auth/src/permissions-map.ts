@@ -4,7 +4,7 @@
  * Used by both frontend (UI control) and API (authorization)
  */
 
-import type { Permission } from './auth-context';
+import type { Permission } from './auth-context.js';
 
 export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
   SUPER_ADMIN: [

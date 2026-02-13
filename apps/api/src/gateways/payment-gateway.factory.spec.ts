@@ -130,7 +130,7 @@ describe('PaymentGatewayFactory', () => {
     });
 
     it('should handle rapid gateway requests', () => {
-      const gateways = [];
+      const gateways: IPaymentGateway[] = [];
 
       for (let i = 0; i < 100; i++) {
         if (i % 3 === 0) {

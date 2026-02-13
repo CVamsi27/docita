@@ -66,8 +66,8 @@ export class DatabaseOperationsController {
   @Post('backups/cleanup')
   @ApiOperation({ summary: 'Clean up old backups based on retention policy' })
   @ApiResponse({ status: 200, description: 'Old backups cleaned up' })
-  async cleanupOldBackups() {
-    const result = await this.backupService.cleanupOldBackups();
+  cleanupOldBackups() {
+    const result = this.backupService.cleanupOldBackups();
     this.logger.log(
       `Backup cleanup complete: ${result.deleted} deleted, ${result.freedSpace} freed`,
     );

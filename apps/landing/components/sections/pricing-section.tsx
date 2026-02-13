@@ -45,12 +45,6 @@ export function PricingSection() {
     return `${symbol}${pricing.yearly.toLocaleString()}`;
   };
 
-  const getOriginalMonthly = (tierKey: string) => {
-    const pricing = getPricing(tierKey, detectedCurrency);
-    if (!pricing || pricing.isCustom) return null;
-    return pricing.monthly;
-  };
-
   const currencyInfo = getCurrencyInfo(detectedCurrency);
 
   const captureTierFeatures = [

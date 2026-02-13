@@ -1,5 +1,5 @@
-import type { Preview } from '@storybook/react';
-import { designTokens, darkModeTokens } from '../src/design-tokens';
+import type { Preview, StoryContext } from '@storybook/react';
+import type React from 'react';
 
 const preview: Preview = {
   parameters: {
@@ -35,7 +35,7 @@ const preview: Preview = {
     },
   },
   decorators: [
-    (Story, context) => {
+    (Story: React.ComponentType, context: StoryContext) => {
       const theme = context.globals.theme;
       
       return (

@@ -34,6 +34,10 @@ describe('ClinicsService', () => {
     currency: 'INR',
     taxId: null,
     billingAddress: null,
+    subscriptionStatus: 'ACTIVE',
+    branding: null,
+    features: null,
+    whatsappAutomation: null,
     subscriptionId: null,
     subscriptionStartDate: null,
     subscriptionEndDate: null,
@@ -69,6 +73,9 @@ describe('ClinicsService', () => {
     licenseNumber: null,
     profilePhotoUrl: null,
     yearsOfExperience: null,
+    failedLoginAttempts: 0,
+    lastFailedLoginAt: null,
+    accountLockedUntil: null,
   };
 
   beforeEach(async () => {
@@ -137,7 +144,9 @@ describe('ClinicsService', () => {
 
   describe('create', () => {
     it('should create a clinic with default tier', async () => {
-      jest.spyOn(prismaService.clinic, 'create').mockResolvedValue(mockClinic);
+      jest
+        .spyOn(prismaService.clinic, 'create')
+        .mockResolvedValue(mockClinic as any);
 
       const result = await service.create({
         name: 'Test Clinic',
@@ -175,7 +184,7 @@ describe('ClinicsService', () => {
       ];
       jest
         .spyOn(prismaService.clinic, 'findMany')
-        .mockResolvedValue(mockClinics);
+        .mockResolvedValue(mockClinics as any);
 
       const result = await service.findAll();
 
@@ -220,7 +229,7 @@ describe('ClinicsService', () => {
       const updatedClinic = { ...mockClinic, name: 'Updated Clinic' };
       jest
         .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(updatedClinic);
+        .mockResolvedValue(updatedClinic as any);
 
       const result = await service.update('clinic-123', {
         name: 'Updated Clinic',
@@ -239,7 +248,7 @@ describe('ClinicsService', () => {
       const deactivatedClinic = { ...mockClinic, active: false };
       jest
         .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(deactivatedClinic);
+        .mockResolvedValue(deactivatedClinic as any);
 
       const result = await service.delete('clinic-123');
 
@@ -272,7 +281,9 @@ describe('ClinicsService', () => {
   describe('createDoctor', () => {
     it('should create a doctor and associate with clinic', async () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      jest.spyOn(prismaService.user, 'create').mockResolvedValue(mockUser);
+      jest
+        .spyOn(prismaService.user, 'create')
+        .mockResolvedValue(mockUser as any);
       jest
         .spyOn(prismaService.doctorClinic, 'create')
         .mockResolvedValue({} as any);
@@ -297,7 +308,9 @@ describe('ClinicsService', () => {
 
   describe('getDoctors', () => {
     it('should return doctors for a clinic', async () => {
-      jest.spyOn(prismaService.user, 'findMany').mockResolvedValue([mockUser]);
+      jest
+        .spyOn(prismaService.user, 'findMany')
+        .mockResolvedValue([mockUser] as any);
 
       const result = await service.getDoctors('clinic-123');
 
@@ -316,7 +329,7 @@ describe('ClinicsService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       jest
         .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockReceptionist);
+        .mockResolvedValue(mockReceptionist as any);
 
       const result = await service.createReceptionist('clinic-123', {
         name: 'Receptionist',
@@ -333,7 +346,7 @@ describe('ClinicsService', () => {
       const mockReceptionist = { ...mockUser, role: 'RECEPTIONIST' };
       jest
         .spyOn(prismaService.user, 'findMany')
-        .mockResolvedValue([mockReceptionist]);
+        .mockResolvedValue([mockReceptionist] as any);
 
       const result = await service.getReceptionists('clinic-123');
 

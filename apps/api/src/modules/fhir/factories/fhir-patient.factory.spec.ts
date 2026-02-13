@@ -15,15 +15,11 @@ describe('FhirPatientFactory', () => {
     email: 'john@example.com',
     phoneNumber: '+1234567890',
     address: '123 Main St',
-    city: 'Springfield',
-    state: 'IL',
-    postalCode: '62701',
-    country: 'US',
     clinicId: 'clinic-123',
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-02-01'),
     deletedAt: null,
-  };
+  } as Patient;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,10 +42,10 @@ describe('FhirPatientFactory', () => {
       const fhirPatient = factory.create(mockPatient);
 
       expect(fhirPatient.meta).toBeDefined();
-      expect(fhirPatient.meta.lastUpdated).toBe(
+      expect(fhirPatient.meta?.lastUpdated).toBe(
         mockPatient.updatedAt.toISOString(),
       );
-      expect(fhirPatient.meta.profile).toContain(
+      expect(fhirPatient.meta?.profile).toContain(
         'http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient',
       );
     });
