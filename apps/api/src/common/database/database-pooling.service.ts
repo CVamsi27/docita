@@ -5,6 +5,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 export interface PoolConfig {
   min: number;
@@ -19,12 +20,17 @@ export interface PoolConfig {
 export class DatabasePoolingService {
   private readonly logger = new Logger(DatabasePoolingService.name);
 
+  constructor(private configService: ConfigService) {}
+
   /**
    * Get optimal pool configuration based on environment and node count
    */
   getOptimalPoolConfig(nodeCount: number = 1): PoolConfig {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cpuCount = parseInt(process.env.CPU_COUNT || '4', 10);
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const cpuCount = parseInt(
+      this.configService.get<string>('CPU_COUNT') || '4',
+      10,
+    );
 
     // Production config: more aggressive pooling for reliability
     if (isProduction) {
@@ -54,11 +60,13 @@ export class DatabasePoolingService {
    * PgBouncer sits between app and PostgreSQL for advanced pooling
    */
   getPgBouncerConnectionString(): string {
-    const pgBouncerHost = process.env.PGBOUNCER_HOST || 'localhost';
-    const pgBouncerPort = process.env.PGBOUNCER_PORT || '6432';
-    const user = process.env.DATABASE_USER;
-    const password = process.env.DATABASE_PASSWORD;
-    const database = process.env.DATABASE_NAME;
+    const pgBouncerHost =
+      this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
+    const pgBouncerPort =
+      this.configService.get<string>('PGBOUNCER_PORT') || '6432';
+    const user = this.configService.get<string>('DATABASE_USER');
+    const password = this.configService.get<string>('DATABASE_PASSWORD');
+    const database = this.configService.get<string>('DATABASE_NAME');
 
     return `postgresql://${user}:${password}@${pgBouncerHost}:${pgBouncerPort}/${database}`;
   }
@@ -68,7 +76,9 @@ export class DatabasePoolingService {
    * More convenient than PgBouncer for serverless environments
    */
   getPrismaAccelerateUrl(): string {
-    const accelerateKey = process.env.PRISMA_ACCELERATE_KEY;
+    const accelerateKey = this.configService.get<string>(
+      'PRISMA_ACCELERATE_KEY',
+    );
     if (!accelerateKey) {
       throw new Error('PRISMA_ACCELERATE_KEY not set in environment');
     }
@@ -80,8 +90,8 @@ export class DatabasePoolingService {
    */
   shouldUsePrismaAccelerate(): boolean {
     return (
-      process.env.USE_PRISMA_ACCELERATE === 'true' &&
-      !!process.env.PRISMA_ACCELERATE_KEY
+      this.configService.get<string>('USE_PRISMA_ACCELERATE') === 'true' &&
+      !!this.configService.get<string>('PRISMA_ACCELERATE_KEY')
     );
   }
 
@@ -124,9 +134,15 @@ export class DatabasePoolingService {
 
     if (this.shouldUsePrismaAccelerate()) {
       this.logger.log(`  Using Prisma Accelerate for managed pooling`);
-    } else if (process.env.USE_PGBOUNCER === 'true') {
+    } else if (
+      this.configService.get<string>('USE_PGBOUNCER') === 'true'
+    ) {
+      const pgBouncerHost =
+        this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
+      const pgBouncerPort =
+        this.configService.get<string>('PGBOUNCER_PORT') || '6432';
       this.logger.log(
-        `  Using PgBouncer at ${process.env.PGBOUNCER_HOST}:${process.env.PGBOUNCER_PORT}`,
+        `  Using PgBouncer at ${pgBouncerHost}:${pgBouncerPort}`,
       );
     } else {
       this.logger.log(

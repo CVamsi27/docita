@@ -12,12 +12,6 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DefaultPasswordPolicy } from './policies/password.policy';
 
-// Validate JWT_SECRET is set in production
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET environment variable must be set in production');
-}
-
 @Module({
   imports: [
     PrismaModule,

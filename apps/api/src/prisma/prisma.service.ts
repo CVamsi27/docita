@@ -4,6 +4,7 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -21,8 +22,15 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
   private readReplica?: PrismaClient;
 
-  constructor(private encryptionService: EncryptionService) {
-    let connectionString = process.env.DATABASE_URL;
+  constructor(
+    private encryptionService: EncryptionService,
+    private configService: ConfigService,
+  ) {
+    const databaseUrl = configService.get<string>('DATABASE_URL');
+    const databaseReadUrl = configService.get<string>('DATABASE_READ_URL');
+    const nodeEnv = configService.get<string>('NODE_ENV');
+
+    let connectionString = databaseUrl;
 
     // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
     try {
@@ -50,9 +58,9 @@ export class PrismaService
 
     // Verify connectionString is valid or fallback to env
     if (!connectionString) {
-      connectionString = process.env.DATABASE_URL!;
+      connectionString = databaseUrl!;
     } else {
-      // Sync env var to ensure Prisma Client uses the correct connection string
+      // Keep config value in sync for other services that might check it
       process.env.DATABASE_URL = connectionString;
     }
 
@@ -62,12 +70,12 @@ export class PrismaService
     super({
       adapter,
       log:
-        process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+        nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
     });
 
     // Initialize read replica if URL is provided
-    if (process.env.DATABASE_READ_URL) {
-      let readConnectionString = process.env.DATABASE_READ_URL;
+    if (databaseReadUrl) {
+      let readConnectionString = databaseReadUrl;
 
       // Fix for "SECURITY WARNING" for read replica as well
       try {
@@ -99,7 +107,7 @@ export class PrismaService
       const rawReadClient = new PrismaClient({
         adapter: readAdapter,
         log:
-          process.env.NODE_ENV === 'development'
+          nodeEnv === 'development'
             ? ['warn', 'error']
             : ['error'],
       });

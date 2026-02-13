@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ZodValidationPipe } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
@@ -93,6 +94,10 @@ async function bootstrap() {
   app.use(json({ limit: '1mb' }));
   app.use(urlencoded({ limit: '1mb', extended: true }));
 
+  // Get ConfigService to read env values for middleware setup
+  const configService = app.get(ConfigService);
+  const apiUrl = configService.get<string>('NEXT_PUBLIC_API_URL') || '';
+
   // Security Headers
   app.use(
     helmet({
@@ -103,7 +108,7 @@ async function bootstrap() {
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:', 'https:'],
           fontSrc: ["'self'", 'data:'],
-          connectSrc: ["'self'", process.env.NEXT_PUBLIC_API_URL || ''],
+          connectSrc: ["'self'", apiUrl],
           frameSrc: ["'none'"],
           objectSrc: ["'none'"],
           upgradeInsecureRequests: [],
@@ -214,7 +219,7 @@ async function bootstrap() {
     console.log('📚 Swagger docs available at /api/docs');
   }
 
-  const port = process.env.PORT || 3001;
+  const port = configService.get<number>('PORT') || 3001;
   const server = await app.listen(port);
 
   // Get observability service for metrics tracking

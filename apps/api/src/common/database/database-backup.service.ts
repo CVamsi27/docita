@@ -5,6 +5,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,13 +16,27 @@ const execAsync = promisify(exec);
 @Injectable()
 export class DatabaseBackupService {
   private readonly logger = new Logger(DatabaseBackupService.name);
-  private backupDir = process.env.BACKUP_DIR || '/backups/postgresql';
-  private readonly retentionDays = parseInt(
-    process.env.BACKUP_RETENTION_DAYS || '30',
-    10,
-  );
+  private backupDir: string;
+  private readonly retentionDays: number;
+  private readonly databasePassword: string;
+  private readonly databaseHost: string;
+  private readonly databasePort: string;
+  private readonly databaseUser: string;
+  private readonly databaseName: string;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
+    this.backupDir =
+      configService.get<string>('BACKUP_DIR') || '/backups/postgresql';
+    this.retentionDays = parseInt(
+      configService.get<string>('BACKUP_RETENTION_DAYS') || '30',
+      10,
+    );
+    this.databasePassword = configService.get<string>('DATABASE_PASSWORD') || '';
+    this.databaseHost = configService.get<string>('DATABASE_HOST') || 'localhost';
+    this.databasePort = configService.get<string>('DATABASE_PORT') || '5432';
+    this.databaseUser = configService.get<string>('DATABASE_USER') || 'postgres';
+    this.databaseName = configService.get<string>('DATABASE_NAME') || 'docita';
+
     this.ensureBackupDirectory();
   }
 
@@ -66,7 +81,7 @@ export class DatabaseBackupService {
     const filepath = path.join(this.backupDir, backupFilename);
 
     try {
-      const pgDumpCmd = `PGPASSWORD="${process.env.DATABASE_PASSWORD}" pg_dump --host="${process.env.DATABASE_HOST}" --port="${process.env.DATABASE_PORT}" --username="${process.env.DATABASE_USER}" --format=custom --compress=9 "${process.env.DATABASE_NAME}" > "${filepath}"`;
+      const pgDumpCmd = `PGPASSWORD="${this.databasePassword}" pg_dump --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --format=custom --compress=9 "${this.databaseName}" > "${filepath}"`;
 
       await execAsync(pgDumpCmd);
 
@@ -94,7 +109,7 @@ export class DatabaseBackupService {
     const filepath = path.join(this.backupDir, backupFilename);
 
     try {
-      const pgDumpCmd = `PGPASSWORD="${process.env.DATABASE_PASSWORD}" pg_dump --host="${process.env.DATABASE_HOST}" --port="${process.env.DATABASE_PORT}" --username="${process.env.DATABASE_USER}" --schema-only "${process.env.DATABASE_NAME}" > "${filepath}"`;
+      const pgDumpCmd = `PGPASSWORD="${this.databasePassword}" pg_dump --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --schema-only "${this.databaseName}" > "${filepath}"`;
 
       await execAsync(pgDumpCmd);
 
@@ -125,7 +140,7 @@ export class DatabaseBackupService {
     try {
       this.logger.warn(`Starting database restore from: ${backupFilepath}`);
 
-      const pgRestoreCmd = `PGPASSWORD="${process.env.DATABASE_PASSWORD}" pg_restore --host="${process.env.DATABASE_HOST}" --port="${process.env.DATABASE_PORT}" --username="${process.env.DATABASE_USER}" --dbname="${process.env.DATABASE_NAME}" --verbose "${backupFilepath}"`;
+      const pgRestoreCmd = `PGPASSWORD="${this.databasePassword}" pg_restore --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --dbname="${this.databaseName}" --verbose "${backupFilepath}"`;
 
       await execAsync(pgRestoreCmd);
 
@@ -152,7 +167,7 @@ export class DatabaseBackupService {
     }
 
     try {
-      const pgRestoreCmd = `PGPASSWORD="${process.env.DATABASE_PASSWORD}" pg_restore --list "${backupFilepath}" > /dev/null 2>&1`;
+      const pgRestoreCmd = `PGPASSWORD="${this.databasePassword}" pg_restore --list "${backupFilepath}" > /dev/null 2>&1`;
 
       await execAsync(pgRestoreCmd);
 

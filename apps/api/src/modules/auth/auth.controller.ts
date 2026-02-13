@@ -34,41 +34,50 @@ import {
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
+import { ConfigService } from '@nestjs/config';
 
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: IS_PRODUCTION,
-  sameSite: 'strict' as const,
-  path: '/',
-};
 const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 minutes
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
+
+  private getCookieOptions() {
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    return {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict' as const,
+      path: '/',
+    };
+  }
 
   private setAuthCookies(
     res: Response,
     tokens: { access_token: string; refresh_token: string },
   ) {
+    const cookieOptions = this.getCookieOptions();
     res.cookie('access_token', tokens.access_token, {
-      ...COOKIE_OPTIONS,
+      ...cookieOptions,
       maxAge: ACCESS_TOKEN_MAX_AGE,
     });
     res.cookie('refresh_token', tokens.refresh_token, {
-      ...COOKIE_OPTIONS,
+      ...cookieOptions,
       maxAge: REFRESH_TOKEN_MAX_AGE,
       path: '/api/v1/auth', // Restrict refresh token to auth endpoints only
     });
   }
 
   private clearAuthCookies(res: Response) {
-    res.clearCookie('access_token', COOKIE_OPTIONS);
+    const cookieOptions = this.getCookieOptions();
+    res.clearCookie('access_token', cookieOptions);
     res.clearCookie('refresh_token', {
-      ...COOKIE_OPTIONS,
+      ...cookieOptions,
       path: '/api/v1/auth',
     });
   }
