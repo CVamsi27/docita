@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OCRService } from './ocr.service';
+import { ImagePreprocessorService } from './image-preprocessor.service';
+import { TextExtractorService } from './text-extractor.service';
+import { DocumentClassifierService } from './document-classifier.service';
+import { TextParserService } from './text-parser.service';
+import { ConfidenceScorerService } from './confidence-scorer.service';
 import { Logger } from '@nestjs/common';
 
 // Mock Tesseract
@@ -34,13 +39,150 @@ jest.mock('fs', () => ({
 
 describe('OCRService', () => {
   let service: OCRService;
+  let textExtractorService: any;
 
   beforeEach(async () => {
+    const mockImagePreprocessor = {
+      preprocessImage: jest.fn().mockResolvedValue(Buffer.from('mock')),
+    };
+
+    const mockTextExtractor = {
+      initialize: jest.fn().mockResolvedValue(undefined),
+      cleanup: jest.fn().mockResolvedValue(undefined),
+      extractText: jest.fn().mockResolvedValue('mock text'),
+    };
+
+    const mockDocumentClassifier = {
+      classifyDocument: jest.fn().mockResolvedValue('MEDICAL_REPORT'),
+    };
+
+    const mockTextParser = {
+      parseText: jest.fn().mockResolvedValue({ parsed: 'data' }),
+      parseExtractedText: jest.fn().mockImplementation((text) => {
+        // Return a structure that matches ParsedMedicalFields
+        // Extract medications if text contains them
+        const medications = text?.includes('Medications')
+          ? [
+              {
+                name: 'Paracetamol',
+                dosage: '500mg',
+                frequency: '1x daily',
+                startDate: '',
+                endDate: '',
+                instructions: '',
+              },
+              {
+                name: 'Amoxicillin',
+                dosage: '250mg',
+                frequency: 'bd',
+                startDate: '',
+                endDate: '',
+                instructions: '',
+              },
+            ]
+          : [];
+
+        return {
+          firstName: 'John',
+          lastName: 'Doe',
+          mrn: 'DOC-12345',
+          preferredName: '',
+          pronouns: '',
+          address: '123 Main St, Anytown',
+          race: '',
+          ethnicity: '',
+          maritalStatus: '',
+          preferredLanguage: '',
+          age: '45',
+          gender: 'MALE',
+          phoneNumber: '555-1234',
+          email: 'john@example.com',
+          bloodType: 'O+',
+          emergencyContact: {
+            name: 'Jane Doe',
+            phoneNumber: '9876543210',
+            relation: '',
+          },
+          dateOfBirth: '01/01/1980',
+          visitDate: '12/12/2023',
+          invoiceDate: '01/01/2024',
+          admissionDate: '',
+          clinicName: 'City General Hospital',
+          doctorName: 'Dr. Smith',
+          diagnosis: 'Test Diagnosis',
+          symptoms: [],
+          allergies: [],
+          medications,
+          vitals: {
+            bloodPressure: '120/80',
+            bp: '120/80',
+            temperature: '98.6',
+            temp: '98.6',
+            heartRate: '72',
+            respiratoryRate: '16',
+            oxygenSaturation: '98',
+          },
+          labValues: {
+            hemoglobin: '13.5',
+            glucose: '95 ',
+            creatinine: '1.0',
+            sodium: '135',
+            potassium: '4.0',
+          },
+          procedures: [],
+          assessments: [],
+          plan: '',
+          notes: '',
+          invoiceNumber: 'INV-2024-001',
+          invoice: {
+            subtotal: 1700,
+            tax: 100,
+            total: 1800,
+            paymentStatus: 'PENDING',
+            items: [
+              {
+                description: 'Consultation Fee',
+                quantity: 1,
+                unitPrice: 500,
+                total: 500,
+              },
+              {
+                description: 'Lab Tests',
+                quantity: 1,
+                unitPrice: 1200,
+                total: 1200,
+              },
+            ],
+          },
+          confidenceScores: {
+            firstName: 0.95,
+            lastName: 0.95,
+            diagnosis: 0.85,
+          },
+        };
+      }),
+    };
+
+    const mockConfidenceScorer = {
+      scoreConfidence: jest.fn().mockReturnValue(0.95),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OCRService],
+      providers: [
+        OCRService,
+        { provide: ImagePreprocessorService, useValue: mockImagePreprocessor },
+        { provide: TextExtractorService, useValue: mockTextExtractor },
+        {
+          provide: DocumentClassifierService,
+          useValue: mockDocumentClassifier,
+        },
+        { provide: TextParserService, useValue: mockTextParser },
+        { provide: ConfidenceScorerService, useValue: mockConfidenceScorer },
+      ],
     }).compile();
 
     service = module.get<OCRService>(OCRService);
+    textExtractorService = module.get<any>(TextExtractorService);
   });
 
   afterEach(() => {
@@ -50,14 +192,14 @@ describe('OCRService', () => {
   describe('Lifecycle', () => {
     it('should initialize worker on module init', async () => {
       await service.onModuleInit();
-      expect(mockTesseract.createWorker).toHaveBeenCalled();
+      expect(textExtractorService.initialize).toHaveBeenCalled();
     });
 
     it('should terminate worker on module destroy', async () => {
       // Manually set worker to mock state via init
       await service.onModuleInit();
       await service.onModuleDestroy();
-      expect(mockWorker.terminate).toHaveBeenCalled();
+      expect(textExtractorService.cleanup).toHaveBeenCalled();
     });
   });
 

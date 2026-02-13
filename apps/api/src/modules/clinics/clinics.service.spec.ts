@@ -3,6 +3,9 @@ import { ClinicsService } from './clinics.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ClinicFactory } from './factories/clinic.factory';
 import { SettingsFactory } from './factories/settings.factory';
+import { ClinicDataService } from './clinic-data.service';
+import { ClinicSettingsService } from './clinic-settings.service';
+import { StaffManagementService } from './staff-management.service';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
@@ -82,6 +85,9 @@ describe('ClinicsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClinicsService,
+        ClinicDataService,
+        ClinicSettingsService,
+        StaffManagementService,
         {
           provide: PrismaService,
           useValue: {

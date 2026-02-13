@@ -2,9 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
-import { WhatsappTemplatesService } from '../whatsapp/templates.service';
+import { TemplatesService } from '../whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { IPaymentProvider } from './providers/payment.provider.interface';
@@ -24,9 +23,8 @@ jest.mock('razorpay', () => {
 describe('PaymentsService', () => {
   let service: PaymentsService;
   let prismaService: jest.Mocked<PrismaService>;
-  let whatsappService: jest.Mocked<WhatsappService>;
   let whatsappClient: jest.Mocked<WhatsappClientService>;
-  let whatsappTemplates: jest.Mocked<WhatsappTemplatesService>;
+  let whatsappTemplates: jest.Mocked<TemplatesService>;
   let pushNotifications: jest.Mocked<PushNotificationService>;
   let paymentGateway: jest.Mocked<PaymentWebSocketGateway>;
   let paymentProvider: jest.Mocked<IPaymentProvider>;
@@ -98,10 +96,6 @@ describe('PaymentsService', () => {
       }),
     };
 
-    const mockWhatsappService = {
-      sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
-    };
-
     const mockWhatsappClient = {
       sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
     };
@@ -137,9 +131,8 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: WhatsappService, useValue: mockWhatsappService },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
-        { provide: WhatsappTemplatesService, useValue: mockWhatsappTemplates },
+        { provide: TemplatesService, useValue: mockWhatsappTemplates },
         { provide: PushNotificationService, useValue: mockPushNotifications },
         { provide: PaymentWebSocketGateway, useValue: mockPaymentGateway },
         { provide: 'IPaymentProvider', useValue: mockPaymentProvider },
@@ -148,9 +141,8 @@ describe('PaymentsService', () => {
 
     service = module.get<PaymentsService>(PaymentsService);
     prismaService = module.get(PrismaService);
-    whatsappService = module.get(WhatsappService);
     whatsappClient = module.get(WhatsappClientService);
-    whatsappTemplates = module.get(WhatsappTemplatesService);
+    whatsappTemplates = module.get(TemplatesService);
     pushNotifications = module.get(PushNotificationService);
     paymentGateway = module.get(PaymentWebSocketGateway);
     paymentProvider = module.get('IPaymentProvider');

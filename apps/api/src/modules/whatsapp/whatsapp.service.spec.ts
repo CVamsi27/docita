@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappTemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
-import { WhatsappWebhookService } from './whatsapp-webhook.service';
-import { ResponseHandlerService } from './response-handler.service';
-import { StaffNotificationService } from './staff-notification.service';
+import { TemplatesService } from './templates.service';
+import { ResendService } from './resend.service';
+import { SystemEventsService } from './system-events.service';
+import { ApprovalService } from './approval.service';
+import { MessagingService } from './messaging.service';
+import { TemplateMessageService } from './template-message.service';
 
 describe('WhatsappService', () => {
   let service: WhatsappService;
@@ -14,7 +16,7 @@ describe('WhatsappService', () => {
 
   const mockPrismaService = {
     whatsappLog: {
-      create: jest.fn(),
+      create: jest.fn().mockResolvedValue({}),
     },
     clinic: {
       findUnique: jest
@@ -24,29 +26,71 @@ describe('WhatsappService', () => {
   };
 
   const mockTemplatesService = {
-    resolveTemplate: jest.fn(),
-    getMessageForMode: jest.fn(),
+    resolveTemplate: jest.fn().mockResolvedValue({
+      name: 'hello_world',
+      language: 'en_US',
+      components: [],
+    }),
+    getMessageForMode: jest
+      .fn()
+      .mockReturnValue('Hello World Template Message'),
   };
-
-  const mockResponseHandler = {};
-  const mockStaffNotification = {};
 
   beforeEach(async () => {
     const mockWhatsappClient = {
       sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
     };
 
-    const mockWhatsappWebhook = {};
+    const mockResendService = {
+      createResend: jest.fn().mockResolvedValue({}),
+      removeResend: jest.fn().mockResolvedValue({}),
+    };
+
+    const mockSystemEventsService = {
+      recordSystemEvent: jest.fn().mockResolvedValue({}),
+    };
+
+    const mockApprovalService = {
+      requestApproval: jest.fn().mockResolvedValue({}),
+      getApprovalStatus: jest.fn().mockResolvedValue({}),
+    };
+
+    const mockMessagingService = {
+      sendMessage: jest.fn().mockResolvedValue({ success: true }),
+    };
+
+    const mockTemplateMessageService = {
+      sendTemplate: jest.fn().mockResolvedValue({ success: true }),
+      handleSendTemplate: jest
+        .fn()
+        .mockImplementation(async (clinicId, userId, dto) => {
+          // Call WhatsappClientService to simulate real behavior
+          await mockWhatsappClient.sendMessage({
+            to: dto.phoneNumber,
+            message: 'Hello World Template Message',
+          });
+          return {
+            success: true,
+            messageId: 'msg-123',
+            templateId: dto.templateId,
+          };
+        }),
+    };
 
     module = await Test.createTestingModule({
       providers: [
         WhatsappService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: WhatsappTemplatesService, useValue: mockTemplatesService },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
-        { provide: WhatsappWebhookService, useValue: mockWhatsappWebhook },
-        { provide: ResponseHandlerService, useValue: mockResponseHandler },
-        { provide: StaffNotificationService, useValue: mockStaffNotification },
+        { provide: TemplatesService, useValue: mockTemplatesService },
+        { provide: ResendService, useValue: mockResendService },
+        { provide: SystemEventsService, useValue: mockSystemEventsService },
+        { provide: ApprovalService, useValue: mockApprovalService },
+        { provide: MessagingService, useValue: mockMessagingService },
+        {
+          provide: TemplateMessageService,
+          useValue: mockTemplateMessageService,
+        },
       ],
     }).compile();
 
