@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@workspace/ui/*": ["../../packages/ui/src/*"],
+      "@workspace/types": ["../../packages/types/src/index.ts"],
+      "@workspace/auth": ["../../packages/auth/src/index.ts"]
     }
   },
   "include": [

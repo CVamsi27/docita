@@ -8,7 +8,8 @@
       "@/hooks/*": ["./hooks/*"],
       "@/components/*": ["./components/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
-      "@workspace/types": ["../../packages/types/src/index.ts"]
+      "@workspace/types": ["../../packages/types/src/index.ts"],
+      "@workspace/auth": ["../../packages/auth/src/index.ts"]
     },
     "exactOptionalPropertyTypes": false,
     "noPropertyAccessFromIndexSignature": false,
