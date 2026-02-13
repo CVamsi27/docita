@@ -28,6 +28,7 @@ export * from "./audit";
 export * from "./config";
 export * from "./onboarding";
 export * from "./referrals";
+export * from "./api-validation";
 export * from "./super-admin";
 export * from "./whatsapp";
 export * from "./sanitization";
