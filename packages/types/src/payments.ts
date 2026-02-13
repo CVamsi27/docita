@@ -87,7 +87,46 @@ export const paymentLinkResponseSchema = z.object({
 export type PaymentLinkResponse = z.infer<typeof paymentLinkResponseSchema>;
 
 // =====================================================
-// PAYMENT WEBHOOK
+// RAZORPAY SUBSCRIPTION & PAYMENT ENTITIES
+// =====================================================
+
+export interface RazorpaySubscriptionEntity {
+  id: string;
+  plan_id: string;
+  customer_id: string;
+  status: string;
+  current_start?: number;
+  current_end?: number;
+  notes?: Record<string, string>;
+}
+
+export interface RazorpayPaymentEntity {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  order_id?: string;
+  notes?: Record<string, string>;
+}
+
+// =====================================================
+// RAZORPAY WEBHOOK PAYLOAD
+// =====================================================
+
+export interface RazorpayWebhookPayload {
+  event: string;
+  payload: {
+    subscription?: {
+      entity: RazorpaySubscriptionEntity;
+    };
+    payment?: {
+      entity: RazorpayPaymentEntity;
+    };
+  };
+}
+
+// =====================================================
+// PAYMENT WEBHOOK (Generic)
 // =====================================================
 
 export const paymentWebhookPayloadSchema = z.object({

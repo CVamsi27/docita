@@ -6,12 +6,7 @@ export interface PaymentRetryInvoice {
   createdAt: Date | string;
 }
 
-
-export interface RazorpayWebhookPayload {
-  entity: string;
-  account_id: string;
-  event: string;
-  contains: string[];
-  payload: Record<string, unknown>;
-  created_at: number;
-}
+// =====================================================
+// NOTE: RazorpayWebhookPayload moved to payments.ts
+// Import from there if needed: import type { RazorpayWebhookPayload } from './payments'
+// =====================================================

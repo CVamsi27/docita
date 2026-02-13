@@ -4,37 +4,7 @@ import { SubscriptionBillingService } from './subscription-billing.service';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { ClinicTier, BillingCycle, SubscriptionStatus } from '@workspace/db';
-
-interface RazorpaySubscriptionEntity {
-  id: string;
-  plan_id: string;
-  customer_id: string;
-  status: string;
-  current_start?: number;
-  current_end?: number;
-  notes?: Record<string, string>;
-}
-
-interface RazorpayPaymentEntity {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  order_id?: string;
-  notes?: Record<string, string>;
-}
-
-interface RazorpayWebhookPayload {
-  event: string;
-  payload: {
-    subscription?: {
-      entity: RazorpaySubscriptionEntity;
-    };
-    payment?: {
-      entity: RazorpayPaymentEntity;
-    };
-  };
-}
+import type { RazorpayWebhookPayload } from '@workspace/types';
 
 @Injectable()
 export class SubscriptionWebhookService {
