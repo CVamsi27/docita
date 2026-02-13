@@ -24,9 +24,7 @@ describe('PaymentGatewayFactory', () => {
     }).compile();
 
     factory = module.get<PaymentGatewayFactory>(PaymentGatewayFactory);
-    razorpayGateway = module.get(RazorpaySubscriptionGateway) as jest.Mocked<
-      RazorpaySubscriptionGateway
-    >;
+    razorpayGateway = module.get(RazorpaySubscriptionGateway);
   });
 
   describe('getGateway', () => {

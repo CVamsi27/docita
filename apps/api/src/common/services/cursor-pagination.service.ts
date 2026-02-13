@@ -58,7 +58,7 @@ export class CursorPaginationService {
     decodedCursor: Record<string, any> | null,
     sortBy: string,
     sortOrder: 'asc' | 'desc',
-    direction: 'next' | 'prev'
+    direction: 'next' | 'prev',
   ): any {
     if (!decodedCursor) return {};
 
@@ -68,11 +68,15 @@ export class CursorPaginationService {
     // For next page (ascending), get items > cursor value
     // For next page (descending), get items < cursor value
     if (direction === 'next') {
-      return sortOrder === 'asc' ? { [sortBy]: { gt: value } } : { [sortBy]: { lt: value } };
+      return sortOrder === 'asc'
+        ? { [sortBy]: { gt: value } }
+        : { [sortBy]: { lt: value } };
     }
 
     // For previous page, reverse the logic
-    return sortOrder === 'asc' ? { [sortBy]: { lt: value } } : { [sortBy]: { gt: value } };
+    return sortOrder === 'asc'
+      ? { [sortBy]: { lt: value } }
+      : { [sortBy]: { gt: value } };
   }
 
   /**
@@ -88,13 +92,26 @@ export class CursorPaginationService {
   /**
    * Format paginated response
    */
-  formatPage<T>(items: T[], limit: number, sortBy: string, direction: 'next' | 'prev' = 'next'): CursorPage<T> {
+  formatPage<T>(
+    items: T[],
+    limit: number,
+    sortBy: string,
+    direction: 'next' | 'prev' = 'next',
+  ): CursorPage<T> {
     const hasMore = items.length > limit;
     const pageItems = hasMore ? items.slice(0, limit) : items;
 
-    const nextCursor = hasMore && pageItems.length > 0 ? this.encodeCursor({ [sortBy]: (pageItems[pageItems.length - 1] as any)[sortBy] }) : undefined;
+    const nextCursor =
+      hasMore && pageItems.length > 0
+        ? this.encodeCursor({
+            [sortBy]: (pageItems[pageItems.length - 1] as any)[sortBy],
+          })
+        : undefined;
 
-    const previousCursor = direction === 'next' && pageItems.length > 0 ? this.encodeCursor({ [sortBy]: (pageItems[0] as any)[sortBy] }) : undefined;
+    const previousCursor =
+      direction === 'next' && pageItems.length > 0
+        ? this.encodeCursor({ [sortBy]: (pageItems[0] as any)[sortBy] })
+        : undefined;
 
     return {
       items: pageItems,

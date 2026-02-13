@@ -70,7 +70,10 @@ export class DatabaseIndexOptimizationService {
         tupleRead: row.tuple_read || 0,
         tupleWritten: row.tuple_fetched || 0,
         isUsed: (row.scan_count || 0) > 0,
-        recommendation: this.getIndexRecommendation(row.scan_count, row.index_size),
+        recommendation: this.getIndexRecommendation(
+          row.scan_count,
+          row.index_size,
+        ),
       }));
     } catch (error) {
       this.logger.error(`Failed to analyze indexes: ${error.message}`);
@@ -84,7 +87,10 @@ export class DatabaseIndexOptimizationService {
   async findUnusedIndexes(): Promise<IndexAnalysis[]> {
     const allIndexes = await this.analyzeAllIndexes();
     return allIndexes.filter(
-      (idx) => !idx.isUsed && !idx.indexName.includes('_pkey') && idx.indexName !== 'pg_class_oid_index'
+      (idx) =>
+        !idx.isUsed &&
+        !idx.indexName.includes('_pkey') &&
+        idx.indexName !== 'pg_class_oid_index',
     );
   }
 
@@ -113,7 +119,10 @@ export class DatabaseIndexOptimizationService {
         tableName: row.tablename,
         columnNames: [row.attname],
         reason: `High cardinality column (${row.n_distinct} distinct values) with low correlation`,
-        estimatedImprovementPercent: Math.min(50, Math.abs(row.correlation) * 100),
+        estimatedImprovementPercent: Math.min(
+          50,
+          Math.abs(row.correlation) * 100,
+        ),
       }));
     } catch (error) {
       this.logger.error(`Failed to find missing indexes: ${error.message}`);
@@ -124,7 +133,9 @@ export class DatabaseIndexOptimizationService {
   /**
    * Get index bloat statistics
    */
-  async getIndexBloat(): Promise<Array<{ tableName: string; indexName: string; bloatPercent: number }>> {
+  async getIndexBloat(): Promise<
+    Array<{ tableName: string; indexName: string; bloatPercent: number }>
+  > {
     const query = `
       SELECT
         t.relname AS tablename,
@@ -155,7 +166,10 @@ export class DatabaseIndexOptimizationService {
   /**
    * Get recommendation for index based on usage
    */
-  private getIndexRecommendation(scanCount: number, indexSize: string): string | undefined {
+  private getIndexRecommendation(
+    scanCount: number,
+    indexSize: string,
+  ): string | undefined {
     const sizeInMB = this.parseSizeToMB(indexSize);
 
     if (scanCount === 0 && sizeInMB > 10) {
@@ -206,7 +220,9 @@ export class DatabaseIndexOptimizationService {
 
     this.logger.log('=== DATABASE INDEX ANALYSIS REPORT ===');
     this.logger.log(`Total Indexes: ${indexes.length}`);
-    this.logger.log(`Used Indexes: ${indexes.filter((idx) => idx.isUsed).length}`);
+    this.logger.log(
+      `Used Indexes: ${indexes.filter((idx) => idx.isUsed).length}`,
+    );
     this.logger.log(`Unused Indexes: ${unused.length}`);
     this.logger.log(`Indexes with Bloat: ${bloat.length}`);
     this.logger.log(`Missing Index Recommendations: ${missing.length}`);
@@ -214,21 +230,27 @@ export class DatabaseIndexOptimizationService {
     if (unused.length > 0) {
       this.logger.log(`\nUnused Indexes (candidates for deletion):`);
       unused.slice(0, 5).forEach((idx) => {
-        this.logger.log(`  - ${idx.tableName}.${idx.indexName} (${idx.indexSize})`);
+        this.logger.log(
+          `  - ${idx.tableName}.${idx.indexName} (${idx.indexSize})`,
+        );
       });
     }
 
     if (missing.length > 0) {
       this.logger.log(`\nMissing Index Recommendations:`);
       missing.slice(0, 5).forEach((rec) => {
-        this.logger.log(`  - ${rec.tableName}(${rec.columnNames.join(', ')}) - ${rec.reason}`);
+        this.logger.log(
+          `  - ${rec.tableName}(${rec.columnNames.join(', ')}) - ${rec.reason}`,
+        );
       });
     }
 
     if (bloat.length > 0) {
       this.logger.log(`\nIndexes with Significant Bloat:`);
       bloat.slice(0, 5).forEach((b) => {
-        this.logger.log(`  - ${b.tableName}.${b.indexName}: ${b.bloatPercent}% bloat`);
+        this.logger.log(
+          `  - ${b.tableName}.${b.indexName}: ${b.bloatPercent}% bloat`,
+        );
       });
     }
   }

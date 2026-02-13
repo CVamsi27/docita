@@ -16,7 +16,10 @@ const execAsync = promisify(exec);
 export class DatabaseBackupService {
   private readonly logger = new Logger(DatabaseBackupService.name);
   private readonly backupDir = process.env.BACKUP_DIR || '/backups/postgresql';
-  private readonly retentionDays = parseInt(process.env.BACKUP_RETENTION_DAYS || '30', 10);
+  private readonly retentionDays = parseInt(
+    process.env.BACKUP_RETENTION_DAYS || '30',
+    10,
+  );
 
   constructor() {
     this.ensureBackupDirectory();
@@ -36,7 +39,9 @@ export class DatabaseBackupService {
    * Create a full database backup using pg_dump
    * Stores as custom format for point-in-time recovery support
    */
-  async createFullBackup(filename?: string): Promise<{ success: boolean; filepath: string; size: number }> {
+  async createFullBackup(
+    filename?: string,
+  ): Promise<{ success: boolean; filepath: string; size: number }> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupFilename = filename || `backup-full-${timestamp}.dump`;
     const filepath = path.join(this.backupDir, backupFilename);
@@ -47,7 +52,9 @@ export class DatabaseBackupService {
       await execAsync(pgDumpCmd);
 
       const stats = fs.statSync(filepath);
-      this.logger.log(`Full backup created: ${backupFilename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+      this.logger.log(
+        `Full backup created: ${backupFilename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`,
+      );
 
       return { success: true, filepath, size: stats.size };
     } catch (error) {
@@ -59,7 +66,9 @@ export class DatabaseBackupService {
   /**
    * Create a schema-only backup (useful for quick recovery of structure)
    */
-  async createSchemaBackup(filename?: string): Promise<{ success: boolean; filepath: string; size: number }> {
+  async createSchemaBackup(
+    filename?: string,
+  ): Promise<{ success: boolean; filepath: string; size: number }> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupFilename = filename || `backup-schema-${timestamp}.sql`;
     const filepath = path.join(this.backupDir, backupFilename);
@@ -70,7 +79,9 @@ export class DatabaseBackupService {
       await execAsync(pgDumpCmd);
 
       const stats = fs.statSync(filepath);
-      this.logger.log(`Schema backup created: ${backupFilename} (${(stats.size / 1024).toFixed(2)} KB)`);
+      this.logger.log(
+        `Schema backup created: ${backupFilename} (${(stats.size / 1024).toFixed(2)} KB)`,
+      );
 
       return { success: true, filepath, size: stats.size };
     } catch (error) {
@@ -83,7 +94,9 @@ export class DatabaseBackupService {
    * Restore from a backup file (full database restore)
    * WARNING: This will overwrite existing data. Use with caution.
    */
-  async restoreFromBackup(backupFilepath: string): Promise<{ success: boolean; message: string }> {
+  async restoreFromBackup(
+    backupFilepath: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!fs.existsSync(backupFilepath)) {
       throw new Error(`Backup file not found: ${backupFilepath}`);
     }
@@ -96,7 +109,10 @@ export class DatabaseBackupService {
       await execAsync(pgRestoreCmd);
 
       this.logger.log(`Database restored successfully from: ${backupFilepath}`);
-      return { success: true, message: `Database restored from ${path.basename(backupFilepath)}` };
+      return {
+        success: true,
+        message: `Database restored from ${path.basename(backupFilepath)}`,
+      };
     } catch (error) {
       this.logger.error(`Database restore failed: ${error.message}`);
       throw error;
@@ -106,7 +122,9 @@ export class DatabaseBackupService {
   /**
    * Verify backup integrity
    */
-  async verifyBackup(backupFilepath: string): Promise<{ success: boolean; valid: boolean; message: string }> {
+  async verifyBackup(
+    backupFilepath: string,
+  ): Promise<{ success: boolean; valid: boolean; message: string }> {
     if (!fs.existsSync(backupFilepath)) {
       return { success: false, valid: false, message: 'Backup file not found' };
     }
@@ -117,17 +135,29 @@ export class DatabaseBackupService {
       await execAsync(pgRestoreCmd);
 
       this.logger.log(`Backup verification passed: ${backupFilepath}`);
-      return { success: true, valid: true, message: 'Backup is valid and readable' };
+      return {
+        success: true,
+        valid: true,
+        message: 'Backup is valid and readable',
+      };
     } catch (error) {
       this.logger.warn(`Backup verification failed: ${error.message}`);
-      return { success: true, valid: false, message: `Backup is corrupted: ${error.message}` };
+      return {
+        success: true,
+        valid: false,
+        message: `Backup is corrupted: ${error.message}`,
+      };
     }
   }
 
   /**
    * Get list of available backups
    */
-  getAvailableBackups(): Array<{ filename: string; size: number; created: Date }> {
+  getAvailableBackups(): Array<{
+    filename: string;
+    size: number;
+    created: Date;
+  }> {
     try {
       const files = fs.readdirSync(this.backupDir);
       return files
@@ -169,12 +199,16 @@ export class DatabaseBackupService {
           fs.unlinkSync(filepath);
           deletedCount++;
           freedSpace += stats.size;
-          this.logger.log(`Deleted old backup: ${f} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+          this.logger.log(
+            `Deleted old backup: ${f} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`,
+          );
         }
       }
 
       if (deletedCount > 0) {
-        this.logger.log(`Cleanup complete: deleted ${deletedCount} backups, freed ${(freedSpace / 1024 / 1024).toFixed(2)} MB`);
+        this.logger.log(
+          `Cleanup complete: deleted ${deletedCount} backups, freed ${(freedSpace / 1024 / 1024).toFixed(2)} MB`,
+        );
       }
     } catch (error) {
       this.logger.error(`Backup cleanup failed: ${error.message}`);

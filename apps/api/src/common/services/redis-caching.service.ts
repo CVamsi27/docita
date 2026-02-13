@@ -46,7 +46,9 @@ export class RedisCachingService implements OnModuleInit {
     try {
       await this.client.connect();
     } catch (error) {
-      this.logger.warn(`Redis connection failed: ${error.message} - caching disabled`);
+      this.logger.warn(
+        `Redis connection failed: ${error.message} - caching disabled`,
+      );
     }
   }
 
@@ -137,7 +139,11 @@ export class RedisCachingService implements OnModuleInit {
   /**
    * Get cache statistics
    */
-  async getStats(): Promise<{ info: string; dbSize: number; connected: boolean }> {
+  async getStats(): Promise<{
+    info: string;
+    dbSize: number;
+    connected: boolean;
+  }> {
     if (!this.isConnected) {
       return { info: 'Redis not connected', dbSize: 0, connected: false };
     }

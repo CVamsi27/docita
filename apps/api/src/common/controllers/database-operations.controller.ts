@@ -5,7 +5,12 @@
  */
 
 import { Controller, Get, Post, Body, UseGuards, Logger } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { DatabaseBackupService } from '../database/database-backup.service';
 import { SlowQueryLoggingService } from '../database/slow-query-logging.service';
 import { DatabaseIndexOptimizationService } from '../database/database-index-optimization.service';
@@ -41,7 +46,10 @@ export class DatabaseOperationsController {
 
   @Post('backup/schema')
   @ApiOperation({ summary: 'Create schema-only backup' })
-  @ApiResponse({ status: 200, description: 'Schema backup created successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Schema backup created successfully',
+  })
   async createSchemaBackup() {
     const result = await this.backupService.createSchemaBackup();
     this.logger.log(`Schema backup created: ${result.filepath}`);
@@ -60,7 +68,9 @@ export class DatabaseOperationsController {
   @ApiResponse({ status: 200, description: 'Old backups cleaned up' })
   async cleanupOldBackups() {
     const result = await this.backupService.cleanupOldBackups();
-    this.logger.log(`Backup cleanup complete: ${result.deleted} deleted, ${result.freedSpace} freed`);
+    this.logger.log(
+      `Backup cleanup complete: ${result.deleted} deleted, ${result.freedSpace} freed`,
+    );
     return result;
   }
 
@@ -126,7 +136,7 @@ export class DatabaseOperationsController {
   @Get('status')
   @ApiOperation({ summary: 'Get overall database operations status' })
   @ApiResponse({ status: 200, description: 'Database status' })
-  async getStatus() {
+  getStatus() {
     const slowQueries = this.slowQueryService.getSlowQueryStats();
     const poolConfig = this.poolingService.getOptimalPoolConfig();
 

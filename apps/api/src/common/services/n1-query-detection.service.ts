@@ -72,7 +72,7 @@ export class N1QueryDetectionService {
 
     if (potentialN1.length > 0) {
       this.logger.warn(
-        `Detected ${potentialN1.length} potential N+1 query patterns. Top: ${potentialN1[0].pattern.substring(0, 100)}...`
+        `Detected ${potentialN1.length} potential N+1 query patterns. Top: ${potentialN1[0].pattern.substring(0, 100)}...`,
       );
     }
 
@@ -101,12 +101,10 @@ export class N1QueryDetectionService {
    * Normalize query for pattern matching
    */
   private normalizeQuery(query: string): string {
-    return (
-      query
-        .replace(/\d+/g, '?') // Replace numbers with ?
-        .replace(/'.+?'/g, '?') // Replace strings with ?
-        .trim()
-    );
+    return query
+      .replace(/\d+/g, '?') // Replace numbers with ?
+      .replace(/'.+?'/g, '?') // Replace strings with ?
+      .trim();
   }
 
   /**
@@ -127,8 +125,12 @@ export class N1QueryDetectionService {
       };
     }
 
-    const avgDuration = this.queryTraces.reduce((sum, t) => sum + t.duration, 0) / this.queryTraces.length;
-    const slowestQuery = this.queryTraces.reduce((slow, t) => (t.duration > slow.duration ? t : slow)).query;
+    const avgDuration =
+      this.queryTraces.reduce((sum, t) => sum + t.duration, 0) /
+      this.queryTraces.length;
+    const slowestQuery = this.queryTraces.reduce((slow, t) =>
+      t.duration > slow.duration ? t : slow,
+    ).query;
     const n1Patterns = this.analyzeForN1Patterns();
 
     return {

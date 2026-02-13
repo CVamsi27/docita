@@ -43,8 +43,12 @@ describe('IpdFactory', () => {
       const afterCreate = new Date();
 
       expect(result.admittedAt).toBeDefined();
-      expect(result.admittedAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-      expect(result.admittedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+      expect(result.admittedAt.getTime()).toBeGreaterThanOrEqual(
+        beforeCreate.getTime(),
+      );
+      expect(result.admittedAt.getTime()).toBeLessThanOrEqual(
+        afterCreate.getTime(),
+      );
     });
 
     it('should use provided admittedAt date', () => {

@@ -16,7 +16,10 @@ interface SlowQuery {
 @Injectable()
 export class SlowQueryLoggingService {
   private readonly logger = new Logger(SlowQueryLoggingService.name);
-  private readonly slowQueryThresholdMs = parseInt(process.env.SLOW_QUERY_THRESHOLD_MS || '1000', 10);
+  private readonly slowQueryThresholdMs = parseInt(
+    process.env.SLOW_QUERY_THRESHOLD_MS || '1000',
+    10,
+  );
   private slowQueries: SlowQuery[] = [];
 
   constructor(private prisma: PrismaService) {
@@ -28,7 +31,9 @@ export class SlowQueryLoggingService {
    */
   private setupQueryLogging(): void {
     if (!this.prisma.$on) {
-      this.logger.warn('Prisma query event listener not available, slow query logging disabled');
+      this.logger.warn(
+        'Prisma query event listener not available, slow query logging disabled',
+      );
       return;
     }
 
@@ -50,7 +55,9 @@ export class SlowQueryLoggingService {
           this.slowQueries.shift();
         }
 
-        this.logger.warn(`Slow query detected (${duration}ms): ${this.truncateQuery(event.query)}`);
+        this.logger.warn(
+          `Slow query detected (${duration}ms): ${this.truncateQuery(event.query)}`,
+        );
       }
     });
   }

@@ -79,7 +79,10 @@ export class DatabasePoolingService {
    * Determine whether to use Prisma Accelerate or PgBouncer
    */
   shouldUsePrismaAccelerate(): boolean {
-    return process.env.USE_PRISMA_ACCELERATE === 'true' && !!process.env.PRISMA_ACCELERATE_KEY;
+    return (
+      process.env.USE_PRISMA_ACCELERATE === 'true' &&
+      !!process.env.PRISMA_ACCELERATE_KEY
+    );
   }
 
   /**
@@ -113,16 +116,22 @@ export class DatabasePoolingService {
     this.logger.log(`  Min connections: ${config.min}`);
     this.logger.log(`  Max connections: ${config.max}`);
     this.logger.log(`  Idle timeout: ${config.idleTimeoutMillis}ms`);
-    this.logger.log(`  Connection timeout: ${config.connectionTimeoutMillis}ms`);
+    this.logger.log(
+      `  Connection timeout: ${config.connectionTimeoutMillis}ms`,
+    );
     this.logger.log(`  Max uses per connection: ${config.maxUses}`);
     this.logger.log(`  Reap interval: ${config.reapIntervalMillis}ms`);
 
     if (this.shouldUsePrismaAccelerate()) {
       this.logger.log(`  Using Prisma Accelerate for managed pooling`);
     } else if (process.env.USE_PGBOUNCER === 'true') {
-      this.logger.log(`  Using PgBouncer at ${process.env.PGBOUNCER_HOST}:${process.env.PGBOUNCER_PORT}`);
+      this.logger.log(
+        `  Using PgBouncer at ${process.env.PGBOUNCER_HOST}:${process.env.PGBOUNCER_PORT}`,
+      );
     } else {
-      this.logger.log(`  Using direct PostgreSQL connection with native pooling`);
+      this.logger.log(
+        `  Using direct PostgreSQL connection with native pooling`,
+      );
     }
   }
 
