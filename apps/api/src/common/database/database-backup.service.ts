@@ -181,7 +181,7 @@ export class DatabaseBackupService {
   /**
    * Clean up old backups based on retention policy
    */
-  async cleanupOldBackups(): Promise<{ deleted: number; freedSpace: number }> {
+  cleanupOldBackups(): { deleted: number; freedSpace: number } {
     const retentionMs = this.retentionDays * 24 * 60 * 60 * 1000;
     const now = Date.now();
     let deletedCount = 0;
