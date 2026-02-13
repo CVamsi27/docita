@@ -76,7 +76,8 @@ export class ClinicSettingsService {
     );
 
     // Validate using factory
-    const validatedSettings = this.settingsFactory.partialValidate(cleanSettings);
+    const validatedSettings =
+      this.settingsFactory.partialValidate(cleanSettings);
 
     return this.prisma.clinic.update({
       where: { id },
@@ -110,7 +111,10 @@ export class ClinicSettingsService {
     };
   }
 
-  async updatePrescriptionDefaults(clinicId: string, data: Record<string, unknown>) {
+  async updatePrescriptionDefaults(
+    clinicId: string,
+    data: Record<string, unknown>,
+  ) {
     // First get existing settings to merge
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },

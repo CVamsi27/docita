@@ -48,7 +48,11 @@ export class WhatsappService {
     userId: string,
     dto: SendTemplateDto,
   ) {
-    return this.templateMessageService.handleSendTemplate(clinicId, userId, dto);
+    return this.templateMessageService.handleSendTemplate(
+      clinicId,
+      userId,
+      dto,
+    );
   }
 
   // ==========================================================================
@@ -78,7 +82,10 @@ export class WhatsappService {
   // ==========================================================================
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
-    return this.systemEventsService.sendPrescriptionSystem(prescriptionId, clinicId);
+    return this.systemEventsService.sendPrescriptionSystem(
+      prescriptionId,
+      clinicId,
+    );
   }
 
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {

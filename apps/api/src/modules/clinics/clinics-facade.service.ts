@@ -122,8 +122,14 @@ export class ClinicsService {
     return this.clinicSettingsService.getPrescriptionDefaults(clinicId);
   }
 
-  async updatePrescriptionDefaults(clinicId: string, data: Record<string, unknown>) {
-    return this.clinicSettingsService.updatePrescriptionDefaults(clinicId, data);
+  async updatePrescriptionDefaults(
+    clinicId: string,
+    data: Record<string, unknown>,
+  ) {
+    return this.clinicSettingsService.updatePrescriptionDefaults(
+      clinicId,
+      data,
+    );
   }
 
   // Staff management

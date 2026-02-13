@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ClinicTier, ClinicType, Prisma, SubscriptionStatus } from '@workspace/db';
+import {
+  ClinicTier,
+  ClinicType,
+  Prisma,
+  SubscriptionStatus,
+} from '@workspace/db';
 import { ClinicFactory } from './factories/clinic.factory';
 
 interface CreateClinicData {
@@ -103,7 +108,9 @@ export class ClinicDataService {
       openingTime: settings?.openingTime as string | undefined,
       closingTime: settings?.closingTime as string | undefined,
       workingDays: settings?.workingDays as string[] | undefined,
-      consultationDuration: settings?.consultationDuration as number | undefined,
+      consultationDuration: settings?.consultationDuration as
+        | number
+        | undefined,
     };
   }
 
@@ -166,7 +173,9 @@ export class ClinicDataService {
         openingTime: settings?.openingTime as string | undefined,
         closingTime: settings?.closingTime as string | undefined,
         workingDays: settings?.workingDays as string[] | undefined,
-        consultationDuration: settings?.consultationDuration as number | undefined,
+        consultationDuration: settings?.consultationDuration as
+          | number
+          | undefined,
       };
     });
   }
