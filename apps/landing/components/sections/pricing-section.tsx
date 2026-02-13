@@ -1,87 +1,37 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@workspace/ui/components/button";
-import { CheckCircle2, MessageSquare, Sparkles } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { MessageSquare, Sparkles } from "lucide-react";
+import { PricingTierCard } from "@/components/pricing/pricing-tier-card";
+import { PricingAddon } from "@/components/pricing/pricing-addon";
+import { detectCurrencyFromTimezone, getCurrencyInfo } from "@/components/pricing/pricing-utils";
 import { useTierConfig } from "@/app/hooks/use-tier-config";
 import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
 
-// Currency conversion rates (approximate, for display purposes)
-const CURRENCY_RATES: Record<
-  string,
-  { symbol: string; rate: number; country: string }
-> = {
-  INR: { symbol: "₹", rate: 1, country: "India" },
-  USD: { symbol: "$", rate: 0.012, country: "USA/Canada" },
-  GBP: { symbol: "£", rate: 0.0095, country: "UK" },
-  EUR: { symbol: "€", rate: 0.011, country: "Europe" },
-  AUD: { symbol: "A$", rate: 0.018, country: "Australia" },
-};
-
-// Detect currency from timezone synchronously
-function detectCurrencyFromTimezone(): string {
-  if (typeof window === "undefined") return "USD";
-
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (
-      timezone.includes("Asia/Kolkata") ||
-      timezone.includes("Asia/Calcutta")
-    ) {
-      return "INR";
-    } else if (timezone.includes("Europe")) {
-      return "EUR";
-    } else if (timezone.includes("Australia")) {
-      return "AUD";
-    } else if (
-      timezone.includes("America/New_York") ||
-      timezone.includes("America/Los_Angeles")
-    ) {
-      return "USD";
-    }
-  } catch {
-    // Fallback to USD
-  }
-  return "USD";
-}
-
 export function PricingSection() {
-  // Start with USD on server and client to avoid hydration mismatch
   const [detectedCurrency, setDetectedCurrency] = useState("USD");
   const [isHydrated, setIsHydrated] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
-    "monthly",
+    "monthly"
   );
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
-  // Detect currency after hydration to avoid mismatch
+  // Detect currency after hydration
   useEffect(() => {
     const currency = detectCurrencyFromTimezone();
-    // Use a microtask to defer state updates
     queueMicrotask(() => {
       setDetectedCurrency(currency);
       setIsHydrated(true);
     });
   }, []);
 
-  // Helper to format price from backend config based on billing period
   const formatPrice = (tierKey: string) => {
     const pricing = getPricing(tierKey, detectedCurrency);
     if (!pricing || pricing.isCustom) return "Custom";
     const symbol = getCurrencySymbol(detectedCurrency);
 
     if (billingPeriod === "annual") {
-      // Show monthly equivalent of annual price
       const monthlyEquivalent = Math.round(pricing.yearly / 12);
       return `${symbol}${monthlyEquivalent.toLocaleString()}`;
     }
@@ -101,11 +51,55 @@ export function PricingSection() {
     return pricing.monthly;
   };
 
-  const currencyInfo = CURRENCY_RATES[detectedCurrency] || CURRENCY_RATES.USD;
+  const currencyInfo = getCurrencyInfo(detectedCurrency);
+
+  const captureTierFeatures = [
+    "50 patients",
+    "Basic patient records",
+    "Excel/PDF import",
+    "Manual WhatsApp share",
+  ];
+
+  const coreTierFeatures = [
+    "300 patients included",
+    "500 appointments/mo",
+    "Calendar & scheduling",
+    "Digital prescriptions",
+    "ICD-10 medical coding",
+    "₹2/additional patient",
+  ];
+
+  const plusTierFeatures = [
+    "1,000 patients included",
+    "2,000 appointments/mo",
+    "Everything in Core",
+    "Prescription templates",
+    "2 users included",
+    "₹1.50/additional patient",
+  ];
+
+  const proTierFeatures = [
+    "5,000 patients included",
+    "8,000 appointments/mo",
+    "Everything in Plus",
+    "Up to 5 doctors",
+    "Advanced analytics & API",
+    "₹1/additional patient",
+  ];
+
+  const enterpriseTierFeatures = [
+    "Unlimited patients",
+    "Everything in Pro",
+    "Unlimited doctors",
+    "Multi-branch support",
+    "Custom integrations",
+    "Dedicated support",
+  ];
 
   return (
     <section className="px-6 py-24 relative overflow-hidden" id="pricing">
       <div className="mx-auto max-w-7xl">
+        {/* Pricing Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Simple, Transparent Pricing
@@ -147,321 +141,81 @@ export function PricingSection() {
           </div>
         </div>
 
+        {/* Pricing Tiers Grid */}
         <div className="grid gap-6 lg:grid-cols-5 items-start">
-          {/* CAPTURE Tier (Free) */}
-          <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors">
-            <CardHeader className="pb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-slate-500/10 px-3 py-1 text-xs mb-2 w-fit">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
-                  Tier 0
-                </span>
-              </div>
-              <CardTitle className="text-lg">Capture</CardTitle>
-              <CardDescription className="text-xs">
-                Paper-to-digital bridge
-              </CardDescription>
-              <div className="mt-3">
-                <span className="text-3xl font-bold">
-                  {formatPrice("CAPTURE")}
-                </span>
-                <span className="text-muted-foreground text-sm">/mo</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 pt-0">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>50 patients</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Basic patient records</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Excel/PDF import</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Manual WhatsApp share</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
-                className="w-full"
-              >
-                <Button className="w-full" variant="outline" size="sm">
-                  Start Free Trial
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <PricingTierCard
+            tier="Tier 0"
+            title="Capture"
+            description="Paper-to-digital bridge"
+            price={formatPrice("CAPTURE")}
+            pricePerMonth="/mo"
+            badgeColor="slate"
+            features={captureTierFeatures}
+            buttonText="Start Free Trial"
+          />
 
-          {/* CORE Tier */}
-          <Card className="relative flex flex-col h-full border-primary shadow-lg scale-105 z-10 bg-background">
-            <div className="absolute -top-3 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-              Most Popular
-            </div>
-            <CardHeader className="pb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1 text-xs mb-2 w-fit">
-                <span className="font-medium text-blue-700 dark:text-blue-300">
-                  Tier 1
-                </span>
-              </div>
-              <CardTitle className="text-lg">Core</CardTitle>
-              <CardDescription className="text-xs">
-                Full-function EHR
-              </CardDescription>
-              <div className="mt-3">
-                {billingPeriod === "annual" && getOriginalMonthly("CORE") ? (
-                  <span className="text-sm text-muted-foreground line-through mr-2">
-                    {getCurrencySymbol(detectedCurrency)}
-                    {getOriginalMonthly("CORE")?.toLocaleString()}
-                  </span>
-                ) : null}
-                <span className="text-3xl font-bold">
-                  {formatPrice("CORE")}
-                </span>
-                <span className="text-muted-foreground text-sm">/mo</span>
-                {billingPeriod === "annual" && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Billed {formatYearlyTotal("CORE")}/year
-                  </p>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 pt-0">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>300 patients included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>500 appointments/mo</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Calendar & scheduling</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Digital prescriptions</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>ICD-10 medical coding</span>
-                </li>
-                <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="ml-6">₹2/additional patient</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
-                className="w-full"
-              >
-                <Button className="w-full" size="sm">
-                  Start Free Trial
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <PricingTierCard
+            tier="Tier 1"
+            title="Core"
+            description="Full-function EHR"
+            price={formatPrice("CORE")}
+            pricePerMonth="/mo"
+            billingNote={
+              billingPeriod === "annual"
+                ? `Billed ${formatYearlyTotal("CORE")}/year`
+                : undefined
+            }
+            badgeColor="blue"
+            isPopular
+            features={coreTierFeatures}
+            isPrimary
+            buttonText="Start Free Trial"
+            buttonVariant="default"
+          />
 
-          {/* PLUS Tier */}
-          <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors">
-            <CardHeader className="pb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-green-500/10 px-3 py-1 text-xs mb-2 w-fit">
-                <span className="font-medium text-green-700 dark:text-green-300">
-                  Tier 2
-                </span>
-              </div>
-              <CardTitle className="text-lg">Plus</CardTitle>
-              <CardDescription className="text-xs">
-                Scale & customize
-              </CardDescription>
-              <div className="mt-3">
-                {billingPeriod === "annual" && getOriginalMonthly("PLUS") ? (
-                  <span className="text-sm text-muted-foreground line-through mr-2">
-                    {getCurrencySymbol(detectedCurrency)}
-                    {getOriginalMonthly("PLUS")?.toLocaleString()}
-                  </span>
-                ) : null}
-                <span className="text-3xl font-bold">
-                  {formatPrice("PLUS")}
-                </span>
-                <span className="text-muted-foreground text-sm">/mo</span>
-                {billingPeriod === "annual" && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Billed {formatYearlyTotal("PLUS")}/year
-                  </p>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 pt-0">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>1,000 patients included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>2,000 appointments/mo</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Everything in Core</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Prescription templates</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>2 users included</span>
-                </li>
-                <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="ml-6">₹1.50/additional patient</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
-                className="w-full"
-              >
-                <Button className="w-full" variant="outline" size="sm">
-                  Start Free Trial
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <PricingTierCard
+            tier="Tier 2"
+            title="Plus"
+            description="Scale & customize"
+            price={formatPrice("PLUS")}
+            pricePerMonth="/mo"
+            billingNote={
+              billingPeriod === "annual"
+                ? `Billed ${formatYearlyTotal("PLUS")}/year`
+                : undefined
+            }
+            badgeColor="green"
+            features={plusTierFeatures}
+            buttonText="Start Free Trial"
+          />
 
-          {/* PRO Tier */}
-          <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors">
-            <CardHeader className="pb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-purple-500/10 px-3 py-1 text-xs mb-2 w-fit">
-                <span className="font-medium text-purple-700 dark:text-purple-300">
-                  Tier 3
-                </span>
-              </div>
-              <CardTitle className="text-lg">Pro</CardTitle>
-              <CardDescription className="text-xs">
-                Multi-doctor clinic
-              </CardDescription>
-              <div className="mt-3">
-                {billingPeriod === "annual" && getOriginalMonthly("PRO") ? (
-                  <span className="text-sm text-muted-foreground line-through mr-2">
-                    {getCurrencySymbol(detectedCurrency)}
-                    {getOriginalMonthly("PRO")?.toLocaleString()}
-                  </span>
-                ) : null}
-                <span className="text-3xl font-bold">{formatPrice("PRO")}</span>
-                <span className="text-muted-foreground text-sm">/mo</span>
-                {billingPeriod === "annual" && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Billed {formatYearlyTotal("PRO")}/year
-                  </p>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 pt-0">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>5,000 patients included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>8,000 appointments/mo</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Everything in Plus</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Up to 5 doctors</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Advanced analytics & API</span>
-                </li>
-                <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="ml-6">₹1/additional patient</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
-                className="w-full"
-              >
-                <Button className="w-full" variant="outline" size="sm">
-                  Start Free Trial
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <PricingTierCard
+            tier="Tier 3"
+            title="Pro"
+            description="Multi-doctor clinic"
+            price={formatPrice("PRO")}
+            pricePerMonth="/mo"
+            billingNote={
+              billingPeriod === "annual"
+                ? `Billed ${formatYearlyTotal("PRO")}/year`
+                : undefined
+            }
+            badgeColor="purple"
+            features={proTierFeatures}
+            buttonText="Start Free Trial"
+          />
 
-          {/* ENTERPRISE Tier */}
-          <Card className="relative flex flex-col h-full border-muted hover:border-primary/50 transition-colors bg-linear-to-b from-background to-muted/30">
-            <CardHeader className="pb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1 text-xs mb-2 w-fit">
-                <span className="font-medium text-amber-700 dark:text-amber-300">
-                  Tier 4
-                </span>
-              </div>
-              <CardTitle className="text-lg">Enterprise</CardTitle>
-              <CardDescription className="text-xs">
-                Hospital & chains
-              </CardDescription>
-              <div className="mt-3">
-                <span className="text-3xl font-bold">Custom</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 pt-0">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Unlimited patients</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Everything in Pro</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Unlimited doctors</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Multi-branch support</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Custom integrations</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Dedicated support</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowContactSalesModal(true)}
-              >
-                Contact Sales
-              </Button>
-            </CardFooter>
-          </Card>
+          <PricingTierCard
+            tier="Tier 4"
+            title="Enterprise"
+            description="Hospital & chains"
+            price="Custom"
+            badgeColor="amber"
+            features={enterpriseTierFeatures}
+            isEnterprise
+            buttonText="Contact Sales"
+            onContactSales={() => setShowContactSalesModal(true)}
+          />
         </div>
 
         {/* Add-ons Section */}
@@ -474,104 +228,41 @@ export function PricingSection() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {/* WhatsApp Add-on */}
-            <Card className="relative overflow-hidden border-2 border-dashed border-green-500/30 bg-linear-to-br from-green-500/5 via-background to-emerald-500/5">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-green-500/10 to-transparent" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="rounded-xl bg-linear-to-br from-green-500 to-emerald-600 p-3">
-                    <MessageSquare className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">
-                      WhatsApp Integration
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      Automated patient communication
-                    </CardDescription>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <span className="text-2xl font-bold">+₹499</span>
-                  <span className="text-muted-foreground text-sm">/mo</span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    (from Core tier)
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid gap-2 mt-2">
-                  {[
-                    "500+ messages included",
-                    "Appointment reminders",
-                    "Prescription sharing",
-                    "Two-way messaging",
-                    "₹0.50/extra message",
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <MessageSquare className="h-3 w-3 text-green-500 shrink-0" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <PricingAddon
+              icon={<MessageSquare className="h-6 w-6" />}
+              title="WhatsApp Integration"
+              description="Automated patient communication"
+              price="+₹499"
+              priceNote="(from Core tier)"
+              features={[
+                { label: "500+ messages included", icon: <MessageSquare className="h-3 w-3" /> },
+                { label: "Appointment reminders", icon: <MessageSquare className="h-3 w-3" /> },
+                { label: "Prescription sharing", icon: <MessageSquare className="h-3 w-3" /> },
+                { label: "Two-way messaging", icon: <MessageSquare className="h-3 w-3" /> },
+                { label: "₹0.50/extra message", icon: <MessageSquare className="h-3 w-3" /> },
+              ]}
+              iconBgColor="green"
+            />
 
-            {/* Intelligence Add-on */}
-            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 via-background to-purple-500/5">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-primary/10 to-transparent" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="rounded-xl bg-linear-to-br from-primary to-purple-600 p-3">
-                    <Sparkles className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">
-                      Docita Intelligence
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      AI-powered clinical assistant
-                    </CardDescription>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  {billingPeriod === "annual" &&
-                  getOriginalMonthly("INTELLIGENCE") ? (
-                    <span className="text-sm text-muted-foreground line-through mr-2">
-                      +{getCurrencySymbol(detectedCurrency)}
-                      {getOriginalMonthly("INTELLIGENCE")?.toLocaleString()}
-                    </span>
-                  ) : null}
-                  <span className="text-2xl font-bold">
-                    +{formatPrice("INTELLIGENCE")}
-                  </span>
-                  <span className="text-muted-foreground text-sm">/mo</span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    (from Core tier)
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid gap-2 mt-2">
-                  {[
-                    "500+ AI credits included",
-                    "AI-assisted clinical notes",
-                    "Smart prescriptions",
-                    "Voice-to-text dictation",
-                    "Predictive analytics",
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <Sparkles className="h-3 w-3 text-primary shrink-0" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <PricingAddon
+              icon={<Sparkles className="h-6 w-6" />}
+              title="Docita Intelligence"
+              description="AI-powered clinical assistant"
+              price={`+${formatPrice("INTELLIGENCE")}`}
+              priceNote="(from Core tier)"
+              features={[
+                { label: "500+ AI credits included", icon: <Sparkles className="h-3 w-3" /> },
+                { label: "AI-assisted clinical notes", icon: <Sparkles className="h-3 w-3" /> },
+                { label: "Smart prescriptions", icon: <Sparkles className="h-3 w-3" /> },
+                { label: "Voice-to-text dictation", icon: <Sparkles className="h-3 w-3" /> },
+                { label: "Predictive analytics", icon: <Sparkles className="h-3 w-3" /> },
+              ]}
+              iconBgColor="primary"
+            />
           </div>
         </div>
 
-        {/* Pricing Note */}
+        {/* Pricing Notes */}
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>All plans include a 14-day free trial. No credit card required.</p>
           <p>
@@ -584,6 +275,7 @@ export function PricingSection() {
           </p>
         </div>
       </div>
+
       <ContactSalesModal
         open={showContactSalesModal}
         onOpenChange={setShowContactSalesModal}
