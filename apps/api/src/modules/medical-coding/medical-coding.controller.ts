@@ -51,7 +51,10 @@ export class MedicalCodingController {
 
   @Post('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addFavorite(@Request() req: RequestWithUser, @Body() dto: AddFavoriteDto) {
+  async addFavorite(
+    @Request() req: RequestWithUser,
+    @Body() dto: AddFavoriteDto,
+  ) {
     return this.medicalCodingService.addFavorite(req.user.id, dto.icdCodeId);
   }
 
@@ -72,7 +75,10 @@ export class MedicalCodingController {
 
   @Post('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addCptFavorite(@Request() req: RequestWithUser, @Body() dto: AddCptFavoriteDto) {
+  async addCptFavorite(
+    @Request() req: RequestWithUser,
+    @Body() dto: AddCptFavoriteDto,
+  ) {
     return this.medicalCodingService.addCptFavorite(req.user.id, dto.cptCodeId);
   }
 

@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Razorpay Webhook DTO
  * Validation for: POST /webhooks/razorpay
- * 
+ *
  * BEFORE: Just `@Body() payload: any`
  * AFTER:  @Body() payload: RazorpayWebhookDto with @UsePipes(ZodValidationPipe)
  */
@@ -123,19 +123,30 @@ export type ImportResultDto = z.infer<typeof ImportResultSchema>;
  * Validation for: POST /imports/bulk
  */
 export const BulkImportRequestSchema = z.object({
-  entityType: z.enum(['PATIENT', 'PRESCRIPTION', 'DOCTOR', 'LAB_TEST', 'INVENTORY']),
-  fileName: z.string().min(1, 'File name required').regex(/\.(csv|xlsx|json)$/, 'Invalid file format'),
-  fileBuffer: z.instanceof(Buffer).refine(
-    (buf) => buf.length > 0 && buf.length <= 52428800,
-    'File size must be between 1 byte and 50MB'
-  ),
+  entityType: z.enum([
+    'PATIENT',
+    'PRESCRIPTION',
+    'DOCTOR',
+    'LAB_TEST',
+    'INVENTORY',
+  ]),
+  fileName: z
+    .string()
+    .min(1, 'File name required')
+    .regex(/\.(csv|xlsx|json)$/, 'Invalid file format'),
+  fileBuffer: z
+    .instanceof(Buffer)
+    .refine(
+      (buf) => buf.length > 0 && buf.length <= 52428800,
+      'File size must be between 1 byte and 50MB',
+    ),
 });
 
 export type BulkImportRequestDto = z.infer<typeof BulkImportRequestSchema>;
 
 /**
  * CREATE THESE ADDITIONAL DTOs (similar pattern):
- * 
+ *
  * - CreateAppointmentDto
  * - CreateConsultationDto
  * - CreatePrescriptionDto
@@ -147,7 +158,7 @@ export type BulkImportRequestDto = z.infer<typeof BulkImportRequestSchema>;
  * - CreateAuditLogDto
  * - WebhookConfigDto
  * - And 10+ more as identified in checklist
- * 
+ *
  * Pattern is same for all:
  * 1. Define Zod schema
  * 2. Export type using z.infer

@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   CallHandler,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -17,6 +18,8 @@ import * as crypto from 'crypto';
  */
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(CacheInterceptor.name);
+
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   async intercept(
@@ -45,14 +48,14 @@ export class CacheInterceptor implements NestInterceptor {
         const cachedResponse = await this.cacheManager.get(key);
         if (cachedResponse) {
           // If hit, apply headers and return cached data
-          console.log(`[CACHE] HIT: key=${key}`);
+          this.logger.debug(`[CACHE] HIT: key=${key}`);
           const duration = cacheMetadata || 300;
           this.applyCacheHeaders(response, duration, cachedResponse, request);
           return of(cachedResponse);
         }
       } catch (error) {
         // Fail silently on cache error and proceed to handler
-        console.warn(
+        this.logger.warn(
           `Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
       }
@@ -60,13 +63,13 @@ export class CacheInterceptor implements NestInterceptor {
       // 2. Proceed to handler and cache result
       return next.handle().pipe(
         map((data) => {
-          console.log(`[CACHE] MISS: key=${key}`);
+          this.logger.debug(`[CACHE] MISS: key=${key}`);
           const duration = cacheMetadata || 300;
           this.applyCacheHeaders(response, duration, data, request);
 
           // We don't await this assignment to avoid blocking response
           this.cacheManager.set(key, data, duration * 1000).catch((err) => {
-            console.warn(`Cache set error: ${err.message}`);
+            this.logger.warn(`Cache set error: ${err.message}`);
           });
 
           return data;

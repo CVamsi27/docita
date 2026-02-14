@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
         const redisUrl = configService.get<string>('REDIS_URL');
 
         if (!redisUrl) {
-          console.log('No REDIS_URL found, using in-memory cache');
+          console.warn('No REDIS_URL found, using in-memory cache');
           return {
             isGlobal: true,
             ttl: 300000, // 5 minutes default TTL
@@ -21,7 +21,7 @@ import { ConfigService } from '@nestjs/config';
         try {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           const redisStore = require('cache-manager-redis-store');
-          console.log(`Initializing Redis cache at ${redisUrl}`);
+          console.warn(`Initializing Redis cache at ${redisUrl}`);
           return {
             store: redisStore,
             url: redisUrl,

@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 /**
  * Centralized error handling service
@@ -13,12 +18,9 @@ export class ErrorHandlingService {
    * Handle payment processing errors
    * CRITICAL: Payment failures must NEVER be silently caught
    */
-  handlePaymentError(
-    error: unknown,
-    context: Record<string, unknown>,
-  ): never {
+  handlePaymentError(error: unknown, context: Record<string, unknown>): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error('Payment processing failed', {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
@@ -34,12 +36,9 @@ export class ErrorHandlingService {
    * Handle data import errors
    * CRITICAL: Import failures must be logged with full context
    */
-  handleImportError(
-    error: unknown,
-    context: Record<string, unknown>,
-  ): never {
+  handleImportError(error: unknown, context: Record<string, unknown>): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error('Data import failed', {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
@@ -61,7 +60,7 @@ export class ErrorHandlingService {
     payload: unknown,
   ): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error(`${webhookType} webhook processing failed`, {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
@@ -84,7 +83,7 @@ export class ErrorHandlingService {
     context: Record<string, unknown>,
   ): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error('Database operation failed', {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
@@ -110,7 +109,7 @@ export class ErrorHandlingService {
     endpoint: string,
   ): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error(`${serviceName} service error`, {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
@@ -132,7 +131,7 @@ export class ErrorHandlingService {
     context?: Record<string, unknown>,
   ): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     this.logger.error(`${source}: ${errorMessage}`, {
       stack: error instanceof Error ? error.stack : undefined,
       context,
@@ -148,7 +147,7 @@ export class ErrorHandlingService {
     }
 
     const stringPayload = JSON.stringify(payload);
-    
+
     // Remove common sensitive fields
     return stringPayload
       .replace(/"password":\s*"[^"]*"/g, '"password":"***"')

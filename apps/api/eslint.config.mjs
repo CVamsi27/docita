@@ -34,6 +34,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      // Prevent console usage - use Logger service instead (CQ-2)
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       // Warn about direct process.env access - migrate to ConfigService gradually
       // NOTE: This is a deprecation warning for the transition period.
       // Once all services use ConfigService, this can be changed to 'error'.
@@ -43,11 +45,12 @@ export default tseslint.config(
       }],
     },
   },
-  // Exception: Allow process.env in main.ts, config files, seed files, and test files
+  // Exception: Allow console in main.ts, config files, seed files, and test files
   {
     files: ['src/main.ts', 'src/**/config.ts', 'src/**/*.config.ts', 'src/seed*.ts', 'test/**/*.ts', '**/*.spec.ts', '**/*.test.ts'],
     rules: {
       'no-restricted-globals': 'off',
+      'no-console': 'off',
     },
   },
   {

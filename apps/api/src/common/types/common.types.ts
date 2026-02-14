@@ -1,4 +1,7 @@
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from 'express';
 import { User, UserRole } from '@prisma/client';
 
 /**

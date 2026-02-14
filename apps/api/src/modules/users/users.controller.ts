@@ -8,7 +8,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateProfileDto, UserResponseDto, UpdateProfileSchema } from './dto/users.dto';
+import {
+  UpdateProfileDto,
+  UserResponseDto,
+  UpdateProfileSchema,
+} from './dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
