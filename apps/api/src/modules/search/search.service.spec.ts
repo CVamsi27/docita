@@ -43,8 +43,8 @@ describe('SearchService', () => {
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    cacheService = module.get(RedisCachingService) as jest.Mocked<RedisCachingService>;
+    prisma = module.get(PrismaService);
+    cacheService = module.get(RedisCachingService);
   });
 
   afterEach(() => {
@@ -94,7 +94,7 @@ describe('SearchService', () => {
       cacheService.get.mockResolvedValue(null);
       mockPrismaQueryRaw
         .mockResolvedValueOnce([]) // patient search
-        .mockResolvedValueOnce([]) // appointment search
+        .mockResolvedValueOnce([]); // appointment search
       prisma.prescription.findMany.mockResolvedValue([]);
 
       await service.search({
@@ -144,7 +144,7 @@ describe('SearchService', () => {
             rank: 0.9,
           },
         ])
-        .mockResolvedValueOnce([]) // appointments
+        .mockResolvedValueOnce([]); // appointments
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({

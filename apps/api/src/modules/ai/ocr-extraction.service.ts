@@ -47,7 +47,10 @@ export class OcrExtractionService {
         suggestedCorrections,
       };
     } catch (error) {
-      this.logger.error(`OCR extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `OCR extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
   }

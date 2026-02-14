@@ -46,7 +46,9 @@ export class CursorPaginationService {
       const json = Buffer.from(cursor, 'base64').toString('utf8');
       return JSON.parse(json);
     } catch (error) {
-      this.logger.warn(`Invalid cursor: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Invalid cursor: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return null;
     }
   }

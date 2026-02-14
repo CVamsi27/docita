@@ -26,7 +26,7 @@ describe('ReminderSettingsService', () => {
     }).compile();
 
     service = module.get<ReminderSettingsService>(ReminderSettingsService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
+    prisma = module.get(PrismaService);
   });
 
   describe('getSettings', () => {
@@ -208,12 +208,12 @@ describe('ReminderSettingsService', () => {
     it('should throw error if update fails', async () => {
       prisma.reminderSettings.findFirst.mockResolvedValue({ id: 'settings-1' });
       prisma.reminderSettings.update.mockRejectedValue(
-        new Error('Database error')
+        new Error('Database error'),
       );
 
-      await expect(
-        service.updateSettings({ enabled: false })
-      ).rejects.toThrow('Database error');
+      await expect(service.updateSettings({ enabled: false })).rejects.toThrow(
+        'Database error',
+      );
     });
 
     it('should handle partial updates', async () => {

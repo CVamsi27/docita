@@ -31,10 +31,13 @@ export class DatabaseBackupService {
       configService.get<string>('BACKUP_RETENTION_DAYS') || '30',
       10,
     );
-    this.databasePassword = configService.get<string>('DATABASE_PASSWORD') || '';
-    this.databaseHost = configService.get<string>('DATABASE_HOST') || 'localhost';
+    this.databasePassword =
+      configService.get<string>('DATABASE_PASSWORD') || '';
+    this.databaseHost =
+      configService.get<string>('DATABASE_HOST') || 'localhost';
     this.databasePort = configService.get<string>('DATABASE_PORT') || '5432';
-    this.databaseUser = configService.get<string>('DATABASE_USER') || 'postgres';
+    this.databaseUser =
+      configService.get<string>('DATABASE_USER') || 'postgres';
     this.databaseName = configService.get<string>('DATABASE_NAME') || 'docita';
 
     this.ensureBackupDirectory();
@@ -63,7 +66,9 @@ export class DatabaseBackupService {
         this.backupDir = fallback;
         this.logger.log(`Using fallback backup directory: ${this.backupDir}`);
       } catch (fallbackErr: any) {
-        this.logger.error(`Failed to create fallback backup directory: ${fallbackErr?.message}`);
+        this.logger.error(
+          `Failed to create fallback backup directory: ${fallbackErr?.message}`,
+        );
         // Do not throw — allow application to start; operations will fail later with clearer errors
       }
     }

@@ -95,13 +95,9 @@ describe('ReminderHistoryService', () => {
     }).compile();
 
     service = module.get<ReminderHistoryService>(ReminderHistoryService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    settingsService = module.get(
-      ReminderSettingsService
-    ) as jest.Mocked<ReminderSettingsService>;
-    notificationService = module.get(
-      ReminderNotificationService
-    ) as jest.Mocked<ReminderNotificationService>;
+    prisma = module.get(PrismaService);
+    settingsService = module.get(ReminderSettingsService);
+    notificationService = module.get(ReminderNotificationService);
   });
 
   describe('getReminderHistory', () => {
@@ -143,7 +139,7 @@ describe('ReminderHistoryService', () => {
       expect(prisma.appointmentReminder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 50,
-        })
+        }),
       );
     });
 
@@ -155,7 +151,7 @@ describe('ReminderHistoryService', () => {
       expect(prisma.appointmentReminder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 100,
-        })
+        }),
       );
     });
 
@@ -167,7 +163,7 @@ describe('ReminderHistoryService', () => {
       expect(prisma.appointmentReminder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           orderBy: { createdAt: 'desc' },
-        })
+        }),
       );
     });
 
@@ -219,7 +215,7 @@ describe('ReminderHistoryService', () => {
       prisma.appointment.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.sendManualReminder('invalid-id', 'email')
+        service.sendManualReminder('invalid-id', 'email'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -308,11 +304,11 @@ describe('ReminderHistoryService', () => {
       prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
       settingsService.getSettings.mockResolvedValue(mockSettings);
       notificationService.sendEmailReminder.mockRejectedValue(
-        new Error('Email send failed')
+        new Error('Email send failed'),
       );
 
       await expect(
-        service.sendManualReminder('appt-1', 'email')
+        service.sendManualReminder('appt-1', 'email'),
       ).rejects.toThrow('Email send failed');
     });
 
@@ -320,23 +316,23 @@ describe('ReminderHistoryService', () => {
       prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
       settingsService.getSettings.mockResolvedValue(mockSettings);
       notificationService.sendSmsReminder.mockRejectedValue(
-        new Error('SMS send failed')
+        new Error('SMS send failed'),
       );
 
-      await expect(
-        service.sendManualReminder('appt-1', 'sms')
-      ).rejects.toThrow('SMS send failed');
+      await expect(service.sendManualReminder('appt-1', 'sms')).rejects.toThrow(
+        'SMS send failed',
+      );
     });
 
     it('should handle WhatsApp sending failure', async () => {
       prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
       settingsService.getSettings.mockResolvedValue(mockSettings);
       notificationService.sendWhatsappReminder.mockRejectedValue(
-        new Error('WhatsApp send failed')
+        new Error('WhatsApp send failed'),
       );
 
       await expect(
-        service.sendManualReminder('appt-1', 'whatsapp')
+        service.sendManualReminder('appt-1', 'whatsapp'),
       ).rejects.toThrow('WhatsApp send failed');
     });
   });
@@ -347,7 +343,7 @@ describe('ReminderHistoryService', () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
 
       await expect(
-        service.sendManualReminder('appt-1', 'email')
+        service.sendManualReminder('appt-1', 'email'),
       ).resolves.not.toThrow();
     });
 
@@ -369,7 +365,11 @@ describe('ReminderHistoryService', () => {
       prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
       settingsService.getSettings.mockResolvedValue(mockSettings);
 
-      const types: Array<'email' | 'sms' | 'whatsapp'> = ['email', 'sms', 'whatsapp'];
+      const types: Array<'email' | 'sms' | 'whatsapp'> = [
+        'email',
+        'sms',
+        'whatsapp',
+      ];
 
       for (const type of types) {
         await service.sendManualReminder('appt-1', type);
@@ -393,7 +393,7 @@ describe('ReminderHistoryService', () => {
             firstName: 'John',
           }),
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -403,28 +403,28 @@ describe('ReminderHistoryService', () => {
       prisma.appointment.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.sendManualReminder('non-existent', 'email')
+        service.sendManualReminder('non-existent', 'email'),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should propagate database errors from appointment lookup', async () => {
       prisma.appointment.findUnique.mockRejectedValue(
-        new Error('Database connection error')
+        new Error('Database connection error'),
       );
 
       await expect(
-        service.sendManualReminder('appt-1', 'email')
+        service.sendManualReminder('appt-1', 'email'),
       ).rejects.toThrow('Database connection error');
     });
 
     it('should propagate settings retrieval errors', async () => {
       prisma.appointment.findUnique.mockResolvedValue(mockAppointment);
       settingsService.getSettings.mockRejectedValue(
-        new Error('Settings error')
+        new Error('Settings error'),
       );
 
       await expect(
-        service.sendManualReminder('appt-1', 'email')
+        service.sendManualReminder('appt-1', 'email'),
       ).rejects.toThrow('Settings error');
     });
   });

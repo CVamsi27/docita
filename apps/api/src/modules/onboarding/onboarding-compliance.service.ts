@@ -147,7 +147,9 @@ export class OnboardingComplianceService {
         true,
       );
     } catch (error) {
-      this.logger.error(`Failed to log audit action: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to log audit action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 }

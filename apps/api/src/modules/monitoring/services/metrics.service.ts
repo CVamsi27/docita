@@ -118,7 +118,9 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to record cache metric: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to record cache metric: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -144,7 +146,9 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to record database metric: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to record database metric: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -168,7 +172,9 @@ export class MetricsService {
         take: 1000,
       });
     } catch (error) {
-      this.logger.error(`Failed to retrieve system metrics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to retrieve system metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return [];
     }
   }

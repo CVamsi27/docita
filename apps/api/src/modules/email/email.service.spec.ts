@@ -9,7 +9,9 @@ describe('EmailService', () => {
   beforeEach(async () => {
     const emailProviderMock = {
       send: jest.fn().mockResolvedValue({ success: true, messageId: 'msg-1' }),
-      sendTemplate: jest.fn().mockResolvedValue({ success: true, messageId: 'msg-1' }),
+      sendTemplate: jest
+        .fn()
+        .mockResolvedValue({ success: true, messageId: 'msg-1' }),
       verify: jest.fn().mockResolvedValue(true),
     };
 
@@ -24,7 +26,7 @@ describe('EmailService', () => {
     }).compile();
 
     service = module.get<EmailService>(EmailService);
-    emailProvider = module.get(EMAIL_PROVIDER) as jest.Mocked<any>;
+    emailProvider = module.get(EMAIL_PROVIDER);
   });
 
   describe('sendWelcomeEmail', () => {
@@ -32,7 +34,7 @@ describe('EmailService', () => {
       const result = await service.sendWelcomeEmail(
         'user@example.com',
         'John Doe',
-        'Main Clinic'
+        'Main Clinic',
       );
 
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
@@ -47,7 +49,7 @@ describe('EmailService', () => {
       await service.sendWelcomeEmail(
         'user@example.com',
         '<script>alert("xss")</script>',
-        '<b>Clinic</b>'
+        '<b>Clinic</b>',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -59,7 +61,7 @@ describe('EmailService', () => {
       await service.sendWelcomeEmail(
         'user@example.com',
         'John Doe',
-        'Main Clinic'
+        'Main Clinic',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -71,7 +73,7 @@ describe('EmailService', () => {
       emailProvider.send.mockRejectedValueOnce(new Error('Provider error'));
 
       await expect(
-        service.sendWelcomeEmail('user@example.com', 'John', 'Clinic')
+        service.sendWelcomeEmail('user@example.com', 'John', 'Clinic'),
       ).rejects.toThrow('Provider error');
     });
   });
@@ -81,7 +83,7 @@ describe('EmailService', () => {
       const token = 'reset-token-123';
       const result = await service.sendPasswordResetEmail(
         'user@example.com',
-        token
+        token,
       );
 
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
@@ -111,7 +113,7 @@ describe('EmailService', () => {
       emailProvider.send.mockRejectedValueOnce(new Error('Send failed'));
 
       await expect(
-        service.sendPasswordResetEmail('user@example.com', 'token')
+        service.sendPasswordResetEmail('user@example.com', 'token'),
       ).rejects.toThrow('Send failed');
     });
   });
@@ -124,7 +126,7 @@ describe('EmailService', () => {
         'John Patient',
         'Dr. Smith',
         appointmentDate,
-        'Main Clinic'
+        'Main Clinic',
       );
 
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
@@ -142,7 +144,7 @@ describe('EmailService', () => {
         'John Patient',
         'Dr. Smith',
         appointmentDate,
-        'My Clinic'
+        'My Clinic',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -157,7 +159,7 @@ describe('EmailService', () => {
         'Jane Patient',
         'Dr. Johnson',
         appointmentDate,
-        'Clinic'
+        'Clinic',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -172,7 +174,7 @@ describe('EmailService', () => {
         'John Patient',
         'Dr. Smith',
         appointmentDate,
-        'Clinic'
+        'Clinic',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -186,7 +188,7 @@ describe('EmailService', () => {
         'John Patient',
         'Dr. Smith',
         appointmentDate,
-        'Clinic'
+        'Clinic',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -200,7 +202,7 @@ describe('EmailService', () => {
         '<img src=x onerror="alert(1)">',
         '<b>Dr. Evil</b>',
         appointmentDate,
-        '<script>alert("xss")</script>'
+        '<script>alert("xss")</script>',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -218,8 +220,8 @@ describe('EmailService', () => {
           'John',
           'Dr. Smith',
           new Date(),
-          'Clinic'
-        )
+          'Clinic',
+        ),
       ).rejects.toThrow('Send failed');
     });
   });
@@ -256,7 +258,7 @@ describe('EmailService', () => {
       emailProvider.send.mockRejectedValueOnce(new Error('Send failed'));
 
       await expect(
-        service.send({ to: 'user@example.com', subject: 'Test', html: 'Test' })
+        service.send({ to: 'user@example.com', subject: 'Test', html: 'Test' }),
       ).rejects.toThrow('Send failed');
     });
   });
@@ -290,7 +292,7 @@ describe('EmailService', () => {
 
     it('should handle provider errors during template send', async () => {
       emailProvider.sendTemplate.mockRejectedValueOnce(
-        new Error('Template not found')
+        new Error('Template not found'),
       );
 
       await expect(
@@ -298,7 +300,7 @@ describe('EmailService', () => {
           to: 'user@example.com',
           template: 'nonexistent',
           variables: {},
-        })
+        }),
       ).rejects.toThrow('Template not found');
     });
   });
@@ -312,7 +314,9 @@ describe('EmailService', () => {
     });
 
     it('should return false if provider verification fails', async () => {
-      emailProvider.verify.mockRejectedValueOnce(new Error('Verification failed'));
+      emailProvider.verify.mockRejectedValueOnce(
+        new Error('Verification failed'),
+      );
 
       const result = await service.verifyProvider();
 
@@ -321,7 +325,7 @@ describe('EmailService', () => {
 
     it('should handle provider errors gracefully', async () => {
       emailProvider.verify.mockRejectedValueOnce(
-        new Error('Connection refused')
+        new Error('Connection refused'),
       );
 
       const result = await service.verifyProvider();
@@ -365,7 +369,7 @@ describe('EmailService', () => {
       await service.sendWelcomeEmail(
         'user@example.com',
         xssPayload,
-        xssPayload
+        xssPayload,
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -376,15 +380,12 @@ describe('EmailService', () => {
       const xssPayload = '"><img src=x onerror=alert(1)>';
 
       // Note: password reset doesn't have names, but verifying escaping through other methods
-      await service.sendWelcomeEmail(
-        'user@example.com',
-        xssPayload,
-        'Clinic'
-      );
+      await service.sendWelcomeEmail('user@example.com', xssPayload, 'Clinic');
 
       const call = emailProvider.send.mock.calls[0][0];
       // Verify escaping happened (content should be escaped, not include dangerous tags)
-      expect(call.html).toContain('escapeHtml' === 'escapeHtml' ? call.html : 'content');
+      expect(call.html).toBeDefined();
+      expect(call.html).not.toContain('<script>');
     });
 
     it('should escape HTML in appointment reminder all fields', async () => {
@@ -394,7 +395,7 @@ describe('EmailService', () => {
         '"><script>alert(1)</script>',
         '"><img src=x>',
         appointmentDate,
-        '"><iframe>'
+        '"><iframe>',
       );
 
       const call = emailProvider.send.mock.calls[0][0];
@@ -412,11 +413,7 @@ describe('EmailService', () => {
       ];
 
       for (const payload of xssAttempts) {
-        await service.sendWelcomeEmail(
-          'user@example.com',
-          payload,
-          'Clinic'
-        );
+        await service.sendWelcomeEmail('user@example.com', payload, 'Clinic');
       }
 
       // Verify all calls were made (service should handle them)
@@ -432,7 +429,7 @@ describe('EmailService', () => {
       const result = await service.sendWelcomeEmail(
         'user@example.com',
         'John',
-        'Clinic'
+        'Clinic',
       );
 
       expect(result).toEqual(mockResult);

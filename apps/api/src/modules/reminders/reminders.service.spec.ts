@@ -35,8 +35,8 @@ describe('RemindersService (Facade)', () => {
     }).compile();
 
     service = module.get<RemindersService>(RemindersService);
-    settingsService = module.get(ReminderSettingsService) as jest.Mocked<ReminderSettingsService>;
-    historyService = module.get(ReminderHistoryService) as jest.Mocked<ReminderHistoryService>;
+    settingsService = module.get(ReminderSettingsService);
+    historyService = module.get(ReminderHistoryService);
   });
 
   describe('getSettings', () => {
@@ -58,7 +58,9 @@ describe('RemindersService (Facade)', () => {
     });
 
     it('should throw error if settings service fails', async () => {
-      settingsService.getSettings.mockRejectedValue(new Error('Database error'));
+      settingsService.getSettings.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       await expect(service.getSettings()).rejects.toThrow('Database error');
     });
@@ -86,11 +88,11 @@ describe('RemindersService (Facade)', () => {
 
     it('should handle validation errors from settings service', async () => {
       settingsService.updateSettings.mockRejectedValue(
-        new Error('Invalid reminder timing')
+        new Error('Invalid reminder timing'),
       );
 
       await expect(
-        service.updateSettings({ reminderTiming: [-1, 0] })
+        service.updateSettings({ reminderTiming: [-1, 0] }),
       ).rejects.toThrow('Invalid reminder timing');
     });
   });
@@ -104,17 +106,20 @@ describe('RemindersService (Facade)', () => {
 
       await service.sendManualReminder(appointmentId, reminderType as any);
 
-      expect(historyService.sendManualReminder).toHaveBeenCalledWith(appointmentId, reminderType);
+      expect(historyService.sendManualReminder).toHaveBeenCalledWith(
+        appointmentId,
+        reminderType,
+      );
     });
 
     it('should throw error if appointment not found', async () => {
       historyService.sendManualReminder.mockRejectedValue(
-        new Error('Appointment not found')
+        new Error('Appointment not found'),
       );
 
-      await expect(service.sendManualReminder('invalid-id', 'email' as any)).rejects.toThrow(
-        'Appointment not found'
-      );
+      await expect(
+        service.sendManualReminder('invalid-id', 'email' as any),
+      ).rejects.toThrow('Appointment not found');
     });
 
     it('should support email reminder type', async () => {
@@ -122,7 +127,10 @@ describe('RemindersService (Facade)', () => {
 
       await service.sendManualReminder('appt-1', 'email' as any);
 
-      expect(historyService.sendManualReminder).toHaveBeenCalledWith('appt-1', 'email');
+      expect(historyService.sendManualReminder).toHaveBeenCalledWith(
+        'appt-1',
+        'email',
+      );
     });
 
     it('should support SMS reminder type', async () => {
@@ -130,7 +138,10 @@ describe('RemindersService (Facade)', () => {
 
       await service.sendManualReminder('appt-1', 'sms' as any);
 
-      expect(historyService.sendManualReminder).toHaveBeenCalledWith('appt-1', 'sms');
+      expect(historyService.sendManualReminder).toHaveBeenCalledWith(
+        'appt-1',
+        'sms',
+      );
     });
 
     it('should support WhatsApp reminder type', async () => {
@@ -138,7 +149,10 @@ describe('RemindersService (Facade)', () => {
 
       await service.sendManualReminder('appt-1', 'whatsapp' as any);
 
-      expect(historyService.sendManualReminder).toHaveBeenCalledWith('appt-1', 'whatsapp');
+      expect(historyService.sendManualReminder).toHaveBeenCalledWith(
+        'appt-1',
+        'whatsapp',
+      );
     });
   });
 
@@ -167,7 +181,10 @@ describe('RemindersService (Facade)', () => {
       const result = await service.getReminderHistory(clinicId);
 
       expect(result).toEqual(mockHistory);
-      expect(historyService.getReminderHistory).toHaveBeenCalledWith(clinicId, undefined);
+      expect(historyService.getReminderHistory).toHaveBeenCalledWith(
+        clinicId,
+        undefined,
+      );
     });
 
     it('should pass limit parameter to history service', async () => {
@@ -175,7 +192,10 @@ describe('RemindersService (Facade)', () => {
 
       await service.getReminderHistory('clinic-1', 100);
 
-      expect(historyService.getReminderHistory).toHaveBeenCalledWith('clinic-1', 100);
+      expect(historyService.getReminderHistory).toHaveBeenCalledWith(
+        'clinic-1',
+        100,
+      );
     });
 
     it('should return empty array if no history exists', async () => {
@@ -191,8 +211,8 @@ describe('RemindersService (Facade)', () => {
     it('should maintain single responsibility (delegation only)', () => {
       // Verify that RemindersService is a facade that only delegates
       const serviceMethods = Object.getOwnPropertyNames(
-        Object.getPrototypeOf(service)
-      ).filter(m => m !== 'constructor');
+        Object.getPrototypeOf(service),
+      ).filter((m) => m !== 'constructor');
 
       // All methods should be delegating to specialized services
       expect(serviceMethods.length).toBeGreaterThan(0);

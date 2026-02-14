@@ -250,7 +250,10 @@ export class OnboardingService {
         user: authCredentials.user,
       };
     } catch (error) {
-      this.logger.error(`Onboarding failed: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Onboarding failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
 
       // Log failure event
       if (clinicId && userId) {

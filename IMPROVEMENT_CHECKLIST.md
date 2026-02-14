@@ -1021,7 +1021,7 @@ Modules with ZERO .spec.ts files:
 - [x] `reminders/` (5 services — highest risk) ✅ 108 tests (facade, settings, scheduler, notification, history)
 - [x] `email/` (1 service — sends PHI in emails) ✅ 35 tests (all methods + security)
 - [x] `medical-coding/` (1 service — ICD/CPT code search) ✅ 30 tests (search, favorites, uncoded visits)
-- [ ] `search/` (1 service — full-text search)
+- [x] `search/` (1 service — full-text search) ✅ 22 tests (unified search, caching, fallback)
 - [ ] `templates/` (1 service — clinical templates)
 - [ ] `contact/` (1 service)
 - [ ] `custom-fields/` (1 service)
@@ -1038,7 +1038,7 @@ Additionally, under-tested modules (service:test ratio):
 - [ ] `subscription/` — 10 services, 2 test files
 - [ ] `imports/` — 10 services, 2 test files
 
-**Status:** 🟡 IN PROGRESS (23% - 3/13 modules complete: reminders [108], email [35], medical-coding [30])
+**Status:** 🟡 IN PROGRESS (31% - 4/13 modules complete: reminders [108], email [35], medical-coding [30], search [22])
 
 ---
 

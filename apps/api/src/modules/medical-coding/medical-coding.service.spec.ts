@@ -60,7 +60,7 @@ describe('MedicalCodingService', () => {
     }).compile();
 
     service = module.get<MedicalCodingService>(MedicalCodingService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
+    prisma = module.get(PrismaService);
   });
 
   describe('searchIcdCodes', () => {
@@ -109,10 +109,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -134,10 +131,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -155,10 +149,7 @@ describe('MedicalCodingService', () => {
           ],
         },
         take: 20,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -174,11 +165,8 @@ describe('MedicalCodingService', () => {
       expect(result).toEqual(codes);
       expect(prisma.icdCode.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: [
-            { isCommon: 'desc' },
-            { code: 'asc' },
-          ],
-        })
+          orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+        }),
       );
     });
 
@@ -195,10 +183,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
   });
@@ -247,10 +232,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -269,10 +251,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -290,10 +269,7 @@ describe('MedicalCodingService', () => {
           ],
         },
         take: 20,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
 
@@ -310,10 +286,7 @@ describe('MedicalCodingService', () => {
           },
         },
         take: 50,
-        orderBy: [
-          { isCommon: 'desc' },
-          { code: 'asc' },
-        ],
+        orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       });
     });
   });
@@ -562,7 +535,7 @@ describe('MedicalCodingService', () => {
       expect(prisma.appointment.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 50,
-        })
+        }),
       );
     });
 
@@ -576,7 +549,7 @@ describe('MedicalCodingService', () => {
           where: expect.objectContaining({
             status: AppointmentStatus.COMPLETED,
           }),
-        })
+        }),
       );
     });
 
@@ -590,7 +563,7 @@ describe('MedicalCodingService', () => {
           where: expect.objectContaining({
             diagnoses: { none: {} },
           }),
-        })
+        }),
       );
     });
   });

@@ -69,8 +69,7 @@ export class PrismaService
 
     super({
       adapter,
-      log:
-        nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
+      log: nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
     });
 
     // Initialize read replica if URL is provided
@@ -106,10 +105,7 @@ export class PrismaService
 
       const rawReadClient = new PrismaClient({
         adapter: readAdapter,
-        log:
-          nodeEnv === 'development'
-            ? ['warn', 'error']
-            : ['error'],
+        log: nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
       });
 
       // Apply extensions to read replica

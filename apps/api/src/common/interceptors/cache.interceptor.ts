@@ -52,7 +52,9 @@ export class CacheInterceptor implements NestInterceptor {
         }
       } catch (error) {
         // Fail silently on cache error and proceed to handler
-        console.warn(`Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.warn(
+          `Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
       }
 
       // 2. Proceed to handler and cache result

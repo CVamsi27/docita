@@ -64,7 +64,9 @@ export class RedisCachingService implements OnModuleInit {
 
       return JSON.parse(value) as T;
     } catch (error) {
-      this.logger.warn(`Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       return null;
     }
   }
@@ -87,7 +89,9 @@ export class RedisCachingService implements OnModuleInit {
         }
       }
     } catch (error) {
-      this.logger.warn(`Cache set error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Cache set error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -100,7 +104,9 @@ export class RedisCachingService implements OnModuleInit {
     try {
       await this.client.del(key);
     } catch (error) {
-      this.logger.warn(`Cache delete error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Cache delete error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -118,7 +124,9 @@ export class RedisCachingService implements OnModuleInit {
       }
       await this.client.del(`tag:${tag}`);
     } catch (error) {
-      this.logger.warn(`Cache tag invalidation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Cache tag invalidation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -132,7 +140,9 @@ export class RedisCachingService implements OnModuleInit {
       await this.client.flushAll();
       this.logger.log('Cache cleared');
     } catch (error) {
-      this.logger.warn(`Cache clear error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Cache clear error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

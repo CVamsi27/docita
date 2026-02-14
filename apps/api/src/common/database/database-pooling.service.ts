@@ -26,7 +26,8 @@ export class DatabasePoolingService {
    * Get optimal pool configuration based on environment and node count
    */
   getOptimalPoolConfig(nodeCount: number = 1): PoolConfig {
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
     const cpuCount = parseInt(
       this.configService.get<string>('CPU_COUNT') || '4',
       10,
@@ -134,16 +135,12 @@ export class DatabasePoolingService {
 
     if (this.shouldUsePrismaAccelerate()) {
       this.logger.log(`  Using Prisma Accelerate for managed pooling`);
-    } else if (
-      this.configService.get<string>('USE_PGBOUNCER') === 'true'
-    ) {
+    } else if (this.configService.get<string>('USE_PGBOUNCER') === 'true') {
       const pgBouncerHost =
         this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
       const pgBouncerPort =
         this.configService.get<string>('PGBOUNCER_PORT') || '6432';
-      this.logger.log(
-        `  Using PgBouncer at ${pgBouncerHost}:${pgBouncerPort}`,
-      );
+      this.logger.log(`  Using PgBouncer at ${pgBouncerHost}:${pgBouncerPort}`);
     } else {
       this.logger.log(
         `  Using direct PostgreSQL connection with native pooling`,

@@ -34,9 +34,11 @@ describe('ReminderNotificationService', () => {
 
   const mockSettings = {
     enabled: true,
-    emailTemplate: 'Dear {patientName}, you have an appointment on {appointmentDate}',
+    emailTemplate:
+      'Dear {patientName}, you have an appointment on {appointmentDate}',
     emailSubject: 'Appointment Reminder - {clinicName}',
-    smsTemplate: 'Reminder: appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}',
+    smsTemplate:
+      'Reminder: appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}',
     emailEnabled: true,
     smsEnabled: true,
     whatsappEnabled: true,
@@ -79,10 +81,12 @@ describe('ReminderNotificationService', () => {
       ],
     }).compile();
 
-    service = module.get<ReminderNotificationService>(ReminderNotificationService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    whatsappClient = module.get(WhatsappClientService) as jest.Mocked<WhatsappClientService>;
-    templatesService = module.get(TemplatesService) as jest.Mocked<TemplatesService>;
+    service = module.get<ReminderNotificationService>(
+      ReminderNotificationService,
+    );
+    prisma = module.get(PrismaService);
+    whatsappClient = module.get(WhatsappClientService);
+    templatesService = module.get(TemplatesService);
   });
 
   describe('sendEmailReminder', () => {
@@ -102,7 +106,8 @@ describe('ReminderNotificationService', () => {
     it('should replace placeholders in email template', async () => {
       const customSettings = {
         ...mockSettings,
-        emailTemplate: 'Hello {patientName}, your appointment with {doctorName} is on {appointmentDate}',
+        emailTemplate:
+          'Hello {patientName}, your appointment with {doctorName} is on {appointmentDate}',
       };
 
       await service.sendEmailReminder(mockAppointment, customSettings);
@@ -136,10 +141,10 @@ describe('ReminderNotificationService', () => {
 
       // First call succeeds (for template processing), second fails (simulating send), third succeeds (for error logging)
       const testSettings = { ...mockSettings, emailTemplate: 'Test' };
-      
+
       // Mock to simulate failure
       (prisma.appointmentReminder.create as jest.Mock).mockRejectedValueOnce(
-        new Error('Database error')
+        new Error('Database error'),
       );
 
       await service.sendEmailReminder(mockAppointment, testSettings);
@@ -154,7 +159,10 @@ describe('ReminderNotificationService', () => {
         emailSubject: null,
       };
 
-      await service.sendEmailReminder(mockAppointment, settingsWithoutSubject as any);
+      await service.sendEmailReminder(
+        mockAppointment,
+        settingsWithoutSubject as any,
+      );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -177,7 +185,8 @@ describe('ReminderNotificationService', () => {
     it('should replace placeholders in SMS template', async () => {
       const customSettings = {
         ...mockSettings,
-        smsTemplate: '{patientName}, appointment with {doctorName} on {appointmentDate}',
+        smsTemplate:
+          '{patientName}, appointment with {doctorName} on {appointmentDate}',
       };
 
       await service.sendSmsReminder(mockAppointment, customSettings);
@@ -220,12 +229,14 @@ describe('ReminderNotificationService', () => {
     it('should send WhatsApp reminder with correct template', async () => {
       const resolvedTemplate = { message: 'Your appointment is confirmed' };
       templatesService.resolveTemplate.mockResolvedValue(resolvedTemplate);
-      templatesService.getMessageForMode.mockReturnValue('Your appointment is confirmed');
+      templatesService.getMessageForMode.mockReturnValue(
+        'Your appointment is confirmed',
+      );
 
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(templatesService.resolveTemplate).toHaveBeenCalledWith(
@@ -235,7 +246,7 @@ describe('ReminderNotificationService', () => {
           doctorName: 'Dr. Smith',
           appointmentType: 'consultation',
         }),
-        'clinic-1'
+        'clinic-1',
       );
     });
 
@@ -247,7 +258,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(whatsappClient.sendMessage).toHaveBeenCalledWith({
@@ -264,7 +275,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(prisma.whatsappLog.create).toHaveBeenCalledWith({
@@ -288,7 +299,7 @@ describe('ReminderNotificationService', () => {
         mockAppointment,
         mockSettings,
         'appointment_reminder_24hr',
-        'whatsapp_24hr'
+        'whatsapp_24hr',
       );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
@@ -309,7 +320,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
@@ -325,7 +336,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'invalid_template'
+        'invalid_template',
       );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
@@ -345,7 +356,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
@@ -364,7 +375,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         mockAppointment,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(templatesService.resolveTemplate).toHaveBeenCalledWith(
@@ -372,7 +383,7 @@ describe('ReminderNotificationService', () => {
         expect.objectContaining({
           clinicName: 'Main Clinic',
         }),
-        'clinic-1'
+        'clinic-1',
       );
     });
 
@@ -389,7 +400,7 @@ describe('ReminderNotificationService', () => {
       await service.sendWhatsappReminder(
         appointmentNoClinic,
         mockSettings,
-        'appointment_reminder_24hr'
+        'appointment_reminder_24hr',
       );
 
       expect(templatesService.resolveTemplate).toHaveBeenCalledWith(
@@ -397,7 +408,7 @@ describe('ReminderNotificationService', () => {
         expect.objectContaining({
           clinicName: 'Docita',
         }),
-        ''
+        '',
       );
     });
   });
@@ -446,7 +457,8 @@ describe('ReminderNotificationService', () => {
     });
 
     it('should handle multiple placeholder replacements', () => {
-      const template = '{patientName}, your {appointmentType} with {doctorName} is on {appointmentDate} at {appointmentTime}';
+      const template =
+        '{patientName}, your {appointmentType} with {doctorName} is on {appointmentDate} at {appointmentTime}';
       const result = service.replacePlaceholders(template, mockAppointment);
 
       expect(result).toContain('John Doe');
@@ -458,7 +470,11 @@ describe('ReminderNotificationService', () => {
 
     it('should handle timezone parameter', () => {
       const template = 'on {appointmentDate}';
-      const result = service.replacePlaceholders(template, mockAppointment, 'America/New_York');
+      const result = service.replacePlaceholders(
+        template,
+        mockAppointment,
+        'America/New_York',
+      );
 
       expect(result).not.toContain('{appointmentDate}');
     });
@@ -488,7 +504,8 @@ describe('ReminderNotificationService', () => {
 
       await service.sendEmailReminder(mockAppointment, mockSettings);
 
-      const firstCall = (prisma.appointmentReminder.create as jest.Mock).mock.calls[0][0];
+      const firstCall = (prisma.appointmentReminder.create as jest.Mock).mock
+        .calls[0][0];
       expect(firstCall.data.appointmentId).toBe(originalId);
     });
   });

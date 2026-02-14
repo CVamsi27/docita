@@ -116,8 +116,9 @@ export class SecretsManagerService {
       );
       return this.configService.get<string>(secretName);
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed to fetch secret from AWS Secrets Manager: ${error}`,
+        `Failed to fetch secret from AWS Secrets Manager: ${errorMsg}`,
       );
       // Fallback to environment variables
       return this.configService.get<string>(secretName);
@@ -139,8 +140,9 @@ export class SecretsManagerService {
       );
       return this.configService.get<string>(secretName);
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed to fetch secret from HashiCorp Vault: ${error}`,
+        `Failed to fetch secret from HashiCorp Vault: ${errorMsg}`,
       );
       // Fallback to environment variables
       return this.configService.get<string>(secretName);

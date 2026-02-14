@@ -81,13 +81,9 @@ describe('ReminderSchedulerService', () => {
     }).compile();
 
     service = module.get<ReminderSchedulerService>(ReminderSchedulerService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    settingsService = module.get(
-      ReminderSettingsService
-    ) as jest.Mocked<ReminderSettingsService>;
-    notificationService = module.get(
-      ReminderNotificationService
-    ) as jest.Mocked<ReminderNotificationService>;
+    prisma = module.get(PrismaService);
+    settingsService = module.get(ReminderSettingsService);
+    notificationService = module.get(ReminderNotificationService);
   });
 
   describe('checkAndSendReminders', () => {
@@ -218,10 +214,7 @@ describe('ReminderSchedulerService', () => {
     it('should handle multiple appointments', async () => {
       const appt2 = { ...mockAppointment, id: 'appt-2' };
       settingsService.getSettings.mockResolvedValue(mockSettings);
-      prisma.appointment.findMany.mockResolvedValue([
-        mockAppointment,
-        appt2,
-      ]);
+      prisma.appointment.findMany.mockResolvedValue([mockAppointment, appt2]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
 
       await service.checkAndSendReminders();
@@ -238,9 +231,7 @@ describe('ReminderSchedulerService', () => {
       const call = prisma.appointment.findMany.mock.calls[0][0];
       expect(call?.where?.startTime).toHaveProperty('gte');
       expect(call?.where?.startTime).toHaveProperty('lte');
-      expect(call?.where?.status?.in).toContain(
-        AppointmentStatus.SCHEDULED
-      );
+      expect(call?.where?.status?.in).toContain(AppointmentStatus.SCHEDULED);
     });
 
     it('should include correct appointment details in query', async () => {
@@ -356,22 +347,22 @@ describe('ReminderSchedulerService', () => {
   });
 
   describe('Cron Job Configuration', () => {
-    it('should have cron decorator on checkAndSendReminders', async () => {
+    it('should have cron decorator on checkAndSendReminders', () => {
       const method = Object.getOwnPropertyDescriptor(
         ReminderSchedulerService.prototype,
-        'checkAndSendReminders'
+        'checkAndSendReminders',
       );
-      
+
       // Verify method exists (cron decorator adds metadata)
       expect(method).toBeDefined();
     });
 
-    it('should have cron decorator on checkAndSend30MinReminders', async () => {
+    it('should have cron decorator on checkAndSend30MinReminders', () => {
       const method = Object.getOwnPropertyDescriptor(
         ReminderSchedulerService.prototype,
-        'checkAndSend30MinReminders'
+        'checkAndSend30MinReminders',
       );
-      
+
       // Verify method exists (cron decorator adds metadata)
       expect(method).toBeDefined();
     });
@@ -400,11 +391,11 @@ describe('ReminderSchedulerService', () => {
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
       settingsService.getSettings.mockRejectedValue(
-        new Error('Database error')
+        new Error('Database error'),
       );
 
       await expect(service.checkAndSendReminders()).rejects.toThrow(
-        'Database error'
+        'Database error',
       );
     });
 
@@ -413,11 +404,11 @@ describe('ReminderSchedulerService', () => {
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
       notificationService.sendEmailReminder.mockRejectedValue(
-        new Error('Notification error')
+        new Error('Notification error'),
       );
 
       await expect(service.checkAndSendReminders()).rejects.toThrow(
-        'Notification error'
+        'Notification error',
       );
     });
   });

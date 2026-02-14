@@ -187,7 +187,9 @@ export class EncryptionService {
     for (const field of sensitiveFields) {
       const value = patient[field as keyof T];
       if (value) {
-        (encryptedPatient as Record<string, any>)[field] = this.encrypt(value as string);
+        (encryptedPatient as Record<string, any>)[field] = this.encrypt(
+          value as string,
+        );
       }
     }
 
@@ -215,7 +217,9 @@ export class EncryptionService {
     for (const field of sensitiveFields) {
       const value = patient[field as keyof T];
       if (value) {
-        (decryptedPatient as Record<string, any>)[field] = this.decrypt(value as string);
+        (decryptedPatient as Record<string, any>)[field] = this.decrypt(
+          value as string,
+        );
       }
     }
 

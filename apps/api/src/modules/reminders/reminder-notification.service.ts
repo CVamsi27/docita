@@ -78,7 +78,9 @@ export class ReminderNotificationService {
 
       this.logger.log(`Email reminder sent for appointment ${appointment.id}`);
     } catch (error) {
-      this.logger.error(`Failed to send email reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to send email reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       await this.prisma.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
@@ -117,7 +119,9 @@ export class ReminderNotificationService {
 
       this.logger.log(`SMS reminder sent for appointment ${appointment.id}`);
     } catch (error) {
-      this.logger.error(`Failed to send SMS reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to send SMS reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       await this.prisma.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,
@@ -203,7 +207,9 @@ export class ReminderNotificationService {
         `[WhatsApp] ${reminderType} reminder sent for appointment ${appointment.id}`,
       );
     } catch (error) {
-      this.logger.error(`Failed to send WhatsApp reminder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to send WhatsApp reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       await this.prisma.appointmentReminder.create({
         data: {
           appointmentId: appointment.id,

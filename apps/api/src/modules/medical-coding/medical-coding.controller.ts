@@ -55,7 +55,10 @@ export class MedicalCodingController {
   }
 
   @Delete('favorites/:icdCodeId')
-  async removeFavorite(@Request() req: any, @Param('icdCodeId') icdCodeId: string) {
+  async removeFavorite(
+    @Request() req: any,
+    @Param('icdCodeId') icdCodeId: string,
+  ) {
     return this.medicalCodingService.removeFavorite(req.user.id, icdCodeId);
   }
 
@@ -82,7 +85,10 @@ export class MedicalCodingController {
 
   @Get('uncoded')
   @ZodSerializerDto(UncodedVisitListResponseDto)
-  async getUncodedVisits(@Request() req: any, @Query('search') search?: string) {
+  async getUncodedVisits(
+    @Request() req: any,
+    @Query('search') search?: string,
+  ) {
     return this.medicalCodingService.getUncodedVisits(
       req.user.clinicId,
       search,
