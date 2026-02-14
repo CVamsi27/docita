@@ -170,7 +170,7 @@ test.describe("Landing Page - Critical Flows", () => {
     for (const pagePath of pages) {
       const startTime = Date.now();
 
-      const response = await page.goto(`${LANDING_URL}${pagePath}`, {
+      await page.goto(`${LANDING_URL}${pagePath}`, {
         waitUntil: "networkidle2",
       });
 
@@ -286,7 +286,6 @@ test.describe("Landing Page - Critical Flows", () => {
      */
 
     const requests: string[] = [];
-    const responses: Record<string, string> = {};
 
     page.on("request", (request) => {
       const url = request.url();
@@ -316,8 +315,7 @@ test.describe("Landing Page - Critical Flows", () => {
 
     console.log(`✅ No exposed API keys found`);
 
-    // Check for CSP headers
-    const headers = await page.context().tracing ?? {};
+    // Security validation completed
     console.log(`✅ Security validation completed`);
 
     console.log(`✅ LANDING FLOW 7 COMPLETE: Security verified`);

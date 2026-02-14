@@ -16,23 +16,6 @@ import {
   RazorpayWebhookDto,
 } from '../common/dto/common.dto';
 
-interface RazorpayPaymentLinkEntity {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  short_url: string;
-}
-
-interface RazorpayWebhookPayload {
-  event: string;
-  payload: {
-    payment_link: {
-      entity: RazorpayPaymentLinkEntity;
-    };
-  };
-}
-
 @Controller('webhooks/payments')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
@@ -52,7 +35,7 @@ export class WebhooksController {
     @Headers('user-agent') userAgent: string | undefined,
     @Body() payload: RazorpayWebhookDto,
   ) {
-    const paymentLinkId = payload.payload.payment_link?.entity?.id || 'unknown';
+    const paymentLinkId = 'razorpay_webhook';
 
     try {
       // Process webhook - already has internal error handling

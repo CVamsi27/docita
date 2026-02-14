@@ -49,8 +49,15 @@ interface RazorpayPaymentLinkEntity {
 interface RazorpayWebhookPayload {
   event: string;
   payload: {
-    payment_link: {
+    payment_link?: {
       entity: RazorpayPaymentLinkEntity;
+    };
+    payment?: {
+      id: string;
+      entity: string;
+      amount: number;
+      currency: string;
+      status: string;
     };
   };
 }
@@ -296,7 +303,12 @@ export class PaymentsService {
     }
 
     const event = payload.event;
-    const paymentLinkData = payload.payload.payment_link.entity;
+    const paymentLinkData = payload.payload.payment_link?.entity;
+
+    if (!paymentLinkData) {
+      this.logger.warn(`Webhook ${event} does not contain payment_link data`);
+      return { status: 'ok', message: 'No payment_link data in webhook' };
+    }
 
     this.logger.log(`Received Razorpay webhook: ${event}`);
 

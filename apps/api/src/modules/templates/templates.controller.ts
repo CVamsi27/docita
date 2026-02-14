@@ -20,28 +20,6 @@ import {
   UpdateTemplateDto,
 } from './dto/templates.dto';
 
-interface TemplateField {
-  id: string;
-  label: string;
-  type: string;
-  options?: string[];
-}
-
-interface CreateTemplateDto {
-  name: string;
-  speciality: string;
-  fields: TemplateField[];
-  defaultObservations?: string;
-  clinicId?: string;
-}
-
-interface UpdateTemplateDto {
-  name?: string;
-  speciality?: string;
-  fields?: TemplateField[];
-  defaultObservations?: string;
-}
-
 @Controller('templates')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class TemplatesController {

@@ -8,6 +8,15 @@ import {
   WebVitalSchema,
 } from '@workspace/types';
 
+// Re-export schemas for use in controllers
+export {
+  SystemHealthSchema,
+  RequestStatsSchema,
+  ErrorStatsSchema,
+  PerformanceMetricsSchema,
+  WebVitalSchema,
+};
+
 export class WebVitalDto extends createZodDto(WebVitalSchema) {}
 
 export class SystemHealthResponseDto extends createZodDto(SystemHealthSchema) {}
@@ -23,7 +32,7 @@ export class WebVitalListResponseDto extends createZodDto(
 // For aggregated performance which might be custom:
 export const AggregatedPerformanceSchema = z.object({
   period: z.string(),
-  data: z.array(z.any()), // Placeholder
+  data: z.array(z.record(z.unknown())), // Generic data structure
 });
 export class AggregatedPerformanceResponseDto extends createZodDto(
   AggregatedPerformanceSchema,

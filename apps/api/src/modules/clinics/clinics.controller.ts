@@ -204,7 +204,7 @@ export class ClinicSettingsController {
   @Put('prescription-defaults')
   async updatePrescriptionDefaults(
     @Request() req: AuthRequest,
-    @Body() dto: any, // Use proper DTO
+    @Body() dto: Record<string, unknown>,
   ) {
     const clinicId = req.user?.clinicId;
     if (!clinicId) {

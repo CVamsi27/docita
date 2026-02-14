@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { injectAxe, getViolations } from 'axe-playwright';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'fs';
 
 // Configuration for pages to audit
 const AUDIT_PAGES = [
@@ -12,7 +12,12 @@ const AUDIT_PAGES = [
 ];
 
 test.describe('Accessibility Audit - Admin App', () => {
-  let violationsByPage: Record<string, any> = {};
+  const violationsByPage: Record<string, {
+    pageName: string;
+    violationCount: number;
+    violations: unknown[];
+    summary: { critical: number; serious: number; moderate: number; minor: number };
+  }> = {};
 
   for (const pageConfig of AUDIT_PAGES) {
     test(`should audit ${pageConfig.name} page for accessibility violations`, async ({
@@ -40,10 +45,10 @@ test.describe('Accessibility Audit - Admin App', () => {
           violationCount: violations.length,
           violations: violations,
           summary: {
-            critical: violations.filter((v: any) => v.impact === 'critical').length,
-            serious: violations.filter((v: any) => v.impact === 'serious').length,
-            moderate: violations.filter((v: any) => v.impact === 'moderate').length,
-            minor: violations.filter((v: any) => v.impact === 'minor').length,
+            critical: violations.filter((v: { impact: string }) => v.impact === 'critical').length,
+            serious: violations.filter((v: { impact: string }) => v.impact === 'serious').length,
+            moderate: violations.filter((v: { impact: string }) => v.impact === 'moderate').length,
+            minor: violations.filter((v: { impact: string }) => v.impact === 'minor').length,
           },
         };
 
@@ -74,7 +79,7 @@ test.describe('Accessibility Audit - Admin App', () => {
     let totalCritical = 0;
     let totalSerious = 0;
 
-    for (const violations of Object.values(violationsByPage) as any[]) {
+    for (const violations of Object.values(violationsByPage)) {
       totalViolations += violations.violationCount;
       totalCritical += violations.summary.critical;
       totalSerious += violations.summary.serious;

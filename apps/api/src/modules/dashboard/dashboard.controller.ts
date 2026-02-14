@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardStatsResponseDto } from './dto/dashboard.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -11,9 +11,16 @@ import { RequestWithUser } from '../../common/types/common.types';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  private getClinicId(req: RequestWithUser): string {
+    if (!req.user?.clinicId) {
+      throw new UnauthorizedException('User clinic not found');
+    }
+    return req.user.clinicId;
+  }
+
   @Get('stats')
   @ZodSerializerDto(DashboardStatsResponseDto)
   async getStats(@Request() req: RequestWithUser) {
-    return this.dashboardService.getStats(req.user.clinicId);
+    return this.dashboardService.getStats(this.getClinicId(req));
   }
 }

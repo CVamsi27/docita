@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { MedicalCodingService } from './medical-coding.service';
 import { Role } from '@workspace/db';
@@ -31,6 +32,20 @@ import { RequestWithUser } from '../../common/types/common.types';
 export class MedicalCodingController {
   constructor(private readonly medicalCodingService: MedicalCodingService) {}
 
+  private getUserId(req: RequestWithUser): string {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    return req.user.id;
+  }
+
+  private getClinicId(req: RequestWithUser): string {
+    if (!req.user?.clinicId) {
+      throw new UnauthorizedException('User clinic not found');
+    }
+    return req.user.clinicId;
+  }
+
   @Get('icd-codes')
   @ZodSerializerDto(IcdCodeListResponseDto)
   async searchIcdCodes(@Query('search') search: string) {
@@ -46,7 +61,7 @@ export class MedicalCodingController {
   @Get('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
   async getFavorites(@Request() req: RequestWithUser) {
-    return this.medicalCodingService.getFavorites(req.user.id);
+    return this.medicalCodingService.getFavorites(this.getUserId(req));
   }
 
   @Post('favorites')
@@ -55,7 +70,7 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Body() dto: AddFavoriteDto,
   ) {
-    return this.medicalCodingService.addFavorite(req.user.id, dto.icdCodeId);
+    return this.medicalCodingService.addFavorite(this.getUserId(req), dto.icdCodeId);
   }
 
   @Delete('favorites/:icdCodeId')
@@ -63,14 +78,14 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('icdCodeId') icdCodeId: string,
   ) {
-    return this.medicalCodingService.removeFavorite(req.user.id, icdCodeId);
+    return this.medicalCodingService.removeFavorite(this.getUserId(req), icdCodeId);
   }
 
   // CPT Favorites
   @Get('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
   async getCptFavorites(@Request() req: RequestWithUser) {
-    return this.medicalCodingService.getCptFavorites(req.user.id);
+    return this.medicalCodingService.getCptFavorites(this.getUserId(req));
   }
 
   @Post('cpt-favorites')
@@ -79,7 +94,7 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Body() dto: AddCptFavoriteDto,
   ) {
-    return this.medicalCodingService.addCptFavorite(req.user.id, dto.cptCodeId);
+    return this.medicalCodingService.addCptFavorite(this.getUserId(req), dto.cptCodeId);
   }
 
   @Delete('cpt-favorites/:cptCodeId')
@@ -87,7 +102,7 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('cptCodeId') cptCodeId: string,
   ) {
-    return this.medicalCodingService.removeCptFavorite(req.user.id, cptCodeId);
+    return this.medicalCodingService.removeCptFavorite(this.getUserId(req), cptCodeId);
   }
 
   @Get('uncoded')
@@ -97,7 +112,7 @@ export class MedicalCodingController {
     @Query('search') search?: string,
   ) {
     return this.medicalCodingService.getUncodedVisits(
-      req.user.clinicId,
+      this.getClinicId(req),
       search,
     );
   }

@@ -2,7 +2,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from 'express';
-import { User, UserRole } from '@prisma/client';
+import { User, Role } from '@workspace/db';
 
 /**
  * Extended Express Request with authenticated user and clinic context
@@ -59,7 +59,7 @@ export interface PaginatedResponse<T> {
  */
 export interface AuthContext {
   userId: string;
-  userRole: UserRole;
+  userRole: Role;
   clinicIds: string[];
   permissions: string[];
 }
