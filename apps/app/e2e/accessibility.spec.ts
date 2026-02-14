@@ -14,12 +14,12 @@ const AUDIT_PAGES = [
 test.describe('Accessibility Audit - Main App', () => {
   let violationsByPage: Record<string, any> = {};
 
-  for (const page of AUDIT_PAGES) {
-    test(`should audit ${page.name} page for accessibility violations`, async ({
+  for (const pageConfig of AUDIT_PAGES) {
+    test(`should audit ${pageConfig.name} page for accessibility violations`, async ({
       page,
     }) => {
       // Navigate to page
-      await page.goto(page.path, { waitUntil: 'networkidle' });
+      await page.goto(pageConfig.path, { waitUntil: 'networkidle' });
       
       // Wait for content to load
       await page.waitForLoadState('domcontentloaded');
@@ -31,8 +31,8 @@ test.describe('Accessibility Audit - Main App', () => {
       try {
         const violations = await getViolations(page);
         
-        violationsByPage[page.path] = {
-          pageName: page.name,
+        violationsByPage[pageConfig.path] = {
+          pageName: pageConfig.name,
           violationCount: violations.length,
           violations: violations,
           summary: {
@@ -44,16 +44,16 @@ test.describe('Accessibility Audit - Main App', () => {
         };
 
         // Log violations for this page
-        console.log(`\n📄 ${page.name} (${page.path})`);
+        console.log(`\n📄 ${pageConfig.name} (${pageConfig.path})`);
         console.log(`   Total violations: ${violations.length}`);
         console.log(
-          `   Critical: ${violationsByPage[page.path].summary.critical}, Serious: ${violationsByPage[page.path].summary.serious}`
+          `   Critical: ${violationsByPage[pageConfig.path].summary.critical}, Serious: ${violationsByPage[pageConfig.path].summary.serious}`
         );
 
         // Don't fail on accessibility issues in audit mode
         // We're just collecting data
       } catch (error) {
-        console.error(`Error auditing ${page.name}:`, error);
+        console.error(`Error auditing ${pageConfig.name}:`, error);
       }
     });
   }

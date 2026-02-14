@@ -14,13 +14,13 @@ const AUDIT_PAGES = [
 test.describe('Accessibility Audit - Admin App', () => {
   let violationsByPage: Record<string, any> = {};
 
-  for (const page of AUDIT_PAGES) {
-    test(`should audit ${page.name} page for accessibility violations`, async ({
+  for (const pageConfig of AUDIT_PAGES) {
+    test(`should audit ${pageConfig.name} page for accessibility violations`, async ({
       page,
     }) => {
       try {
         // Navigate to page
-        await page.goto(page.path, { waitUntil: 'networkidle', timeout: 30000 });
+        await page.goto(pageConfig.path, { waitUntil: 'networkidle', timeout: 30000 });
         
         // Wait for content to load
         await page.waitForLoadState('domcontentloaded');
@@ -31,8 +31,8 @@ test.describe('Accessibility Audit - Admin App', () => {
         // Get violations
         const violations = await getViolations(page);
         
-        violationsByPage[page.path] = {
-          pageName: page.name,
+        violationsByPage[pageConfig.path] = {
+          pageName: pageConfig.name,
           violationCount: violations.length,
           violations: violations,
           summary: {
@@ -44,13 +44,13 @@ test.describe('Accessibility Audit - Admin App', () => {
         };
 
         // Log violations for this page
-        console.log(`\n📄 ${page.name} (${page.path})`);
+        console.log(`\n📄 ${pageConfig.name} (${pageConfig.path})`);
         console.log(`   Total violations: ${violations.length}`);
         console.log(
-          `   Critical: ${violationsByPage[page.path].summary.critical}, Serious: ${violationsByPage[page.path].summary.serious}`
+          `   Critical: ${violationsByPage[pageConfig.path].summary.critical}, Serious: ${violationsByPage[pageConfig.path].summary.serious}`
         );
       } catch (error) {
-        console.error(`Error auditing ${page.name}:`, error);
+        console.error(`Error auditing ${pageConfig.name}:`, error);
       }
     });
   }
