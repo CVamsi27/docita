@@ -23,6 +23,7 @@ import {
   UncodedVisitListResponseDto,
 } from './dto/medical-coding.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { RequestWithUser } from '../../common/types/common.types';
 
 @Controller('medical-coding')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
@@ -44,19 +45,19 @@ export class MedicalCodingController {
 
   @Get('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
-  async getFavorites(@Request() req: any) {
+  async getFavorites(@Request() req: RequestWithUser) {
     return this.medicalCodingService.getFavorites(req.user.id);
   }
 
   @Post('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addFavorite(@Request() req: any, @Body() dto: AddFavoriteDto) {
+  async addFavorite(@Request() req: RequestWithUser, @Body() dto: AddFavoriteDto) {
     return this.medicalCodingService.addFavorite(req.user.id, dto.icdCodeId);
   }
 
   @Delete('favorites/:icdCodeId')
   async removeFavorite(
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Param('icdCodeId') icdCodeId: string,
   ) {
     return this.medicalCodingService.removeFavorite(req.user.id, icdCodeId);
@@ -65,19 +66,19 @@ export class MedicalCodingController {
   // CPT Favorites
   @Get('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
-  async getCptFavorites(@Request() req: any) {
+  async getCptFavorites(@Request() req: RequestWithUser) {
     return this.medicalCodingService.getCptFavorites(req.user.id);
   }
 
   @Post('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addCptFavorite(@Request() req: any, @Body() dto: AddCptFavoriteDto) {
+  async addCptFavorite(@Request() req: RequestWithUser, @Body() dto: AddCptFavoriteDto) {
     return this.medicalCodingService.addCptFavorite(req.user.id, dto.cptCodeId);
   }
 
   @Delete('cpt-favorites/:cptCodeId')
   async removeCptFavorite(
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Param('cptCodeId') cptCodeId: string,
   ) {
     return this.medicalCodingService.removeCptFavorite(req.user.id, cptCodeId);
@@ -86,7 +87,7 @@ export class MedicalCodingController {
   @Get('uncoded')
   @ZodSerializerDto(UncodedVisitListResponseDto)
   async getUncodedVisits(
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Query('search') search?: string,
   ) {
     return this.medicalCodingService.getUncodedVisits(

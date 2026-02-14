@@ -21,6 +21,7 @@ import { Public } from './public.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '../../common/guards/ip-rate-limit.guard';
+import { RequestWithUser } from '../../common/types/common.types';
 import {
   LoginDto,
   RegisterDto,
@@ -220,7 +221,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   async refresh(
     @Body() dto: RefreshTokenDto,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
     // Try DTO first, then cookie
@@ -245,7 +246,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   async logoutUser(
     @Body() dto: LogoutRequestDto,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = dto.refresh_token || req.cookies?.refresh_token;

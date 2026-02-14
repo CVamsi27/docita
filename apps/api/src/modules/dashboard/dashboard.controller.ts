@@ -4,6 +4,7 @@ import { DashboardStatsResponseDto } from './dto/dashboard.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
+import { RequestWithUser } from '../../common/types/common.types';
 
 @Controller('dashboard')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -12,7 +13,7 @@ export class DashboardController {
 
   @Get('stats')
   @ZodSerializerDto(DashboardStatsResponseDto)
-  async getStats(@Request() req: any) {
+  async getStats(@Request() req: RequestWithUser) {
     return this.dashboardService.getStats(req.user.clinicId);
   }
 }

@@ -13,6 +13,7 @@ import { MedicalHistoryService } from './medical-history.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { AuditService } from '../audit/audit.service';
+import { RequestWithUser } from '../../common/types/common.types';
 
 import {
   CreateMedicalConditionDto,
@@ -164,7 +165,7 @@ export class MedicalHistoryController {
   @Get()
   async getFullMedicalHistory(
     @Param('patientId') patientId: string,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
   ) {
     const userId = req.user?.id;
     const clinicId = req.user?.clinicId;
