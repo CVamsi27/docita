@@ -69,10 +69,8 @@ describe('ContactService', () => {
 
     it('should generate unique inquiry IDs', async () => {
       const result1 = service.submitInquiry(validInquiry);
-      
       // Wait 5ms to ensure different timestamp
       await new Promise((resolve) => setTimeout(resolve, 5));
-      
       const result2 = service.submitInquiry(validInquiry);
 
       expect(result1.id).not.toBe(result2.id);
