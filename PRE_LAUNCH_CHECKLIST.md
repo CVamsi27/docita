@@ -1,7 +1,7 @@
 # 🚀 Docita — Pre-Launch Production Checklist
 
 **Target Launch Date:** Feb 19, 2026  
-**Last Updated:** 2026-02-14 (Evening - API-1: 31 endpoints validated, CQ-1 complete)  
+**Last Updated:** 2026-02-14 (Late Evening - API-1: 34 endpoints validated, CQ-1 complete, CQ-2 starting)  
 **Status:** 91% Complete (109/120 items)  
 **Build:** ✅ PASSING | **Lint:** ✅ CLEAN | **Tests:** ✅ 896 PASSING
 
@@ -341,11 +341,11 @@ This document contains **ONLY** the critical tasks required to launch Docita to 
 ## 🔌 API & Backend Completeness
 
 ### API-1: Complete DTO Validation
-**Priority:** 🟡 HIGH | **Status:** 🔄 IN PROGRESS (65% complete) | **Effort:** 1-2 hours remaining
+**Priority:** 🟡 HIGH | **Status:** 🔄 IN PROGRESS (68% complete) | **Effort:** 1-2 hours remaining
 
 **Completed Feb 14, 2026:**
 - ✅ ZodValidationPipe infrastructure complete
-- ✅ 31 endpoints now have Zod DTO validation:
+- ✅ 34 endpoints now have Zod DTO validation:
   - **auth:** refresh, logout (2)
   - **subscription:** createCheckout (1)
   - **prescriptions:** create (1)
@@ -362,15 +362,17 @@ This document contains **ONLY** the critical tasks required to launch Docita to 
   - **lab-tests:** createTest, createOrder, updateOrder (3)
   - **contact:** submitInquiry (1)
   - **feedback:** create, updateStatus (2)
+  - **onboarding:** updateStep, completeOnboarding (2)
+  - **whatsapp:** send (1)
 - ✅ All 896 tests passing, zero regressions
 - ✅ Pattern established and reusable across remaining endpoints
 
-**Remaining Tasks (35% - ~18 endpoints):**
-- [ ] Apply same pattern to templates, monitoring, cloud-storage modules
+**Remaining Tasks (32% - ~16 endpoints):**
+- [ ] Apply same pattern to templates, monitoring, cloud-storage modules (requires new schemas)
 - [ ] Add CI check to prevent inline `@Body()` without DTO validation
 
 **Acceptance Criteria:**
-- 🟡 65% of endpoints validated (31/50)
+- 🟡 68% of endpoints validated (34/50)
 - ✅ Input validation working on all validated endpoints
 - ✅ All tests passing (896/896)
 
