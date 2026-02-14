@@ -5,7 +5,9 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -46,15 +48,21 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "@turbo/gen": "^2.5.5",
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^4.0.16",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.32.0",
+    "jsdom": "^26.0.0",
     "tailwindcss": "^4.1.11",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.16"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
