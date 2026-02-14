@@ -56,6 +56,18 @@ export const CheckEmailSchema = z.object({
 
 export class CheckEmailDto extends createZodDto(CheckEmailSchema) {}
 
+export const RefreshTokenSchema = z.object({
+  refresh_token: z.string().optional(),
+});
+
+export class RefreshTokenDto extends createZodDto(RefreshTokenSchema) {}
+
+export const LogoutSchema = z.object({
+  refresh_token: z.string().optional(),
+});
+
+export class LogoutRequestDto extends createZodDto(LogoutSchema) {}
+
 export class LoginResponseDto extends createZodDto(loginResponseSchema) {}
 export class RegisterResponseDto extends createZodDto(registerResponseSchema) {}
 export class ValidateSessionResponseDto extends createZodDto(

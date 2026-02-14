@@ -31,6 +31,8 @@ import {
   ChangePasswordResponseDto,
   CheckEmailDto,
   CheckEmailResponseDto,
+  RefreshTokenDto,
+  LogoutRequestDto,
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
@@ -217,12 +219,12 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Tokens rotated successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   async refresh(
-    @Body() body: { refresh_token?: string },
+    @Body() dto: RefreshTokenDto,
     @Request() req: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // Try body first, then cookie
-    const refreshToken = body.refresh_token || req.cookies?.refresh_token;
+    // Try DTO first, then cookie
+    const refreshToken = dto.refresh_token || req.cookies?.refresh_token;
     if (!refreshToken) {
       throw new BadRequestException('refresh_token is required');
     }
@@ -242,11 +244,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   async logoutUser(
-    @Body() body: { refresh_token?: string },
+    @Body() dto: LogoutRequestDto,
     @Request() req: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = body.refresh_token || req.cookies?.refresh_token;
+    const refreshToken = dto.refresh_token || req.cookies?.refresh_token;
     if (refreshToken) {
       await this.authService.logout(refreshToken);
     }
