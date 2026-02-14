@@ -8,6 +8,7 @@ import {
   Get,
   UnauthorizedException,
   BadRequestException,
+  UsePipes,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -34,10 +35,13 @@ import {
   CheckEmailResponseDto,
   RefreshTokenDto,
   LogoutRequestDto,
+  RefreshTokenSchema,
+  LogoutSchema,
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 import { ConfigService } from '@nestjs/config';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 minutes
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -219,6 +223,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiResponse({ status: 200, description: 'Tokens rotated successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  @UsePipes(new ZodValidationPipe(RefreshTokenSchema))
   async refresh(
     @Body() dto: RefreshTokenDto,
     @Request() req: RequestWithUser,
@@ -244,6 +249,7 @@ export class AuthController {
   @Post('logout')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @UsePipes(new ZodValidationPipe(LogoutSchema))
   async logoutUser(
     @Body() dto: LogoutRequestDto,
     @Request() req: RequestWithUser,

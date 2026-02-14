@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -33,8 +34,10 @@ import {
   SavePaymentMethodRequestDto,
   SetAutoPayRequestDto,
   MakePaymentRequestDto,
+  CreateCheckoutSchema,
 } from './dto/subscription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -177,6 +180,7 @@ export class SubscriptionController {
   @UseGuards(JwtAuthGuard)
   @Roles('ADMIN', 'ADMIN_DOCTOR', 'SUPER_ADMIN')
   @ZodSerializerDto(CheckoutSessionResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateCheckoutSchema))
   async createCheckout(
     @Request() req: AuthRequest,
     @Body() dto: CreateCheckoutRequestDto,
