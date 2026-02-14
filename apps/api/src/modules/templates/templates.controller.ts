@@ -7,10 +7,18 @@ import {
   Delete,
   Put,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import {
+  CreateTemplateSchema,
+  UpdateTemplateSchema,
+  CreateTemplateDto,
+  UpdateTemplateDto,
+} from './dto/templates.dto';
 
 interface TemplateField {
   id: string;
@@ -40,6 +48,7 @@ export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
   @Post()
+  @UsePipes(new ZodValidationPipe(CreateTemplateSchema))
   create(@Body() createTemplateDto: CreateTemplateDto) {
     return this.templatesService.create(createTemplateDto);
   }
@@ -63,6 +72,7 @@ export class TemplatesController {
   }
 
   @Put(':id')
+  @UsePipes(new ZodValidationPipe(UpdateTemplateSchema))
   update(
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,

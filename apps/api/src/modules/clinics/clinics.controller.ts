@@ -11,6 +11,7 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  UsePipes,
 } from '@nestjs/common';
 import { ClinicsService } from './clinics.service';
 import { Roles } from '../auth/roles.decorator';
@@ -23,7 +24,9 @@ import {
   ClinicSettingsDto,
   ClinicResponseDto,
   ClinicListResponseDto,
+  CreateClinicSchema,
 } from './dto/clinics.dto';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '../users/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -42,6 +45,7 @@ export class ClinicsController {
 
   @Post()
   @ZodSerializerDto(ClinicResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateClinicSchema))
   create(@Body() dto: CreateClinicDto) {
     return this.clinicsService.create(dto);
   }

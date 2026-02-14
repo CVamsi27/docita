@@ -26,6 +26,10 @@ import {
   AnyResponseDto,
   WebVitalSchema,
 } from './dto/monitoring.dto';
+import {
+  ResolveMultipleErrorsSchema,
+  ResolveMultipleErrorsDto,
+} from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
@@ -132,11 +136,12 @@ export class MonitoringController {
 
   @Post('errors/resolve-multiple')
   @ZodSerializerDto(AnyResponseDto) // Placeholder
-  async resolveMultipleErrors(
-    @Body('errorIds') errorIds: string[],
-    @Body('resolvedBy') resolvedBy: string,
-  ) {
-    return this.monitoringService.resolveMultipleErrors(errorIds, resolvedBy);
+  @UsePipes(new ZodValidationPipe(ResolveMultipleErrorsSchema))
+  async resolveMultipleErrors(@Body() dto: ResolveMultipleErrorsDto) {
+    return this.monitoringService.resolveMultipleErrors(
+      dto.errorIds,
+      dto.resolvedBy,
+    );
   }
 
   @Post('cleanup')
