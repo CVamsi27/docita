@@ -78,4 +78,43 @@ export class SetIntelligenceRequestDto extends createZodDto(
   SetIntelligenceSchema,
 ) {}
 
+export const StartTrialSchema = z.object({
+  tier: z.enum(['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE']),
+  days: z.number().positive().optional().default(14),
+});
+export class StartTrialRequestDto extends createZodDto(StartTrialSchema) {}
+
+export const SetFeatureOverridesSchema = z.object({
+  features: z.record(z.string(), z.boolean()),
+});
+export class SetFeatureOverridesRequestDto extends createZodDto(
+  SetFeatureOverridesSchema,
+) {}
+
+export const CancelSubscriptionSchema = z.object({
+  immediate: z.boolean().optional().default(false),
+});
+export class CancelSubscriptionRequestDto extends createZodDto(
+  CancelSubscriptionSchema,
+) {}
+
+export const SavePaymentMethodSchema = z.object({
+  razorpayTokenId: z.string().min(1, 'Razorpay token ID is required'),
+  methodType: z.enum(['CARD', 'BANK_TRANSFER']),
+});
+export class SavePaymentMethodRequestDto extends createZodDto(
+  SavePaymentMethodSchema,
+) {}
+
+export const SetAutoPaySchema = z.object({
+  enabled: z.boolean(),
+});
+export class SetAutoPayRequestDto extends createZodDto(SetAutoPaySchema) {}
+
+export const MakePaymentSchema = z.object({
+  amountCents: z.number().positive('Amount must be greater than 0'),
+  description: z.string().optional(),
+});
+export class MakePaymentRequestDto extends createZodDto(MakePaymentSchema) {}
+
 export class AnyResponseDto extends createZodDto(z.any()) {}

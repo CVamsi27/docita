@@ -27,6 +27,12 @@ import {
   ActivateSubscriptionRequestDto,
   UpgradeTierRequestDto,
   SetIntelligenceRequestDto,
+  StartTrialRequestDto,
+  SetFeatureOverridesRequestDto,
+  CancelSubscriptionRequestDto,
+  SavePaymentMethodRequestDto,
+  SetAutoPayRequestDto,
+  MakePaymentRequestDto,
 } from './dto/subscription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -105,12 +111,12 @@ export class SubscriptionController {
   @ZodSerializerDto(SubscriptionResponseDto)
   async startTrial(
     @Param('clinicId') clinicId: string,
-    @Body() body: { tier: string; days?: number },
+    @Body() dto: StartTrialRequestDto,
   ) {
     await this.subscriptionService.startTrial(
       clinicId,
-      body.tier,
-      body.days || 14,
+      dto.tier,
+      dto.days || 14,
     );
     return this.subscriptionService.getSubscription(clinicId);
   }
@@ -121,9 +127,9 @@ export class SubscriptionController {
   @ZodSerializerDto(SubscriptionResponseDto)
   async setFeatureOverrides(
     @Param('clinicId') clinicId: string,
-    @Body() body: { features: Record<string, boolean> },
+    @Body() dto: SetFeatureOverridesRequestDto,
   ) {
-    await this.subscriptionService.setFeatureOverrides(clinicId, body.features);
+    await this.subscriptionService.setFeatureOverrides(clinicId, dto.features);
     return this.subscriptionService.getSubscription(clinicId);
   }
 
@@ -216,10 +222,10 @@ export class SubscriptionController {
   @ZodSerializerDto(SubscriptionResponseDto)
   async cancelSubscription(
     @Request() req: AuthRequest,
-    @Body() body: { immediate?: boolean },
+    @Body() dto: CancelSubscriptionRequestDto,
   ) {
     // Cancel at period end by default (immediate = false means cancel at period end)
-    const cancelAtPeriodEnd = !body.immediate;
+    const cancelAtPeriodEnd = !dto.immediate;
     return this.billingService.cancelSubscription(
       req.user.clinicId,
       cancelAtPeriodEnd,
@@ -258,13 +264,12 @@ export class SubscriptionController {
   @ZodSerializerDto(AnyResponseDto) // Placeholder
   async savePaymentMethod(
     @Request() req: AuthRequest,
-    @Body()
-    body: { razorpayTokenId: string; methodType: 'CARD' | 'BANK_TRANSFER' },
+    @Body() dto: SavePaymentMethodRequestDto,
   ) {
     return this.billingService.savePaymentMethod(
       req.user.clinicId,
-      body.razorpayTokenId,
-      body.methodType,
+      dto.razorpayTokenId,
+      dto.methodType,
     );
   }
 
@@ -286,9 +291,9 @@ export class SubscriptionController {
   @ZodSerializerDto(AnyResponseDto) // Placeholder
   async setAutoPay(
     @Request() req: AuthRequest,
-    @Body() body: { enabled: boolean },
+    @Body() dto: SetAutoPayRequestDto,
   ) {
-    return this.billingService.setAutoPay(req.user.clinicId, body.enabled);
+    return this.billingService.setAutoPay(req.user.clinicId, dto.enabled);
   }
 
   /**
@@ -299,12 +304,12 @@ export class SubscriptionController {
   @ZodSerializerDto(AnyResponseDto) // Placeholder
   async makePayment(
     @Request() req: AuthRequest,
-    @Body() body: { amountCents: number; description?: string },
+    @Body() dto: MakePaymentRequestDto,
   ) {
     return this.billingService.createPaymentCheckout(
       req.user.clinicId,
-      body.amountCents,
-      body.description,
+      dto.amountCents,
+      dto.description,
     );
   }
 }
