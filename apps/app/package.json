@@ -23,9 +23,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@sentry/nextjs": "^10.38.0",
-    "@sentry/tracing": "^7.120.4",
     "@tanstack/react-query": "^5.90.10",
-    "@tanstack/react-virtual": "^3.13.13",
     "@workspace/data-access": "workspace:*",
     "@workspace/hooks": "workspace:*",
     "@workspace/types": "workspace:*",
@@ -51,10 +49,8 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.1",
     "@playwright/test": "^1.48.2",
-    "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
@@ -63,11 +59,9 @@
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.32.0",
-    "eslint-config-next": "16.0.7",
     "globals": "^17.0.0",
     "jsdom": "^27.4.0",
     "typescript": "^5.9.2",
-    "vitest": "^4.0.16",
-    "webpack-bundle-analyzer": "^5.0.1"
+    "vitest": "^4.0.16"
   }
 }
