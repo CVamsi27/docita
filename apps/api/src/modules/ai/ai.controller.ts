@@ -19,7 +19,9 @@ import { extname } from 'path';
 import {
   AIAnalysisResponseDto,
   DiagnosisSuggestionListResponseDto,
+  DiagnosisSuggestionRequestDto,
   MedicationRecommendationListResponseDto,
+  MedicationRecommendationRequestDto,
   ExtractionResultResponseDto,
   AnalyzePrescriptionDto,
 } from './dto/ai.dto';
@@ -42,26 +44,17 @@ export class AIController {
 
   @Post('diagnosis-suggestions')
   @ZodSerializerDto(DiagnosisSuggestionListResponseDto)
-  async suggestDiagnoses(
-    @Body() data: { symptoms: string[]; findingsNotes?: string },
-  ) {
-    return this.aiService.suggestDiagnoses(data.symptoms, data.findingsNotes);
+  async suggestDiagnoses(@Body() dto: DiagnosisSuggestionRequestDto) {
+    return this.aiService.suggestDiagnoses(dto.symptoms, dto.findingsNotes);
   }
 
   @Post('medication-recommendations')
   @ZodSerializerDto(MedicationRecommendationListResponseDto)
-  async recommendMedications(
-    @Body()
-    data: {
-      condition: string;
-      patientAge?: number;
-      allergies?: string[];
-    },
-  ) {
+  async recommendMedications(@Body() dto: MedicationRecommendationRequestDto) {
     return this.aiService.recommendMedications(
-      data.condition,
-      data.patientAge,
-      data.allergies,
+      dto.condition,
+      dto.patientAge,
+      dto.allergies,
     );
   }
 
