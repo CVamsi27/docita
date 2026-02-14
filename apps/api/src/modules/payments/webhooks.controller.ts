@@ -1,7 +1,9 @@
-import { Controller, Post, Body, Headers, HttpCode, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Headers, HttpCode, Logger, UsePipes } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { Public } from '../auth/public.decorator';
 import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { RazorpayWebhookSchema, RazorpayWebhookDto } from '../common/dto/common.dto';
 
 interface RazorpayPaymentLinkEntity {
   id: string;
@@ -32,11 +34,12 @@ export class WebhooksController {
   @Public()
   @Post('razorpay')
   @HttpCode(200)
+  @UsePipes(new ZodValidationPipe(RazorpayWebhookSchema))
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
     @Headers('x-forwarded-for') ipAddress: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
-    @Body() payload: RazorpayWebhookPayload,
+    @Body() payload: RazorpayWebhookDto,
   ) {
     const paymentLinkId =
       payload.payload.payment_link?.entity?.id || 'unknown';

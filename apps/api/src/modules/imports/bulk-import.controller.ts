@@ -6,11 +6,14 @@ import {
   Req,
   Get,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import type { AuthenticatedRequest } from '@workspace/types';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { BulkImportRequestSchema, BulkImportRequestDto } from '../common/dto/common.dto';
 
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
@@ -27,14 +30,11 @@ export class BulkImportController {
   }
 
   @Post('bulk')
+  @UsePipes(new ZodValidationPipe(BulkImportRequestSchema))
   async startBulkImport(
     @Req() req: AuthenticatedRequest,
     @Body()
-    data: {
-      entityType: BulkImportEntityType;
-      fileName: string;
-      fileBuffer: Buffer;
-    },
+    data: BulkImportRequestDto,
   ) {
     const clinicId = req.user?.clinicId || ''; // Handle potential undefined safely
     const userId = req.user.userId;

@@ -119,6 +119,21 @@ export const ImportResultSchema = z.object({
 export type ImportResultDto = z.infer<typeof ImportResultSchema>;
 
 /**
+ * Bulk Import Request DTO
+ * Validation for: POST /imports/bulk
+ */
+export const BulkImportRequestSchema = z.object({
+  entityType: z.enum(['PATIENT', 'PRESCRIPTION', 'DOCTOR', 'LAB_TEST', 'INVENTORY']),
+  fileName: z.string().min(1, 'File name required').regex(/\.(csv|xlsx|json)$/, 'Invalid file format'),
+  fileBuffer: z.instanceof(Buffer).refine(
+    (buf) => buf.length > 0 && buf.length <= 52428800,
+    'File size must be between 1 byte and 50MB'
+  ),
+});
+
+export type BulkImportRequestDto = z.infer<typeof BulkImportRequestSchema>;
+
+/**
  * CREATE THESE ADDITIONAL DTOs (similar pattern):
  * 
  * - CreateAppointmentDto
