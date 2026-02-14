@@ -2183,37 +2183,47 @@ No usage of `ClassSerializerInterceptor`, `@Exclude()`, or `@Expose()` decorator
 ---
 
 ### 14.4 — Remove Unused Dependencies
-**Priority:** 🟡 High | **Files:** `apps/app/package.json`, `apps/api/package.json`
+**Priority:** 🟡 High | **Files:** `apps/app/package.json`, `apps/admin/package.json`, `apps/api/package.json`
 
-**apps/app — 4 unused dependencies:**
-| Package | Evidence | Action |
-|---------|----------|--------|
-| `@docita/api` | Zero imports anywhere in `apps/app/` | Remove |
-| `@workspace/db` | Zero imports anywhere in `apps/app/` | Remove |
-| `react-intersection-observer` | Zero imports anywhere | Remove |
-| `react-resizable-panels` | Used via `@workspace/ui`, not directly | Remove from app (keep in UI package) |
+**Session 2.25.6 Depcheck Results & Cleanup:**
 
-**apps/app — 3 nearly-unused dependencies:**
-| Package | Usage | Action |
-|---------|-------|--------|
-| `swr` | 1 file (`use-pricing.ts`) — rest of app uses React Query | Migrate to React Query, then remove |
-| `framer-motion` | 1 file (`PricingDialog.tsx`) — 12.8KB+ for one animation | Replace with CSS transitions |
-| `canvas-confetti` | 1 file (`PaymentSuccessModal.tsx`) | Keep but move `@types/canvas-confetti` to devDeps |
-
-**apps/api — @types in wrong section:**
-| Package | Action |
+**apps/app — 6 unused dependencies removed:**
+| Package | Status |
 |---------|--------|
-| `@types/bcrypt` | Move to `devDependencies` |
-| `@types/cache-manager` | Move to `devDependencies` |
-| `@types/passport-jwt` | Move to `devDependencies` |
+| `@sentry/tracing` | ✅ Removed |
+| `@tanstack/react-virtual` | ✅ Removed |
+| `@tailwindcss/postcss` (devDep) | ✅ Removed |
+| `@testing-library/user-event` (devDep) | ✅ Removed |
+| `eslint-config-next` (devDep) | ✅ Removed |
+| `webpack-bundle-analyzer` (devDep) | ✅ Removed |
 
+**apps/admin — 6 unused dependencies removed:**
+| Package | Status |
+|---------|--------|
+| `@sentry/tracing` | ✅ Removed |
+| `recharts` | ✅ Removed |
+| `@tailwindcss/postcss` (devDep) | ✅ Removed |
+| `@types/react-dom` (devDep) | ✅ Removed |
+| `baseline-browser-mapping` (devDep) | ✅ Removed |
+| `tailwindcss` (devDep) | ✅ Removed |
+
+**apps/api — 5 unused devDependencies removed:**
+| Package | Status |
+|---------|--------|
+| `@eslint/eslintrc` | ✅ Removed |
+| `@nestjs/schematics` | ✅ Removed |
+| `pino-pretty` | ✅ Removed |
+| `source-map-support` | ✅ Removed |
+| `ts-loader` | ✅ Removed |
+
+**Previous Session Completions:**
 - [x] Remove 4 unused deps from `apps/app/package.json` ✅ (Already removed in previous sessions)
 - [x] Migrate `use-pricing.ts` from SWR to React Query, then remove `swr` ✅ 
 - [x] Replace `framer-motion` usage with CSS animations, then remove ✅
 - [x] Move `@types/*` to `devDependencies` in both apps ✅ (4 packages moved)
-- [ ] Run `pnpm dlx depcheck` across all apps to find remaining unused deps
+- [x] Run `pnpm dlx depcheck` across all apps to find remaining unused deps ✅ (Found and removed 17 additional packages)
 
-**Status:** ✅ COMPLETED (4/5 tasks - depcheck optional audit task)
+**Status:** ✅ COMPLETED (100% - Found and removed 17 unused dependencies across 3 apps)
 
 ---
 
