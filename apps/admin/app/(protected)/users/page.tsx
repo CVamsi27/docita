@@ -303,7 +303,7 @@ export default function UsersPage() {
               </div>
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
-              <SelectTrigger className="w-full md:w-[250px]">
+              <SelectTrigger className="w-full md:w-[250px]" aria-label="Filter by clinic">
                 <SelectValue placeholder="Select clinic" />
               </SelectTrigger>
               <SelectContent>

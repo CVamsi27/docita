@@ -132,7 +132,7 @@ export default function ProtectedLayout({
           <span className="font-bold text-lg">Docita Admin</span>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto" aria-label="Main content">
           <div className="container mx-auto p-4 md:p-6">{children}</div>
         </main>
       </div>
