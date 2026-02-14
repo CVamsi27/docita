@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  UsePipes,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { Roles } from '../auth/roles.decorator';
@@ -22,8 +23,14 @@ import {
   AddSpecializationDto,
   DoctorResponseDto,
   DoctorListResponseDto,
+  CreateDoctorSchema,
+  UpdateDoctorSchema,
+  CreateEducationSchema,
+  CreateCertificationSchema,
+  AddSpecializationSchema,
 } from './dto/doctors.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -63,6 +70,7 @@ export class DoctorsController {
   @Post()
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateDoctorSchema))
   async create(@Request() req: AuthRequest, @Body() dto: CreateDoctorDto) {
     return this.doctorsService.create(req.user.clinicId, dto);
   }
@@ -70,6 +78,7 @@ export class DoctorsController {
   @Put(':id')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateDoctorSchema))
   async update(
     @Request() req: AuthRequest,
     @Param('id') id: string,
@@ -94,11 +103,13 @@ export class DoctorsController {
   }
 
   @Post(':id/education')
+  @UsePipes(new ZodValidationPipe(CreateEducationSchema))
   async addEducation(@Param('id') id: string, @Body() dto: CreateEducationDto) {
     return this.doctorsService.addEducation(id, dto);
   }
 
   @Put(':id/education/:educationId')
+  @UsePipes(new ZodValidationPipe(CreateEducationSchema))
   async updateEducation(
     @Param('educationId') educationId: string,
     @Body() dto: Partial<CreateEducationDto>,
@@ -121,6 +132,7 @@ export class DoctorsController {
   }
 
   @Post(':id/certifications')
+  @UsePipes(new ZodValidationPipe(CreateCertificationSchema))
   async addCertification(
     @Param('id') id: string,
     @Body() dto: CreateCertificationDto,
@@ -129,6 +141,7 @@ export class DoctorsController {
   }
 
   @Put(':id/certifications/:certificationId')
+  @UsePipes(new ZodValidationPipe(CreateCertificationSchema))
   async updateCertification(
     @Param('certificationId') certificationId: string,
     @Body() dto: Partial<CreateCertificationDto>,
@@ -151,6 +164,7 @@ export class DoctorsController {
   }
 
   @Post(':id/specializations')
+  @UsePipes(new ZodValidationPipe(AddSpecializationSchema))
   async addSpecialization(
     @Param('id') id: string,
     @Body() dto: AddSpecializationDto,

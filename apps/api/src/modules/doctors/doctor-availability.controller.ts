@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Request,
+  UsePipes,
 } from '@nestjs/common';
 import { DoctorAvailabilityService } from './doctor-availability.service';
 import { Role } from '@workspace/db';
@@ -21,7 +22,12 @@ import {
   UpdateScheduleDto,
   BulkScheduleDto,
   CreateTimeOffDto,
+  createScheduleSchema,
+  updateScheduleSchema,
+  bulkScheduleSchema,
+  createTimeOffSchema,
 } from './dto/doctor-availability.dto';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -60,6 +66,7 @@ export class DoctorAvailabilityController {
    * This must come BEFORE the generic :id routes
    */
   @Post('schedules/bulk')
+  @UsePipes(new ZodValidationPipe(bulkScheduleSchema))
   bulkUpsertSchedules(
     @Request() req: AuthRequest,
     @Body() dto: BulkScheduleDto,
@@ -94,6 +101,7 @@ export class DoctorAvailabilityController {
    * Create a new schedule entry
    */
   @Post('schedules')
+  @UsePipes(new ZodValidationPipe(createScheduleSchema))
   createSchedule(@Request() req: AuthRequest, @Body() dto: CreateScheduleDto) {
     const doctorId =
       req.user.role === 'ADMIN' && dto.doctorId ? dto.doctorId : req.user.id;
@@ -112,6 +120,7 @@ export class DoctorAvailabilityController {
    * Update a schedule entry
    */
   @Put('schedules/:id')
+  @UsePipes(new ZodValidationPipe(updateScheduleSchema))
   updateSchedule(@Param('id') id: string, @Body() dto: UpdateScheduleDto) {
     return this.doctorAvailabilityService.updateSchedule(id, dto);
   }
@@ -149,6 +158,7 @@ export class DoctorAvailabilityController {
    * Create a time off record
    */
   @Post('time-off')
+  @UsePipes(new ZodValidationPipe(createTimeOffSchema))
   createTimeOff(@Request() req: AuthRequest, @Body() dto: CreateTimeOffDto) {
     const doctorId =
       req.user.role === 'ADMIN' && dto.doctorId ? dto.doctorId : req.user.id;

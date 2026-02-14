@@ -11,6 +11,7 @@ import {
   UseGuards,
   Request,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
@@ -19,12 +20,13 @@ import { extname } from 'path';
 import { AuthenticatedRequest } from '@workspace/types';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { UploadDocumentDto } from './dto/upload-document.dto';
+import { UploadDocumentDto, UploadDocumentSchema } from './dto/upload-document.dto';
 import {
   DocumentResponseDto,
   DocumentListResponseDto,
 } from './dto/documents.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 @Controller('documents')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -79,6 +81,7 @@ export class DocumentsController {
     }),
   )
   @ZodSerializerDto(DocumentResponseDto)
+  @UsePipes(new ZodValidationPipe(UploadDocumentSchema))
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: UploadDocumentDto,
