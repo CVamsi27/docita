@@ -3,7 +3,25 @@
 **The Bridge from Paper to Cloud.**  
 Modern clinic management that rescues your messy records. Start with Excel, scale to AI-powered healthcare.
 
-## 🚀 Live Demo
+## � Pre-Launch Status
+
+**Current Progress:** 84% → Target 86% (Feb 15-16)
+
+| Component | Status | Completion | Details |
+|-----------|--------|-----------|---------|
+| **UI-1** | ✅ Complete | 100% | WCAG 2.1 AA accessibility compliance (0 violations) |
+| **TEST-3** | ✅ Complete | 100% | 21 critical E2E workflows ready (1,040+ lines) |
+| **DEPLOY-1** | 🔄 Ready | Documentation | Infrastructure setup guides prepared (3 docs, 2,077 lines) |
+| **DEPLOY-2** | ⏳ Planned | N/A | Production deployment (after staging validation) |
+
+**Key Documents:**
+- 📖 [Full Pre-Launch Checklist](PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+- 🚀 [DEPLOY-1 Infrastructure Setup](docs/DEPLOY-1_INFRASTRUCTURE_SETUP.md) - Comprehensive guide (9 phases)
+- ✅ [DEPLOY-1 Setup Checklist](DEPLOY-1_SETUP_CHECKLIST.md) - Detailed tasks (20 groups)
+- 💡 [DEPLOY-1 Quick Reference](docs/DEPLOY-1_QUICK_REFERENCE.md) - CLI commands (50+ commands)
+- 📈 [Session Summary](DEPLOY-1_PHASE_TRANSITION_SUMMARY.md) - Current status & next steps
+
+## �🚀 Live Demo
 
 - **Landing**: [https://landing.docita.work](https://landing.docita.work)
 - **App**: [https://app.docita.work](https://app.docita.work)
@@ -129,10 +147,24 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ## 📚 Documentation
 
+### Pre-Launch & Deployment
+- 🚀 [DEPLOY-1 Infrastructure Setup](docs/DEPLOY-1_INFRASTRUCTURE_SETUP.md) - **START HERE** for deployment (9 phases, 500+ lines)
+- ✅ [DEPLOY-1 Setup Checklist](DEPLOY-1_SETUP_CHECKLIST.md) - Actionable tasks with verification (20 groups)
+- 💡 [DEPLOY-1 Quick Reference](docs/DEPLOY-1_QUICK_REFERENCE.md) - CLI commands and troubleshooting (50+ commands)
+- 🧪 [TEST-3 Critical Flows Guide](docs/TEST-3_CRITICAL_FLOWS_GUIDE.md) - E2E test coverage (21 workflows)
+- ✨ [Accessibility Compliance Report](docs/UI-1_ACCESSIBILITY_COMPLIANCE_FINAL.md) - WCAG 2.1 AA (0 violations)
+
+### General Documentation
 - [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment guide
 - [User Manual](docs/USER_MANUAL.md) - How to use Docita
 - [API Documentation](docs/API_DOCUMENTATION.md) - API reference
 - [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
+
+### Quick Navigation for Team
+- **Setting up infrastructure?** → [DEPLOY-1 Infrastructure Setup](docs/DEPLOY-1_INFRASTRUCTURE_SETUP.md)
+- **Need CLI commands?** → [DEPLOY-1 Quick Reference](docs/DEPLOY-1_QUICK_REFERENCE.md)
+- **Running tests staging?** → [TEST-3 Critical Flows Guide](docs/TEST-3_CRITICAL_FLOWS_GUIDE.md)
+- **Checking deployment status?** → [DEPLOY-1 Phase Transition Summary](DEPLOY-1_PHASE_TRANSITION_SUMMARY.md)
 
 ## 🚀 Deployment
 
