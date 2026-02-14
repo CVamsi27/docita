@@ -206,9 +206,9 @@ describe('PerformanceService', () => {
       mockPrismaService.$queryRaw.mockResolvedValue([]);
 
       const [dbStats, metrics] = await Promise.all([
-        service.getDatabaseStats(),
-        service.getMetrics(),
-      ]);
+        service.getDatabaseStats() as Promise<any>,
+        service.getMetrics() as Promise<any>,
+      ] as const);
 
       expect(dbStats.status).toBe('connected');
       expect(metrics.memory).toBeDefined();
