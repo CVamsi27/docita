@@ -17,6 +17,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { DeletePatientDataDto } from './dto/compliance.dto';
 
 const recordConsentSchema = z.object({
   patientId: z.string(),
@@ -87,7 +88,7 @@ export class ConsentController {
   @HttpCode(200)
   async deletePatientData(
     @Param('patientId') patientId: string,
-    @Body() body: { reason: string; requestedBy: string },
+    @Body() dto: DeletePatientDataDto,
     @Req() req: Request,
   ) {
     const ipAddress = req.ip || req.connection.remoteAddress;
@@ -96,8 +97,8 @@ export class ConsentController {
         patientId,
         clinicId: (req.user as any)?.clinicId, // Assuming extracted from token
         requestType: 'ERASURE' as any,
-        reason: body.reason,
-        requestedBy: body.requestedBy,
+        reason: dto.reason,
+        requestedBy: dto.requestedBy,
       },
       ipAddress,
     );
