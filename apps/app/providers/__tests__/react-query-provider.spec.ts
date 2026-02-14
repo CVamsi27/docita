@@ -7,9 +7,9 @@
  * - Uses exponential backoff with max 30s delay
  */
 
-import { describe, it, expect } from "vitest";
-import type { DefaultError } from "@tanstack/react-query";
-import { ApiError } from "@/lib/errors";
+import { describe, expect, it } from 'vitest';
+import type { DefaultError } from '@tanstack/react-query';
+import { ApiError } from '@/lib/errors';
 
 /**
  * The retry logic from react-query-provider.tsx

@@ -1,14 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "ANALYZE"],
+  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME"],
   "globalDependencies": ["API_URL", "APP_URL", "CI"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
-      "env": ["NODE_ENV", "API_URL", "APP_URL", "CI"]
+      "env": ["NODE_ENV", "API_URL", "APP_URL", "CI", "SENTRY_ORG", "SENTRY_PROJECT"]
     },
     "db:generate": {
       "cache": false

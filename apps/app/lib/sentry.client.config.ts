@@ -44,7 +44,7 @@ export function initializeSentryClient() {
     });
 
     // Mark that Sentry is ready
-    (window as any).__sentryReady = true;
+    (window as unknown as Record<string, unknown>).__sentryReady = true;
   } catch (error) {
     console.error('Failed to initialize Sentry on client:', error);
   }
@@ -81,7 +81,7 @@ function getUserContextFromStorage(): {
  */
 export function captureException(
   error: Error | string,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) {
   if (isDev) {
     console.error('Sentry error (dev mode):', error, context);
@@ -118,7 +118,7 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
  */
 export function addBreadcrumb(
   message: string,
-  data?: Record<string, any>,
+  data?: Record<string, unknown>,
   category: string = 'user-action'
 ) {
   try {
