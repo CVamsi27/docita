@@ -59,6 +59,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
+    "axe-playwright": "^2.2.2",
     "eslint": "^9.32.0",
     "globals": "^17.0.0",
     "jsdom": "^27.4.0",

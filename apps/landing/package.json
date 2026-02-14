@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack --port 3003",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:accessibility": "playwright test e2e/accessibility.spec.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.10",
@@ -25,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-playwright": "^2.2.2",
     "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
