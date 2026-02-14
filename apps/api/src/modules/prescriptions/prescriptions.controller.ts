@@ -8,6 +8,7 @@ import {
   Request,
   Res,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
@@ -20,8 +21,10 @@ import {
   CreatePrescriptionDto,
   PrescriptionResponseDto,
   PrescriptionListResponseDto,
+  CreatePrescriptionSchema,
 } from './dto/prescriptions.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -58,6 +61,7 @@ export class PrescriptionsController {
   @Post()
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   @ZodSerializerDto(PrescriptionResponseDto)
+  @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {
     return this.prescriptionsService.create({
       ...dto,

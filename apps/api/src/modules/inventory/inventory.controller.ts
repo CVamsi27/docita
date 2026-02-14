@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Request,
+  UsePipes,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -24,8 +25,12 @@ import {
   InventoryListResponseDto,
   InventoryResponseDto,
   InventoryStatsResponseDto,
+  CreateInventoryItemSchema,
+  UpdateInventoryItemSchema,
+  CreateMovementSchema,
 } from './dto/inventory.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -85,18 +90,21 @@ export class InventoryController {
 
   @Post()
   @ZodSerializerDto(InventoryResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateInventoryItemSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreateInventoryItemDto) {
     return this.inventoryService.create(req.user.clinicId, dto);
   }
 
   @Patch(':id')
   @ZodSerializerDto(InventoryResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateInventoryItemSchema))
   update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto) {
     return this.inventoryService.update(id, dto);
   }
 
   @Post(':id/movements')
   @ZodSerializerDto(InventoryResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateMovementSchema))
   addMovement(
     @Request() req: AuthRequest,
     @Param('id') id: string,
