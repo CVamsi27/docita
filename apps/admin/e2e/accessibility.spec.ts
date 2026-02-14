@@ -20,10 +20,14 @@ test.describe('Accessibility Audit - Admin App', () => {
     }) => {
       try {
         // Navigate to page
-        await page.goto(pageConfig.path, { waitUntil: 'networkidle', timeout: 30000 });
+        await page.goto(pageConfig.path, { waitUntil: 'networkidle2', timeout: 30000 });
         
-        // Wait for content to load
+        // Wait for full page load and hydration
+        await page.waitForLoadState('networkidle');
         await page.waitForLoadState('domcontentloaded');
+        
+        // Wait for page to be fully interactive
+        await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 500)));
 
         // Inject axe
         await injectAxe(page);
