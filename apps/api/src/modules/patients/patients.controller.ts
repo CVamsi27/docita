@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { EmergencyAccess } from '../../common/decorators/emergency-access.decorator';
@@ -18,8 +19,11 @@ import {
   UpdatePatientDto,
   PatientResponseDto,
   PaginatedPatientResponseDto,
+  CreatePatientSchema,
+  UpdatePatientSchema,
 } from './dto/patients.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
 
@@ -63,6 +67,7 @@ export class PatientsController {
 
   @Post()
   @ZodSerializerDto(PatientResponseDto)
+  @UsePipes(new ZodValidationPipe(CreatePatientSchema))
   create(
     @Request() req: AuthRequest,
     @Body() createPatientDto: CreatePatientDto,
@@ -75,6 +80,7 @@ export class PatientsController {
 
   @Patch(':id')
   @ZodSerializerDto(PatientResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdatePatientSchema))
   update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientsService.update(id, updatePatientDto);
   }

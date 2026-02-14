@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { LabTestsService } from './lab-tests.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -25,8 +26,12 @@ import {
   LabTestResponseDto,
   LabTestOrderListResponseDto,
   LabTestOrderResponseDto,
+  CreateLabTestSchema,
+  CreateLabTestOrderSchema,
+  UpdateLabTestOrderSchema,
 } from './dto/lab-tests.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -51,6 +56,7 @@ export class LabTestsController {
 
   @Post('catalog')
   @ZodSerializerDto(LabTestResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateLabTestSchema))
   createTest(@Request() req: AuthRequest, @Body() dto: CreateLabTestDto) {
     return this.labTestsService.createTest(req.user.clinicId, dto);
   }
@@ -84,6 +90,7 @@ export class LabTestsController {
 
   @Post('orders')
   @ZodSerializerDto(LabTestOrderResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateLabTestOrderSchema))
   createOrder(@Request() req: AuthRequest, @Body() dto: CreateLabTestOrderDto) {
     return this.labTestsService.createOrder(
       req.user.clinicId,
@@ -94,6 +101,7 @@ export class LabTestsController {
 
   @Patch('orders/:id')
   @ZodSerializerDto(LabTestOrderResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateLabTestOrderSchema))
   updateOrder(@Param('id') id: string, @Body() dto: UpdateLabTestOrderDto) {
     return this.labTestsService.updateOrder(id, dto as any);
   }
