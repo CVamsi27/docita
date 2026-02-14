@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -175,8 +174,7 @@ export function PricingDialog({
 
         {/* Pricing Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 py-4">
-          <AnimatePresence mode="wait">
-            {tiers.map((tierName, index) => {
+          {tiers.map((tierName, index) => {
               const info = TIER_INFO[tierName];
               const tierPricing = getTierPricing(tierName);
               const limits = TIER_LIMITS[tierName];
@@ -191,16 +189,14 @@ export function PricingDialog({
                 isYearly && typeof price === "number" ? price / 12 : price;
 
               return (
-                <motion.div
+                <div
                   key={tierName}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.02 }}
+                  style={{ animationDelay: `${index * 50}ms` }}
                   className={cn(
-                    "relative flex flex-col rounded-xl border-2 p-4 transition-colors duration-300", // removed transition-all to avoid conflict with motion
+                    "relative flex flex-col rounded-xl border-2 p-4",
                     "bg-linear-to-br backdrop-blur-sm",
+                    "transition-all duration-300 ease-out",
+                    "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
                     TIER_GRADIENTS[tierName],
                     TIER_BORDER_COLORS[tierName],
                     isCurrentTier &&
@@ -239,12 +235,9 @@ export function PricingDialog({
                   </div>
 
                   {/* Price */}
-                  <motion.div
+                  <div
                     key={isYearly ? "yearly" : "monthly"}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mb-4"
+                    className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
                   >
                     {price === "custom" ? (
                       <div className="text-2xl font-bold">Custom</div>
@@ -265,7 +258,7 @@ export function PricingDialog({
                         )}
                       </>
                     )}
-                  </motion.div>
+                  </div>
 
                   {/* Key Limits */}
                   <div className="space-y-2 mb-4 flex-1">
@@ -324,10 +317,9 @@ export function PricingDialog({
                         ? "Upgrade"
                         : "Downgrade"}
                   </Button>
-                </motion.div>
+                </div>
               );
             })}
-          </AnimatePresence>
         </div>
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">

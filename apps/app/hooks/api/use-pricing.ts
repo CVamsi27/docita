@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 
 const API_URL = process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
@@ -97,20 +97,18 @@ const fetcher = async (url: string) => {
  * Hook to fetch pricing configuration from backend
  */
 export function usePricingConfig(currency: string = "INR") {
-  const { data, error, isLoading, mutate } = useSWR<PricingConfig>(
-    `${API_URL}/pricing/config?currency=${currency}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<PricingConfig>({
+    queryKey: ["pricing-config", currency],
+    queryFn: () => fetcher(`${API_URL}/pricing/config?currency=${currency}`),
+    staleTime: 60000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
+  });
 
   return {
     pricingConfig: data,
     isLoading,
     error,
-    refetch: mutate,
+    refetch,
   };
 }
 
@@ -132,13 +130,12 @@ export function useEstimate(params: EstimateRequest | null) {
       }).toString()
     : null;
 
-  const { data, error, isLoading } = useSWR<EstimateResponse>(
-    queryParams ? `${API_URL}/pricing/estimate?${queryParams}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  const { data, error, isLoading } = useQuery<EstimateResponse>({
+    queryKey: ["price-estimate", queryParams],
+    queryFn: () => fetcher(`${API_URL}/pricing/estimate?${queryParams}`),
+    enabled: !!queryParams,
+    refetchOnWindowFocus: false,
+  });
 
   return {
     estimate: data,

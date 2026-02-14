@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ReferralsService } from './referrals.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -447,9 +444,9 @@ describe('ReferralsService', () => {
       const error = new Error('Database connection failed');
       mockPrismaService.clinic.findUnique.mockRejectedValue(error);
 
-      await expect(
-        service.getOrCreateReferralCode('clinic-1'),
-      ).rejects.toThrow('Database connection failed');
+      await expect(service.getOrCreateReferralCode('clinic-1')).rejects.toThrow(
+        'Database connection failed',
+      );
     });
 
     it('should propagate database errors from getReferralStats', async () => {
