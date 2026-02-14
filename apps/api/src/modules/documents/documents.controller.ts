@@ -20,7 +20,10 @@ import { extname } from 'path';
 import { AuthenticatedRequest } from '@workspace/types';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { UploadDocumentDto, UploadDocumentSchema } from './dto/upload-document.dto';
+import {
+  UploadDocumentDto,
+  UploadDocumentSchema,
+} from './dto/upload-document.dto';
 import {
   DocumentResponseDto,
   DocumentListResponseDto,

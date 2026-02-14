@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tenantStorage } from '../middleware/tenant.middleware';
@@ -13,6 +14,8 @@ import { tenantStorage } from '../middleware/tenant.middleware';
  */
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(TenantContextInterceptor.name);
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
@@ -23,7 +26,7 @@ export class TenantContextInterceptor implements NestInterceptor {
       if (user.clinicId || isSuperAdmin) {
         return new Observable((subscriber) => {
           // Run the handler within the ALS context
-          console.log(
+          this.logger.debug(
             `TENANT CONTEXT [${request.method} ${request.url}]: clinicId=${user.clinicId || 'GLOBAL'}, userId=${user.id || 'system'}, bypassed=${isSuperAdmin}`,
           );
           tenantStorage.run(
@@ -46,7 +49,7 @@ export class TenantContextInterceptor implements NestInterceptor {
 
     // specific to non-authenticated requests or if clinicId is missing
     if (user && !user.clinicId) {
-      console.log(
+      this.logger.debug(
         `[DEBUG] User found but clinicId missing: ${JSON.stringify(user)}`,
       );
     }

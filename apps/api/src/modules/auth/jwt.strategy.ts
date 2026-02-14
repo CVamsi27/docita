@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Request } from 'express';
@@ -30,6 +30,8 @@ function cookieThenBearerExtractor(req: Request): string | null {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private readonly logger = new Logger(JwtStrategy.name);
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
@@ -48,17 +50,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    console.log('Validating payload:', JSON.stringify(payload));
+    this.logger.debug('Validating payload:', JSON.stringify(payload));
     // Check if user still exists in database
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
 
     if (!user) {
-      console.warn('User not found for sub:', payload.sub);
+      this.logger.warn('User not found for sub:', payload.sub);
       throw new UnauthorizedException('User not found');
     }
-    console.log('User validated:', user.id);
+    this.logger.debug('User validated:', user.id);
 
     return {
       id: payload.sub,

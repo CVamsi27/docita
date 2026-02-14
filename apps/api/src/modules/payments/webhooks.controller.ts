@@ -1,9 +1,20 @@
-import { Controller, Post, Body, Headers, HttpCode, Logger, UsePipes } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  HttpCode,
+  Logger,
+  UsePipes,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { Public } from '../auth/public.decorator';
 import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { RazorpayWebhookSchema, RazorpayWebhookDto } from '../common/dto/common.dto';
+import {
+  RazorpayWebhookSchema,
+  RazorpayWebhookDto,
+} from '../common/dto/common.dto';
 
 interface RazorpayPaymentLinkEntity {
   id: string;
@@ -41,8 +52,7 @@ export class WebhooksController {
     @Headers('user-agent') userAgent: string | undefined,
     @Body() payload: RazorpayWebhookDto,
   ) {
-    const paymentLinkId =
-      payload.payload.payment_link?.entity?.id || 'unknown';
+    const paymentLinkId = payload.payload.payment_link?.entity?.id || 'unknown';
 
     try {
       // Process webhook - already has internal error handling
@@ -65,13 +75,17 @@ export class WebhooksController {
         payload.event,
       );
 
-      await this.webhookErrorHandler.logWebhookError(err, {
-        eventType: payload.event,
-        providerId: paymentLinkId,
-        payload,
-        ipAddress,
-        userAgent,
-      }, isCritical);
+      await this.webhookErrorHandler.logWebhookError(
+        err,
+        {
+          eventType: payload.event,
+          providerId: paymentLinkId,
+          payload,
+          ipAddress,
+          userAgent,
+        },
+        isCritical,
+      );
 
       // Track failed webhook processing
       await this.webhookErrorHandler.trackWebhookEvent(
@@ -89,6 +103,11 @@ export class WebhooksController {
         isCritical,
       });
 
-      return { status: 'ok', error: 'Webhook processing encountered an error. Event has been logged for review.' };
+      return {
+        status: 'ok',
+        error:
+          'Webhook processing encountered an error. Event has been logged for review.',
+      };
     }
   }
+}

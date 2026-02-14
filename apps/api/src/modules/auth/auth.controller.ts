@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   UsePipes,
+  Logger,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -49,6 +50,8 @@ const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private authService: AuthService,
     private configService: ConfigService,
@@ -131,7 +134,7 @@ export class AuthController {
       this.setAuthCookies(res, tokens);
       return tokens;
     } catch (error) {
-      console.error('Login error:', error);
+      this.logger.error('Login error:', error);
       throw error;
     }
   }
@@ -163,7 +166,7 @@ export class AuthController {
       this.setAuthCookies(res, tokens);
       return tokens;
     } catch (error) {
-      console.error('Register error:', error);
+      this.logger.error('Register error:', error);
       throw error;
     }
   }
