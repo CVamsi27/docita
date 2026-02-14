@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  UsePipes,
 } from '@nestjs/common';
 import { CustomFieldsService } from './custom-fields.service';
 import {
@@ -13,8 +14,11 @@ import {
   UpdateCustomFieldDto,
   CustomFieldResponseDto,
   CustomFieldListResponseDto,
+  CreateCustomFieldSchema,
+  UpdateCustomFieldSchema,
 } from './dto/custom-fields.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 
@@ -37,12 +41,14 @@ export class CustomFieldsController {
 
   @Post()
   @ZodSerializerDto(CustomFieldResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateCustomFieldSchema))
   create(@Body() data: CreateCustomFieldDto) {
     return this.customFieldsService.create(data);
   }
 
   @Put(':id')
   @ZodSerializerDto(CustomFieldResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateCustomFieldSchema))
   update(@Param('id') id: string, @Body() data: UpdateCustomFieldDto) {
     return this.customFieldsService.update(id, data);
   }

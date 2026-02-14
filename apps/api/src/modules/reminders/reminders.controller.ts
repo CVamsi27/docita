@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseIntPipe,
   Request,
+  UsePipes,
 } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
 import { Role } from '@workspace/db';
@@ -19,8 +20,11 @@ import {
   ReminderSettingsResponseDto,
   AppointmentReminderListResponseDto,
   ManualReminderResponseDto,
+  UpdateReminderSettingsSchema,
+  sendReminderSchema,
 } from './dto/reminder-settings.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -41,6 +45,7 @@ export class RemindersController {
 
   @Put('settings')
   @ZodSerializerDto(ReminderSettingsResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateReminderSettingsSchema))
   updateSettings(@Body() data: ReminderSettingsDto) {
     return this.remindersService.updateSettings(data);
   }
@@ -56,6 +61,7 @@ export class RemindersController {
 
   @Post('send/:appointmentId')
   @ZodSerializerDto(ManualReminderResponseDto)
+  @UsePipes(new ZodValidationPipe(sendReminderSchema))
   sendManualReminder(
     @Param('appointmentId') appointmentId: string,
     @Body() body: SendReminderDto,

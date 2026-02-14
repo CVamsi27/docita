@@ -5,12 +5,14 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateProfileDto, UserResponseDto } from './dto/users.dto';
+import { UpdateProfileDto, UserResponseDto, UpdateProfileSchema } from './dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -31,6 +33,7 @@ export class UsersController {
   )
   @Put('profile')
   @ZodSerializerDto(UserResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateProfileSchema))
   async updateProfile(
     @Request() req: AuthRequest,
     @Body() dto: UpdateProfileDto,

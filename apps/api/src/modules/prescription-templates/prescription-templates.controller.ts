@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Request,
+  UsePipes,
 } from '@nestjs/common';
 import { TierGuard } from '../auth/tier.guard';
 import { Role } from '@workspace/db';
@@ -20,8 +21,11 @@ import {
   UpdatePrescriptionTemplateDto,
   PrescriptionTemplateResponseDto,
   PrescriptionTemplateListResponseDto,
+  CreatePrescriptionTemplateSchema,
+  UpdatePrescriptionTemplateSchema,
 } from './dto/prescription-templates.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -52,6 +56,7 @@ export class PrescriptionTemplatesController {
 
   @Post()
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
+  @UsePipes(new ZodValidationPipe(CreatePrescriptionTemplateSchema))
   async create(
     @Request() req: AuthRequest,
     @Body() dto: CreatePrescriptionTemplateDto,
@@ -61,6 +66,7 @@ export class PrescriptionTemplatesController {
 
   @Put(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdatePrescriptionTemplateSchema))
   async update(
     @Param('id') id: string,
     @Body() dto: UpdatePrescriptionTemplateDto,
