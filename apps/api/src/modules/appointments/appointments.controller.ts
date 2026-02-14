@@ -10,6 +10,7 @@ import {
   Request,
   Query,
   Put,
+  UsePipes,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import {
@@ -19,6 +20,9 @@ import {
   AppointmentResponseDto,
   PaginatedAppointmentResponseDto,
   VitalSignResponseDto,
+  CreateAppointmentSchema,
+  UpdateAppointmentSchema,
+  VitalsSchema,
 } from './dto/appointments.dto';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
@@ -27,6 +31,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -93,6 +98,7 @@ export class AppointmentsController {
 
   @Post()
   @ZodSerializerDto(AppointmentResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateAppointmentSchema))
   create(
     @Request() req: AuthRequest,
     @Body() createAppointmentDto: CreateAppointmentDto,
@@ -105,6 +111,7 @@ export class AppointmentsController {
 
   @Patch(':id')
   @ZodSerializerDto(AppointmentResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateAppointmentSchema))
   update(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -119,6 +126,7 @@ export class AppointmentsController {
 
   @Put(':id')
   @ZodSerializerDto(AppointmentResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateAppointmentSchema))
   updateWithPut(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -138,12 +146,14 @@ export class AppointmentsController {
 
   @Post(':id/vitals')
   @ZodSerializerDto(VitalSignResponseDto)
+  @UsePipes(new ZodValidationPipe(VitalsSchema))
   createVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
     return this.appointmentsService.createVitals(id, vitalsDto);
   }
 
   @Put(':id/vitals')
   @ZodSerializerDto(VitalSignResponseDto)
+  @UsePipes(new ZodValidationPipe(VitalsSchema))
   updateVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
     return this.appointmentsService.updateVitals(id, vitalsDto);
   }
