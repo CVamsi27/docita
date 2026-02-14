@@ -42,3 +42,10 @@ export const OcrResultSchema = z.object({
 export class OcrResultResponseDto extends createZodDto(OcrResultSchema) {}
 
 export class ImportJobResponseDto extends createZodDto(importJobSchema) {}
+
+export const ColumnMappingRequestSchema = z.object({
+  columnMapping: z.record(z.string(), z.string()).optional(),
+});
+export class ColumnMappingRequestDto extends createZodDto(
+  ColumnMappingRequestSchema,
+) {}

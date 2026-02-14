@@ -24,6 +24,7 @@ import {
   ImportPreviewResponseDto,
   ImportResultResponseDto,
   OcrResultResponseDto,
+  ColumnMappingRequestDto,
 } from './dto/imports.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -107,7 +108,7 @@ export class ImportsController {
   @ZodSerializerDto(ImportResultResponseDto)
   async importPatients(
     @Param('sessionId') sessionId: string,
-    @Body() body: { columnMapping?: Record<string, string> },
+    @Body() dto: ColumnMappingRequestDto,
     @Request() req: AuthRequest,
   ) {
     const session = this.sessionService.getSession(sessionId);
@@ -116,7 +117,7 @@ export class ImportsController {
     const result = await this.importsService.processPatientImport(
       session.filePath,
       req.user.clinicId,
-      body.columnMapping,
+      dto.columnMapping,
     );
 
     // Cleanup session after successful import
