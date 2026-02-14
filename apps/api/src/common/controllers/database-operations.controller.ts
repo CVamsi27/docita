@@ -17,6 +17,7 @@ import { DatabaseIndexOptimizationService } from '../database/database-index-opt
 import { DatabasePoolingService } from '../database/database-pooling.service';
 import { RolesGuard } from '../../modules/auth/roles.guard';
 import { Roles } from '../../modules/auth/roles.decorator';
+import { VerifyBackupRequestDto } from '../dto/database-operations.dto';
 
 @ApiTags('Database Operations')
 @ApiBearerAuth()
@@ -77,8 +78,8 @@ export class DatabaseOperationsController {
   @Post('backup/verify')
   @ApiOperation({ summary: 'Verify backup integrity' })
   @ApiResponse({ status: 200, description: 'Backup verification result' })
-  async verifyBackup(@Body() body: { filepath: string }) {
-    return await this.backupService.verifyBackup(body.filepath);
+  async verifyBackup(@Body() dto: VerifyBackupRequestDto) {
+    return await this.backupService.verifyBackup(dto.filepath);
   }
 
   @Get('slow-queries')
