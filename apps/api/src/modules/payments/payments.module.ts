@@ -13,6 +13,7 @@ import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gatewa
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
 import { AuthModule } from '../auth/auth.module';
+import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AuthModule } from '../auth/auth.module';
     PaymentRetryService,
     PrismaService,
     PaymentWebSocketGateway,
+    WebhookErrorHandlingService,
     {
       provide: 'IPaymentProvider',
       useClass: RazorpayPaymentProvider,

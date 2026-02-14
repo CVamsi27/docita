@@ -19,6 +19,7 @@ import { SubscriptionLifecycleService } from './subscription-lifecycle.service';
 import { ReferralService } from './referral.service';
 import { BillingHistoryService } from './billing-history.service';
 import { ProrationService } from './proration.service';
+import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ProrationService } from './proration.service';
     SubscriptionReminderScheduler,
     PaymentGatewayFactory,
     RazorpaySubscriptionGateway,
+    WebhookErrorHandlingService,
     // PaymentWebSocketGateway is provided and exported by PaymentsModule
   ],
   exports: [SubscriptionService, SubscriptionBillingService],

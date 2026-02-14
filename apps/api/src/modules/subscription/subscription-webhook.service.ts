@@ -32,46 +32,43 @@ export class SubscriptionWebhookService {
 
     this.logger.log(`Received webhook event: ${payload.event}`);
 
-    try {
-      switch (payload.event) {
-        case 'subscription.activated':
-          await this.handleSubscriptionActivated(payload);
-          break;
+    // Note: Error handling is now done at the controller level (CQ-2 enhancement)
+    // This allows for proper logging/tracking while still returning 200 to Razorpay
+    switch (payload.event) {
+      case 'subscription.activated':
+        await this.handleSubscriptionActivated(payload);
+        break;
 
-        case 'subscription.charged':
-          await this.handleSubscriptionCharged(payload);
-          break;
+      case 'subscription.charged':
+        await this.handleSubscriptionCharged(payload);
+        break;
 
-        case 'subscription.pending':
-          await this.handleSubscriptionPending(payload);
-          break;
+      case 'subscription.pending':
+        await this.handleSubscriptionPending(payload);
+        break;
 
-        case 'subscription.halted':
-          await this.handleSubscriptionHalted(payload);
-          break;
+      case 'subscription.halted':
+        await this.handleSubscriptionHalted(payload);
+        break;
 
-        case 'subscription.cancelled':
-          await this.handleSubscriptionCancelled(payload);
-          break;
+      case 'subscription.cancelled':
+        await this.handleSubscriptionCancelled(payload);
+        break;
 
-        case 'subscription.completed':
-          this.handleSubscriptionCompleted(payload);
-          break;
+      case 'subscription.completed':
+        this.handleSubscriptionCompleted(payload);
+        break;
 
-        case 'payment.captured':
-          await this.handlePaymentCaptured(payload);
-          break;
+      case 'payment.captured':
+        await this.handlePaymentCaptured(payload);
+        break;
 
-        case 'payment.failed':
-          await this.handlePaymentFailed(payload);
-          break;
+      case 'payment.failed':
+        await this.handlePaymentFailed(payload);
+        break;
 
-        default:
-          this.logger.log(`Unhandled event type: ${payload.event}`);
-      }
-    } catch (error) {
-      this.logger.error(`Error processing webhook: ${payload.event}`, error);
-      // We catch the error but don't rethrow to ensure 200 is returned to Razorpay
+      default:
+        this.logger.log(`Unhandled event type: ${payload.event}`);
     }
   }
 
