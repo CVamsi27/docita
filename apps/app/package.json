@@ -19,6 +19,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
     "audit:accessibility": "playwright test e2e/accessibility.spec.ts",
+    "test:critical-flows": "playwright test e2e/critical-flows.spec.ts",
     "test:unit": "vitest run"
   },
   "dependencies": {

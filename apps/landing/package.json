@@ -7,7 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "audit:accessibility": "playwright test e2e/accessibility.spec.ts"
+    "audit:accessibility": "playwright test e2e/accessibility.spec.ts",
+    "test:critical-flows": "playwright test e2e/critical-flows.spec.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.10",
