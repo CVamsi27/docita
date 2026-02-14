@@ -40,7 +40,7 @@ export * from "./prescription-templates";
 export * from "./reminders";
 export * from "./clinics";
 export * from "./lab-tests";
-export * from "./ipd";
+export * from "./ipd"; // consolidated with ipd-types
 export * from "./medical-coding";
 export * from "./document-types";
 export * from "./procedure-codes";
@@ -52,9 +52,8 @@ export * from "./tier";
 export * from "./ai-components";
 export * from "./ocr";
 export * from "./prisma-types";
-export * from "./ipd-types";
-export * from "./super-admin-types";
-export * from "./payment-types";
+export * from "./super-admin"; // consolidated with super-admin-types
+export * from "./payments"; // consolidated with payment-types
 export * from "./api-types";
 export * from "./ai-types";
 export * from "./error-types";

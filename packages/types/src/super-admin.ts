@@ -1,6 +1,81 @@
 import { z } from "zod";
 import { clinicSchema } from "./clinics";
 
+/**
+ * Super Admin Types
+ * =====================================================
+ * Types for super admin dashboard and management
+ */
+
+/**
+ * ClinicTier matches the Prisma enum
+ */
+export type ClinicTierType = "CAPTURE" | "CORE" | "PLUS" | "PRO" | "ENTERPRISE" | "INTELLIGENCE";
+
+/**
+ * =====================================================
+ * Super Admin DTO Types (Consolidated from super-admin-types.ts)
+ * =====================================================
+ */
+
+export interface CreateClinicDto {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  tier?: ClinicTierType;
+  website?: string;
+  mrnPrefix?: string;
+  timezone?: string;
+  adminEmail: string;
+  adminName: string;
+  adminPassword: string;
+}
+
+export interface CreateAdminDto {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  adminType: "admin" | "admin_doctor";
+  qualification?: string;
+  registrationNumber?: string;
+  specialization?: string;
+}
+
+export interface UpdateAdminDto {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  adminType?: "admin" | "admin_doctor";
+  qualification?: string;
+  registrationNumber?: string;
+  specialization?: string;
+}
+
+export interface UpdateClinicAIFeaturesDto {
+  enabled?: boolean;
+  features?: {
+    predictiveAnalytics?: boolean;
+    automatedDiagnosis?: boolean;
+    patientInsights?: boolean;
+    appointmentOptimization?: boolean;
+    prescriptionAssistant?: boolean;
+  };
+}
+
+export interface SuperAdminPaymentData {
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+}
+
+/**
+ * =====================================================
+ * Super Admin Analytics Schemas (Keep existing)
+ * =====================================================
+ */
+
 export const superAdminGlobalStatsSchema = z.object({
     totalClinics: z.number(),
     activeClinics: z.number(),

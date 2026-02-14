@@ -2,13 +2,9 @@ import { z } from "zod";
 
 /**
  * =====================================================
- * PAYMENT TYPES
+ * PAYMENT ENUMS (for NestJS compatibility)
  * =====================================================
  */
-
-// =====================================================
-// PAYMENT ENUMS (for NestJS compatibility)
-// =====================================================
 
 export enum PaymentMode {
   ONLINE = "ONLINE",
@@ -27,6 +23,20 @@ export enum PaymentMethod {
 // Zod schemas for validation
 export const paymentModeSchema = z.nativeEnum(PaymentMode);
 export const paymentMethodSchema = z.nativeEnum(PaymentMethod);
+
+/**
+ * =====================================================
+ * LEGACY PAYMENT TYPES (Consolidated from payment-types.ts)
+ * =====================================================
+ */
+
+export interface PaymentRetryInvoice {
+  id: string;
+  patientId: string;
+  total: number;
+  status: string;
+  createdAt: Date | string;
+}
 
 // =====================================================
 // PAYMENT LINK DTO

@@ -8,7 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
 import { SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
-import type { PaymentData } from '@workspace/types';
+import type { OnboardingPaymentData } from '@workspace/types';
 import type { PrismaTransaction } from '@workspace/types';
 import {
   ClinicDetailsDto,
@@ -136,7 +136,7 @@ export class OnboardingWorkflowService {
     tx: PrismaTransaction,
     clinicId: string,
     planData: PlanSelectionDto,
-    paymentData?: PaymentData,
+    paymentData?: OnboardingPaymentData,
   ): Promise<any> {
     const now = new Date();
     const periodEnd =
