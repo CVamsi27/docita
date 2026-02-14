@@ -61,8 +61,8 @@ export class AuditService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to queue audit log: ${error.message}`,
-        error.stack,
+        `Failed to queue audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -124,8 +124,8 @@ export class AuditService {
         return auditData;
       } catch (error) {
         this.logger.error(
-          `Failed to create audit log: ${error.message}`,
-          error.stack,
+          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
         );
         throw error;
       }
@@ -189,8 +189,8 @@ export class AuditService {
       return logs;
     } catch (error) {
       this.logger.error(
-        `Failed to get audit logs: ${error.message}`,
-        error.stack,
+        `Failed to get audit logs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }
@@ -216,8 +216,8 @@ export class AuditService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to archive audit logs: ${error.message}`,
-        error.stack,
+        `Failed to archive audit logs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

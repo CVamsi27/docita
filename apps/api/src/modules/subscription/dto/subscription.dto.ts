@@ -15,10 +15,10 @@ export class SubscriptionTierConfigResponseDto extends createZodDto(
 ) {}
 
 export class AddOnDto {
-  id: string;
-  name: string;
-  description: string;
-  pricing: Record<
+  id!: string;
+  name!: string;
+  description!: string;
+  pricing!: Record<
     string,
     { basePrice: number | string; includedQuota: number; overageRate: number }
   >; // keyed by TierName

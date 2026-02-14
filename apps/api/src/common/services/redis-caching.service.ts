@@ -25,7 +25,7 @@ export class RedisCachingService implements OnModuleInit {
       password: process.env.REDIS_PASSWORD,
       username: process.env.REDIS_USERNAME,
       socket: {
-        reconnectStrategy: (retries) => {
+        reconnectStrategy: (retries: number) => {
           return Math.min(retries * 50, 500);
         },
       },
@@ -47,7 +47,7 @@ export class RedisCachingService implements OnModuleInit {
       await this.client.connect();
     } catch (error) {
       this.logger.warn(
-        `Redis connection failed: ${error.message} - caching disabled`,
+        `Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'} - caching disabled`,
       );
     }
   }
@@ -64,7 +64,7 @@ export class RedisCachingService implements OnModuleInit {
 
       return JSON.parse(value) as T;
     } catch (error) {
-      this.logger.warn(`Cache get error: ${error.message}`);
+      this.logger.warn(`Cache get error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
   }
@@ -87,7 +87,7 @@ export class RedisCachingService implements OnModuleInit {
         }
       }
     } catch (error) {
-      this.logger.warn(`Cache set error: ${error.message}`);
+      this.logger.warn(`Cache set error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -100,7 +100,7 @@ export class RedisCachingService implements OnModuleInit {
     try {
       await this.client.del(key);
     } catch (error) {
-      this.logger.warn(`Cache delete error: ${error.message}`);
+      this.logger.warn(`Cache delete error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -118,7 +118,7 @@ export class RedisCachingService implements OnModuleInit {
       }
       await this.client.del(`tag:${tag}`);
     } catch (error) {
-      this.logger.warn(`Cache tag invalidation error: ${error.message}`);
+      this.logger.warn(`Cache tag invalidation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -132,7 +132,7 @@ export class RedisCachingService implements OnModuleInit {
       await this.client.flushAll();
       this.logger.log('Cache cleared');
     } catch (error) {
-      this.logger.warn(`Cache clear error: ${error.message}`);
+      this.logger.warn(`Cache clear error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -154,8 +154,9 @@ export class RedisCachingService implements OnModuleInit {
 
       return { info, dbSize, connected: true };
     } catch (error) {
-      this.logger.warn(`Cache stats error: ${error.message}`);
-      return { info: error.message, dbSize: 0, connected: false };
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Cache stats error: ${errorMsg}`);
+      return { info: errorMsg, dbSize: 0, connected: false };
     }
   }
 }

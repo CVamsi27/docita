@@ -42,7 +42,7 @@ export class PrescriptionPdfService extends BasePdfService {
     const { doc, context } = this.createDocument(config);
     const buffers: Buffer[] = [];
 
-    doc.on('data', (buffer) => buffers.push(buffer));
+    doc.on('data', (buffer: Buffer) => buffers.push(buffer));
     doc.on('end', () => {});
 
     // Header

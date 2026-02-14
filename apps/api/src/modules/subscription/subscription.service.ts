@@ -56,10 +56,10 @@ export class SubscriptionService {
       tiers: tiers.map((tier) => ({
         id: tier,
         tier: Tier[tier as keyof typeof Tier],
-        ...TIER_INFO[tier],
-        pricing: TIER_PRICING[tier],
-        limits: TIER_LIMITS[tier],
-        features: TIER_FEATURES[tier] || [],
+        ...TIER_INFO[tier as ClinicTier],
+        pricing: TIER_PRICING[tier as ClinicTier],
+        limits: TIER_LIMITS[tier as ClinicTier],
+        features: TIER_FEATURES[tier as ClinicTier] || [],
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
@@ -262,9 +262,9 @@ export class SubscriptionService {
       .map(([key, info]) => ({
         id: key,
         name: info.name,
-        features: TIER_FEATURES[key] || [],
-        pricing: TIER_PRICING[key],
-        limits: TIER_LIMITS[key],
+        features: TIER_FEATURES[key as ClinicTier] || [],
+        pricing: TIER_PRICING[key as ClinicTier],
+        limits: TIER_LIMITS[key as ClinicTier],
       }));
   }
 

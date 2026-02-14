@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.38.0",
+    "@sentry/tracing": "^7.120.4",
     "@workspace/data-access": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/ui": "workspace:*",

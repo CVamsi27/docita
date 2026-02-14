@@ -1,5 +1,5 @@
 export class UpdateAIFeaturesDto {
-  enabled: boolean;
+  enabled!: boolean;
   features?: {
     predictiveAnalytics?: boolean;
     automatedDiagnosis?: boolean;

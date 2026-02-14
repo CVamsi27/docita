@@ -56,7 +56,7 @@ export class PaymentRetryService {
         attempts: 1,
       });
     } catch (error) {
-      this.logger.error(`Failed to schedule payment retry: ${error.message}`);
+      this.logger.error(`Failed to schedule payment retry: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
   }
@@ -87,7 +87,7 @@ export class PaymentRetryService {
           this.attemptPayment(invoice);
         }
       } catch (error) {
-        this.logger.error(`Error processing pending retries: ${error.message}`);
+        this.logger.error(`Error processing pending retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     });
   }
@@ -102,7 +102,7 @@ export class PaymentRetryService {
       // For now, return false to simulate retry behavior
       return false;
     } catch (error) {
-      this.logger.error(`Payment attempt failed: ${error.message}`);
+      this.logger.error(`Payment attempt failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -117,7 +117,7 @@ export class PaymentRetryService {
       );
       // Phase 2 implementation will handle Razorpay API calls
     } catch (error) {
-      this.logger.error(`Error processing retry: ${error.message}`);
+      this.logger.error(`Error processing retry: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -142,7 +142,7 @@ export class PaymentRetryService {
       this.logger.debug(`Fetching pending retries for clinic ${clinicId}`);
       return [];
     } catch (error) {
-      this.logger.error(`Failed to get pending retries: ${error.message}`);
+      this.logger.error(`Failed to get pending retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
   }

@@ -138,7 +138,7 @@ export class OnboardingDataService {
       [OnboardingStep.CONSENT_MANAGEMENT]: 'consentManagement',
       [OnboardingStep.STAFF_SETUP]: 'staffSetup',
     };
-    return keyMap[step] || step.toLowerCase();
+    return keyMap[step as keyof typeof keyMap] || step.toLowerCase();
   }
 
   /**

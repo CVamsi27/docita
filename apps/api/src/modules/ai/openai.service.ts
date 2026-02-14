@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 @Injectable()
 export class OpenaiService {
   private readonly logger = new Logger(OpenaiService.name);
-  private openai: OpenAI;
+  private openai!: OpenAI;
   private readonly modelType: string;
   private readonly requestTimeout: number;
   private readonly cacheEnabled: boolean;

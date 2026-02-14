@@ -32,7 +32,7 @@ export class ClinicManagementService {
   async getAllClinics(options?: { cursor?: string; limit?: number }) {
     try {
       return paginateWithCursor({
-        model: this.prisma.clinic,
+        model: this.prisma.clinic as any,
         cursor: options?.cursor,
         limit: options?.limit || 50,
         orderBy: { createdAt: 'desc' },

@@ -86,7 +86,7 @@ export class SnapshotAnalyticsFactory {
         86400000, // 24 hours
       );
     } catch (error) {
-      this.logger.error(`Error creating analytics snapshot: ${error.message}`);
+      this.logger.error(`Error creating analytics snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -115,7 +115,7 @@ export class SnapshotAnalyticsFactory {
       }));
     } catch (error) {
       this.logger.error(
-        `Error retrieving analytics snapshots: ${error.message}`,
+        `Error retrieving analytics snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       return [];
     }
@@ -159,7 +159,7 @@ export class SnapshotAnalyticsFactory {
         snapshots: snapshots.slice(0, 10), // Return last 10 snapshots
       };
     } catch (error) {
-      this.logger.error(`Error retrieving snapshot trends: ${error.message}`);
+      this.logger.error(`Error retrieving snapshot trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
   }

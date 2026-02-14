@@ -6,18 +6,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  experimental: {
-    turbopack: {
-      resolveAlias: {
-        '@workspace/ui': '@workspace/ui',
-        '@workspace/hooks': '@workspace/hooks',
-        '@workspace/types': '@workspace/types',
-        '@workspace/auth': '@workspace/auth',
-        '@workspace/data-access': '@workspace/data-access',
-        '@workspace/utils': '@workspace/utils',
-      },
-    },
-  },
 };
 
 // Conditional Sentry configuration
@@ -27,9 +15,6 @@ const config = process.env.NEXT_PUBLIC_SENTRY_DSN
       org: process.env.SENTRY_ORG || 'docita',
       project: process.env.SENTRY_PROJECT || 'frontend',
       // Authentication note: Requires Sentry token setup in environment
-
-      // Automatically capture performance metrics
-      tracesSampleRate: 1,
 
       // Sets the environment to development when running locally
       environment: process.env.NODE_ENV,

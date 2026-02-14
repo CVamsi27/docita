@@ -54,7 +54,6 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   nextConfig = withSentryConfig(nextConfig, {
     org: process.env.SENTRY_ORG || "docita",
     project: process.env.SENTRY_PROJECT || "admin",
-    tracesSampleRate: 1,
     environment: process.env.NODE_ENV,
     _experiments: {
       captureCheckIn: true,

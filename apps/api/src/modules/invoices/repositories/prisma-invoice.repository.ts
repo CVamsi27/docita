@@ -66,7 +66,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     }
 
     return paginateWithCursor({
-      model: this.prisma.invoice,
+      model: this.prisma.invoice as any,
       cursor,
       limit: limit || 20,
       where,

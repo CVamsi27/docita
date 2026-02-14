@@ -16,8 +16,8 @@ export class AuditProcessor {
       await this.auditService.createAuditLog(job.data);
     } catch (error) {
       this.logger.error(
-        `Failed to process audit log job ${job.id}: ${error.message}`,
-        error.stack,
+        `Failed to process audit log job ${job.id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }

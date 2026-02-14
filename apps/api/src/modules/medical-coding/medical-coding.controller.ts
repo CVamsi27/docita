@@ -44,37 +44,37 @@ export class MedicalCodingController {
 
   @Get('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
-  async getFavorites(@Request() req) {
+  async getFavorites(@Request() req: any) {
     return this.medicalCodingService.getFavorites(req.user.id);
   }
 
   @Post('favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addFavorite(@Request() req, @Body() dto: AddFavoriteDto) {
+  async addFavorite(@Request() req: any, @Body() dto: AddFavoriteDto) {
     return this.medicalCodingService.addFavorite(req.user.id, dto.icdCodeId);
   }
 
   @Delete('favorites/:icdCodeId')
-  async removeFavorite(@Request() req, @Param('icdCodeId') icdCodeId: string) {
+  async removeFavorite(@Request() req: any, @Param('icdCodeId') icdCodeId: string) {
     return this.medicalCodingService.removeFavorite(req.user.id, icdCodeId);
   }
 
   // CPT Favorites
   @Get('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
-  async getCptFavorites(@Request() req) {
+  async getCptFavorites(@Request() req: any) {
     return this.medicalCodingService.getCptFavorites(req.user.id);
   }
 
   @Post('cpt-favorites')
   @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
-  async addCptFavorite(@Request() req, @Body() dto: AddCptFavoriteDto) {
+  async addCptFavorite(@Request() req: any, @Body() dto: AddCptFavoriteDto) {
     return this.medicalCodingService.addCptFavorite(req.user.id, dto.cptCodeId);
   }
 
   @Delete('cpt-favorites/:cptCodeId')
   async removeCptFavorite(
-    @Request() req,
+    @Request() req: any,
     @Param('cptCodeId') cptCodeId: string,
   ) {
     return this.medicalCodingService.removeCptFavorite(req.user.id, cptCodeId);
@@ -82,7 +82,7 @@ export class MedicalCodingController {
 
   @Get('uncoded')
   @ZodSerializerDto(UncodedVisitListResponseDto)
-  async getUncodedVisits(@Request() req, @Query('search') search?: string) {
+  async getUncodedVisits(@Request() req: any, @Query('search') search?: string) {
     return this.medicalCodingService.getUncodedVisits(
       req.user.clinicId,
       search,

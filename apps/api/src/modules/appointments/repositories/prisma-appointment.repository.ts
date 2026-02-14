@@ -113,7 +113,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
 
     // Execute Pagination
     return paginateWithCursor({
-      model: this.prisma.appointment,
+      model: this.prisma.appointment as any,
       cursor,
       limit: limit || 50,
       where,

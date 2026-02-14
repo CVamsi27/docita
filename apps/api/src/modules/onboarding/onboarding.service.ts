@@ -250,7 +250,7 @@ export class OnboardingService {
         user: authCredentials.user,
       };
     } catch (error) {
-      this.logger.error(`Onboarding failed: ${error.message}`, error.stack);
+      this.logger.error(`Onboarding failed: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
 
       // Log failure event
       if (clinicId && userId) {
@@ -259,7 +259,7 @@ export class OnboardingService {
           clinicId,
           'CLINIC_ONBOARDING_FAILED',
           {
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
             onboardingId,
           },
         );
@@ -270,7 +270,7 @@ export class OnboardingService {
         clinicId: clinicId || '',
         userId: userId || '',
         message: 'Onboarding failed. Please try again.',
-        errors: [error.message],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   }

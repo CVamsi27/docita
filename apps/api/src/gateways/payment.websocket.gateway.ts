@@ -49,7 +49,7 @@ export class PaymentWebSocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private logger = new Logger('PaymentGateway');
   private readonly RATE_LIMIT_MESSAGES = 10; // Max 10 messages

@@ -388,7 +388,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       // Check medication name against allergies
       if (
         patientAllergies.some(
-          (allergy) =>
+          (allergy: any) =>
             medName.includes(allergy.toLowerCase()) ||
             allergy.toLowerCase().includes(medName),
         )

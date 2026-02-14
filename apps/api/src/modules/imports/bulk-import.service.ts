@@ -132,8 +132,8 @@ export class BulkImportService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to start bulk import: ${error.message}`,
-        error.stack,
+        `Failed to start bulk import: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }
@@ -196,8 +196,8 @@ export class BulkImportService {
       this.logger.debug(`Import result: ${JSON.stringify(result)}`);
     } catch (error) {
       this.logger.error(
-        `Error processing import job: ${error.message}`,
-        error.stack,
+        `Error processing import job: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }
@@ -249,7 +249,7 @@ export class BulkImportService {
       } catch (error) {
         errors.push({
           rowNumber,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           value: row,
         });
       }

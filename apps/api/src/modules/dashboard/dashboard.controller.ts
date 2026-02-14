@@ -12,7 +12,7 @@ export class DashboardController {
 
   @Get('stats')
   @ZodSerializerDto(DashboardStatsResponseDto)
-  async getStats(@Request() req) {
+  async getStats(@Request() req: any) {
     return this.dashboardService.getStats(req.user.clinicId);
   }
 }

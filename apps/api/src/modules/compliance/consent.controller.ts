@@ -94,7 +94,7 @@ export class ConsentController {
     return this.dpdpService.handleErasureRequest(
       {
         patientId,
-        clinicId: req.user?.['clinicId'], // Assuming extracted from token
+        clinicId: (req.user as any)?.clinicId, // Assuming extracted from token
         requestType: 'ERASURE' as any,
         reason: body.reason,
         requestedBy: body.requestedBy,
