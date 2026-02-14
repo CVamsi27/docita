@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-02-14  
 **Planning Horizon:** 6-12 months post-launch  
-**Status:** 0% Complete (62 feature items)
+**Status:** 0% Complete (68 feature items)
 
 ---
 
@@ -21,13 +21,132 @@ This document contains **all business features, enhancements, and major improvem
 
 | Phase | Timeline | Focus | Items |
 |-------|----------|-------|-------|
+| **Phase 0: Immediate** | Week 1-4 | Polish & monitoring enhancements from pre-launch | 6 items |
 | **Phase 1: Foundations** | Months 1-2 | Architecture cleanup, quality improvements | 12 items |
 | **Phase 2: India-First** | Months 2-4 | i18n, ABDM, PWA, mobile optimization | 8 items |
 | **Phase 3: Patient-Facing** | Months 4-7 | Patient portal, online booking, telehealth | 10 items |
 | **Phase 4: Revenue & Growth** | Months 6-9 | CRM, analytics, insurance, marketplace | 14 items |
 | **Phase 5: Enterprise** | Months 9-12 | Multi-branch, white-label, integrations | 10 items |
 | **Phase 6: Platform** | Months 12+ | Mobile apps, API platform, AI features | 8 items |
-| **TOTAL** | **12 months** | **Full-featured competitive product** | **62 items** |
+| **TOTAL** | **12 months** | **Full-featured competitive product** | **68 items** |
+
+---
+
+## 📅 Phase 0: Immediate Post-Launch Polish (Week 1-4)
+
+**Goal:** Complete optional enhancements deferred from pre-launch to reach 100% polish.
+
+### 0.1 — Component Test Coverage Expansion
+**Priority:** 🟡 HIGH | **Effort:** 4-6 hours | **Status:** Infrastructure ready
+
+**Current State:**
+- ✅ React Testing Library + Vitest configured
+- ✅ 3 component tests created (12 test cases)
+- ✅ All tests passing
+
+**Tasks:**
+- [ ] Add PatientForm component test (30 min)
+- [ ] Add AppointmentForm component test (30 min)
+- [ ] Add Dashboard component test (20 min)
+- [ ] Add PatientListView component test (30 min)
+- [ ] Add ClinicSettings component test (30 min)
+- [ ] Target: 10-15 component test files total
+
+**Business Value:** Catch UI regressions early, faster development confidence
+
+---
+
+### 0.2 — Mobile Device Testing
+**Priority:** 🟡 HIGH | **Effort:** 2 hours | **Status:** Code patterns verified
+
+**Current State:**
+- ✅ Responsive Tailwind classes throughout
+- ✅ Touch targets appear adequate in code review
+- 🟡 Needs verification on real devices
+
+**Tasks:**
+- [ ] Test on iPhone 13 (375px width) - 30 min
+- [ ] Test on iPad (768px width) - 15 min  
+- [ ] Test on Android device - 15 min
+- [ ] Verify all touch targets meet 48x48px minimum
+- [ ] Check for horizontal scroll issues
+- [ ] Test keyboard behavior on mobile forms
+
+**Business Value:** Ensure excellent mobile UX for majority of users
+
+---
+
+### 0.3 — Performance Baseline & Monitoring
+**Priority:** 🔴 CRITICAL | **Effort:** 2-3 hours | **Status:** Infrastructure ready
+
+**Current State:**
+- ✅ k6 installed and baseline script created
+- ✅ Performance thresholds defined
+- 🟡 Needs initial baseline run
+
+**Tasks:**
+- [ ] Run k6 baseline test suite (30 min)
+- [ ] Document baseline metrics (response times, throughput)
+- [ ] Integrate k6 with CloudWatch or DataDog (1 hour)
+- [ ] Add enhanced test scenarios (auth, payment workflows) (1 hour)
+- [ ] Set up performance regression alerts
+- [ ] Create performance dashboard visualization
+
+**Business Value:** Detect performance regressions, capacity planning
+
+---
+
+### 0.4 — Production Alerting Enhancement
+**Priority:** 🟡 HIGH | **Effort:** 2-3 hours | **Status:** Framework ready
+
+**Current State:**
+- ✅ ErrorAlertingService created
+- ✅ All error paths tested
+- 🟡 Needs external integration
+
+**Tasks:**
+- [ ] Integrate Sentry with Slack (#docita-alerts) (30 min)
+- [ ] Set up PagerDuty for SEV-1/SEV-2 incidents (1 hour)
+- [ ] Configure UptimeRobot alerts to Slack (15 min)
+- [ ] Tune error rate thresholds based on week 1 data (30 min)
+- [ ] Set up daily/weekly summary reports
+- [ ] Test full alerting chain end-to-end
+
+**Business Value:** Faster incident response, reduced downtime
+
+---
+
+### 0.5 — Form UI Polish (Cosmetic)
+**Priority:** 🟢 MEDIUM | **Effort:** 2-3 hours | **Status:** Core complete
+
+**Current State:**
+- ✅ All validation working
+- ✅ Error states clear
+- 🟡 Optional visual polish
+
+**Tasks:**
+- [ ] Add field-level success indicators (green checkmarks) (1 hour)
+- [ ] Add animated validation transitions (1 hour)
+- [ ] Add loading state illustrations to skeletons (1 hour)
+- [ ] Polish empty state graphics
+
+**Business Value:** Professional polish, improved user confidence
+
+---
+
+### 0.6 — CI/CD Automation Enhancement
+**Priority:** 🟢 MEDIUM | **Effort:** 1 hour | **Status:** Core complete
+
+**Current State:**
+- ✅ GitHub Actions CI complete
+- 🟡 Manual deployment process
+
+**Tasks:**
+- [ ] Add automatic deployment to staging on merge to `develop`
+- [ ] Add automatic preview deployments for PRs
+- [ ] Set up deployment notifications to Slack
+
+**Business Value:** Faster iteration, reduced manual deployment errors
 
 ---
 
