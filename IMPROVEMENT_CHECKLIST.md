@@ -2244,17 +2244,28 @@ Version mismatches create inconsistent behavior and build issues:
 
 | Pair | Action |
 |------|--------|
-| `onboarding.ts` + `onboarding-types.ts` | Merge into one file |
-| `payments.ts` + `payment-types.ts` | Merge into one file |
-| `ipd.ts` + `ipd-types.ts` | Merge into one file |
-| `super-admin.ts` + `super-admin-types.ts` | Merge into one file |
+| `onboarding.ts` + `onboarding-types.ts` | ✅ MERGED |
+| `payments.ts` + `payment-types.ts` | ✅ MERGED |
+| `ipd.ts` + `ipd-types.ts` | ✅ MERGED |
+| `super-admin.ts` + `super-admin-types.ts` | ✅ MERGED |
 
-- [ ] Audit each pair for overlap
-- [ ] Merge into single file per domain (keep the shorter name)
-- [ ] Update all imports across the monorepo
-- [ ] Enforce convention: one type file per domain
+- [x] Audit each pair for overlap ✅
+- [x] Merge into single file per domain ✅
+- [x] Update all imports across the monorepo ✅
+- [x] Enforce convention: one type file per domain ✅
 
-**Status:** ⏳ NOT STARTED
+**What was done:**
+- Consolidated 8 type files into 4 unified files
+- onboarding.ts: Combined Zod schemas with interface-based DTOs (BillingCycle, ClinicInfoData, DoctorInfoData, PlanSelectionData, OnboardingPaymentData, OnboardingStepData)
+- payments.ts: Consolidated enums (PaymentMode, PaymentMethod), schemas, and legacy PaymentRetryInvoice interface
+- ipd.ts: Combined Zod schemas (BedStatus, AdmissionStatus, wardSchema, roomSchema, bedSchema, admissionSchema) with DTO interfaces
+- super-admin.ts: Merged analytics schemas with management DTOs (ClinicTierType, CreateClinicDto, CreateAdminDto, UpdateAdminDto, UpdateClinicAIFeaturesDto)
+- Fixed onboarding-workflow.service.ts to use OnboardingPaymentData with backward compatibility export
+- Updated packages/types/src/index.ts to remove duplicate exports and reference consolidated files
+
+**Status:** ✅ COMPLETED (100% - 4 duplicate file pairs consolidated into unified single files)
+
+---
 
 ---
 
@@ -2555,7 +2566,7 @@ Unified chronological view of patient's entire health journey.
 | 🟢 Medium | 3 | 0 | 3 |
 | **Subtotal** | **7** | **0** | **7** |
 
-## 📈 Updated Summary Progress (Final - Session 2.25.5)
+## 📈 Updated Summary Progress (Final - Session 2.25.5 - CONTINUED)
 
 ### Completion Status by Priority
 
@@ -2563,9 +2574,9 @@ Unified chronological view of patient's entire health journey.
 |----------|-------|-----------|-----------|
 | 🔴 CRITICAL | 18 | 18 | **100%** ✅ |
 | 🟡 HIGH | 45 | 42 | **93%** |
-| 🟢 MEDIUM | 35 | 10 | **29%** |
+| 🟢 MEDIUM | 35 | 11 | **31%** |
 | ⏸️ FUTURE | 22 | 0 | **0%** |
-| **TOTAL** | **120** | **70** | **58%** |
+| **TOTAL** | **120** | **71** | **59%** |
 
 ### By Category
 
@@ -2584,7 +2595,7 @@ Unified chronological view of patient's entire health journey.
 | **Business Features (§11)** | ⏸️ 0% | Patient portal, booking, telehealth deferred to future phase |
 | **Revenue Features (§12)** | ⏸️ 0% | Marketplace, insurance, pharmacy deferred to future phase |
 | **SOLID & Patterns (§13)** | 🟡 30% | Strict mode ready, repository pattern implemented, process.env eliminated |
-| **File Cleanup (§14)** | ✅ 95% | Binary files removed, dead files deleted, unused deps cleaned |
+| **File Cleanup (§14)** | ✅ 97% | Binary files removed, dead files deleted, unused deps cleaned, duplicate types consolidated |
 | **UI Modernization (§15)** | 🟡 20% | Error boundaries implemented, accessibility pending |
 | **Business Features (§16)** | ⏸️ 0% | Advanced features deferred to growth phase |
 
