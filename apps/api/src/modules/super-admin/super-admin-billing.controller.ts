@@ -19,6 +19,7 @@ import {
 
 // Helper functions moved to SuperAdminBillingService or utils
 import { SuperAdminBillingService } from './super-admin-billing.service';
+import { ExtendGracePeriodRequestDto } from './dto/payment.dto';
 
 @Controller('super-admin/billing')
 @ApiTags('Super Admin - Billing')
@@ -78,8 +79,8 @@ export class SuperAdminBillingController {
   @ApiOperation({ summary: 'Extend grace period for a subscription' })
   async extendGracePeriod(
     @Param('subscriptionId') subscriptionId: string,
-    @Body() body: { days: number },
+    @Body() dto: ExtendGracePeriodRequestDto,
   ) {
-    return this.billingService.extendGracePeriod(subscriptionId, body.days);
+    return this.billingService.extendGracePeriod(subscriptionId, dto.days);
   }
 }
