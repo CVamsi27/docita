@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -23,8 +24,10 @@ import {
   MonitoringDashboardResponseDto,
   WebVitalListResponseDto,
   AnyResponseDto,
+  WebVitalSchema,
 } from './dto/monitoring.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 import { ArchivalService } from '../compliance/archival.service';
 
@@ -183,6 +186,7 @@ export class MonitoringController {
    */
   @Post('web-vitals')
   @ZodSerializerDto(AnyResponseDto) // Returns void/status
+  @UsePipes(new ZodValidationPipe(WebVitalSchema))
   async reportWebVital(@Body() vital: WebVitalDto) {
     return this.monitoringService.recordWebVital(vital);
   }

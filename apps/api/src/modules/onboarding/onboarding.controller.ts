@@ -8,12 +8,14 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  UsePipes,
 } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
 import {
   CompleteOnboardingDto,
   OnboardingStep,
   OnboardingProgressDto,
+  completeOnboardingSchema,
 } from './dto/create-clinic-onboarding.dto';
 import {
   OnboardingInitResponseDto,
@@ -21,6 +23,7 @@ import {
 } from './dto/onboarding-response.dto';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 import { Public } from '../auth/public.decorator';
 
@@ -46,6 +49,7 @@ export class OnboardingController {
    */
   @Patch(':onboardingId/step/:step')
   @ZodSerializerDto(OnboardingProgressDto)
+  @UsePipes(new ZodValidationPipe(completeOnboardingSchema))
   updateStep(
     @Param('onboardingId') onboardingId: string,
     @Param('step') step: OnboardingStep,
@@ -74,6 +78,7 @@ export class OnboardingController {
   @Post(':onboardingId/complete')
   @HttpCode(201)
   @ZodSerializerDto(OnboardingCompletionResponseDto)
+  @UsePipes(new ZodValidationPipe(completeOnboardingSchema))
   async completeOnboarding(
     @Param('onboardingId') onboardingId: string,
     @Body() completeData: CompleteOnboardingDto,
