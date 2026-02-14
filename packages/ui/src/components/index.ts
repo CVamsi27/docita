@@ -33,6 +33,8 @@ export * from "./select";
 export * from "./separator";
 export * from "./sheet";
 export * from "./skeleton";
+export * from "./patient-list-skeleton";
+export * from "./appointment-calendar-skeleton";
 export * from "./slider";
 export * from "./stats-card";
 export * from "./status-badge";
