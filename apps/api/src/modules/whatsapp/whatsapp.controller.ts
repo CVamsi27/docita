@@ -14,11 +14,12 @@ import {
   NotFoundException,
   Headers,
   RawBodyRequest,
+  UsePipes,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { WhatsappService } from './whatsapp.service';
-import { SendTemplateDto } from './dto/send-template.dto';
+import { SendTemplateDto, sendTemplateSchema } from './dto/send-template.dto';
 import { MetaWebhookPayload } from './types/webhook.types';
 import { Request } from 'express';
 import {
@@ -30,6 +31,7 @@ import {
   SuccessResponseDto,
 } from './dto/whatsapp-response.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 // ... (comments elided for brevity if not strictly needed)
 
@@ -96,6 +98,7 @@ export class WhatsappController {
    */
   @Post('send')
   @ZodSerializerDto(WhatsappMessageResponseDto)
+  @UsePipes(new ZodValidationPipe(sendTemplateSchema))
   async sendTemplateMessage(@Req() req: Request, @Body() dto: SendTemplateDto) {
     const user = req.user as { clinicId: string; id: string };
     if (!user.clinicId) {
