@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 import { createRequire } from "module";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
 
-const nextConfig: NextConfig = {
+let nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/types"],
 
   // ✅ OPTIMIZATION: Compression for smaller payloads
@@ -47,5 +48,29 @@ const nextConfig: NextConfig = {
     },
   }),
 };
+
+// ✅ Add Sentry error tracking for admin app
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  nextConfig = withSentryConfig(nextConfig, {
+    org: process.env.SENTRY_ORG || "docita",
+    project: process.env.SENTRY_PROJECT || "admin",
+    tracesSampleRate: 1,
+    environment: process.env.NODE_ENV,
+    _experiments: {
+      captureCheckIn: true,
+    },
+    ignoreErrors: [
+      "top.GLOBALS",
+      "chrome-extension://",
+      "moz-extension://",
+      "NetworkError when attempting to fetch resource",
+      "Failed to fetch",
+      "fetch is not defined",
+      "ResizeObserver loop limit exceeded",
+      "Script error",
+      "Non-Error promise rejection captured",
+    ],
+  });
+}
 
 export default nextConfig;

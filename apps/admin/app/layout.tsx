@@ -1,5 +1,6 @@
 import "@workspace/ui/globals.css";
 import { Providers } from "./providers";
+import { SentryInitializer } from "@/components/sentry-initializer";
 
 export const metadata = {
   title: "Docita Admin - Super Admin Console",
@@ -16,6 +17,7 @@ export default function RootLayout({
       <body
         className="font-sans bg-background text-foreground antialiased"
       >
+        <SentryInitializer />
         <Providers>{children}</Providers>
       </body>
     </html>

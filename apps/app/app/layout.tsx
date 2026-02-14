@@ -4,6 +4,7 @@ import { Providers } from "@/features/_shared/components/providers";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { ToasterWrapper } from "@/features/_shared/components/toaster-wrapper";
 import { LoginLayout } from "@/features/_shared/components/login-layout";
+import { SentryInitializer } from "@/components/sentry-initializer";
 
 // Disable static generation for this route
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body
         className="font-sans bg-background text-foreground antialiased overflow-x-hidden"
       >
+        <SentryInitializer />
         <Providers>
           <ReactQueryProvider>
             <AuthProvider>
