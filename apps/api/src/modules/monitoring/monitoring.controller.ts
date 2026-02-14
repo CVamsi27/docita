@@ -29,6 +29,8 @@ import {
 import {
   ResolveMultipleErrorsSchema,
   ResolveMultipleErrorsDto,
+  ArchiveErrorsSchema,
+  ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -47,15 +49,12 @@ export class MonitoringController {
 
   @Post('archive')
   @ZodSerializerDto(AnyResponseDto)
-  async manualArchive(
-    @Body('auditDays') auditDays = 90,
-    @Body('whatsappDays') whatsappDays = 180,
-    @Body('appointmentYears') appointmentYears = 2,
-  ) {
+  @UsePipes(new ZodValidationPipe(ArchiveErrorsSchema))
+  async manualArchive(@Body() dto: ArchiveErrorsDto) {
     const results = await Promise.all([
-      this.archivalService.archiveAuditLogs(auditDays),
-      this.archivalService.archiveWhatsappLogs(whatsappDays),
-      this.archivalService.archiveAppointments(appointmentYears),
+      this.archivalService.archiveAuditLogs(dto.auditDays),
+      this.archivalService.archiveWhatsappLogs(dto.whatsappDays),
+      this.archivalService.archiveAppointments(dto.appointmentYears),
     ]);
 
     return {
