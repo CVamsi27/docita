@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  UsePipes,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { Roles } from '../auth/roles.decorator';
@@ -20,8 +21,11 @@ import {
   UpdateFeedbackStatusDto,
   FeedbackResponseDto,
   FeedbackListResponseDto,
+  CreateFeedbackSchema,
+  UpdateFeedbackStatusSchema,
 } from './dto/feedback.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -58,6 +62,7 @@ export class FeedbackController {
    */
   @Post()
   @ZodSerializerDto(FeedbackResponseDto)
+  @UsePipes(new ZodValidationPipe(CreateFeedbackSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreateFeedbackDto) {
     return this.feedbackService.create(req.user.clinicId, req.user.userId, dto);
   }
@@ -151,6 +156,7 @@ export class FeedbackController {
    */
   @Patch(':id/status')
   @ZodSerializerDto(FeedbackResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateFeedbackStatusSchema))
   updateStatus(
     @Request() req: AuthRequest,
     @Param('id') id: string,
