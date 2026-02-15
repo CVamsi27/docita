@@ -237,7 +237,7 @@ export function createAPIClient(config: APIClientConfig) {
             {
               status: response.status,
               statusText: response.statusText,
-              data: errorData,
+              data: errorData || undefined,
               code: getErrorCode(response.status),
             },
           );
