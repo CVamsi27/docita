@@ -70,7 +70,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Body() dto: AddFavoriteDto,
   ) {
-    return this.medicalCodingService.addFavorite(this.getUserId(req), dto.icdCodeId);
+    return this.medicalCodingService.addFavorite(
+      this.getUserId(req),
+      dto.icdCodeId,
+    );
   }
 
   @Delete('favorites/:icdCodeId')
@@ -78,7 +81,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('icdCodeId') icdCodeId: string,
   ) {
-    return this.medicalCodingService.removeFavorite(this.getUserId(req), icdCodeId);
+    return this.medicalCodingService.removeFavorite(
+      this.getUserId(req),
+      icdCodeId,
+    );
   }
 
   // CPT Favorites
@@ -94,7 +100,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Body() dto: AddCptFavoriteDto,
   ) {
-    return this.medicalCodingService.addCptFavorite(this.getUserId(req), dto.cptCodeId);
+    return this.medicalCodingService.addCptFavorite(
+      this.getUserId(req),
+      dto.cptCodeId,
+    );
   }
 
   @Delete('cpt-favorites/:cptCodeId')
@@ -102,7 +111,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('cptCodeId') cptCodeId: string,
   ) {
-    return this.medicalCodingService.removeCptFavorite(this.getUserId(req), cptCodeId);
+    return this.medicalCodingService.removeCptFavorite(
+      this.getUserId(req),
+      cptCodeId,
+    );
   }
 
   @Get('uncoded')

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 /**
  * Error Alerting Service (CQ-2 Component)
- * 
+ *
  * Handles critical error notifications and escalations
  */
 @Injectable()
@@ -97,7 +97,8 @@ export class ErrorAlertingService {
     duration: number;
     threshold?: number;
   }): Promise<void> {
-    const threshold = context.threshold || this.alertThresholds.responseTimeThreshold;
+    const threshold =
+      context.threshold || this.alertThresholds.responseTimeThreshold;
 
     if (context.duration > threshold) {
       this.logger.warn(`Slow operation detected: ${context.operation}`, {
@@ -153,7 +154,10 @@ export class ErrorAlertingService {
   /**
    * Send error rate alert
    */
-  private async sendErrorRateAlert(service: string, errorRate: number): Promise<void> {
+  private async sendErrorRateAlert(
+    service: string,
+    errorRate: number,
+  ): Promise<void> {
     this.logger.warn(`ERROR RATE ALERT: ${service}`, {
       errorRate: `${(errorRate * 100).toFixed(2)}%`,
     });
@@ -176,7 +180,10 @@ export class ErrorAlertingService {
   /**
    * Send performance alert
    */
-  private async sendPerformanceAlert(operation: string, duration: number): Promise<void> {
+  private async sendPerformanceAlert(
+    operation: string,
+    duration: number,
+  ): Promise<void> {
     this.logger.warn(`PERFORMANCE ALERT: ${operation}`, {
       duration: `${duration}ms`,
     });
@@ -195,7 +202,7 @@ export class ErrorAlertingService {
    */
   updateAlertThresholds(newThresholds: Partial<typeof this.alertThresholds>) {
     this.alertThresholds = { ...this.alertThresholds, ...newThresholds };
-    this.logger.log('Alert thresholds updated', { 
+    this.logger.log('Alert thresholds updated', {
       thresholds: this.alertThresholds,
     });
   }

@@ -39,30 +39,32 @@ export class CreateAppointmentDto extends createZodDto(
 // Given the large number of fields in the existing interface, we'll make a schema that allows unknown keys for now or define them if known.
 // Ideally, we extend the base schema.
 
-export const UpdateAppointmentSchema = CreateAppointmentSchema.partial().extend({
-  consultationNotes: z.string().optional(),
-  chiefComplaint: z.string().optional(),
-  treatmentHistory: z.string().optional(),
-  historyOfPresentIllness: z.string().optional(),
-  pastMedicalHistory: z.string().optional(),
-  reviewOfSystems: z.string().optional(),
-  generalExamination: generalExaminationSchema.optional(),
-  systemicExamination: systemicExaminationSchema.optional(),
-  dentalChart: z.unknown().optional(),
-  growthData: z.unknown().optional(),
-  ophthalmologyExam: z.unknown().optional(),
-  cardiologyExam: z.unknown().optional(),
-  gynecologyExam: z.unknown().optional(),
-  dermatologyExam: z.unknown().optional(),
-  psychiatryExam: z.unknown().optional(),
-  provisionalDiagnosis: z.string().optional(),
-  differentialDiagnosis: z.string().optional(),
-  clinicalImpression: z.string().optional(),
-  investigations: z.array(clinicalInvestigationSchema).optional(),
-  finalDiagnosis: z.string().optional(),
-  treatmentPlan: z.string().optional(),
-  followUpPlan: z.string().optional(),
-});
+export const UpdateAppointmentSchema = CreateAppointmentSchema.partial().extend(
+  {
+    consultationNotes: z.string().optional(),
+    chiefComplaint: z.string().optional(),
+    treatmentHistory: z.string().optional(),
+    historyOfPresentIllness: z.string().optional(),
+    pastMedicalHistory: z.string().optional(),
+    reviewOfSystems: z.string().optional(),
+    generalExamination: generalExaminationSchema.optional(),
+    systemicExamination: systemicExaminationSchema.optional(),
+    dentalChart: z.unknown().optional(),
+    growthData: z.unknown().optional(),
+    ophthalmologyExam: z.unknown().optional(),
+    cardiologyExam: z.unknown().optional(),
+    gynecologyExam: z.unknown().optional(),
+    dermatologyExam: z.unknown().optional(),
+    psychiatryExam: z.unknown().optional(),
+    provisionalDiagnosis: z.string().optional(),
+    differentialDiagnosis: z.string().optional(),
+    clinicalImpression: z.string().optional(),
+    investigations: z.array(clinicalInvestigationSchema).optional(),
+    finalDiagnosis: z.string().optional(),
+    treatmentPlan: z.string().optional(),
+    followUpPlan: z.string().optional(),
+  },
+);
 
 export class UpdateAppointmentDto extends createZodDto(
   UpdateAppointmentSchema,

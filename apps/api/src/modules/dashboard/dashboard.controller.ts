@@ -1,4 +1,10 @@
-import { Controller, Get, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Request,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardStatsResponseDto } from './dto/dashboard.dto';
 import { ZodSerializerDto } from 'nestjs-zod';

@@ -13,9 +13,7 @@ const TemplateFieldSchema = z.object({
 export const CreateTemplateSchema = z.object({
   name: z.string().min(1, 'Template name required'),
   speciality: z.string().min(1, 'Speciality required'),
-  fields: z
-    .array(TemplateFieldSchema)
-    .min(1, 'At least one field required'),
+  fields: z.array(TemplateFieldSchema).min(1, 'At least one field required'),
   defaultObservations: z.string().optional(),
   clinicId: z.string().optional(),
 });

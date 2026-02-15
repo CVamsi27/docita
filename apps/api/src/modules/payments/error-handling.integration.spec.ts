@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 
 /**
  * CQ-2 Integration Tests: Error Handling & Logging Patterns
- * 
+ *
  * This test suite validates that:
  * 1. Errors are properly logged with context
  * 2. Logger service is used instead of console
@@ -126,10 +126,7 @@ describe('CQ-2: Error Handling & Logging', () => {
         await Promise.race([
           slowOperation,
           new Promise<void>((_, reject) =>
-            setTimeout(
-              () => reject(new Error('Operation timed out')),
-              timeout,
-            ),
+            setTimeout(() => reject(new Error('Operation timed out')), timeout),
           ),
         ]);
       } catch (error) {
@@ -232,10 +229,7 @@ describe('CQ-2: Error Handling & Logging', () => {
 
     it('should determine alert severity', () => {
       const criticalServices = ['payments', 'auth', 'database'];
-      const criticalErrors = [
-        'PaymentGatewayError',
-        'DatabaseConnectionError',
-      ];
+      const criticalErrors = ['PaymentGatewayError', 'DatabaseConnectionError'];
 
       const testCases = [
         {

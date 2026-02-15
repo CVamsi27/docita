@@ -15,7 +15,8 @@ export const CreatePrescriptionTemplateSchema = z.object({
   instructions: z.string().optional(),
 });
 
-export const UpdatePrescriptionTemplateSchema = CreatePrescriptionTemplateSchema.partial();
+export const UpdatePrescriptionTemplateSchema =
+  CreatePrescriptionTemplateSchema.partial();
 
 export const PrescriptionTemplateSchema =
   CreatePrescriptionTemplateSchema.extend({
