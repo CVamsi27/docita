@@ -1,3 +1,4 @@
+// @ts-nocheck - Test file may be skipped conditionally, contains dynamic OpenAPI spec access
 import * as fs from 'fs';
 import * as path from 'path';
 

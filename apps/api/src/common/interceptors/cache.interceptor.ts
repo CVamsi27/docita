@@ -80,23 +80,23 @@ export class CacheInterceptor implements NestInterceptor {
     return next.handle();
   }
 
-  private generateKey(request: { url: string; method: string; params?: Record<string, unknown>; query?: Record<string, unknown> }): string {
+  private generateKey(request: any): string {
     const user = request.user;
     const clinicId = user?.clinicId || 'public';
     return `${clinicId}:${request.url}`;
   }
 
-  private applyNoCacheHeaders(response: { setHeader: (name: string, value: string) => void }) {
+  private applyNoCacheHeaders(response: any) {
     response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     response.setHeader('Pragma', 'no-cache');
     response.setHeader('Expires', '0');
   }
 
   private applyCacheHeaders(
-    response: { setHeader: (name: string, value: string | number) => void; headersSent?: boolean },
+    response: any,
     duration: number,
-    data: Record<string, unknown> | string | number,
-    request: { url: string; method: string },
+    data: any,
+    request: any,
   ) {
     if (response.headersSent) return;
 

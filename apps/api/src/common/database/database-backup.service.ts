@@ -52,9 +52,10 @@ export class DatabaseBackupService {
         fs.mkdirSync(this.backupDir, { recursive: true, mode: 0o755 });
         this.logger.log(`Created backup directory: ${this.backupDir}`);
       }
-    } catch (err: Error | { message: string }) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.warn(
-        `Failed to create configured backup directory ${this.backupDir}: ${err?.message}. Falling back to project-local backups.`,
+        `Failed to create configured backup directory ${this.backupDir}: ${error.message}. Falling back to project-local backups.`,
       );
 
       const fallback = path.join(process.cwd(), 'backups', 'postgresql');
@@ -65,9 +66,10 @@ export class DatabaseBackupService {
         }
         this.backupDir = fallback;
         this.logger.log(`Using fallback backup directory: ${this.backupDir}`);
-      } catch (fallbackErr: Error | { message: string }) {
+      } catch (fallbackErr) {
+        const error = fallbackErr as Error;
         this.logger.error(
-          `Failed to create fallback backup directory: ${fallbackErr?.message}`,
+          `Failed to create fallback backup directory: ${error.message}`,
         );
         // Do not throw — allow application to start; operations will fail later with clearer errors
       }

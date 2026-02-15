@@ -296,7 +296,7 @@ export class PaymentsService {
     payload: RazorpayWebhookPayload,
     signature: string,
   ) {
-    const isValid = this.paymentProvider.verifySignature(payload, signature);
+    const isValid = this.paymentProvider.verifySignature(payload as any, signature);
     if (!isValid) {
       this.logger.error('Invalid webhook signature');
       throw new BadRequestException('Invalid signature');

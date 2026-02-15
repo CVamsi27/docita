@@ -43,7 +43,7 @@ export class RemindersService {
    * Update reminder settings
    * @public API - used by controllers and other services
    */
-  async updateSettings(data: Record<string, unknown>) {
+  async updateSettings(data: any) {
     return this.settingsService.updateSettings(data);
   }
 

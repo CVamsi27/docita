@@ -58,7 +58,7 @@ export class OnboardingService {
     step: Record<string, unknown>,
     data: Partial<CompleteOnboardingDto>,
   ): OnboardingProgressDto {
-    this.dataService.updateOnboardingData(onboardingId, step, data);
+    this.dataService.updateOnboardingData(onboardingId, step as any, data);
     return this.dataService.getOnboardingProgress(onboardingId);
   }
 

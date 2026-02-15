@@ -206,9 +206,9 @@ export class PrescriptionsService {
         // TODO: Pass allergies if available in the fetch
       },
       medications: prescriptionWithRelations.medications.map((med: { id: string; medicineId: string | null; medicineName: string; dosage: string; frequency: string; duration: string; instructions: string | null; quantity: number }) => ({
-        name: med.name,
+        name: med.medicineName,
         dosage: med.dosage,
-        route: med.route || 'PO',
+        route: 'PO', // Default route
         frequency: med.frequency,
         duration: med.duration,
       })),

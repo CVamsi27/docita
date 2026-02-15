@@ -49,7 +49,7 @@ export class DataExportFactory {
       exportDate: new Date().toISOString(),
       format: 'JSON',
       version: '1.0',
-      patient: patient,
+      patient: patient as any,
     };
   }
 }

@@ -14,7 +14,7 @@ export const getQueueToken = (name: string) => `BullQueue_${name}`;
 export class MockBullModule {
   static registerQueue(...options: Array<Record<string, unknown>>): DynamicModule {
     const providers = options.map((option) => ({
-      provide: getQueueToken(option.name),
+      provide: getQueueToken(option.name as string),
       useValue: {
         add: () => {
           console.warn(

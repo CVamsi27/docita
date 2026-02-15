@@ -56,6 +56,6 @@ export class OptimisticConcurrencyService {
    * Clients should provide the version they last saw
    */
   extractVersionFromDto(dto: Record<string, unknown>): number | undefined {
-    return dto?.version;
+    return dto?.version as number | undefined;
   }
 }

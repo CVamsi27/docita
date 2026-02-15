@@ -389,8 +389,8 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       if (
         patientAllergies.some(
           (allergy: { allergen?: string; severity?: string }) =>
-            medName.includes(allergy.toLowerCase()) ||
-            allergy.toLowerCase().includes(medName),
+            medName.includes(allergy.allergen?.toLowerCase() || '') ||
+            (allergy.allergen?.toLowerCase() || '').includes(medName),
         )
       ) {
         allergies.push(`Patient is allergic to ${med.name}`);

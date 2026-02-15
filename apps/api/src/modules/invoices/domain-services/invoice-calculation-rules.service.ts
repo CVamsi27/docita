@@ -101,7 +101,7 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
     }
 
     return rawItems
-      .map((item: { name: string; quantity: number; unitPrice: number; tax?: number }) => {
+      .map((item: any) => {
         // Safely convert to PricingItem with defaults
         const converted: PricingItem = {
           quantity: Number(item?.quantity ?? 0) || 0,

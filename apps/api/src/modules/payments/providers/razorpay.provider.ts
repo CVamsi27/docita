@@ -45,7 +45,7 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
         id: link.id,
         shortUrl: link.short_url,
         status: link.status,
-        raw: link,
+        raw: link as any,
       };
     } catch (error) {
       this.logger.error('Failed to create Razorpay payment link', error);

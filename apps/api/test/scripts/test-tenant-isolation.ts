@@ -67,8 +67,9 @@ async function main() {
             console.log(
               '✅ SECURITY SUCCESS: Patient not found (filtered out or error swallowed).',
             );
+
           }
-        } catch (err: Error | { message: string }) {
+        } catch (err) {
           console.log(
             '✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).',
           );
@@ -97,7 +98,7 @@ async function main() {
               '✅ SECURITY SUCCESS: Patient not found with findFirst.',
             );
           }
-        } catch (err: Error | { message: string }) {
+        } catch (err) {
           console.log('Error:', (err as { message: string }).message);
         }
       },
