@@ -78,7 +78,11 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(doctorRegRes.ok()).toBeTruthy();
-    const doctorData = await doctorRegRes.json() as any;
+    const doctorData = await doctorRegRes.json() as {
+      access_token?: string;
+      accessToken?: string;
+      user: { id: string; clinicId?: string };
+    };
     const doctorToken = doctorData.access_token || doctorData.accessToken;
 
     doctor = {
@@ -104,14 +108,14 @@ test.describe("Critical Business Flows", () => {
         },
       });
       expect(clinicRes.ok()).toBeTruthy();
-      const clinicData = await clinicRes.json() as any;
+      const clinicData = await clinicRes.json() as { id: string; name: string; tier: string };
       clinic = clinicData;
       doctor.clinicId = clinicData.id;
     } else {
       const clinicRes = await request.get(`${API_URL}/clinics/${doctor.clinicId}`, {
         headers: { Authorization: `Bearer ${doctorToken}` },
       });
-      clinic = await clinicRes.json() as any;
+      clinic = await clinicRes.json() as { id: string; name: string; tier: string };
     }
 
     // Create patient
@@ -129,7 +133,11 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(patientRegRes.ok()).toBeTruthy();
-    const patientData = await patientRegRes.json() as any;
+    const patientData = await patientRegRes.json() as {
+      access_token?: string;
+      accessToken?: string;
+      user: { id: string };
+    };
     patient = {
       id: patientData.user.id,
       email: patientEmail,
@@ -160,7 +168,12 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(patientRegRes.ok()).toBeTruthy();
-    const onboardPatientData = await patientRegRes.json() as any;
+    const onboardPatientData = await patientRegRes.json() as {
+      id: string;
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+    };
     const onboardPatient = {
       id: onboardPatientData.user.id,
       email: newPatientEmail,
@@ -203,7 +216,13 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(appointmentRes.ok()).toBeTruthy();
-    const appointmentData = await appointmentRes.json() as any;
+    const appointmentData = await appointmentRes.json() as {
+      id: string;
+      patientId: string;
+      doctorId: string;
+      scheduledAt: string;
+      status: string;
+    };
     appointment = appointmentData;
 
     console.log(`✅ First appointment created: ${appointment.id}`);
@@ -244,7 +263,11 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(loginRes.ok()).toBeTruthy();
-    const loginData = await loginRes.json() as any;
+    const loginData = await loginRes.json() as {
+      access_token?: string;
+      accessToken?: string;
+      user: { id: string; clinicId?: string };
+    };
     const freshToken = loginData.access_token || loginData.accessToken;
 
     console.log(`✅ Doctor logged in successfully`);
@@ -256,7 +279,7 @@ test.describe("Critical Business Flows", () => {
 
     // Allow 404 for metrics if not implemented, but log it
     if (metricsRes.ok()) {
-      const metrics = await metricsRes.json() as any;
+      const metrics = await metricsRes.json() as Record<string, unknown>;
       console.log(`✅ Dashboard metrics loaded:`, {
         totalPatients: metrics.totalPatients,
         totalAppointments: metrics.totalAppointments,
@@ -272,7 +295,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(patientsRes.ok()).toBeTruthy();
-    const patients = await patientsRes.json() as any;
+    const patients = await patientsRes.json() as { data: unknown[]; total: number };
     expect(Array.isArray(patients)).toBeTruthy();
     expect(patients.length).toBeGreaterThan(0);
 
@@ -284,7 +307,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(appointmentsRes.ok()).toBeTruthy();
-    const fetchedAppointments = await appointmentsRes.json() as any;
+    const fetchedAppointments = await appointmentsRes.json() as { data: unknown[] };
     expect(Array.isArray(fetchedAppointments)).toBeTruthy();
 
     console.log(`✅ FLOW 2 COMPLETE: Doctor dashboard operational (${fetchedAppointments.length} appointments)`);
@@ -317,7 +340,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(createRes.ok()).toBeTruthy();
-    const newAppointment = await createRes.json() as any;
+    const newAppointment = await createRes.json() as { id: string; status: string };
     expect(newAppointment.status).toBe("SCHEDULED");
 
     console.log(`✅ Step 1: Appointment created (${newAppointment.id}, status: SCHEDULED)`);
@@ -332,7 +355,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(confirmRes.ok()).toBeTruthy();
-    const confirmedAppointment = await confirmRes.json() as any;
+    const confirmedAppointment = await confirmRes.json() as { id: string; status: string };
     expect(confirmedAppointment.status).toBe("CONFIRMED");
 
     console.log(`✅ Step 2: Appointment confirmed (status: CONFIRMED)`);
@@ -347,7 +370,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(progressRes.ok()).toBeTruthy();
-    const progressAppointment = await progressRes.json() as any;
+    const progressAppointment = await progressRes.json() as { id: string; status: string };
     expect(progressAppointment.status).toBe("IN_PROGRESS");
 
     console.log(`✅ Step 3: Appointment started (status: IN_PROGRESS)`);
@@ -362,7 +385,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(completeRes.ok()).toBeTruthy();
-    const completedAppointment = await completeRes.json() as any;
+    const completedAppointment = await completeRes.json() as { id: string; status: string };
     expect(completedAppointment.status).toBe("COMPLETED");
 
     console.log(`✅ Step 4: Appointment completed (status: COMPLETED)`);
@@ -376,7 +399,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(finalRes.ok()).toBeTruthy();
-    const finalAppointment = await finalRes.json() as any;
+    const finalAppointment = await finalRes.json() as { id: string; status: string };
     expect(finalAppointment.status).toBe("COMPLETED");
 
     console.log(`✅ FLOW 3 COMPLETE: Full appointment lifecycle validated`);
@@ -400,7 +423,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(patientRes.ok()).toBeTruthy();
-    const patientRecord = await patientRes.json() as any;
+    const patientRecord = await patientRes.json() as { id: string; firstName: string };
     expect(patientRecord.id).toBe(patient.id);
     expect(patientRecord.firstName).toBe(patient.firstName);
 
@@ -415,7 +438,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(historyRes.ok()).toBeTruthy();
-    const history = await historyRes.json() as any;
+    const history = await historyRes.json() as unknown[];
     expect(Array.isArray(history)).toBeTruthy();
 
     console.log(`✅ Step 2: Consultation history loaded (${history.length} consultations)`);
@@ -432,7 +455,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(updateRes.ok()).toBeTruthy();
-    const updatedPatient = await updateRes.json() as any;
+    const updatedPatient = await updateRes.json() as { id: string; phoneNumber: string };
 
     console.log(`✅ Step 3: Patient notes updated`);
 
@@ -445,7 +468,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(verifyRes.ok()).toBeTruthy();
-    const verifiedPatient = await verifyRes.json() as any;
+    const verifiedPatient = await verifyRes.json() as { id: string; verified: boolean };
     expect(verifiedPatient.notes).toContain("Critical flow test");
 
     console.log(`✅ FLOW 4 COMPLETE: Patient record management validated`);
@@ -466,7 +489,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(clinicRes.ok()).toBeTruthy();
-    const clinicData = await clinicRes.json() as any;
+    const clinicData = await clinicRes.json() as { id: string; name: string };
     expect(clinicData.id).toBe(clinic.id);
 
     console.log(`✅ Step 1: Clinic data fetched (${clinicData.name})`);
@@ -480,7 +503,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     if (staffRes.ok()) {
-      const staff = await staffRes.json() as any;
+      const staff = await staffRes.json() as { data: unknown[] };
       expect(Array.isArray(staff)).toBeTruthy();
       console.log(`✅ Step 2: Clinic staff loaded (${staff.length} staff members)`);
     } else {
@@ -496,7 +519,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(appointmentsRes.ok()).toBeTruthy();
-    const clinicAppointments = await appointmentsRes.json() as any;
+    const clinicAppointments = await appointmentsRes.json() as { data: unknown[] };
     expect(Array.isArray(clinicAppointments)).toBeTruthy();
 
     console.log(`✅ Step 3: Clinic appointments loaded (${clinicAppointments.length} appointments)`);
@@ -510,7 +533,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     if (analyticsRes.ok()) {
-      const analytics = await analyticsRes.json() as any;
+      const analytics = await analyticsRes.json() as Record<string, unknown>;
       console.log(`✅ Step 4: Analytics available:`, {
         totalAppointments: analytics.totalAppointments,
         completedAppointments: analytics.completedAppointments,
@@ -545,7 +568,11 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(otherDoctorRes.ok()).toBeTruthy();
-    const otherDoctorData = await otherDoctorRes.json() as any;
+    const otherDoctorData = await otherDoctorRes.json() as {
+      access_token?: string;
+      accessToken?: string;
+      user: { id: string; clinicId?: string };
+    };
     const otherToken = otherDoctorData.access_token || otherDoctorData.accessToken;
 
     // Get other doctor's clinic ID
@@ -561,7 +588,7 @@ test.describe("Critical Business Flows", () => {
           tier: "ENTERPRISE",
         },
       });
-      const otherClinicData = await otherClinicRes.json() as any;
+      const otherClinicData = await otherClinicRes.json() as { id: string };
       otherClinicId = otherClinicData.id;
     }
 

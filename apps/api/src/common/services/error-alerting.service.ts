@@ -136,7 +136,7 @@ export class ErrorAlertingService {
   /**
    * Send escalation alert (Slack, PagerDuty, etc.)
    */
-  private async sendEscalationAlert(context: any): Promise<void> {
+  private async sendEscalationAlert(context: Record<string, unknown>): Promise<void> {
     // In production, implement actual alerting:
     // - Slack webhook
     // - PagerDuty incident creation

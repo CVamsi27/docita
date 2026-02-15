@@ -19,7 +19,7 @@ export class IdempotencyService {
    */
   async saveResponse(
     key: string,
-    response: any,
+    response: Record<string, unknown>,
     ttlInSeconds: number = 24 * 60 * 60,
   ): Promise<void> {
     await this.cacheManager.set(

@@ -4,7 +4,7 @@ export interface PDFClinicInfo {
   city?: string;
   phone?: string;
   email?: string;
-  logo?: any; // Buffer | string
+  logo?: Buffer | string;
   registrationNumber?: string; // Clinic registration number
   gstin?: string; // GST number for invoices
   website?: string;

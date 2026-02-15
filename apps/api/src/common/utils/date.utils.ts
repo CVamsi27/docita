@@ -46,7 +46,7 @@ export class DateUtils {
   /**
    * Validates if a date object is valid.
    */
-  static isValid(date: any): boolean {
+  static isValid(date: Date | string | number | null | undefined): boolean {
     return isValid(date);
   }
 

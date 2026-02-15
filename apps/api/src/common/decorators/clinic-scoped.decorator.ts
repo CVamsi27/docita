@@ -116,7 +116,7 @@ export function ValidateClinicScope(options?: {
       count: 0,
     };
 
-    descriptor.value = function (...args: unknown[]) {
+    descriptor.value = function (...args: Array<string | number | Record<string, unknown>>) {
       const clinicId = args[argIndex];
 
       if (!clinicId) {

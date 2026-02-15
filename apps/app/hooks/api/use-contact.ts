@@ -2,7 +2,7 @@ import { useAPIMutation } from "../../lib/api-core";
 
 export const useCreateContactInquiry = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       name: string;
       email: string;

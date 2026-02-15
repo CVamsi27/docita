@@ -39,7 +39,7 @@ jest.mock('fs', () => ({
 
 describe('OCRService', () => {
   let service: OCRService;
-  let textExtractorService: any;
+  let textExtractorService: { extractText: jest.Mock };
 
   beforeEach(async () => {
     const mockImagePreprocessor = {

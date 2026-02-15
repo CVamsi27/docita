@@ -7,7 +7,7 @@ export const useImportJobs = () =>
   );
 
 export const useImportJob = (id: string) =>
-  useAPIQuery<{ id: string; status: string; data: unknown }>(
+  useAPIQuery<{ id: string; status: string; data: Record<string, unknown> }>(
     ["import-jobs", id],
     `/import/jobs/${id}`,
   );

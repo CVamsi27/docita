@@ -49,7 +49,7 @@ export interface APIError extends Error {
   status?: number;
   statusText?: string;
   code?: string;
-  data?: unknown;
+  data?: Record<string, unknown>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 }
@@ -69,7 +69,7 @@ export class APIRequestError extends Error implements APIError {
   status?: number;
   statusText?: string;
   code?: string;
-  data?: unknown;
+  data?: Record<string, unknown>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 
@@ -223,7 +223,7 @@ export function createAPIClient(config: APIClientConfig) {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          let errorData: unknown;
+          let errorData: Record<string, unknown>;
           try {
             errorData = await response.json();
           } catch {
@@ -414,7 +414,7 @@ export function createAPIClient(config: APIClientConfig) {
     /**
      * Safe parse helper
      */
-    safeParse<T>(schema: z.ZodType<T>, data: unknown): T | undefined {
+    safeParse<T>(schema: z.ZodType<T>, data: Record<string, unknown>): T | undefined {
       const result = schema.safeParse(data);
       return result.success ? result.data : undefined;
     },

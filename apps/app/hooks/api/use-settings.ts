@@ -65,7 +65,7 @@ export const usePrescriptionDefaults = () =>
 
 export const useUpdatePrescriptionDefaults = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       defaultInstructions?: string;
       defaultFooterText?: string;
@@ -130,7 +130,7 @@ export const useClinicSchedules = () =>
 
 export const useCreateDoctorSchedule = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       doctorId?: string;
       dayOfWeek: string;
@@ -143,7 +143,7 @@ export const useCreateDoctorSchedule = () =>
 
 export const useBulkDoctorSchedules = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       doctorId?: string;
       schedules: {
@@ -158,7 +158,7 @@ export const useBulkDoctorSchedules = () =>
 
 export const useUpdateDoctorSchedule = (id: string) =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       startTime?: string;
       endTime?: string;
@@ -168,7 +168,7 @@ export const useUpdateDoctorSchedule = (id: string) =>
   >(`/doctor-availability/schedules/${id}`, "PUT");
 
 export const useDeleteDoctorSchedule = (id: string) =>
-  useAPIMutation<unknown, void>(
+  useAPIMutation<Record<string, unknown>, void>(
     `/doctor-availability/schedules/${id}`,
     "DELETE",
   );

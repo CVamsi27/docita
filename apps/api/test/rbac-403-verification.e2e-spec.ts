@@ -26,9 +26,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
   let prisma: PrismaService;
 
   // Test fixtures
-  let testClinic: any;
-  let testPatient: any;
-  let testAppointment: any;
+  let testClinic: { id: string; name: string };
+  let testPatient: { id: string; firstName: string; lastName: string };
+  let testAppointment: { id: string; patientId: string; doctorId: string };
 
   // Users with different roles
   let adminUser: { id: string; email: string; token: string };

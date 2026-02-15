@@ -25,9 +25,9 @@ interface EntityConfig<T> {
   /** Query key prefix (e.g., 'patients') */
   queryKey: string;
   /** Optional transform for list response */
-  transformList?: (data: unknown) => PaginatedResponse<T>;
+  transformList?: (data: Record<string, unknown>) => PaginatedResponse<T>;
   /** Optional transform for single entity response */
-  transformOne?: (data: unknown) => T;
+  transformOne?: (data: Record<string, unknown>) => T;
 }
 
 /**
@@ -218,7 +218,7 @@ export function useEntity<T>(config: {
   endpoint: string;
   enabled?: boolean;
   staleTime?: number;
-  transform?: (data: unknown) => T;
+  transform?: (data: Record<string, unknown>) => T;
 }) {
   const {
     queryKey: key,
@@ -251,7 +251,7 @@ export function useEntity<T>(config: {
  * });
  * ```
  */
-export function useEntityMutation<TData, TVariables = unknown>(config: {
+export function useEntityMutation<TData, TVariables = Record<string, unknown>>(config: {
   endpoint: string | ((variables: TVariables) => string);
   method: "POST" | "PUT" | "PATCH" | "DELETE";
   invalidateKeys?: string[][];

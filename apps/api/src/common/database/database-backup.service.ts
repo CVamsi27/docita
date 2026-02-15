@@ -52,7 +52,7 @@ export class DatabaseBackupService {
         fs.mkdirSync(this.backupDir, { recursive: true, mode: 0o755 });
         this.logger.log(`Created backup directory: ${this.backupDir}`);
       }
-    } catch (err: any) {
+    } catch (err: Error | { message: string }) {
       this.logger.warn(
         `Failed to create configured backup directory ${this.backupDir}: ${err?.message}. Falling back to project-local backups.`,
       );
@@ -65,7 +65,7 @@ export class DatabaseBackupService {
         }
         this.backupDir = fallback;
         this.logger.log(`Using fallback backup directory: ${this.backupDir}`);
-      } catch (fallbackErr: any) {
+      } catch (fallbackErr: Error | { message: string }) {
         this.logger.error(
           `Failed to create fallback backup directory: ${fallbackErr?.message}`,
         );

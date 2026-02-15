@@ -216,11 +216,11 @@ export class AnalyticsService {
   async getAnalyticsSnapshots(
     clinicId: string,
     days: number = 30,
-  ): Promise<any[]> {
+  ): Promise<Record<string, unknown>[]> {
     return this.snapshotFactory.getAnalyticsSnapshots(clinicId, days);
   }
 
-  async getSnapshotTrends(clinicId: string, days: number = 30): Promise<any> {
+  async getSnapshotTrends(clinicId: string, days: number = 30): Promise<Record<string, unknown>> {
     return this.snapshotFactory.getSnapshotTrends(clinicId, days);
   }
 }

@@ -5,7 +5,7 @@ export interface ExportResult {
   exportDate: string;
   format: string;
   version: string;
-  patient: any;
+  patient: { id: string; firstName: string; lastName: string; email?: string | null; phoneNumber: string; [key: string]: unknown };
 }
 
 @Injectable()

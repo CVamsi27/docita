@@ -162,7 +162,7 @@ export const ClinicalDocumentationDynamic: FC<
         const sysExam = appointmentData.systemicExamination;
 
         // Helper check for legacy wrapper where generalExamination contained both parts
-        const isLegacyWrapper = (data: unknown): data is ExaminationData => {
+        const isLegacyWrapper = (data: Record<string, unknown>): data is ExaminationData => {
           return (
             typeof data === "object" &&
             data !== null &&
@@ -170,7 +170,7 @@ export const ClinicalDocumentationDynamic: FC<
           );
         };
 
-        const ensureString = (val: unknown): string => {
+        const ensureString = (val: string | number | boolean | null | undefined): string => {
           if (typeof val === "string") return val;
           if (typeof val === "object" && val !== null)
             return JSON.stringify(val);

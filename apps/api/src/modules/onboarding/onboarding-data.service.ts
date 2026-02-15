@@ -54,7 +54,7 @@ export class OnboardingDataService {
   updateOnboardingData(
     onboardingId: string,
     step: OnboardingStep,
-    data: any,
+    data: Record<string, unknown>,
   ): { success: boolean; message: string } {
     const session = this.onboardingSessions.get(onboardingId);
 

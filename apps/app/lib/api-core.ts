@@ -202,7 +202,7 @@ export async function fetchAPI<T>(
 }
 
 export function useAPIQuery<T>(
-  key: unknown[],
+  key: (string | number | Record<string, unknown>)[],
   endpoint: string,
   options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
 ) {
@@ -217,7 +217,7 @@ export function useAPIMutation<TData, TVariables>(
   endpoint: string | ((variables: TVariables) => string),
   method: "POST" | "PUT" | "DELETE" | "PATCH" = "POST",
   options?: UseMutationOptions<TData, ApiError, TVariables> & {
-    invalidateKeys?: unknown[][];
+    invalidateKeys?: Array<(string | number | Record<string, unknown>)[]>;
   },
 ) {
   const queryClient = useQueryClient();

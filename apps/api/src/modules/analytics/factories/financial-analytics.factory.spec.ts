@@ -6,7 +6,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 describe('FinancialAnalyticsFactory', () => {
   let factory: FinancialAnalyticsFactory;
   let prisma: PrismaService;
-  let cacheManager: any;
+  let cacheManager: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
 
   const mockPrismaService = {
     getReadClient: jest.fn().mockReturnValue({

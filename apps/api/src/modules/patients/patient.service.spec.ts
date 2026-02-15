@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('PatientService', () => {
-  let service: any;
+  let service: { findAll: jest.Mock; findOne: jest.Mock; create: jest.Mock; update: jest.Mock };
   let prisma: PrismaService;
 
   const mockPrismaService = {

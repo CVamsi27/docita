@@ -42,7 +42,7 @@ export interface HistoryOperations {
   updateSocialHistory: (field: keyof PatientSocialHistory, value: string) => void;
   
   // Custom Data (for specialty fields)
-  updateCustomData: (key: string, value: unknown) => void;
+  updateCustomData: (key: string, value: string | number | boolean | Record<string, unknown>) => void;
 }
 
 export interface PatientHistoryData {
@@ -265,7 +265,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
 
   // Custom data operations (for specialty fields like dental chart, growth data, etc.)
   const updateCustomData = useCallback(
-    (key: string, value: unknown) => {
+    (key: string, value: string | number | boolean | Record<string, unknown>) => {
       if (!patient) return;
       const currentCustomData =
         (patient.customData as Record<string, unknown>) || {};

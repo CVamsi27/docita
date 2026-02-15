@@ -46,7 +46,7 @@ export const useDeleteInventoryItem = (id: string) =>
 
 export const useAddInventoryMovement = (itemId: string) =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       type: string;
       quantity: number;

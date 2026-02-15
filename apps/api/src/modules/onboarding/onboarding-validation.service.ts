@@ -118,7 +118,7 @@ export class OnboardingValidationService {
   /**
    * Validate SLA agreement acceptance
    */
-  validateSLAAcceptance(slaData: any): void {
+  validateSLAAcceptance(slaData: Record<string, unknown>): void {
     if (!slaData.acceptedSLA) {
       throw new BadRequestException('SLA must be accepted to proceed');
     }

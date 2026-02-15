@@ -18,7 +18,7 @@ describe('AuthService', () => {
   let jwtService: JwtService;
   let userFactory: UserFactory;
   let clinicFactory: ClinicFactory;
-  let passwordPolicy: any;
+  let passwordPolicy: { validate: jest.Mock };
 
   const mockUser = {
     id: 'user-123',

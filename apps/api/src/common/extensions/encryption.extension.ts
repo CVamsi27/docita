@@ -16,7 +16,7 @@ export const createEncryptionExtension = (
             const typedArgs = args as any;
             if (typedArgs.data) {
               if (Array.isArray(typedArgs.data)) {
-                typedArgs.data = typedArgs.data.map((item: any) =>
+                typedArgs.data = typedArgs.data.map((item: Record<string, unknown>) =>
                   encryptionService.encryptPatientData(item),
                 );
               } else {

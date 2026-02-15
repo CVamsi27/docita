@@ -13,7 +13,7 @@ jest.mock('pdfkit', () => {
   return jest.fn().mockImplementation(() => {
     const listeners: Record<
       string,
-      Array<(...args: unknown[]) => unknown>
+      Array<(...args: Array<string | number>) => void>
     > = {};
     const docMock: any = {
       page: { width: 600, height: 800 },

@@ -7,7 +7,7 @@ export interface WebhookErrorContext {
   userId?: string;
   eventType: string; // 'payment.webhook', 'subscription.webhook', etc.
   providerId?: string; // Payment provider ID, subscription ID, etc.
-  payload?: any;
+  payload?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }

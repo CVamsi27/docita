@@ -379,7 +379,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     const allergies: string[] = [];
     const patientAllergies =
       ((patient as any).patientAllergies || []).map(
-        (a: any) => a.allergen ?? '',
+        (a: { allergen?: string }) => a.allergen ?? '',
       ) || [];
 
     for (const med of medications) {
@@ -388,7 +388,7 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       // Check medication name against allergies
       if (
         patientAllergies.some(
-          (allergy: any) =>
+          (allergy: { allergen?: string; severity?: string }) =>
             medName.includes(allergy.toLowerCase()) ||
             allergy.toLowerCase().includes(medName),
         )

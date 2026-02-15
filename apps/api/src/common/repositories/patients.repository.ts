@@ -209,7 +209,7 @@ export class PatientsRepository extends BaseRepository<Patient> {
       updateData.medicalConditions = {
         deleteMany: {},
         create: medicalConditions.map(
-          ({ id, patientId, ...item }: any) => item,
+          ({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item,
         ),
       };
     }
@@ -217,21 +217,21 @@ export class PatientsRepository extends BaseRepository<Patient> {
     if (patientAllergies) {
       updateData.patientAllergies = {
         deleteMany: {},
-        create: patientAllergies.map(({ id, patientId, ...item }: any) => item),
+        create: patientAllergies.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
       };
     }
 
     if (familyHistory) {
       updateData.familyHistory = {
         deleteMany: {},
-        create: familyHistory.map(({ id, patientId, ...item }: any) => item),
+        create: familyHistory.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
       };
     }
 
     if (surgicalHistory) {
       updateData.surgicalHistory = {
         deleteMany: {},
-        create: surgicalHistory.map(({ id, patientId, ...item }: any) => item),
+        create: surgicalHistory.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
       };
     }
 

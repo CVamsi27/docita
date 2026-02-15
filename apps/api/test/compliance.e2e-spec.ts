@@ -184,7 +184,7 @@ describe('Compliance (e2e)', () => {
         .expect(200);
 
       const updatedRecord = historyRes.body.find(
-        (c: any) => c.id === consentId,
+        (c: { id: string }) => c.id === consentId,
       );
       expect(updatedRecord.status).toBe(ConsentStatus.REVOKED);
     });

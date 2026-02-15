@@ -53,7 +53,7 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     }
   }
 
-  verifySignature(payload: any, signature: string): boolean {
+  verifySignature(payload: Record<string, unknown>, signature: string): boolean {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
     if (!webhookSecret) return true;
 

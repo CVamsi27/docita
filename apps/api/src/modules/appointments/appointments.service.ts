@@ -290,7 +290,7 @@ export class AppointmentsService {
       }
     }
 
-    let appointment: any;
+    let appointment: { id: string; status: string; doctorId?: string; patientId?: string; scheduledAt?: Date } | null;
 
     if (shouldAutoComplete) {
       // Atomic: update appointment + queue token in a single transaction

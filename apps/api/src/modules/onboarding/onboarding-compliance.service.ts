@@ -132,7 +132,7 @@ export class OnboardingComplianceService {
     userId: string,
     clinicId: string,
     eventType: 'CLINIC_ONBOARDED' | 'CLINIC_ONBOARDING_FAILED',
-    metadata: any,
+    metadata: Record<string, unknown>,
   ): Promise<void> {
     try {
       await this.auditService.logAction(

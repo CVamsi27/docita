@@ -130,7 +130,7 @@ export const tenantExtension = Prisma.defineExtension({
         if (operation === 'createMany' && tenant.clinicId && !relation) {
           if (Array.isArray(typedArgs.data)) {
             // TS might complain about spread on unknown
-            typedArgs.data = typedArgs.data.map((item: any) => ({
+            typedArgs.data = typedArgs.data.map((item: Record<string, unknown>) => ({
               ...item,
               clinicId: tenant.clinicId,
             }));

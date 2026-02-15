@@ -14,10 +14,10 @@ export interface PaymentProviderLink {
   id: string;
   shortUrl: string;
   status: string;
-  raw: any;
+  raw: Record<string, unknown>;
 }
 
 export interface IPaymentProvider {
   createPaymentLink(dto: CreatePaymentLinkDto): Promise<PaymentProviderLink>;
-  verifySignature(payload: any, signature: string): boolean;
+  verifySignature(payload: Record<string, unknown>, signature: string): boolean;
 }

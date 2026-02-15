@@ -8,7 +8,7 @@ interface RazorpayOptions {
   description?: string;
   image?: string;
   order_id: string;
-  handler: (response: unknown) => void;
+  handler: (response: Record<string, unknown>) => void;
   prefill?: {
     name?: string;
     email?: string;
@@ -56,7 +56,7 @@ export function useRazorpay() {
 
       // @ts-expect-error Razorpay is added to window by the script
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response: { error: unknown }) {
+      rzp.on("payment.failed", function (response: { error: Record<string, unknown> }) {
          // handle failure if needed
          console.error(response.error);
       });

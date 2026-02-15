@@ -12,7 +12,7 @@ Logger.overrideLogger(false);
 
 // Suppress console errors during tests (they're expected/handled)
 const originalError = console.error;
-console.error = (...args: any[]) => {
+console.error = (...args: Array<string | number | boolean | Record<string, unknown> | null>) => {
   // Suppress expected negative-path logs so test output highlights real failures.
   const message = args.map((arg) => String(arg)).join(' ');
   if (

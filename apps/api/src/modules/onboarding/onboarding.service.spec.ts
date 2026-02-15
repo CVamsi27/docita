@@ -62,7 +62,7 @@ describe('OnboardingService', () => {
       return { onboardingId };
     }),
     updateOnboardingData: jest.fn(
-      (onboardingId: string, step: OnboardingStep, data: any) => {
+      (onboardingId: string, step: string, data: Record<string, unknown>) => {
         if (!sessionStore.has(onboardingId)) {
           throw new BadRequestException('Onboarding session not found');
         }
@@ -92,7 +92,7 @@ describe('OnboardingService', () => {
     ),
   };
   const mockValidationService = {
-    validateOnboardingCompletion: jest.fn((completeData: any) => {
+    validateOnboardingCompletion: jest.fn((completeData: Record<string, unknown>) => {
       if (!completeData?.clinicDetails) {
         return { valid: false, errors: ['Clinic details are required'] };
       }

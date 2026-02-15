@@ -21,19 +21,19 @@ describe('RBAC Authorization (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  let adminClinic: any;
-  let adminUser: any;
+  let adminClinic: { id: string; name: string };
+  let adminUser: { id: string; email: string; role: string; accessToken?: string };
   let adminToken: string;
 
-  let doctorClinic: any;
-  let doctorUser: any;
+  let doctorClinic: { id: string; name: string };
+  let doctorUser: { id: string; email: string; role: string; accessToken?: string };
   let doctorToken: string;
 
-  let staffClinic: any;
-  let staffUser: any;
+  let staffClinic: { id: string; name: string };
+  let staffUser: { id: string; email: string; role: string; accessToken?: string };
   let staffToken: string;
 
-  let otherClinicUser: any;
+  let otherClinicUser: { id: string; email: string; role: string; accessToken?: string };
   let otherClinicToken: string;
 
   beforeAll(async () => {

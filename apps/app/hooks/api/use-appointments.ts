@@ -129,7 +129,7 @@ export const useInfiniteAppointments = (options?: {
 
 // Queue related
 export const useCheckInAppointment = () =>
-  useAPIMutation<unknown, string>((id) => `/queue/check-in/${id}`, "POST");
+  useAPIMutation<Record<string, unknown>, string>((id) => `/queue/check-in/${id}`, "POST");
 
 export const useQueue = (options?: { search?: string }) => {
   const params = new URLSearchParams();
@@ -240,7 +240,7 @@ export const useQueueSettings = () =>
 
 export const useUpdateQueueSettings = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       queueBufferMinutes?: number;
       useDoctorQueues?: boolean;
@@ -251,7 +251,7 @@ export const useUpdateQueueSettings = () =>
 
 export const useCreateQueueToken = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     {
       patientId: string;
       appointmentId?: string;
@@ -263,18 +263,18 @@ export const useCreateQueueToken = () =>
 
 export const useUpdateQueue = (id: string) =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     { status?: string; priority?: number; notes?: string }
   >(`/queue/${id}`, "PATCH");
 
 export const useCreateWalkIn = () =>
   useAPIMutation<
-    unknown,
+    Record<string, unknown>,
     { patientName: string; phoneNumber: string; reason?: string }
   >("/queue/walk-in", "POST");
 
 export const useCallNextInQueue = (doctorId?: string) =>
-  useAPIMutation<unknown, void>(
+  useAPIMutation<Record<string, unknown>, void>(
     `/queue/call-next${doctorId ? `?doctorId=${doctorId}` : ""}`,
     "POST",
   );

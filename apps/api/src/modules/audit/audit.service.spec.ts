@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 describe('AuditService', () => {
   let service: AuditService;
   let prismaService: PrismaService;
-  let mockQueue: any;
+  let mockQueue: { add: jest.Mock; process: jest.Mock; on: jest.Mock };
 
   beforeEach(async () => {
     mockQueue = {

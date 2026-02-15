@@ -67,11 +67,11 @@ export interface FHIRExtendedMedication {
 // ============================================================================
 
 export interface AIRawResponse {
-  drugInteractions?: unknown[];
-  contraindications?: unknown[];
-  alerts?: unknown[];
-  suggestions?: unknown[];
-  recommendations?: unknown[];
+  drugInteractions?: Array<Record<string, unknown>>;
+  contraindications?: Array<Record<string, unknown>>;
+  alerts?: Array<Record<string, unknown>>;
+  suggestions?: Array<Record<string, unknown>>;
+  recommendations?: Array<Record<string, unknown>>;
   [key: string]: unknown;
 }
 

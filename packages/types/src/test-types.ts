@@ -21,7 +21,7 @@ export interface MockBullJob<T = unknown> {
   retry: () => Promise<void>;
   discard: () => Promise<void>;
   moveToCompleted: (
-    returnValue?: unknown,
+    returnValue?: Record<string, unknown>,
     ignoreLock?: boolean,
   ) => Promise<void>;
   moveToFailed: (err: Error, ignoreLock?: boolean) => Promise<void>;
@@ -38,8 +38,8 @@ export interface MockBullQueue<T = unknown> {
   empty: jest.Mock<Promise<void>, []>;
   clean: jest.Mock<Promise<string[]>, [number, string]>;
   obliterate: jest.Mock<Promise<void>, []>;
-  on: jest.Mock<void, [string, (...args: unknown[]) => void]>;
-  off: jest.Mock<void, [string, (...args: unknown[]) => void]>;
+  on: jest.Mock<void, [string, (...args: Array<string | number | Record<string, unknown>>) => void]>;
+  off: jest.Mock<void, [string, (...args: Array<string | number | Record<string, unknown>>) => void]>;
 }
 
 // ============================================================================
@@ -158,8 +158,8 @@ declare global {
     interface Mock<T = unknown, Y extends unknown[] = unknown[]> {
       mockResolvedValueOnce(value: T): this;
       mockResolvedValue(value: T): this;
-      mockRejectedValueOnce(value: unknown): this;
-      mockRejectedValue(value: unknown): this;
+      mockRejectedValueOnce(value: Error | string): this;
+      mockRejectedValue(value: Error | string): this;
     }
   }
 }

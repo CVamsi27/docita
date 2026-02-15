@@ -152,7 +152,7 @@ export default function UpgradePage() {
           name: "Docita Subscription",
           description: `Add-on: ${addonId}`,
           order_id: orderId,
-          handler: async (response: unknown) => {
+          handler: async (response: Record<string, unknown>) => {
             const data = response as {
               razorpay_payment_id: string;
               razorpay_order_id: string;
