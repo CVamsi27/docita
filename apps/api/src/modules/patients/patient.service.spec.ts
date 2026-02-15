@@ -350,7 +350,7 @@ describe('PatientService', () => {
       const result = await service.listPatients('clinic-1', {});
 
       // Should not include patients from other clinics
-      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(
+      expect(result.data.every((p: { clinicId: string }) => p.clinicId === 'clinic-1')).toBe(
         true,
       );
     });
@@ -443,7 +443,7 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      expect(result.data.every((p: any) => p.clinicId === 'clinic-1')).toBe(
+      expect(result.data.every((p: { clinicId: string }) => p.clinicId === 'clinic-1')).toBe(
         true,
       );
     });

@@ -97,8 +97,8 @@ async function main() {
               "✅ SECURITY SUCCESS: Patient not found with findFirst.",
             );
           }
-        } catch (err: any) {
-          console.log("Error:", err.message);
+        } catch (err: Error | { message: string }) {
+          console.log('Error:', (err as { message: string }).message);
         }
       },
     );
