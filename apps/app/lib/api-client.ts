@@ -72,7 +72,7 @@ export const typedApi = {
     list: (params?: { date?: string; startDate?: string; endDate?: string }) =>
       client.get(API_ROUTES.appointments.list, { params }),
     get: (id: string) => client.get(API_ROUTES.appointments.get(id)),
-    create: (data: unknown) =>
+    create: (data: Record<string, unknown>) =>
       client.post(API_ROUTES.appointments.create, data),
     update: (id: string, data: unknown) =>
       client.patch(API_ROUTES.appointments.update(id), data),

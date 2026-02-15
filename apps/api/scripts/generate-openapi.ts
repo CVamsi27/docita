@@ -104,7 +104,7 @@ async function generateOpenAPI() {
  * Generate TypeScript types from OpenAPI schemas
  * This creates a type file that can be used in the frontend and testing
  */
-function generateClientTypes(document: Record<string, unknown>): string {
+function generateClientTypes(document: any): string {
   const types: string[] = [
     '/**',
     ' * Auto-generated from OpenAPI specification',
@@ -146,7 +146,7 @@ function generateClientTypes(document: Record<string, unknown>): string {
 /**
  * Convert OpenAPI type to TypeScript type
  */
-function getTypeScriptType(schema: Record<string, unknown>): string {
+function getTypeScriptType(schema: any): string {
   if (schema.type === 'string') {
     if (schema.enum) {
       return schema.enum.map((v: string) => `'${v}'`).join(' | ');

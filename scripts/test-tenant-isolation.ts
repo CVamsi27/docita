@@ -68,11 +68,11 @@ async function main() {
               "✅ SECURITY SUCCESS: Patient not found (filtered out or error swallowed).",
             );
           }
-        } catch (err: any) {
+        } catch (err: Error | { message: string }) {
           console.log(
-            "✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).",
+            '✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).',
           );
-          console.log("Error:", err.message);
+          console.log('Error:', (err as { message: string }).message);
         }
       },
     );

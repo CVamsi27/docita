@@ -1,11 +1,11 @@
 import { Module, DynamicModule } from '@nestjs/common';
 
 export interface Queue {
-  add(data: any, opts?: any): Promise<any>;
-  add(name: string, data: any, opts?: any): Promise<any>;
-  process(callback: (...args: any[]) => any): Promise<void>;
-  process(name: string, callback: (...args: any[]) => any): Promise<void>;
-  on(event: string, callback: (...args: any[]) => any): void;
+  add(data: Record<string, unknown>, opts?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  add(name: string, data: Record<string, unknown>, opts?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  process(callback: (job: { data: Record<string, unknown> }) => Promise<void> | void): Promise<void>;
+  process(name: string, callback: (job: { data: Record<string, unknown> }) => Promise<void> | void): Promise<void>;
+  on(event: string, callback: (...args: Array<string | number | Record<string, unknown>>) => void): void;
 }
 
 export const getQueueToken = (name: string) => `BullQueue_${name}`;

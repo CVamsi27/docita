@@ -238,7 +238,7 @@ test.describe("Critical Business Flows", () => {
     expect(clinicAppointmentsRes.ok()).toBeTruthy();
     const appointments = await clinicAppointmentsRes.json() as any;
     const appointmentExists = appointments.some(
-      (a: any) => a.id === appointment.id && a.patientId === onboardPatient.id
+      (a: { id: string; patientId: string }) => a.id === appointment.id && a.patientId === onboardPatient.id
     );
     expect(appointmentExists).toBeTruthy();
 

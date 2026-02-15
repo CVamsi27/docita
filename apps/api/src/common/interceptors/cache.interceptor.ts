@@ -93,10 +93,10 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   private applyCacheHeaders(
-    response: any,
+    response: { setHeader: (name: string, value: string | number) => void; headersSent?: boolean },
     duration: number,
-    data: any,
-    request: any,
+    data: Record<string, unknown> | string | number,
+    request: { url: string; method: string },
   ) {
     if (response.headersSent) return;
 

@@ -18,7 +18,7 @@ const describeIfSpec = fs.existsSync(specPath) ? describe : describe.skip;
  */
 
 describeIfSpec('API Contract Tests', () => {
-  let openApiSpec: Record<string, unknown>;
+  let openApiSpec: any;
 
   beforeAll(() => {
     // Load OpenAPI specification
@@ -144,7 +144,7 @@ describeIfSpec('API Contract Tests', () => {
     it('should document query parameters for filtering', () => {
       const appointmentParams =
         openApiSpec.paths?.['/appointments']?.get?.parameters;
-      const paramNames = appointmentParams?.map((p: { name: string }) => p.name) || [];
+      const paramNames = appointmentParams?.map((p: any) => p.name) || [];
 
       expect(paramNames).toContain('limit');
       expect(paramNames).toContain('cursor');
