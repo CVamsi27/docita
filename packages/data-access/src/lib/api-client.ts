@@ -223,7 +223,7 @@ export function createAPIClient(config: APIClientConfig) {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          let errorData: Record<string, unknown>;
+          let errorData: Record<string, unknown> | null = null;
           try {
             errorData = await response.json();
           } catch {
