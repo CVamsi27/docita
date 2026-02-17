@@ -96,11 +96,11 @@ Before starting, ensure you have:
 ```bash
 # Test error tracking:
 # Backend: Trigger a test error
-curl -X POST https://api.docita.com/api/health/test-error \
+curl -X POST https://api.docita.work/api/health/test-error \
   -H "Content-Type: application/json"
 
 # Frontend: Open browser console
-# Navigate to: https://app.docita.com
+# Navigate to: https://app.docita.work
 # In console: throw new Error("Sentry test error")
 
 # Expected: Error appears in Sentry dashboard within 30 seconds
@@ -125,7 +125,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 # 2. Configure:
    - Monitor Type: HTTPS
    - Friendly Name: "Docita API - Health Check"
-   - URL: https://api.docita.com/api/health
+   - URL: https://api.docita.work/api/health
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    
@@ -138,7 +138,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 # 2. Configure:
    - Monitor Type: HTTPS
    - Friendly Name: "Docita API - Database Health"
-   - URL: https://api.docita.com/api/health/db
+   - URL: https://api.docita.work/api/health/db
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    - Keyword: "status":"up"
@@ -152,7 +152,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 # 2. Configure:
    - Monitor Type: HTTPS
    - Friendly Name: "Docita API - Redis Health"
-   - URL: https://api.docita.com/api/health/redis
+   - URL: https://api.docita.work/api/health/redis
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    - Keyword: "status":"up"
@@ -166,7 +166,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 # 2. Configure:
    - Monitor Type: HTTPS
    - Friendly Name: "Docita App - Frontend"
-   - URL: https://app.docita.com
+   - URL: https://app.docita.work
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    
@@ -178,7 +178,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 # 1. Go to "My Settings" → "Alert Contacts"
 # 2. Add Email:
    - Type: Email
-   - Email: your-team-email@docita.com
+   - Email: your-team-email@docita.work
    - Verify email
    
 # 3. Add Slack (we'll get webhook in next section)
@@ -299,7 +299,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
    - Threshold: 80%
    - Duration: 5 minutes
    - Alert method: Email
-   - Email: your-team-email@docita.com
+   - Email: your-team-email@docita.work
    
 # 4. Save alert
 ```
@@ -364,7 +364,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 ### Step 5.1: Test Sentry Error Alert
 ```bash
 # Trigger test error in backend:
-curl -X POST https://api.docita.com/api/health/test-error \
+curl -X POST https://api.docita.work/api/health/test-error \
   -H "Content-Type: application/json"
 
 # Expected:
@@ -392,7 +392,7 @@ curl -X POST https://api.docita.com/api/health/test-error \
 ### Step 5.3: Test Performance Alert
 ```bash
 # Trigger slow query (if test endpoint exists):
-curl -X GET https://api.docita.com/api/health/slow-query
+curl -X GET https://api.docita.work/api/health/slow-query
 
 # Or run load test:
 k6 run scripts/k6-baseline.js

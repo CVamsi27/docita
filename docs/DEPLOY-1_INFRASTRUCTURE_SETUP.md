@@ -91,7 +91,7 @@ NEXT_PUBLIC_SENTRY_DSN = <same as main app>
 ```
 Project Name: docita-landing
 Root Directory: apps/landing
-Production Domain: www.yourdomain.com (or docita.com)
+Production Domain: www.yourdomain.com (or docita.work)
 
 Environment Variables:
 NEXT_PUBLIC_API_URL = https://api.yourdomain.com/api

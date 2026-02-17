@@ -104,7 +104,7 @@ railway deployment rollback
 # Railway → Settings → Increase memory limit
 
 # 3. Verify recovery
-curl https://api.docita.com/api/health
+curl https://api.docita.work/api/health
 # Expected: 200 OK with status "up"
 ```
 
@@ -122,7 +122,7 @@ curl https://api.docita.com/api/health
 # Railway → API service → Restart
 
 # 3. Verify database health
-curl https://api.docita.com/api/health/db
+curl https://api.docita.work/api/health/db
 # Expected: {"status":"up","database":"connected"}
 ```
 
@@ -136,7 +136,7 @@ curl https://api.docita.com/api/health/db
 # Railway → Redis → Restart
 
 # 3. Verify recovery
-curl https://api.docita.com/api/health/redis
+curl https://api.docita.work/api/health/redis
 # Expected: {"status":"up","redis":"connected"}
 ```
 
@@ -153,7 +153,7 @@ vercel rollback
 vercel deploy --prod
 
 # 3. Verify frontend loads
-curl https://app.docita.com
+curl https://app.docita.work
 # Expected: 200 OK with HTML content
 ```
 
@@ -163,23 +163,23 @@ curl https://app.docita.com
 # Run full health check suite:
 
 # 1. API health
-curl https://api.docita.com/api/health
+curl https://api.docita.work/api/health
 # Expected: 200 OK
 
 # 2. Database health
-curl https://api.docita.com/api/health/db
+curl https://api.docita.work/api/health/db
 # Expected: status "up"
 
 # 3. Redis health
-curl https://api.docita.com/api/health/redis
+curl https://api.docita.work/api/health/redis
 # Expected: status "up"
 
 # 4. Frontend loads
-curl https://app.docita.com
+curl https://app.docita.work
 # Expected: 200 OK
 
 # 5. Login flow works
-# Manual test: Try logging in at app.docita.com
+# Manual test: Try logging in at app.docita.work
 
 # 6. Check Sentry
 # Verify: Error rate returned to normal
@@ -505,19 +505,19 @@ echo "====================="
 
 # API Health
 echo -n "API Health: "
-curl -s https://api.docita.com/api/health | jq -r '.status'
+curl -s https://api.docita.work/api/health | jq -r '.status'
 
 # Database Health
 echo -n "Database Health: "
-curl -s https://api.docita.com/api/health/db | jq -r '.database'
+curl -s https://api.docita.work/api/health/db | jq -r '.database'
 
 # Redis Health
 echo -n "Redis Health: "
-curl -s https://api.docita.com/api/health/redis | jq -r '.redis'
+curl -s https://api.docita.work/api/health/redis | jq -r '.redis'
 
 # Frontend
 echo -n "Frontend: "
-curl -s -o /dev/null -w "%{http_code}" https://app.docita.com
+curl -s -o /dev/null -w "%{http_code}" https://app.docita.work
 echo ""
 ```
 
@@ -551,7 +551,7 @@ echo "🗄️ Testing Database Connection"
 psql $DATABASE_URL -c "SELECT 1;"
 
 # Or via API
-curl https://api.docita.com/api/health/db
+curl https://api.docita.work/api/health/db
 ```
 
 ---

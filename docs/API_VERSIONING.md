@@ -151,12 +151,12 @@ Invoices & Billing
 
 **Before (v0 - Deprecated):**
 ```bash
-curl https://api.docita.com/patients
+curl https://api.docita.work/patients
 ```
 
 **After (v1 - Current):**
 ```bash
-curl https://api.docita.com/api/v1/patients
+curl https://api.docita.work/api/v1/patients
 ```
 
 ### Step 2: Check Response DTOs

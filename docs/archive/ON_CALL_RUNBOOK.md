@@ -86,7 +86,7 @@ railway deployment rollback
 # Railway → Settings → Increase limits
 
 # Verify fix:
-curl https://api.docita.com/api/health
+curl https://api.docita.work/api/health
 ```
 
 ---
@@ -171,7 +171,7 @@ railway service restart  # Temporary
 # Status: Running / Crashed?
 
 # 2. Test connection:
-curl https://api.docita.com/api/health/db
+curl https://api.docita.work/api/health/db
 
 # 3. Check connection pool:
 # Railway → PostgreSQL → Connections
@@ -203,7 +203,7 @@ railway service restart
 ```bash
 # 1. Check Railway → Redis status
 # 2. Test connection:
-curl https://api.docita.com/api/health/redis
+curl https://api.docita.work/api/health/redis
 ```
 
 **Quick Fix:**
@@ -212,7 +212,7 @@ curl https://api.docita.com/api/health/redis
 # Railway → Redis → Restart
 
 # Verify recovery:
-curl https://api.docita.com/api/health/redis
+curl https://api.docita.work/api/health/redis
 
 # Note: Cache will rebuild automatically
 ```
@@ -265,19 +265,19 @@ echo "=== Docita Health Check ==="
 
 # API
 echo -n "API: "
-curl -s https://api.docita.com/api/health | jq -r '.status'
+curl -s https://api.docita.work/api/health | jq -r '.status'
 
 # Database
 echo -n "DB: "
-curl -s https://api.docita.com/api/health/db | jq -r '.database'
+curl -s https://api.docita.work/api/health/db | jq -r '.database'
 
 # Redis
 echo -n "Redis: "
-curl -s https://api.docita.com/api/health/redis | jq -r '.redis'
+curl -s https://api.docita.work/api/health/redis | jq -r '.redis'
 
 # Frontend
 echo -n "App: "
-curl -s -o /dev/null -w "%{http_code}\n" https://app.docita.com
+curl -s -o /dev/null -w "%{http_code}\n" https://app.docita.work
 
 echo "==========================="
 ```
@@ -300,7 +300,7 @@ echo "==========================="
 # Last deployment: Successful?
 
 # 5. Spot check: Try logging in
-# Visit: https://app.docita.com
+# Visit: https://app.docita.work
 # Login with test account
 # Verify dashboard loads
 ```

@@ -31,7 +31,7 @@ Version 1.0
 
 **Default Credentials** (for initial setup):
 
-- Email: `doctor@docita.com`
+- Email: `doctor@docita.work`
 - Password: `password123`
 
 > **⚠️ IMPORTANT**: Change your password immediately after first login.
@@ -457,9 +457,9 @@ Each clinic's data is completely isolated:
 
 ### Getting Help
 
-- **Email Support**: support@docita.com
-- **Documentation**: docs.docita.com
-- **Video Tutorials**: tutorials.docita.com
+- **Email Support**: support@docita.work
+- **Documentation**: docs.docita.work
+- **Video Tutorials**: tutorials.docita.work
 
 ---
 

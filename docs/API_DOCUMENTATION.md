@@ -33,7 +33,7 @@ POST /auth/login
 
 ```json
 {
-  "email": "doctor@docita.com",
+  "email": "doctor@docita.work",
   "password": "password123"
 }
 ```
@@ -45,7 +45,7 @@ POST /auth/login
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "user_123",
-    "email": "doctor@docita.com",
+    "email": "doctor@docita.work",
     "name": "Dr. Vamsi Krishna",
     "role": "DOCTOR"
   }
@@ -721,7 +721,7 @@ const response = await fetch("http://localhost:3001/api/auth/login", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    email: "doctor@docita.com",
+    email: "doctor@docita.work",
     password: "password123",
   }),
 });
@@ -745,7 +745,7 @@ import requests
 
 # Login
 response = requests.post('http://localhost:3001/api/auth/login', json={
-    'email': 'doctor@docita.com',
+    'email': 'doctor@docita.work',
     'password': 'password123'
 })
 
@@ -764,7 +764,7 @@ print(patients.json())
 # Login
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"doctor@docita.com","password":"password123"}'
+  -d '{"email":"doctor@docita.work","password":"password123"}'
 
 # Get patients
 curl http://localhost:3001/api/patients \
@@ -773,4 +773,4 @@ curl http://localhost:3001/api/patients \
 
 ---
 
-**For API support or bug reports, contact: api-support@docita.com**
+**For API support or bug reports, contact: api-support@docita.work**

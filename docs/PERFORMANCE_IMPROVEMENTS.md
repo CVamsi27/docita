@@ -674,14 +674,14 @@ Watch for:
 
 ```bash
 # Load test pagination
-ab -n 10000 -c 100 https://api.docita.com/patients?cursor=abc&limit=50
+ab -n 10000 -c 100 https://api.docita.work/patients?cursor=abc&limit=50
 
 # Load test cached endpoint
-ab -n 10000 -c 100 https://api.docita.com/dashboard/stats
+ab -n 10000 -c 100 https://api.docita.work/dashboard/stats
 
 # Verify ETag support
-curl -I https://api.docita.com/patients
-curl -H "If-None-Match: <etag>" https://api.docita.com/patients
+curl -I https://api.docita.work/patients
+curl -H "If-None-Match: <etag>" https://api.docita.work/patients
 ```
 
 ### Integration Tests
