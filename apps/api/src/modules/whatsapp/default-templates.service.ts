@@ -46,13 +46,13 @@ export class DefaultTemplatesService {
     appointment_scheduled: {
       name: 'appointment_scheduled',
       category: 'APPOINTMENT',
-      content: `Hello {{patientName}} 👋
+      content: `Hello {{patientName}}
 
 Your appointment at *{{clinicName}}* is confirmed!
 
-📅 Date: {{date}}
-🕐 Time: {{time}}
-👨‍⚕️ Doctor: Dr. {{doctorName}}
+Date: {{date}}
+Time: {{time}}
+Doctor: Dr. {{doctorName}}
 
 We look forward to seeing you!`,
       variables: [
@@ -64,30 +64,30 @@ We look forward to seeing you!`,
       ],
       buttonType: 'QUICK_REPLY',
       buttons: [
-        { id: 'confirm', text: '✅ Confirm' },
-        { id: 'reschedule', text: '📅 Reschedule' },
-        { id: 'cancel', text: '❌ Cancel' },
+        { id: 'confirm', text: 'Confirm' },
+        { id: 'reschedule', text: 'Reschedule' },
+        { id: 'cancel', text: 'Cancel' },
       ],
-      textFallback: `Hello {{patientName}} 👋
+      textFallback: `Hello {{patientName}}
 
 Your appointment at *{{clinicName}}* is confirmed!
 
-📅 Date: {{date}}
-🕐 Time: {{time}}
-👨‍⚕️ Doctor: Dr. {{doctorName}}
+Date: {{date}}
+Time: {{time}}
+Doctor: Dr. {{doctorName}}
 
 Reply:
-1️⃣ Confirm
-2️⃣ Reschedule
-3️⃣ Cancel
+1. Confirm
+2. Reschedule
+3. Cancel
 
-We look forward to seeing you! 🏥`,
+We look forward to seeing you!`,
     },
 
     appointment_reminder_30min: {
       name: 'appointment_reminder_30min',
       category: 'APPOINTMENT',
-      content: `⏰ *Reminder* - {{clinicName}}
+      content: `*Reminder* - {{clinicName}}
 
 Hi {{patientName}}, your appointment is in 30 minutes!`,
       variables: [
@@ -96,29 +96,29 @@ Hi {{patientName}}, your appointment is in 30 minutes!`,
       ],
       buttonType: 'QUICK_REPLY',
       buttons: [
-        { id: 'confirm', text: '✅ I am on my way' },
-        { id: 'cancel', text: '❌ Cancel' },
+        { id: 'confirm', text: 'I am on my way' },
+        { id: 'cancel', text: 'Cancel' },
       ],
-      textFallback: `⏰ *Reminder* - {{clinicName}}
+      textFallback: `*Reminder* - {{clinicName}}
 
 Hi {{patientName}}, your appointment is in 30 minutes!
 
 Reply:
-1️⃣ I am on my way
-2️⃣ Cancel`,
+1. I am on my way
+2. Cancel`,
     },
 
     prescription_shared: {
       name: 'prescription_shared',
       category: 'PRESCRIPTION',
-      content: `💊 *Your Prescription* from {{clinicName}}
+      content: `*Your Prescription* from {{clinicName}}
 
 Hi {{patientName}}, your prescription has been shared!
 
 Dr. {{doctorName}} prescribed:
 {{medications}}
 
-📋 View full prescription: {{prescriptionLink}}`,
+View full prescription: {{prescriptionLink}}`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -127,7 +127,7 @@ Dr. {{doctorName}} prescribed:
         { name: 'prescriptionLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `💊 *Your Prescription* from {{clinicName}}
+      textFallback: `*Your Prescription* from {{clinicName}}
 
 Hi {{patientName}}, your prescription has been shared!
 
@@ -140,14 +140,14 @@ View full prescription: {{prescriptionLink}}`,
     payment_reminder: {
       name: 'payment_reminder',
       category: 'PAYMENT',
-      content: `💳 *Payment Due* - {{clinicName}}
+      content: `*Payment Due* - {{clinicName}}
 
 Hi {{patientName}}, your invoice is ready!
 
 Amount: ₹{{amount}}
 Due by: {{dueDate}}
 
-📄 View invoice: {{invoiceLink}}`,
+View invoice: {{invoiceLink}}`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -156,7 +156,7 @@ Due by: {{dueDate}}
         { name: 'invoiceLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `💳 *Payment Due* - {{clinicName}}
+      textFallback: `*Payment Due* - {{clinicName}}
 
 Hi {{patientName}}, your invoice is ready!
 
@@ -169,12 +169,12 @@ View invoice: {{invoiceLink}}`,
     lab_report_ready: {
       name: 'lab_report_ready',
       category: 'APPOINTMENT',
-      content: `🧪 *Lab Report Ready* - {{clinicName}}
+      content: `*Lab Report Ready* - {{clinicName}}
 
 Hi {{patientName}}, your lab report is ready!
 
 Test: {{testName}}
-📊 View report: {{reportLink}}`,
+View report: {{reportLink}}`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -182,7 +182,7 @@ Test: {{testName}}
         { name: 'reportLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `🧪 *Lab Report Ready* - {{clinicName}}
+      textFallback: `*Lab Report Ready* - {{clinicName}}
 
 Hi {{patientName}}, your lab report is ready!
 

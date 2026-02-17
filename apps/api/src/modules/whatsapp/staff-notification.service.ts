@@ -236,7 +236,7 @@ export class StaffNotificationService {
       }
 
       // Fallback to simple message
-      const formattedMessage = `🔔 *Staff Alert*\n\n*${title}*\n\n${message}`;
+      const formattedMessage = `*Staff Alert*\n\n*${title}*\n\n${message}`;
       await this.whatsappClient.sendMessage({
         to: phoneNumber,
         message: formattedMessage,

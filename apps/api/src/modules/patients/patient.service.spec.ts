@@ -3,7 +3,12 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('PatientService', () => {
-  let service: { findAll: jest.Mock; findOne: jest.Mock; create: jest.Mock; update: jest.Mock };
+  let service: {
+    findAll: jest.Mock;
+    findOne: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+  };
   let prisma: PrismaService;
 
   const mockPrismaService = {
@@ -350,9 +355,11 @@ describe('PatientService', () => {
       const result = await service.listPatients('clinic-1', {});
 
       // Should not include patients from other clinics
-      expect(result.data.every((p: { clinicId: string }) => p.clinicId === 'clinic-1')).toBe(
-        true,
-      );
+      expect(
+        result.data.every(
+          (p: { clinicId: string }) => p.clinicId === 'clinic-1',
+        ),
+      ).toBe(true);
     });
   });
 
@@ -443,9 +450,11 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      expect(result.data.every((p: { clinicId: string }) => p.clinicId === 'clinic-1')).toBe(
-        true,
-      );
+      expect(
+        result.data.every(
+          (p: { clinicId: string }) => p.clinicId === 'clinic-1',
+        ),
+      ).toBe(true);
     });
   });
 

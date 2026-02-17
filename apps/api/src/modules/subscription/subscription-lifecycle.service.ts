@@ -108,7 +108,7 @@ export class SubscriptionLifecycleService {
       },
     });
 
-    // Update clinic tier and add-on features
+    // Update clinic tier and add-on features (merge with existing overrides)
     const featureUpdates: Record<string, boolean> = {};
     if (addOns.includes('WHATSAPP')) {
       featureUpdates['WHATSAPP'] = true;
@@ -116,12 +116,21 @@ export class SubscriptionLifecycleService {
       featureUpdates['WHATSAPP_REMINDERS'] = true;
     }
 
+    // Fetch existing features to merge (preserve admin overrides)
+    const existingClinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { features: true },
+    });
+    const existingFeatures =
+      (existingClinic?.features as Record<string, boolean>) || {};
+
     await this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
         tier,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
         features: {
+          ...existingFeatures,
           ...featureUpdates,
         },
       },

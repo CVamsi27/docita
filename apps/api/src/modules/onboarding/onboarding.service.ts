@@ -228,17 +228,15 @@ export class OnboardingService {
       );
 
       // Step 9: Generate JWT token for automatic login
-      const authPayload = {
+      const authCredentials = await this.authService.login({
         id: result.adminUser.id,
         email: result.adminUser.email,
         name: result.adminUser.name,
         role: result.adminUser.role,
         clinicId: result.clinic.id,
-      };
-      const authCredentials = await this.authService.login({
-        ...authPayload,
-        clinicId: result.clinic.id,
-      } as any);
+        createdAt: result.adminUser.createdAt,
+        updatedAt: result.adminUser.updatedAt,
+      });
 
       return {
         success: true,

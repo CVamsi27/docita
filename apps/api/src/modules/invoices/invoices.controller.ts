@@ -61,8 +61,8 @@ export class InvoicesController {
 
   @Get(':id')
   @ZodSerializerDto(InvoiceResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.invoicesService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -78,13 +78,24 @@ export class InvoicesController {
   @Patch(':id')
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
-  update(@Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
-    return this.invoicesService.update(id, dto);
+  update(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateInvoiceDto,
+  ) {
+    return this.invoicesService.update(id, dto, req.user.clinicId);
   }
 
   @Get(':id/pdf')
-  async generatePDF(@Param('id') id: string, @Res() res: Response) {
-    const pdfBuffer = await this.invoicesService.generatePDF(id);
+  async generatePDF(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.invoicesService.generatePDF(
+      id,
+      req.user.clinicId,
+    );
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',

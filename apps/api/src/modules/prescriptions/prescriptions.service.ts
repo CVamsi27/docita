@@ -40,11 +40,21 @@ export class PrescriptionsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const prescription = await this.repository.findById(id);
 
     if (!prescription) {
       throw new NotFoundException(`Prescription with ID ${id} not found`);
+    }
+
+    // Verify clinic ownership via patient relation
+    if (clinicId) {
+      const rxData = prescription as unknown as {
+        patient?: { clinic?: { id: string } };
+      };
+      if (rxData.patient?.clinic?.id && rxData.patient.clinic.id !== clinicId) {
+        throw new NotFoundException(`Prescription with ID ${id} not found`);
+      }
     }
 
     return prescription;
@@ -83,7 +93,17 @@ export class PrescriptionsService {
     }
 
     // Check for drug allergies
-    const patientAllergies = (patient as any).patientAllergies || [];
+    const patientAllergies =
+      (
+        patient as unknown as {
+          patientAllergies?: Array<{
+            allergen: string;
+            allergyType: string;
+            severity: string;
+            reaction?: string | null;
+          }>;
+        }
+      ).patientAllergies || [];
     if (Array.isArray(patientAllergies) && patientAllergies.length > 0) {
       const allergyCheck = checkPrescriptionAllergies(
         data.medications,
@@ -163,14 +183,53 @@ export class PrescriptionsService {
 
   async generatePDF(
     id: string,
-    timezone: string = DEFAULT_TIMEZONE,
+    clinicIdOrTimezone?: string,
     locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
-    const prescription = await this.findOne(id);
+    // If clinicIdOrTimezone looks like a clinicId (not a timezone), use it for scoping
+    const isClinicId = clinicIdOrTimezone && !clinicIdOrTimezone.includes('/');
+    const clinicId = isClinicId ? clinicIdOrTimezone : undefined;
+    const timezone = isClinicId
+      ? DEFAULT_TIMEZONE
+      : clinicIdOrTimezone || DEFAULT_TIMEZONE;
+    const prescription = await this.findOne(id, clinicId);
     // findOne uses repository.findById which uses include patient.
 
     // Safety check for relations
-    const prescriptionWithRelations = prescription as any;
+    const prescriptionWithRelations = prescription as unknown as {
+      id: string;
+      patient: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber?: string;
+        email?: string;
+        gender?: string;
+        dateOfBirth: Date;
+        clinic?: {
+          name?: string;
+          address?: string;
+          phone?: string;
+          email?: string;
+        };
+      };
+      doctor: {
+        name: string;
+        qualification?: string;
+        registrationNumber?: string;
+        signatureUrl?: string;
+      };
+      medications: Array<{
+        id: string;
+        medicineId: string | null;
+        medicineName: string;
+        dosage: string;
+        frequency: string;
+        duration: string;
+        instructions: string | null;
+        quantity: number;
+      }>;
+    };
 
     const patientAge = calculateAge(
       prescriptionWithRelations.patient.dateOfBirth,
@@ -205,13 +264,24 @@ export class PrescriptionsService {
           .toUpperCase(),
         // TODO: Pass allergies if available in the fetch
       },
-      medications: prescriptionWithRelations.medications.map((med: { id: string; medicineId: string | null; medicineName: string; dosage: string; frequency: string; duration: string; instructions: string | null; quantity: number }) => ({
-        name: med.medicineName,
-        dosage: med.dosage,
-        route: 'PO', // Default route
-        frequency: med.frequency,
-        duration: med.duration,
-      })),
+      medications: prescriptionWithRelations.medications.map(
+        (med: {
+          id: string;
+          medicineId: string | null;
+          medicineName: string;
+          dosage: string;
+          frequency: string;
+          duration: string;
+          instructions: string | null;
+          quantity: number;
+        }) => ({
+          name: med.medicineName,
+          dosage: med.dosage,
+          route: 'PO', // Default route
+          frequency: med.frequency,
+          duration: med.duration,
+        }),
+      ),
       instructions: prescription.instructions || undefined,
       date: new Date(), // Use current date for PDF generation time
       validityDays: 30,

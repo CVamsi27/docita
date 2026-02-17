@@ -3,7 +3,7 @@
  * Handles consent management, data subject rights, and compliance tracking
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import {
@@ -238,7 +238,7 @@ export class DPDPComplianceService {
     );
 
     if (pendingObligations.length > 0) {
-      throw new Error(
+      throw new BadRequestException(
         `Cannot delete patient due to pending obligations: ${pendingObligations.join(', ')}`,
       );
     }

@@ -176,7 +176,7 @@ export class FeedbackService {
   /**
    * Get feedback by ID
    */
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const feedback = await this.prisma.feedback.findUnique({
       where: { id },
       include: {
@@ -199,6 +199,10 @@ export class FeedbackService {
     });
 
     if (!feedback) {
+      throw new NotFoundException('Feedback not found');
+    }
+
+    if (clinicId && feedback.clinicId !== clinicId) {
       throw new NotFoundException('Feedback not found');
     }
 

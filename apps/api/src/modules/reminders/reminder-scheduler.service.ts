@@ -43,95 +43,105 @@ export class ReminderSchedulerService {
 
   /**
    * Check and send appointment reminders (runs every hour)
+   * Processes reminders per-clinic using each clinic's own settings
    */
   @Cron(CronExpression.EVERY_HOUR)
   async checkAndSendReminders(): Promise<void> {
-    const settings = await this.settingsService.getSettings();
-
-    if (!settings.enabled) {
-      this.logger.log('Reminders are disabled');
-      return;
-    }
-
     const now = new Date();
-    const reminderTime = new Date(
-      now.getTime() + settings.hoursBeforeAppt * 60 * 60 * 1000,
-    );
 
     return this.prisma.runUnrestricted(async () => {
-      const appointments = await this.prisma.appointment.findMany({
-        where: {
-          startTime: {
-            gte: now,
-            lte: reminderTime,
-          },
-          status: {
-            in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
-          },
-        },
-        include: {
-          patient: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              phoneNumber: true,
-              email: true,
-            },
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          clinic: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+      // Get all clinic-scoped reminder settings
+      const allSettings = await this.prisma.reminderSettings.findMany({
+        where: { enabled: true, clinicId: { not: null } },
       });
 
-      this.logger.log(
-        `Found ${appointments.length} appointments needing reminders`,
-      );
+      if (allSettings.length === 0) {
+        this.logger.log('No clinic reminder settings found or all disabled');
+        return;
+      }
 
-      for (const appointment of appointments) {
-        const existingReminder =
-          await this.prisma.appointmentReminder.findFirst({
-            where: {
-              appointmentId: appointment.id,
-              status: 'sent',
+      for (const settings of allSettings) {
+        if (!settings.clinicId) continue;
+
+        const reminderTime = new Date(
+          now.getTime() + settings.hoursBeforeAppt * 60 * 60 * 1000,
+        );
+
+        const appointments = await this.prisma.appointment.findMany({
+          where: {
+            clinicId: settings.clinicId,
+            startTime: {
+              gte: now,
+              lte: reminderTime,
             },
-          });
+            status: {
+              in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+            },
+          },
+          include: {
+            patient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phoneNumber: true,
+                email: true,
+              },
+            },
+            doctor: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            clinic: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
 
-        if (existingReminder) {
-          continue;
-        }
+        this.logger.log(
+          `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
+        );
 
-        if (settings.emailEnabled && appointment.patient.email) {
-          await this.notificationService.sendEmailReminder(
-            appointment as AppointmentForReminder,
-            settings,
-          );
-        }
+        for (const appointment of appointments) {
+          const existingReminder =
+            await this.prisma.appointmentReminder.findFirst({
+              where: {
+                appointmentId: appointment.id,
+                status: 'sent',
+              },
+            });
 
-        if (settings.smsEnabled && appointment.patient.phoneNumber) {
-          await this.notificationService.sendSmsReminder(
-            appointment as AppointmentForReminder,
-            settings,
-          );
-        }
+          if (existingReminder) {
+            continue;
+          }
 
-        // Send WhatsApp reminder (24-hour)
-        if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
-          await this.notificationService.sendWhatsappReminder(
-            appointment as AppointmentForReminder,
-            settings,
-            'appointment_reminder_24hr',
-          );
+          if (settings.emailEnabled && appointment.patient.email) {
+            await this.notificationService.sendEmailReminder(
+              appointment as AppointmentForReminder,
+              settings,
+            );
+          }
+
+          if (settings.smsEnabled && appointment.patient.phoneNumber) {
+            await this.notificationService.sendSmsReminder(
+              appointment as AppointmentForReminder,
+              settings,
+            );
+          }
+
+          // Send WhatsApp reminder (24-hour)
+          if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
+            await this.notificationService.sendWhatsappReminder(
+              appointment as AppointmentForReminder,
+              settings,
+              'appointment_reminder_24hr',
+            );
+          }
         }
       }
     });

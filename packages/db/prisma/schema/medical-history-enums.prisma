@@ -1,0 +1,81 @@
+// ============================================================================
+// Medical History Enums
+// ============================================================================
+
+enum MedicalConditionType {
+  CHRONIC // Ongoing conditions like Diabetes, Hypertension
+  ACUTE // Short-term conditions
+  CONGENITAL // Present from birth
+  INFECTIOUS // Infectious diseases
+  AUTOIMMUNE // Autoimmune conditions
+  PSYCHIATRIC // Mental health conditions
+  OTHER
+}
+
+enum ConditionStatus {
+  ACTIVE // Currently ongoing
+  MANAGED // Under control with treatment
+  RESOLVED // No longer present
+  IN_REMISSION // For conditions like cancer
+}
+
+enum ConditionSeverity {
+  MILD
+  MODERATE
+  SEVERE
+  CRITICAL
+}
+
+enum ConditionSourceType {
+  MANUAL // Manually entered by staff
+  AUTO_SUGGESTED // Auto-suggested from recurring diagnoses
+  IMPORTED // Imported from external records
+}
+
+enum AllergyType {
+  DRUG // Medication allergies
+  FOOD // Food allergies
+  ENVIRONMENTAL // Pollen, dust, etc.
+  LATEX // Latex allergy
+  INSECT // Insect stings/bites
+  CONTRAST // Contrast dye
+  OTHER
+}
+
+enum AllergySeverity {
+  MILD // Minor symptoms
+  MODERATE // Significant symptoms
+  SEVERE // Serious reactions
+  LIFE_THREATENING // Anaphylaxis risk
+}
+
+enum SmokingStatus {
+  NEVER
+  FORMER
+  CURRENT
+  UNKNOWN
+}
+
+enum AlcoholUseStatus {
+  NONE
+  OCCASIONAL
+  MODERATE
+  HEAVY
+  UNKNOWN
+}
+
+enum AppointmentPriority {
+  ROUTINE
+  URGENT
+  EMERGENCY
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  RESCHEDULING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

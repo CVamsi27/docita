@@ -18,7 +18,7 @@ export class FhirObservationFactory {
       const patientId = vital.appointment.patientId; // Wait, appointment has patientId, but type definition above assumed just patient object. Prisma includes patientId in appointment usually.
       // Actually checking prisma schema, Appointment has patientId.
 
-      const patientRef = `Patient/${(vital.appointment as any).patientId || (vital as any).patientId}`; // Fallback or strict?
+      const patientRef = `Patient/${vital.appointment.patientId}`;
       // Ideally caller passes vital loaded with appointment.patient.
       // The original code used appointment.patientId.
 

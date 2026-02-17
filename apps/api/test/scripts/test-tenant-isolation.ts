@@ -60,18 +60,17 @@ async function main() {
 
           if (result) {
             console.error(
-              '❌ SECURITY FAILURE: Access allowed across tenants!',
+              '[ERROR] SECURITY FAILURE: Access allowed across tenants!',
             );
             console.log('Result:', result);
           } else {
             console.log(
-              '✅ SECURITY SUCCESS: Patient not found (filtered out or error swallowed).',
+              '[OK] SECURITY SUCCESS: Patient not found (filtered out or error swallowed).',
             );
-
           }
         } catch (err) {
           console.log(
-            '✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).',
+            '[OK] SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).',
           );
           console.log('Error:', (err as { message: string }).message);
         }
@@ -91,11 +90,11 @@ async function main() {
 
           if (result) {
             console.error(
-              '❌ SECURITY FAILURE: Access allowed across tenants with findFirst!',
+              '[ERROR] SECURITY FAILURE: Access allowed across tenants with findFirst!',
             );
           } else {
             console.log(
-              '✅ SECURITY SUCCESS: Patient not found with findFirst.',
+              '[OK] SECURITY SUCCESS: Patient not found with findFirst.',
             );
           }
         } catch (err) {

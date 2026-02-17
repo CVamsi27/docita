@@ -1,0 +1,61 @@
+model ClinicalTemplate {
+  id                  String   @id @default(cuid())
+  name                String
+  speciality          String
+  fields              Json
+  defaultObservations String?
+  clinicId            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  clinic              Clinic?  @relation(fields: [clinicId], references: [id])
+
+  @@index([speciality])
+  @@index([clinicId])
+}
+
+model CustomField {
+  id        String   @id @default(cuid())
+  name      String
+  fieldType String
+  options   String?
+  required  Boolean  @default(false)
+  order     Int      @default(0)
+  clinicId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  clinic    Clinic?  @relation(fields: [clinicId], references: [id])
+
+  @@index([clinicId])
+}
+
+model ReminderSettings {
+  id               String   @id @default(cuid())
+  enabled          Boolean  @default(true)
+  smsEnabled       Boolean  @default(false)
+  emailEnabled     Boolean  @default(true)
+  whatsappEnabled  Boolean  @default(false)
+  hoursBeforeAppt  Int      @default(24)
+  minutesBefore30  Boolean  @default(true) // Send 30-min reminder
+  smsTemplate      String?
+  emailTemplate    String?
+  whatsappTemplate String? // Template ID for WhatsApp reminder
+  emailSubject     String   @default("Appointment Reminder")
+  clinicId         String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  clinic           Clinic?  @relation(fields: [clinicId], references: [id])
+}
+
+model AppointmentReminder {
+  id            String    @id @default(cuid())
+  appointmentId String
+  type          String
+  status        String    @default("pending")
+  sentAt        DateTime?
+  error         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([appointmentId])
+  @@index([status])
+}

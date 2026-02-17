@@ -6,6 +6,7 @@ import type {
   CompleteOnboardingDto,
   OnboardingProgressDto,
 } from './dto/create-clinic-onboarding.dto';
+import { OnboardingStep } from './dto/create-clinic-onboarding.dto';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
@@ -55,10 +56,10 @@ export class OnboardingService {
    */
   updateOnboardingStep(
     onboardingId: string,
-    step: Record<string, unknown>,
+    step: OnboardingStep,
     data: Partial<CompleteOnboardingDto>,
   ): OnboardingProgressDto {
-    this.dataService.updateOnboardingData(onboardingId, step as any, data);
+    this.dataService.updateOnboardingData(onboardingId, step, data);
     return this.dataService.getOnboardingProgress(onboardingId);
   }
 
@@ -201,17 +202,15 @@ export class OnboardingService {
       );
 
       // Generate JWT token for automatic login
-      const authPayload = {
+      const authCredentials = await this.authService.login({
         id: result.adminUser.id,
         email: result.adminUser.email,
         name: result.adminUser.name,
         role: result.adminUser.role,
         clinicId: result.clinic.id,
-      };
-      const authCredentials = await this.authService.login({
-        ...authPayload,
-        clinicId: result.clinic.id,
-      } as any);
+        createdAt: result.adminUser.createdAt,
+        updatedAt: result.adminUser.updatedAt,
+      });
 
       return {
         success: true,

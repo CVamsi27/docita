@@ -316,10 +316,10 @@ export class ImportsService {
       .toUpperCase();
 
     if (!firstName) {
-      throw new Error('Missing required field: First Name');
+      throw new BadRequestException('Missing required field: First Name');
     }
     if (!phone) {
-      throw new Error('Missing required field: Phone Number');
+      throw new BadRequestException('Missing required field: Phone Number');
     }
 
     let gender: Gender = Gender.OTHER;
@@ -335,7 +335,7 @@ export class ImportsService {
     );
 
     if (!clinicId) {
-      throw new Error('Clinic ID is required for patient import');
+      throw new BadRequestException('Clinic ID is required for patient import');
     }
 
     await this.prisma.patient.create({

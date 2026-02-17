@@ -3,6 +3,7 @@ import {
   IPaymentProvider,
   CreatePaymentLinkDto,
   PaymentProviderLink,
+  ChargeResult,
 } from './payment.provider.interface';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
@@ -45,7 +46,7 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
         id: link.id,
         shortUrl: link.short_url,
         status: link.status,
-        raw: link as any,
+        raw: link as unknown as Record<string, unknown>,
       };
     } catch (error) {
       this.logger.error('Failed to create Razorpay payment link', error);
@@ -53,9 +54,17 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     }
   }
 
-  verifySignature(payload: Record<string, unknown>, signature: string): boolean {
+  verifySignature(
+    payload: Record<string, unknown>,
+    signature: string,
+  ): boolean {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    if (!webhookSecret) return true;
+    if (!webhookSecret) {
+      this.logger.error(
+        'RAZORPAY_WEBHOOK_SECRET is not configured — rejecting webhook',
+      );
+      return false;
+    }
 
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
@@ -63,5 +72,36 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
       .digest('hex');
 
     return expectedSignature === signature;
+  }
+
+  async chargeWithToken(
+    customerId: string,
+    tokenId: string,
+    amountCents: number,
+    currency: string,
+    description: string,
+  ): Promise<ChargeResult> {
+    try {
+      const payment = await this.razorpay.payments.createRecurringPayment({
+        email: '',
+        contact: '',
+        amount: amountCents,
+        currency,
+        description,
+        customer_id: customerId,
+        token: tokenId,
+      } as any);
+
+      const result = payment as unknown as Record<string, string>;
+      return {
+        paymentId: result.id,
+        status: result.status,
+        amount: amountCents,
+        currency,
+      };
+    } catch (error) {
+      this.logger.error('Failed to charge with token', error);
+      throw new BadRequestException('Failed to process recurring payment');
+    }
   }
 }

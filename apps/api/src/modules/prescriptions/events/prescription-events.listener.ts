@@ -72,9 +72,9 @@ export class PrescriptionEventsListener {
   ): string {
     const patientName = prescription.patient.firstName;
 
-    let message = `Hello ${patientName}👋\n\n`;
+    let message = `Hello ${patientName}\n\n`;
     message += `Your prescription from *${clinicName}* is ready!\n\n`;
-    message += `💊 *Medications:*\n`;
+    message += `*Medications:*\n`;
 
     prescription.medications.forEach((med) => {
       const dosage = med.dosage || '';
@@ -86,11 +86,11 @@ export class PrescriptionEventsListener {
     });
 
     if (prescription.instructions) {
-      message += `\n📋 *Instructions:*\n${prescription.instructions}\n`;
+      message += `\n*Instructions:*\n${prescription.instructions}\n`;
     }
 
-    message += `\n👨‍⚕️ Please follow the prescription as advised.\n`;
-    message += `For queries, contact us anytime. Get well soon! 🏥`;
+    message += `\nPlease follow the prescription as advised.\n`;
+    message += `For queries, contact us anytime. Get well soon!`;
 
     return message;
   }

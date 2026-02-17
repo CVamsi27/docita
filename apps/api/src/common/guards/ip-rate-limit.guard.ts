@@ -41,7 +41,7 @@ export class IpRateLimitGuard implements CanActivate {
     }
 
     // Attach IP to request for logging/auditing
-    (request as any).clientIp = ip;
+    (request as unknown as Record<string, unknown>).clientIp = ip;
 
     return true;
   }

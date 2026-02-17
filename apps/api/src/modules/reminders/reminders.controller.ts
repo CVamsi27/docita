@@ -39,15 +39,18 @@ export class RemindersController {
 
   @Get('settings')
   @ZodSerializerDto(ReminderSettingsResponseDto)
-  getSettings() {
-    return this.remindersService.getSettings();
+  getSettings(@Request() req: AuthRequest) {
+    return this.remindersService.getSettings(req.user.clinicId);
   }
 
   @Put('settings')
   @ZodSerializerDto(ReminderSettingsResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateReminderSettingsSchema))
-  updateSettings(@Body() data: ReminderSettingsDto) {
-    return this.remindersService.updateSettings(data);
+  updateSettings(
+    @Request() req: AuthRequest,
+    @Body() data: ReminderSettingsDto,
+  ) {
+    return this.remindersService.updateSettings(data, req.user.clinicId);
   }
 
   @Get('history')

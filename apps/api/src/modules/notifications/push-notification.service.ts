@@ -100,7 +100,7 @@ export class PushNotificationService {
     await this.sendToPatient(
       patientId,
       {
-        title: '✅ Payment Received',
+        title: 'Payment Received',
         body: `₹${amount.toFixed(2)} received for Invoice #${invoiceNumber} at ${clinicName}`,
         data: {
           invoiceNumber,
@@ -124,7 +124,7 @@ export class PushNotificationService {
     await this.sendToPatient(
       patientId,
       {
-        title: '❌ Payment Failed',
+        title: 'Payment Failed',
         body: `Your payment of ₹${amount.toFixed(2)} for Invoice #${invoiceNumber} could not be processed`,
         data: {
           invoiceNumber,
@@ -149,7 +149,7 @@ export class PushNotificationService {
     await this.sendToPatient(
       patientId,
       {
-        title: '💳 Payment Reminder',
+        title: 'Payment Reminder',
         body: `₹${amount.toFixed(2)} due for Invoice #${invoiceNumber} at ${clinicName}`,
         data: {
           invoiceNumber,
@@ -175,7 +175,7 @@ export class PushNotificationService {
     await this.sendToPatient(
       patientId,
       {
-        title: '📄 Invoice Ready',
+        title: 'Invoice Ready',
         body: `Your invoice for ₹${amount.toFixed(2)} from ${clinicName} is ready`,
         data: {
           invoiceNumber,

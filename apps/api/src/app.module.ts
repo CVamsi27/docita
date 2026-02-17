@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { BullModule } from '@nestjs/bull';
 import { LoggerModule } from 'nestjs-pino';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
@@ -27,6 +26,8 @@ import { DoctorClinicsModule } from './modules/doctor-clinics/doctor-clinics.mod
 import { DoctorsModule } from './modules/doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
+import { MockBullModule } from './common/mocks/mock-bull.module';
+
 import { join } from 'path';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
@@ -51,6 +52,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { IpdModule } from './modules/ipd/ipd.module';
 import { PerformanceModule } from './modules/performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { PatientPortalModule } from './modules/patient-portal/patient-portal.module';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './common/interceptors/patient-audit.interceptor';
@@ -60,10 +62,13 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/roles.guard';
 import { CsrfInterceptor } from './common/interceptors/csrf.interceptor';
+import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 
 // Extensibility Infrastructure
 import { EventsModule } from './common/events';
 import { CommonServicesModule } from './common/services';
+
+const BullModule = MockBullModule;
 
 @Module({
   imports: [
@@ -120,13 +125,7 @@ import { CommonServicesModule } from './common/services';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        redis: configService.get('REDIS_URL') || 'redis://localhost:6379',
-      }),
-      inject: [ConfigService],
-    }),
+    BullModule.forRootAsync(),
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
@@ -170,6 +169,7 @@ import { CommonServicesModule } from './common/services';
     IpdModule,
     PerformanceModule,
     ComplianceModule,
+    PatientPortalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -221,6 +221,11 @@ import { CommonServicesModule } from './common/services';
     {
       provide: APP_INTERCEPTOR,
       useClass: BreakTheGlassInterceptor,
+    },
+    // Per-endpoint Rate Limiting (works with @RateLimit() decorator)
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RateLimitInterceptor,
     },
   ],
   exports: [],

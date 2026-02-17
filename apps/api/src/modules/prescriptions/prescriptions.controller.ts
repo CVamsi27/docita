@@ -15,7 +15,7 @@ import { PrescriptionsService } from './prescriptions.service';
 import { TierGuard } from '../auth/tier.guard';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@workspace/db';
+import { Role, Specialization, HospitalRole } from '@workspace/db';
 
 import {
   CreatePrescriptionDto,
@@ -54,8 +54,8 @@ export class PrescriptionsController {
 
   @Get(':id')
   @ZodSerializerDto(PrescriptionResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.prescriptionsService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.prescriptionsService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -67,15 +67,22 @@ export class PrescriptionsController {
       ...dto,
       appointmentId: dto.appointmentId || '',
       doctorId: dto.doctorId || req.user.id,
-      doctorSpecialization: dto.doctorSpecialization as any,
-      doctorRole: dto.doctorRole as any,
+      doctorSpecialization: dto.doctorSpecialization as Specialization,
+      doctorRole: dto.doctorRole as HospitalRole,
       clinicId: req.user.clinicId,
     });
   }
 
   @Get(':id/pdf')
-  async getPdf(@Param('id') id: string, @Res() res: Response) {
-    const buffer = await this.prescriptionsService.generatePDF(id);
+  async getPdf(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.prescriptionsService.generatePDF(
+      id,
+      req.user.clinicId,
+    );
 
     res.set({
       'Content-Type': 'application/pdf',

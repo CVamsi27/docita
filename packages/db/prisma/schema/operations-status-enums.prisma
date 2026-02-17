@@ -1,0 +1,35 @@
+enum BedStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  CLEANING
+  RESERVED
+}
+
+enum LabTestOrderStatus {
+  ORDERED
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum WhatsappConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum WhatsappMessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  PENDING
+  QUEUED
+}
+
+enum AdmissionStatus {
+  ADMITTED
+  DISCHARGED
+  TRANSFERRED
+}

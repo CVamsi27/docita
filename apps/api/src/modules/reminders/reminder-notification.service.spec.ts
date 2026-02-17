@@ -453,7 +453,7 @@ describe('ReminderNotificationService', () => {
       const template = 'at {clinicName}';
       const result = service.replacePlaceholders(template, mockAppointment);
 
-      expect(result).toContain('Your Clinic');
+      expect(result).toContain('Main Clinic');
     });
 
     it('should handle multiple placeholder replacements', () => {

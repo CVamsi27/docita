@@ -129,7 +129,7 @@ export class ClinicManagementService {
   async updateClinic(id: string, data: SuperAdminUpdateClinicDto) {
     const clinic = await this.prisma.clinic.update({
       where: { id },
-      data: data as any,
+      data: data as Prisma.ClinicUpdateInput,
     });
     if (data.tier !== undefined || data.active !== undefined) {
       this.paymentGateway.emitClinicUpdate(id, {

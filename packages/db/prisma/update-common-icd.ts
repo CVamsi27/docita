@@ -71,7 +71,7 @@ const commonIcdCodes = [
 ];
 
 async function main() {
-  console.log("🏥 Updating common ICD codes...");
+  console.log("Updating common ICD codes...");
 
   let updatedCount = 0;
 

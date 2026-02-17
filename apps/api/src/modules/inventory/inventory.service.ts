@@ -31,8 +31,10 @@ interface UpdateInventoryItemDto {
   active?: boolean;
 }
 
+type MovementType = 'in' | 'out' | 'adjustment' | 'expired';
+
 interface CreateMovementDto {
-  type: string;
+  type: MovementType;
   quantity: number;
   referenceType?: string;
   referenceId?: string;
@@ -104,7 +106,7 @@ export class InventoryService {
     return items;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const item = await this.prisma.inventoryItem.findUnique({
       where: { id },
       include: {
@@ -115,7 +117,7 @@ export class InventoryService {
       },
     });
 
-    if (!item) {
+    if (!item || (clinicId && item.clinicId !== clinicId)) {
       throw new NotFoundException(`Inventory item with ID ${id} not found`);
     }
 
@@ -133,26 +135,27 @@ export class InventoryService {
     });
   }
 
-  async update(id: string, data: UpdateInventoryItemDto) {
+  async update(id: string, data: UpdateInventoryItemDto, clinicId?: string) {
+    // Verify item exists and belongs to clinic
+    await this.findOne(id, clinicId);
     return this.prisma.inventoryItem.update({
       where: { id },
       data,
     });
   }
 
-  async addMovement(itemId: string, userId: string, data: CreateMovementDto) {
-    const item = await this.prisma.inventoryItem.findUnique({
-      where: { id: itemId },
-    });
-
-    if (!item) {
-      throw new NotFoundException(`Inventory item with ID ${itemId} not found`);
-    }
+  async addMovement(
+    itemId: string,
+    userId: string,
+    data: CreateMovementDto,
+    clinicId?: string,
+  ) {
+    const item = await this.findOne(itemId, clinicId);
 
     const validatedMovement = this.inventoryFactory.createMovement({
       inventoryItemId: itemId,
       createdBy: userId,
-      type: data.type as any,
+      type: data.type,
       quantity: data.quantity,
       referenceType: data.referenceType,
       referenceId: data.referenceId,

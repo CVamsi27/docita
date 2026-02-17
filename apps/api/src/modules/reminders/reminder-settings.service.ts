@@ -26,14 +26,23 @@ export class ReminderSettingsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Get current reminder settings, creating defaults if none exist
+   * Get current reminder settings for a clinic, creating defaults if none exist
    */
-  async getSettings(): Promise<ReminderSettings> {
-    let settings = await this.prisma.reminderSettings.findFirst();
+  async getSettings(clinicId?: string): Promise<ReminderSettings> {
+    let settings: ReminderSettings | null = null;
 
-    if (!settings) {
+    if (clinicId) {
+      settings = await this.prisma.reminderSettings.findUnique({
+        where: { clinicId },
+      });
+    } else {
+      settings = await this.prisma.reminderSettings.findFirst();
+    }
+
+    if (!settings && clinicId) {
       settings = await this.prisma.reminderSettings.create({
         data: {
+          clinicId,
           enabled: true,
           smsEnabled: false,
           emailEnabled: true,
@@ -59,14 +68,17 @@ Thank you,
       });
     }
 
-    return settings;
+    return settings!;
   }
 
   /**
-   * Update reminder settings
+   * Update reminder settings for a clinic
    */
-  async updateSettings(data: ReminderSettingsData): Promise<ReminderSettings> {
-    const existing = await this.getSettings();
+  async updateSettings(
+    data: ReminderSettingsData,
+    clinicId?: string,
+  ): Promise<ReminderSettings> {
+    const existing = await this.getSettings(clinicId);
     return this.prisma.reminderSettings.update({
       where: { id: existing.id },
       data,

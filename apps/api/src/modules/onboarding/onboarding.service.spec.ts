@@ -92,12 +92,14 @@ describe('OnboardingService', () => {
     ),
   };
   const mockValidationService = {
-    validateOnboardingCompletion: jest.fn((completeData: Record<string, unknown>) => {
-      if (!completeData?.clinicDetails) {
-        return { valid: false, errors: ['Clinic details are required'] };
-      }
-      return { valid: true, errors: [] };
-    }),
+    validateOnboardingCompletion: jest.fn(
+      (completeData: Record<string, unknown>) => {
+        if (!completeData?.clinicDetails) {
+          return { valid: false, errors: ['Clinic details are required'] };
+        }
+        return { valid: true, errors: [] };
+      },
+    ),
   };
   const mockWorkflowService = {
     createClinic: jest.fn().mockResolvedValue({ id: 'clinic_123' }),

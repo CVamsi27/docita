@@ -1,0 +1,80 @@
+model IcdCode {
+  id          String               @id @default(cuid())
+  code        String               @unique
+  description String
+  category    String
+  version     String               @default("ICD-10")
+  isCommon    Boolean              @default(false)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  diagnoses   Diagnosis[]
+  favorites   DoctorFavoriteCode[]
+
+  @@index([code])
+  @@index([description])
+  @@index([category])
+  @@index([isCommon])
+}
+
+model CptCode {
+  id          String               @id @default(cuid())
+  code        String               @unique
+  description String
+  category    String
+  isCommon    Boolean              @default(false)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  price       Float                @default(0)
+  favorites   DoctorFavoriteCode[]
+  procedures  Procedure[]
+
+  @@index([code])
+  @@index([description])
+  @@index([category])
+  @@index([isCommon])
+}
+
+model Diagnosis {
+  id            String      @id @default(cuid())
+  appointmentId String
+  icdCodeId     String?
+  notes         String?
+  isPrimary     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  icdCode       IcdCode?    @relation(fields: [icdCodeId], references: [id])
+
+  @@index([appointmentId])
+  @@index([icdCodeId])
+}
+
+model Procedure {
+  id            String      @id @default(cuid())
+  appointmentId String
+  cptCodeId     String?
+  description   String
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  cptCode       CptCode?    @relation(fields: [cptCodeId], references: [id])
+
+  @@index([appointmentId])
+  @@index([cptCodeId])
+}
+
+model DoctorFavoriteCode {
+  id        String   @id @default(cuid())
+  userId    String
+  icdCodeId String?
+  cptCodeId String?
+  createdAt DateTime @default(now())
+  cptCode   CptCode? @relation(fields: [cptCodeId], references: [id], onDelete: Cascade)
+  icdCode   IcdCode? @relation(fields: [icdCodeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, icdCodeId])
+  @@unique([userId, cptCodeId])
+  @@index([userId])
+}

@@ -255,13 +255,13 @@ export class ResponseHandlerService {
         // For reschedule, we'll send a custom message
         await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
-          message: `📅 *Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
+          message: `*Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
         });
         return;
       case 'CANCEL':
         await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
-          message: `❌ *Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
+          message: `*Appointment Cancelled* - ${appointment.clinic.name}\n\nYour appointment on ${variables.date} at ${variables.time} has been cancelled.\n\nIf you'd like to book a new appointment, please contact us or visit our website.`,
         });
         return;
       default:
@@ -352,12 +352,12 @@ export class ResponseHandlerService {
    */
   private getResponseLabel(responseType: PatientResponseType): string {
     const labels: Record<PatientResponseType, string> = {
-      CONFIRM: '✅ Confirmed',
-      ON_THE_WAY: '🚗 On the way',
-      DELAY: '⏱️ Running late',
-      RESCHEDULE: '📅 Wants to reschedule',
-      CANCEL: '❌ Cancelled',
-      UNKNOWN: '❓ Unknown response',
+      CONFIRM: 'Confirmed',
+      ON_THE_WAY: 'On the way',
+      DELAY: 'Running late',
+      RESCHEDULE: 'Wants to reschedule',
+      CANCEL: 'Cancelled',
+      UNKNOWN: 'Unknown response',
     };
     return labels[responseType] || responseType;
   }

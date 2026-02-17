@@ -211,7 +211,9 @@ describe('LabTestsService', () => {
 
       const updateDto = { status: 'completed' };
       mockLabFactory.updateOrder.mockReturnValue(updateDto);
-
+      mockPrismaService.labTestOrder.findUnique.mockResolvedValue(
+        mockLabTestOrder,
+      );
       mockPrismaService.labTestOrder.update.mockResolvedValue(updatedOrder);
 
       const result = await service.updateOrder('order-123', updateDto);

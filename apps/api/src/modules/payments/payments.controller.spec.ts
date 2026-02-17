@@ -9,10 +9,15 @@ describe('PaymentsController (Authorization)', () => {
   let controller: PaymentsController;
   let paymentsService: PaymentsService;
 
+  const mockAuthRequest = {
+    user: { clinicId: 'clinic-123', userId: 'user-123' },
+  };
+
   const mockPaymentsService = {
     createPaymentLink: jest.fn(),
     sendPaymentLinkWhatsApp: jest.fn(),
     getPaymentSession: jest.fn(),
+    verifySessionOwnership: jest.fn().mockResolvedValue(true),
   };
 
   beforeEach(async () => {
@@ -115,9 +120,16 @@ describe('PaymentsController (Authorization)', () => {
 
       mockPaymentsService.getPaymentSession.mockResolvedValue(mockSession);
 
-      const result = await controller.getPaymentSession('payment-1');
+      const result = await controller.getPaymentSession(
+        'payment-1',
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(mockSession);
+      expect(mockPaymentsService.verifySessionOwnership).toHaveBeenCalledWith(
+        'payment-1',
+        'clinic-123',
+      );
       expect(mockPaymentsService.getPaymentSession).toHaveBeenCalledWith(
         'payment-1',
       );
@@ -132,9 +144,16 @@ describe('PaymentsController (Authorization)', () => {
         mockResponse,
       );
 
-      const result = await controller.sendWhatsApp('payment-1');
+      const result = await controller.sendWhatsApp(
+        'payment-1',
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(mockResponse);
+      expect(mockPaymentsService.verifySessionOwnership).toHaveBeenCalledWith(
+        'payment-1',
+        'clinic-123',
+      );
       expect(mockPaymentsService.sendPaymentLinkWhatsApp).toHaveBeenCalledWith(
         'payment-1',
       );

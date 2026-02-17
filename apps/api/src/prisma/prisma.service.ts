@@ -64,7 +64,16 @@ export class PrismaService
       process.env.DATABASE_URL = connectionString;
     }
 
-    const pool = new Pool({ connectionString });
+    const isProduction = nodeEnv === 'production';
+    const poolMax = isProduction ? 20 : 5;
+    const poolIdleTimeout = isProduction ? 300000 : 30000; // 5min prod, 30s dev
+
+    const pool = new Pool({
+      connectionString,
+      max: poolMax,
+      idleTimeoutMillis: poolIdleTimeout,
+      connectionTimeoutMillis: 10000,
+    });
     const adapter = new PrismaPg(pool);
 
     super({

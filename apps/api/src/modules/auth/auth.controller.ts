@@ -20,10 +20,12 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Public } from './public.decorator';
+import { Roles } from './roles.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '../../common/guards/ip-rate-limit.guard';
 import { RequestWithUser } from '../../common/types/common.types';
+import { Role } from '@workspace/db';
 import {
   LoginDto,
   RegisterDto,
@@ -172,6 +174,14 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    Role.ADMIN,
+    Role.DOCTOR,
+    Role.RECEPTIONIST,
+    Role.ADMIN_DOCTOR,
+    Role.SUPER_ADMIN,
+    Role.PATIENT,
+  )
   @Throttle({
     short: {
       ttl: 60000,
@@ -196,6 +206,14 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(
+    Role.ADMIN,
+    Role.DOCTOR,
+    Role.RECEPTIONIST,
+    Role.ADMIN_DOCTOR,
+    Role.SUPER_ADMIN,
+    Role.PATIENT,
+  )
   @Get('validate')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Validate current session' })

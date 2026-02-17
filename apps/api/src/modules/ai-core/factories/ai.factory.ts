@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { z } from 'zod';
 import { AiPromptInput, AiPromptSchema } from '../schemas/ai.schema';
 
@@ -44,7 +44,7 @@ export class AiFactory {
       return schema.parse(json);
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error(
+        throw new InternalServerErrorException(
           `Failed to parse AI response as JSON: ${error.message}`,
         );
       }

@@ -7,7 +7,7 @@ export interface WebhookErrorContext {
   userId?: string;
   eventType: string; // 'payment.webhook', 'subscription.webhook', etc.
   providerId?: string; // Payment provider ID, subscription ID, etc.
-  payload?: any; // Webhook-specific payload (RazorpayWebhookPayload, etc.)
+  payload?: Record<string, unknown>; // Webhook-specific payload (RazorpayWebhookPayload, etc.)
   ipAddress?: string;
   userAgent?: string;
 }

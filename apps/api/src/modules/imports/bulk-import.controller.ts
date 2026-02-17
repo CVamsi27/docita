@@ -7,6 +7,7 @@ import {
   Get,
   Query,
   UsePipes,
+  BadRequestException,
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { Role } from '@workspace/db';
@@ -39,7 +40,10 @@ export class BulkImportController {
     @Body()
     data: BulkImportRequestDto,
   ) {
-    const clinicId = req.user?.clinicId || ''; // Handle potential undefined safely
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) {
+      throw new BadRequestException('Clinic ID is required for bulk import');
+    }
     const userId = req.user.userId;
 
     return this.bulkImportService.startImport(

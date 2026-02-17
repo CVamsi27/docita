@@ -220,7 +220,10 @@ export class AnalyticsService {
     return this.snapshotFactory.getAnalyticsSnapshots(clinicId, days);
   }
 
-  async getSnapshotTrends(clinicId: string, days: number = 30): Promise<Record<string, unknown>> {
+  async getSnapshotTrends(
+    clinicId: string,
+    days: number = 30,
+  ): Promise<Record<string, unknown>> {
     return this.snapshotFactory.getSnapshotTrends(clinicId, days);
   }
 }

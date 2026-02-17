@@ -1,4 +1,9 @@
-import { Injectable, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  Optional,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Patient, CreatePatientInput } from '@workspace/types';
 import { PatientsRepository } from '../../common/repositories';
 import { DomainEventService, DomainEvents } from '../../common/events';
@@ -42,10 +47,17 @@ export class PatientsService {
   }
 
   /**
-   * Find a single patient by ID
+   * Find a single patient by ID, scoped to clinic
    */
-  async findOne(id: string): Promise<Patient> {
-    return this.patientsRepository.findOneOrFail(id);
+  async findOne(id: string, clinicId?: string): Promise<Patient> {
+    const patient = await this.patientsRepository.findOneOrFail(id);
+    if (
+      clinicId &&
+      (patient as Record<string, unknown>).clinicId !== clinicId
+    ) {
+      throw new NotFoundException(`Patient with ID ${id} not found`);
+    }
+    return patient;
   }
 
   /**
@@ -53,7 +65,9 @@ export class PatientsService {
    */
   async create(data: CreatePatientInput, userId?: string) {
     if (!data.clinicId) {
-      throw new Error('Clinic ID is required to create a patient');
+      throw new BadRequestException(
+        'Clinic ID is required to create a patient',
+      );
     }
 
     // Encryption is handled by Prisma Middleware "EncryptionMiddleware" transparently
@@ -149,13 +163,21 @@ export class PatientsService {
   }
 
   /**
-   * Delete a patient
+   * Delete a patient (clinic-scoped)
    */
   async remove(
     id: string,
     context?: { clinicId: string; userId?: string; reason?: string },
   ): Promise<void> {
     const patientRaw = await this.patientsRepository.findOne(id);
+    // Enforce clinic scoping
+    if (
+      context?.clinicId &&
+      patientRaw &&
+      (patientRaw as Record<string, unknown>).clinicId !== context.clinicId
+    ) {
+      throw new NotFoundException(`Patient with ID ${id} not found`);
+    }
     await this.patientsRepository.delete(id);
 
     // Emit event (only if eventService is available)
@@ -179,38 +201,58 @@ export class PatientsService {
   }
 
   /**
-   * Get all appointments for a patient
+   * Verify patient belongs to clinic, throw if not
    */
-  async getAppointments(patientId: string) {
+  private async verifyPatientClinic(
+    patientId: string,
+    clinicId: string,
+  ): Promise<void> {
+    const patient = await this.patientsRepository.findOne(patientId);
+    if (
+      !patient ||
+      (patient as Record<string, unknown>).clinicId !== clinicId
+    ) {
+      throw new NotFoundException(`Patient with ID ${patientId} not found`);
+    }
+  }
+
+  /**
+   * Get all appointments for a patient (clinic-scoped)
+   */
+  async getAppointments(patientId: string, clinicId?: string) {
+    if (clinicId) await this.verifyPatientClinic(patientId, clinicId);
     return this.patientsRepository.getAppointments(patientId);
   }
 
   /**
-   * Get patient statistics (visits, adherence, etc.)
+   * Get patient statistics (visits, adherence, etc.) (clinic-scoped)
    */
-  async getStatistics(patientId: string) {
+  async getStatistics(patientId: string, clinicId?: string) {
+    if (clinicId) await this.verifyPatientClinic(patientId, clinicId);
     return this.patientsRepository.getStatistics(patientId);
   }
 
   /**
-   * Get all documents for a patient
+   * Get all documents for a patient (clinic-scoped)
    */
-  async getDocuments(patientId: string) {
+  async getDocuments(patientId: string, clinicId?: string) {
+    if (clinicId) await this.verifyPatientClinic(patientId, clinicId);
     return this.patientsRepository.getDocuments(patientId);
   }
 
   /**
-   * Get all tags for a patient
+   * Get all tags for a patient (clinic-scoped)
    */
-  async getTags(patientId: string) {
+  async getTags(patientId: string, clinicId?: string) {
+    if (clinicId) await this.verifyPatientClinic(patientId, clinicId);
     return this.patientsRepository.getTags(patientId);
   }
 
   /**
-   * Get complete medical history timeline for a patient
-   * Returns all appointments with issue summaries, diagnoses, and dates
+   * Get complete medical history timeline for a patient (clinic-scoped)
    */
-  async getMedicalHistoryTimeline(patientId: string) {
+  async getMedicalHistoryTimeline(patientId: string, clinicId?: string) {
+    if (clinicId) await this.verifyPatientClinic(patientId, clinicId);
     return this.patientsRepository.getMedicalHistoryTimeline(patientId);
   }
 }

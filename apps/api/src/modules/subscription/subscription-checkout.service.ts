@@ -111,9 +111,13 @@ export class SubscriptionCheckoutService {
     // Ensure customer exists in Razorpay
     const customerId = await this.ensureRazorpayCustomer(clinicId);
 
+    // Determine currency from clinic settings or default to INR
+    const currency =
+      ((clinic as Record<string, unknown>).currency as string) || 'INR';
+
     const amountCents =
       amountCentsOverride ||
-      this.billingCalculation.getPriceCents(tier, cycle, addOns);
+      this.billingCalculation.getPriceCents(tier, cycle, addOns, currency);
 
     // Check if this is an upgrade (existing subscription)
     const subscriptionId = clinic.subscription?.id;
@@ -130,7 +134,7 @@ export class SubscriptionCheckoutService {
     const { orderId } = await gateway.createCheckout({
       customerId,
       amountCents,
-      currency: 'INR',
+      currency,
       description: `Docita ${tier} - ${cycle === 'YEARLY' ? 'Annual' : 'Monthly'}`,
       callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings?payment=success`,
       notes: {
@@ -147,7 +151,7 @@ export class SubscriptionCheckoutService {
         clinicId,
         subscriptionId,
         amountCents,
-        currency: 'INR',
+        currency,
         status: 'pending',
         razorpayOrderId: orderId,
         description: `${tier} ${cycle} subscription${addOns.length ? ` + ${addOns.join(', ')}` : ''}`,
@@ -157,7 +161,7 @@ export class SubscriptionCheckoutService {
     return {
       orderId,
       amountCents,
-      currency: 'INR',
+      currency,
       razorpayKeyId: process.env.RAZORPAY_KEY_ID || '',
       subscriptionId,
     };

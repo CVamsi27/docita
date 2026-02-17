@@ -121,7 +121,7 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY = this.checkPageCheck(doc, currentY, 40, context);
       this.renderWarningBox(
         doc,
-        `⚠️ Known Allergies: ${data.patient.allergies.join(', ')}`,
+        `WARNING - Known Allergies: ${data.patient.allergies.join(', ')}`,
         context,
         currentY,
       );

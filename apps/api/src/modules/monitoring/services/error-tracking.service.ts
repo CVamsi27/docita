@@ -11,6 +11,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
   private readonly BATCH_SIZE = 100;
   private readonly FLUSH_INTERVAL = 5000; // 5 seconds
   private flushTimer: NodeJS.Timeout | null = null;
+  private persistenceDisabled = false;
 
   constructor(
     private prisma: PrismaService,
@@ -48,7 +49,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
   }
 
   async flushBuffer(): Promise<void> {
-    if (this.errorBuffer.length === 0) return;
+    if (this.persistenceDisabled || this.errorBuffer.length === 0) return;
 
     const errorsToFlush = this.errorBuffer.splice(0, this.BATCH_SIZE);
 
@@ -74,6 +75,17 @@ export class ErrorTrackingService implements OnModuleDestroy {
 
       this.logger.debug(`Flushed ${errorsToFlush.length} errors`);
     } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2021'
+      ) {
+        this.persistenceDisabled = true;
+        this.errorBuffer = [];
+        this.logger.warn(
+          'ErrorLog table not available. Disabling error persistence and continuing without DB-backed error tracking.',
+        );
+        return;
+      }
       this.logger.error('Failed to write errors to database', error);
     }
   }

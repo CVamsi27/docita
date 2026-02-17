@@ -114,7 +114,16 @@ export class ClinicsController {
   // Since we haven't created UserListResponseDto, let's leave it for now or create it.
   // Actually, let's assume getDoctors returns generic response or specific schema.
   // For now, I will omit the decorator for getDoctors to be safe or investigate context.
-  async getDoctors(@Param('clinicId') clinicId: string) {
+  async getDoctors(
+    @Request() req: AuthRequest,
+    @Param('clinicId') clinicId: string,
+  ) {
+    // Verify user belongs to requested clinic
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only view doctors in your own clinic',
+      );
+    }
     return this.clinicsService.getDoctors(clinicId);
   }
 
@@ -143,7 +152,16 @@ export class ClinicsController {
     Role.SUPER_ADMIN,
   )
   @Get(':clinicId/receptionists')
-  async getReceptionists(@Param('clinicId') clinicId: string) {
+  async getReceptionists(
+    @Request() req: AuthRequest,
+    @Param('clinicId') clinicId: string,
+  ) {
+    // Verify user belongs to requested clinic
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only view receptionists in your own clinic',
+      );
+    }
     return this.clinicsService.getReceptionists(clinicId);
   }
 }

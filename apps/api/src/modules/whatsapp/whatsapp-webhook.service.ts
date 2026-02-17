@@ -77,18 +77,25 @@ export class WhatsappWebhookService {
       const response = buttonId || responseText;
 
       if (response) {
-        const recentAppointment =
-          await this.findRecentAppointmentByPhone(phoneNumber);
-        if (recentAppointment) {
-          await this.responseHandler.handlePatientResponse(
-            recentAppointment.id,
-            response,
-            phoneNumber,
-            message.id,
-          );
-        } else {
-          this.logger.warn(
-            `No recent appointment found for phone: ${phoneNumber}`,
+        try {
+          const recentAppointment =
+            await this.findRecentAppointmentByPhone(phoneNumber);
+          if (recentAppointment) {
+            await this.responseHandler.handlePatientResponse(
+              recentAppointment.id,
+              response,
+              phoneNumber,
+              message.id,
+            );
+          } else {
+            this.logger.warn(
+              `No recent appointment found for phone: ${phoneNumber}`,
+            );
+          }
+        } catch (error) {
+          this.logger.error(
+            `Error processing incoming message from ${phoneNumber}:`,
+            error instanceof Error ? error.stack : error,
           );
         }
       }
@@ -110,7 +117,7 @@ export class WhatsappWebhookService {
         });
 
         if (log) {
-          const updateData: Record<string, any> = {
+          const updateData: Record<string, unknown> = {
             status: status.status.toUpperCase() as WhatsappLogStatus,
             responseBody: status as any,
           };

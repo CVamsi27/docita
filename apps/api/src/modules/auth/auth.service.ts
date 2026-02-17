@@ -134,7 +134,7 @@ export class AuthService {
       const MAX_FAILED_ATTEMPTS = 5;
       const LOCKOUT_DURATION_MINUTES = 15;
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         failedLoginAttempts: newFailedAttempts,
         lastFailedLoginAt: new Date(),
       };
@@ -200,13 +200,27 @@ export class AuthService {
   }
 
   async login(user: UserWithoutPassword, tokenFamily?: string) {
-    const payload = {
+    const payload: Record<string, unknown> = {
       email: user.email,
       sub: user.id,
       role: user.role,
       name: user.name,
       clinicId: user.clinicId,
     };
+
+    // For PATIENT role users, find and include Patient ID in JWT
+    if (user.role === Role.PATIENT) {
+      const patient = await this.prisma.patient.findFirst({
+        where: {
+          userId: user.id,
+        },
+        select: { id: true },
+      });
+
+      if (patient) {
+        payload.patientId = patient.id;
+      }
+    }
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = nanoid(64);

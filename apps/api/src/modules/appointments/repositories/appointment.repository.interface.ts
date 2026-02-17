@@ -2,6 +2,7 @@ import { Appointment, Prisma, AppointmentStatus } from '@workspace/db';
 
 export interface AppointmentSearchParams {
   clinicId: string;
+  date?: string;
   startDate?: Date;
   endDate?: Date;
   patientId?: string;

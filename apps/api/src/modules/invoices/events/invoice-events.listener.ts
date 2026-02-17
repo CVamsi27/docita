@@ -93,15 +93,15 @@ export class InvoiceEventsListener {
       day: 'numeric',
     });
 
-    let message = `Hello ${patientName}👋\n\n`;
+    let message = `Hello ${patientName}\n\n`;
     message += `Your invoice from *${clinicName}* is ready!\n\n`;
-    message += `📄 Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
-    message += `📅 Date: ${date}\n`;
-    message += `💰 Amount Due: ₹${invoice.total.toFixed(2)}\n\n`;
+    message += `Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
+    message += `Date: ${date}\n`;
+    message += `Amount Due: ₹${invoice.total.toFixed(2)}\n\n`;
     if (paymentLink) {
-      message += `💳 Pay online: ${paymentLink}\n\n`;
+      message += `Pay online: ${paymentLink}\n\n`;
     }
-    message += `Thank you for choosing our clinic. Get well soon! 🏥`;
+    message += `Thank you for choosing our clinic. Get well soon!`;
 
     return message;
   }

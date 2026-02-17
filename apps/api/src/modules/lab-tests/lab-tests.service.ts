@@ -9,7 +9,7 @@ interface CreateLabTestOrderDto {
   notes?: string;
 }
 
-interface UpdateLabTestOrderDto {
+export interface UpdateLabTestOrderDto {
   status?: LabTestOrderStatus;
   result?: Record<string, unknown>;
   resultUrl?: string;
@@ -83,7 +83,7 @@ export class LabTestsService {
     const { search, status, date } = params || {};
 
     // Build the where clause incrementally - use proper Prisma type
-    const where: any = { clinicId };
+    const where: Record<string, any> = { clinicId };
 
     // Handle Search - batch query for matching IDs
     if (search) {
@@ -191,7 +191,7 @@ export class LabTestsService {
     }));
   }
 
-  async findOrder(id: string) {
+  async findOrder(id: string, clinicId?: string) {
     const order = await this.prisma.labTestOrder.findUnique({
       where: { id },
       include: {
@@ -199,7 +199,7 @@ export class LabTestsService {
       },
     });
 
-    if (!order) {
+    if (!order || (clinicId && order.clinicId !== clinicId)) {
       throw new NotFoundException(`Lab test order with ID ${id} not found`);
     }
 
@@ -224,7 +224,13 @@ export class LabTestsService {
     });
   }
 
-  async updateOrder(id: string, data: UpdateLabTestOrderDto) {
+  async updateOrder(
+    id: string,
+    data: UpdateLabTestOrderDto,
+    clinicId?: string,
+  ) {
+    // Verify order exists and belongs to clinic
+    await this.findOrder(id, clinicId);
     const validatedUpdate = this.labFactory.updateOrder(data);
     const updateData: Record<string, unknown> = { ...validatedUpdate };
 

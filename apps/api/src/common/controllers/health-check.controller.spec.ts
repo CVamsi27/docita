@@ -1,4 +1,3 @@
-// @ts-nocheck - Test file skipped, contains outdated type signatures
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckController } from './health-check.controller';
 import { ObservabilityService } from '../services/observability.service';

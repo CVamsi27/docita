@@ -4,6 +4,7 @@ import { TierGuard } from '../auth/tier.guard';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { RateLimit } from '../../common/interceptors/rate-limit.interceptor';
 import {
   OverviewStatsResponseDto,
   RevenueTrendListResponseDto,
@@ -29,6 +30,7 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
+  @RateLimit({ limit: 30, window: 60000 }) // 30 analytics queries/minute
   @ZodSerializerDto(OverviewStatsResponseDto)
   getOverview(@Request() req: AuthRequest) {
     return this.analyticsService.getOverview(req.user.clinicId);

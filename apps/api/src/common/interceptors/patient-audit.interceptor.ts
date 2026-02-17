@@ -10,6 +10,11 @@ import { tap } from 'rxjs/operators';
 import { AuditService } from '../../modules/audit/audit.service';
 import { Request } from 'express';
 
+interface AuthUser {
+  id: string;
+  clinicId: string;
+}
+
 @Injectable()
 export class PatientDataAuditInterceptor implements NestInterceptor {
   private readonly logger = new Logger(PatientDataAuditInterceptor.name);
@@ -55,8 +60,8 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                 url.includes('/documents') ||
                 url.includes('/records')
               ) {
-                const userId = (user as any).id;
-                const clinicId = (user as any).clinicId;
+                const userId = (user as AuthUser).id;
+                const clinicId = (user as AuthUser).clinicId;
 
                 // Determine action type based on method
                 let actionType = 'VIEW_RECORD';

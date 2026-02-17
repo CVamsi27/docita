@@ -470,7 +470,7 @@ export class SuperAdminBillingService {
 
     return {
       clinic,
-      tierInfo: this.getTierDetails(clinic.tier as any),
+      tierInfo: this.getTierDetails(clinic.tier),
     };
   }
 
@@ -514,7 +514,7 @@ export class SuperAdminBillingService {
     const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
     return tiers.map((tier) => ({
       tier,
-      ...this.getTierDetails(tier as any),
+      ...this.getTierDetails(tier),
     }));
   }
 

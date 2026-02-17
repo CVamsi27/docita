@@ -37,7 +37,7 @@ async function seedAdminDev() {
   const prisma = new PrismaClient();
 
   try {
-    console.log('🌱 Starting DEV admin user seed...');
+    console.log('Starting DEV admin user seed...');
     console.log(
       'Using Database URL:',
       process.env.DATABASE_URL
@@ -63,7 +63,7 @@ async function seedAdminDev() {
       },
     });
 
-    console.log('✅ DEV Admin user seeded successfully');
+    console.log('[OK] DEV Admin user seeded successfully');
     console.log('   Email: admin@docita.work');
     console.log('   Password: password123');
     console.log('   Role: SUPER_ADMIN');
@@ -71,7 +71,7 @@ async function seedAdminDev() {
 
     await prisma.$disconnect();
   } catch (error) {
-    console.error('❌ Error seeding DEV admin user:', error);
+    console.error('[ERROR] Error seeding DEV admin user:', error);
     await prisma.$disconnect();
     process.exit(1);
   }

@@ -29,7 +29,7 @@ export class ContactService {
 
     // Optional: Integrate with email service
     // await this.emailService.send({
-    //   to: 'sales@docita.com',
+    //   to: 'sales@docita.work',
     //   subject: `New Contact Inquiry from ${data.name}`,
     //   text: `Email: ${data.email}\nClinic: ${data.clinic || 'N/A'}\n\nMessage:\n${data.message}`,
     // });

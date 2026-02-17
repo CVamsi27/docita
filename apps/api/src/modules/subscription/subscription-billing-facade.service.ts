@@ -412,7 +412,12 @@ export class SubscriptionBillingService {
 
     try {
       const gateway = this.gatewayFactory.getGateway(PaymentProvider.RAZORPAY);
-      const payment = await (gateway as any).chargeWithToken(
+      if (!gateway.chargeWithToken) {
+        throw new BadRequestException(
+          'Payment gateway does not support recurring payments',
+        );
+      }
+      const payment = await gateway.chargeWithToken(
         subscription.razorpayCustomerId,
         subscription.razorpayTokenId,
         subscription.basePriceCents,
@@ -450,7 +455,7 @@ export class SubscriptionBillingService {
           increment: 1,
         },
         graceUntil,
-        status: 'PAST_DUE' as any,
+        status: SubscriptionStatus.PAST_DUE,
       },
     });
 
@@ -504,7 +509,7 @@ export class SubscriptionBillingService {
     await this.prisma.subscription.update({
       where: { id: subscriptionId },
       data: {
-        status: 'PAUSED' as any,
+        status: SubscriptionStatus.PAUSED,
         graceUntil: null,
       },
     });

@@ -1,0 +1,107 @@
+model Clinic {
+  id                      String             @id @default(cuid())
+  name                    String
+  address                 String
+  phone                   String
+  email                   String
+  website                 String?
+  logo                    String?
+  active                  Boolean            @default(true)
+  tier                    ClinicTier         @default(CAPTURE)
+  type                    ClinicType         @default(GENERAL)
+  settings                Json?
+  timezone                String             @default("Asia/Kolkata")
+  locale                  String             @default("en-IN")
+  currency                String             @default("INR")
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  subscriptionStatus      SubscriptionStatus @default(ACTIVE)
+  branding                Json?
+  features                Json?
+  whatsappAutomation      Json? // WhatsApp automation settings (enabled, prescriptionSent, invoiceSent, etc.)
+  intelligenceAddon       IntelligenceAddon  @default(NONE)
+  trialEndsAt             DateTime?
+  avgConsultationMinutes  Int                @default(15)
+  lateArrivalGraceMinutes Int                @default(30)
+  queueBufferMinutes      Int                @default(10)
+  useDoctorQueues         Boolean            @default(false)
+
+  // MRN Configuration
+  mrnPrefix String? // Prefix for MRN (e.g., "DOC", "CLI")
+
+  // Billing-related fields
+  razorpayCustomerId    String? // Razorpay customer ID for subscriptions
+  referralCode          String?                @unique // Unique referral code for this clinic
+  domain                String? // Email domain for referral anti-abuse
+  referralCreditsMonths Int                    @default(0) // Free months earned from referrals (max 12/year)
+  // Relations
+  appointments          Appointment[]
+  auditLogs             AuditLog[]
+  analyticsSnapshots    AnalyticsSnapshot[]
+  paymentRetries        PaymentRetry[]
+  bulkImportJobs        BulkImportJob[]
+  clinicalTemplates     ClinicalTemplate[]
+  customFields          CustomField[]
+  doctorClinics         DoctorClinic[]
+  doctorSchedules       DoctorSchedule[]
+  doctorTimeOffs        DoctorTimeOff[]
+  feedbacks             Feedback[]
+  featureFlags          FeatureFlag[]
+  importJobs            ImportJob[]
+  patients              Patient[]
+  paymentSessions       PaymentSession[]
+  queueTokens           QueueToken[]
+  reminderSettings      ReminderSettings?
+  users                 User[]
+  whatsappLogs          WhatsappLog[]
+  subscription          Subscription?
+  subscriptionPayments  SubscriptionPayment[]
+  subscriptionReminders SubscriptionReminder[]
+  referralsGiven        Referral[]             @relation("ReferrerClinic")
+  referralsReceived     Referral[]             @relation("ReferredClinic")
+  referralCredits       ReferralCredit[]
+  mrnSequence           MrnSequence?
+  whatsappTemplates     WhatsappTemplate[]
+  staffNotifications    StaffNotification[]
+  // Usage-based billing relations
+  clinicAddOns          ClinicAddOn[]
+  usageRecords          UsageRecord[]
+  usageEvents           UsageEvent[]
+  wards                 Ward[]
+  facilityType          FacilityType           @default(CLINIC)
+}
+
+// ============================================================================
+// Feature Flags for Extensibility
+// ============================================================================
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String
+  value       Json // Can store boolean, number, string, or object
+  description String?
+  clinicId    String? // null = global, specific = per-clinic override
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clinic Clinic? @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([key, clinicId])
+  @@index([key])
+  @@index([clinicId])
+}
+
+model DoctorClinic {
+  id        String   @id @default(cuid())
+  doctorId  String
+  clinicId  String
+  role      String   @default("doctor")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  doctor    User     @relation(fields: [doctorId], references: [id])
+
+  @@unique([doctorId, clinicId])
+  @@index([clinicId])
+  @@index([doctorId])
+}

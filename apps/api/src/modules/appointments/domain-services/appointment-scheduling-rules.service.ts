@@ -6,6 +6,12 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
+export interface AppointmentConflict {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+}
+
 /**
  * Appointment Scheduling Rules Domain Service
  * Encapsulates pure business logic for appointment scheduling
@@ -23,7 +29,7 @@ export interface AppointmentSchedulingRulesInterface {
     startTime: Date,
     endTime: Date,
     excludeAppointmentId?: string,
-  ): Promise<{ hasConflict: boolean; conflict?: any }>;
+  ): Promise<{ hasConflict: boolean; conflict?: AppointmentConflict }>;
 
   validateDoctorTimeOff(
     doctorId: string,
@@ -129,7 +135,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     startTime: Date,
     endTime: Date,
     excludeAppointmentId?: string,
-  ): Promise<{ hasConflict: boolean; conflict?: any }> {
+  ): Promise<{ hasConflict: boolean; conflict?: AppointmentConflict }> {
     const conflictingAppointments = await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -260,21 +266,31 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     const validTransitions: Record<AppointmentStatus, AppointmentStatus[]> = {
       [AppointmentStatus.SCHEDULED]: [
         AppointmentStatus.CONFIRMED,
+        AppointmentStatus.IN_PROGRESS,
         AppointmentStatus.CANCELLED,
+        AppointmentStatus.NO_SHOW,
       ],
       [AppointmentStatus.CONFIRMED]: [
         AppointmentStatus.IN_PROGRESS,
         AppointmentStatus.RESCHEDULING,
         AppointmentStatus.CANCELLED,
+        AppointmentStatus.NO_SHOW,
       ],
       [AppointmentStatus.RESCHEDULING]: [
         AppointmentStatus.CONFIRMED,
+        AppointmentStatus.SCHEDULED,
         AppointmentStatus.CANCELLED,
       ],
-      [AppointmentStatus.IN_PROGRESS]: [AppointmentStatus.COMPLETED],
-      [AppointmentStatus.COMPLETED]: [AppointmentStatus.COMPLETED], // Terminal state
-      [AppointmentStatus.CANCELLED]: [AppointmentStatus.CANCELLED], // Terminal state
-      [AppointmentStatus.NO_SHOW]: [AppointmentStatus.RESCHEDULING],
+      [AppointmentStatus.IN_PROGRESS]: [
+        AppointmentStatus.COMPLETED,
+        AppointmentStatus.CANCELLED,
+      ],
+      [AppointmentStatus.COMPLETED]: [], // Terminal state — no transitions allowed
+      [AppointmentStatus.CANCELLED]: [], // Terminal state — no transitions allowed
+      [AppointmentStatus.NO_SHOW]: [
+        AppointmentStatus.RESCHEDULING,
+        AppointmentStatus.CANCELLED,
+      ],
     };
 
     const allowed =

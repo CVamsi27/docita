@@ -135,8 +135,12 @@ export class ProrationService {
       isUpgrade,
       isDowngrade,
       breakdown: {
-        currentPlanDaily: Math.round(preview.currentPriceCents / 30),
-        newPlanDaily: Math.round(preview.newPriceCents / 30),
+        currentPlanDaily: Math.round(
+          preview.currentPriceCents / preview.daysRemaining || 30,
+        ),
+        newPlanDaily: Math.round(
+          preview.newPriceCents / preview.daysRemaining || 30,
+        ),
         creditsApplied: preview.creditCents,
         finalCharge: preview.chargeCents,
       },

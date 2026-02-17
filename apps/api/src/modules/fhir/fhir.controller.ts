@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { FhirService } from './fhir.service';
 import { Role } from '@workspace/db';
@@ -40,7 +41,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getPatientResource(id, clinicId);
   }
 
@@ -56,7 +57,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getVitalSignObservations(
       patientId,
       clinicId,
@@ -75,7 +76,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getMedicationRequests(patientId, clinicId);
   }
 
@@ -90,7 +91,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getConditions(patientId, clinicId);
   }
 
@@ -105,7 +106,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getAllergyIntolerances(patientId, clinicId);
   }
 
@@ -120,7 +121,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getAppointmentResource(id, clinicId);
   }
 
@@ -135,7 +136,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getAppointments(patientId, clinicId);
   }
 
@@ -150,7 +151,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getPatientBundle(patientId, clinicId);
   }
 
@@ -168,7 +169,7 @@ export class FhirController {
     @Request() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user.clinicId;
-    if (!clinicId) throw new Error('Clinic ID required');
+    if (!clinicId) throw new BadRequestException('Clinic ID required');
     return this.fhirService.getCCDExport(patientId, clinicId);
   }
 

@@ -9,6 +9,7 @@ describe('ReminderSettingsService', () => {
   beforeEach(async () => {
     const prismaMock = {
       reminderSettings: {
+        findUnique: jest.fn(),
         findFirst: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -68,13 +69,34 @@ describe('ReminderSettingsService', () => {
         whatsappTemplate: null,
       };
 
-      prisma.reminderSettings.findFirst.mockResolvedValueOnce(null);
+      prisma.reminderSettings.findUnique.mockResolvedValueOnce(null);
       prisma.reminderSettings.create.mockResolvedValue(defaultSettings);
 
-      const result = await service.getSettings();
+      const result = await service.getSettings('clinic-123');
 
       expect(result).toEqual(defaultSettings);
-      expect(prisma.reminderSettings.findFirst).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use correct default values for new settings', async () => {
+      const defaultSettings = {
+        id: 'settings-new',
+        enabled: true,
+        smsEnabled: false,
+        emailEnabled: true,
+        whatsappEnabled: true,
+        hoursBeforeAppt: 24,
+        minutesBefore30: true,
+        emailSubject: 'Appointment Reminder - {clinicName}',
+        emailTemplate: expect.stringContaining('Dear {patientName}'),
+        smsTemplate: expect.stringContaining('Reminder:'),
+        whatsappTemplate: null,
+      };
+
+      prisma.reminderSettings.findUnique.mockResolvedValueOnce(null);
+      prisma.reminderSettings.create.mockResolvedValue(defaultSettings);
+
+      const result = await service.getSettings('clinic-456');
+      expect(prisma.reminderSettings.findUnique).toHaveBeenCalledTimes(1);
       expect(prisma.reminderSettings.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           enabled: true,
@@ -85,12 +107,27 @@ describe('ReminderSettingsService', () => {
     });
 
     it('should use correct default values for new settings', async () => {
-      prisma.reminderSettings.findFirst.mockResolvedValueOnce(null);
+      prisma.reminderSettings.findUnique.mockResolvedValueOnce(null);
+      prisma.reminderSettings.create.mockResolvedValue({
+        id: 'settings-new',
+        clinicId: 'clinic-999',
+        enabled: true,
+        smsEnabled: false,
+        emailEnabled: true,
+        whatsappEnabled: true,
+        hoursBeforeAppt: 24,
+        minutesBefore30: true,
+        emailSubject: 'Appointment Reminder - {clinicName}',
+        emailTemplate: 'Dear {patientName}...',
+        smsTemplate: 'Reminder: You have an appointment...',
+        whatsappTemplate: null,
+      });
 
-      await service.getSettings();
+      await service.getSettings('clinic-999');
 
       expect(prisma.reminderSettings.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
+          clinicId: 'clinic-999',
           emailSubject: 'Appointment Reminder - {clinicName}',
           smsEnabled: false,
           emailEnabled: true,

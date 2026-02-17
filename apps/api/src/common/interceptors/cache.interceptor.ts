@@ -80,23 +80,33 @@ export class CacheInterceptor implements NestInterceptor {
     return next.handle();
   }
 
-  private generateKey(request: any): string {
-    const user = request.user;
-    const clinicId = user?.clinicId || 'public';
+  private generateKey(
+    request: Record<string, unknown> & { url?: string },
+  ): string {
+    const user = request.user as Record<string, unknown> | undefined;
+    const clinicId = (user?.clinicId as string | undefined) ?? 'public';
     return `${clinicId}:${request.url}`;
   }
 
-  private applyNoCacheHeaders(response: any) {
+  private applyNoCacheHeaders(
+    response: Record<string, unknown> & {
+      setHeader: (key: string, value: string) => void;
+    },
+  ) {
     response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     response.setHeader('Pragma', 'no-cache');
     response.setHeader('Expires', '0');
   }
 
   private applyCacheHeaders(
-    response: any,
+    response: Record<string, unknown> & {
+      setHeader: (key: string, value: string) => void;
+      headersSent?: boolean;
+      status?: (code: number) => void;
+    },
     duration: number,
-    data: any,
-    request: any,
+    data: unknown,
+    request: Record<string, unknown> & { headers?: Record<string, string> },
   ) {
     if (response.headersSent) return;
 
@@ -114,9 +124,9 @@ export class CacheInterceptor implements NestInterceptor {
       response.setHeader('ETag', `"${etag}"`);
 
       // Check if client sent If-None-Match header
-      const clientEtag = request.headers['if-none-match'];
+      const clientEtag = request.headers?.['if-none-match'];
       if (clientEtag === `"${etag}"`) {
-        response.status(304);
+        response.status?.(304);
         // We cannot stop the stream here easily in map(),
         // but setting status 304 usually signals the framework/client.
         // In a pure interceptor map, the body is still returned to the framework.

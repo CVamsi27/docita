@@ -12,6 +12,7 @@ export interface RequestWithUser extends ExpressRequest {
   user?: User & {
     requiredClinics?: string[];
     permissions?: string[];
+    patientId?: string; // For PATIENT role users only
   };
   clinic?: {
     id: string;
@@ -23,9 +24,7 @@ export interface RequestWithUser extends ExpressRequest {
 /**
  * Extended Express Response with typed send
  */
-export interface ResponseWithUser extends ExpressResponse {
-  // Extend if needed
-}
+export type ResponseWithUser = ExpressResponse;
 
 /**
  * Standard API Response wrapper

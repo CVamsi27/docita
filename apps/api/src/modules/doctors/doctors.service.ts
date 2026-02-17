@@ -141,7 +141,7 @@ export class DoctorsService {
     return allUsers;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -149,6 +149,7 @@ export class DoctorsService {
         email: true,
         name: true,
         role: true,
+        clinicId: true,
         specialization: true,
         hospitalRole: true,
         qualification: true,
@@ -175,6 +176,17 @@ export class DoctorsService {
 
     if (!user) {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
+
+    // Verify clinic membership if clinicId provided
+    if (clinicId && user.clinicId !== clinicId) {
+      // Also check DoctorClinic assignments
+      const assignment = await this.prisma.doctorClinic.findFirst({
+        where: { doctorId: id, clinicId, active: true },
+      });
+      if (!assignment) {
+        throw new NotFoundException(`Doctor with ID ${id} not found`);
+      }
     }
 
     return user;
@@ -247,7 +259,9 @@ export class DoctorsService {
     };
   }
 
-  async update(id: string, data: UpdateDoctorData) {
+  async update(id: string, data: UpdateDoctorData, clinicId?: string) {
+    // Verify doctor belongs to clinic
+    if (clinicId) await this.findOne(id, clinicId);
     const {
       name,
       email,
@@ -318,7 +332,9 @@ export class DoctorsService {
     return user;
   }
 
-  async remove(id: string) {
+  async remove(id: string, clinicId?: string) {
+    // Verify doctor belongs to clinic
+    if (clinicId) await this.findOne(id, clinicId);
     // Delete related records first
     await this.prisma.doctorEducation.deleteMany({
       where: { doctorId: id },

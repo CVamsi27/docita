@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /**
@@ -101,21 +101,21 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
     }
 
     return rawItems
-      .map((item: any) => {
+      .map((item: unknown) => {
         // Safely convert to PricingItem with defaults
+        const raw = item as Record<string, unknown>;
         const converted: PricingItem = {
-          quantity: Number(item?.quantity ?? 0) || 0,
-          unitPrice: Number(item?.unitPrice ?? 0) || 0,
+          quantity: Number(raw?.quantity ?? 0) || 0,
+          unitPrice: Number(raw?.unitPrice ?? 0) || 0,
           taxRate:
-            Number(item?.taxRate ?? this.DEFAULT_TAX_RATE) ||
+            Number(raw?.taxRate ?? this.DEFAULT_TAX_RATE) ||
             this.DEFAULT_TAX_RATE,
           discountType:
-            item?.discountType === 'FIXED' ||
-            item?.discountType === 'PERCENTAGE'
-              ? item.discountType
+            raw?.discountType === 'FIXED' || raw?.discountType === 'PERCENTAGE'
+              ? raw.discountType
               : undefined,
-          discountValue: item?.discountValue
-            ? Number(item.discountValue)
+          discountValue: raw?.discountValue
+            ? Number(raw.discountValue)
             : undefined,
         };
         return converted;
@@ -365,7 +365,7 @@ export class InvoiceCalculationRulesService implements InvoiceCalculationRulesIn
     });
 
     if (!invoice) {
-      throw new Error(`Invoice ${invoiceId} not found`);
+      throw new NotFoundException(`Invoice ${invoiceId} not found`);
     }
 
     // Recalculate line items

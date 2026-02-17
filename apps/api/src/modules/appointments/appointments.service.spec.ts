@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
+import { AppointmentSchedulingRulesService } from './domain-services/appointment-scheduling-rules.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { IAppointmentRepository } from './repositories/appointment.repository.interface';
 import { VitalsFactory } from '../patients/factories/vitals.factory';
+import { AppointmentStatus } from '@workspace/db';
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
@@ -84,6 +86,13 @@ describe('AppointmentsService', () => {
           provide: EventEmitter2,
           useValue: {
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: AppointmentSchedulingRulesService,
+          useValue: {
+            validate: jest.fn().mockResolvedValue(true),
+            checkConflicts: jest.fn().mockResolvedValue([]),
           },
         },
       ],
@@ -249,6 +258,11 @@ describe('AppointmentsService', () => {
 
   describe('remove', () => {
     it('should delegate to repository delete', async () => {
+      const mockAppointment = {
+        id: 'apt-123',
+        status: AppointmentStatus.SCHEDULED,
+      };
+      mockAppointmentRepository.findById.mockResolvedValue(mockAppointment);
       await service.remove('apt-123');
       expect(repository.delete).toHaveBeenCalledWith('apt-123');
     });

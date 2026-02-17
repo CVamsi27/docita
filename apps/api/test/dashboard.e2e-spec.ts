@@ -38,7 +38,10 @@ describe('Dashboard (e2e)', () => {
       .useValue(mockWhatsappService)
       .overrideProvider(APP_INTERCEPTOR)
       .useValue({
-        intercept: (context: { switchToHttp: () => { getRequest: () => unknown } }, next: { handle: () => unknown }) => next.handle(),
+        intercept: (
+          context: { switchToHttp: () => { getRequest: () => unknown } },
+          next: { handle: () => unknown },
+        ) => next.handle(),
       })
       .overrideProvider(CACHE_MANAGER)
       .useValue({

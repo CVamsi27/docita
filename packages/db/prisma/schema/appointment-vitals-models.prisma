@@ -1,0 +1,101 @@
+model Appointment {
+  id                      String                @id @default(cuid())
+  patientId               String
+  doctorId                String
+  startTime               DateTime
+  endTime                 DateTime
+  status                  AppointmentStatus     @default(SCHEDULED)
+  type                    String
+  notes                   String?
+  consultationNotes       String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  version                 Int                   @default(1) // Optimistic concurrency control
+  clinicId                String
+  observations            String?
+  chiefComplaint          String?
+  treatmentHistory        String? // Previous treatments attempted for the current condition
+  clinicalImpression      String?
+  differentialDiagnosis   String?
+  finalDiagnosis          String?
+  followUpPlan            String?
+  generalExamination      Json?
+  historyOfPresentIllness String?
+  investigations          Json?
+  pastMedicalHistory      String?
+  provisionalDiagnosis    String?
+  reviewOfSystems         String?
+  systemicExamination     Json?
+  treatmentPlan           String?
+  dentalChart             Json? // Dental chart data for DENTAL clinic type
+  growthData              Json? // Growth chart data for PEDIATRIC clinic type
+  ophthalmologyExam       Json? // Ophthalmology exam data for OPHTHALMOLOGY clinic type
+  cardiologyExam          Json? // Cardiology exam data for CARDIOLOGY clinic type
+  gynecologyExam          Json? // Gynecology/Obstetrics exam data for GYNECOLOGY clinic type
+  dermatologyExam         Json? // Dermatology exam data for DERMATOLOGY clinic type
+  psychiatryExam          Json? // Psychiatry exam data for PSYCHIATRY clinic type
+  // Encounter summary - concise summary of the visit for timeline display
+  // Auto-generated from chiefComplaint + finalDiagnosis or clinician-entered
+  encounterSummary        String?
+  clinic                  Clinic                @relation(fields: [clinicId], references: [id])
+  doctor                  User                  @relation(fields: [doctorId], references: [id])
+  patient                 Patient               @relation(fields: [patientId], references: [id])
+  diagnoses               Diagnosis[]
+  invoice                 Invoice?
+  prescription            Prescription?
+  procedures              Procedure[]
+  queueToken              QueueToken?
+  vitalSign               VitalSign?
+  priority                AppointmentPriority   @default(ROUTINE)
+  responses               AppointmentResponse[]
+
+  @@index([clinicId])
+  @@index([createdAt])
+  @@index([startTime])
+  @@index([doctorId, startTime])
+  @@index([patientId, startTime])
+  @@index([status, startTime])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([clinicId, status, startTime]) // Composite index for optimized clinic-wide filtered appointment queries
+}
+
+model VitalSign {
+  id            String @id @default(cuid())
+  appointmentId String @unique
+  height        Float? // in cm
+  weight        Float? // in kg
+
+  // Legacy blood pressure field - kept for backward compatibility
+  bloodPressure String? // Legacy format "120/80"
+
+  // Structured blood pressure fields (Hospital-Grade)
+  systolicBP        Int? // Systolic blood pressure (mmHg) - normal range 90-120
+  diastolicBP       Int? // Diastolic blood pressure (mmHg) - normal range 60-80
+  bpPosition        BpPosition? // Patient position when BP was taken
+  bpMigrationStatus BpMigrationStatus? // Status of legacy BP migration
+
+  pulse       Int? // Heart rate (bpm)
+  temperature Float? // Body temperature (Celsius)
+
+  // Oxygen saturation with delivery context
+  spo2           Int? // SpO2 percentage (%)
+  oxygenDelivery OxygenDelivery? // How oxygen is being delivered
+  oxygenFlowRate Float? // Flow rate in L/min (if applicable)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  bloodGlucose    Float? // Blood glucose (mg/dL)
+  bmi             Float? // Calculated BMI
+  notes           String?
+  painScore       Int? // Pain score 0-10
+  respiratoryRate Int? // Breaths per minute
+
+  // Additional pediatric/specialty vitals
+  headCircumference  Float? // For pediatrics (cm)
+  waistCircumference Float? // For metabolic assessments (cm)
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@index([bpMigrationStatus])
+}

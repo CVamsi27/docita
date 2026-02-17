@@ -1,0 +1,63 @@
+// ============================================================================
+// Billing Enums
+// ============================================================================
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  GRACE
+  CANCELLED
+  EXPIRED
+  PAUSED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  YEARLY
+}
+
+enum AddOnType {
+  WHATSAPP
+  INTELLIGENCE
+}
+
+enum AddOnStatus {
+  ACTIVE
+  TRIALING
+  CANCELLED
+  EXPIRED
+}
+
+enum UsageType {
+  ACTIVE_PATIENTS
+  APPOINTMENTS
+  STORAGE_GB
+  USERS
+  WHATSAPP_MESSAGES
+  AI_CREDITS
+}
+
+enum DiscountType {
+  ANNUAL_COMMITMENT // 10% for yearly billing
+  SEMI_ANNUAL_COMMITMENT // 5% for 6-month billing
+  LOYALTY_1_YEAR // 5% after 1 year
+  LOYALTY_2_YEARS // 7% after 2 years
+  LOYALTY_3_YEARS // 10% after 3 years
+  REFERRAL_NEW_CUSTOMER // 1 month free for referred
+  GOVERNMENT // 30% for govt hospitals
+  NGO // 40% for non-profits
+  MEDICAL_COLLEGE // 50% for teaching hospitals
+  RURAL_HEALTH // 40% for rural centers
+  STARTUP_CLINIC // 25% for clinics < 1 year old
+}
+
+enum ReferralStatus {
+  PENDING // Invite sent, waiting for signup
+  SIGNED_UP // Referred clinic created account
+  CONVERTED // First payment completed - credits applied
+  REJECTED // Failed validation (same domain, abuse, etc.)
+  EXPIRED // Invite expired without signup
+}

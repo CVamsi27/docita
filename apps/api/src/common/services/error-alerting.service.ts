@@ -19,14 +19,14 @@ export class ErrorAlertingService {
   /**
    * Register critical error occurrence
    */
-  async trackCriticalError(context: {
+  trackCriticalError(context: {
     errorType: string;
     service: string;
     userId?: string;
     clinicId?: string;
     message: string;
     stack?: string;
-  }): Promise<void> {
+  }): void {
     this.logger.error(`Critical Error: ${context.errorType}`, {
       service: context.service,
       userId: context.userId,
@@ -41,20 +41,20 @@ export class ErrorAlertingService {
     // 3. Create incident ticket if severity high
     // 4. Notify on-call engineer
 
-    const shouldEscalate = await this.evaluateSeverity(context);
+    const shouldEscalate = this.evaluateSeverity(context);
     if (shouldEscalate) {
-      await this.sendEscalationAlert(context);
+      this.sendEscalationAlert(context);
     }
   }
 
   /**
    * Track error rate for a service
    */
-  async trackErrorRate(
+  trackErrorRate(
     service: string,
     totalRequests: number,
     failedRequests: number,
-  ): Promise<void> {
+  ): void {
     const errorRate = failedRequests / totalRequests;
 
     if (errorRate > this.alertThresholds.criticalErrorRate) {
@@ -67,17 +67,14 @@ export class ErrorAlertingService {
       });
 
       // Trigger alert if exceeds threshold
-      await this.sendErrorRateAlert(service, errorRate);
+      this.sendErrorRateAlert(service, errorRate);
     }
   }
 
   /**
    * Track consecutive operation failures
    */
-  async trackConsecutiveFailures(
-    operation: string,
-    failureCount: number,
-  ): Promise<void> {
+  trackConsecutiveFailures(operation: string, failureCount: number): void {
     if (failureCount >= this.alertThresholds.consecutiveFailures) {
       this.logger.error(`Consecutive failures detected: ${operation}`, {
         operation,
@@ -85,18 +82,18 @@ export class ErrorAlertingService {
         threshold: this.alertThresholds.consecutiveFailures,
       });
 
-      await this.sendOperationFailureAlert(operation, failureCount);
+      this.sendOperationFailureAlert(operation, failureCount);
     }
   }
 
   /**
    * Track slow operations
    */
-  async trackSlowOperation(context: {
+  trackSlowOperation(context: {
     operation: string;
     duration: number;
     threshold?: number;
-  }): Promise<void> {
+  }): void {
     const threshold =
       context.threshold || this.alertThresholds.responseTimeThreshold;
 
@@ -107,17 +104,17 @@ export class ErrorAlertingService {
         threshold: `${threshold}ms`,
       });
 
-      await this.sendPerformanceAlert(context.operation, context.duration);
+      this.sendPerformanceAlert(context.operation, context.duration);
     }
   }
 
   /**
    * Evaluate error severity for escalation
    */
-  private async evaluateSeverity(context: {
+  private evaluateSeverity(context: {
     errorType: string;
     service: string;
-  }): Promise<boolean> {
+  }): boolean {
     // Critical services that require immediate attention
     const criticalServices = ['payments', 'auth', 'database', 'api-gateway'];
     const criticalErrorTypes = [
@@ -136,7 +133,7 @@ export class ErrorAlertingService {
   /**
    * Send escalation alert (Slack, PagerDuty, etc.)
    */
-  private async sendEscalationAlert(context: Record<string, unknown>): Promise<void> {
+  private sendEscalationAlert(context: Record<string, unknown>): void {
     // In production, implement actual alerting:
     // - Slack webhook
     // - PagerDuty incident creation
@@ -154,10 +151,7 @@ export class ErrorAlertingService {
   /**
    * Send error rate alert
    */
-  private async sendErrorRateAlert(
-    service: string,
-    errorRate: number,
-  ): Promise<void> {
+  private sendErrorRateAlert(service: string, errorRate: number): void {
     this.logger.warn(`ERROR RATE ALERT: ${service}`, {
       errorRate: `${(errorRate * 100).toFixed(2)}%`,
     });
@@ -167,10 +161,10 @@ export class ErrorAlertingService {
   /**
    * Send operation failure alert
    */
-  private async sendOperationFailureAlert(
+  private sendOperationFailureAlert(
     operation: string,
     failureCount: number,
-  ): Promise<void> {
+  ): void {
     this.logger.error(`OPERATION FAILURE ALERT: ${operation}`, {
       failureCount,
     });
@@ -180,10 +174,7 @@ export class ErrorAlertingService {
   /**
    * Send performance alert
    */
-  private async sendPerformanceAlert(
-    operation: string,
-    duration: number,
-  ): Promise<void> {
+  private sendPerformanceAlert(operation: string, duration: number): void {
     this.logger.warn(`PERFORMANCE ALERT: ${operation}`, {
       duration: `${duration}ms`,
     });

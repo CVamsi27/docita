@@ -7,7 +7,13 @@ import {
 } from '@nestjs/common';
 
 describe('AppointmentService', () => {
-  let service: { findAll: jest.Mock; findOne: jest.Mock; create: jest.Mock; update: jest.Mock; delete: jest.Mock };
+  let service: {
+    findAll: jest.Mock;
+    findOne: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
+  };
   let prisma: PrismaService;
 
   const mockPrismaService = {
@@ -373,9 +379,11 @@ describe('AppointmentService', () => {
         doctorId: 'doctor-1',
       });
 
-      expect(result.data.every((a: { doctorId: string }) => a.doctorId === 'doctor-1')).toBe(
-        true,
-      );
+      expect(
+        result.data.every(
+          (a: { doctorId: string }) => a.doctorId === 'doctor-1',
+        ),
+      ).toBe(true);
     });
 
     it('should filter by status', async () => {
@@ -396,9 +404,9 @@ describe('AppointmentService', () => {
         status: 'SCHEDULED',
       });
 
-      expect(result.data.every((a: { status: string }) => a.status === 'SCHEDULED')).toBe(
-        true,
-      );
+      expect(
+        result.data.every((a: { status: string }) => a.status === 'SCHEDULED'),
+      ).toBe(true);
     });
 
     it('should support pagination', async () => {
@@ -443,7 +451,9 @@ describe('AppointmentService', () => {
       );
 
       expect(result).toHaveLength(3);
-      expect(result.every((s: { available: boolean }) => s.available)).toBe(true);
+      expect(result.every((s: { available: boolean }) => s.available)).toBe(
+        true,
+      );
     });
 
     it('should exclude booked slots', async () => {
@@ -461,7 +471,9 @@ describe('AppointmentService', () => {
         'clinic-1',
       );
 
-      expect(result.filter((s: { available: boolean }) => s.available)).toHaveLength(2);
+      expect(
+        result.filter((s: { available: boolean }) => s.available),
+      ).toHaveLength(2);
     });
 
     it('should respect doctor time-off', async () => {
@@ -478,7 +490,9 @@ describe('AppointmentService', () => {
         'clinic-1',
       );
 
-      expect(result.filter((s: { available: boolean }) => s.available)).toHaveLength(0);
+      expect(
+        result.filter((s: { available: boolean }) => s.available),
+      ).toHaveLength(0);
     });
   });
 
@@ -534,9 +548,11 @@ describe('AppointmentService', () => {
 
       const result = await service.listAppointments('clinic-1', {});
 
-      expect(result.data.every((a: { clinicId: string }) => a.clinicId === 'clinic-1')).toBe(
-        true,
-      );
+      expect(
+        result.data.every(
+          (a: { clinicId: string }) => a.clinicId === 'clinic-1',
+        ),
+      ).toBe(true);
     });
   });
 

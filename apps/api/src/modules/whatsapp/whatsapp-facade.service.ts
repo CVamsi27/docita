@@ -130,11 +130,11 @@ export class WhatsappService {
   // Approval Workflow
   // ==========================================================================
 
-  async approvePrescription(id: string, userId: string) {
-    return this.approvalService.approvePrescription(id, userId);
+  async approvePrescription(id: string, userId: string, clinicId: string) {
+    return this.approvalService.approvePrescription(id, userId, clinicId);
   }
 
-  async approveInvoice(id: string, userId: string) {
-    return this.approvalService.approveInvoice(id, userId);
+  async approveInvoice(id: string, userId: string, clinicId: string) {
+    return this.approvalService.approveInvoice(id, userId, clinicId);
   }
 }

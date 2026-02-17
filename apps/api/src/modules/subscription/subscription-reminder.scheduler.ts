@@ -3,7 +3,12 @@
  * Sends reminders for expiring subscriptions and handles grace period expirations
  */
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
@@ -331,7 +336,7 @@ export class SubscriptionReminderScheduler implements OnModuleInit {
     });
 
     if (!subscription) {
-      throw new Error('Subscription not found');
+      throw new NotFoundException('Subscription not found');
     }
 
     const config = REMINDER_SCHEDULE.find((r) => r.type === type) || {

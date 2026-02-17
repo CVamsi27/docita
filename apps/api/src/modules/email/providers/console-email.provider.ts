@@ -15,7 +15,7 @@ export class ConsoleEmailProvider implements IEmailProvider {
   private readonly logger = new Logger(ConsoleEmailProvider.name);
 
   send(options: EmailOptions): Promise<EmailSendResult> {
-    this.logger.log('📧 Email would be sent:');
+    this.logger.log('[Email] Would be sent:');
     this.logger.log(
       `  To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`,
     );
@@ -33,7 +33,7 @@ export class ConsoleEmailProvider implements IEmailProvider {
   }
 
   sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
-    this.logger.log('📧 Templated email would be sent:');
+    this.logger.log('[Email] Templated email would be sent:');
     this.logger.log(
       `  To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`,
     );

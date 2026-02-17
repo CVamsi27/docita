@@ -42,6 +42,7 @@ import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 async function bootstrap() {
   // Initialize Sentry first (before creating NestJS app)
   // Safely load profiling integration, fall back if native binaries unavailable
+
   const integrations: any[] = [];
   try {
     const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
@@ -216,7 +217,7 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
-    console.log('📚 Swagger docs available at /api/docs');
+    console.log('Swagger docs available at /api/docs');
   }
 
   const port = configService.get<number>('PORT') || 3001;
@@ -228,7 +229,7 @@ async function bootstrap() {
   // Graceful shutdown handler for zero-downtime deployments
   // Allows active connections to drain before process exit
   const gracefulShutdown = (signal: string) => {
-    console.log(`\n📍 Received ${signal}, initiating graceful shutdown...`);
+    console.log(`\nReceived ${signal}, initiating graceful shutdown...`);
 
     // Stop accepting new connections
     server.close(async () => {

@@ -92,8 +92,8 @@ export class AppointmentsController {
 
   @Get(':id')
   @ZodSerializerDto(AppointmentResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.appointmentsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.appointmentsService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -105,7 +105,7 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.create({
       ...createAppointmentDto,
-      clinicId: createAppointmentDto.clinicId || req.user.clinicId,
+      clinicId: req.user.clinicId,
     });
   }
 
@@ -140,21 +140,37 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.appointmentsService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.appointmentsService.remove(id, req.user.clinicId);
   }
 
   @Post(':id/vitals')
   @ZodSerializerDto(VitalSignResponseDto)
   @UsePipes(new ZodValidationPipe(VitalsSchema))
-  createVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
-    return this.appointmentsService.createVitals(id, vitalsDto);
+  createVitals(
+    @Param('id') id: string,
+    @Body() vitalsDto: VitalsDto,
+    @Request() req: AuthRequest,
+  ) {
+    return this.appointmentsService.createVitals(
+      id,
+      vitalsDto,
+      req.user.clinicId,
+    );
   }
 
   @Put(':id/vitals')
   @ZodSerializerDto(VitalSignResponseDto)
   @UsePipes(new ZodValidationPipe(VitalsSchema))
-  updateVitals(@Param('id') id: string, @Body() vitalsDto: VitalsDto) {
-    return this.appointmentsService.updateVitals(id, vitalsDto);
+  updateVitals(
+    @Param('id') id: string,
+    @Body() vitalsDto: VitalsDto,
+    @Request() req: AuthRequest,
+  ) {
+    return this.appointmentsService.updateVitals(
+      id,
+      vitalsDto,
+      req.user.clinicId,
+    );
   }
 }

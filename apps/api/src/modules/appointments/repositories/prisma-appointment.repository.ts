@@ -64,7 +64,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       search,
       userId,
       userRole,
-    } = params as any; // Using any to handle 'date' string vs Date obj mapping from service
+    } = params;
 
     if (!clinicId) {
       return { items: [], nextCursor: undefined, hasMore: false, count: 0 };
@@ -96,7 +96,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     // Date Filtering
     if (date) {
       // Specific Date (YYYY-MM-DD input assumed from service)
-      const [year, month, day] = (date as string).split('-').map(Number);
+      const [year, month, day] = date.split('-').map(Number);
       const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
       const endOfDay = new Date(
         Date.UTC(year, month - 1, day, 23, 59, 59, 999),

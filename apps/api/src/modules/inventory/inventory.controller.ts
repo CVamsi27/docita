@@ -84,8 +84,8 @@ export class InventoryController {
 
   @Get(':id')
   @ZodSerializerDto(InventoryResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.inventoryService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.inventoryService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -98,8 +98,12 @@ export class InventoryController {
   @Patch(':id')
   @ZodSerializerDto(InventoryResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateInventoryItemSchema))
-  update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto) {
-    return this.inventoryService.update(id, dto);
+  update(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateInventoryItemDto,
+  ) {
+    return this.inventoryService.update(id, dto, req.user.clinicId);
   }
 
   @Post(':id/movements')
@@ -110,6 +114,11 @@ export class InventoryController {
     @Param('id') id: string,
     @Body() dto: CreateMovementDto,
   ) {
-    return this.inventoryService.addMovement(id, req.user.id, dto);
+    return this.inventoryService.addMovement(
+      id,
+      req.user.id,
+      dto,
+      req.user.clinicId,
+    );
   }
 }

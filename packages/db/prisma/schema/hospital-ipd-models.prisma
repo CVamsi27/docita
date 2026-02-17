@@ -1,0 +1,70 @@
+// ============================================================================
+// IPD / Bed Management Models (Hospital Only)
+// ============================================================================
+
+model Ward {
+  id          String   @id @default(cuid())
+  name        String // e.g., "ICU", "General Ward", "Private"
+  type        String // e.g., "INTENSIVE_CARE", "GENERAL", "PRIVATE", "OXYGEN"
+  description String?
+  floorNumber String?
+  clinicId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  clinic      Clinic   @relation(fields: [clinicId], references: [id])
+  rooms       Room[]
+
+  @@index([clinicId])
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  wardId     String
+  roomNumber String
+  type       String? // e.g., "SINGLE", "DOUBLE", "SHARED"
+  charges    Float    @default(0) // Daily charges
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ward       Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
+  beds       Bed[]
+
+  @@index([wardId])
+}
+
+model Bed {
+  id         String      @id @default(cuid())
+  roomId     String
+  bedNumber  String
+  status     BedStatus   @default(AVAILABLE)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  room       Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  admissions Admission[]
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model Admission {
+  id                String          @id @default(cuid())
+  patientId         String
+  bedId             String
+  admittedAt        DateTime        @default(now())
+  dischargedAt      DateTime?
+  status            AdmissionStatus @default(ADMITTED)
+  reason            String?
+  diagnosis         String?
+  notes             String?
+  admittingDoctorId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient         Patient @relation(fields: [patientId], references: [id])
+  bed             Bed     @relation(fields: [bedId], references: [id])
+  admittingDoctor User?   @relation(fields: [admittingDoctorId], references: [id])
+
+  @@index([patientId])
+  @@index([bedId])
+  @@index([status])
+}

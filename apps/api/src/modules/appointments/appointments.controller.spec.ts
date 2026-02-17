@@ -103,10 +103,16 @@ describe('AppointmentsController', () => {
     it('should return a single appointment', async () => {
       mockAppointmentsService.findOne.mockResolvedValue(mockAppointment);
 
-      const result = await controller.findOne('apt-123');
+      const result = await controller.findOne(
+        'apt-123',
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(mockAppointment);
-      expect(mockAppointmentsService.findOne).toHaveBeenCalledWith('apt-123');
+      expect(mockAppointmentsService.findOne).toHaveBeenCalledWith(
+        'apt-123',
+        'clinic-123',
+      );
     });
   });
 
@@ -159,10 +165,13 @@ describe('AppointmentsController', () => {
     it('should remove an appointment', async () => {
       mockAppointmentsService.remove.mockResolvedValue(mockAppointment);
 
-      const result = await controller.remove('apt-123');
+      const result = await controller.remove('apt-123', mockAuthRequest as any);
 
       expect(result).toEqual(mockAppointment);
-      expect(mockAppointmentsService.remove).toHaveBeenCalledWith('apt-123');
+      expect(mockAppointmentsService.remove).toHaveBeenCalledWith(
+        'apt-123',
+        'clinic-123',
+      );
     });
   });
 
@@ -176,12 +185,17 @@ describe('AppointmentsController', () => {
 
       mockAppointmentsService.createVitals.mockResolvedValue(mockVitals);
 
-      const result = await controller.createVitals('apt-123', vitalsDto);
+      const result = await controller.createVitals(
+        'apt-123',
+        vitalsDto,
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(mockVitals);
       expect(mockAppointmentsService.createVitals).toHaveBeenCalledWith(
         'apt-123',
         vitalsDto,
+        'clinic-123',
       );
     });
   });
@@ -195,12 +209,17 @@ describe('AppointmentsController', () => {
 
       mockAppointmentsService.updateVitals.mockResolvedValue(mockVitals);
 
-      const result = await controller.updateVitals('apt-123', vitalsDto);
+      const result = await controller.updateVitals(
+        'apt-123',
+        vitalsDto,
+        mockAuthRequest as any,
+      );
 
       expect(result).toEqual(mockVitals);
       expect(mockAppointmentsService.updateVitals).toHaveBeenCalledWith(
         'apt-123',
         vitalsDto,
+        'clinic-123',
       );
     });
   });

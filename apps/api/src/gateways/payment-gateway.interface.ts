@@ -98,6 +98,15 @@ export interface IPaymentGateway {
   // Webhook verification
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean;
   parseWebhookEvent(payload: unknown): WebhookEvent;
+
+  // Recurring token-based payments (optional — not all gateways support this)
+  chargeWithToken?(
+    customerId: string,
+    tokenId: string,
+    amountCents: number,
+    currency: string,
+    description: string,
+  ): Promise<{ paymentId: string; status: string }>;
 }
 
 /**

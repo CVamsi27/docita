@@ -31,7 +31,7 @@ interface AuthRequest {
   user: {
     clinicId: string;
     userId: string;
-    role: string;
+    role: Role;
   };
 }
 
@@ -94,12 +94,12 @@ export class FeedbackController {
   @Get('stats')
   getStats(@Request() req: AuthRequest, @Query('clinicId') clinicId?: string) {
     // Only super admin can see all stats
-    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN') {
+    if (req.user.role !== Role.SUPER_ADMIN && req.user.role !== Role.ADMIN) {
       throw new ForbiddenException('Only admins can view feedback statistics');
     }
 
     // Non-super admins can only see their clinic's stats
-    if (req.user.role !== 'SUPER_ADMIN') {
+    if (req.user.role !== Role.SUPER_ADMIN) {
       return this.feedbackService.getStats(req.user.clinicId);
     }
 
@@ -113,7 +113,7 @@ export class FeedbackController {
   @ZodSerializerDto(FeedbackListResponseDto)
   findAll(@Request() req: AuthRequest, @Query() query: FeedbackFiltersQuery) {
     // Only super admin can see all feedback
-    if (req.user.role !== 'SUPER_ADMIN') {
+    if (req.user.role !== Role.SUPER_ADMIN) {
       throw new ForbiddenException('Only super admins can view all feedback');
     }
 
@@ -135,7 +135,7 @@ export class FeedbackController {
   @Get('clinic')
   @ZodSerializerDto(FeedbackListResponseDto)
   findForClinic(@Request() req: AuthRequest) {
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+    if (req.user.role !== Role.ADMIN && req.user.role !== Role.SUPER_ADMIN) {
       throw new ForbiddenException('Only admins can view clinic feedback');
     }
 
@@ -147,8 +147,8 @@ export class FeedbackController {
    */
   @Get(':id')
   @ZodSerializerDto(FeedbackResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.feedbackService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.feedbackService.findOne(id, req.user.clinicId);
   }
 
   /**
@@ -162,7 +162,7 @@ export class FeedbackController {
     @Param('id') id: string,
     @Body() dto: UpdateFeedbackStatusDto,
   ) {
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+    if (req.user.role !== Role.ADMIN && req.user.role !== Role.SUPER_ADMIN) {
       throw new ForbiddenException('Only admins can update feedback status');
     }
 
@@ -174,7 +174,7 @@ export class FeedbackController {
    */
   @Delete(':id')
   delete(@Request() req: AuthRequest, @Param('id') id: string) {
-    if (req.user.role !== 'SUPER_ADMIN') {
+    if (req.user.role !== Role.SUPER_ADMIN) {
       throw new ForbiddenException('Only super admins can delete feedback');
     }
 

@@ -1,4 +1,11 @@
-import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  Optional,
+  ServiceUnavailableException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -74,7 +81,7 @@ export class OpenaiService {
     }
 
     if (!this.openai) {
-      throw new Error('OpenAI client not initialized');
+      throw new ServiceUnavailableException('OpenAI client not initialized');
     }
 
     const response = await Promise.race([
@@ -97,7 +104,8 @@ export class OpenaiService {
 
     const content = (response as OpenAI.Chat.Completions.ChatCompletion)
       .choices?.[0]?.message?.content;
-    if (!content) throw new Error('Empty response from OpenAI');
+    if (!content)
+      throw new InternalServerErrorException('Empty response from OpenAI');
 
     const result = jsonMode ? JSON.parse(content) : content;
 

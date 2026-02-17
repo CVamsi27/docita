@@ -4,6 +4,7 @@ import {
   ClinicTier,
   BillingCycle,
 } from './dto/create-clinic-onboarding.dto';
+import { Specialization } from '@workspace/db';
 import {
   validateSpecializationForOnboarding,
   validateClinicTier,
@@ -106,12 +107,14 @@ export class OnboardingValidationService {
   /**
    * Validate specialization
    */
-  validateSpecialization(spec: string | undefined): string | null | undefined {
+  validateSpecialization(
+    spec: string | undefined,
+  ): Specialization | null | undefined {
     try {
       if (!spec) return undefined;
       return validateSpecializationForOnboarding(spec);
     } catch {
-      return spec;
+      return spec as Specialization;
     }
   }
 

@@ -41,7 +41,7 @@ async function main() {
   const prisma = new PrismaClient({ adapter });
 
   try {
-    console.log('🌱 Starting database seed...');
+    console.log('Starting database seed...');
     console.log(
       'Using Database URL:',
       process.env.DATABASE_URL
@@ -58,12 +58,12 @@ async function main() {
         address: '123 Health Street, Bangalore, Karnataka 560001',
         phone: '+91 80 1234 5678',
         email: 'contact@docita.work',
-        active: true,
         tier: 'PRO',
+        subscriptionStatus: 'ACTIVE',
       },
     });
 
-    console.log('✅ Default clinic created');
+    console.log('[OK] Default clinic created');
 
     const hashedPassword = await bcrypt.hash('password123', 10);
 
@@ -401,8 +401,10 @@ async function main() {
       ],
     });
 
-    console.log('✅ Doctor profiles with education and certifications created');
-    console.log('✅ DoctorClinic associations created');
+    console.log(
+      '[OK] Doctor profiles with education and certifications created',
+    );
+    console.log('[OK] DoctorClinic associations created');
 
     await prisma.user.upsert({
       where: { email: 'reception@docita.work' },
@@ -416,7 +418,7 @@ async function main() {
       },
     });
 
-    console.log('✅ Users created (including Super Admin)');
+    console.log('[OK] Users created (including Super Admin)');
 
     const patients = await Promise.all([
       prisma.patient.create({
@@ -496,7 +498,7 @@ async function main() {
       }),
     ]);
 
-    console.log('✅ Patients created');
+    console.log('[OK] Patients created');
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -621,7 +623,9 @@ async function main() {
       },
     });
 
-    console.log('✅ Appointments, vitals, prescriptions, and invoices created');
+    console.log(
+      '[OK] Appointments, vitals, prescriptions, and invoices created',
+    );
 
     await prisma.document.create({
       data: {
@@ -641,10 +645,10 @@ async function main() {
       },
     });
 
-    console.log('✅ Documents created');
+    console.log('[OK] Documents created');
 
     // Seed structured medical history for patients
-    console.log('🏥 Seeding structured medical history...');
+    console.log('Seeding structured medical history...');
 
     // Add medical conditions
     await prisma.patientMedicalCondition.createMany({
@@ -896,7 +900,7 @@ async function main() {
       ],
     });
 
-    console.log('✅ Structured medical history created');
+    console.log('[OK] Structured medical history created');
 
     // Add reminder settings for the clinic (upsert for idempotency)
     await prisma.reminderSettings.upsert({
@@ -917,7 +921,7 @@ async function main() {
       },
     });
 
-    console.log('✅ Reminder settings created');
+    console.log('[OK] Reminder settings created');
 
     // Initialize MRN sequence for the clinic (upsert for idempotency)
     await prisma.mrnSequence.upsert({
@@ -940,7 +944,7 @@ async function main() {
       ),
     );
 
-    console.log('✅ MRN sequence and patient MRNs created');
+    console.log('[OK] MRN sequence and patient MRNs created');
 
     // Delete existing whatsapp templates and recreate
     await prisma.whatsappTemplate.deleteMany({
@@ -955,13 +959,13 @@ async function main() {
           name: 'appointment_reminder_24hr',
           category: 'APPOINTMENT',
           content:
-            'Hi {{patientName}}! 🏥\n\nThis is a reminder for your appointment tomorrow:\n\n📅 Date: {{date}}\n⏰ Time: {{time}}\n👨‍⚕️ Doctor: {{doctorName}}\n📍 Docita Health Clinic\n\nReply with:\n✅ CONFIRM to confirm\n❌ CANCEL to cancel\n⏰ DELAY if running late',
+            'Hi {{patientName}},\n\nThis is a reminder for your appointment tomorrow:\n\nDate: {{date}}\nTime: {{time}}\nDoctor: {{doctorName}}\nLocation: Docita Health Clinic\n\nReply with:\nCONFIRM to confirm\nCANCEL to cancel\nDELAY if running late',
           variables: ['patientName', 'date', 'time', 'doctorName'],
           buttonType: 'QUICK_REPLY',
           buttons: [
-            { id: 'confirm', title: '✅ Confirm' },
-            { id: 'cancel', title: '❌ Cancel' },
-            { id: 'delay', title: '⏰ Delay' },
+            { id: 'confirm', title: 'Confirm' },
+            { id: 'cancel', title: 'Cancel' },
+            { id: 'delay', title: 'Delay' },
           ],
           status: 'APPROVED',
           isActive: true,
@@ -972,7 +976,7 @@ async function main() {
           name: 'appointment_reminder_30min',
           category: 'APPOINTMENT',
           content:
-            'Hi {{patientName}}! ⏰\n\nYour appointment is in 30 minutes:\n\n👨‍⚕️ Doctor: {{doctorName}}\n📍 Docita Health Clinic\n\nPlease arrive 10 minutes early. See you soon!',
+            'Hi {{patientName}},\n\nYour appointment is in 30 minutes:\n\nDoctor: {{doctorName}}\nLocation: Docita Health Clinic\n\nPlease arrive 10 minutes early. See you soon!',
           variables: ['patientName', 'doctorName'],
           buttonType: 'NONE',
           status: 'APPROVED',
@@ -984,7 +988,7 @@ async function main() {
           name: 'prescription_sent',
           category: 'PRESCRIPTION',
           content:
-            'Hi {{patientName}}! 💊\n\nYour prescription from Dr. {{doctorName}} is ready.\n\n📋 View your prescription here:\n{{prescriptionUrl}}\n\nGet well soon! 🙏',
+            'Hi {{patientName}},\n\nYour prescription from Dr. {{doctorName}} is ready.\n\nView your prescription here:\n{{prescriptionUrl}}\n\nGet well soon!',
           variables: ['patientName', 'doctorName', 'prescriptionUrl'],
           buttonType: 'CALL_TO_ACTION',
           buttons: [
@@ -1003,7 +1007,7 @@ async function main() {
           name: 'invoice_payment',
           category: 'INVOICE',
           content:
-            'Hi {{patientName}}! 🧾\n\nYour invoice #{{invoiceNumber}} for ₹{{amount}} is ready.\n\n💳 Pay online:\n{{paymentUrl}}\n\nThank you for choosing Docita Health Clinic!',
+            'Hi {{patientName}},\n\nYour invoice #{{invoiceNumber}} for ₹{{amount}} is ready.\n\nPay online:\n{{paymentUrl}}\n\nThank you for choosing Docita Health Clinic!',
           variables: ['patientName', 'invoiceNumber', 'amount', 'paymentUrl'],
           buttonType: 'CALL_TO_ACTION',
           buttons: [{ type: 'URL', title: 'Pay Now', url: '{{paymentUrl}}' }],
@@ -1014,7 +1018,7 @@ async function main() {
       ],
     });
 
-    console.log('✅ WhatsApp templates created');
+    console.log('[OK] WhatsApp templates created');
 
     // Delete existing prescription templates and recreate
     await prisma.prescriptionTemplate.deleteMany({
@@ -1119,7 +1123,7 @@ async function main() {
       ],
     });
 
-    console.log('✅ Prescription templates created');
+    console.log('[OK] Prescription templates created');
 
     // Add doctor schedules (one schedule per day per doctor per clinic due to unique constraint)
     const daysOfWeek = [
@@ -1171,7 +1175,7 @@ async function main() {
       ],
     });
 
-    console.log('✅ Doctor schedules created');
+    console.log('[OK] Doctor schedules created');
 
     // Add some lab tests (without loincCode foreign key reference)
     await prisma.labTest.createMany({
@@ -1257,7 +1261,7 @@ async function main() {
       ],
     });
 
-    console.log('✅ Lab tests created');
+    console.log('[OK] Lab tests created');
 
     // Seed ICD-10 codes
     const icdCodes = [
@@ -3099,7 +3103,7 @@ async function main() {
     ];
 
     // Upsert ICD codes - delete first to handle changes
-    console.log('🏥 Seeding ICD-10 codes...');
+    console.log('Seeding ICD-10 codes...');
 
     // Create ICD codes in batches
     for (const icd of icdCodes) {
@@ -3110,10 +3114,10 @@ async function main() {
       });
     }
 
-    console.log(`✅ ${icdCodes.length} ICD-10 codes seeded`);
+    console.log(`${icdCodes.length} ICD-10 codes seeded`);
 
-    console.log('🎉 Database seeding completed successfully!');
-    console.log('\n📊 Summary:');
+    console.log('Database seeding completed successfully!');
+    console.log('\nSummary:');
     console.log(`   - Clinic: 1 (Docita Health Clinic - PRO tier)`);
     console.log(
       `   - Users: 6 (1 super admin, 1 clinic admin, 3 doctors, 1 receptionist)`,
@@ -3137,8 +3141,8 @@ async function main() {
     console.log(`   - Patient Social History: 5`);
     console.log(`   - Immunizations: 4`);
     console.log(`   - ICD-10 Codes: ${icdCodes.length}`);
-    console.log('\n🔑 Login credentials:');
-    console.log('\n   📱 Main App (http://localhost:3000):');
+    console.log('\nLogin credentials:');
+    console.log('\n   Main App (http://localhost:3000):');
     console.log('   - clinic.admin@docita.work / password123 (Clinic Admin)');
     console.log(
       '   - doctor@docita.work / password123 (Dr. Vamsi - Cardiologist)',
@@ -3150,10 +3154,10 @@ async function main() {
       '   - dr.dental@docita.work / password123 (Dr. Arun - Dentist)',
     );
     console.log('   - reception@docita.work / password123 (Receptionist)');
-    console.log('\n   👨‍💼 Admin Console (http://localhost:3002):');
+    console.log('\n   Admin Console (http://localhost:3002):');
     console.log('   - admin@docita.work / password123 (Super Admin)');
   } catch (error) {
-    console.error('❌ Seeding failed:', error);
+    console.error('Seeding failed:', error);
     throw error;
   } finally {
     await prisma.$disconnect();

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderHistoryService } from './reminder-history.service';
+import { ReminderSettingsDto } from './dto/reminder-settings.dto';
 
 /**
  * RemindersService (Facade)
@@ -32,19 +33,19 @@ export class RemindersService {
   ) {}
 
   /**
-   * Get current reminder settings
+   * Get current reminder settings for a clinic
    * @public API - used by controllers and other services
    */
-  async getSettings() {
-    return this.settingsService.getSettings();
+  async getSettings(clinicId?: string) {
+    return this.settingsService.getSettings(clinicId);
   }
 
   /**
-   * Update reminder settings
+   * Update reminder settings for a clinic
    * @public API - used by controllers and other services
    */
-  async updateSettings(data: any) {
-    return this.settingsService.updateSettings(data);
+  async updateSettings(data: ReminderSettingsDto, clinicId?: string) {
+    return this.settingsService.updateSettings(data, clinicId);
   }
 
   /**

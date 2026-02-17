@@ -123,7 +123,7 @@ export class FhirConditionFactory {
       if (!diagnosis.icdCode) continue;
 
       const patientId = diagnosis.appointment.patientId; // Assuming implicit or explicit relation
-      const patientRef = `Patient/${(diagnosis.appointment as any).patientId}`; // Assuming loaded
+      const patientRef = `Patient/${diagnosis.appointment.patientId}`;
       const patientDisplay = `${diagnosis.appointment.patient.firstName} ${diagnosis.appointment.patient.lastName}`;
 
       fhirConditions.push({

@@ -1,4 +1,10 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ReminderSettings, WhatsappLogStatus } from '@workspace/db';
 import {
@@ -169,7 +175,7 @@ export class ReminderNotificationService {
       );
 
       if (!resolved) {
-        throw new Error(`Template ${templateId} not found`);
+        throw new NotFoundException(`Template ${templateId} not found`);
       }
 
       // Get message based on mode (production vs sandbox)
@@ -248,6 +254,6 @@ export class ReminderNotificationService {
         }),
       )
       .replace(/{appointmentType}/g, appointment.type)
-      .replace(/{clinicName}/g, 'Your Clinic');
+      .replace(/{clinicName}/g, appointment.clinic?.name || 'Your Clinic');
   }
 }

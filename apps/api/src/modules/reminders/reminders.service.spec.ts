@@ -83,7 +83,10 @@ describe('RemindersService (Facade)', () => {
       const result = await service.updateSettings(updateData);
 
       expect(result).toEqual(mockResponse);
-      expect(settingsService.updateSettings).toHaveBeenCalledWith(updateData);
+      expect(settingsService.updateSettings).toHaveBeenCalledWith(
+        updateData,
+        undefined,
+      );
     });
 
     it('should handle validation errors from settings service', async () => {

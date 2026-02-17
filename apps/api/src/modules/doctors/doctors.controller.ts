@@ -63,8 +63,8 @@ export class DoctorsController {
 
   @Get(':id')
   @ZodSerializerDto(DoctorResponseDto)
-  async findOne(@Param('id') id: string) {
-    return this.doctorsService.findOne(id);
+  async findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.doctorsService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -84,13 +84,13 @@ export class DoctorsController {
     @Param('id') id: string,
     @Body() dto: UpdateDoctorDto,
   ) {
-    return this.doctorsService.update(id, dto);
+    return this.doctorsService.update(id, dto, req.user.clinicId);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async remove(@Request() req: AuthRequest, @Param('id') id: string) {
-    return this.doctorsService.remove(id);
+    return this.doctorsService.remove(id, req.user.clinicId);
   }
 
   // ============================================================================

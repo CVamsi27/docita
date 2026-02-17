@@ -93,7 +93,7 @@ describe('PushNotificationService', () => {
       expect(sendToPatientSpy).toHaveBeenCalledWith(
         'patient-1',
         expect.objectContaining({
-          title: '✅ Payment Received',
+          title: 'Payment Received',
           body: expect.stringContaining('₹1500.50'),
           data: expect.objectContaining({
             invoiceNumber: 'INV12345',
@@ -138,7 +138,7 @@ describe('PushNotificationService', () => {
       expect(sendToPatientSpy).toHaveBeenCalledWith(
         'patient-1',
         expect.objectContaining({
-          title: '❌ Payment Failed',
+          title: 'Payment Failed',
           body: expect.stringContaining('could not be processed'),
           data: expect.objectContaining({
             amount: '500',
@@ -164,7 +164,7 @@ describe('PushNotificationService', () => {
       expect(sendToPatientSpy).toHaveBeenCalledWith(
         'patient-1',
         expect.objectContaining({
-          title: '💳 Payment Reminder',
+          title: 'Payment Reminder',
           body: expect.stringContaining('₹750.00 due'),
           data: expect.objectContaining({
             paymentLink: 'https://pay.example.com/xyz',
@@ -190,7 +190,7 @@ describe('PushNotificationService', () => {
       expect(sendToPatientSpy).toHaveBeenCalledWith(
         'patient-1',
         expect.objectContaining({
-          title: '📄 Invoice Ready',
+          title: 'Invoice Ready',
           body: expect.stringContaining('₹2000.00'),
           data: expect.objectContaining({
             paymentLink: 'https://pay.example.com/abc',

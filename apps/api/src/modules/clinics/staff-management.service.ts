@@ -26,11 +26,11 @@ export class StaffManagementService {
   async createDoctor(clinicId: string, data: CreateDoctorData) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const userData: any = {
+    const userData: Record<string, unknown> = {
       name: data.name,
       email: data.email,
       password: hashedPassword,
-      role: 'DOCTOR',
+      role: 'DOCTOR' as const,
       clinicId,
       phoneNumber: data.phoneNumber,
       qualification: data.qualification,
@@ -42,7 +42,7 @@ export class StaffManagementService {
     }
 
     const user = await this.prisma.user.create({
-      data: userData,
+      data: userData as Parameters<typeof this.prisma.user.create>[0]['data'],
       select: {
         id: true,
         name: true,

@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Prisma, Invoice, InvoiceStatus } from '@workspace/db';
 import {
   INVOICE_CARD_SELECT,
@@ -51,10 +56,20 @@ export class InvoicesService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, clinicId?: string) {
     const invoice = await this.repository.findById(id);
     if (!invoice) {
       throw new NotFoundException(`Invoice ${id} not found`);
+    }
+    // Verify clinic ownership via patient relation
+    if (clinicId) {
+      const invoiceData = invoice as Record<string, unknown>;
+      const patient = invoiceData.patient as
+        | Record<string, unknown>
+        | undefined;
+      if (patient && patient.clinicId !== clinicId) {
+        throw new NotFoundException(`Invoice ${id} not found`);
+      }
     }
     return invoice;
   }
@@ -104,8 +119,9 @@ export class InvoicesService {
   async update(
     id: string,
     data: { status?: InvoiceStatus; total?: number; items?: InvoiceItem[] },
+    clinicId?: string,
   ) {
-    await this.findOne(id); // Ensure exists
+    await this.findOne(id, clinicId); // Ensure exists and belongs to clinic
 
     return this.repository.update(id, {
       ...data,
@@ -119,8 +135,8 @@ export class InvoicesService {
     await this.repository.delete(id);
   }
 
-  async generatePDF(id: string): Promise<Buffer> {
-    const invoice = await this.findOne(id);
+  async generatePDF(id: string, clinicId?: string): Promise<Buffer> {
+    const invoice = await this.findOne(id, clinicId);
 
     const items = invoice.items as unknown as Array<InvoiceItem>;
     // invoice returned by findOne -> repository.findById uses INVOICE_DETAIL_SELECT.

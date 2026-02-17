@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Request } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import {
   CreatePaymentLinkDto,
@@ -11,7 +11,13 @@ import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { Idempotent } from '../../common/decorators/idempotent.decorator';
 import { IdempotencyInterceptor } from '../../common/interceptors/idempotency.interceptor';
-import { UseInterceptors } from '@nestjs/common';
+import { UseInterceptors, ForbiddenException } from '@nestjs/common';
+
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
 
 @Controller('payments')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -31,13 +37,18 @@ export class PaymentsController {
 
   @Post(':id/send-whatsapp')
   @ZodSerializerDto(AnyResponseDto)
-  async sendWhatsApp(@Param('id') id: string) {
+  async sendWhatsApp(@Param('id') id: string, @Request() req: AuthRequest) {
+    await this.paymentsService.verifySessionOwnership(id, req.user.clinicId);
     return this.paymentsService.sendPaymentLinkWhatsApp(id);
   }
 
   @Get(':id')
   @ZodSerializerDto(PaymentSessionResponseDto)
-  async getPaymentSession(@Param('id') id: string) {
+  async getPaymentSession(
+    @Param('id') id: string,
+    @Request() req: AuthRequest,
+  ) {
+    await this.paymentsService.verifySessionOwnership(id, req.user.clinicId);
     return this.paymentsService.getPaymentSession(id);
   }
 }

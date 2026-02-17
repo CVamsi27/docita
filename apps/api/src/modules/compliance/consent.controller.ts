@@ -9,9 +9,17 @@ import {
   HttpCode,
   Query,
 } from '@nestjs/common';
-import { DPDPComplianceService } from './dpdp-compliance.service';
+import {
+  DPDPComplianceService,
+  DataSubjectRight,
+} from './dpdp-compliance.service';
 import { ConsentType, ConsentStatus, Role } from '@workspace/db';
 import { Request } from 'express';
+
+interface AuthUser {
+  id: string;
+  clinicId: string;
+}
 import { z } from 'zod';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { RolesGuard } from '../auth/roles.guard';
@@ -95,8 +103,8 @@ export class ConsentController {
     return this.dpdpService.handleErasureRequest(
       {
         patientId,
-        clinicId: (req.user as any)?.clinicId, // Assuming extracted from token
-        requestType: 'ERASURE' as any,
+        clinicId: (req.user as AuthUser)?.clinicId,
+        requestType: DataSubjectRight.ERASURE,
         reason: dto.reason,
         requestedBy: dto.requestedBy,
       },

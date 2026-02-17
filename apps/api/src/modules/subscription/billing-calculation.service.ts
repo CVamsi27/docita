@@ -19,6 +19,8 @@ import {
 } from '@workspace/types';
 
 const REFERRAL_DISCOUNT_PERCENT = 25;
+const SEMI_ANNUAL_DISCOUNT_PERCENT = 5;
+const GST_RATE = 0.18; // 18% GST for Indian billing
 
 export interface ProratedAmount {
   creditCents: number;
@@ -43,28 +45,42 @@ export class BillingCalculationService {
   private readonly logger = new Logger(BillingCalculationService.name);
 
   /**
-   * Get price in cents (paise) for a tier and billing cycle
+   * Get price in cents (paise) for a tier and billing cycle.
+   * Includes yearly discount for add-ons and GST for INR currency.
    */
   getPriceCents(
     tier: ClinicTier,
     cycle: BillingCycle,
     addOns: string[] = [],
+    currency: string = 'INR',
   ): number {
     const pricing = TIER_PRICING[tier];
     if (!pricing) return 0;
 
-    let totalCents = 0;
+    let subtotalCents = 0;
 
     // Base Plan Price
     if (cycle === 'YEARLY') {
       const yearlyPrice = pricing.yearly;
-      totalCents += typeof yearlyPrice === 'number' ? yearlyPrice * 100 : 0;
+      subtotalCents += typeof yearlyPrice === 'number' ? yearlyPrice * 100 : 0;
+    } else if (cycle === 'SEMI_ANNUAL') {
+      const monthlyPrice = pricing.monthly;
+      const sixMonthPrice =
+        typeof monthlyPrice === 'number' ? monthlyPrice * 6 : 0;
+      subtotalCents += Math.round(
+        sixMonthPrice * (1 - SEMI_ANNUAL_DISCOUNT_PERCENT / 100) * 100,
+      );
+    } else if (cycle === 'QUARTERLY') {
+      const monthlyPrice = pricing.monthly;
+      subtotalCents +=
+        typeof monthlyPrice === 'number' ? monthlyPrice * 3 * 100 : 0;
     } else {
       const monthlyPrice = pricing.monthly;
-      totalCents += typeof monthlyPrice === 'number' ? monthlyPrice * 100 : 0;
+      subtotalCents +=
+        typeof monthlyPrice === 'number' ? monthlyPrice * 100 : 0;
     }
 
-    // Add-ons Price
+    // Add-ons Price (apply yearly/semi-annual discount)
     if (addOns.includes('WHATSAPP')) {
       const whatsappPricing =
         WHATSAPP_ADDON_PRICING[tier as keyof typeof WHATSAPP_ADDON_PRICING];
@@ -74,21 +90,44 @@ export class BillingCalculationService {
             ? whatsappPricing.basePrice
             : 0;
         if (cycle === 'YEARLY') {
-          totalCents += addOnMonthly * 12 * 100;
+          subtotalCents += Math.round(
+            addOnMonthly * 12 * (1 - ANNUAL_DISCOUNT_PERCENT / 100) * 100,
+          );
+        } else if (cycle === 'SEMI_ANNUAL') {
+          subtotalCents += Math.round(
+            addOnMonthly * 6 * (1 - SEMI_ANNUAL_DISCOUNT_PERCENT / 100) * 100,
+          );
+        } else if (cycle === 'QUARTERLY') {
+          subtotalCents += addOnMonthly * 3 * 100;
         } else {
-          totalCents += addOnMonthly * 100;
+          subtotalCents += addOnMonthly * 100;
         }
       }
     }
 
-    return totalCents;
+    // Apply GST for INR currency
+    if (currency === 'INR') {
+      const gstCents = Math.round(subtotalCents * GST_RATE);
+      return subtotalCents + gstCents;
+    }
+
+    return subtotalCents;
   }
 
   /**
    * Get billing cycle days
    */
   getBillingCycleDays(cycle: BillingCycle): number {
-    return cycle === 'YEARLY' ? 365 : 30;
+    switch (cycle) {
+      case 'YEARLY':
+        return 365;
+      case 'SEMI_ANNUAL':
+        return 180;
+      case 'QUARTERLY':
+        return 90;
+      default:
+        return 30;
+    }
   }
 
   /**

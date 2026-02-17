@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 interface CreateCustomFieldData {
@@ -22,16 +22,21 @@ interface UpdateCustomFieldData {
 export class CustomFieldsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(clinicId?: string) {
     return this.prisma.customField.findMany({
+      where: clinicId ? { clinicId } : {},
       orderBy: { order: 'asc' },
     });
   }
 
-  async findOne(id: string) {
-    return this.prisma.customField.findUnique({
+  async findOne(id: string, clinicId?: string) {
+    const field = await this.prisma.customField.findUnique({
       where: { id },
     });
+    if (!field || (clinicId && field.clinicId !== clinicId)) {
+      throw new NotFoundException(`Custom field with ID ${id} not found`);
+    }
+    return field;
   }
 
   async create(data: CreateCustomFieldData) {
@@ -40,14 +45,16 @@ export class CustomFieldsService {
     });
   }
 
-  async update(id: string, data: UpdateCustomFieldData) {
+  async update(id: string, data: UpdateCustomFieldData, clinicId?: string) {
+    await this.findOne(id, clinicId);
     return this.prisma.customField.update({
       where: { id },
       data,
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, clinicId?: string) {
+    await this.findOne(id, clinicId);
     return this.prisma.customField.delete({
       where: { id },
     });

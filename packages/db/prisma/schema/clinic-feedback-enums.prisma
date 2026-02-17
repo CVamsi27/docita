@@ -1,0 +1,22 @@
+enum FacilityType {
+  CLINIC
+  HOSPITAL
+}
+
+enum FeedbackCategory {
+  GENERAL
+  UI_UX
+  PERFORMANCE
+  FEATURES
+  BILLING
+  SUPPORT
+  OTHER
+}
+
+enum FeedbackStatus {
+  NEW
+  REVIEWED
+  IN_PROGRESS
+  RESOLVED
+  ARCHIVED
+}

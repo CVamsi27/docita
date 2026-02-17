@@ -17,7 +17,7 @@ import { FacilityTypeGuard } from '../auth/clinic-type.guard';
 import { RequireFacilityType } from '../auth/clinic-type.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@workspace/db';
+import { Role, BedStatus } from '@workspace/db';
 import {
   CreateWardDto,
   CreateRoomDto,
@@ -64,40 +64,51 @@ export class IpdController {
     return this.ipdService.createWard({
       ...dto,
       clinicId: req.user.clinicId,
-    } as any);
+    } as unknown as import('@workspace/types').CreateWardDto);
   }
 
   @Post('rooms')
   @ZodSerializerDto(RoomResponseDto)
   @UsePipes(new ZodValidationPipe(CreateRoomSchema))
-  createRoom(@Body() dto: CreateRoomDto) {
-    return this.ipdService.createRoom(dto);
+  createRoom(@Request() req: AuthRequest, @Body() dto: CreateRoomDto) {
+    return this.ipdService.createRoom(dto, req.user.clinicId);
   }
 
   @Post('beds')
   @ZodSerializerDto(BedResponseDto)
   @UsePipes(new ZodValidationPipe(CreateBedSchema))
-  createBed(@Body() dto: CreateBedDto) {
-    return this.ipdService.createBed(dto);
+  createBed(@Request() req: AuthRequest, @Body() dto: CreateBedDto) {
+    return this.ipdService.createBed(dto, req.user.clinicId);
   }
 
   @Patch('beds/:id/status')
   @ZodSerializerDto(BedResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateBedStatusSchema))
-  updateBedStatus(@Param('id') id: string, @Body() dto: UpdateBedStatusDto) {
-    return this.ipdService.updateBedStatus(id, dto.status as any);
+  updateBedStatus(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateBedStatusDto,
+  ) {
+    return this.ipdService.updateBedStatus(
+      id,
+      dto.status as BedStatus,
+      req.user.clinicId,
+    );
   }
 
   @Post('admissions')
   @ZodSerializerDto(AdmissionResponseDto)
   @UsePipes(new ZodValidationPipe(AdmitPatientSchema))
-  admitPatient(@Body() dto: AdmitPatientDto) {
-    return this.ipdService.admitPatient(dto as any);
+  admitPatient(@Request() req: AuthRequest, @Body() dto: AdmitPatientDto) {
+    return this.ipdService.admitPatient(
+      dto as unknown as import('@workspace/types').AdmitPatientDto,
+      req.user.clinicId,
+    );
   }
 
   @Patch('admissions/:id/discharge')
   @ZodSerializerDto(AdmissionResponseDto)
-  dischargePatient(@Param('id') id: string) {
-    return this.ipdService.dischargePatient(id);
+  dischargePatient(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.ipdService.dischargePatient(id, req.user.clinicId);
   }
 }

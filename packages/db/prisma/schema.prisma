@@ -52,6 +52,9 @@ model User {
   admissions                Admission[]
   refreshTokens             RefreshToken[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
+  
+  // Patient Portal: Link to Patient record for PATIENT role users
+  linkedPatient             Patient?
 
   @@index([clinicId])
   @@index([specialization])
@@ -171,6 +174,10 @@ model Patient {
   clinicId       String
   customData     Json?    @default("{}")
   gender         Gender
+  
+  // Patient Portal: Link to User account for portal access
+  userId         String?  @unique
+  user           User?    @relation(fields: [userId], references: [id])
 
   // Hospital-Grade Demographics (Compliance: HL7, USCDI, Meaningful Use)
   race              String? // e.g., "White", "Black", "Asian", "Native American", etc.
@@ -229,6 +236,7 @@ model Patient {
   @@index([clinicId, createdAt]) // Recent patients query
   @@index([deletedAt]) // Soft delete query optimization
   @@index([abhaAddress])
+  @@index([userId]) // Patient portal lookup
 }
 
 // ============================================================================
@@ -1444,6 +1452,7 @@ enum Role {
   ADMIN
   SUPER_ADMIN
   ADMIN_DOCTOR
+  PATIENT
 }
 
 enum Gender {

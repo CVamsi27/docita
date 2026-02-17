@@ -194,9 +194,9 @@ export class PatientsRepository extends BaseRepository<Patient> {
       surgicalHistory,
       socialHistory,
       ...rest
-    } = data as any; // Cast to access structured fields not yet in interface
+    } = data as Record<string, any>; // Cast to access structured fields not yet in interface
 
-    const updateData: any = {
+    const updateData: Record<string, any> = {
       ...rest,
       ...(rest.gender && { gender: rest.gender.toUpperCase() as Gender }),
       ...(rest.dateOfBirth && {
@@ -209,7 +209,15 @@ export class PatientsRepository extends BaseRepository<Patient> {
       updateData.medicalConditions = {
         deleteMany: {},
         create: medicalConditions.map(
-          ({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item,
+          ({
+            id,
+            patientId,
+            ...item
+          }: {
+            id?: string;
+            patientId?: string;
+            [key: string]: unknown;
+          }) => item,
         ),
       };
     }
@@ -217,21 +225,51 @@ export class PatientsRepository extends BaseRepository<Patient> {
     if (patientAllergies) {
       updateData.patientAllergies = {
         deleteMany: {},
-        create: patientAllergies.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
+        create: patientAllergies.map(
+          ({
+            id,
+            patientId,
+            ...item
+          }: {
+            id?: string;
+            patientId?: string;
+            [key: string]: unknown;
+          }) => item,
+        ),
       };
     }
 
     if (familyHistory) {
       updateData.familyHistory = {
         deleteMany: {},
-        create: familyHistory.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
+        create: familyHistory.map(
+          ({
+            id,
+            patientId,
+            ...item
+          }: {
+            id?: string;
+            patientId?: string;
+            [key: string]: unknown;
+          }) => item,
+        ),
       };
     }
 
     if (surgicalHistory) {
       updateData.surgicalHistory = {
         deleteMany: {},
-        create: surgicalHistory.map(({ id, patientId, ...item }: { id?: string; patientId?: string; [key: string]: unknown }) => item),
+        create: surgicalHistory.map(
+          ({
+            id,
+            patientId,
+            ...item
+          }: {
+            id?: string;
+            patientId?: string;
+            [key: string]: unknown;
+          }) => item,
+        ),
       };
     }
 

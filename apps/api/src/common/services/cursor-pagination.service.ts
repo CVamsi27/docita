@@ -57,11 +57,11 @@ export class CursorPaginationService {
    * Build WHERE clause for cursor-based pagination
    */
   buildCursorWhereClause(
-    decodedCursor: Record<string, any> | null,
+    decodedCursor: Record<string, unknown> | null,
     sortBy: string,
     sortOrder: 'asc' | 'desc',
     direction: 'next' | 'prev',
-  ): any {
+  ): Record<string, unknown> {
     if (!decodedCursor) return {};
 
     const value = decodedCursor[sortBy];

@@ -6,6 +6,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
+import { ClinicAuthCacheService } from './clinic-auth-cache.service';
+import { OptimizedTierGuard } from './optimized-tier.guard';
+import { CombinedAuthGuard } from './combined-auth.guard';
 import { UsersModule } from '../users/users.module';
 import { ClinicsModule } from '../clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
@@ -29,9 +32,8 @@ import { DefaultPasswordPolicy } from './policies/password.policy';
         return {
           secret: secret,
           signOptions: {
-            expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
-              '7d') as any,
-          },
+            expiresIn: configService.get<string>('JWT_EXPIRATION') || '7d',
+          } as Record<string, unknown>,
         };
       },
     }),
@@ -42,6 +44,9 @@ import { DefaultPasswordPolicy } from './policies/password.policy';
     JwtAuthGuard,
     ClinicTypeGuard,
     FacilityTypeGuard,
+    ClinicAuthCacheService,
+    OptimizedTierGuard,
+    CombinedAuthGuard,
     {
       provide: 'IPasswordPolicy',
       useClass: DefaultPasswordPolicy,
@@ -56,6 +61,9 @@ import { DefaultPasswordPolicy } from './policies/password.policy';
     JwtModule,
     ClinicTypeGuard,
     FacilityTypeGuard,
+    ClinicAuthCacheService,
+    OptimizedTierGuard,
+    CombinedAuthGuard,
   ],
 })
 export class AuthModule {}

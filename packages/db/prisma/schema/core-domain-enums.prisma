@@ -1,0 +1,245 @@
+enum Role {
+  DOCTOR
+  RECEPTIONIST
+  ADMIN
+  SUPER_ADMIN
+  ADMIN_DOCTOR
+  PATIENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  INTERSEX
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+}
+
+// ============================================================================
+// Hospital-Grade Medical Enums
+// ============================================================================
+
+// Code Status - Critical patient safety information (DNR/Full Code)
+enum CodeStatus {
+  FULL_CODE // Full resuscitation efforts
+  DNR // Do Not Resuscitate
+  DNI // Do Not Intubate
+  DNR_DNI // Do Not Resuscitate or Intubate
+  COMFORT_CARE // Comfort measures only
+}
+
+// Blood Pressure Position - Clinical context for BP readings
+enum BpPosition {
+  SITTING
+  STANDING
+  LYING
+  UNKNOWN
+}
+
+// Oxygen Delivery Method - Required when recording SpO2
+enum OxygenDelivery {
+  ROOM_AIR // No supplemental oxygen
+  NASAL_CANNULA // Low-flow nasal oxygen
+  SIMPLE_MASK // Simple face mask
+  NON_REBREATHER // Non-rebreather mask
+  VENTURI_MASK // Venturi mask for precise FiO2
+  HIGH_FLOW // High-flow nasal cannula
+  CPAP // Continuous positive airway pressure
+  BIPAP // Bilevel positive airway pressure
+  VENTILATOR // Mechanical ventilation
+  OTHER
+}
+
+// Blood Pressure Migration Status - For legacy data migration
+enum BpMigrationStatus {
+  PENDING // Not yet migrated
+  MIGRATED // Successfully parsed and migrated
+  FLAGGED // Non-standard format, needs manual review
+  MANUAL // Manually corrected
+}
+
+// Dosage Form - Pharmaceutical dosage forms
+enum DosageForm {
+  TABLET
+  CAPSULE
+  SOLUTION
+  SUSPENSION
+  INJECTION
+  CREAM
+  OINTMENT
+  GEL
+  PATCH
+  INHALER
+  NEBULIZER
+  SUPPOSITORY
+  DROPS
+  SPRAY
+  POWDER
+  LOZENGE
+  FILM
+  OTHER
+}
+
+// Standardized Frequency Codes (SIG codes)
+enum SigCode {
+  QD // Once daily
+  BID // Twice daily
+  TID // Three times daily
+  QID // Four times daily
+  Q4H // Every 4 hours
+  Q6H // Every 6 hours
+  Q8H // Every 8 hours
+  Q12H // Every 12 hours
+  QHS // At bedtime
+  QAM // Every morning
+  QPM // Every evening
+  QOD // Every other day
+  QWK // Once weekly
+  PRN // As needed
+  STAT // Immediately
+  AC // Before meals
+  PC // After meals
+  OTHER
+}
+
+// Consent Types - For legal and compliance tracking
+enum ConsentType {
+  TREATMENT // General treatment consent
+  PROCEDURE // Procedure-specific consent
+  SURGERY // Surgical consent
+  ANESTHESIA // Anesthesia consent
+  HIPAA_RELEASE // HIPAA information release
+  RESEARCH // Research participation
+  PHOTO_VIDEO // Photo/video consent
+  TELEHEALTH // Telemedicine consent
+  MINOR_GUARDIAN // Guardian consent for minor
+  BLOOD_TRANSFUSION // Blood transfusion consent
+  VACCINATION // Vaccination consent
+}
+
+// Consent Status
+enum ConsentStatus {
+  ACTIVE // Currently valid
+  REVOKED // Patient revoked consent
+  EXPIRED // Consent period ended
+  PENDING // Awaiting signature
+}
+
+// Immunization Route
+enum ImmunizationRoute {
+  IM // Intramuscular
+  SC // Subcutaneous
+  ID // Intradermal
+  PO // Oral
+  IN // Intranasal
+  OTHER
+}
+
+// Immunization Site
+enum ImmunizationSite {
+  LEFT_ARM
+  RIGHT_ARM
+  LEFT_THIGH
+  RIGHT_THIGH
+  LEFT_DELTOID
+  RIGHT_DELTOID
+  OTHER
+}
+
+enum Specialization {
+  GENERAL_PRACTICE
+  DENTAL
+  CARDIOLOGY
+  PEDIATRICS
+  OPHTHALMOLOGY
+  DERMATOLOGY
+  ORTHOPEDICS
+  NEUROLOGY
+  GYNECOLOGY
+  ENT
+  PSYCHIATRY
+  UROLOGY
+  PULMONOLOGY
+  GASTROENTEROLOGY
+  ONCOLOGY
+  NEPHROLOGY
+  ENDOCRINOLOGY
+  RHEUMATOLOGY
+  RADIOLOGY
+  PATHOLOGY
+  ANESTHESIOLOGY
+  EMERGENCY_MEDICINE
+  FAMILY_MEDICINE
+  INTERNAL_MEDICINE
+  PLASTIC_SURGERY
+  GENERAL_SURGERY
+  OTHER
+}
+
+enum HospitalRole {
+  CONSULTANT
+  SENIOR_CONSULTANT
+  JUNIOR_DOCTOR
+  RESIDENT
+  INTERN
+  VISITING_DOCTOR
+  HEAD_OF_DEPARTMENT
+  MEDICAL_DIRECTOR
+  SURGEON
+  CHIEF_SURGEON
+  ATTENDING_PHYSICIAN
+  FELLOW
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+enum ClinicTier {
+  CAPTURE
+  CORE
+  PLUS
+  PRO
+  ENTERPRISE
+}
+
+enum ClinicType {
+  GENERAL // General Medicine/Multi-specialty
+  DENTAL // Dental/Orthodontics
+  PEDIATRIC // Pediatrics/Child Health
+  ORTHOPEDIC // Orthopedics/Bone & Joint
+  CARDIOLOGY // Cardiology/Heart Specialist
+  DERMATOLOGY // Dermatology/Skin Care
+  ENT // ENT/Ear, Nose, Throat
+  GYNECOLOGY // Gynecology/Women's Health
+  OPHTHALMOLOGY // Ophthalmology/Eye Care
+  PSYCHIATRY // Psychiatry/Mental Health
+  SPECIALTY // Other Specialty
+}
+
+enum IntelligenceAddon {
+  NONE
+  ACTIVE
+}
+
+enum ImportJobType {
+  EXCEL_PATIENTS
+  EXCEL_APPOINTMENTS
+  OCR_DOCUMENT
+  BULK_SCAN
+}
+
+enum ImportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIALLY_COMPLETED
+}

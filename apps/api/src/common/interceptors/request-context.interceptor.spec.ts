@@ -117,9 +117,11 @@ describe('RequestContextInterceptor', () => {
         () => {
           expect(mockResponse.setHeader).toHaveBeenCalled();
           const calls = mockResponse.setHeader.mock.calls;
-          expect(calls.some((c: Array<string | number>) => c[0] === 'x-correlation-id')).toBe(
-            true,
-          );
+          expect(
+            calls.some(
+              (c: Array<string | number>) => c[0] === 'x-correlation-id',
+            ),
+          ).toBe(true);
           done();
         },
         (err) => done(err),

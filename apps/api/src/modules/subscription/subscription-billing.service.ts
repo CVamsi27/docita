@@ -893,7 +893,10 @@ export class SubscriptionBillingService {
 
     // Check for scheduled change
     if (subscription.scheduledChange) {
-      const change = subscription.scheduledChange as any;
+      const change = subscription.scheduledChange as {
+        plan: ClinicTier;
+        billingCycle: BillingCycle;
+      };
       const newPrice = this.getPriceCents(change.plan, change.billingCycle);
       return {
         nextBillingDate: subscription.currentPeriodEnd,
@@ -1075,7 +1078,11 @@ export class SubscriptionBillingService {
 
     try {
       const gateway = this.gatewayFactory.getGateway(PaymentProvider.RAZORPAY);
-      const payment = await (gateway as any).chargeWithToken(
+      if (!gateway.chargeWithToken) {
+        this.logger.warn('Payment gateway does not support recurring payments');
+        return;
+      }
+      const payment = await gateway.chargeWithToken(
         subscription.razorpayCustomerId,
         subscription.razorpayTokenId,
         subscription.basePriceCents,

@@ -84,8 +84,8 @@ export class LabTestsController {
 
   @Get('orders/:id')
   @ZodSerializerDto(LabTestOrderResponseDto)
-  findOrder(@Param('id') id: string) {
-    return this.labTestsService.findOrder(id);
+  findOrder(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.labTestsService.findOrder(id, req.user.clinicId);
   }
 
   @Post('orders')
@@ -102,7 +102,15 @@ export class LabTestsController {
   @Patch('orders/:id')
   @ZodSerializerDto(LabTestOrderResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateLabTestOrderSchema))
-  updateOrder(@Param('id') id: string, @Body() dto: UpdateLabTestOrderDto) {
-    return this.labTestsService.updateOrder(id, dto as any);
+  updateOrder(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateLabTestOrderDto,
+  ) {
+    return this.labTestsService.updateOrder(
+      id,
+      dto as unknown as import('./lab-tests.service').UpdateLabTestOrderDto,
+      req.user.clinicId,
+    );
   }
 }

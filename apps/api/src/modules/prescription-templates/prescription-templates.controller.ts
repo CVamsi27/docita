@@ -50,8 +50,8 @@ export class PrescriptionTemplatesController {
 
   @Get(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
-  async findOne(@Param('id') id: string) {
-    return this.prescriptionTemplatesService.findOne(id);
+  async findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.prescriptionTemplatesService.findOne(id, req.user.userId);
   }
 
   @Post()
@@ -68,15 +68,16 @@ export class PrescriptionTemplatesController {
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
   @UsePipes(new ZodValidationPipe(UpdatePrescriptionTemplateSchema))
   async update(
+    @Request() req: AuthRequest,
     @Param('id') id: string,
     @Body() dto: UpdatePrescriptionTemplateDto,
   ) {
-    return this.prescriptionTemplatesService.update(id, dto);
+    return this.prescriptionTemplatesService.update(id, dto, req.user.userId);
   }
 
   @Delete(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
-  async remove(@Param('id') id: string) {
-    return this.prescriptionTemplatesService.remove(id);
+  async remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.prescriptionTemplatesService.remove(id, req.user.userId);
   }
 }

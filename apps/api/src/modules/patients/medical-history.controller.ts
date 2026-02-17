@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { MedicalHistoryService } from './medical-history.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { AuditService } from '../audit/audit.service';
 import { RequestWithUser } from '../../common/types/common.types';
+import { PatientsService } from './patients.service';
 
 import {
   CreateMedicalConditionDto,
@@ -29,100 +31,161 @@ export class MedicalHistoryController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,
     private readonly auditService: AuditService,
+    private readonly patientsService: PatientsService,
   ) {}
+
+  /**
+   * Verify the patient belongs to the requesting user's clinic
+   */
+  private async verifyPatientAccess(
+    patientId: string,
+    req: RequestWithUser,
+  ): Promise<void> {
+    const clinicId = req.user?.clinicId;
+    if (!clinicId) throw new NotFoundException('Clinic context required');
+    await this.patientsService.findOne(patientId, clinicId);
+  }
 
   // ========== Medical Conditions ==========
   @Get('conditions')
-  getConditions(@Param('patientId') patientId: string) {
+  async getConditions(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getConditions(patientId);
   }
 
   @Post('conditions')
-  createCondition(
+  async createCondition(
     @Param('patientId') patientId: string,
     @Body() dto: CreateMedicalConditionDto,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.createCondition(patientId, dto);
   }
 
   @Patch('conditions/:id')
-  updateCondition(
+  async updateCondition(
+    @Param('patientId') patientId: string,
     @Param('id') id: string,
     @Body() dto: Partial<CreateMedicalConditionDto>,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.updateCondition(id, dto);
   }
 
   @Delete('conditions/:id')
-  deleteCondition(@Param('id') id: string) {
+  async deleteCondition(
+    @Param('patientId') patientId: string,
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.deleteCondition(id);
   }
 
   // ========== Allergies ==========
   @Get('allergies')
-  getAllergies(@Param('patientId') patientId: string) {
+  async getAllergies(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getAllergies(patientId);
   }
 
   @Post('allergies')
-  createAllergy(
+  async createAllergy(
     @Param('patientId') patientId: string,
     @Body() dto: CreateAllergyDto,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.createAllergy(patientId, dto);
   }
 
   @Patch('allergies/:id')
-  updateAllergy(
+  async updateAllergy(
+    @Param('patientId') patientId: string,
     @Param('id') id: string,
     @Body() dto: Partial<CreateAllergyDto>,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.updateAllergy(id, dto);
   }
 
   @Delete('allergies/:id')
-  deleteAllergy(@Param('id') id: string) {
+  async deleteAllergy(
+    @Param('patientId') patientId: string,
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.deleteAllergy(id);
   }
 
   // ========== Family History ==========
   @Get('family')
-  getFamilyHistory(@Param('patientId') patientId: string) {
+  async getFamilyHistory(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getFamilyHistory(patientId);
   }
 
   @Post('family')
-  createFamilyHistory(
+  async createFamilyHistory(
     @Param('patientId') patientId: string,
     @Body() dto: CreateFamilyHistoryDto,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.createFamilyHistory(patientId, dto);
   }
 
   @Patch('family/:id')
-  updateFamilyHistory(
+  async updateFamilyHistory(
+    @Param('patientId') patientId: string,
     @Param('id') id: string,
     @Body() dto: Partial<CreateFamilyHistoryDto>,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.updateFamilyHistory(id, dto);
   }
 
   @Delete('family/:id')
-  deleteFamilyHistory(@Param('id') id: string) {
+  async deleteFamilyHistory(
+    @Param('patientId') patientId: string,
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.deleteFamilyHistory(id);
   }
 
   // ========== Social History ==========
   @Get('social')
-  getSocialHistory(@Param('patientId') patientId: string) {
+  async getSocialHistory(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getSocialHistory(patientId);
   }
 
   @Post('social')
-  createOrUpdateSocialHistory(
+  async createOrUpdateSocialHistory(
     @Param('patientId') patientId: string,
     @Body() dto: CreateSocialHistoryDto,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.createOrUpdateSocialHistory(
       patientId,
       dto,
@@ -130,34 +193,52 @@ export class MedicalHistoryController {
   }
 
   @Delete('social')
-  deleteSocialHistory(@Param('patientId') patientId: string) {
+  async deleteSocialHistory(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.deleteSocialHistory(patientId);
   }
 
   // ========== Surgical History ==========
   @Get('surgical')
-  getSurgicalHistory(@Param('patientId') patientId: string) {
+  async getSurgicalHistory(
+    @Param('patientId') patientId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getSurgicalHistory(patientId);
   }
 
   @Post('surgical')
-  createSurgicalHistory(
+  async createSurgicalHistory(
     @Param('patientId') patientId: string,
     @Body() dto: CreateSurgicalHistoryDto,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.createSurgicalHistory(patientId, dto);
   }
 
   @Patch('surgical/:id')
-  updateSurgicalHistory(
+  async updateSurgicalHistory(
+    @Param('patientId') patientId: string,
     @Param('id') id: string,
     @Body() dto: Partial<CreateSurgicalHistoryDto>,
+    @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.updateSurgicalHistory(id, dto);
   }
 
   @Delete('surgical/:id')
-  deleteSurgicalHistory(@Param('id') id: string) {
+  async deleteSurgicalHistory(
+    @Param('patientId') patientId: string,
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.deleteSurgicalHistory(id);
   }
 

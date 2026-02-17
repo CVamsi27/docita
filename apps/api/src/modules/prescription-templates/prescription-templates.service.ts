@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 
@@ -32,10 +32,16 @@ export class PrescriptionTemplatesService {
     });
   }
 
-  async findOne(id: string) {
-    return this.prisma.prescriptionTemplate.findUnique({
+  async findOne(id: string, userId?: string) {
+    const template = await this.prisma.prescriptionTemplate.findUnique({
       where: { id },
     });
+    if (!template || (userId && template.userId !== userId)) {
+      throw new NotFoundException(
+        `Prescription template with ID ${id} not found`,
+      );
+    }
+    return template;
   }
 
   async create(userId: string, data: CreateTemplateData) {
@@ -49,7 +55,8 @@ export class PrescriptionTemplatesService {
     });
   }
 
-  async update(id: string, data: UpdateTemplateData) {
+  async update(id: string, data: UpdateTemplateData, userId?: string) {
+    await this.findOne(id, userId);
     return this.prisma.prescriptionTemplate.update({
       where: { id },
       data: {
@@ -62,7 +69,8 @@ export class PrescriptionTemplatesService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId?: string) {
+    await this.findOne(id, userId);
     return this.prisma.prescriptionTemplate.delete({
       where: { id },
     });

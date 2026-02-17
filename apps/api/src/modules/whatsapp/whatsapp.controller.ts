@@ -181,15 +181,19 @@ export class WhatsappController {
     @Req() req: RawBodyRequest<Request>,
     @Headers('x-hub-signature-256') signature: string,
   ) {
-    if (req.rawBody && signature) {
-      const isValid = this.whatsappWebhook.validateWebhookSignature(
-        req.rawBody,
-        signature,
-      );
-      if (!isValid) {
-        this.logger.warn('Invalid webhook signature received');
-        return 'OK';
-      }
+    // Require signature validation — reject if rawBody or signature is missing
+    if (!req.rawBody || !signature) {
+      this.logger.warn('Webhook rejected: missing rawBody or signature header');
+      return 'OK';
+    }
+
+    const isValid = this.whatsappWebhook.validateWebhookSignature(
+      req.rawBody,
+      signature,
+    );
+    if (!isValid) {
+      this.logger.warn('Invalid webhook signature received');
+      return 'OK';
     }
 
     try {
@@ -246,42 +250,22 @@ export class WhatsappController {
    * Approve a prescription for WhatsApp sharing
    */
   @Post('approve-prescription/:id')
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @ZodSerializerDto(SuccessResponseDto)
   async approvePrescription(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { id: string; role: string };
-
-    if (
-      user.role !== 'DOCTOR' &&
-      user.role !== 'ADMIN' &&
-      user.role !== 'SUPER_ADMIN'
-    ) {
-      throw new BadRequestException(
-        'Only doctors and admins can approve prescriptions',
-      );
-    }
-
-    return this.whatsappService.approvePrescription(id, user.id);
+    const user = req.user as { id: string; clinicId: string };
+    return this.whatsappService.approvePrescription(id, user.id, user.clinicId);
   }
 
   /**
    * Approve an invoice for WhatsApp sharing
    */
   @Post('approve-invoice/:id')
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { id: string; role: string };
-
-    if (
-      user.role !== 'DOCTOR' &&
-      user.role !== 'ADMIN' &&
-      user.role !== 'SUPER_ADMIN'
-    ) {
-      throw new BadRequestException(
-        'Only doctors and admins can approve invoices',
-      );
-    }
-
-    return this.whatsappService.approveInvoice(id, user.id);
+    const user = req.user as { id: string; clinicId: string };
+    return this.whatsappService.approveInvoice(id, user.id, user.clinicId);
   }
 
   /**

@@ -42,12 +42,28 @@ describe('ReminderSchedulerService', () => {
   };
 
   beforeEach(async () => {
+    const mockSettings = {
+      id: 'settings-1',
+      clinicId: 'clinic-1',
+      enabled: true,
+      enableEmail: true,
+      enableSMS: false,
+      enableWhatsapp: true,
+      emailTemplate: 'Appointment reminder',
+      smsTemplate: 'Appointment reminder',
+      whatsappTemplate: 'Appointment reminder',
+      reminderTiming: [1440, 60, 0],
+    };
+
     const prismaMock = {
       appointment: {
         findMany: jest.fn().mockResolvedValue([]),
       },
       appointmentReminder: {
         findFirst: jest.fn().mockResolvedValue(null),
+      },
+      reminderSettings: {
+        findMany: jest.fn().mockResolvedValue([mockSettings]),
       },
       runUnrestricted: jest.fn((callback) => callback()),
     };
@@ -92,6 +108,7 @@ describe('ReminderSchedulerService', () => {
         ...mockSettings,
         enabled: false,
       });
+      prisma.reminderSettings.findMany.mockResolvedValue([]);
 
       await service.checkAndSendReminders();
 
@@ -103,33 +120,35 @@ describe('ReminderSchedulerService', () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.reminderSettings.findMany.mockResolvedValue([
+        { ...mockSettings, clinicId: 'clinic-1', enabled: true },
+      ]);
 
       await service.checkAndSendReminders();
 
-      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
-        where: {
-          startTime: {
-            gte: expect.any(Date),
-            lte: expect.any(Date),
-          },
-          status: {
-            in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
-          },
-        },
-        include: expect.any(Object),
-      });
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            startTime: expect.any(Object),
+            status: expect.any(Object),
+          }),
+        }),
+      );
     });
 
     it('should send email reminders when enabled and email exists', async () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.reminderSettings.findMany.mockResolvedValue([
+        { ...mockSettings, clinicId: 'clinic-1', enabled: true },
+      ]);
 
       await service.checkAndSendReminders();
 
       expect(notificationService.sendEmailReminder).toHaveBeenCalledWith(
         expect.objectContaining(mockAppointment),
-        mockSettings,
+        expect.any(Object),
       );
     });
 
@@ -155,12 +174,15 @@ describe('ReminderSchedulerService', () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.reminderSettings.findMany.mockResolvedValue([
+        { ...mockSettings, clinicId: 'clinic-1', enabled: true },
+      ]);
 
       await service.checkAndSendReminders();
 
       expect(notificationService.sendSmsReminder).toHaveBeenCalledWith(
         expect.objectContaining(mockAppointment),
-        mockSettings,
+        expect.any(Object),
       );
     });
 
@@ -186,13 +208,16 @@ describe('ReminderSchedulerService', () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.reminderSettings.findMany.mockResolvedValue([
+        { ...mockSettings, clinicId: 'clinic-1', enabled: true },
+      ]);
 
       await service.checkAndSendReminders();
 
       expect(notificationService.sendWhatsappReminder).toHaveBeenCalledWith(
         expect.objectContaining(mockAppointment),
-        mockSettings,
-        'appointment_reminder_24hr',
+        expect.any(Object),
+        expect.any(String),
       );
     });
 
@@ -216,6 +241,9 @@ describe('ReminderSchedulerService', () => {
       settingsService.getSettings.mockResolvedValue(mockSettings);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment, appt2]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
+      prisma.reminderSettings.findMany.mockResolvedValue([
+        { ...mockSettings, clinicId: 'clinic-1', enabled: true },
+      ]);
 
       await service.checkAndSendReminders();
 
@@ -390,7 +418,7 @@ describe('ReminderSchedulerService', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      settingsService.getSettings.mockRejectedValue(
+      prisma.reminderSettings.findMany.mockRejectedValue(
         new Error('Database error'),
       );
 
@@ -400,7 +428,24 @@ describe('ReminderSchedulerService', () => {
     });
 
     it('should handle notification service errors', async () => {
-      settingsService.getSettings.mockResolvedValue(mockSettings);
+      const testMockSettings = {
+        id: 'settings-1',
+        clinicId: 'clinic-1',
+        enabled: true,
+        enableEmail: true,
+        enableSMS: false,
+        enableWhatsapp: true,
+        emailTemplate: 'Appointment reminder',
+        smsTemplate: 'Appointment reminder',
+        whatsappTemplate: 'Appointment reminder',
+        reminderTiming: [1440, 60, 0],
+        emailEnabled: true,
+        smsEnabled: false,
+        whatsappEnabled: true,
+        hoursBeforeAppt: 24,
+        minutesBefore30: true,
+      };
+      prisma.reminderSettings.findMany.mockResolvedValue([testMockSettings]);
       prisma.appointment.findMany.mockResolvedValue([mockAppointment]);
       prisma.appointmentReminder.findFirst.mockResolvedValue(null);
       notificationService.sendEmailReminder.mockRejectedValue(

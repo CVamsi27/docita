@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomFieldsService } from './custom-fields.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('CustomFieldsService', () => {
   let service: CustomFieldsService;
@@ -64,6 +65,7 @@ describe('CustomFieldsService', () => {
 
       expect(result).toEqual(fields);
       expect(mockPrismaService.customField.findMany).toHaveBeenCalledWith({
+        where: {},
         orderBy: { order: 'asc' },
       });
     });
@@ -110,9 +112,7 @@ describe('CustomFieldsService', () => {
     it('should return null when field not found', async () => {
       mockPrismaService.customField.findUnique.mockResolvedValue(null);
 
-      const result = await service.findOne('non-existent-id');
-
-      expect(result).toBeNull();
+      await expect(service.findOne('non-existent-id')).rejects.toThrow();
     });
   });
 
@@ -203,6 +203,9 @@ describe('CustomFieldsService', () => {
       const updateData = { name: 'Updated Name' };
       const updatedField = { ...mockCustomField, name: 'Updated Name' };
 
+      mockPrismaService.customField.findUnique.mockResolvedValue(
+        mockCustomField,
+      );
       mockPrismaService.customField.update.mockResolvedValue(updatedField);
 
       const result = await service.update('field-1', updateData);
@@ -294,11 +297,13 @@ describe('CustomFieldsService', () => {
     });
 
     it('should propagate error when field not found', async () => {
-      const error = new Error('Record not found');
-      mockPrismaService.customField.delete.mockRejectedValue(error);
+      mockPrismaService.customField.findUnique.mockResolvedValue(null);
+      mockPrismaService.customField.delete.mockRejectedValue(
+        new Error('Record not found'),
+      );
 
       await expect(service.remove('non-existent-id')).rejects.toThrow(
-        'Record not found',
+        'Custom field with ID non-existent-id not found',
       );
     });
   });
@@ -323,6 +328,9 @@ describe('CustomFieldsService', () => {
     });
 
     it('should propagate database errors from update', async () => {
+      mockPrismaService.customField.findUnique.mockResolvedValue(
+        mockCustomField,
+      );
       const error = new Error('Record not found');
       mockPrismaService.customField.update.mockRejectedValue(error);
 

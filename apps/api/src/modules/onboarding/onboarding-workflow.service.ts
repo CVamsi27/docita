@@ -121,7 +121,7 @@ export class OnboardingWorkflowService {
         registrationNumber: adminData.registrationNumber,
         specialization: this.validation.validateSpecialization(
           adminData.specialization,
-        ) as any,
+        ),
       },
     });
 
@@ -247,7 +247,7 @@ export class OnboardingWorkflowService {
           registrationNumber: member.registrationNumber,
           specialization: this.validation.validateSpecialization(
             member.specialization,
-          ) as any,
+          ),
         },
       });
 

@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
  * All prices are in paise (1 INR = 100 paise)
  */
 async function seedPricing() {
-  console.log("🌱 Seeding pricing configuration...");
+  console.log("Seeding pricing configuration...");
 
   // ============================================================================
   // Tier Pricing Configuration

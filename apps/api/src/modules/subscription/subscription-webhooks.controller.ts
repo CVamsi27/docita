@@ -64,7 +64,7 @@ export class SubscriptionWebhooksController {
         {
           eventType: payload.event,
           providerId: subscriptionId,
-          payload,
+          payload: payload as unknown as Record<string, unknown>,
           ipAddress,
           userAgent,
         },

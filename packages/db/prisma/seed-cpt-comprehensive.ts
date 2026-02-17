@@ -686,8 +686,8 @@ const cptCodes = [
 ];
 
 async function main() {
-  console.log("🏥 Start seeding comprehensive CPT codes...");
-  console.log(`📊 Total codes to seed: ${cptCodes.length}`);
+  console.log("Start seeding comprehensive CPT codes...");
+  console.log(`Total codes to seed: ${cptCodes.length}`);
 
   let created = 0;
   let updated = 0;

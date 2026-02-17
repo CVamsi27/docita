@@ -38,7 +38,16 @@ export class SlowQueryLoggingService {
     }
 
     // Prisma query event type is not fully exposed, so we use 'as any'
-    (this.prisma.$on as (event: string, handler: (e: { query: string; duration: number; params: string }) => void) => void)('query', (event: { query: string; duration: number; params: string }) => {
+    (
+      this.prisma.$on as (
+        event: string,
+        handler: (e: {
+          query: string;
+          duration: number;
+          params: string;
+        }) => void,
+      ) => void
+    )('query', (event: { query: string; duration: number; params: string }) => {
       const duration = event.duration;
 
       if (duration > this.slowQueryThresholdMs) {

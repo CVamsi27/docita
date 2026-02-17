@@ -519,9 +519,9 @@ export class PDFGeneratorService {
 
     // Contact info on single line
     const contactParts: string[] = [];
-    if (clinic.phone) contactParts.push(`📞 ${clinic.phone}`);
+    if (clinic.phone) contactParts.push(`Tel: ${clinic.phone}`);
     if (clinic.email) contactParts.push(`✉ ${clinic.email}`);
-    if (clinic.website) contactParts.push(`🌐 ${clinic.website}`);
+    if (clinic.website) contactParts.push(`Web: ${clinic.website}`);
 
     if (contactParts.length > 0) {
       doc.text(contactParts.join('  |  '), context.margin, y, {

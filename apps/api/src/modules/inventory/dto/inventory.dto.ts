@@ -30,7 +30,7 @@ export class UpdateInventoryItemDto extends createZodDto(
 ) {}
 
 export const CreateMovementSchema = z.object({
-  type: z.string(), // Could be enum: IN, OUT, ADJUSTMENT
+  type: z.enum(['in', 'out', 'adjustment', 'expired']),
   quantity: z.number(),
   referenceType: z.string().optional(),
   referenceId: z.string().optional(),

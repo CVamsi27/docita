@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  NotFoundException,
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -123,7 +124,11 @@ export class PaymentsService {
       return session;
     }
 
-    let paymentLink: any = null;
+    let paymentLink: {
+      id: string;
+      short_url: string;
+      [key: string]: unknown;
+    } | null = null;
     try {
       const link = await this.paymentProvider.createPaymentLink({
         amount: dto.amount,
@@ -296,7 +301,10 @@ export class PaymentsService {
     payload: RazorpayWebhookPayload,
     signature: string,
   ) {
-    const isValid = this.paymentProvider.verifySignature(payload as any, signature);
+    const isValid = this.paymentProvider.verifySignature(
+      payload as any,
+      signature,
+    );
     if (!isValid) {
       this.logger.error('Invalid webhook signature');
       throw new BadRequestException('Invalid signature');
@@ -547,5 +555,19 @@ export class PaymentsService {
         },
       },
     });
+  }
+
+  async verifySessionOwnership(
+    sessionId: string,
+    clinicId: string,
+  ): Promise<void> {
+    const session = await this.prisma.paymentSession.findUnique({
+      where: { id: sessionId },
+      select: { clinicId: true },
+    });
+
+    if (!session || session.clinicId !== clinicId) {
+      throw new NotFoundException('Payment session not found');
+    }
   }
 }

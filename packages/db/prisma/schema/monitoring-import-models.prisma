@@ -1,0 +1,135 @@
+// ============================================================================
+// Device Tokens for Push Notifications
+// ============================================================================
+
+model DeviceToken {
+  id         String   @id @default(cuid())
+  patientId  String? // For patient app users
+  userId     String? // For staff/doctor app users  
+  token      String
+  platform   String // ios, android, web
+  deviceId   String?
+  isActive   Boolean  @default(true)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([token])
+  @@index([patientId])
+  @@index([userId])
+  @@index([patientId, isActive])
+  @@index([userId, isActive])
+  @@index([token])
+}
+
+// ============================================================================
+// Phase 2: Audit, Analytics, Payment & Import Tables
+// ============================================================================
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  clinicId     String
+  userId       String
+  action       String // PRESCRIPTION_CREATED, PATIENT_UPDATED, INVOICE_PAID, etc.
+  entityType   String // PRESCRIPTION, PATIENT, INVOICE, APPOINTMENT, etc.
+  entityId     String
+  oldValue     Json?
+  newValue     Json?
+  ipAddress    String?
+  userAgent    String?
+  status       String   @default("SUCCESS") // SUCCESS, FAILED, PENDING
+  errorMessage String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([clinicId, createdAt])
+}
+
+model AnalyticsSnapshot {
+  id           String   @id @default(cuid())
+  clinicId     String
+  period       String // "daily", "weekly", "monthly"
+  snapshotDate DateTime
+
+  // Revenue Metrics
+  totalRevenue     Decimal @default(0) @db.Decimal(12, 2)
+  invoiceCount     Int     @default(0)
+  avgInvoiceAmount Decimal @default(0) @db.Decimal(12, 2)
+
+  // Appointment Metrics
+  totalAppointments   Int     @default(0)
+  completedAppts      Int     @default(0)
+  cancelledAppts      Int     @default(0)
+  appointmentFillRate Decimal @default(0) @db.Decimal(5, 2)
+
+  // Patient Metrics
+  newPatients     Int     @default(0)
+  activePatients  Int     @default(0)
+  appointmentRate Decimal @default(0) @db.Decimal(5, 2)
+
+  // Condition Metrics
+  topConditions Json @default("[]") // Array of {condition, count, percentage}
+
+  createdAt DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, period, snapshotDate])
+  @@index([clinicId])
+  @@index([period])
+  @@index([snapshotDate])
+}
+
+model BulkImportJob {
+  id       String @id @default(cuid())
+  clinicId String
+  userId   String
+
+  // Job Details
+  entityType  String // PATIENT, PRESCRIPTION, DOCTOR, LAB_TEST, INVENTORY
+  fileName    String
+  fileSize    Int // Bytes
+  originalKey String // S3 key for file storage
+
+  // Progress
+  status        String @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  totalRows     Int
+  processedRows Int    @default(0)
+  successRows   Int    @default(0)
+  failedRows    Int    @default(0)
+  skippedRows   Int    @default(0)
+
+  // Error Tracking
+  errors       Json    @default("[]") // [{rowNumber, error, field}]
+  errorSummary String? // Aggregated error summary
+
+  // Timing
+  startedAt   DateTime?
+  completedAt DateTime?
+  duration    Int? // Milliseconds
+
+  // Results
+  importedIds String[] @default([])
+  resultKey   String? // S3 key for result CSV
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([status])
+  @@index([entityType])
+  @@index([createdAt])
+  @@index([clinicId, createdAt])
+  @@index([userId])
+}

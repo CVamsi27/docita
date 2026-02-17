@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { OpenaiService } from './openai.service';
 import {
   OcrExtractedFields,
@@ -57,7 +61,7 @@ export class OcrExtractionService {
 
   private async extractTextFromImage(imagePath: string): Promise<string> {
     if (!this.openaiService.client)
-      throw new Error('OpenAI Vision API not configured');
+      throw new ServiceUnavailableException('OpenAI Vision API not configured');
 
     const imageData = fs.readFileSync(imagePath);
     const base64Image = imageData.toString('base64');

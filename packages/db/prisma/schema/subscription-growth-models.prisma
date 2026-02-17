@@ -1,0 +1,423 @@
+// ============================================================================
+// Usage-Based Pricing & Add-ons System
+// ============================================================================
+
+// Tier pricing configuration (base prices and included quotas)
+model TierPricing {
+  id   String     @id @default(cuid())
+  tier ClinicTier @unique
+
+  // Base pricing (in paise/cents)
+  monthlyBasePriceCents Int
+  currency              String @default("INR")
+
+  // Included quotas (usage within these limits is free)
+  includedPatients     Int // Active patients per month
+  includedAppointments Int // Appointments per month
+  includedStorageGB    Int // Storage in GB
+  includedUsers        Int // Number of users (doctors/staff)
+
+  // Overage rates (in paise per unit)
+  overagePatientCents     Int // Per additional active patient
+  overageAppointmentCents Int // Per additional appointment
+  overageStorageCents     Int // Per additional GB
+  overageUserCents        Int // Per additional user
+
+  // Tier features (JSON array of feature keys)
+  features Json @default("[]")
+
+  // Display info
+  name         String
+  description  String
+  tagline      String?
+  color        String  @default("blue")
+  displayOrder Int     @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// Add-on products (WhatsApp, Intelligence, etc.)
+model AddOn {
+  id   String    @id @default(cuid())
+  type AddOnType @unique
+
+  // Base pricing per tier (in paise)
+  pricingByTier Json // { "CORE": 49900, "PLUS": 79900, "PRO": 149900 }
+
+  // Included quotas per tier
+  includedQuotaByTier Json // { "CORE": 500, "PLUS": 1500, "PRO": 5000 }
+
+  // Overage rates per tier (in paise per unit)
+  overageRateByTier Json // { "CORE": 50, "PLUS": 40, "PRO": 30 }
+
+  // Display info
+  name        String
+  description String
+  icon        String?
+  features    Json    @default("[]") // Array of feature strings
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  clinicAddOns ClinicAddOn[]
+
+  @@index([isActive])
+}
+
+// Clinic's active add-ons
+model ClinicAddOn {
+  id        String    @id @default(cuid())
+  clinicId  String
+  addOnId   String
+  addOnType AddOnType
+
+  // Status
+  status AddOnStatus @default(ACTIVE)
+
+  // Billing
+  priceCents   Int // Current price in paise
+  billingCycle BillingCycle @default(MONTHLY)
+
+  // Period tracking
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+
+  // Razorpay
+  razorpaySubscriptionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  addOn  AddOn  @relation(fields: [addOnId], references: [id])
+
+  @@unique([clinicId, addOnType])
+  @@index([clinicId])
+  @@index([addOnId])
+  @@index([status])
+}
+
+// Usage tracking for billing calculations
+model UsageRecord {
+  id       String    @id @default(cuid())
+  clinicId String
+  type     UsageType
+
+  // Period this usage belongs to
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Quantities
+  quantity      Int // Total units used
+  includedQuota Int // What was included in plan
+  overageUnits  Int // Units over the included quota
+
+  // Calculated charges (in paise)
+  overageChargeCents Int @default(0)
+
+  // For audit/debugging
+  metadata Json? // Additional context
+
+  createdAt DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, type, periodStart])
+  @@index([clinicId])
+  @@index([type])
+  @@index([periodStart])
+  @@index([clinicId, periodStart])
+}
+
+// Real-time usage events (for tracking before aggregation)
+model UsageEvent {
+  id       String    @id @default(cuid())
+  clinicId String
+  type     UsageType
+
+  // Event details
+  quantity  Int      @default(1)
+  timestamp DateTime @default(now())
+
+  // Reference to what generated the event
+  entityType String? // Patient, Appointment, WhatsappLog, etc.
+  entityId   String?
+
+  // For deduplication
+  eventKey String? // Unique key to prevent double counting
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+
+  @@unique([eventKey])
+  @@index([clinicId])
+  @@index([type])
+  @@index([timestamp])
+  @@index([clinicId, type, timestamp])
+}
+
+// Discount configurations
+model Discount {
+  id   String       @id @default(cuid())
+  type DiscountType @unique
+
+  // Discount values
+  percentOff         Int // Percentage discount (10 = 10%)
+  maxCombinedPercent Int? // Max when stacking with other discounts
+
+  // Applicability
+  appliesToBase    Boolean @default(true)
+  appliesToAddOns  Boolean @default(true)
+  appliesToOverage Boolean @default(false)
+
+  // Requirements
+  minCommitmentMonths Int? // For commitment discounts
+  minTenureMonths     Int? // For loyalty discounts
+
+  // Display
+  name        String
+  description String?
+  badgeText   String? // e.g., "Save 10%"
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([type])
+}
+
+// ============================================================================
+// Subscription & Billing System
+// ============================================================================
+
+model Subscription {
+  id             String             @id @default(cuid())
+  clinicId       String             @unique
+  plan           ClinicTier         @default(CORE)
+  billingCycle   BillingCycle       @default(MONTHLY)
+  basePriceCents Int // Base tier price in paise
+  currency       String             @default("INR")
+  status         SubscriptionStatus @default(ACTIVE)
+  version        Int                @default(1) // Optimistic concurrency control
+
+  // Discounts applied
+  discountsApplied     Json? // Array of { type: DiscountType, percentOff: number }
+  totalDiscountPercent Int   @default(0) // Combined discount percentage
+
+  // Usage limits from tier (cached for billing)
+  includedPatients     Int @default(300)
+  includedAppointments Int @default(500)
+  includedStorageGB    Int @default(5)
+  includedUsers        Int @default(1)
+
+  // Razorpay integration
+  razorpaySubscriptionId String? // Razorpay subscription ID
+  razorpayPlanId         String? // Razorpay plan ID
+  razorpayTokenId        String? // Razorpay customer token for autopay
+  razorpayCustomerId     String? // Razorpay customer ID
+
+  // Period tracking
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  trialEnd           DateTime?
+  cancelledAt        DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+
+  // Credits & proration
+  creditsCents Int @default(0) // Monetary credits from proration/referrals
+
+  // Auto-pay configuration
+  autoPayEnabled        Boolean   @default(false)
+  paymentMethodType     String? // CARD | BANK_TRANSFER
+  lastFailedPaymentDate DateTime?
+  failureRetryCount     Int       @default(0)
+  graceUntil            DateTime? // 3-day grace period end date if payment fails
+
+  // Scheduled changes (for downgrades or cycle switches)
+  scheduledChange Json? // {plan, billingCycle, effectiveAt}
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic    Clinic                 @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  payments  SubscriptionPayment[]
+  reminders SubscriptionReminder[]
+
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@index([razorpaySubscriptionId])
+}
+
+model SubscriptionPayment {
+  id             String  @id @default(cuid())
+  clinicId       String
+  subscriptionId String?
+
+  amountCents Int // Amount in paise
+  currency    String @default("INR")
+  status      String // pending, paid, failed, refunded
+
+  // Razorpay details
+  razorpayPaymentId String?
+  razorpayOrderId   String?
+  razorpaySignature String?
+
+  // Invoice details
+  invoiceUrl    String?
+  invoiceNumber String?
+
+  // Proration info
+  isProrated          Boolean @default(false)
+  proratedDays        Int?
+  originalAmountCents Int?
+
+  // Credits applied
+  creditsApplied Int @default(0)
+
+  description   String?
+  failureReason String?
+
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([clinicId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([razorpayPaymentId])
+}
+
+model SubscriptionReminder {
+  id             String  @id @default(cuid())
+  clinicId       String
+  subscriptionId String?
+
+  type    String // expiry_7d, expiry_3d, expiry_1d, expired, grace_1d, grace_2d, grace_3d
+  channel String // email, whatsapp, in_app
+  status  String @default("pending") // pending, sent, failed
+
+  sentAt       DateTime?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([clinicId, type, createdAt])
+  @@index([clinicId])
+  @@index([type])
+  @@index([status])
+}
+
+// ============================================================================
+// Referral System
+// ============================================================================
+
+model Referral {
+  id               String  @id @default(cuid())
+  referrerClinicId String
+  referredClinicId String? // null until referred clinic signs up
+
+  referredEmail  String // Email used for invitation
+  referredDomain String? // Domain extracted from email for anti-abuse
+  referralCode   String // The referral code used
+
+  status ReferralStatus @default(PENDING)
+
+  // Discount for referred clinic
+  discountPercent Int     @default(25) // 25% off first month
+  discountApplied Boolean @default(false)
+
+  // Credit for referrer
+  creditMonths  Int     @default(1) // 1 free month per successful referral
+  creditApplied Boolean @default(false)
+
+  inviteSentAt    DateTime?
+  signedUpAt      DateTime?
+  convertedAt     DateTime? // When first payment completed
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  referrerClinic Clinic  @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referredClinic Clinic? @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+
+  @@index([referrerClinicId])
+  @@index([referredClinicId])
+  @@index([referredEmail])
+  @@index([referralCode])
+  @@index([status])
+}
+
+model ReferralCredit {
+  id         String @id @default(cuid())
+  clinicId   String
+  referralId String
+
+  creditMonths Int // Months credited
+  appliedAt    DateTime  @default(now())
+  expiresAt    DateTime? // Credits may expire
+  usedAt       DateTime? // When credit was consumed
+
+  createdAt DateTime @default(now())
+
+  clinic Clinic @relation(fields: [clinicId], references: [id])
+
+  @@index([clinicId])
+  @@index([referralId])
+}
+
+model PaymentRetry {
+  id              String  @id @default(cuid())
+  clinicId        String
+  invoiceId       String
+  razorpayOrderId String?
+  razorpayLinkId  String?
+
+  // Retry Strategy
+  attemptCount   Int      @default(0)
+  maxRetries     Int      @default(3)
+  nextRetryAt    DateTime
+  retryIntervals Int[]    @default([3600, 86400, 259200]) // 1h, 24h, 72h
+
+  // Status
+  status        String    @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED_EXHAUSTED
+  lastError     String?
+  lastAttemptAt DateTime?
+  completedAt   DateTime?
+
+  // Context
+  paymentMethod String?
+  amount        Decimal @db.Decimal(12, 2)
+  phoneNumber   String? // For WhatsApp reminders
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([invoiceId])
+  @@index([clinicId, status])
+}

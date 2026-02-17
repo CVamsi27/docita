@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
   Inject,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -13,6 +14,7 @@ import { VitalsFactory } from '../patients/factories/vitals.factory';
 import { VitalSignInput } from '../patients/schemas/vitals.schema';
 import { AppointmentCreatedEvent } from './events/appointment-created.event';
 import { AppointmentUpdatedEvent } from './events/appointment-updated.event';
+import { AppointmentSchedulingRulesService } from './domain-services/appointment-scheduling-rules.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -22,6 +24,7 @@ export class AppointmentsService {
     private appointmentRepository: IAppointmentRepository,
     private vitalsFactory: VitalsFactory,
     private eventEmitter: EventEmitter2,
+    private schedulingRules: AppointmentSchedulingRulesService,
   ) {}
 
   async findAll(
@@ -56,10 +59,17 @@ export class AppointmentsService {
     };
   }
 
-  async findOne(id: string): Promise<Appointment> {
+  async findOne(id: string, clinicId?: string): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findById(id);
 
     if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    if (
+      clinicId &&
+      (appointment as Record<string, unknown>).clinicId !== clinicId
+    ) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
 
@@ -82,11 +92,13 @@ export class AppointmentsService {
     });
 
     if (!patientRecord) {
-      throw new Error(`Patient with ID ${rest.patientId as string} not found`);
+      throw new NotFoundException(
+        `Patient with ID ${rest.patientId as string} not found`,
+      );
     }
 
     if (patientRecord.clinicId !== rest.clinicId) {
-      throw new Error('Patient does not belong to this clinic');
+      throw new BadRequestException('Patient does not belong to this clinic');
     }
 
     // Validate that doctor exists (clinicId may be NULL for doctors)
@@ -96,7 +108,9 @@ export class AppointmentsService {
     });
 
     if (!doctorRecord) {
-      throw new Error(`Doctor with ID ${rest.doctorId as string} not found`);
+      throw new NotFoundException(
+        `Doctor with ID ${rest.doctorId as string} not found`,
+      );
     }
 
     // Check for appointment conflicts with the same doctor
@@ -112,7 +126,11 @@ export class AppointmentsService {
 
     if (conflictingAppointments.length > 0) {
       // Logic to format conflict message could be moved to a helper or kept here
-      const conflict = conflictingAppointments[0] as any; // Cast to access relation
+      const conflict = conflictingAppointments[0] as {
+        startTime: Date;
+        endTime: Date;
+        patient?: { firstName: string; lastName: string };
+      };
       const conflictStart = new Date(conflict.startTime);
       const conflictEnd = new Date(conflict.endTime);
       const patientName = conflict.patient
@@ -162,13 +180,11 @@ export class AppointmentsService {
       });
 
       if (!existingAppointment) {
-        throw new Error(`Appointment with ID ${id} not found`);
+        throw new NotFoundException(`Appointment with ID ${id} not found`);
       }
 
       if (existingAppointment.clinicId !== userClinicId) {
-        throw new Error(
-          'Unauthorized: Appointment does not belong to your clinic',
-        );
+        throw new NotFoundException('Appointment not found in your clinic');
       }
     }
 
@@ -287,17 +303,57 @@ export class AppointmentsService {
             `Appointment has been modified by another user. Expected version ${clientVersion}, but current version is ${currentVersion}. Please refresh and try again.`,
           );
         }
+
+        // Validate status transition if status is being changed
+        if (dataRecord.status && oldStatus !== 'unknown') {
+          const transition = this.schedulingRules.canStatusTransition(
+            oldStatus as AppointmentStatus,
+            dataRecord.status as AppointmentStatus,
+          );
+          if (!transition.allowed) {
+            throw new BadRequestException(transition.reason);
+          }
+        }
+
+        // Validate time overlap on reschedule
+        if (startTime && endTime) {
+          const appointmentData = await this.prisma.appointment.findUnique({
+            where: { id },
+            select: { doctorId: true },
+          });
+          if (appointmentData?.doctorId && targetClinicId) {
+            const overlap =
+              await this.schedulingRules.validateAppointmentOverlap(
+                appointmentData.doctorId,
+                targetClinicId,
+                new Date(startTime as string | Date),
+                new Date(endTime as string | Date),
+                id,
+              );
+            if (overlap.hasConflict) {
+              throw new ConflictException(
+                `Time slot conflicts with existing appointment ${overlap.conflict?.id}`,
+              );
+            }
+          }
+        }
       }
     }
 
-    let appointment: { id: string; status: string; doctorId?: string; patientId?: string; scheduledAt?: Date } | null;
+    let appointment: {
+      id: string;
+      status: string;
+      doctorId?: string;
+      patientId?: string;
+      scheduledAt?: Date;
+    } | null;
 
     if (shouldAutoComplete) {
       // Atomic: update appointment + queue token in a single transaction
       appointment = await this.prisma.$transaction(async (tx) => {
         const updated = await tx.appointment.update({
           where: { id },
-          data: updateData as any,
+          data: updateData,
         });
 
         await tx.queueToken.updateMany({
@@ -335,7 +391,28 @@ export class AppointmentsService {
     return appointment as unknown as Appointment;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, clinicId?: string): Promise<void> {
+    const appointment = await this.appointmentRepository.findById(id);
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+    if (
+      clinicId &&
+      (appointment as Record<string, unknown>).clinicId !== clinicId
+    ) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+    // Only allow deletion of SCHEDULED or CANCELLED appointments
+    const status = (appointment as Record<string, unknown>).status as string;
+    const deletableStatuses: string[] = [
+      AppointmentStatus.SCHEDULED,
+      AppointmentStatus.CANCELLED,
+    ];
+    if (!deletableStatuses.includes(status)) {
+      throw new BadRequestException(
+        `Cannot delete appointment with status ${status}. Only SCHEDULED or CANCELLED appointments can be deleted.`,
+      );
+    }
     await this.appointmentRepository.delete(id);
   }
 
@@ -354,7 +431,20 @@ export class AppointmentsService {
       bloodGlucose?: number;
       notes?: string;
     },
+    clinicId?: string,
   ) {
+    if (clinicId) {
+      const appointment =
+        await this.appointmentRepository.findById(appointmentId);
+      if (
+        !appointment ||
+        (appointment as Record<string, unknown>).clinicId !== clinicId
+      ) {
+        throw new NotFoundException(
+          `Appointment with ID ${appointmentId} not found`,
+        );
+      }
+    }
     // Calculate BMI if height and weight are provided
     let bmi = data.bmi;
     if (!bmi && data.height && data.weight) {
@@ -387,7 +477,20 @@ export class AppointmentsService {
       bloodGlucose?: number;
       notes?: string;
     },
+    clinicId?: string,
   ) {
+    if (clinicId) {
+      const appointment =
+        await this.appointmentRepository.findById(appointmentId);
+      if (
+        !appointment ||
+        (appointment as Record<string, unknown>).clinicId !== clinicId
+      ) {
+        throw new NotFoundException(
+          `Appointment with ID ${appointmentId} not found`,
+        );
+      }
+    }
     // Calculate BMI if height and weight are provided
     let bmi = data.bmi;
     if (!bmi && data.height && data.weight) {

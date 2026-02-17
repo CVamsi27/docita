@@ -61,7 +61,7 @@ describe('CQ-2: Error Handling & Logging', () => {
   });
 
   describe('Error Handling Patterns', () => {
-    it('should not silently swallow errors', async () => {
+    it('should not silently swallow errors', () => {
       let errorWasHandled = false;
 
       try {
@@ -80,7 +80,7 @@ describe('CQ-2: Error Handling & Logging', () => {
       let attemptCount = 0;
       const maxRetries = 3;
 
-      const retryableOperation = async () => {
+      const retryableOperation = () => {
         attemptCount++;
         if (attemptCount < maxRetries) {
           throw new Error(`Attempt ${attemptCount} failed`);
@@ -92,7 +92,7 @@ describe('CQ-2: Error Handling & Logging', () => {
       try {
         for (let i = 0; i < maxRetries; i++) {
           try {
-            result = await retryableOperation();
+            result = retryableOperation();
             break;
           } catch (error) {
             if (i === maxRetries - 1) {
@@ -140,7 +140,7 @@ describe('CQ-2: Error Handling & Logging', () => {
       expect(timedOut).toBe(true);
     });
 
-    it('should support circuit breaker pattern', async () => {
+    it('should support circuit breaker pattern', () => {
       interface CircuitBreakerState {
         state: 'healthy' | 'degraded' | 'broken';
         failureCount: number;

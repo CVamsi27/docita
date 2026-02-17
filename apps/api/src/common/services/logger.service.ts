@@ -12,7 +12,11 @@ export class AppLogger extends ConsoleLogger {
     super.log(this.formatLogMessage(message), context || this.context);
   }
 
-  error(message: string | Record<string, unknown>, stack?: string, context?: string) {
+  error(
+    message: string | Record<string, unknown>,
+    stack?: string,
+    context?: string,
+  ) {
     super.error(this.formatLogMessage(message), stack, context || this.context);
   }
 

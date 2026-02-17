@@ -7,7 +7,9 @@ import {
   Delete,
   Put,
   Query,
+  Request,
   UsePipes,
+  NotFoundException,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { Role } from '@workspace/db';
@@ -20,6 +22,12 @@ import {
   UpdateTemplateDto,
 } from './dto/templates.dto';
 
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
+
 @Controller('templates')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class TemplatesController {
@@ -27,39 +35,58 @@ export class TemplatesController {
 
   @Post()
   @UsePipes(new ZodValidationPipe(CreateTemplateSchema))
-  create(@Body() createTemplateDto: CreateTemplateDto) {
-    return this.templatesService.create(createTemplateDto);
+  create(
+    @Request() req: AuthRequest,
+    @Body() createTemplateDto: CreateTemplateDto,
+  ) {
+    return this.templatesService.create({
+      ...createTemplateDto,
+      clinicId: req.user.clinicId,
+    });
   }
 
   @Get()
   findAll(
+    @Request() req: AuthRequest,
     @Query('search') search?: string,
     @Query('speciality') speciality?: string,
-    @Query('clinicId') clinicId?: string,
   ) {
     return this.templatesService.findAll({
       search,
       speciality,
-      clinicId,
+      clinicId: req.user.clinicId,
     });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.templatesService.findOne(id);
+  async findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    const template = await this.templatesService.findOne(id);
+    if (!template || template.clinicId !== req.user.clinicId) {
+      throw new NotFoundException(`Template with ID ${id} not found`);
+    }
+    return template;
   }
 
   @Put(':id')
   @UsePipes(new ZodValidationPipe(UpdateTemplateSchema))
-  update(
+  async update(
+    @Request() req: AuthRequest,
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
   ) {
+    const template = await this.templatesService.findOne(id);
+    if (!template || template.clinicId !== req.user.clinicId) {
+      throw new NotFoundException(`Template with ID ${id} not found`);
+    }
     return this.templatesService.update(id, updateTemplateDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    const template = await this.templatesService.findOne(id);
+    if (!template || template.clinicId !== req.user.clinicId) {
+      throw new NotFoundException(`Template with ID ${id} not found`);
+    }
     return this.templatesService.remove(id);
   }
 }

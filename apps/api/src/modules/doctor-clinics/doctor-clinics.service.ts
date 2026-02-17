@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -85,7 +85,7 @@ export class DoctorClinicsService {
     });
 
     if (!assignment) {
-      throw new Error('Assignment not found');
+      throw new NotFoundException('Assignment not found');
     }
 
     return this.prisma.doctorClinic.update({
@@ -150,7 +150,7 @@ export class DoctorClinicsService {
     });
 
     if (!assignment) {
-      throw new Error('Assignment not found');
+      throw new NotFoundException('Assignment not found');
     }
 
     return this.prisma.doctorClinic.update({

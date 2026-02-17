@@ -61,8 +61,8 @@ export class PatientsController {
   @Get(':id')
   @EmergencyAccess()
   @ZodSerializerDto(PatientResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.patientsService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.findOne(id, req.user.clinicId);
   }
 
   @Post()
@@ -72,46 +72,61 @@ export class PatientsController {
     @Request() req: AuthRequest,
     @Body() createPatientDto: CreatePatientDto,
   ) {
+    // Always use authenticated user's clinicId — never trust client-supplied value
     return this.patientsService.create({
       ...createPatientDto,
-      clinicId: createPatientDto.clinicId || req.user.clinicId,
+      clinicId: req.user.clinicId,
     });
   }
 
   @Patch(':id')
   @ZodSerializerDto(PatientResponseDto)
   @UsePipes(new ZodValidationPipe(UpdatePatientSchema))
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
-    return this.patientsService.update(id, updatePatientDto);
+  update(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() updatePatientDto: UpdatePatientDto,
+  ) {
+    return this.patientsService.update(id, updatePatientDto, {
+      clinicId: req.user.clinicId,
+    });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.patientsService.remove(id);
+  remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.remove(id, {
+      clinicId: req.user.clinicId,
+    });
   }
 
   @Get(':id/appointments')
-  getPatientAppointments(@Param('id') id: string) {
-    return this.patientsService.getAppointments(id);
+  getPatientAppointments(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.getAppointments(id, req.user.clinicId);
   }
 
   @Get(':id/statistics')
-  getPatientStatistics(@Param('id') id: string) {
-    return this.patientsService.getStatistics(id);
+  getPatientStatistics(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.getStatistics(id, req.user.clinicId);
   }
 
   @Get(':id/documents')
-  getPatientDocuments(@Param('id') id: string) {
-    return this.patientsService.getDocuments(id);
+  getPatientDocuments(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.getDocuments(id, req.user.clinicId);
   }
 
   @Get(':id/tags')
-  getPatientTags(@Param('id') id: string) {
-    return this.patientsService.getTags(id);
+  getPatientTags(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.patientsService.getTags(id, req.user.clinicId);
   }
 
   @Get(':id/medical-history-timeline')
-  getMedicalHistoryTimeline(@Param('id') id: string) {
-    return this.patientsService.getMedicalHistoryTimeline(id);
+  getMedicalHistoryTimeline(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+  ) {
+    return this.patientsService.getMedicalHistoryTimeline(
+      id,
+      req.user.clinicId,
+    );
   }
 }
