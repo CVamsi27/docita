@@ -1,0 +1,183 @@
+'use client';
+
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card';
+import { Button } from '@workspace/ui/components/button';
+import { Checkbox } from '@workspace/ui/components/checkbox';
+import { Label } from '@workspace/ui/components/label';
+import { AlertCircle, Bell, Shield, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/alert';
+import {
+  usePatientConsentSettings,
+  useRequestDataDeletion,
+  useUpdatePatientConsent,
+} from '@/hooks/api/use-patient-portal';
+import { toast } from 'sonner';
+import { Textarea } from '@workspace/ui/components/textarea';
+
+export default function PatientProfilePage() {
+  const [deletionReason, setDeletionReason] = useState('');
+  const [confirmDeletion, setConfirmDeletion] = useState(false);
+  const { data: consentSettings } = usePatientConsentSettings();
+  const updateConsent = useUpdatePatientConsent();
+  const requestDeletion = useRequestDataDeletion();
+
+  const handleConsentChange = async (field: 'whatsappConsent' | 'dataStorageConsent', value: boolean) => {
+    try {
+      await updateConsent.mutateAsync({
+        [field]: value,
+      });
+
+      toast.success('Your consent preferences have been saved.');
+    } catch (_error) {
+      toast.error('Failed to update preferences');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletionReason.trim()) {
+      toast.error('Please provide a reason for deletion');
+      return;
+    }
+
+    if (!confirmDeletion) {
+      toast.error('Please confirm that you want to delete your account');
+      return;
+    }
+
+    try {
+      await requestDeletion.mutateAsync({
+        reason: deletionReason,
+        confirmDeletion: true,
+      });
+
+      toast.success('Account deletion requested. Your account will be deleted within 30 days.');
+    } catch (_error) {
+      toast.error('Failed to submit deletion request');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Profile Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your personal information and privacy preferences
+        </p>
+      </div>
+
+      {/* Privacy & Consent Settings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <CardTitle>Privacy & Consent</CardTitle>
+          </div>
+          <CardDescription>
+            Manage how we communicate with you and use your data
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between rounded-lg border p-4">
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="whatsapp-consent" className="font-medium">
+                  WhatsApp Notifications
+                </Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Receive appointment reminders and health updates via WhatsApp
+              </p>
+              {consentSettings?.whatsappConsentAt && (
+                <p className="text-xs text-muted-foreground">
+                  Consent given on {new Date(consentSettings.whatsappConsentAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            <Checkbox
+              id="whatsapp-consent"
+              checked={consentSettings?.whatsappConsent || false}
+              onCheckedChange={(checked) => handleConsentChange('whatsappConsent', !!checked)}
+              disabled={updateConsent.isPending}
+            />
+          </div>
+
+          <div className="flex items-start justify-between rounded-lg border p-4">
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="storage-consent" className="font-medium">
+                  Data Storage Consent
+                </Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                I consent to storing my health data securely for medical purposes
+              </p>
+            </div>
+            <Checkbox
+              id="storage-consent"
+              checked={true}
+              disabled
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Data Deletion */}
+      <Card className="border-destructive/50">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-destructive" />
+            <CardTitle className="text-destructive">Delete Account & Data</CardTitle>
+          </div>
+          <CardDescription>
+            Permanently delete your account and all associated health data (GDPR/DPDP compliant)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Warning</AlertTitle>
+            <AlertDescription>
+              This action cannot be undone. All your appointments, prescriptions, invoices, and medical
+              records will be permanently deleted after 30 days.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-2">
+            <Label htmlFor="deletion-reason">Reason for deletion (required)</Label>
+            <Textarea
+              id="deletion-reason"
+              placeholder="Please tell us why you're deleting your account..."
+              value={deletionReason}
+              onChange={(e) => setDeletionReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="confirm-deletion"
+              checked={confirmDeletion}
+              onCheckedChange={(checked) => setConfirmDeletion(!!checked)}
+            />
+            <Label htmlFor="confirm-deletion" className="text-sm font-normal">
+              I understand this action cannot be undone and all my data will be permanently deleted
+            </Label>
+          </div>
+
+          <Button 
+            variant="destructive" 
+            className="w-full"
+            onClick={handleDeleteAccount}
+            disabled={requestDeletion.isPending || !deletionReason || !confirmDeletion}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {requestDeletion.isPending ? 'Processing...' : 'Delete My Account & Data'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

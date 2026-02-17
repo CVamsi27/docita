@@ -206,7 +206,7 @@ const PrescriptionSuggestionsList = ({
             </div>
             {suggestion.notes && (
               <p className="mt-2 text-xs text-muted-foreground bg-muted p-2 rounded">
-                💡 {suggestion.notes}
+                Note: {suggestion.notes}
               </p>
             )}
           </div>

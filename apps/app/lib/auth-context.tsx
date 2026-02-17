@@ -41,7 +41,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_URL =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
 
 // Helper to read cached user from localStorage (token is in HttpOnly cookie)
 function getStoredUser(): User | null {
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkEmail = async (email: string): Promise<boolean> => {
     try {
       const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const response = await fetch(`${apiUrl}/auth/check-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

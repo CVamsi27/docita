@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { injectAxe, getViolations } from 'axe-playwright';
 import * as fs from 'fs';
-import * as path from 'fs';
+import * as path from 'path';
 
 // Configuration for pages to audit
 const AUDIT_PAGES = [
@@ -25,7 +25,7 @@ test.describe('Accessibility Audit - Admin App', () => {
     }) => {
       try {
         // Navigate to page
-        await page.goto(pageConfig.path, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.goto(pageConfig.path, { waitUntil: 'networkidle', timeout: 30000 });
         
         // Wait for full page load and hydration
         await page.waitForLoadState('networkidle');

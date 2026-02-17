@@ -161,41 +161,32 @@ export const ClinicalDocumentationDynamic: FC<
         const genExam = appointmentData.generalExamination;
         const sysExam = appointmentData.systemicExamination;
 
-        // Helper check for legacy wrapper where generalExamination contained both parts
-        const isLegacyWrapper = (data: Record<string, unknown>): data is ExaminationData => {
-          return (
-            typeof data === "object" &&
-            data !== null &&
-            ("general" in data || "systemic" in data)
-          );
-        };
-
-        const ensureString = (val: string | number | boolean | null | undefined): string => {
+        const ensureString = (val: unknown): string => {
           if (typeof val === "string") return val;
-          if (typeof val === "object" && val !== null)
+          if (typeof val === "object" && val !== null) {
+            // Handle nested objects by extracting notes field if present
+            const obj = val as Record<string, unknown>;
+            if ("notes" in obj && typeof obj.notes === "string") return obj.notes;
             return JSON.stringify(val);
-          return "";
+          }
+          if (val === null || val === undefined) return "";
+          return String(val);
         };
 
-        if (genExam && isLegacyWrapper(genExam)) {
-          setExamination(genExam);
-        } else {
-          // Standard schema structure: map separate fields
-          setExamination((prev) => ({
-            general: genExam ? { ...prev.general, ...genExam } : prev.general,
-            systemic: sysExam
-              ? {
-                  cvs: ensureString(sysExam.cvs) || prev.systemic.cvs,
-                  rs: ensureString(sysExam.rs) || prev.systemic.rs,
-                  pa: ensureString(sysExam.pa) || prev.systemic.pa,
-                  cns: ensureString(sysExam.cns) || prev.systemic.cns,
-                  // musculoskeletal not present in shared SystemicExamination schema
-                  musculoskeletal: prev.systemic.musculoskeletal,
-                  notes: sysExam.additionalNotes || prev.systemic.notes,
-                }
-              : prev.systemic,
-          }));
-        }
+        // Map examination data to standard structure
+        setExamination((prev) => ({
+          general: genExam ? { ...prev.general, ...genExam } : prev.general,
+          systemic: sysExam
+            ? {
+                cvs: ensureString(sysExam.cvs) || prev.systemic.cvs,
+                rs: ensureString(sysExam.rs) || prev.systemic.rs,
+                pa: ensureString(sysExam.pa) || prev.systemic.pa,
+                cns: ensureString(sysExam.cns) || prev.systemic.cns,
+                musculoskeletal: prev.systemic.musculoskeletal,
+                notes: sysExam.additionalNotes || prev.systemic.notes,
+              }
+            : prev.systemic,
+        }));
       }
 
       if (appointmentData.finalDiagnosis) {

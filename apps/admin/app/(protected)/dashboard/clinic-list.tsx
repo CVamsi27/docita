@@ -57,12 +57,12 @@ function getClinicTypeDisplay(type?: string) {
 interface Clinic {
   id: string;
   name: string;
-  email: string;
-  phone: string;
-  address: string;
-  tier: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  tier?: string;
   type?: string;
-  active: boolean;
+  active?: boolean;
   _count?: {
     users: number;
     patients: number;
@@ -126,9 +126,9 @@ export function ClinicList({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col text-sm">
-                    <span>{clinic.email}</span>
+                    <span>{clinic.email || "-"}</span>
                     <span className="text-muted-foreground text-xs">
-                      {clinic.phone}
+                      {clinic.phone || "-"}
                     </span>
                   </div>
                 </TableCell>
@@ -136,15 +136,15 @@ export function ClinicList({
                   <Badge
                     variant="outline"
                     className={`
-                    ${getTierDisplay(clinic.tier).color === "gray" ? "border-gray-400 text-gray-600" : ""}
-                    ${getTierDisplay(clinic.tier).color === "blue" ? "border-blue-400 text-blue-600" : ""}
-                    ${getTierDisplay(clinic.tier).color === "green" ? "border-green-400 text-green-600" : ""}
-                    ${getTierDisplay(clinic.tier).color === "purple" ? "border-purple-400 text-purple-600" : ""}
-                    ${getTierDisplay(clinic.tier).color === "orange" ? "border-orange-400 text-orange-600" : ""}
-                    ${getTierDisplay(clinic.tier).color === "pink" ? "border-pink-400 text-pink-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "gray" ? "border-gray-400 text-gray-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "blue" ? "border-blue-400 text-blue-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "green" ? "border-green-400 text-green-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "purple" ? "border-purple-400 text-purple-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "orange" ? "border-orange-400 text-orange-600" : ""}
+                    ${getTierDisplay(clinic.tier || "GENERAL").color === "pink" ? "border-pink-400 text-pink-600" : ""}
                   `}
                   >
-                    {getTierDisplay(clinic.tier).name}
+                    {getTierDisplay(clinic.tier || "GENERAL").name}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -176,7 +176,14 @@ export function ClinicList({
                 </TableCell>
                 <TableCell className="text-right">
                   <EditClinicDialog
-                    clinic={clinic}
+                    clinic={{
+                      ...clinic,
+                      email: clinic.email ?? "",
+                      phone: clinic.phone ?? "",
+                      address: clinic.address ?? "",
+                      tier: clinic.tier ?? "GENERAL",
+                      active: clinic.active ?? true,
+                    }}
                     onClinicUpdated={onUpdate}
                   />
                 </TableCell>

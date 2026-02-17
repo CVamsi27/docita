@@ -34,7 +34,7 @@ export const usePrescriptions = (filters?: {
   date?: string;
 }) =>
   useAPIQuery<(Prescription & { patient: Patient })[]>(
-    ["prescriptions", filters],
+    ["prescriptions", filters || {}],
     `/prescriptions${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
@@ -131,7 +131,7 @@ export const useLabTestOrders = (filters?: {
   date?: string;
 }) =>
   useAPIQuery<LabTestOrder[]>(
-    ["lab-test-orders", filters],
+    ["lab-test-orders", filters || {}],
     `/lab-tests/orders${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
@@ -154,7 +154,7 @@ export const useDocuments = (filters?: {
   patientId?: string;
 }) =>
   useAPIQuery<Document[]>(
-    ["documents", filters],
+    ["documents", filters || {}],
     `/documents${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
@@ -168,7 +168,7 @@ export const useTemplates = (filters?: {
   clinicId?: string;
 }) =>
   useAPIQuery<ClinicalTemplate[]>(
-    ["templates", filters],
+    ["templates", filters || {}],
     `/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 

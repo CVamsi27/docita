@@ -7,10 +7,10 @@ const require = createRequire(import.meta.url);
 let nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/types"],
 
-  // ✅ OPTIMIZATION: Compression for smaller payloads
+  // Compression for smaller payloads
   compress: true,
 
-  // ✅ OPTIMIZATION: Image optimization with modern formats and caching
+  // Image optimization with modern formats and caching
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -18,7 +18,7 @@ let nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
   },
 
-  // ✅ OPTIMIZATION: Optimize package imports for tree-shaking
+  // Optimize package imports for tree-shaking
   experimental: {
     optimizePackageImports: [
       "@workspace/ui",
@@ -28,28 +28,39 @@ let nextConfig: NextConfig = {
     ],
   },
 
-  // ✅ OPTIMIZATION: Disable production source maps for smaller bundle size
+  // Disable production source maps for smaller bundle size
   productionBrowserSourceMaps: false,
 
-  // ✅ OPTIMIZATION: Bundle analyzer (only in production with ANALYZE=true)
-  ...(process.env.ANALYZE === "true" && {
-    webpack: (config, { isServer }) => {
-      if (!isServer) {
-        const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: "static",
-            reportFilename: "./analyze.html",
-            openAnalyzer: true,
-          }),
-        );
-      }
-      return config;
-    },
-  }),
+  // Empty turbopack config to satisfy Next.js 16 requirement
+  turbopack: {},
+
+  // Webpack config for bundle analyzer and warning suppression
+  webpack: (config, { isServer }) => {
+    // Suppress OpenTelemetry/Sentry critical dependency warnings
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      { module: /node_modules\/@opentelemetry\/instrumentation/ },
+      { module: /node_modules\/@prisma\/instrumentation/ },
+      { module: /node_modules\/require-in-the-middle/ },
+    ];
+
+    // Bundle analyzer (only in production with ANALYZE=true)
+    if (process.env.ANALYZE === "true" && !isServer) {
+      const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: "static",
+          reportFilename: "./analyze.html",
+          openAnalyzer: true,
+        }),
+      );
+    }
+
+    return config;
+  },
 };
 
-// ✅ Add Sentry error tracking for admin app
+// Add Sentry error tracking for admin app
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   nextConfig = withSentryConfig(nextConfig, {
     org: process.env.SENTRY_ORG || "docita",

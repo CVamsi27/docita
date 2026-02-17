@@ -179,7 +179,7 @@ export function ExaminationInput({
                   value={data.systemic.cvs}
                   onChange={(e) => updateSystemic("cvs", e.target.value)}
                   readOnly={readOnly}
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </AccordionContent>
             </AccordionItem>
@@ -196,7 +196,7 @@ export function ExaminationInput({
                   value={data.systemic.rs}
                   onChange={(e) => updateSystemic("rs", e.target.value)}
                   readOnly={readOnly}
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </AccordionContent>
             </AccordionItem>
@@ -213,7 +213,7 @@ export function ExaminationInput({
                   value={data.systemic.pa}
                   onChange={(e) => updateSystemic("pa", e.target.value)}
                   readOnly={readOnly}
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </AccordionContent>
             </AccordionItem>
@@ -230,7 +230,7 @@ export function ExaminationInput({
                   value={data.systemic.cns}
                   onChange={(e) => updateSystemic("cns", e.target.value)}
                   readOnly={readOnly}
-                  className="min-h-[80px]"
+                  className="min-h-20"
                 />
               </AccordionContent>
             </AccordionItem>

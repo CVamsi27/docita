@@ -25,7 +25,7 @@ test.describe('Accessibility Audit - Landing App', () => {
     }) => {
       try {
         // Navigate to page
-        await page.goto(pageConfig.path, { waitUntil: 'networkidle2', timeout: 30000 });
+        await page.goto(pageConfig.path, { waitUntil: 'networkidle', timeout: 30000 });
         
         // Wait for full page load and hydration
         await page.waitForLoadState('networkidle');

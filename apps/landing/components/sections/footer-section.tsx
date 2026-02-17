@@ -125,7 +125,7 @@ export function FooterSection() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <Mail className="h-5 w-5 shrink-0" />
-                <span>support@docita.com</span>
+                <span>support@docita.work</span>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="h-5 w-5 shrink-0" />

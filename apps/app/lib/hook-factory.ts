@@ -87,8 +87,8 @@ export function createEntityHooks<
         queryFn: async () => {
           const data = await api.get(`${endpoint}${query ? `?${query}` : ""}`);
           return transformList
-            ? transformList(data)
-            : (data as PaginatedResponse<T>);
+            ? transformList(data as Record<string, unknown>)
+            :(data as PaginatedResponse<T>);
         },
         enabled: options?.enabled !== false,
         ...queryOptions,
@@ -106,7 +106,7 @@ export function createEntityHooks<
         queryKey: [queryKey, "detail", id],
         queryFn: async () => {
           const data = await api.get(`${endpoint}/${id}`);
-          return transformOne ? transformOne(data) : (data as T);
+          return transformOne ? transformOne(data as Record<string, unknown>) : (data as T);
         },
         enabled: !!id && queryOptions?.enabled !== false,
         ...queryOptions,
@@ -232,7 +232,7 @@ export function useEntity<T>(config: {
     queryKey: key,
     queryFn: async () => {
       const data = await api.get(endpoint);
-      return transform ? transform(data) : (data as T);
+      return transform ? transform(data as Record<string, unknown>) : (data as T);
     },
     enabled,
     staleTime,

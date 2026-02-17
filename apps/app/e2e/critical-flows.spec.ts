@@ -1,4 +1,4 @@
-import { APIRequestContext, expect, Page, test } from "@playwright/test";
+import { APIRequestContext, expect, test } from "@playwright/test";
 
 /**
  * CRITICAL FLOWS TEST SUITE
@@ -15,8 +15,6 @@ import { APIRequestContext, expect, Page, test } from "@playwright/test";
  */
 
 const API_URL = "http://127.0.0.1:3001/api";
-const APP_URL = "http://127.0.0.1:3000";
-
 interface TestUser {
   id: string;
   email: string;
@@ -48,7 +46,6 @@ interface TestAppointment {
 }
 
 test.describe("Critical Business Flows", () => {
-  let page: Page;
   let request: APIRequestContext;
   let doctor: TestUser;
   let patient: TestPatient;
@@ -236,7 +233,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(clinicAppointmentsRes.ok()).toBeTruthy();
-    const appointments = await clinicAppointmentsRes.json() as any;
+    const appointments = await clinicAppointmentsRes.json() as Array<{ id: string; patientId: string }>;
     const appointmentExists = appointments.some(
       (a: { id: string; patientId: string }) => a.id === appointment.id && a.patientId === onboardPatient.id
     );
@@ -455,7 +452,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     expect(updateRes.ok()).toBeTruthy();
-    const updatedPatient = await updateRes.json() as { id: string; phoneNumber: string };
+    await updateRes.json() as { id: string; phoneNumber: string };
 
     console.log(`✅ Step 3: Patient notes updated`);
 

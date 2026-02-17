@@ -79,12 +79,12 @@ export function PrescriptionDocument({
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
                 {clinicInfo?.phone && (
                   <span className="flex items-center gap-1">
-                    <span className="opacity-70">📞</span> {clinicInfo.phone}
+                    <span className="opacity-70">Phone:</span> {clinicInfo.phone}
                   </span>
                 )}
                 {clinicInfo?.email && (
                   <span className="flex items-center gap-1">
-                    <span className="opacity-70">✉️</span> {clinicInfo.email}
+                    <span className="opacity-70">Email:</span> {clinicInfo.email}
                   </span>
                 )}
               </div>
@@ -184,7 +184,7 @@ export function PrescriptionDocument({
         {prescription.instructions && (
           <div>
             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
-              <span>📋</span> Instructions
+              Instructions
             </h3>
             <p className="text-sm bg-yellow-50 dark:bg-yellow-950/30 p-4 rounded-lg whitespace-pre-wrap border border-yellow-200 dark:border-yellow-800 print:bg-yellow-50 print:border-yellow-300">
               {prescription.instructions}

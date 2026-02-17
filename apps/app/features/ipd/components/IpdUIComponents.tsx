@@ -231,7 +231,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
           <div className="space-y-2">
             <label className="text-sm font-medium">Admission Diagnosis</label>
             <textarea
-              className="w-full p-2 rounded-md border bg-background min-h-[80px]"
+              className="w-full p-2 rounded-md border bg-background min-h-20"
               placeholder="Primary diagnosis for admission..."
               value={formData.diagnosis}
               onChange={(e) =>

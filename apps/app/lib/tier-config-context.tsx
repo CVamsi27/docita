@@ -66,7 +66,7 @@ export function TierConfigProvider({
       setError(null);
 
       const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const response = await fetch(`${apiUrl}/subscription/config`);
 
       if (!response.ok) {

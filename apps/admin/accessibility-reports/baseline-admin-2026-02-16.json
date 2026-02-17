@@ -1,0 +1,56 @@
+{
+  "app": "admin",
+  "timestamp": "2026-02-16T06:40:24.666Z",
+  "pages": {
+    "/": {
+      "pageName": "Home",
+      "violationCount": 0,
+      "violations": [],
+      "summary": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      }
+    },
+    "/dashboard": {
+      "pageName": "Dashboard",
+      "violationCount": 0,
+      "violations": [],
+      "summary": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      }
+    },
+    "/users": {
+      "pageName": "Users",
+      "violationCount": 0,
+      "violations": [],
+      "summary": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      }
+    },
+    "/clinics": {
+      "pageName": "Clinics",
+      "violationCount": 0,
+      "violations": [],
+      "summary": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      }
+    }
+  },
+  "summary": {
+    "totalPages": 4,
+    "totalViolations": 0,
+    "criticalViolations": 0,
+    "seriousViolations": 0
+  }
+}

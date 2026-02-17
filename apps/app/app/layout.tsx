@@ -31,14 +31,14 @@ export default function RootLayout({
         className="font-sans bg-background text-foreground antialiased overflow-x-hidden"
       >
         <SentryInitializer />
-        <Providers>
-          <ReactQueryProvider>
-            <AuthProvider>
+        <AuthProvider>
+          <Providers>
+            <ReactQueryProvider>
               <LoginLayout>{children}</LoginLayout>
               <ToasterWrapper />
-            </AuthProvider>
-          </ReactQueryProvider>
-        </Providers>
+            </ReactQueryProvider>
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   );

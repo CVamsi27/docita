@@ -44,9 +44,9 @@ export function ClinicalSuggestionsUI({
   };
 
   const typeIcons = {
-    diagnosis: "🔍",
-    investigation: "🧪",
-    treatment: "💊",
+    diagnosis: "Dx",
+    investigation: "Ix",
+    treatment: "Rx",
   };
 
   return (

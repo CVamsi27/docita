@@ -7,7 +7,7 @@ export const useInventory = (filters?: {
   status?: string;
 }) =>
   useAPIQuery<InventoryItem[]>(
-    ["inventory", filters],
+    ["inventory", filters || {}],
     `/inventory${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 

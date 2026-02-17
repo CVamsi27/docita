@@ -123,7 +123,7 @@ export const useSubmitFeedback = () =>
     }
   >("/feedback", "POST");
 
-export const useUpdateFeedbackStatus = (id: string) =>
+export const useUpdateFeedbackStatus = () =>
   useAPIMutation<Record<string, unknown>, { status: string; adminNotes?: string }>(
     (id) => `/feedback/${id}/status`,
     "PATCH",

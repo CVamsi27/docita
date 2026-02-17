@@ -25,7 +25,7 @@ export class LoggingAccessControlDecorator implements IAccessControlService {
     const duration = performance.now() - startTime;
 
     console.log(
-      `[AccessControl] Decision: ${decision.granted ? "✅ GRANTED" : "❌ DENIED"}`,
+      `[AccessControl] Decision: ${decision.granted ? "GRANTED" : "DENIED"}`,
       {
         reason: decision.reason,
         ruleName: decision.ruleName,
@@ -46,7 +46,7 @@ export class LoggingAccessControlDecorator implements IAccessControlService {
     const duration = performance.now() - startTime;
 
     console.log(
-      `[AccessControl] Sync decision: ${decision.granted ? "✅" : "❌"}`,
+      `[AccessControl] Sync decision: ${decision.granted ? "GRANTED" : "DENIED"}`,
       {
         reason: decision.reason,
         duration: `${duration.toFixed(2)}ms`,

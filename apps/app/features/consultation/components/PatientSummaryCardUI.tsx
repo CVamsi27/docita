@@ -213,10 +213,10 @@ export function PatientSummaryCardUI({
             <div>
               <h4 className="text-sm font-medium mb-2">Contact Information</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
-                {patient.phone && <div>📞 {patient.phone}</div>}
-                {patient.email && <div>✉️ {patient.email}</div>}
+                {patient.phone && <div>Phone: {patient.phone}</div>}
+                {patient.email && <div>Email: {patient.email}</div>}
                 {patient.emergencyContact && (
-                  <div>🚑 Emergency: {patient.emergencyContact}</div>
+                  <div>Emergency: {patient.emergencyContact}</div>
                 )}
               </div>
             </div>

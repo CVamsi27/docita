@@ -113,7 +113,7 @@ export function DashboardAlertsContainer({
         type: "success",
         icon: CheckCircle2,
         title: "All appointments completed for today!",
-        description: "Great work! 🎉",
+        description: "Great work!",
         dismissible: true,
       });
     }

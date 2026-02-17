@@ -90,7 +90,7 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
           <div>
             <label className="text-sm font-medium">Admission Diagnosis</label>
             <textarea
-              className="w-full p-2 mt-1 rounded border bg-background min-h-[80px]"
+              className="w-full p-2 mt-1 rounded border bg-background min-h-20"
               value={data.diagnosis}
               onChange={(e) => setData({ ...data, diagnosis: e.target.value })}
             />

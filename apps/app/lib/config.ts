@@ -3,7 +3,7 @@
  *
  * Centralizes all configuration values using environment variables.
  * Environment variables (with NEXT_PUBLIC_ prefix are exposed to client):
- * - NEXT_PUBLIC_API_URL: API base URL (defaults: http://localhost:3001/api)
+ * - NEXT_PUBLIC_API_URL: API base URL (defaults: http://localhost:3001/api/v1)
  * - NEXT_PUBLIC_APP_URL: App base URL (defaults: http://localhost:3000)
  * - NEXT_PUBLIC_SOCKET_URL: WebSocket URL (defaults: http://localhost:3001)
  */
@@ -25,7 +25,8 @@ const envSocketUrl =
 /**
  * Get the API base URL from environment or fallback to localhost
  */
-export const getApiUrl = (): string => envApiUrl || "http://localhost:3001/api";
+export const getApiUrl = (): string =>
+  envApiUrl || "http://localhost:3001/api/v1";
 
 /**
  * Get the app base URL from environment or fallback to localhost

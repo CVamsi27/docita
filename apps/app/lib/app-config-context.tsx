@@ -65,7 +65,7 @@ export function AppConfigProvider({
       setError(null);
 
       const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const url = clinicId
         ? `${apiUrl}/config?clinicId=${clinicId}`
         : `${apiUrl}/config`;

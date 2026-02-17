@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { injectAxe, checkA11y, getViolations } from 'axe-playwright';
+import { test } from '@playwright/test';
+import { getViolations, injectAxe } from 'axe-playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,14 +12,14 @@ const AUDIT_PAGES = [
 ];
 
 test.describe('Accessibility Audit - Main App', () => {
-  let violationsByPage: Record<string, { violations: unknown[]; impact: Record<string, number> }> = {};
+  const violationsByPage: Record<string, { violations: unknown[]; impact: Record<string, number> }> = {};
 
   for (const pageConfig of AUDIT_PAGES) {
     test(`should audit ${pageConfig.name} page for accessibility violations`, async ({
       page,
     }) => {
       // Navigate to page
-      await page.goto(pageConfig.path, { waitUntil: 'networkidle2' });
+      await page.goto(pageConfig.path, { waitUntil: 'networkidle' });
       
       // Wait for full page load and hydration
       await page.waitForLoadState('networkidle');

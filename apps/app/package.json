@@ -61,9 +61,12 @@
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
     "axe-playwright": "^2.2.2",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9.32.0",
     "globals": "^17.0.0",
+    "import-in-the-middle": "^2.0.6",
     "jsdom": "^27.4.0",
+    "require-in-the-middle": "^8.0.1",
     "typescript": "^5.9.2",
     "vitest": "^4.0.16"
   }

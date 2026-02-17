@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
 
-// ✅ OPTIMIZATION: Web Vitals monitoring for performance tracking
+// OPTIMIZATION: Web Vitals monitoring for performance tracking
 async function reportWebVitals(): Promise<void> {
   // Collect Core Web Vitals metrics using PerformanceObserver
   try {

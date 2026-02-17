@@ -16,7 +16,7 @@ export const useInvoices = (filters?: {
       appointment?: { doctor: { name: string } };
     })[]
   >(
-    ["invoices", filters],
+    ["invoices", filters || {}],
     `/invoices${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 

@@ -86,7 +86,7 @@ export function MobileFileUploader({
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg flex items-center justify-center gap-2">
                   <RotateCcw className="h-3 w-3" />
-                  <span>Tap ✕ to select a different image</span>
+                  <span>Tap X to select a different image</span>
                 </div>
               </div>
             </div>

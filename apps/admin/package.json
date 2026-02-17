@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@sentry/nextjs": "^10.38.0",
+    "@tanstack/react-query": "^5.90.10",
     "@workspace/data-access": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/ui": "workspace:*",
@@ -30,9 +31,11 @@
     "@playwright/test": "^1.48.2",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@vitejs/plugin-react": "^5.1.4",
     "axe-playwright": "^2.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.16"
   }
 }
