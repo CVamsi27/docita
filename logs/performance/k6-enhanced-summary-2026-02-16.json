@@ -1,0 +1,194 @@
+{
+    "metrics": {
+        "http_req_receiving": {
+            "avg": 0.03491891891891912,
+            "min": 0.009,
+            "med": 0.024,
+            "max": 7.418,
+            "p(90)": 0.042,
+            "p(95)": 0.04754999999999992
+        },
+        "checks": {
+            "passes": 1850,
+            "fails": 0,
+            "value": 1
+        },
+        "data_received": {
+            "count": 5964181,
+            "rate": 84459.1317935549
+        },
+        "http_reqs": {
+            "count": 1850,
+            "rate": 26.19796310978432
+        },
+        "data_sent": {
+            "count": 237254,
+            "rate": 3359.7683998101456
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 10
+        },
+        "http_req_blocked": {
+            "med": 0.002,
+            "max": 0.786,
+            "p(90)": 0.004,
+            "p(95)": 0.005,
+            "avg": 0.0045913513513513166,
+            "min": 0
+        },
+        "http_req_waiting": {
+            "min": 0.317,
+            "med": 0.872,
+            "max": 52.36,
+            "p(90)": 1.3873000000000002,
+            "p(95)": 1.6515499999999999,
+            "avg": 1.031248108108107
+        },
+        "iterations": {
+            "count": 370,
+            "rate": 5.239592621956865
+        },
+        "http_req_duration": {
+            "med": 0.913,
+            "max": 52.468,
+            "p(90)": 1.4276000000000002,
+            "p(95)": 1.6852999999999994,
+            "avg": 1.0757659459459454,
+            "min": 0.334,
+            "thresholds": {
+                "p(95)<700": false,
+                "p(99)<1500": false
+            }
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 1850,
+            "thresholds": {
+                "rate<0.2": false
+            },
+            "value": 0
+        },
+        "http_req_connecting": {
+            "p(95)": 0,
+            "avg": 0.0012129729729729731,
+            "min": 0,
+            "med": 0,
+            "max": 0.258,
+            "p(90)": 0
+        },
+        "iteration_duration": {
+            "p(90)": 1009.2612710999999,
+            "p(95)": 1009.8463998499999,
+            "avg": 1008.3998161000004,
+            "min": 1002.946458,
+            "med": 1007.6092080000001,
+            "max": 1064.077291
+        },
+        "group_duration": {
+            "min": 300.614959,
+            "med": 302.820625,
+            "max": 418.184,
+            "p(90)": 402.966925,
+            "p(95)": 403.2795625,
+            "avg": 336.0950219837836
+        },
+        "http_req_tls_handshaking": {
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0
+        },
+        "vus_max": {
+            "min": 10,
+            "max": 10,
+            "value": 10
+        },
+        "http_req_duration{expected_response:true}": {
+            "min": 0.334,
+            "med": 0.913,
+            "max": 52.468,
+            "p(90)": 1.4276000000000002,
+            "p(95)": 1.6852999999999994,
+            "avg": 1.0757659459459454
+        },
+        "http_req_sending": {
+            "p(95)": 0.017,
+            "avg": 0.009598918918918913,
+            "min": 0.001,
+            "med": 0.008,
+            "max": 0.289,
+            "p(90)": 0.015
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "Auth Flow": {
+                "name": "Auth Flow",
+                "path": "::Auth Flow",
+                "id": "5c11e31c00a627a5c2755b3235403ac9",
+                "groups": {},
+                "checks": {
+                        "check-email status is 2xx/4xx": {
+                            "name": "check-email status is 2xx/4xx",
+                            "path": "::Auth Flow::check-email status is 2xx/4xx",
+                            "id": "642f9a34a78dd690e6e76fb462b4978f",
+                            "passes": 370,
+                            "fails": 0
+                        }
+                    }
+            },
+            "Billing / Payment Flow": {
+                "path": "::Billing / Payment Flow",
+                "id": "34df76b7debe7e445f74949c8ca4ec0a",
+                "groups": {},
+                "checks": {
+                        "pricing plans status is 2xx/4xx": {
+                            "fails": 0,
+                            "name": "pricing plans status is 2xx/4xx",
+                            "path": "::Billing / Payment Flow::pricing plans status is 2xx/4xx",
+                            "id": "7d15cb380acf808a5e588b18034fcf65",
+                            "passes": 370
+                        },
+                        "invoice listing status is 2xx/4xx": {
+                            "path": "::Billing / Payment Flow::invoice listing status is 2xx/4xx",
+                            "id": "741c2428e7d924655657d2dccd7d1485",
+                            "passes": 370,
+                            "fails": 0,
+                            "name": "invoice listing status is 2xx/4xx"
+                        }
+                    },
+                "name": "Billing / Payment Flow"
+            },
+            "System Health Sanity": {
+                "name": "System Health Sanity",
+                "path": "::System Health Sanity",
+                "id": "a38eedfd5d91b527c533bcf64d5615e3",
+                "groups": {},
+                "checks": {
+                        "health status is 2xx/4xx": {
+                            "path": "::System Health Sanity::health status is 2xx/4xx",
+                            "id": "e8ca52d95130f3fdac8e6844b5ec1737",
+                            "passes": 370,
+                            "fails": 0,
+                            "name": "health status is 2xx/4xx"
+                        },
+                        "performance health status is 2xx/4xx": {
+                            "name": "performance health status is 2xx/4xx",
+                            "path": "::System Health Sanity::performance health status is 2xx/4xx",
+                            "id": "6b959f4d13e9daecdf23549ab836b779",
+                            "passes": 370,
+                            "fails": 0
+                        }
+                    }
+            }
+        },
+        "checks": {}
+    }
+}

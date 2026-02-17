@@ -1,0 +1,226 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "Health & Public Endpoints": {
+                "name": "Health & Public Endpoints",
+                "path": "::Health & Public Endpoints",
+                "id": "0507a000d274cf86b4d8d3f2e0c2410f",
+                "groups": {},
+                "checks": {
+                        "health status is 200": {
+                            "path": "::Health & Public Endpoints::health status is 200",
+                            "id": "b0d8a3c74952ce213269c78db095c5fe",
+                            "passes": 77,
+                            "fails": 0,
+                            "name": "health status is 200"
+                        }
+                    }
+            },
+            "Patient Endpoints": {
+                "checks": {
+                    "list patients status is 200 or 401": {
+                        "fails": 0,
+                        "name": "list patients status is 200 or 401",
+                        "path": "::Patient Endpoints::list patients status is 200 or 401",
+                        "id": "683882c3705a883c8f65fe1fb3f16796",
+                        "passes": 77
+                    },
+                    "response time < 500ms": {
+                        "name": "response time < 500ms",
+                        "path": "::Patient Endpoints::response time < 500ms",
+                        "id": "306781fce7e58536a4a1828bad72c752",
+                        "passes": 77,
+                        "fails": 0
+                    },
+                    "get patient status is 2xx or 4xx": {
+                        "name": "get patient status is 2xx or 4xx",
+                        "path": "::Patient Endpoints::get patient status is 2xx or 4xx",
+                        "id": "c98e29253cd1d7e7118dc92ec3cd72d6",
+                        "passes": 77,
+                        "fails": 0
+                    }
+                },
+                "name": "Patient Endpoints",
+                "path": "::Patient Endpoints",
+                "id": "eeb1c6e6522c29760d522f3f18cc5e33",
+                "groups": {}
+            },
+            "Appointment Endpoints": {
+                "name": "Appointment Endpoints",
+                "path": "::Appointment Endpoints",
+                "id": "32b035dd9e6817d201c60e4b9bd5bc21",
+                "groups": {},
+                "checks": {
+                        "list appointments status is 200 or 401": {
+                            "name": "list appointments status is 200 or 401",
+                            "path": "::Appointment Endpoints::list appointments status is 200 or 401",
+                            "id": "47c07021de1f869592402db47713b814",
+                            "passes": 77,
+                            "fails": 0
+                        },
+                        "response time < 500ms": {
+                            "name": "response time < 500ms",
+                            "path": "::Appointment Endpoints::response time < 500ms",
+                            "id": "d0222fac6ac47dff65f5c41c7794b97e",
+                            "passes": 77,
+                            "fails": 0
+                        }
+                    }
+            },
+            "Monitoring Endpoints": {
+                "name": "Monitoring Endpoints",
+                "path": "::Monitoring Endpoints",
+                "id": "9c0791c2110b3adb81ca27efe40763bf",
+                "groups": {},
+                "checks": {
+                        "monitoring health status is 200 or 401": {
+                            "passes": 77,
+                            "fails": 0,
+                            "name": "monitoring health status is 200 or 401",
+                            "path": "::Monitoring Endpoints::monitoring health status is 200 or 401",
+                            "id": "3b3cfe31152a364606499077f7d847a9"
+                        },
+                        "error stats status is 2xx or 401": {
+                            "fails": 0,
+                            "name": "error stats status is 2xx or 401",
+                            "path": "::Monitoring Endpoints::error stats status is 2xx or 401",
+                            "id": "18a5c29411e4e0de2d82ee5926aa1aa2",
+                            "passes": 77
+                        }
+                    }
+            }
+        },
+        "checks": {}
+    },
+    "metrics": {
+        "group_duration": {
+            "avg": 753.3356937305193,
+            "min": 500.425708,
+            "med": 764.766854,
+            "max": 1041.26,
+            "p(90)": 1004.6064294,
+            "p(95)": 1005.0868619500001
+        },
+        "checks": {
+            "passes": 616,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_duration": {
+            "avg": 1.3399826839826845,
+            "min": 0.347,
+            "med": 1.0335,
+            "max": 38.77,
+            "p(90)": 1.5724,
+            "p(95)": 1.8856499999999998,
+            "thresholds": {
+                "p(99)<1000": false,
+                "p(95)<500": false
+            }
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 10
+        },
+        "vus_max": {
+            "value": 10,
+            "min": 10,
+            "max": 10
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 462,
+            "thresholds": {
+                "rate<0.1": false
+            },
+            "value": 0
+        },
+        "http_req_receiving": {
+            "min": 0.01,
+            "med": 0.032,
+            "max": 3.365,
+            "p(90)": 0.052,
+            "p(95)": 0.06494999999999998,
+            "avg": 0.048638528138528106
+        },
+        "http_reqs": {
+            "count": 462,
+            "rate": 10.954200487760673,
+            "thresholds": {
+                "count>0": false
+            }
+        },
+        "data_received": {
+            "count": 714329,
+            "rate": 16937.019654159296
+        },
+        "iterations": {
+            "count": 77,
+            "rate": 1.8257000812934456
+        },
+        "http_req_waiting": {
+            "p(90)": 1.4909000000000001,
+            "p(95)": 1.8005499999999997,
+            "avg": 1.2659761904761901,
+            "min": 0.331,
+            "med": 0.986,
+            "max": 38.59
+        },
+        "http_req_sending": {
+            "avg": 0.025367965367965303,
+            "min": 0.002,
+            "med": 0.01,
+            "max": 5.348,
+            "p(90)": 0.01490000000000001,
+            "p(95)": 0.021
+        },
+        "http_req_connecting": {
+            "max": 0.326,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.006073593073593074,
+            "min": 0,
+            "med": 0
+        },
+        "iteration_duration": {
+            "p(95)": 3024.8182666,
+            "avg": 3013.574428545455,
+            "min": 3005.680875,
+            "med": 3012.231167,
+            "max": 3053.365834,
+            "p(90)": 3017.3462250000002
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_sent": {
+            "count": 84777,
+            "rate": 2010.0957895040835
+        },
+        "http_req_duration{expected_response:true}": {
+            "min": 0.347,
+            "med": 1.0335,
+            "max": 38.77,
+            "p(90)": 1.5724,
+            "p(95)": 1.8856499999999998,
+            "avg": 1.3399826839826845
+        },
+        "http_req_blocked": {
+            "avg": 0.014437229437229372,
+            "min": 0.001,
+            "med": 0.003,
+            "max": 1.267,
+            "p(90)": 0.005,
+            "p(95)": 0.006
+        }
+    }
+}

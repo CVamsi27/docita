@@ -1,3 +1,8 @@
 {
-  "tailwindCSS.experimental.configFile": "packages/ui/src/styles/globals.css"
+  "tailwindCSS.experimental.configFile": "packages/ui/src/styles/globals.css",
+  "chat.tools.terminal.autoApprove": {
+    "npx tsc": true,
+    "npx nest": true,
+    "npx next": true
+  }
 }

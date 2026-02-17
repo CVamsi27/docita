@@ -1,0 +1,7 @@
+title = "Docita gitleaks config"
+
+[allowlist]
+description = "Allow known test-only env fixture"
+paths = [
+  '''apps/api/.env.test'''
+]

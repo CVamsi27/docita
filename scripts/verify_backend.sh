@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASE_URL="http://localhost:3002/api"
-EMAIL="doctor@docita.com"
+EMAIL="doctor@docita.work"
 PASSWORD="password123"
 
 echo "1. Testing Login..."

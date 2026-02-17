@@ -64,6 +64,16 @@ services:
       - POSTGRES_DB=docita
     volumes:
       - db_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docita"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Test PostgreSQL
   db_test:
@@ -76,11 +86,26 @@ services:
       - POSTGRES_DB=docita_test
     volumes:
       - db_test_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
 
   redis:
     image: redis:7-alpine
     ports:
       - "6381:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:
