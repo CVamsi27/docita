@@ -50,6 +50,7 @@ import { AIModule } from './modules/ai/ai.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { IpdModule } from './modules/ipd/ipd.module';
+import { QueueModule } from './modules/queue/queue.module';
 import { PerformanceModule } from './modules/performance/performance.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { PatientPortalModule } from './modules/patient-portal/patient-portal.module';
@@ -167,6 +168,7 @@ const BullModule = MockBullModule;
     AuditModule,
     OnboardingModule,
     IpdModule,
+    QueueModule,
     PerformanceModule,
     ComplianceModule,
     PatientPortalModule,
