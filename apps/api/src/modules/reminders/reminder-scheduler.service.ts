@@ -152,21 +152,21 @@ export class ReminderSchedulerService {
    */
   @Cron('*/5 * * * *')
   async checkAndSend30MinReminders(): Promise<void> {
-    const settings = await this.settingsService.getSettings();
-
-    if (
-      !settings.enabled ||
-      !settings.minutesBefore30 ||
-      !settings.whatsappEnabled
-    ) {
-      return;
-    }
-
-    const now = new Date();
-    const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
-    const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
-
     return this.prisma.runUnrestricted(async () => {
+      const settings = await this.settingsService.getSettings();
+
+      if (
+        !settings?.enabled ||
+        !settings?.minutesBefore30 ||
+        !settings?.whatsappEnabled
+      ) {
+        return;
+      }
+
+      const now = new Date();
+      const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
+      const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
+
       // Find appointments between 30-35 minutes from now
       const appointments = await this.prisma.appointment.findMany({
         where: {

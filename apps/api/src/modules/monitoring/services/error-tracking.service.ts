@@ -54,24 +54,32 @@ export class ErrorTrackingService implements OnModuleDestroy {
     const errorsToFlush = this.errorBuffer.splice(0, this.BATCH_SIZE);
 
     try {
-      await this.prisma.errorLog.createMany({
-        data: errorsToFlush.map((err) => ({
-          clinicId: err.clinicId,
-          userId: err.userId,
-          type: err.type,
-          message: err.message,
-          stack: err.stack,
-          path: err.path,
-          method: err.method,
-          statusCode: err.statusCode,
-          userAgent: err.userAgent,
-          ip: err.ip,
-          requestBody: err.requestBody as Prisma.InputJsonValue,
-          metadata: err.metadata as Prisma.InputJsonValue,
-          severity: (err.severity as ErrorSeverity) || ErrorSeverity.ERROR,
-        })),
-        skipDuplicates: true,
-      });
+      const writeLogs = async () => {
+        await this.prisma.errorLog.createMany({
+          data: errorsToFlush.map((err) => ({
+            clinicId: err.clinicId,
+            userId: err.userId,
+            type: err.type,
+            message: err.message,
+            stack: err.stack,
+            path: err.path,
+            method: err.method,
+            statusCode: err.statusCode,
+            userAgent: err.userAgent,
+            ip: err.ip,
+            requestBody: err.requestBody as Prisma.InputJsonValue,
+            metadata: err.metadata as Prisma.InputJsonValue,
+            severity: (err.severity as ErrorSeverity) || ErrorSeverity.ERROR,
+          })),
+          skipDuplicates: true,
+        });
+      };
+
+      if (typeof this.prisma.runUnrestricted === 'function') {
+        await this.prisma.runUnrestricted(writeLogs);
+      } else {
+        await writeLogs();
+      }
 
       this.logger.debug(`Flushed ${errorsToFlush.length} errors`);
     } catch (error) {

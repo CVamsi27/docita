@@ -186,13 +186,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = exception.name || 'Error';
       errorStack = exception.stack;
 
-      this.logger.error('Unhandled error details', {
+      const errorDetails: Record<string, unknown> = {
         name: exception.name,
         message: exception.message,
         stack: exception.stack,
-      });
+        toString: exception.toString(),
+      };
+
+      // Add cause if it exists (Node.js 16.9+)
+      if ('cause' in exception) {
+        errorDetails.cause = (exception as any).cause;
+      }
+
+      this.logger.error('Unhandled error details', errorDetails);
     } else {
-      this.logger.error('Unhandled or Known exception type', exception);
+      this.logger.error('Unhandled or Known exception type', {
+        exception,
+        type: typeof exception,
+        message: String(exception),
+      });
     }
 
     // Capture critical errors in Sentry

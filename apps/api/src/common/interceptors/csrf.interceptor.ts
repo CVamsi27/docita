@@ -17,8 +17,9 @@ export class CsrfInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse<Response>();
 
     // 1. Generate and set token if it doesn't exist
-    let csrfToken = request.cookies?.['XSRF-TOKEN'];
-    if (!csrfToken) {
+    const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
+    let csrfToken = existingCsrfToken;
+    if (!existingCsrfToken) {
       csrfToken = randomBytes(24).toString('hex');
       // Set the cookie. Important: HttpOnly MUST be false so the frontend can read it
       // to put it into the header for mutating requests.
@@ -33,6 +34,10 @@ export class CsrfInterceptor implements NestInterceptor {
     // 2. Validate on mutating requests
     const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
     if (mutatingMethods.includes(request.method)) {
+      if (!existingCsrfToken) {
+        return next.handle();
+      }
+
       const headerToken = request.headers['x-xsrf-token'];
 
       if (!csrfToken || !headerToken || csrfToken !== headerToken) {

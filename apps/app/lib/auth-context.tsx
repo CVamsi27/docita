@@ -43,6 +43,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL =
   process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("XSRF-TOKEN="))
+    ?.split("=")[1];
+  return token ? decodeURIComponent(token) : null;
+}
+
 // Helper to read cached user from localStorage (token is in HttpOnly cookie)
 function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
@@ -75,6 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(cachedUser);
       setUserRole(cachedUser.role);
       hasSetRoleRef.current = true;
+    } else {
+      setIsLoading(false);
+      return;
     }
 
     // Validate session via HttpOnly cookie
@@ -101,9 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      const csrfToken = getCsrfToken();
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
@@ -150,9 +166,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const apiUrl =
         process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
+      const csrfToken = getCsrfToken();
       const response = await fetch(`${apiUrl}/auth/check-email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
 
@@ -176,9 +197,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clinicName?: string,
   ) => {
     try {
+      const csrfToken = getCsrfToken();
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        },
         credentials: "include",
         body: JSON.stringify({
           email,
@@ -214,11 +239,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = React.useCallback(() => {
+    const csrfToken = getCsrfToken();
     // Revoke refresh token on server & clear cookies
     fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+      },
       body: JSON.stringify({}),
     }).catch(() => {}); // Fire and forget
 
