@@ -3,6 +3,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['@workspace/ui', '@workspace/db', '@workspace/types'],
   typescript: {
     ignoreBuildErrors: true, // Temporarily allow for launch - fix post-deployment
   },
@@ -16,6 +17,14 @@ const nextConfig: NextConfig = {
       { module: /node_modules\/import-in-the-middle/ },
     ];
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*',
+      },
+    ];
   },
 };
 

@@ -5,16 +5,17 @@ import {
   NestInterceptor,
   Logger,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { tenantStorage } from '../middleware/tenant.middleware';
 
 /**
  * Interceptor that populates the tenant storage from the request user.
  * This ensures that subsequent Prisma queries have access to the clinicId.
  *
- * The key insight is that we need the subscription to happen INSIDE the
- * tenantStorage.run() context, not outside of it. We achieve this by
- * returning the entire observable chain wrapped in the context.
+ * Uses Promise-based wrapping (lastValueFrom + from) instead of raw Observable
+ * subscription to ensure AsyncLocalStorage context propagates correctly through
+ * the entire async chain of controller methods and Prisma queries.
  */
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
@@ -38,21 +39,13 @@ export class TenantContextInterceptor implements NestInterceptor {
           `TENANT CONTEXT [${request.method} ${request.url}]: clinicId=${user.clinicId || 'GLOBAL'}, userId=${user.id || 'system'}, bypassed=${isSuperAdmin}`,
         );
 
-        // Return a new observable that will run the entire chain within tenant context
-        // The key here is that we create the subscription WITHIN tenantStorage.run()
-        return new Observable((subscriber) => {
-          tenantStorage.run(tenantContext, () => {
-            // NOW we get the next handler and subscribe - all within the context
-            const subscription = next.handle().subscribe({
-              next: (value) => subscriber.next(value),
-              error: (err) => subscriber.error(err),
-              complete: () => subscriber.complete(),
-            });
-            
-            // Return cleanup function
-            return () => subscription.unsubscribe();
-          });
-        });
+        // Convert Observable → Promise → run within ALS context → back to Observable
+        // This ensures AsyncLocalStorage context propagates through the entire async chain
+        return from(
+          tenantStorage.run(tenantContext, () =>
+            lastValueFrom(next.handle()),
+          ),
+        );
       }
     }
 

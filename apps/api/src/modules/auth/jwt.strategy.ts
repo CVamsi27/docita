@@ -52,8 +52,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     this.logger.debug('Validating payload:', JSON.stringify(payload));
     // Check if user still exists in database
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
+    // Must use runUnrestricted because User is a tenant-scoped model
+    // and no tenant context exists yet during JWT validation (chicken-and-egg)
+    const user = await this.prisma.runUnrestricted(async () => {
+      return this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
     });
 
     if (!user) {
