@@ -10,7 +10,7 @@ export interface AuthUser {
   id: string;
   email: string;
   role: string;
-  clinicId: string;
+  clinicId: string | null;  // Can be null for SUPER_ADMIN users
 }
 
 /**
