@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Pill } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import Link from "next/link";
-import { usePrescriptions } from "@/hooks/api/use-clinical";
+import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -29,29 +29,7 @@ export default function PrescriptionsPage() {
     direction: "desc",
   });
 
-  const downloadPDF = async (prescriptionId: string) => {
-    try {
-      const response = await fetch(
-        `${process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api"}/prescriptions/${prescriptionId}/pdf`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("docita_token")}`,
-          },
-        },
-      );
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `prescription-${prescriptionId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Failed to download PDF:", error);
-    }
-  };
+  const { mutate: downloadPDF } = useDownloadPrescriptionPDF();
 
   const handleSort = (key: SortKey) => {
     setSortConfig((prev) => ({

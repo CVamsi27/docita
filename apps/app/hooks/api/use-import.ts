@@ -1,19 +1,7 @@
 import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
-export const useImportJobs = () =>
-  useAPIQuery<{ id: string; status: string; createdAt: string }[]>(
-    ["import-jobs"],
-    "/import/jobs",
-  );
-
-export const useImportJob = (id: string) =>
-  useAPIQuery<{ id: string; status: string; data: Record<string, unknown> }>(
-    ["import-jobs", id],
-    `/import/jobs/${id}`,
-  );
-
-export const useUploadFile = () =>
-  useAPIMutation<{ id: string }, FormData>("/import/upload", "POST");
+// NOTE: The imports controller is @Controller('imports') — all paths use /imports/ (plural).
+// /import/* (singular) paths do NOT exist in the backend.
 
 export const useProcessOCR = () =>
   useAPIMutation<

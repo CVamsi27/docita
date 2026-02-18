@@ -9,7 +9,7 @@ import {
   Prescription,
   VitalSign,
 } from "@workspace/types";
-import { fetchAPI, useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { API_URL, fetchAPI, useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
 // Vitals
 export const useVitalSigns = (patientId: string) =>
@@ -85,6 +85,38 @@ export const useDeletePrescription = (id: string) =>
   useAPIMutation<void, void>(`/prescriptions/${id}`, "DELETE", {
     invalidateKeys: [["prescriptions"]],
   });
+
+/**
+ * Download a prescription as a PDF blob and trigger a browser save.
+ * Extracts the raw fetch from the page layer so pages stay thin (SRP).
+ */
+export const useDownloadPrescriptionPDF = () => {
+  return useMutation({
+    mutationFn: async (prescriptionId: string) => {
+      const token = localStorage.getItem("docita_token");
+      const response = await fetch(
+        `${API_URL}/prescriptions/${prescriptionId}/pdf`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `prescription-${prescriptionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+  });
+};
 
 // Lab Tests
 export const useLabTests = () =>
