@@ -17,7 +17,10 @@ export class QueueService {
   /**
    * Get all queue tokens for today, optionally filtered by doctor and search.
    */
-  async findAll(clinicId: string, filters?: { doctorId?: string; search?: string }) {
+  async findAll(
+    clinicId: string,
+    filters?: { doctorId?: string; search?: string },
+  ) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
@@ -46,7 +49,12 @@ export class QueueService {
       where,
       include: {
         patient: {
-          select: { id: true, firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         doctor: { select: { id: true, name: true } },
         appointment: {
@@ -63,7 +71,10 @@ export class QueueService {
   /**
    * Get queue statistics for today.
    */
-  async getStats(clinicId: string, filters?: { doctorId?: string; search?: string }) {
+  async getStats(
+    clinicId: string,
+    filters?: { doctorId?: string; search?: string },
+  ) {
     const tokens = await this.findAll(clinicId, filters);
 
     const stats = {
@@ -111,13 +122,17 @@ export class QueueService {
       }
 
       if (token.calledAt && token.createdAt) {
-        const wait = (new Date(token.calledAt).getTime() - new Date(token.createdAt).getTime()) / 60000;
+        const wait =
+          (new Date(token.calledAt).getTime() -
+            new Date(token.createdAt).getTime()) /
+          60000;
         totalWaitTime += wait;
         waitCount++;
       }
     }
 
-    stats.avgWaitTime = waitCount > 0 ? Math.round(totalWaitTime / waitCount) : 0;
+    stats.avgWaitTime =
+      waitCount > 0 ? Math.round(totalWaitTime / waitCount) : 0;
 
     return stats;
   }
@@ -209,7 +224,12 @@ export class QueueService {
       },
       include: {
         patient: {
-          select: { id: true, firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         doctor: { select: { id: true, name: true } },
       },
@@ -251,7 +271,12 @@ export class QueueService {
       data: updateData,
       include: {
         patient: {
-          select: { id: true, firstName: true, lastName: true, phoneNumber: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
         },
         doctor: { select: { id: true, name: true } },
       },
@@ -401,7 +426,10 @@ export class QueueService {
 
     const position = tokensAhead + 1;
     // Estimate: tokens ahead * avg time, minus active consultations (they'll finish sooner)
-    const estimatedMinutes = Math.max(0, (tokensAhead - inProgress) * avgMinutes);
+    const estimatedMinutes = Math.max(
+      0,
+      (tokensAhead - inProgress) * avgMinutes,
+    );
 
     return {
       estimatedMinutes,

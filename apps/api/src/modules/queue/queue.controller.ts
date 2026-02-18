@@ -28,7 +28,7 @@ export class QueueController {
   constructor(private readonly queueService: QueueService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get today\'s queue tokens' })
+  @ApiOperation({ summary: "Get today's queue tokens" })
   findAll(
     @Request() req: AuthRequest,
     @Query('doctorId') doctorId?: string,
@@ -113,19 +113,13 @@ export class QueueController {
 
   @Post('call-next')
   @ApiOperation({ summary: 'Call the next patient in queue' })
-  callNext(
-    @Request() req: AuthRequest,
-    @Query('doctorId') doctorId?: string,
-  ) {
+  callNext(@Request() req: AuthRequest, @Query('doctorId') doctorId?: string) {
     return this.queueService.callNext(req.user.clinicId, doctorId);
   }
 
   @Get(':id/wait-time')
   @ApiOperation({ summary: 'Get estimated wait time for a token' })
-  getEstimatedWaitTime(
-    @Request() req: AuthRequest,
-    @Param('id') id: string,
-  ) {
+  getEstimatedWaitTime(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.queueService.getEstimatedWaitTime(id, req.user.clinicId);
   }
 }

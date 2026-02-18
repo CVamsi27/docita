@@ -42,9 +42,7 @@ export class TenantContextInterceptor implements NestInterceptor {
         // Convert Observable → Promise → run within ALS context → back to Observable
         // This ensures AsyncLocalStorage context propagates through the entire async chain
         return from(
-          tenantStorage.run(tenantContext, () =>
-            lastValueFrom(next.handle()),
-          ),
+          tenantStorage.run(tenantContext, () => lastValueFrom(next.handle())),
         );
       }
     }
