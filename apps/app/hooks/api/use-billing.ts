@@ -67,7 +67,7 @@ export const useBillingStatus = () =>
       status: string;
       paymentMethod?: string;
     };
-  }>(["billing-status"], "/subscription/billing/status", {
+  }>(["billing-status"], "/subscription/billing", {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });

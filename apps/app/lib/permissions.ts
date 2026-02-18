@@ -40,11 +40,15 @@ export type Permission =
 // ============================================================================
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  /**
+   * SUPER_ADMIN exists in the type system but is an admin-console-only role.
+   * It cannot log into apps/app (the login rejects it). Kept here solely so
+   * the Record type is exhaustive; this branch is never reached at runtime.
+   */
   SUPER_ADMIN: [
     "viewPlatformAnalytics",
     "viewSystemLogs",
     "manageTenants",
-    // Can view high-level stats but not operational data
     "viewReports",
   ],
   ADMIN: [
@@ -180,11 +184,36 @@ export const canManageAppointments = (role: UserRole) =>
   hasAllPermissions(role, ["viewAppointments", "createAppointment"]);
 
 // ============================================================================
+// Role Sets — single source of truth for role-based access control
+// ============================================================================
+
+/**
+ * Clinic-level admin roles. SUPER_ADMIN is intentionally excluded — that role
+ * only exists in the internal admin console (apps/admin) and cannot log in to
+ * the clinic app (apps/app).
+ */
+export const CLINIC_ADMIN_ROLES = new Set<UserRole>([
+  "ADMIN",
+  "ADMIN_DOCTOR",
+]);
+
+/**
+ * Roles that can access billing / subscription management.
+ * Alias kept separate in case billing access ever diverges from base admin.
+ */
+export const BILLING_ROLES = CLINIC_ADMIN_ROLES;
+
+/**
+ * Roles that have clinical (doctor) privileges.
+ */
+export const CLINICAL_ROLES = new Set<UserRole>(["DOCTOR", "ADMIN_DOCTOR"]);
+
+// ============================================================================
 // Role Hierarchy Checks
 // ============================================================================
 
 const ROLE_HIERARCHY: Record<UserRole, number> = {
-  SUPER_ADMIN: 100,
+  SUPER_ADMIN: 100, // admin-app only; never appears in clinic app
   ADMIN_DOCTOR: 80,
   ADMIN: 70,
   DOCTOR: 50,
@@ -199,10 +228,11 @@ export function isRoleAtLeast(role: UserRole, minimumRole: UserRole): boolean {
 }
 
 /**
- * Check if the user is an admin-level role
+ * Check if the user is a clinic-admin-level role.
+ * SUPER_ADMIN is excluded — it cannot log in to the clinic app.
  */
 export function isAdmin(role: UserRole): boolean {
-  return ["SUPER_ADMIN", "ADMIN", "ADMIN_DOCTOR"].includes(role);
+  return CLINIC_ADMIN_ROLES.has(role);
 }
 
 /**

@@ -1,5 +1,6 @@
 import type { Patient, User } from "@workspace/types";
 import { differenceInYears } from "date-fns";
+import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 
 /**
  * Patient Business Rules
@@ -27,8 +28,8 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
  * Check if user can delete a patient
  */
 export const canDeletePatient = (patient: Patient, user: User): boolean => {
-  // Only admins can delete patients
-  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") return false;
+  // Only clinic admins (ADMIN / ADMIN_DOCTOR) can delete patients
+  if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR")) return false;
 
   // Cannot delete patient with active appointments (if appointments exist)
   // This would need actual appointment data to check

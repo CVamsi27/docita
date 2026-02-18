@@ -34,6 +34,7 @@ import { useAppConfig } from "@/lib/app-config-context";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { type ClinicType, Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -133,11 +134,8 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
-  // Only admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
-  const canSeeSubscription =
-    user?.role === "ADMIN" ||
-    user?.role === "ADMIN_DOCTOR" ||
-    user?.role === "SUPER_ADMIN";
+  // Only clinic admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
+  const canSeeSubscription = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
   const { data: subscription } = useSubscription({ enabled: canSeeSubscription });
   const { getClinicSetting } = useAppConfig();
   const { canAccess } = usePermissionStore();
@@ -171,11 +169,8 @@ export function Sidebar({
   // Combine base nav items with specialty items
   const allNavItems = [...navItems, ...specialtyNavItems, ...hospitalNavItems];
 
-  // Only admins can see plan/upgrade section
-  const canSeeUpgrade =
-    user?.role === "ADMIN" ||
-    user?.role === "ADMIN_DOCTOR" ||
-    user?.role === "SUPER_ADMIN";
+  // Only clinic admins see the upgrade section
+  const canSeeUpgrade = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
 
   return (
     <aside
@@ -206,12 +201,7 @@ export function Sidebar({
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {allNavItems
           .filter((item) => {
-            // SUPER_ADMIN Restriction: Can only see Dashboard and Analytics
-            if (user?.role === "SUPER_ADMIN") {
-              return ["/dashboard", "/analytics"].includes(item.href);
-            }
-
-            // Hide features that are locked
+            // Hide features that are locked by subscription tier
             if (item.feature && !canAccess(item.feature)) {
               return false;
             }

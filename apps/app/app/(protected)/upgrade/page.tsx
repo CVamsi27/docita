@@ -10,7 +10,7 @@
  *         tier cards UI → TierCard component (existing)
  *  - OCP: new payment methods / add-ons extend hooks & components without
  *         modifying this file
- *  - Access control: ADMIN / ADMIN_DOCTOR / SUPER_ADMIN only (redirects others)
+ *  - Access control: ADMIN / ADMIN_DOCTOR only (redirects others)
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -39,16 +39,14 @@ import { ComparisonTable } from "@/features/subscription/components/ComparisonTa
 import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/InvoiceHistoryDialog";
 import {
-  useSubscriptionCheckout,
   type CheckoutSuccessData,
+  useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
-
-/** Roles permitted to access the upgrade / billing page */
-const BILLING_ROLES = new Set(["ADMIN", "ADMIN_DOCTOR", "SUPER_ADMIN"]);
+import { BILLING_ROLES } from "@/lib/permissions";
 
 export default function UpgradePage() {
   const { currentTier, hasIntelligence, canAccess } = usePermissionStore();
