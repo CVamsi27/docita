@@ -10,7 +10,7 @@ export interface AuthUser {
   id: string;
   email: string;
   role: string;
-  clinicId: string | null;  // Can be null for SUPER_ADMIN users
+  clinicId: string | null; // Can be null for SUPER_ADMIN users
 }
 
 /**
@@ -48,9 +48,9 @@ export class TenantContextService {
 
   /**
    * Get the current tenant's clinic ID
-   * Returns undefined if no user is authenticated
+   * Returns undefined if no user is authenticated, or null for SUPER_ADMIN
    */
-  getClinicId(): string | undefined {
+  getClinicId(): string | null | undefined {
     return this.request.user?.clinicId;
   }
 
