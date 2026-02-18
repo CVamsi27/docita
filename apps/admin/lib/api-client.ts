@@ -10,7 +10,7 @@ export function setAuthLogoutCallback(callback: (reason: string) => void) {
  * Admin portal API client
  */
 export const client = getAPIClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1",
   getToken: () => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("docita_admin_token");

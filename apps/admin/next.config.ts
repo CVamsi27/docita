@@ -42,6 +42,7 @@ let nextConfig: NextConfig = {
       { module: /node_modules\/@opentelemetry\/instrumentation/ },
       { module: /node_modules\/@prisma\/instrumentation/ },
       { module: /node_modules\/require-in-the-middle/ },
+      { module: /node_modules\/import-in-the-middle/ },
     ];
 
     // Bundle analyzer (only in production with ANALYZE=true)
