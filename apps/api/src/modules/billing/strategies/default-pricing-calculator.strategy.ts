@@ -155,9 +155,9 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       });
     }
 
-    // Calculate tax (GST 18% for India)
+    // GST is inclusive in the listed prices; no separate tax component
     const subtotal = basePriceCents + addOnsCents - discountCents;
-    const taxCents = currency === 'INR' ? Math.round(subtotal * 0.18) : 0;
+    const taxCents = 0;
 
     // Total
     const totalCents = subtotal + taxCents;

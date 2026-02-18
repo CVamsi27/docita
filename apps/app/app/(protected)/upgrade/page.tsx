@@ -312,8 +312,7 @@ export default function UpgradePage() {
             Privacy Policy
           </a>
           .<br />
-          Prices are exclusive of applicable taxes. Tax breakdown will be shown
-          at checkout.
+          All prices are inclusive of GST and applicable taxes.
         </p>
       </div>
 

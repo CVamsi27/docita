@@ -20,7 +20,6 @@ import {
 
 const REFERRAL_DISCOUNT_PERCENT = 25;
 const SEMI_ANNUAL_DISCOUNT_PERCENT = 5;
-const GST_RATE = 0.18; // 18% GST for Indian billing
 
 export interface ProratedAmount {
   creditCents: number;
@@ -105,12 +104,7 @@ export class BillingCalculationService {
       }
     }
 
-    // Apply GST for INR currency
-    if (currency === 'INR') {
-      const gstCents = Math.round(subtotalCents * GST_RATE);
-      return subtotalCents + gstCents;
-    }
-
+    // GST is inclusive in the listed prices for all currencies
     return subtotalCents;
   }
 
