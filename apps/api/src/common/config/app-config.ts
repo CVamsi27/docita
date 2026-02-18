@@ -116,16 +116,20 @@ export function getEnv(): EnvConfig {
   return validatedEnv;
 }
 
-export function getCorsOrigins(): string[] {
+export function getCorsOrigins(): (string | RegExp)[] {
   const envOrigins = process.env.CORS_ORIGINS;
   if (envOrigins) {
     return envOrigins.split(',').map((origin) => origin.trim());
   }
 
   return [
+    // Production domains (Vercel)
     'https://landing.docita.work',
     'https://app.docita.work',
     'https://admin.docita.work',
+    // Vercel preview deployments (*.vercel.app)
+    /^https:\/\/.*\.vercel\.app$/,
+    // Local dev
     'http://localhost:3003', // landing dev
     'http://localhost:3000', // app dev
     'http://localhost:3002', // admin dev
@@ -134,7 +138,7 @@ export function getCorsOrigins(): string[] {
     'http://127.0.0.1:3002',
   ];
 }
-export function getWebSocketCorsOrigins(): string[] {
+export function getWebSocketCorsOrigins(): (string | RegExp)[] {
   return getCorsOrigins();
 }
 export function getAppUrl(): string {
