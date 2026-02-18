@@ -270,7 +270,7 @@ export const useTierConfig = () =>
     refetchOnWindowFocus: true, // Refresh when user returns from admin portal
   });
 
-export const useSubscription = () =>
+export const useSubscription = (opts?: { enabled?: boolean }) =>
   useAPIQuery<{
     id: string;
     name: string;
@@ -286,4 +286,5 @@ export const useSubscription = () =>
   }>(["subscription"], "/subscription", {
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true, // Refresh when user returns from admin portal
+    ...(opts?.enabled !== undefined && { enabled: opts.enabled }),
   });

@@ -132,8 +132,13 @@ export function Sidebar({
   onCollapsedChange,
 }: SidebarProps) {
   const pathname = usePathname();
-  const { data: subscription } = useSubscription();
   const { user } = useAuth();
+  // Only admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
+  const canSeeSubscription =
+    user?.role === "ADMIN" ||
+    user?.role === "ADMIN_DOCTOR" ||
+    user?.role === "SUPER_ADMIN";
+  const { data: subscription } = useSubscription({ enabled: canSeeSubscription });
   const { getClinicSetting } = useAppConfig();
   const { canAccess } = usePermissionStore();
 
