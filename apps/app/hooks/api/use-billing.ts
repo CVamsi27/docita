@@ -17,7 +17,19 @@ export const useInvoices = (filters?: {
     })[]
   >(
     ["invoices", filters || {}],
-    `/invoices${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    (() => {
+      if (!filters) return "/invoices";
+      const params = new URLSearchParams();
+      (
+        Object.entries(filters) as [string, string | number | undefined][]
+      ).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          params.append(key, String(value));
+        }
+      });
+      const qs = params.toString();
+      return qs ? `/invoices?${qs}` : "/invoices";
+    })(),
   );
 
 export const useInvoice = (id: string) =>
