@@ -25,11 +25,11 @@ import {
   INTELLIGENCE_ADDON_PRICING,
   Feature,
 } from '@workspace/types';
-
-// Constants
-const GRACE_PERIOD_DAYS = 3;
-const MAX_REFERRAL_CREDITS_PER_YEAR = 12;
-const REFERRAL_DISCOUNT_PERCENT = 25;
+import {
+  GRACE_PERIOD_DAYS,
+  MAX_REFERRAL_CREDITS_PER_YEAR,
+  REFERRAL_DISCOUNT_PERCENT,
+} from './subscription.constants';
 
 interface ProratedAmount {
   creditCents: number;

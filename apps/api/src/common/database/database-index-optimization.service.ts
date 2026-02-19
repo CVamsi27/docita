@@ -6,6 +6,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 
 export interface IndexAnalysis {
   tableName: string;
@@ -37,30 +38,38 @@ export class DatabaseIndexOptimizationService {
    * Analyze all indexes in the database
    */
   async analyzeAllIndexes(): Promise<IndexAnalysis[]> {
-    const query = `
-      SELECT
-        t.tablename,
-        i.indexname,
-        ix.indisprimary AS is_primary,
-        ix.indisunique AS is_unique,
-        a.amname AS index_type,
-        pg_size_pretty(pg_relation_size(i.indexrelid)) AS index_size,
-        idx_scan AS scan_count,
-        idx_tup_read AS tuple_read,
-        idx_tup_fetch AS tuple_fetched
-      FROM pg_indexes idx
-      JOIN pg_class t ON t.relname = idx.tablename
-      JOIN pg_class i ON i.relname = idx.indexname
-      JOIN pg_index ix ON ix.indexrelid = i.oid
-      JOIN pg_am a ON a.oid = i.relam
-      JOIN pg_stat_user_indexes s ON s.indexrelname = idx.indexname
-      WHERE idx.schemaname NOT IN ('pg_catalog', 'information_schema')
-      ORDER BY idx_scan DESC;
-    `;
-
     try {
-      const result = await this.prisma.$queryRawUnsafe(query);
-      return (result as any[]).map((row) => ({
+      const result = await this.prisma.$queryRaw<Array<{
+        tablename: string;
+        indexname: string;
+        is_primary: boolean;
+        is_unique: boolean;
+        index_type: string;
+        index_size: string;
+        scan_count: number;
+        tuple_read: number;
+        tuple_fetched: number;
+      }>>(Prisma.sql`
+        SELECT
+          t.tablename,
+          i.indexname,
+          ix.indisprimary AS is_primary,
+          ix.indisunique AS is_unique,
+          a.amname AS index_type,
+          pg_size_pretty(pg_relation_size(i.indexrelid)) AS index_size,
+          idx_scan AS scan_count,
+          idx_tup_read AS tuple_read,
+          idx_tup_fetch AS tuple_fetched
+        FROM pg_indexes idx
+        JOIN pg_class t ON t.relname = idx.tablename
+        JOIN pg_class i ON i.relname = idx.indexname
+        JOIN pg_index ix ON ix.indexrelid = i.oid
+        JOIN pg_am a ON a.oid = i.relam
+        JOIN pg_stat_user_indexes s ON s.indexrelname = idx.indexname
+        WHERE idx.schemaname NOT IN ('pg_catalog', 'information_schema')
+        ORDER BY idx_scan DESC
+      `);
+      return result.map((row) => ({
         tableName: row.tablename,
         indexName: row.indexname,
         columnNames: this.parseIndexColumns(row.indexname),
@@ -99,24 +108,28 @@ export class DatabaseIndexOptimizationService {
    * Find missing indexes on heavily scanned tables
    */
   async findMissingIndexes(): Promise<MissingIndexRecommendation[]> {
-    const query = `
-      SELECT
-        schemaname,
-        tablename,
-        attname,
-        n_distinct,
-        correlation
-      FROM pg_stats
-      WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-        AND n_distinct > 100
-        AND correlation < 0.1
-      ORDER BY n_distinct DESC
-      LIMIT 20;
-    `;
-
     try {
-      const result = await this.prisma.$queryRawUnsafe(query);
-      return (result as any[]).map((row) => ({
+      const result = await this.prisma.$queryRaw<Array<{
+        schemaname: string;
+        tablename: string;
+        attname: string;
+        n_distinct: number;
+        correlation: number;
+      }>>(Prisma.sql`
+        SELECT
+          schemaname,
+          tablename,
+          attname,
+          n_distinct,
+          correlation
+        FROM pg_stats
+        WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+          AND n_distinct > 100
+          AND correlation < 0.1
+        ORDER BY n_distinct DESC
+        LIMIT 20
+      `);
+      return result.map((row) => ({
         tableName: row.tablename,
         columnNames: [row.attname],
         reason: `High cardinality column (${row.n_distinct} distinct values) with low correlation`,
@@ -138,23 +151,25 @@ export class DatabaseIndexOptimizationService {
   async getIndexBloat(): Promise<
     Array<{ tableName: string; indexName: string; bloatPercent: number }>
   > {
-    const query = `
-      SELECT
-        t.relname AS tablename,
-        i.relname AS indexname,
-        ROUND(100.0 * (pg_relation_size(i.oid) - pg_relation_size(i.oid, 'main')) 
-          / pg_relation_size(i.oid))::numeric, 2) AS bloat_percent
-      FROM pg_class t
-      JOIN pg_index idx ON t.oid = idx.indrelid
-      JOIN pg_class i ON i.oid = idx.indexrelid
-      WHERE t.relkind = 'r'
-        AND pg_relation_size(i.oid) > 1024 * 1024 -- > 1MB
-      ORDER BY bloat_percent DESC;
-    `;
-
     try {
-      const result = await this.prisma.$queryRawUnsafe(query);
-      return (result as any[]).map((row) => ({
+      const result = await this.prisma.$queryRaw<Array<{
+        tablename: string;
+        indexname: string;
+        bloat_percent: string;
+      }>>(Prisma.sql`
+        SELECT
+          t.relname AS tablename,
+          i.relname AS indexname,
+          ROUND(100.0 * (pg_relation_size(i.oid) - pg_relation_size(i.oid, 'main')) 
+            / pg_relation_size(i.oid))::numeric, 2) AS bloat_percent
+        FROM pg_class t
+        JOIN pg_index idx ON t.oid = idx.indrelid
+        JOIN pg_class i ON i.oid = idx.indexrelid
+        WHERE t.relkind = 'r'
+          AND pg_relation_size(i.oid) > 1024 * 1024
+        ORDER BY bloat_percent DESC
+      `);
+      return result.map((row) => ({
         tableName: row.tablename,
         indexName: row.indexname,
         bloatPercent: parseFloat(row.bloat_percent) || 0,

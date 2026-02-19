@@ -17,9 +17,11 @@ import {
   ANNUAL_DISCOUNT_PERCENT,
   INTELLIGENCE_ADDON_PRICING,
 } from '@workspace/types';
+import {
+  REFERRAL_DISCOUNT_PERCENT,
+  SEMI_ANNUAL_DISCOUNT_PERCENT,
+} from './subscription.constants';
 
-const REFERRAL_DISCOUNT_PERCENT = 25;
-const SEMI_ANNUAL_DISCOUNT_PERCENT = 5;
 
 export interface ProratedAmount {
   creditCents: number;

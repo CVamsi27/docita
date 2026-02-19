@@ -11,9 +11,10 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-
-const MAX_REFERRAL_CREDITS_PER_YEAR = 12;
-const REFERRAL_DISCOUNT_PERCENT = 25;
+import {
+  MAX_REFERRAL_CREDITS_PER_YEAR,
+  REFERRAL_DISCOUNT_PERCENT,
+} from './subscription.constants';
 
 @Injectable()
 export class ReferralService {
