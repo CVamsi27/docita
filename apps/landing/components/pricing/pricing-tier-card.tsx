@@ -51,7 +51,7 @@ export function PricingTierCard({
   isPopular,
   isPrimary,
   badgeColor = "slate",
-  buttonText = "Start Free Trial",
+  buttonText = "Start 7 Day Free Trial",
   buttonVariant = "outline",
   onContactSales,
   isEnterprise,

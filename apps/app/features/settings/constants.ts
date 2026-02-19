@@ -99,6 +99,12 @@ export const settingsTabs = [
         description: "Alert preferences",
       },
       {
+        value: "notification-feed",
+        label: "Notification Feed",
+        icon: Bell,
+        description: "Recent notification events",
+      },
+      {
         value: "security",
         label: "Security",
         icon: Lock,

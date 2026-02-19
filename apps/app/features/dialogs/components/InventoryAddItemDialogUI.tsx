@@ -101,7 +101,11 @@ export function InventoryAddItemDialogUI({
       submitLabel="Add Item"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          noValidate
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="name"

@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * UpgradePage
- *
- * Thin orchestration layer following SOLID principles:
- *  - SRP: payment logic → useSubscriptionCheckout hook
- *         plan card UI → CurrentPlanCard component
- *         addons UI → AddonsSection component
- *         tier cards UI → TierCard component (existing)
- *  - OCP: new payment methods / add-ons extend hooks & components without
- *         modifying this file
- *  - Access control: ADMIN / ADMIN_DOCTOR only (redirects others)
- */
-
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -38,22 +25,19 @@ import { FaqSection } from "@/features/subscription/components/FaqSection";
 import { ComparisonTable } from "@/features/subscription/components/ComparisonTable";
 import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/InvoiceHistoryDialog";
+import { DynamicPricingEstimator } from "@/features/subscription/components/DynamicPricingEstimator";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
-import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { BILLING_ROLES } from "@/lib/permissions";
 
 export default function UpgradePage() {
   const { currentTier, hasIntelligence, canAccess } = usePermissionStore();
   const { user } = useAuth();
   const router = useRouter();
-  const { clinic } = useClinic();
-  const { pricingConfig } = usePricingConfig("INR");
 
   // Dialog / modal state
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
@@ -69,7 +53,6 @@ export default function UpgradePage() {
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
 
-  // Payment orchestration — extracted to custom hook (SRP)
   const { checkoutTier, checkoutAddon, processingId } =
     useSubscriptionCheckout((data) => {
       setSuccessData(data);
@@ -77,17 +60,14 @@ export default function UpgradePage() {
       if (!data.isAddon) setShowTierChangeDialog(false);
     });
 
-  // Access control
   const canAccessPage = !!user && BILLING_ROLES.has(user.role);
 
-  // Redirect non-admin users to dashboard
   useEffect(() => {
     if (user && !canAccessPage) {
       router.push("/dashboard");
     }
   }, [user, canAccessPage, router]);
 
-  // Handlers
   const handleSelectTier = useCallback(
     (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
       setSelectedTier(tier);
@@ -136,18 +116,6 @@ export default function UpgradePage() {
       ?.features.map((f) => ({ feature: f.feature, details: f.details })) ??
     [];
 
-  // WhatsApp pricing
-  const hasWhatsApp =
-    !!clinic?.features?.["WHATSAPP"] || !!clinic?.whatsappAutomation?.enabled;
-  const tierKey = currentTierInfo.name.toUpperCase();
-  const whatsappAddon = pricingConfig?.addOns?.find(
-    (a) => a.id === "WHATSAPP" || a.name?.toLowerCase().includes("whatsapp"),
-  );
-  const waTierPricing = whatsappAddon?.pricingByTier?.[tierKey];
-  const whatsappPrice = waTierPricing
-    ? Number(waTierPricing.monthly) || 799
-    : (whatsappAddon?.pricing?.monthly ?? 799);
-
   // Don't render page for non-admins (while redirecting)
   if (!user || !canAccessPage) {
     return (
@@ -158,15 +126,16 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 bg-linear-to-br from-background via-background to-muted/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/30 min-h-screen">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+          <h1 className="text-2xl font-bold tracking-tight">
             Upgrade Your Plan
           </h1>
           <p className="text-muted-foreground">
-            Unlock powerful features to grow your practice
+            Choose a plan that fits your clinic now and scale when needed.
           </p>
         </div>
       </div>
@@ -199,11 +168,9 @@ export default function UpgradePage() {
       {/* Add-ons — SRP: addon UI only */}
       <AddonsSection
         hasIntelligence={hasIntelligence}
-        hasWhatsApp={hasWhatsApp}
         intelligenceFeatures={intelligenceFeatures}
-        whatsappPrice={whatsappPrice}
         purchasingId={processingId}
-        currency={pricingConfig?.currency?.code ?? "INR"}
+        currency="INR"
         onPurchaseIntelligence={(cycle) =>
           checkoutAddon({
             addonId: "INTELLIGENCE",
@@ -211,14 +178,9 @@ export default function UpgradePage() {
             currentTier,
           })
         }
-        onPurchaseWhatsApp={(cycle) =>
-          checkoutAddon({
-            addonId: "WHATSAPP",
-            billingCycle: cycle,
-            currentTier,
-          })
-        }
       />
+
+      <DynamicPricingEstimator />
 
       {/* All Tiers Comparison */}
       <div className="space-y-4">
@@ -319,6 +281,7 @@ export default function UpgradePage() {
       {/* FAQ */}
       <div className="pb-10">
         <FaqSection />
+      </div>
       </div>
     </div>
   );

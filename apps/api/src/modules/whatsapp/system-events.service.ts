@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
-import { WhatsappLogStatus } from '@workspace/db';
 
 /**
  * Handles automatic/system event-triggered WhatsApp messages
@@ -18,10 +17,34 @@ export class SystemEventsService {
     private readonly whatsappClient: WhatsappClientService,
   ) {}
 
+  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { whatsappAutomation: true },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation !== 'object'
+    ) {
+      return true;
+    }
+
+    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    return automation.enabled !== false;
+  }
+
   /**
    * Send prescription created notification (system event)
    */
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
+    if (!(await this.isWhatsappEnabled(clinicId))) {
+      this.logger.log(
+        `WhatsApp disabled for clinic ${clinicId}; skipping prescription notification`,
+      );
+      return;
+    }
+
     const prescription = await this.prisma.prescription.findUnique({
       where: { id: prescriptionId },
       include: {
@@ -61,6 +84,13 @@ export class SystemEventsService {
    * Send invoice created notification (system event)
    */
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
+    if (!(await this.isWhatsappEnabled(clinicId))) {
+      this.logger.log(
+        `WhatsApp disabled for clinic ${clinicId}; skipping invoice notification`,
+      );
+      return;
+    }
+
     const invoice = await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
       include: {
@@ -99,6 +129,13 @@ export class SystemEventsService {
    * Send appointment confirmation (system event)
    */
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
+    if (!(await this.isWhatsappEnabled(clinicId))) {
+      this.logger.log(
+        `WhatsApp disabled for clinic ${clinicId}; skipping appointment confirmation`,
+      );
+      return;
+    }
+
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
@@ -143,6 +180,13 @@ export class SystemEventsService {
     clinicId: string,
     type: 'CANCELLED' | 'RESCHEDULED',
   ) {
+    if (!(await this.isWhatsappEnabled(clinicId))) {
+      this.logger.log(
+        `WhatsApp disabled for clinic ${clinicId}; skipping appointment update`,
+      );
+      return;
+    }
+
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {

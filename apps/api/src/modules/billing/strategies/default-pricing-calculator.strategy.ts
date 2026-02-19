@@ -17,7 +17,6 @@ import {
 import { ClinicTier, BillingCycle, DiscountType } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
-  WHATSAPP_ADDON_PRICING_BY_CURRENCY,
   INTELLIGENCE_ADDON_PRICING_BY_CURRENCY,
   ANNUAL_DISCOUNT_PERCENT,
   SupportedCurrency,
@@ -39,7 +38,6 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
     const currency = (params.currency?.toUpperCase() ||
       'INR') as SupportedCurrency;
     const tierPricing = TIER_PRICING_BY_CURRENCY[currency];
-    const whatsappPricing = WHATSAPP_ADDON_PRICING_BY_CURRENCY[currency];
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency];
 
@@ -69,27 +67,6 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       'CAPTURE' | 'INTELLIGENCE'
     >;
     const isAddOnEligible = !['CAPTURE'].includes(params.tier);
-
-    if (isAddOnEligible && params.addOns?.includes('WHATSAPP')) {
-      const whatsappConfig = whatsappPricing[addOnTierKey];
-      if (whatsappConfig && typeof whatsappConfig.basePrice === 'number') {
-        const whatsappPrice =
-          params.cycle === 'YEARLY'
-            ? Math.round(
-                whatsappConfig.basePrice *
-                  12 *
-                  (1 - ANNUAL_DISCOUNT_PERCENT / 100) *
-                  100,
-              )
-            : whatsappConfig.basePrice * 100;
-
-        addOnsCents += whatsappPrice;
-        addOnBreakdown.push({
-          name: 'WhatsApp Integration',
-          priceCents: whatsappPrice,
-        });
-      }
-    }
 
     if (isAddOnEligible && params.addOns?.includes('INTELLIGENCE')) {
       const intelligenceConfig = intelligencePricing[addOnTierKey];

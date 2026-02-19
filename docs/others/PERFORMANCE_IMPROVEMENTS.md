@@ -301,7 +301,7 @@ export class PrismaService {
 - `apps/api/src/prisma/prisma.service.ts`
 - `apps/api/src/analytics/analytics.service.ts` - 20+ methods updated
 
-**Setup Guide**: See [READ_REPLICA_SETUP.md](./READ_REPLICA_SETUP.md) for detailed configuration instructions.
+**Setup Guide**: See [READ_REPLICA_SETUP.md](../READ_REPLICA_SETUP.md) for detailed configuration instructions.
 
 ---
 
@@ -492,7 +492,7 @@ GET /super-admin/clinics?cursor=abc&limit=50
 }
 ```
 
-See [CURSOR_PAGINATION_GUIDE.md](./CURSOR_PAGINATION_GUIDE.md) for detailed API documentation and frontend integration examples.
+See [CURSOR_PAGINATION_GUIDE.md](../CURSOR_PAGINATION_GUIDE.md) for detailed API documentation and frontend integration examples.
 
 ---
 
@@ -580,7 +580,7 @@ export const usePatientsStore = create<PaginationState>((set) => ({
 }));
 ```
 
-See [CURSOR_PAGINATION_GUIDE.md](./CURSOR_PAGINATION_GUIDE.md) for complete frontend examples.
+See [CURSOR_PAGINATION_GUIDE.md](../CURSOR_PAGINATION_GUIDE.md) for complete frontend examples.
 
 ---
 
@@ -1002,11 +1002,11 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 
 ## References
 
-- [Cursor Pagination Guide](./CURSOR_PAGINATION_GUIDE.md) - API docs and frontend integration
-- [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
-- [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Production deployment steps
-- [Select Fragments Source](../apps/api/src/common/select-fragments.ts) - Prisma select patterns
-- [Pagination Helper Source](../apps/api/src/common/pagination.helper.ts) - Cursor pagination implementation
+- [Cursor Pagination Guide](../CURSOR_PAGINATION_GUIDE.md) - API docs and frontend integration
+- [API Documentation](../API_DOCUMENTATION.md) - Complete API reference
+- [Deployment Guide](../DEPLOYMENT.md) - Production deployment steps
+- [Select Fragments Source](../../apps/api/src/common/select-fragments.ts) - Prisma select patterns
+- [Pagination Helper Source](../../apps/api/src/common/pagination.helper.ts) - Cursor pagination implementation
 
 ---
 
@@ -1106,12 +1106,12 @@ All changes are:
 
 ## References
 
-- [Cursor Pagination Guide](./CURSOR_PAGINATION_GUIDE.md) - API docs and frontend integration
-- [Read Replica Setup Guide](./READ_REPLICA_SETUP.md) - Database read replica configuration
-- [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
-- [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Production deployment steps
-- [Select Fragments Source](../apps/api/src/common/select-fragments.ts) - Prisma select patterns
-- [Pagination Helper Source](../apps/api/src/common/pagination.helper.ts) - Cursor pagination implementation
+- [Cursor Pagination Guide](../CURSOR_PAGINATION_GUIDE.md) - API docs and frontend integration
+- [Read Replica Setup Guide](../READ_REPLICA_SETUP.md) - Database read replica configuration
+- [API Documentation](../API_DOCUMENTATION.md) - Complete API reference
+- [Deployment Guide](../DEPLOYMENT.md) - Production deployment steps
+- [Select Fragments Source](../../apps/api/src/common/select-fragments.ts) - Prisma select patterns
+- [Pagination Helper Source](../../apps/api/src/common/pagination.helper.ts) - Cursor pagination implementation
 
 ---
 

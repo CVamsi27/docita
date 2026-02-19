@@ -15,6 +15,7 @@ import {
   PaymentSessionStatus,
   InvoiceStatus,
   WhatsappLogStatus,
+  Role,
 } from '@workspace/db';
 
 interface PaymentSessionWithRelations {
@@ -191,7 +192,7 @@ export class PaymentsService {
   }) {
     const session = await this.createPaymentSession(dto);
 
-    if (dto.sendWhatsApp) {
+    if (dto.paymentMode !== 'CASH' && dto.sendWhatsApp !== false) {
       await this.sendPaymentLinkWhatsApp(session.id);
     }
 
@@ -247,6 +248,13 @@ export class PaymentsService {
       );
     }
 
+    if (!(await this.isWhatsappEnabled(session.clinicId))) {
+      this.logger.log(
+        `WhatsApp disabled for clinic ${session.clinicId}; skipping payment link for session ${sessionId}`,
+      );
+      return { success: false, messageId: 'skipped-whatsapp-disabled' };
+    }
+
     const message = `Make a payment of ₹${session.amount / 100} for Invoice #${session.invoice.id.toString().slice(-8).toUpperCase()} at ${session.clinic.name}.\n\nPay here: ${session.shortUrl || session.paymentLink}`;
 
     const result = await this.whatsappClient.sendMessage({
@@ -285,6 +293,27 @@ export class PaymentsService {
     return { success: true, messageId: result.messageId };
   }
 
+  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
+    if (!this.prisma.clinic?.findUnique) {
+      return true;
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { whatsappAutomation: true },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation !== 'object'
+    ) {
+      return true;
+    }
+
+    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    return automation.enabled !== false;
+  }
+
   private composePaymentMessage(session: PaymentSessionWithRelations): string {
     const patientName = `${session.patient?.firstName} ${session.patient?.lastName}`;
     const amount = (session.amount / 100).toFixed(2);
@@ -295,6 +324,131 @@ export class PaymentsService {
     }
 
     return `Hi ${patientName},\n\nYour invoice #${invoiceNo} for ₹${amount} is ready.\n\nPay securely: ${session.shortUrl}\n\nIf you've already paid, please reply DONE.\n\nFor help, call ${session.clinic?.phone || 'clinic'}.\n\nThank you!`;
+  }
+
+  async markInvoicePaidManually(params: {
+    invoiceId: string;
+    clinicId: string;
+    performedByUserId: string;
+    paymentMethod: 'CASH' | 'OTHER';
+    amount?: number;
+    notes?: string;
+  }) {
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        id: params.invoiceId,
+        patient: {
+          clinicId: params.clinicId,
+        },
+      },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            clinic: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    if (invoice.status === InvoiceStatus.PAID) {
+      return {
+        success: true,
+        invoiceId: invoice.id,
+        alreadyPaid: true,
+      };
+    }
+
+    const amount = params.amount ?? invoice.total;
+    if (amount <= 0) {
+      throw new BadRequestException('Amount must be greater than zero');
+    }
+
+    const amountInPaise = Math.round(amount * 100);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedInvoice = await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: InvoiceStatus.PAID,
+        },
+      });
+
+      const session = await tx.paymentSession.create({
+        data: {
+          clinicId: params.clinicId,
+          invoiceId: invoice.id,
+          patientId: invoice.patientId,
+          provider: 'manual',
+          amount: amountInPaise,
+          currency: 'INR',
+          status: PaymentSessionStatus.PAID,
+          paidAt: new Date(),
+          meta: {
+            manualPayment: true,
+            paymentMethod: params.paymentMethod,
+            notes: params.notes,
+            performedByUserId: params.performedByUserId,
+          },
+        },
+      });
+
+      return { updatedInvoice, session };
+    });
+
+    this.paymentGateway.emitPaymentUpdate(params.clinicId, result.session.id, {
+      sessionId: result.session.id,
+      invoiceId: invoice.id,
+      status: PaymentSessionStatus.PAID,
+      paidAt: result.session.paidAt ?? undefined,
+    });
+
+    try {
+      await this.sendPaymentConfirmationNotifications(
+        {
+          id: result.session.id,
+          clinicId: params.clinicId,
+          invoiceId: invoice.id,
+          patientId: invoice.patient.id,
+          amount: amountInPaise,
+          shortUrl: null,
+          patient: {
+            id: invoice.patient.id,
+            firstName: invoice.patient.firstName,
+            lastName: invoice.patient.lastName,
+            phoneNumber: invoice.patient.phoneNumber,
+          },
+          clinic: {
+            name: invoice.patient.clinic.name,
+          },
+        },
+        `manual-${result.session.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send manual payment confirmations for session ${result.session.id}`,
+        error,
+      );
+    }
+
+    return {
+      success: true,
+      invoiceId: result.updatedInvoice.id,
+      status: result.updatedInvoice.status,
+      paymentSessionId: result.session.id,
+      paymentMethod: params.paymentMethod,
+    };
   }
 
   async handleRazorpayWebhook(
@@ -423,6 +577,57 @@ export class PaymentsService {
     );
   }
 
+  private async notifyStaffPaymentReceived(session: {
+    clinicId: string;
+    invoiceId: string | null;
+    amount: number;
+    patient: {
+      firstName: string;
+      lastName: string;
+    } | null;
+  }): Promise<void> {
+    if (
+      !this.prisma.user?.findMany ||
+      !this.prisma.staffNotification?.createMany
+    ) {
+      return;
+    }
+
+    const recipients = await this.prisma.user.findMany({
+      where: {
+        clinicId: session.clinicId,
+        role: { in: [Role.ADMIN, Role.ADMIN_DOCTOR, Role.RECEPTIONIST] },
+      },
+      select: { id: true },
+    });
+
+    if (recipients.length === 0) {
+      return;
+    }
+
+    const amountInRupees = (session.amount / 100).toFixed(2);
+    const patientName = session.patient
+      ? `${session.patient.firstName} ${session.patient.lastName}`
+      : 'Patient';
+    const invoiceNumber = session.invoiceId?.slice(0, 8).toUpperCase() || 'N/A';
+
+    await this.prisma.staffNotification.createMany({
+      data: recipients.map((recipient) => ({
+        clinicId: session.clinicId,
+        userId: recipient.id,
+        type: 'SYSTEM_ALERT',
+        title: 'Payment Received',
+        message: `Payment of ₹${amountInRupees} received for invoice ${invoiceNumber} from ${patientName}`,
+        data: {
+          invoiceId: session.invoiceId,
+          amount: session.amount,
+          patientName,
+        },
+        priority: 'HIGH',
+      })),
+    });
+  }
+
   /**
    * Send payment confirmation via WhatsApp and Push Notification
    */
@@ -448,6 +653,12 @@ export class PaymentsService {
   ): Promise<void> {
     if (!session.patient || !session.clinic || !session.patientId) return;
 
+    try {
+      await this.notifyStaffPaymentReceived(session);
+    } catch (error) {
+      this.logger.error('Failed to create staff payment notifications', error);
+    }
+
     const amountInRupees = session.amount / 100;
     const invoiceNumber = session.invoiceId?.slice(0, 8).toUpperCase() || 'N/A';
     const date = new Date().toLocaleDateString('en-IN', {
@@ -471,6 +682,13 @@ export class PaymentsService {
 
     // Send WhatsApp confirmation
     try {
+      if (!(await this.isWhatsappEnabled(session.clinicId))) {
+        this.logger.log(
+          `WhatsApp disabled for clinic ${session.clinicId}; skipping payment confirmation`,
+        );
+        return;
+      }
+
       const resolvedTemplate = await this.whatsappTemplates.resolveTemplate(
         'payment_confirmation',
         {

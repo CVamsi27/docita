@@ -69,6 +69,17 @@ RUN mkdir -p /app/node_modules/@workspace && \
 # Create uploads directory and temp subdirectory for Multer
 RUN mkdir -p /app/uploads/temp
 
+# Download Tesseract OCR training data for English
+# This data is required for the OCR module to function properly
+# Downloaded from Tesseract GitHub releases
+RUN mkdir -p /app/.tesseract && \
+    curl -fsSL "https://github.com/UB-Mannheim/tesseract/raw/main/tessdata/eng.traineddata" \
+    -o /app/.tesseract/eng.traineddata && \
+    echo "✓ Tesseract training data downloaded"
+
+# Set environment variable for Tesseract data path
+ENV TESSDATA_PREFIX=/app/.tesseract
+
 # Aggressive cleanup to minimize image size
 # Removes source files, config files, and caches
 RUN rm -rf \

@@ -50,6 +50,8 @@ export interface APIError extends Error {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
+  /** Field-level validation errors from backend RFC 7807 response */
+  validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 }
@@ -70,6 +72,8 @@ export class APIRequestError extends Error implements APIError {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
+  /** Field-level validation errors (e.g. { email: "Invalid", password: "Too short" }) */
+  validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 
@@ -77,6 +81,11 @@ export class APIRequestError extends Error implements APIError {
     super(message);
     this.name = "APIRequestError";
     Object.assign(this, options);
+  }
+
+  /** True if there are field-level errors to display inline */
+  get hasFieldErrors(): boolean {
+    return !!this.validationErrors && Object.keys(this.validationErrors).length > 0;
   }
 }
 
@@ -230,8 +239,16 @@ export function createAPIClient(config: APIClientConfig) {
             errorData = null;
           }
 
+          // Backend uses RFC 7807 Problem Details: detail holds the message,
+          // validationErrors holds { field: errorMessage } for 400/422.
+          const rfc7807 = errorData as {
+            detail?: string;
+            message?: string;
+            validationErrors?: Record<string, string>;
+          };
           const error = new APIRequestError(
-            (errorData as { message?: string })?.message ||
+            rfc7807?.detail ||
+              rfc7807?.message ||
               response.statusText ||
               "Request failed",
             {
@@ -239,6 +256,7 @@ export function createAPIClient(config: APIClientConfig) {
               statusText: response.statusText,
               data: errorData || undefined,
               code: getErrorCode(response.status),
+              validationErrors: rfc7807?.validationErrors || undefined,
             },
           );
 

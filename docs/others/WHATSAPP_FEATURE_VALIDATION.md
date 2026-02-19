@@ -34,7 +34,7 @@
    - Requires approval (usually instant, max 24 hours)
 
 2. **Clinic Name in Messages**:
-   - File: [apps/api/src/reminders/reminders.service.ts](../apps/api/src/reminders/reminders.service.ts#L364)
+  - File: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts#L364)
 
    ```typescript
    const clinicName = appointment.clinic?.name || "Docita";
@@ -61,7 +61,7 @@
 
 ### 2.1 24-Hour Reminder (Scheduled At)
 
-**File**: [apps/api/src/reminders/reminders.service.ts](../apps/api/src/reminders/reminders.service.ts#L104-L195)
+**File**: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts#L104-L195)
 
 **Cron Job**: Runs every hour (`@Cron(CronExpression.EVERY_HOUR)`)
 
@@ -75,7 +75,7 @@ async checkAndSendReminders() {
 }
 ```
 
-**Template** (Line 889 in [seed.ts](../apps/api/src/seed.ts)):
+**Template** (Line 889 in [seed.ts](../../apps/api/src/seed.ts)):
 
 ```
 Hi {{patientName}}! 
@@ -101,7 +101,7 @@ Reply with:
 
 ### 2.2 30-Minute Reminder
 
-**File**: [apps/api/src/reminders/reminders.service.ts](../apps/api/src/reminders/reminders.service.ts#L197-L277)
+**File**: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts#L197-L277)
 
 **Cron Job**: Runs every 5 minutes (`@Cron('*/5 * * * *')`)
 
@@ -115,7 +115,7 @@ async checkAndSend30MinReminders() {
 }
 ```
 
-**Template** (Line 905 in [seed.ts](../apps/api/src/seed.ts)):
+**Template** (Line 905 in [seed.ts](../../apps/api/src/seed.ts)):
 
 ```
  *30-Minute Alert* - {{clinicName}}
@@ -149,8 +149,8 @@ Are you on your way?
 
 **Files**:
 
-- Response Handler: [apps/api/src/modules/whatsapp/response-handler.service.ts](../apps/api/src/modules/whatsapp/response-handler.service.ts)
-- Webhook Controller: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../apps/api/src/modules/whatsapp/whatsapp.controller.ts)
+- Response Handler: [apps/api/src/modules/whatsapp/response-handler.service.ts](../../apps/api/src/modules/whatsapp/response-handler.service.ts)
+- Webhook Controller: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../../apps/api/src/modules/whatsapp/whatsapp.controller.ts)
 
 ### 3.1 Response Types
 
@@ -244,7 +244,7 @@ type PatientResponseType =
 
 ### 3.4 Database Schema
 
-**Model**: `AppointmentResponse` (Line 908 in [schema.prisma](../packages/db/prisma/schema.prisma))
+**Model**: `AppointmentResponse` (Line 908 in [schema.prisma](../../packages/db/prisma/schema.prisma))
 
 ```prisma
 model AppointmentResponse {
@@ -275,7 +275,7 @@ model AppointmentResponse {
 
 ###  Status: FULLY IMPLEMENTED
 
-**File**: [apps/api/src/modules/whatsapp/staff-notification.service.ts](../apps/api/src/modules/whatsapp/staff-notification.service.ts)
+**File**: [apps/api/src/modules/whatsapp/staff-notification.service.ts](../../apps/api/src/modules/whatsapp/staff-notification.service.ts)
 
 ### 4.1 Notification Channels
 
@@ -377,7 +377,7 @@ model Notification {
 
 ###  Status: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
 
-**File**: [apps/api/src/invoices/invoices.service.ts](../apps/api/src/invoices/invoices.service.ts#L176-L265)
+**File**: [apps/api/src/modules/invoices/invoices.service.ts](../../apps/api/src/modules/invoices/invoices.service.ts#L176-L265)
 
 ### 5.1 Approval Workflow
 
@@ -404,7 +404,7 @@ enum ApprovalStatus {
 
 ### 5.2 Authorization Rules
 
-**File**: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../apps/api/src/modules/whatsapp/whatsapp.controller.ts#L378-L384)
+**File**: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../../apps/api/src/modules/whatsapp/whatsapp.controller.ts#L378-L384)
 
 **Who Can Send**:
 
@@ -446,7 +446,7 @@ Thank you for choosing {{clinicName}}!
 
 ### 5.4 Automation Settings
 
-**File**: [apps/api/src/invoices/invoices.service.ts](../apps/api/src/invoices/invoices.service.ts#L139-L176)
+**File**: [apps/api/src/modules/invoices/invoices.service.ts](../../apps/api/src/modules/invoices/invoices.service.ts#L139-L176)
 
 **Configuration**: Clinic-level WhatsApp automation settings
 
@@ -489,7 +489,7 @@ const automationConfig = clinic.whatsappAutomation as {
 
 ###  STATUS: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
 
-**File**: [apps/api/src/prescriptions/prescriptions.service.ts](../apps/api/src/prescriptions/prescriptions.service.ts#L189-L258)
+**File**: [apps/api/src/modules/prescriptions/prescriptions.service.ts](../../apps/api/src/modules/prescriptions/prescriptions.service.ts#L189-L258)
 
 ### 6.1 Approval Workflow
 
@@ -509,7 +509,7 @@ model Prescription {
 
 ### 6.2 Authorization Rules
 
-**File**: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../apps/api/src/modules/whatsapp/whatsapp.controller.ts#L271-L277)
+**File**: [apps/api/src/modules/whatsapp/whatsapp.controller.ts](../../apps/api/src/modules/whatsapp/whatsapp.controller.ts#L271-L277)
 
 **Who Can Send**:
 
@@ -601,7 +601,7 @@ if (!automationConfig.enabled || !automationConfig.prescriptionSent) {
 
 ### 6.6 Approval Request for Non-Authorized Staff
 
-**Service**: [staff-notification.service.ts](../apps/api/src/modules/whatsapp/staff-notification.service.ts#L335-L368)
+**Service**: [staff-notification.service.ts](../../apps/api/src/modules/whatsapp/staff-notification.service.ts#L335-L368)
 
 **Method**: `sendApprovalRequest()`
 
@@ -823,7 +823,7 @@ CLINIC_NAME="Docita Business"
 ### 9.2 WhatsApp Automation Settings
 
 **UI**: Settings > WhatsApp Automation  
-**File**: [apps/app/components/settings/whatsapp-automation-settings.tsx](../apps/app/components/settings/whatsapp-automation-settings.tsx)
+**File**: [apps/app/features/settings/components/sections/WhatsAppSettings.tsx](../../apps/app/features/settings/components/sections/WhatsAppSettings.tsx)
 
 **Configurable Options**:
 
@@ -841,7 +841,7 @@ interface AutomationSettings {
 ### 9.3 Reminder Settings
 
 **UI**: Settings > Reminders  
-**File**: [apps/app/components/settings/reminder-settings.tsx](../apps/app/components/settings/reminder-settings.tsx)
+**File**: [apps/app/features/settings/components/sections/NotificationSettings.tsx](../../apps/app/features/settings/components/sections/NotificationSettings.tsx)
 
 **Configurable Options**:
 
@@ -1046,17 +1046,17 @@ Send manual reminder
 ### Documentation Files
 
 1. [WHATSAPP_CLOUD_API_SETUP.md](WHATSAPP_CLOUD_API_SETUP.md) - Setup guide
-2. [APPOINTMENT_STATUS_WORKFLOW.md](APPOINTMENT_STATUS_WORKFLOW.md) - Status management
+2. [APPOINTMENT_STATUS_WORKFLOW.md](../APPOINTMENT_STATUS_WORKFLOW.md) - Status management
 3. This file - Feature validation
 
 ### Key Implementation Files
 
-1. **Reminders**: [apps/api/src/reminders/reminders.service.ts](../apps/api/src/reminders/reminders.service.ts)
-2. **WhatsApp Service**: [apps/api/src/modules/whatsapp/whatsapp.service.ts](../apps/api/src/modules/whatsapp/whatsapp.service.ts)
-3. **Response Handler**: [apps/api/src/modules/whatsapp/response-handler.service.ts](../apps/api/src/modules/whatsapp/response-handler.service.ts)
-4. **Staff Notifications**: [apps/api/src/modules/whatsapp/staff-notification.service.ts](../apps/api/src/modules/whatsapp/staff-notification.service.ts)
-5. **Prescriptions**: [apps/api/src/prescriptions/prescriptions.service.ts](../apps/api/src/prescriptions/prescriptions.service.ts)
-6. **Invoices**: [apps/api/src/invoices/invoices.service.ts](../apps/api/src/invoices/invoices.service.ts)
+1. **Reminders**: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts)
+2. **WhatsApp Service**: [apps/api/src/modules/whatsapp/whatsapp.service.ts](../../apps/api/src/modules/whatsapp/whatsapp.service.ts)
+3. **Response Handler**: [apps/api/src/modules/whatsapp/response-handler.service.ts](../../apps/api/src/modules/whatsapp/response-handler.service.ts)
+4. **Staff Notifications**: [apps/api/src/modules/whatsapp/staff-notification.service.ts](../../apps/api/src/modules/whatsapp/staff-notification.service.ts)
+5. **Prescriptions**: [apps/api/src/modules/prescriptions/prescriptions.service.ts](../../apps/api/src/modules/prescriptions/prescriptions.service.ts)
+6. **Invoices**: [apps/api/src/modules/invoices/invoices.service.ts](../../apps/api/src/modules/invoices/invoices.service.ts)
 
 ---
 

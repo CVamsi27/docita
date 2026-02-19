@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { ClinicType } from '@workspace/db';
 
+const BankAccountSchema = z.object({
+  accountHolderName: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  branchName: z.string().optional(),
+  upiId: z.string().optional(),
+});
+
 export const ClinicSettingsSchema = z.object({
   description: z.string().optional(),
   openingTime: z.string().optional(),
@@ -33,6 +42,16 @@ export const ClinicSettingsSchema = z.object({
   theme: z.string().optional(),
   primaryColor: z.string().optional(),
   compactMode: z.boolean().optional(),
+
+  // Payment reminder scheduler
+  paymentReminderEnabled: z.boolean().optional(),
+  paymentReminderDays: z.array(z.number().int().min(1).max(30)).optional(),
+  paymentReminderAutoSendWhatsApp: z.boolean().optional(),
+
+  // Billing bank account preferences
+  useSameBankAccountForSubscriptionAndReceipts: z.boolean().optional(),
+  subscriptionPaymentBankAccount: BankAccountSchema.optional(),
+  paymentReceivingBankAccount: BankAccountSchema.optional(),
 
   // Prescription defaults
   defaultInstructions: z.string().optional(),

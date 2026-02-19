@@ -20,6 +20,7 @@ export { MemberManagementSettings } from "./MemberManagementSettings";
 export {
   WhatsAppAutomationSettings,
   NotificationSettings,
+  NotificationFeed,
   DoctorAvailabilitySettings,
   ReminderSettings,
   CustomFieldsSettings,

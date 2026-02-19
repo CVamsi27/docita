@@ -2,10 +2,10 @@ import {
   PipeTransform,
   Injectable,
   ArgumentMetadata,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { ZodSchema, ZodError } from 'zod';
+import { createZodValidationException } from '../utils/zod-exception.util';
 
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
@@ -24,10 +24,8 @@ export class ZodValidationPipe implements PipeTransform {
         errors: zodError?.errors,
         value: value,
       });
-      throw new BadRequestException('Validation failed', {
-        cause: error,
-        description: zodError?.errors?.map((e) => e.message).join(', '),
-      });
+      // Throw ZodValidationException so AllExceptionsFilter can extract field-level errors
+      throw createZodValidationException(zodError);
     }
   }
 }

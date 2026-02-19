@@ -11,7 +11,7 @@ import {
 } from "@/hooks/api/use-clinical";
 import { usePatients } from "@/hooks/api/use-patients";
 import { Patient } from "@workspace/types";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 
 export interface PaginatedResponse<T> {
   items: T[];

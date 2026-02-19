@@ -95,6 +95,18 @@ export const paymentDetailsSchema = z.object({
   razorpayPaymentId: z.string().optional(),
   razorpayOrderId: z.string().optional(),
   razorpaySignature: z.string().optional(),
+  cardLast4: z
+    .string()
+    .regex(/^\d{4}$/)
+    .optional(),
+  autoPay: z.boolean().optional(),
+  addons: z
+    .object({
+      whatsapp: z.boolean().optional(),
+      intelligence: z.boolean().optional(),
+    })
+    .optional(),
+  whatsappBusinessNumber: z.string().optional(),
   skipPayment: z.boolean().optional(),
 });
 

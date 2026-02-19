@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useInventory, useInventoryStats } from "@/hooks/api/use-inventory";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 import { InventoryItem } from "@workspace/types";
 
 export interface StockStatus {

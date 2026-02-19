@@ -10,6 +10,7 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { AuditModule } from '../audit/audit.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+import { PaymentReminderSchedulerService } from './payment-reminder-scheduler.service';
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
 import { AuthModule } from '../auth/auth.module';
@@ -33,6 +34,7 @@ import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.
   providers: [
     PaymentsService,
     PaymentRetryService,
+    PaymentReminderSchedulerService,
     PrismaService,
     PaymentWebSocketGateway,
     WebhookErrorHandlingService,

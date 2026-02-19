@@ -1,3 +1,25 @@
+/**
+ * Jest Configuration for @docita/api
+ *
+ * ⚠️  WHY JEST FOR API (not Vitest)?
+ * ────────────────────────────────────
+ * NestJS has first-class Jest support with dedicated testing utilities:
+ * - `@nestjs/testing` module for dependency injection and TestingModule
+ * - Built-in decorators for mocking providers and modules (@Mock, @Provide)
+ * - Native integration with NestJS lifecycle hooks (onModuleInit, etc.)
+ * - Better support for NestJS Guards, Interceptors, and Pipes in tests
+ * - Official NestJS docs and examples standardize on Jest
+ * - Established patterns in NestJS ecosystem for e2e and unit testing
+ *
+ * While Vitest is faster, switching would require:
+ * - Rewriting `@nestjs/testing` integrations
+ * - Manually mocking NestJS-specific features
+ * - Losing community support and patterns for backend unit tests
+ *
+ * Frontend (apps/app, apps/admin) use Vitest for speed (HMR-friendly).
+ * API stays on Jest for NestJS ecosystem compatibility.
+ */
+
 import type { Config } from 'jest';
 
 const config: Config = {

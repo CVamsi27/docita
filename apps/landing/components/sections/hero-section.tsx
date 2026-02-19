@@ -40,7 +40,7 @@ export function HeroSection() {
               size="lg"
               className="h-12 px-8 text-lg gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
-              Start Free Trial
+              Start 7 Day Free Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
@@ -53,6 +53,9 @@ export function HeroSection() {
             View Demo
           </Button>
         </div>
+        <p className="mt-4 text-sm text-muted-foreground animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+          7 day free trial • No credit card required
+        </p>
       </div>
       <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
         <DialogContent className="sm:max-w-[800px]">

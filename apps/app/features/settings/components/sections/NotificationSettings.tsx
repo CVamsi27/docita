@@ -12,7 +12,7 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { Bell, Loader2, Mail, Smartphone } from "lucide-react";
+import { Bell, Loader2, Smartphone } from "lucide-react";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -27,9 +27,8 @@ import {
 } from "@workspace/ui/components/form";
 
 const notificationSettingsSchema = z.object({
-  emailNotifications: z.boolean(),
-  smsNotifications: z.boolean(),
-  pushNotifications: z.boolean(),
+  whatsappNotifications: z.boolean(),
+  inAppNotifications: z.boolean(),
   appointmentAlerts: z.boolean(),
   reportAlerts: z.boolean(),
 });
@@ -46,9 +45,8 @@ export function NotificationSettings() {
   const form = useForm<NotificationSettingsFormValues>({
     resolver: zodResolver(notificationSettingsSchema),
     defaultValues: {
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: true,
+      whatsappNotifications: true,
+      inAppNotifications: true,
       appointmentAlerts: true,
       reportAlerts: true,
     },
@@ -58,9 +56,11 @@ export function NotificationSettings() {
     if (clinic) {
       const s = (clinic.settings as ClinicAppSettings) || {};
       form.reset({
-        emailNotifications: s.emailNotifications ?? true,
-        smsNotifications: s.smsNotifications ?? false,
-        pushNotifications: s.pushNotifications ?? true,
+        whatsappNotifications: s.whatsappNotifications ?? true,
+        inAppNotifications:
+          s.inAppNotifications ??
+          s.pushNotifications ??
+          true,
         appointmentAlerts: s.appointmentAlerts ?? true,
         reportAlerts: s.reportAlerts ?? true,
       });
@@ -102,39 +102,23 @@ export function NotificationSettings() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              noValidate
+              className="space-y-6"
+            >
               <FormField
                 control={form.control}
-                name="emailNotifications"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0 p-2">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div className="space-y-1">
-                        <Label className="text-base">Email Notifications</Label>
-                        <CardDescription>Receive email updates</CardDescription>
-                      </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="smsNotifications"
+                name="whatsappNotifications"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between space-y-0 p-2">
                     <div className="flex items-center gap-3">
                       <Smartphone className="h-4 w-4 text-muted-foreground" />
                       <div className="space-y-1">
-                        <Label className="text-base">SMS Notifications</Label>
-                        <CardDescription>Receive SMS alerts</CardDescription>
+                        <Label className="text-base">WhatsApp Notifications</Label>
+                        <CardDescription>
+                          Receive WhatsApp updates and reminders
+                        </CardDescription>
                       </div>
                     </div>
                     <FormControl>
@@ -149,15 +133,15 @@ export function NotificationSettings() {
 
               <FormField
                 control={form.control}
-                name="pushNotifications"
+                name="inAppNotifications"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between space-y-0 p-2">
                     <div className="flex items-center gap-3">
                       <Bell className="h-4 w-4 text-muted-foreground" />
                       <div className="space-y-1">
-                        <Label className="text-base">Push Notifications</Label>
+                        <Label className="text-base">In-App Notifications</Label>
                         <CardDescription>
-                          Browser push notifications
+                          Show real-time alerts inside the app
                         </CardDescription>
                       </div>
                     </div>

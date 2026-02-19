@@ -136,10 +136,15 @@ export class ReminderSchedulerService {
 
           // Send WhatsApp reminder (24-hour)
           if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
+            const templateId =
+              settings.hoursBeforeAppt === 1
+                ? 'appointment_reminder_1hr'
+                : 'appointment_reminder_24hr';
+
             await this.notificationService.sendWhatsappReminder(
               appointment as AppointmentForReminder,
               settings,
-              'appointment_reminder_24hr',
+              templateId,
             );
           }
         }

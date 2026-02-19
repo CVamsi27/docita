@@ -77,7 +77,11 @@ export const InvoiceCreateUI: FC = () => {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="space-y-6"
+        >
           <Card>
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>

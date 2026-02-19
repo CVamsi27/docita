@@ -10,10 +10,10 @@ cd /Users/vamsikrishnachandaluri/repos/docita
 pnpm --filter @docita/api dev
 
 # 2. Run load test (in another terminal)
-k6 run scripts/load-test.js
+k6 run scripts/k6-baseline.js
 
 # 3. Run with custom API URL
-k6 run scripts/load-test.js -e API_URL=http://localhost:3001/api/v1
+k6 run scripts/k6-baseline.js -e API_URL=http://localhost:3001/api/v1
 ```
 
 ### Test Configuration
@@ -88,10 +88,10 @@ Result: ✅ PASS
 
 ```bash
 # Save results to JSON for analysis
-k6 run -o json=load-test-results.json scripts/load-test.js
+k6 run -o json=load-test-results.json scripts/k6-baseline.js
 
 # Save to CSV
-k6 run --out csv=results.csv scripts/load-test.js
+k6 run --out csv=results.csv scripts/k6-baseline.js
 ```
 
 ### Common Issues & Solutions
@@ -128,13 +128,13 @@ Once verified, add to pipeline:
 ```yaml
 # .github/workflows/performance-test.yml
 - name: Run Load Tests
-  run: k6 run scripts/load-test.js
+   run: k6 run scripts/k6-baseline.js
   continue-on-error: true  # Allow builds to pass if performance test fails
 ```
 
 ### File Location
 
-- **Script:** [scripts/load-test.js](scripts/load-test.js)
+- **Script:** [scripts/k6-baseline.js](../../scripts/k6-baseline.js)
 - **Config:** Inside script (no separate config file needed)
 - **Results:** Generated in current directory as `results.json` if using `-o json=...`
 

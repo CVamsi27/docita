@@ -28,7 +28,7 @@ describe('PricingService', () => {
   it('should return addOns as an Array in fallback mode', async () => {
     const config = await service.getPricingConfig('INR');
     expect(Array.isArray(config.addOns)).toBe(true);
-    expect(config.addOns).toHaveLength(2);
-    expect(config.addOns[0]).toHaveProperty('id', 'WHATSAPP');
+    expect(config.addOns).toHaveLength(1);
+    expect(config.addOns[0]).toHaveProperty('id', 'INTELLIGENCE');
   });
 });

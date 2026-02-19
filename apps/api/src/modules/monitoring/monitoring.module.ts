@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { MonitoringController } from './monitoring.controller';
+import { MonitoringClientController } from './monitoring-client.controller';
 import { MonitoringService } from './monitoring.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { HealthController } from './health.controller';
@@ -17,7 +18,11 @@ import { HealthCheckService } from './services/health-check.service';
 @Global()
 @Module({
   imports: [TerminusModule, PrismaModule, ComplianceModule],
-  controllers: [MonitoringController, HealthController],
+  controllers: [
+    MonitoringController,
+    MonitoringClientController,
+    HealthController,
+  ],
   providers: [
     MonitoringService,
     MonitoringFactory,

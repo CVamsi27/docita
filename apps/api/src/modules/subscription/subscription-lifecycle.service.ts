@@ -108,9 +108,9 @@ export class SubscriptionLifecycleService {
       },
     });
 
-    // Update clinic tier and add-on features (merge with existing overrides)
+    // Update clinic tier and paid-tier features (merge with existing overrides)
     const featureUpdates: Record<string, boolean> = {};
-    if (addOns.includes('WHATSAPP')) {
+    if (tier !== 'CAPTURE') {
       featureUpdates['WHATSAPP'] = true;
       featureUpdates[Feature.PAYMENT_LINKS] = true;
       featureUpdates['WHATSAPP_REMINDERS'] = true;

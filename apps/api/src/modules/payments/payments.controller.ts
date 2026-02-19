@@ -4,6 +4,7 @@ import {
   CreatePaymentLinkDto,
   PaymentLinkResponseDto,
   PaymentSessionResponseDto,
+  MarkInvoicePaidDto,
   AnyResponseDto,
 } from './dto/payments.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -11,11 +12,13 @@ import { Role } from '@workspace/db';
 import { Roles } from '../auth/roles.decorator';
 import { Idempotent } from '../../common/decorators/idempotent.decorator';
 import { IdempotencyInterceptor } from '../../common/interceptors/idempotency.interceptor';
-import { UseInterceptors, ForbiddenException } from '@nestjs/common';
+import { UseInterceptors } from '@nestjs/common';
 
 interface AuthRequest {
   user: {
     clinicId: string;
+    id: string;
+    role: Role;
   };
 }
 
@@ -50,5 +53,23 @@ export class PaymentsController {
   ) {
     await this.paymentsService.verifySessionOwnership(id, req.user.clinicId);
     return this.paymentsService.getPaymentSession(id);
+  }
+
+  @Post('invoices/:invoiceId/mark-paid')
+  @Roles(Role.ADMIN, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @ZodSerializerDto(AnyResponseDto)
+  async markInvoicePaid(
+    @Param('invoiceId') invoiceId: string,
+    @Body() dto: MarkInvoicePaidDto,
+    @Request() req: AuthRequest,
+  ) {
+    return this.paymentsService.markInvoicePaidManually({
+      invoiceId,
+      clinicId: req.user.clinicId,
+      performedByUserId: req.user.id,
+      paymentMethod: dto.paymentMethod,
+      amount: dto.amount,
+      notes: dto.notes,
+    });
   }
 }

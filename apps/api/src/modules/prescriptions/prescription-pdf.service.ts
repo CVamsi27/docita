@@ -3,7 +3,7 @@ import {
   BasePdfService,
   BasePDFConfig,
   PDFContext,
-} from '../../common/services/base-pdf.service';
+} from '../../common/services/pdf/base-pdf.service';
 import {
   PDFClinicInfo,
   PDFDoctorInfo,

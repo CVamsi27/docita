@@ -145,7 +145,7 @@ export function PricingSection() {
             pricePerMonth="/mo"
             badgeColor="slate"
             features={captureTierFeatures}
-            buttonText="Start Free Trial"
+            buttonText="Start 7 Day Free Trial"
           />
 
           <PricingTierCard
@@ -163,7 +163,7 @@ export function PricingSection() {
             isPopular
             features={coreTierFeatures}
             isPrimary
-            buttonText="Start Free Trial"
+            buttonText="Start 7 Day Free Trial"
             buttonVariant="default"
           />
 
@@ -180,7 +180,7 @@ export function PricingSection() {
             }
             badgeColor="green"
             features={plusTierFeatures}
-            buttonText="Start Free Trial"
+            buttonText="Start 7 Day Free Trial"
           />
 
           <PricingTierCard
@@ -196,7 +196,7 @@ export function PricingSection() {
             }
             badgeColor="purple"
             features={proTierFeatures}
-            buttonText="Start Free Trial"
+            buttonText="Start 7 Day Free Trial"
           />
 
           <PricingTierCard
@@ -258,7 +258,7 @@ export function PricingSection() {
 
         {/* Pricing Notes */}
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p>All plans include a 14-day free trial. No credit card required.</p>
+          <p>All plans include a 7 day free trial. No credit card required.</p>
           <p>
             Save 10% with annual billing. Loyalty discounts up to 10% after 3
             years.

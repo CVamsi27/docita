@@ -15,7 +15,7 @@ import { ClinicTier, BillingCycle } from '@workspace/db';
 import {
   TIER_PRICING,
   ANNUAL_DISCOUNT_PERCENT,
-  WHATSAPP_ADDON_PRICING,
+  INTELLIGENCE_ADDON_PRICING,
 } from '@workspace/types';
 
 const REFERRAL_DISCOUNT_PERCENT = 25;
@@ -80,13 +80,12 @@ export class BillingCalculationService {
     }
 
     // Add-ons Price (apply yearly/semi-annual discount)
-    if (addOns.includes('WHATSAPP')) {
-      const whatsappPricing =
-        WHATSAPP_ADDON_PRICING[tier as keyof typeof WHATSAPP_ADDON_PRICING];
-      if (whatsappPricing) {
+    if (addOns.includes('INTELLIGENCE') && tier !== 'CAPTURE') {
+      const intelligencePricing = INTELLIGENCE_ADDON_PRICING[tier];
+      if (intelligencePricing) {
         const addOnMonthly =
-          typeof whatsappPricing.basePrice === 'number'
-            ? whatsappPricing.basePrice
+          typeof intelligencePricing.basePrice === 'number'
+            ? intelligencePricing.basePrice
             : 0;
         if (cycle === 'YEARLY') {
           subtotalCents += Math.round(

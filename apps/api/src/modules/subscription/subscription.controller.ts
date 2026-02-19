@@ -50,6 +50,12 @@ export class SubscriptionController {
     private readonly billingService: SubscriptionBillingService,
   ) {}
 
+  private normalizeAddOns(addOns: string[] = []): string[] {
+    return addOns
+      .map((addOn) => addOn.toUpperCase())
+      .filter((addOn) => addOn === 'INTELLIGENCE');
+  }
+
   @Public()
   @Get('config')
   @ZodSerializerDto(SubscriptionTierConfigResponseDto)
@@ -155,7 +161,7 @@ export class SubscriptionController {
     @Query('cycle') cycle: 'MONTHLY' | 'YEARLY',
     @Query('addOns') addOnsRaw?: string,
   ) {
-    const addOns = addOnsRaw ? addOnsRaw.split(',') : [];
+    const addOns = this.normalizeAddOns(addOnsRaw ? addOnsRaw.split(',') : []);
     return this.billingService.previewUpgrade(
       req.user.clinicId,
       tier,
@@ -175,12 +181,13 @@ export class SubscriptionController {
     @Request() req: AuthRequest,
     @Body() dto: CreateCheckoutRequestDto,
   ) {
+    const addOns = this.normalizeAddOns(dto.addOns || []);
     return this.billingService.createCheckout(
       req.user.clinicId,
       dto.tier as ClinicTier,
       dto.billingCycle as BillingCycle,
       dto.referralCode,
-      dto.addOns || [],
+      addOns,
     );
   }
 
@@ -194,6 +201,7 @@ export class SubscriptionController {
     @Request() req: AuthRequest,
     @Body() dto: ActivateSubscriptionRequestDto,
   ) {
+    const addOns = this.normalizeAddOns(dto.addOns || []);
     await this.billingService.activateSubscription(
       req.user.clinicId,
       dto.razorpayPaymentId,
@@ -201,7 +209,7 @@ export class SubscriptionController {
       dto.razorpaySignature,
       dto.tier as ClinicTier,
       dto.billingCycle as BillingCycle,
-      dto.addOns || [],
+      addOns,
     );
     return this.subscriptionService.getSubscription(req.user.clinicId);
   }

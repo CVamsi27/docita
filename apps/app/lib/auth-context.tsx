@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { parseApiErrorResponse } from "@/lib/api-error";
 import type { UserRole } from "@workspace/types";
 
 export interface User {
@@ -125,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error("Login failed");
+        throw await parseApiErrorResponse(response, "Login failed");
       }
 
       const data = await response.json();
@@ -178,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error("Email check failed");
+        throw await parseApiErrorResponse(response, "Email check failed");
       }
 
       const data = await response.json();
@@ -215,8 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
+        throw await parseApiErrorResponse(response, "Registration failed");
       }
 
       const data = await response.json();

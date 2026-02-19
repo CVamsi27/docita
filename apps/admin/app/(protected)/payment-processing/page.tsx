@@ -427,7 +427,11 @@ export default function PaymentProcessingPage() {
           </DialogHeader>
 
           {tierInfo && (
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              noValidate
+              className="space-y-4"
+            >
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">

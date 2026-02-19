@@ -1,13 +1,3 @@
-/**
- * useSubscriptionCheckout
- *
- * Encapsulates the full subscription payment flow:
- *   1. POST /subscription/billing/checkout → get Razorpay order
- *   2. Open Razorpay checkout
- *   3. POST /subscription/billing/activate → confirm payment
- *
- * Follows SRP: payment orchestration lives here, not in UI components.
- */
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +5,7 @@ import { useRazorpay } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import type { TierName } from "@workspace/types";
+import { API_URL } from "@/lib/api-config";
 
 export interface CheckoutSuccessData {
   planName: string;
@@ -33,9 +24,6 @@ interface AddonCheckoutParams {
   billingCycle: "MONTHLY" | "YEARLY";
   currentTier: number;
 }
-
-const apiUrl =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
 export function useSubscriptionCheckout(
   onSuccess: (data: CheckoutSuccessData) => void,
@@ -56,13 +44,15 @@ export function useSubscriptionCheckout(
 
   const checkoutTier = useCallback(
     async ({ tier, billingCycle }: TierCheckoutParams) => {
-      if (!token) return;
+      if (!token) {
+        throw new Error("Please sign in to continue");
+      }
       setIsProcessing(true);
       setProcessingId(`tier-${tier}`);
 
       try {
         const createRes = await fetch(
-          `${apiUrl}/subscription/billing/checkout`,
+          `${API_URL}/subscription/billing/checkout`,
           {
             method: "POST",
             headers: {
@@ -92,43 +82,37 @@ export function useSubscriptionCheckout(
               razorpay_order_id: string;
               razorpay_signature: string;
             };
-            try {
-              const activateRes = await fetch(
-                `${apiUrl}/subscription/billing/activate`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({
-                    razorpayPaymentId: data.razorpay_payment_id,
-                    razorpayOrderId: data.razorpay_order_id,
-                    razorpaySignature: data.razorpay_signature,
-                    tier,
-                    billingCycle,
-                    addOns: [],
-                  }),
+            const activateRes = await fetch(
+              `${API_URL}/subscription/billing/activate`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
                 },
-              );
-              const activateData = await activateRes.json();
-              if (!activateRes.ok) {
-                throw new Error(activateData.message || "Activation failed");
-              }
-
-              setTier(tier);
-              await invalidateSubscriptionQueries();
-              onSuccess({
-                planName: `${tier} Plan`,
-                amount: amountCents ? amountCents / 100 : undefined,
-                transactionId: data.razorpay_payment_id,
-                isAddon: false,
-              });
-            } catch (err: unknown) {
-              toast.error(
-                err instanceof Error ? err.message : "Payment verification failed",
-              );
+                body: JSON.stringify({
+                  razorpayPaymentId: data.razorpay_payment_id,
+                  razorpayOrderId: data.razorpay_order_id,
+                  razorpaySignature: data.razorpay_signature,
+                  tier,
+                  billingCycle,
+                  addOns: [],
+                }),
+              },
+            );
+            const activateData = await activateRes.json();
+            if (!activateRes.ok) {
+              throw new Error(activateData.message || "Activation failed");
             }
+
+            setTier(tier);
+            await invalidateSubscriptionQueries();
+            onSuccess({
+              planName: `${tier} Plan`,
+              amount: amountCents ? amountCents / 100 : undefined,
+              transactionId: data.razorpay_payment_id,
+              isAddon: false,
+            });
           },
           prefill: {
             name: user?.name || "Clinic Admin",
@@ -137,9 +121,14 @@ export function useSubscriptionCheckout(
           theme: { color: "#0F172A" },
         });
       } catch (error: unknown) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to process upgrade",
-        );
+        const message =
+          error instanceof Error ? error.message : "Failed to process upgrade";
+        if (message === "Payment was cancelled") {
+          toast.info(message);
+        } else {
+          toast.error(message);
+        }
+        throw error;
       } finally {
         setIsProcessing(false);
         setProcessingId(null);
@@ -150,13 +139,15 @@ export function useSubscriptionCheckout(
 
   const checkoutAddon = useCallback(
     async ({ addonId, billingCycle, currentTier }: AddonCheckoutParams) => {
-      if (!token) return;
+      if (!token) {
+        throw new Error("Please sign in to continue");
+      }
       setIsProcessing(true);
       setProcessingId(addonId);
 
       try {
         const createRes = await fetch(
-          `${apiUrl}/subscription/billing/checkout`,
+          `${API_URL}/subscription/billing/checkout`,
           {
             method: "POST",
             headers: {
@@ -190,42 +181,36 @@ export function useSubscriptionCheckout(
               razorpay_order_id: string;
               razorpay_signature: string;
             };
-            try {
-              const activateRes = await fetch(
-                `${apiUrl}/subscription/billing/activate`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({
-                    razorpayPaymentId: data.razorpay_payment_id,
-                    razorpayOrderId: data.razorpay_order_id,
-                    razorpaySignature: data.razorpay_signature,
-                    billingCycle,
-                    addOns: [addonId],
-                    tier: currentTier,
-                  }),
+            const activateRes = await fetch(
+              `${API_URL}/subscription/billing/activate`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
                 },
-              );
-              const activateData = await activateRes.json();
-              if (!activateRes.ok) {
-                throw new Error(activateData.message || "Activation failed");
-              }
-
-              await invalidateSubscriptionQueries();
-              onSuccess({
-                planName: addonId,
-                amount: amountCents ? amountCents / 100 : undefined,
-                transactionId: data.razorpay_payment_id,
-                isAddon: true,
-              });
-            } catch (err: unknown) {
-              toast.error(
-                err instanceof Error ? err.message : "Payment verification failed",
-              );
+                body: JSON.stringify({
+                  razorpayPaymentId: data.razorpay_payment_id,
+                  razorpayOrderId: data.razorpay_order_id,
+                  razorpaySignature: data.razorpay_signature,
+                  billingCycle,
+                  addOns: [addonId],
+                  tier: currentTier,
+                }),
+              },
+            );
+            const activateData = await activateRes.json();
+            if (!activateRes.ok) {
+              throw new Error(activateData.message || "Activation failed");
             }
+
+            await invalidateSubscriptionQueries();
+            onSuccess({
+              planName: addonId,
+              amount: amountCents ? amountCents / 100 : undefined,
+              transactionId: data.razorpay_payment_id,
+              isAddon: true,
+            });
           },
           prefill: {
             name: user?.name || "Clinic Admin",
@@ -234,9 +219,14 @@ export function useSubscriptionCheckout(
           theme: { color: "#0F172A" },
         });
       } catch (error: unknown) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to process purchase",
-        );
+        const message =
+          error instanceof Error ? error.message : "Failed to process purchase";
+        if (message === "Payment was cancelled") {
+          toast.info(message);
+        } else {
+          toast.error(message);
+        }
+        throw error;
       } finally {
         setIsProcessing(false);
         setProcessingId(null);

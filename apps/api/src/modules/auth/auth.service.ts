@@ -12,7 +12,6 @@ import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
 import { UserFactory } from '../users/factories/user.factory';
-import { ClinicFactory } from '../clinics/factories/clinic.factory';
 import { MonitoringService } from '../monitoring/monitoring.service';
 import { ObservabilityService } from '../../common/services/observability.service';
 import { nanoid } from 'nanoid';
@@ -51,7 +50,6 @@ export class AuthService {
     private jwtService: JwtService,
     @Inject('IPasswordPolicy') private passwordPolicy: IPasswordPolicy,
     private userFactory: UserFactory,
-    private clinicFactory: ClinicFactory,
     private monitoringService: MonitoringService,
     private observability: ObservabilityService,
   ) {}
@@ -332,35 +330,18 @@ export class AuthService {
       const defaultRole = data.clinicName ? Role.ADMIN : Role.DOCTOR;
       const role = data.role || defaultRole;
 
+      if (data.clinicName) {
+        throw new BadRequestException(
+          'Clinic registration now requires onboarding. Please complete registration at /onboarding to accept SLA, choose plan/add-ons, and configure billing.',
+        );
+      }
+
       const userData = this.userFactory.create(role, {
         email: data.email,
         name: data.name,
         passwordHash: hashedPassword,
         clinicId: data.clinicId, // May be undefined if creating new clinic
       });
-
-      if (data.clinicName) {
-        // Create Clinic + User Transaction
-        const clinicData = this.clinicFactory.create({
-          name: data.clinicName,
-          email: data.email, // Use admin email as clinic contact initially
-        });
-
-        const clinic = await this.prisma.clinic.create({
-          data: {
-            ...clinicData,
-            users: {
-              create: userData, // Create user nested
-            },
-          },
-          include: {
-            users: true, // Return users to get the created user ID
-          },
-        });
-
-        const newUser = clinic.users[0];
-        return this.login(newUser);
-      }
 
       // Standard User Creation (e.g. Patient)
       const user = await this.prisma.user.create({

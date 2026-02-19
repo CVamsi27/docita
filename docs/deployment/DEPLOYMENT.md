@@ -711,7 +711,7 @@ The project includes pre-configured GitHub Actions workflows for AWS deployment:
 | `EC2_USERNAME` | EC2 SSH username | `ubuntu` |
 | `EC2_SSH_KEY` | EC2 private key (full content) | `-----BEGIN...` |
 
-**See:** [.github/workflows/README.md](../.github/workflows/README.md) for detailed workflow documentation.
+**See:** [.github/workflows/README.md](../../.github/workflows/README.md) for detailed workflow documentation.
 
 ### 7.9 AWS App Runner (Serverless Alternative)
 
@@ -1072,9 +1072,9 @@ docker system prune -a
 
 - [DEPLOY-1 Infrastructure Setup Guide](./DEPLOY-1_INFRASTRUCTURE_SETUP.md) - Detailed step-by-step setup
 - [DEPLOY-1 Quick Reference](./DEPLOY-1_QUICK_REFERENCE.md) - Common CLI commands
-- [Architecture Documentation](../ARCHITECTURE.md) - System architecture overview
-- [Incident Response Guide](../INCIDENT_RESPONSE.md) - Handling production incidents
-- [On-Call Runbook](../ON_CALL_RUNBOOK.md) - Emergency procedures
+- [Module Boundaries Guide](../MODULE_BOUNDARIES.md) - System architecture and module boundaries
+- [Incident Response Guide](../archive/INCIDENT_RESPONSE.md) - Handling production incidents
+- [On-Call Runbook](../archive/ON_CALL_RUNBOOK.md) - Emergency procedures
 
 ### External Resources
 

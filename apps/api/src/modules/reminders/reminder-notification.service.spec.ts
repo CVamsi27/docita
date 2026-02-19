@@ -52,6 +52,9 @@ describe('ReminderNotificationService', () => {
       whatsappLog: {
         create: jest.fn().mockResolvedValue({}),
       },
+      clinic: {
+        findUnique: jest.fn().mockResolvedValue({ whatsappAutomation: null }),
+      },
     };
 
     const whatsappClientMock = {

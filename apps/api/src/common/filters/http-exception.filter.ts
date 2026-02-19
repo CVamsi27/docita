@@ -98,7 +98,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorStack = exception.stack;
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'string') {
+      // Check if this HttpException wraps a ZodError (from custom ZodValidationPipe fallback)
+      const cause = (exception as any).cause;
+      if (cause && 'issues' in cause && Array.isArray(cause.issues)) {
+        // Extract field-level errors from the ZodError cause
+        const formattedErrors = (cause.issues as ZodIssue[]).reduce(
+          (acc: Record<string, string>, err: ZodIssue) => {
+            const field = err.path.join('.');
+            acc[field] = err.message;
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
+        details = formattedErrors;
+        message = 'Validation failed. Please check the highlighted fields.';
+      } else if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (
         typeof exceptionResponse === 'object' &&
@@ -112,7 +126,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
           responseObj.error ||
           message;
         // Capture details if present (e.g. from class-validator)
-        details = responseObj.message;
+        if (
+          Array.isArray(responseObj.message) &&
+          responseObj.message.length > 0
+        ) {
+          // class-validator style: array of field error strings
+          details = responseObj.message;
+        }
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       errorType = 'PrismaClientKnownRequestError';

@@ -5,6 +5,7 @@ import { SystemEventsService } from './system-events.service';
 import { ApprovalService } from './approval.service';
 import { MessagingService } from './messaging.service';
 import { TemplateMessageService } from './template-message.service';
+import { StaffNotificationService } from './staff-notification.service';
 import { SendTemplateDto } from './dto/send-template.dto';
 
 /**
@@ -21,6 +22,7 @@ export class WhatsappService {
     private readonly approvalService: ApprovalService,
     private readonly messagingService: MessagingService,
     private readonly templateMessageService: TemplateMessageService,
+    private readonly staffNotificationService: StaffNotificationService,
   ) {}
 
   // ==========================================================================
@@ -124,6 +126,26 @@ export class WhatsappService {
 
   async getWhatsappStats(clinicId: string) {
     return this.messagingService.getWhatsappStats(clinicId);
+  }
+
+  // ==========================================================================
+  // In-App Staff Notifications
+  // ==========================================================================
+
+  async getUnreadNotificationCount(userId: string) {
+    return this.staffNotificationService.getUnreadCount(userId);
+  }
+
+  async getUnreadNotifications(userId: string, limit?: number) {
+    return this.staffNotificationService.getUnreadNotifications(userId, limit);
+  }
+
+  async markNotificationsAsRead(notificationIds: string[], userId: string) {
+    return this.staffNotificationService.markAsRead(notificationIds, userId);
+  }
+
+  async markAllNotificationsAsRead(userId: string) {
+    return this.staffNotificationService.markAllAsRead(userId);
   }
 
   // ==========================================================================

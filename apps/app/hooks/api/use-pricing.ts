@@ -70,21 +70,19 @@ interface EstimateResponse {
   currency: { code: string; symbol: string };
   breakdown: {
     basePrice: number;
-    overageEstimate: number;
-    addons: number;
-    addonsDetail: Record<string, number>;
+    addOns: Record<string, { base: number; overage: number }>;
+    addOnTotal: number;
     discount: { percent: number; amount: number };
     subtotal: number;
-    tax: number;
-    taxPercent: number;
-    total: number;
+    overages: {
+      patients: { count: number; charge: number };
+      appointments: { count: number; charge: number };
+      users: { count: number; charge: number };
+    };
+    overageTotal: number;
   };
-  limits: {
-    patients: number;
-    appointments: number;
-    storage: number;
-    users: number;
-  };
+  totalMonthly: number;
+  totalYearly: number;
 }
 
 const fetcher = async (url: string) => {

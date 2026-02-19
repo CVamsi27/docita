@@ -52,6 +52,23 @@ export class ReminderNotificationService {
     private templatesService: TemplatesService,
   ) {}
 
+  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { whatsappAutomation: true },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation !== 'object'
+    ) {
+      return true;
+    }
+
+    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    return automation.enabled !== false;
+  }
+
   /**
    * Send email reminder
    */
@@ -150,6 +167,13 @@ export class ReminderNotificationService {
   ): Promise<void> {
     try {
       const clinicId = appointment.clinic?.id || '';
+      if (clinicId && !(await this.isWhatsappEnabled(clinicId))) {
+        this.logger.log(
+          `[WhatsApp] Disabled for clinic ${clinicId}; skipping ${reminderType} reminder for appointment ${appointment.id}`,
+        );
+        return;
+      }
+
       const clinicName = appointment.clinic?.name || 'Docita';
 
       // Prepare template variables

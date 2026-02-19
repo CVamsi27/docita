@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 
 import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {

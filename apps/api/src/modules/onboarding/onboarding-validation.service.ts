@@ -38,6 +38,43 @@ export class OnboardingValidationService {
       errors.push('Consent management configuration is required');
     }
 
+    if (data.slaAgreement) {
+      if (!data.slaAgreement.acceptedSLA) {
+        errors.push('SLA must be accepted to complete onboarding');
+      }
+      if (!data.slaAgreement.acceptedDataProcessingTerms) {
+        errors.push('Data processing terms must be accepted');
+      }
+      if (!data.slaAgreement.acceptedPrivacyPolicy) {
+        errors.push('Privacy policy must be accepted');
+      }
+    }
+
+    if (data.planSelection && data.planSelection.tier !== ClinicTier.CAPTURE) {
+      const hasProcessedPayment =
+        !!data.paymentDetails?.razorpayPaymentId ||
+        (!!data.paymentDetails?.cardLast4 &&
+          data.paymentDetails?.skipPayment !== true);
+
+      if (!hasProcessedPayment) {
+        errors.push('Payment details are required for paid plans');
+      }
+    }
+
+    const wantsWhatsapp =
+      !!data.paymentDetails?.addons?.whatsapp ||
+      !!data.consentManagement?.enableWhatsAppCommunication;
+
+    if (
+      wantsWhatsapp &&
+      !data.consentManagement?.whatsappBusinessNumber &&
+      !data.paymentDetails?.whatsappBusinessNumber
+    ) {
+      errors.push(
+        'WhatsApp business number is required when WhatsApp is enabled',
+      );
+    }
+
     if (errors.length > 0) {
       return { valid: false, errors };
     }

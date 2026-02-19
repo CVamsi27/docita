@@ -66,7 +66,7 @@ export function AddAppointmentDialogUI({
       description="Create a new appointment for a patient."
     >
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Patient Selection */}
             <PatientSelector

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   Calendar,
   FileText,
   Home,
@@ -17,7 +18,9 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { useUnreadNotificationCount } from "@/hooks/api/use-whatsapp";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -27,12 +30,15 @@ const navItems = [
   { href: "/invoices", icon: Receipt, label: "Invoices" },
   { href: "/inventory", icon: Package, label: "Inventory" },
   { href: "/documents", icon: FileText, label: "Documents" },
+  { href: "/settings?tab=notification-feed", icon: Bell, label: "Notifications" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { data: unreadNotificationCount } = useUnreadNotificationCount();
+  const notificationCount = unreadNotificationCount?.count ?? 0;
 
   return (
     <div className="lg:hidden">
@@ -63,6 +69,7 @@ export function MobileNav() {
             <nav className="flex flex-col gap-1 p-4">
               {navItems.map((item) => {
                 const isActive =
+                  (item.href.startsWith("/settings?") && pathname === "/settings") ||
                   pathname === item.href ||
                   pathname.startsWith(`${item.href}/`);
                 return (
@@ -79,6 +86,15 @@ export function MobileNav() {
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
+                    {item.href.startsWith("/settings?tab=notification-feed") &&
+                      notificationCount > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                        >
+                          {notificationCount > 9 ? "9+" : notificationCount}
+                        </Badge>
+                      )}
                   </Link>
                 );
               })}

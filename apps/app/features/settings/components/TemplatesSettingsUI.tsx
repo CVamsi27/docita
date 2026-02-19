@@ -140,7 +140,7 @@ export const TemplatesSettingsUI: FC = () => {
               prescriptions.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name">Template Name <span className="text-destructive">*</span></Label>
               <Input

@@ -64,7 +64,7 @@ If tests are heavy, run targeted suites first (API/app-specific).
 
 ## 7) Common First Tasks
 
-- Read `DEVELOPER_GUIDE.md`
+- Read `README.md` and `docs/ONBOARDING_ARCHITECTURE.md`
 - Read `.github/copilot-instructions.md`
 - Pick one feature folder and follow existing structure
 

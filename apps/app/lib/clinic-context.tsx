@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
+import { API_URL } from "@/lib/api-config";
 
 export interface Clinic {
   id: string;
@@ -157,12 +158,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       isFetchingRef.current = true;
       lastFetchTimeRef.current = now;
 
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-      const response = await fetch(`${apiUrl}/clinic/settings`, {
+      const token = localStorage.getItem("docita_token");
+      const response = await fetch(`${API_URL}/clinic/settings`, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 

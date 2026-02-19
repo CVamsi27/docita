@@ -15,8 +15,8 @@ export interface ClinicAppSettings {
   compactMode?: boolean;
   
   // Notifications
-  emailNotifications?: boolean;
-  smsNotifications?: boolean;
+  whatsappNotifications?: boolean;
+  inAppNotifications?: boolean;
   pushNotifications?: boolean;
   appointmentAlerts?: boolean;
   reportAlerts?: boolean;

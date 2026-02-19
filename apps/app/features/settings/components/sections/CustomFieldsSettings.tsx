@@ -183,6 +183,7 @@ export function CustomFieldsSettings() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleAddField)}
+              noValidate
               className="space-y-4 py-4"
             >
               <FormField

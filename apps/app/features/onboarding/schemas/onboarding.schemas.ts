@@ -32,9 +32,8 @@ export const planSelectionSchema = z.object({
   tier: z.enum(["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"]),
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
   addons: z.object({
-    whatsapp: z.boolean(),
     intelligence: z.boolean(),
-  }).default({ whatsapp: false, intelligence: false }),
+  }).default({ intelligence: false }),
   referralCode: z.string().optional(),
 });
 

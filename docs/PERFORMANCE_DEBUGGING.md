@@ -102,8 +102,8 @@ pnpm --filter @docita/api test:e2e
 ## Incident Workflow
 
 1. Open incident in on-call channel.
-2. Follow [ON_CALL_RUNBOOK.md](../ON_CALL_RUNBOOK.md) response steps.
-3. Coordinate communication via [INCIDENT_RESPONSE.md](../INCIDENT_RESPONSE.md).
+2. Follow [ON_CALL_RUNBOOK.md](./archive/ON_CALL_RUNBOOK.md) response steps.
+3. Coordinate communication via [INCIDENT_RESPONSE.md](./archive/INCIDENT_RESPONSE.md).
 4. If customer-visible degradation persists >15 minutes, publish status page update.
 5. Record timeline and mitigation actions for postmortem.
 
@@ -116,7 +116,7 @@ pnpm --filter @docita/api test:e2e
 
 ## Related Docs
 
-- [MONITORING_SETUP_GUIDE.md](../MONITORING_SETUP_GUIDE.md)
-- [ON_CALL_RUNBOOK.md](../ON_CALL_RUNBOOK.md)
-- [INCIDENT_RESPONSE.md](../INCIDENT_RESPONSE.md)
+- [MONITORING_SETUP_GUIDE.md](./archive/MONITORING_SETUP_GUIDE.md)
+- [ON_CALL_RUNBOOK.md](./archive/ON_CALL_RUNBOOK.md)
+- [INCIDENT_RESPONSE.md](./archive/INCIDENT_RESPONSE.md)
 - [scripts/README.md](../scripts/README.md)

@@ -22,6 +22,17 @@ function TestForm() {
           { label: "Follow-up", value: "follow-up" },
         ]}
       />
+      <button
+        type="button"
+        onClick={() =>
+          form.setError("notes", {
+            type: "manual",
+            message: "Notes are required",
+          })
+        }
+      >
+        Trigger Notes Error
+      </button>
     </Form>
   );
 }
@@ -44,5 +55,15 @@ describe("AppointmentFormFields", () => {
     fireEvent.change(notesInput, { target: { value: "Patient requested evening slot" } });
 
     expect(notesInput).toHaveValue("Patient requested evening slot");
+  });
+
+  it("shows field-level validation state and message when notes has an error", () => {
+    render(<TestForm />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Trigger Notes Error" }));
+
+    const notesInput = screen.getByPlaceholderText("Add any additional notes...");
+    expect(notesInput).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("Notes are required")).toBeInTheDocument();
   });
 });

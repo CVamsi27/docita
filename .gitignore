@@ -72,8 +72,7 @@ apps/api/src/seed-admin.ts
 
 # Misc logs
 *.log
-*.js
-*.txt
+*.js.map
 
 # Large binary files
 *.traineddata

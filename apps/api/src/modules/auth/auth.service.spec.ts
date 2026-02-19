@@ -279,7 +279,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('should create clinic and user when clinicName is provided', async () => {
+    it('should reject registration when clinicName is provided and require onboarding', async () => {
       const registerData = {
         email: 'admin@clinic.com',
         password: 'ValidPass123!',
@@ -287,35 +287,11 @@ describe('AuthService', () => {
         clinicName: 'New Clinic',
       };
 
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedNewPassword');
-
-      const mockClinic = {
-        id: 'clinic-new',
-        name: registerData.clinicName,
-        users: [
-          { ...mockUserWithoutPassword, id: 'user-new', role: Role.ADMIN },
-        ],
-      };
-
-      jest
-        .spyOn(prismaService.clinic, 'create')
-        .mockResolvedValue(mockClinic as any);
-      jest.spyOn(service, 'login').mockReturnValue({
-        access_token: 'token',
-        user: mockClinic.users[0],
-      } as any);
-
-      await service.register(registerData);
-
-      expect(clinicFactory.create).toHaveBeenCalledWith({
-        name: registerData.clinicName,
-        email: registerData.email,
-      });
-      expect(prismaService.clinic.create).toHaveBeenCalled();
-      expect(userFactory.create).toHaveBeenCalledWith(
-        Role.ADMIN,
-        expect.anything(),
+      await expect(service.register(registerData)).rejects.toThrow(
+        'Clinic registration now requires onboarding. Please complete registration at /onboarding to accept SLA, choose plan/add-ons, and configure billing.',
       );
+
+      expect(prismaService.clinic.create).not.toHaveBeenCalled();
     });
   });
 

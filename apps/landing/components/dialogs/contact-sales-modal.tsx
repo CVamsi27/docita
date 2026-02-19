@@ -34,6 +34,11 @@ export function ContactSalesModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    message?: string;
+  }>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -48,21 +53,26 @@ export function ContactSalesModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const errors: { name?: string; email?: string; message?: string } = {};
 
-    // Validation
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.message.trim()
-    ) {
-      setError("Please fill in all required fields");
-      return;
+    if (!formData.name.trim()) {
+      errors.name = "Name is required";
+    }
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    }
+    if (!formData.message.trim()) {
+      errors.message = "Message is required";
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+    if (formData.email.trim() && !emailRegex.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -111,6 +121,7 @@ export function ContactSalesModal({
     });
     setSubmitted(false);
     setError(null);
+    setFieldErrors({});
     onOpenChange(false);
   };
 
@@ -140,7 +151,7 @@ export function ContactSalesModal({
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               {error && (
                 <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
                   <AlertCircle className="h-4 w-4 text-red-600" />
@@ -156,11 +167,22 @@ export function ContactSalesModal({
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (fieldErrors.name) {
+                      setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                    }
+                  }}
                   placeholder="Your name"
-                  required
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? "landing-sales-name-error" : undefined}
                   disabled={isSubmitting}
                 />
+                {fieldErrors.name && (
+                  <p id="landing-sales-name-error" className="text-sm text-destructive">
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -170,11 +192,24 @@ export function ContactSalesModal({
                   name="email"
                   type="email"
                   value={formData.email}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (fieldErrors.email) {
+                      setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                    }
+                  }}
                   placeholder="your@email.com"
-                  required
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={
+                    fieldErrors.email ? "landing-sales-email-error" : undefined
+                  }
                   disabled={isSubmitting}
                 />
+                {fieldErrors.email && (
+                  <p id="landing-sales-email-error" className="text-sm text-destructive">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -195,12 +230,28 @@ export function ContactSalesModal({
                   id="message"
                   name="message"
                   value={formData.message}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (fieldErrors.message) {
+                      setFieldErrors((prev) => ({ ...prev, message: undefined }));
+                    }
+                  }}
                   placeholder="Tell us about your needs..."
                   rows={4}
-                  required
+                  aria-invalid={!!fieldErrors.message}
+                  aria-describedby={
+                    fieldErrors.message ? "landing-sales-message-error" : undefined
+                  }
                   disabled={isSubmitting}
                 />
+                {fieldErrors.message && (
+                  <p
+                    id="landing-sales-message-error"
+                    className="text-sm text-destructive"
+                  >
+                    {fieldErrors.message}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2 justify-end">

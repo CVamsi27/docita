@@ -212,7 +212,7 @@ ALTER TABLE \"Clinic\" DROP COLUMN IF EXISTS \"type\";
 
 For questions or issues:
 
-1. Check [CLINIC_TYPE_IMPLEMENTATION.md](./CLINIC_TYPE_IMPLEMENTATION.md) for detailed documentation
+1. Check [CLINIC_TYPE_DATA_FIELDS.md](../CLINIC_TYPE_DATA_FIELDS.md) for detailed documentation
 2. Review feature matrix in types package
 3. Check consultation component code for tab visibility logic
 4. Verify migration was run successfully

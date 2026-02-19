@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/hooks/api/use-settings";
 import { useBillingStatus } from "@/hooks/api/use-billing";
-import { useClinic } from "@/lib/clinic-context";
+import { DynamicPricingEstimator } from "@/features/subscription/components/DynamicPricingEstimator";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -138,7 +138,6 @@ function BillingHistory() {
 export function SubscriptionSettings() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const { clinic } = useClinic();
   const { data: subscription, isLoading } = useSubscription();
   const { data: billingStatus } = useBillingStatus();
 
@@ -160,11 +159,7 @@ export function SubscriptionSettings() {
   const tierName = subscription?.tierName || "Free Plan";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
 
-  const hasWhatsApp =
-    !!clinic?.features?.["WHATSAPP"] || !!clinic?.whatsappAutomation?.enabled;
-  const hasIntelligence =
-    !!clinic?.features?.["INTELLIGENCE"] ||
-    subscription?.intelligenceAddon === "active";
+  const hasIntelligence = subscription?.intelligenceAddon === "active";
 
   // Simplified view for non-admin users (doctors, receptionists)
   if (!isAdmin) {
@@ -190,9 +185,30 @@ export function SubscriptionSettings() {
   }
 
   // Full view for admin users
+  const currencyCode = billingStatus?.lastPayment?.currency || "INR";
+  const billingCycle = (
+    billingStatus?.subscription?.billingCycle || "MONTHLY"
+  ).toUpperCase();
+  const cycleLabel = billingCycle === "YEARLY" ? "year" : "month";
+
+  const formatter = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: currencyCode,
+  });
+
+  const baseAmount =
+    typeof billingStatus?.subscription?.basePriceCents === "number"
+      ? formatter.format(billingStatus.subscription.basePriceCents / 100)
+      : null;
+
+  const fallbackAmount =
+    typeof billingStatus?.lastPayment?.amount === "number"
+      ? formatter.format(billingStatus.lastPayment.amount)
+      : null;
+
   const price = billingStatus?.subscription?.scheduledChange?.tier
-    ? "Changing soon"
-    : `${billingStatus?.lastPayment?.currency || "₹"} ${billingStatus?.lastPayment?.amount || 0}/month`;
+    ? "Scheduled plan change"
+    : `${baseAmount || fallbackAmount || "Pricing unavailable"}/${cycleLabel}`;
 
   const renewsAt = billingStatus?.subscription?.currentPeriodEnd
     ? new Date(billingStatus.subscription.currentPeriodEnd).toLocaleDateString()
@@ -236,12 +252,12 @@ export function SubscriptionSettings() {
           </div>
 
           {/* Active Add-ons */}
-          {(hasWhatsApp || hasIntelligence) && (
+          {hasIntelligence && (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                Active Add-ons
+                Active Add-on
               </h4>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-1">
                 {hasIntelligence && (
                   <div className="flex items-center justify-between p-3 border rounded-lg bg-purple-50/50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800/30">
                     <div className="flex items-center gap-3">
@@ -254,18 +270,6 @@ export function SubscriptionSettings() {
                     </div>
                   </div>
                 )}
-                {hasWhatsApp && (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-800/30">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      </div>
-                      <span className="font-medium text-green-900 dark:text-green-100">
-                        WhatsApp Automation
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -273,6 +277,8 @@ export function SubscriptionSettings() {
       </Card>
 
       {/* Billing Portal & History */}
+      <DynamicPricingEstimator />
+
       <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>Billing History</CardTitle>

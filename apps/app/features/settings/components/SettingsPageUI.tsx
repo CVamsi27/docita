@@ -9,8 +9,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { RoleGuard } from "@/features/_shared/components/role-guard";
 import {
   AppearanceSettings,
@@ -18,11 +16,12 @@ import {
   CustomFieldsSettings,
   DoctorAvailabilitySettingsDynamic,
   MemberManagementSettings,
+  NotificationFeed,
   NotificationSettings,
   ReminderSettings,
   SecuritySettings,
-  SubscriptionSettingsDynamic,
-  TemplatesSettingsDynamic,
+  SubscriptionSettings,
+  TemplatesSettings,
   WhatsAppAutomationSettings,
 } from ".";
 import {
@@ -156,14 +155,12 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-0 space-y-6">
-            <SubscriptionSettingsDynamic />
+            <SubscriptionSettings />
           </TabsContent>
 
           <TabsContent value="members" className="mt-0 space-y-6">
             <RoleGuard requiredPermission="manageStaff">
-              <FeatureGate feature={Feature.ROLE_MANAGEMENT} showLockedCard>
-                <MemberManagementSettings />
-              </FeatureGate>
+              <MemberManagementSettings />
             </RoleGuard>
           </TabsContent>
 
@@ -180,7 +177,7 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="templates" className="mt-0">
-            <TemplatesSettingsDynamic />
+            <TemplatesSettings />
           </TabsContent>
 
           <TabsContent value="custom-fields" className="mt-0">
@@ -197,6 +194,10 @@ export function SettingsPageUI({
 
           <TabsContent value="notifications" className="mt-0">
             <NotificationSettings />
+          </TabsContent>
+
+          <TabsContent value="notification-feed" className="mt-0">
+            <NotificationFeed />
           </TabsContent>
 
           <TabsContent value="security" className="mt-0">

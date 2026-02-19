@@ -7,6 +7,7 @@ import {
   Baby,
   BarChart3,
   Bed,
+  Bell,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -27,8 +28,10 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { useSubscription } from "@/hooks/api/use-settings";
+import { useUnreadNotificationCount } from "@/hooks/api/use-whatsapp";
 import { useAuth } from "@/lib/auth-context";
 import { useAppConfig } from "@/lib/app-config-context";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
@@ -100,6 +103,7 @@ const navItems: NavItem[] = [
     label: "Analytics",
     feature: Feature.BASIC_ANALYTICS,
   },
+  { href: "/settings?tab=notification-feed", icon: Bell, label: "Notifications" },
   {
     href: "/coding-queue",
     icon: FileText,
@@ -137,8 +141,10 @@ export function Sidebar({
   // Only clinic admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
   const canSeeSubscription = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
   const { data: subscription } = useSubscription({ enabled: canSeeSubscription });
+  const { data: unreadNotificationCount } = useUnreadNotificationCount();
   const { getClinicSetting } = useAppConfig();
   const { canAccess } = usePermissionStore();
+  const notificationCount = unreadNotificationCount?.count ?? 0;
 
   // Get clinic type and specialty sections from ClinicFeatureService
   const clinicType = getClinicSetting("clinicType") as ClinicType | undefined;
@@ -209,7 +215,9 @@ export function Sidebar({
           })
           .map((item) => {
             const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+              (item.href.startsWith("/settings?") && pathname === "/settings") ||
+              pathname === item.href ||
+              pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
@@ -226,6 +234,13 @@ export function Sidebar({
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 {!isCollapsed && <span>{item.label}</span>}
+                {!isCollapsed &&
+                  item.href.startsWith("/settings?tab=notification-feed") &&
+                  notificationCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto px-1.5 min-w-5 h-5 text-[10px]">
+                      {notificationCount > 9 ? "9+" : notificationCount}
+                    </Badge>
+                  )}
               </Link>
             );
           })}

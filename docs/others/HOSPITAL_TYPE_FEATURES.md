@@ -765,7 +765,7 @@ For questions or issues related to clinic type configuration:
 
 1. Check this documentation first
 2. Review the [Quick Reference Guide](./CLINIC_TYPE_QUICK_REF.md)
-3. Consult [Implementation Details](./CLINIC_TYPE_IMPLEMENTATION.md)
+3. Consult [Implementation Details](../CLINIC_TYPE_DATA_FIELDS.md)
 4. Contact technical support
 
 ---

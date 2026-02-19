@@ -34,6 +34,11 @@ const SPECIALIZATIONS = Object.entries(SPECIALIZATION_LABELS).map(
 
 export default function CreateDoctorPage() {
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -49,8 +54,21 @@ export default function CreateDoctorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.password) {
-      toast.error("Please fill in all required fields");
+    const errors: { name?: string; email?: string; password?: string } = {};
+    if (!form.name.trim()) {
+      errors.name = "Full name is required";
+    }
+    if (!form.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!form.password.trim()) {
+      errors.password = "Password is required";
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -107,7 +125,7 @@ export default function CreateDoctorPage() {
           <CardDescription>Enter the doctor information below</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="font-semibold">Basic Information</h3>
@@ -119,9 +137,20 @@ export default function CreateDoctorPage() {
                     id="name"
                     placeholder="Dr. John Doe"
                     value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    required
+                    onChange={(e) => {
+                      setForm({ ...form, name: e.target.value });
+                      if (fieldErrors.name) {
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.name}
+                    aria-describedby={fieldErrors.name ? "doctor-name-error" : undefined}
                   />
+                  {fieldErrors.name && (
+                    <p id="doctor-name-error" className="text-sm text-destructive">
+                      {fieldErrors.name}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
@@ -130,11 +159,20 @@ export default function CreateDoctorPage() {
                     type="email"
                     placeholder="doctor@clinic.com"
                     value={form.email}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                    required
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      if (fieldErrors.email) {
+                        setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.email}
+                    aria-describedby={fieldErrors.email ? "doctor-email-error" : undefined}
                   />
+                  {fieldErrors.email && (
+                    <p id="doctor-email-error" className="text-sm text-destructive">
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -146,11 +184,25 @@ export default function CreateDoctorPage() {
                     type="password"
                     placeholder="Enter a strong password"
                     value={form.password}
-                    onChange={(e) =>
-                      setForm({ ...form, password: e.target.value })
+                    onChange={(e) => {
+                      setForm({ ...form, password: e.target.value });
+                      if (fieldErrors.password) {
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          password: undefined,
+                        }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.password}
+                    aria-describedby={
+                      fieldErrors.password ? "doctor-password-error" : undefined
                     }
-                    required
                   />
+                  {fieldErrors.password && (
+                    <p id="doctor-password-error" className="text-sm text-destructive">
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phoneNumber">Phone Number</Label>

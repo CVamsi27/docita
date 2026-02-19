@@ -8,7 +8,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionBillingService } from '../subscription/subscription-billing.service';
 import { SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
-import type { OnboardingPaymentData } from '@workspace/types';
 import type { PrismaTransaction } from '@workspace/types';
 import {
   ClinicDetailsDto,
@@ -18,6 +17,20 @@ import {
   BillingCycle,
 } from './dto/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
+
+interface OnboardingPaymentInput {
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  cardLast4?: string;
+  autoPay?: boolean;
+  addons?: {
+    whatsapp?: boolean;
+    intelligence?: boolean;
+  };
+  whatsappBusinessNumber?: string;
+  skipPayment?: boolean;
+}
 
 @Injectable()
 export class OnboardingWorkflowService {
@@ -136,7 +149,7 @@ export class OnboardingWorkflowService {
     tx: PrismaTransaction,
     clinicId: string,
     planData: PlanSelectionDto,
-    paymentData?: OnboardingPaymentData,
+    paymentData?: OnboardingPaymentInput,
   ): Promise<any> {
     const now = new Date();
     const periodEnd =
@@ -152,13 +165,17 @@ export class OnboardingWorkflowService {
 
     const tierLimits = this.validation.getTierLimits(planData.tier);
 
+    const hasPayment =
+      !!paymentData?.razorpayPaymentId ||
+      (!!paymentData?.cardLast4 && paymentData?.skipPayment !== true);
+
     const subscription = await tx.subscription.create({
       data: {
         clinicId,
         plan: planData.tier,
         billingCycle: planData.billingCycle,
         basePriceCents: priceCents,
-        status: paymentData?.razorpayPaymentId
+        status: hasPayment
           ? SubscriptionStatus.ACTIVE
           : SubscriptionStatus.TRIALING,
         currentPeriodStart: now,
@@ -171,8 +188,7 @@ export class OnboardingWorkflowService {
       },
     });
 
-    // If payment was provided, record it
-    if (paymentData?.razorpayPaymentId) {
+    if (hasPayment) {
       await tx.subscriptionPayment.create({
         data: {
           clinicId,
@@ -182,7 +198,10 @@ export class OnboardingWorkflowService {
           razorpayPaymentId: paymentData.razorpayPaymentId,
           razorpayOrderId: paymentData.razorpayOrderId,
           razorpaySignature: paymentData.razorpaySignature,
-          description: `${planData.tier} ${planData.billingCycle} subscription`,
+          description: paymentData.cardLast4
+            ? `${planData.tier} ${planData.billingCycle} subscription (card ending ${paymentData.cardLast4})`
+            : `${planData.tier} ${planData.billingCycle} subscription`,
+          paidAt: now,
         },
       });
     }

@@ -8,7 +8,7 @@ interface RazorpayOptions {
   description?: string;
   image?: string;
   order_id: string;
-  handler: (response: Record<string, unknown>) => void;
+  handler: (response: Record<string, unknown>) => void | Promise<void>;
   prefill?: {
     name?: string;
     email?: string;
@@ -50,17 +50,40 @@ export function useRazorpay() {
     async (options: RazorpayOptions) => {
       const loaded = await loadRazorpay();
       if (!loaded) {
-        alert("Razorpay SDK failed to load. Are you online?");
-        return;
+        throw new Error("Razorpay SDK failed to load. Are you online?");
       }
 
-      // @ts-expect-error Razorpay is added to window by the script
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response: { error: Record<string, unknown> }) {
-         // handle failure if needed
-         console.error(response.error);
+      await new Promise<void>((resolve, reject) => {
+        // @ts-expect-error Razorpay is added to window by the script
+        const rzp = new window.Razorpay({
+          ...options,
+          handler: async (response: Record<string, unknown>) => {
+            try {
+              await options.handler(response);
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          },
+          modal: {
+            ...options.modal,
+            ondismiss: () => {
+              options.modal?.ondismiss?.();
+              reject(new Error("Payment was cancelled"));
+            },
+          },
+        });
+
+        rzp.on("payment.failed", function (response: { error: Record<string, unknown> }) {
+          const message =
+            typeof response.error?.description === "string"
+              ? response.error.description
+              : "Payment failed";
+          reject(new Error(message));
+        });
+
+        rzp.open();
       });
-      rzp.open();
     },
     [loadRazorpay]
   );

@@ -1,12 +1,14 @@
-export * from "./date-utils.js";
-export * from "./medical-validation.js";
-export * from "./contraindication-checker.js";
+// ============================================================================
+// @workspace/utils — Public API
+// Domain-organized: date | medical | config | ui | constants
+// Cross-cutting: imports | security
+// All original exports are preserved — no consumer changes needed.
+// ============================================================================
+
+export * from "./date";
+export * from "./medical";
+export * from "./config";
+export * from "./ui";
+export * from "./constants";
 export * from "./imports.js";
-export * from "./config.js";
-export * from "./temperature.js";
-export * from "./medical-calculations.js";
-export * from "./vital-status.js";
-export * from "./severity-styles.js";
-export * from "./dental-constants.js";
-export * from "./document-constants.js";
 export * from "./security.js";

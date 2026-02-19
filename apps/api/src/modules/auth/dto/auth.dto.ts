@@ -8,26 +8,34 @@ import {
 } from '@workspace/types';
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 export class LoginDto extends createZodDto(LoginSchema) {}
 
 export const RegisterSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email(),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .min(2, 'First name must be at least 2 characters'),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .min(2, 'Last name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
   password: z
     .string()
-    .min(8)
+    .min(8, 'Password must be at least 8 characters')
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-      'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
+      'Password must contain uppercase, lowercase, number, and special character',
     ),
   clinicName: z
-    .string({ required_error: 'Clinic name is required' })
-    .min(1, 'Clinic name is required'),
+    .string()
+    .min(2, 'Clinic name must be at least 2 characters')
+    .optional()
+    .or(z.literal('')),
 });
 
 export class RegisterDto extends createZodDto(RegisterSchema) {}

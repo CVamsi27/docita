@@ -34,6 +34,11 @@ export class SettingsFactory {
       primaryColor: '#0066cc',
       compactMode: false,
 
+      paymentReminderEnabled: false,
+      paymentReminderDays: [1, 3, 7],
+      paymentReminderAutoSendWhatsApp: true,
+      useSameBankAccountForSubscriptionAndReceipts: true,
+
       // Prescription defaults
       includeClinicHeader: true,
       includeDoctorSignature: true,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Calendar, FileText, Loader2, Search, User, X } from "lucide-react";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 
 interface SearchResult {
   id: string;

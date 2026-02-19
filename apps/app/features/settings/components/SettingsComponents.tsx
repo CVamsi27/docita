@@ -1,5 +1,6 @@
 export { WhatsAppAutomationSettings } from "./sections/WhatsAppSettings";
 export { NotificationSettings } from "./sections/NotificationSettings";
+export { NotificationFeed } from "./sections/NotificationFeed";
 export { DoctorAvailabilitySettings } from "./sections/DoctorAvailabilitySettings";
 export { ClinicGeneralSettings } from "./sections/ClinicSettings";
 export { SecuritySettings } from "./sections/SecuritySettings";

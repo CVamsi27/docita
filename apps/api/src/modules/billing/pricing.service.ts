@@ -39,7 +39,6 @@ export class PricingService {
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const overageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
-    const whatsappPricing = WHATSAPP_ADDON_PRICING_BY_CURRENCY[validCurrency];
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
@@ -102,16 +101,20 @@ export class PricingService {
           },
           features: JSON.parse(tier.features as string),
         })),
-        addOns: dbAddOns.map((addOn) => ({
-          id: addOn.type,
-          name: addOn.name,
-          description: addOn.description,
-          icon: addOn.icon,
-          pricingByTier: JSON.parse(addOn.pricingByTier as string),
-          includedQuotaByTier: JSON.parse(addOn.includedQuotaByTier as string),
-          overageRateByTier: JSON.parse(addOn.overageRateByTier as string),
-          features: JSON.parse(addOn.features as string),
-        })),
+        addOns: dbAddOns
+          .filter((addOn) => addOn.type !== 'WHATSAPP')
+          .map((addOn) => ({
+            id: addOn.type,
+            name: addOn.name,
+            description: addOn.description,
+            icon: addOn.icon,
+            pricingByTier: JSON.parse(addOn.pricingByTier as string),
+            includedQuotaByTier: JSON.parse(
+              addOn.includedQuotaByTier as string,
+            ),
+            overageRateByTier: JSON.parse(addOn.overageRateByTier as string),
+            features: JSON.parse(addOn.features as string),
+          })),
         discounts: dbDiscounts.map((discount) => ({
           type: discount.type,
           name: discount.name,
@@ -184,6 +187,7 @@ export class PricingService {
             'Calendar & scheduling',
             'Digital prescriptions',
             'ICD-10 medical coding',
+            'Core WhatsApp workflow included',
             'Basic analytics',
             'Email support',
           ],
@@ -263,22 +267,6 @@ export class PricingService {
       ],
       addOns: [
         {
-          id: 'WHATSAPP',
-          name: 'WhatsApp Integration',
-          description: 'Automated patient communication via WhatsApp',
-          icon: 'MessageSquare',
-          pricingByTier: whatsappPricing,
-          features: [
-            'Appointment reminders',
-            'Prescription sharing',
-            'Follow-up notifications',
-            'Birthday/wellness messages',
-            'Two-way messaging',
-            'Message templates',
-            'Delivery reports',
-          ],
-        },
-        {
           id: 'INTELLIGENCE',
           name: 'Docita Intelligence',
           description: 'AI-powered clinical assistant',
@@ -328,7 +316,6 @@ export class PricingService {
       patients,
       appointments,
       users,
-      whatsapp,
       whatsappMessages,
       intelligence,
       aiCredits,
@@ -395,17 +382,15 @@ export class PricingService {
     const addOnsBreakdown: Record<string, { base: number; overage: number }> =
       {};
 
-    // WhatsApp add-on
-    if (whatsapp === 'true' && tierKey !== 'CAPTURE') {
+    // WhatsApp workflow is included in paid tiers; only usage overage is estimated
+    if (tierKey !== 'CAPTURE') {
       const waPrice = whatsappPricing[tierKey as keyof typeof whatsappPricing];
-      const waBase = waPrice.basePrice as number;
       const messageCount = parseInt(whatsappMessages || '0') || 0;
       const waOverage =
         Math.max(0, messageCount - waPrice.includedQuota) * waPrice.overageRate;
 
-      addOnCosts += waBase;
       totalOverage += waOverage;
-      addOnsBreakdown.whatsapp = { base: waBase, overage: waOverage };
+      addOnsBreakdown.whatsapp = { base: 0, overage: waOverage };
     }
 
     // Intelligence add-on

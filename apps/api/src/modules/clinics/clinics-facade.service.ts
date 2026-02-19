@@ -56,6 +56,26 @@ interface ClinicSettingsData {
   theme?: string;
   primaryColor?: string;
   compactMode?: boolean;
+  paymentReminderEnabled?: boolean;
+  paymentReminderDays?: number[];
+  paymentReminderAutoSendWhatsApp?: boolean;
+  useSameBankAccountForSubscriptionAndReceipts?: boolean;
+  subscriptionPaymentBankAccount?: {
+    accountHolderName?: string;
+    bankName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    branchName?: string;
+    upiId?: string;
+  };
+  paymentReceivingBankAccount?: {
+    accountHolderName?: string;
+    bankName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    branchName?: string;
+    upiId?: string;
+  };
 }
 
 interface CreateDoctorData {

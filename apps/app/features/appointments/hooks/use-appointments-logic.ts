@@ -8,7 +8,7 @@ import {
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 import { Appointment } from "@workspace/types";
 
 // Generate 30-minute time slots for the entire day

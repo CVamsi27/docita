@@ -106,8 +106,56 @@ export function CreateClinicDialog({
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    adminName?: string;
+    adminEmail?: string;
+    adminPassword?: string;
+  }>({});
+
+  const validateForm = () => {
+    const errors: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      adminName?: string;
+      adminEmail?: string;
+      adminPassword?: string;
+    } = {};
+
+    if (!formData.name.trim()) errors.name = "Clinic name is required";
+    if (!formData.email.trim()) {
+      errors.email = "Clinic email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Enter a valid clinic email address";
+    }
+    if (!formData.phone.trim()) errors.phone = "Phone is required";
+    if (!formData.address.trim()) errors.address = "Address is required";
+
+    if (!formData.adminName.trim()) errors.adminName = "Admin name is required";
+    if (!formData.adminEmail.trim()) {
+      errors.adminEmail = "Admin email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.adminEmail)) {
+      errors.adminEmail = "Enter a valid admin email address";
+    }
+    if (!formData.adminPassword.trim()) {
+      errors.adminPassword = "Admin password is required";
+    }
+
+    return errors;
+  };
 
   const handleSubmit = () => {
+    const errors = validateForm();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setLoading(true);
     (async () => {
       try {
@@ -140,6 +188,7 @@ export function CreateClinicDialog({
         if (res.ok) {
           setOpen(false);
           onClinicCreated();
+          setFieldErrors({});
           setFormData({
             name: "",
             email: "",
@@ -168,7 +217,12 @@ export function CreateClinicDialog({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
+      <Button
+        onClick={() => {
+          setFieldErrors({});
+          setOpen(true);
+        }}
+      >
         <Plus className="mr-2 h-4 w-4" />
         Add Clinic
       </Button>
@@ -192,11 +246,20 @@ export function CreateClinicDialog({
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (fieldErrors.name) {
+                      setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? "create-clinic-name-error" : undefined}
                 />
+                {fieldErrors.name && (
+                  <p id="create-clinic-name-error" className="text-sm text-destructive">
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -204,11 +267,20 @@ export function CreateClinicDialog({
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (fieldErrors.email) {
+                      setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? "create-clinic-email-error" : undefined}
                 />
+                {fieldErrors.email && (
+                  <p id="create-clinic-email-error" className="text-sm text-destructive">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -217,11 +289,20 @@ export function CreateClinicDialog({
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (fieldErrors.phone) {
+                      setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.phone}
+                  aria-describedby={fieldErrors.phone ? "create-clinic-phone-error" : undefined}
                 />
+                {fieldErrors.phone && (
+                  <p id="create-clinic-phone-error" className="text-sm text-destructive">
+                    {fieldErrors.phone}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tier">Subscription Tier</Label>
@@ -275,11 +356,20 @@ export function CreateClinicDialog({
               <Input
                 id="address"
                 value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                required
+                onChange={(e) => {
+                  setFormData({ ...formData, address: e.target.value });
+                  if (fieldErrors.address) {
+                    setFieldErrors((prev) => ({ ...prev, address: undefined }));
+                  }
+                }}
+                aria-invalid={!!fieldErrors.address}
+                aria-describedby={fieldErrors.address ? "create-clinic-address-error" : undefined}
               />
+              {fieldErrors.address && (
+                <p id="create-clinic-address-error" className="text-sm text-destructive">
+                  {fieldErrors.address}
+                </p>
+              )}
             </div>
           </div>
 
@@ -293,11 +383,28 @@ export function CreateClinicDialog({
                 <Input
                   id="adminName"
                   value={formData.adminName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, adminName: e.target.value })
+                  onChange={(e) => {
+                    setFormData({ ...formData, adminName: e.target.value });
+                    if (fieldErrors.adminName) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        adminName: undefined,
+                      }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.adminName}
+                  aria-describedby={
+                    fieldErrors.adminName ? "create-clinic-admin-name-error" : undefined
                   }
-                  required
                 />
+                {fieldErrors.adminName && (
+                  <p
+                    id="create-clinic-admin-name-error"
+                    className="text-sm text-destructive"
+                  >
+                    {fieldErrors.adminName}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="adminEmail">Admin Email</Label>
@@ -305,11 +412,28 @@ export function CreateClinicDialog({
                   id="adminEmail"
                   type="email"
                   value={formData.adminEmail}
-                  onChange={(e) =>
-                    setFormData({ ...formData, adminEmail: e.target.value })
+                  onChange={(e) => {
+                    setFormData({ ...formData, adminEmail: e.target.value });
+                    if (fieldErrors.adminEmail) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        adminEmail: undefined,
+                      }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.adminEmail}
+                  aria-describedby={
+                    fieldErrors.adminEmail ? "create-clinic-admin-email-error" : undefined
                   }
-                  required
                 />
+                {fieldErrors.adminEmail && (
+                  <p
+                    id="create-clinic-admin-email-error"
+                    className="text-sm text-destructive"
+                  >
+                    {fieldErrors.adminEmail}
+                  </p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -319,10 +443,21 @@ export function CreateClinicDialog({
                   id="adminPassword"
                   type={showPassword ? "text" : "password"}
                   value={formData.adminPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, adminPassword: e.target.value })
+                  onChange={(e) => {
+                    setFormData({ ...formData, adminPassword: e.target.value });
+                    if (fieldErrors.adminPassword) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        adminPassword: undefined,
+                      }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.adminPassword}
+                  aria-describedby={
+                    fieldErrors.adminPassword
+                      ? "create-clinic-admin-password-error"
+                      : undefined
                   }
-                  required
                 />
                 <Button
                   type="button"
@@ -338,6 +473,14 @@ export function CreateClinicDialog({
                   )}
                 </Button>
               </div>
+              {fieldErrors.adminPassword && (
+                <p
+                  id="create-clinic-admin-password-error"
+                  className="text-sm text-destructive"
+                >
+                  {fieldErrors.adminPassword}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="adminType">Admin Type *</Label>

@@ -39,6 +39,23 @@ export class StaffNotificationService {
     private readonly whatsappService: WhatsappService,
   ) {}
 
+  private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { whatsappAutomation: true },
+    });
+
+    if (
+      !clinic?.whatsappAutomation ||
+      typeof clinic.whatsappAutomation !== 'object'
+    ) {
+      return true;
+    }
+
+    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    return automation.enabled !== false;
+  }
+
   /**
    * Send notification to relevant staff members
    * By default, sends both WhatsApp and in-app notifications
@@ -56,6 +73,8 @@ export class StaffNotificationService {
       sendWhatsApp = true,
       sendInApp = true,
     } = payload;
+
+    const isWhatsappEnabled = await this.isWhatsappEnabled(clinicId);
 
     // Get staff members who should receive this notification
     const recipients = await this.getRecipients(clinicId, doctorId, type);
@@ -87,7 +106,7 @@ export class StaffNotificationService {
       }
 
       // Send WhatsApp notification
-      if (sendWhatsApp && recipient.phoneNumber) {
+      if (sendWhatsApp && isWhatsappEnabled && recipient.phoneNumber) {
         notificationPromises.push(
           this.sendWhatsAppNotification(
             recipient.phoneNumber,

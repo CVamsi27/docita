@@ -21,6 +21,10 @@ export default function SuperAdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
 
@@ -38,6 +42,23 @@ export default function SuperAdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors: { email?: string; password?: string } = {};
+
+    if (!email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Enter a valid email address";
+    }
+
+    if (!password.trim()) {
+      errors.password = "Password is required";
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -95,15 +116,26 @@ export default function SuperAdminLogin() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 pb-8">
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} noValidate className="space-y-4">
               <div className="space-y-2">
                 <Input
                   type="email"
                   placeholder="Email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (fieldErrors.email) {
+                      setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? "admin-login-email-error" : undefined}
                 />
+                {fieldErrors.email && (
+                  <p id="admin-login-email-error" className="text-sm text-destructive">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="relative">
@@ -112,9 +144,17 @@ export default function SuperAdminLogin() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) {
+                        setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                      }
+                    }}
                     className="pr-10"
+                    aria-invalid={!!fieldErrors.password}
+                    aria-describedby={
+                      fieldErrors.password ? "admin-login-password-error" : undefined
+                    }
                   />
                   <Button
                     type="button"
@@ -133,6 +173,14 @@ export default function SuperAdminLogin() {
                     </span>
                   </Button>
                 </div>
+                {fieldErrors.password && (
+                  <p
+                    id="admin-login-password-error"
+                    className="text-sm text-destructive"
+                  >
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}

@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
 import { FeatureFlagGuard } from '../guards/feature-flag.guard';
-import { PDFGeneratorService } from './pdf-generator.service';
-import { BasePdfService } from './base-pdf.service';
+import { PDFGeneratorService } from './pdf/pdf-generator.service';
+import { BasePdfService } from './pdf/base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '../decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../prisma/prisma.module';

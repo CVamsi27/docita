@@ -63,6 +63,30 @@ export const ClinicSettingsSchema = z.object({
   theme: z.string().optional(),
   primaryColor: z.string().optional(),
   compactMode: z.boolean().optional(),
+  paymentReminderEnabled: z.boolean().optional(),
+  paymentReminderDays: z.array(z.number().int().min(1).max(30)).optional(),
+  paymentReminderAutoSendWhatsApp: z.boolean().optional(),
+  useSameBankAccountForSubscriptionAndReceipts: z.boolean().optional(),
+  subscriptionPaymentBankAccount: z
+    .object({
+      accountHolderName: z.string().optional(),
+      bankName: z.string().optional(),
+      accountNumber: z.string().optional(),
+      ifscCode: z.string().optional(),
+      branchName: z.string().optional(),
+      upiId: z.string().optional(),
+    })
+    .optional(),
+  paymentReceivingBankAccount: z
+    .object({
+      accountHolderName: z.string().optional(),
+      bankName: z.string().optional(),
+      accountNumber: z.string().optional(),
+      ifscCode: z.string().optional(),
+      branchName: z.string().optional(),
+      upiId: z.string().optional(),
+    })
+    .optional(),
 });
 
 export class ClinicSettingsDto extends createZodDto(ClinicSettingsSchema) {}

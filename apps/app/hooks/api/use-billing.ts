@@ -60,6 +60,7 @@ export const useBillingStatus = () =>
       status: string;
       tier: string;
       billingCycle: string;
+      basePriceCents?: number;
       currentPeriodStart: Date;
       currentPeriodEnd: Date;
       cancelAtPeriodEnd: boolean;

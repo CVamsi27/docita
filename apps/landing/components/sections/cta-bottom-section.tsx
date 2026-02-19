@@ -25,11 +25,12 @@ export function CtaBottomSection() {
               variant="secondary"
               className="h-12 px-8 text-lg gap-2"
             >
-              Start Free Trial
+              Start 7 Day Free Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
         </div>
+        <p className="mt-4 text-sm opacity-90">7 day free trial • No credit card required</p>
       </div>
     </section>
   );

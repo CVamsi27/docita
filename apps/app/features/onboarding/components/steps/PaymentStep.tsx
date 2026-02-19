@@ -18,7 +18,6 @@ interface PaymentDetails {
   cardNumber: string;
   autoPay: boolean;
   addons: {
-    whatsapp: boolean;
     intelligence: boolean;
   };
 }
@@ -29,6 +28,13 @@ interface PaymentStepProps {
   selectedPlanPrice: number;
   billingCycle: "MONTHLY" | "YEARLY";
   currencySymbol: string;
+}
+
+interface PaymentFormErrors {
+  nameOnCard?: string;
+  cardNumber?: string;
+  expiry?: string;
+  cvc?: string;
 }
 
 export function PaymentStep({
@@ -43,28 +49,55 @@ export function PaymentStep({
   const [cvc, setCvc] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
   const [autoPay, setAutoPay] = useState(true);
+  const [formErrors, setFormErrors] = useState<PaymentFormErrors>({});
 
   // Add-ons state
-  const [whatsappAddon, setWhatsappAddon] = useState(false);
   const [intelligenceAddon, setIntelligenceAddon] = useState(false);
 
-  const whatsappPrice = billingCycle === "YEARLY" ? 7990 : 799;
   const intelligencePrice = billingCycle === "YEARLY" ? 29990 : 2999;
 
   const calculateTotal = () => {
     let total = selectedPlanPrice;
-    if (whatsappAddon) total += whatsappPrice;
     if (intelligenceAddon) total += intelligencePrice;
     return total;
   };
 
+  const validatePaymentForm = (): PaymentFormErrors => {
+    const errors: PaymentFormErrors = {};
+    const normalizedCardNumber = cardNumber.replace(/\s+/g, "");
+
+    if (nameOnCard.trim().length < 2) {
+      errors.nameOnCard = "Name on card is required";
+    }
+
+    if (!/^\d{13,19}$/.test(normalizedCardNumber)) {
+      errors.cardNumber = "Enter a valid card number";
+    }
+
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry.trim())) {
+      errors.expiry = "Use MM/YY format";
+    }
+
+    if (!/^\d{3,4}$/.test(cvc.trim())) {
+      errors.cvc = "Enter a valid CVC";
+    }
+
+    return errors;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const errors = validatePaymentForm();
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     onComplete({
       cardNumber: cardNumber.slice(-4), // Only store last 4 for demo
       autoPay,
       addons: {
-        whatsapp: whatsappAddon,
         intelligence: intelligenceAddon,
       },
     });
@@ -80,33 +113,10 @@ export function PaymentStep({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Add-ons Section */}
           <div className="space-y-4 border-b pb-6">
             <h3 className="font-medium">Recommended Add-ons</h3>
-
-            <div className="flex items-start space-x-3 p-3 border rounded-lg bg-muted/20">
-              <Checkbox
-                id="whatsapp"
-                checked={whatsappAddon}
-                onCheckedChange={(c) => setWhatsappAddon(!!c)}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="whatsapp"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  WhatsApp Integration
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Automated reminders & patient communication via WhatsApp.
-                </p>
-                <p className="text-sm font-semibold mt-1">
-                  +{currencySymbol}
-                  {whatsappPrice}/{billingCycle === "YEARLY" ? "year" : "month"}
-                </p>
-              </div>
-            </div>
 
             <div className="flex items-start space-x-3 p-3 border rounded-lg bg-muted/20">
               <Checkbox
@@ -141,9 +151,22 @@ export function PaymentStep({
                 id="name"
                 placeholder="Dr. John Doe"
                 value={nameOnCard}
-                onChange={(e) => setNameOnCard(e.target.value)}
-                required
+                onChange={(e) => {
+                  setNameOnCard(e.target.value);
+                  if (formErrors.nameOnCard) {
+                    setFormErrors((prev) => ({ ...prev, nameOnCard: undefined }));
+                  }
+                }}
+                aria-invalid={!!formErrors.nameOnCard}
+                aria-describedby={
+                  formErrors.nameOnCard ? "payment-name-error" : undefined
+                }
               />
+              {formErrors.nameOnCard && (
+                <p id="payment-name-error" className="text-sm text-destructive">
+                  {formErrors.nameOnCard}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -153,12 +176,25 @@ export function PaymentStep({
                   id="number"
                   placeholder="0000 0000 0000 0000"
                   value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
+                  onChange={(e) => {
+                    setCardNumber(e.target.value);
+                    if (formErrors.cardNumber) {
+                      setFormErrors((prev) => ({ ...prev, cardNumber: undefined }));
+                    }
+                  }}
                   className="pl-10"
-                  required
+                  aria-invalid={!!formErrors.cardNumber}
+                  aria-describedby={
+                    formErrors.cardNumber ? "payment-card-error" : undefined
+                  }
                 />
                 <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               </div>
+              {formErrors.cardNumber && (
+                <p id="payment-card-error" className="text-sm text-destructive">
+                  {formErrors.cardNumber}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -168,9 +204,20 @@ export function PaymentStep({
                   id="expiry"
                   placeholder="MM/YY"
                   value={expiry}
-                  onChange={(e) => setExpiry(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setExpiry(e.target.value);
+                    if (formErrors.expiry) {
+                      setFormErrors((prev) => ({ ...prev, expiry: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!formErrors.expiry}
+                  aria-describedby={formErrors.expiry ? "payment-expiry-error" : undefined}
                 />
+                {formErrors.expiry && (
+                  <p id="payment-expiry-error" className="text-sm text-destructive">
+                    {formErrors.expiry}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="cvc">CVC</Label>
@@ -179,12 +226,23 @@ export function PaymentStep({
                     id="cvc"
                     placeholder="123"
                     value={cvc}
-                    onChange={(e) => setCvc(e.target.value)}
+                    onChange={(e) => {
+                      setCvc(e.target.value);
+                      if (formErrors.cvc) {
+                        setFormErrors((prev) => ({ ...prev, cvc: undefined }));
+                      }
+                    }}
                     className="pl-10"
-                    required
+                    aria-invalid={!!formErrors.cvc}
+                    aria-describedby={formErrors.cvc ? "payment-cvc-error" : undefined}
                   />
                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
+                {formErrors.cvc && (
+                  <p id="payment-cvc-error" className="text-sm text-destructive">
+                    {formErrors.cvc}
+                  </p>
+                )}
               </div>
             </div>
           </div>

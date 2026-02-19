@@ -19,6 +19,11 @@ import { toast } from "sonner";
 
 export default function CreateReceptionistPage() {
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -31,8 +36,21 @@ export default function CreateReceptionistPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.password) {
-      toast.error("Please fill in all required fields");
+    const errors: { name?: string; email?: string; password?: string } = {};
+    if (!form.name.trim()) {
+      errors.name = "Full name is required";
+    }
+    if (!form.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!form.password.trim()) {
+      errors.password = "Password is required";
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -93,7 +111,7 @@ export default function CreateReceptionistPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -102,9 +120,25 @@ export default function CreateReceptionistPage() {
                     id="name"
                     placeholder="John Smith"
                     value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    required
+                    onChange={(e) => {
+                      setForm({ ...form, name: e.target.value });
+                      if (fieldErrors.name) {
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.name}
+                    aria-describedby={
+                      fieldErrors.name ? "receptionist-name-error" : undefined
+                    }
                   />
+                  {fieldErrors.name && (
+                    <p
+                      id="receptionist-name-error"
+                      className="text-sm text-destructive"
+                    >
+                      {fieldErrors.name}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
@@ -113,11 +147,25 @@ export default function CreateReceptionistPage() {
                     type="email"
                     placeholder="receptionist@clinic.com"
                     value={form.email}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      if (fieldErrors.email) {
+                        setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.email}
+                    aria-describedby={
+                      fieldErrors.email ? "receptionist-email-error" : undefined
                     }
-                    required
                   />
+                  {fieldErrors.email && (
+                    <p
+                      id="receptionist-email-error"
+                      className="text-sm text-destructive"
+                    >
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -129,11 +177,30 @@ export default function CreateReceptionistPage() {
                     type="password"
                     placeholder="Enter a strong password"
                     value={form.password}
-                    onChange={(e) =>
-                      setForm({ ...form, password: e.target.value })
+                    onChange={(e) => {
+                      setForm({ ...form, password: e.target.value });
+                      if (fieldErrors.password) {
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          password: undefined,
+                        }));
+                      }
+                    }}
+                    aria-invalid={!!fieldErrors.password}
+                    aria-describedby={
+                      fieldErrors.password
+                        ? "receptionist-password-error"
+                        : undefined
                     }
-                    required
                   />
+                  {fieldErrors.password && (
+                    <p
+                      id="receptionist-password-error"
+                      className="text-sm text-destructive"
+                    >
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phoneNumber">Phone Number</Label>

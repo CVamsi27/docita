@@ -1,5 +1,10 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -7,6 +12,38 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true, // Temporarily allow for launch - fix post-deployment
   },
+
+  // Compression
+  compress: true,
+
+  // Compiler optimizations
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
+
+  // Image optimization
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
+  },
+
+  // Experimental optimizations
+  experimental: {
+    optimizePackageImports: [
+      '@workspace/ui',
+      'lucide-react',
+      'recharts',
+      'date-fns',
+      '@tanstack/react-query',
+    ],
+  },
+
+  // Production source maps (disabled for smaller builds)
+  productionBrowserSourceMaps: false,
+
   webpack: (config) => {
     // Suppress OpenTelemetry/Sentry critical dependency warnings
     config.ignoreWarnings = [
@@ -18,6 +55,7 @@ const nextConfig: NextConfig = {
     ];
     return config;
   },
+
   async rewrites() {
     return [
       {
@@ -28,14 +66,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Conditional Sentry configuration
-const config = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, {
+// Apply bundle analyzer first
+let config: NextConfig = withBundleAnalyzer(nextConfig);
+
+// Apply Sentry config if DSN is provided
+config = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(config, {
       // Sentry configuration options
       org: process.env.SENTRY_ORG || 'docita',
       project: process.env.SENTRY_PROJECT || 'frontend',
       silent: true,
     })
-  : nextConfig;
+  : config;
 
 export default config;

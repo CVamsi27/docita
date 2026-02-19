@@ -1,5 +1,39 @@
 import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
+export interface WhatsappLogEntry {
+  id: string;
+  clinicId: string;
+  patientId?: string | null;
+  paymentSessionId?: string | null;
+  invoiceId?: string | null;
+  prescriptionId?: string | null;
+  type: string;
+  provider?: string;
+  phoneNumber: string;
+  message: string;
+  status: string;
+  errorMessage?: string | null;
+  createdAt: string;
+  patient?: {
+    firstName?: string;
+    lastName?: string;
+  } | null;
+}
+
+export interface NotificationUnreadCountResponse {
+  count: number;
+}
+
+export interface StaffNotificationEntry {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: unknown;
+  priority: string;
+  createdAt: string;
+}
+
 // WhatsApp Statistics
 export const useWhatsappStats = () =>
   useAPIQuery<{
@@ -68,6 +102,47 @@ export const useSendInvoiceWhatsApp = () =>
     ({ id }) => `/whatsapp/resend-invoice/${id}`,
     "POST",
   );
+
+export const useWhatsappLogs = (limit: number = 50) =>
+  useAPIQuery<WhatsappLogEntry[]>(
+    ["whatsapp", "logs", limit],
+    `/whatsapp/logs?limit=${limit}`,
+  );
+
+export const useUnreadNotificationCount = () =>
+  useAPIQuery<NotificationUnreadCountResponse>(
+    ["whatsapp", "notifications", "unread-count"],
+    "/whatsapp/notifications/unread-count",
+    {
+      refetchInterval: 30_000,
+    },
+  );
+
+export const useUnreadNotifications = (limit: number = 50) =>
+  useAPIQuery<StaffNotificationEntry[]>(
+    ["whatsapp", "notifications", "unread", limit],
+    `/whatsapp/notifications/unread?limit=${limit}`,
+  );
+
+export const useMarkNotificationsRead = () =>
+  useAPIMutation<void, { notificationIds: string[] }>(
+    "/whatsapp/notifications/mark-read",
+    "POST",
+    {
+      invalidateKeys: [
+        ["whatsapp", "notifications", "unread-count"],
+        ["whatsapp", "notifications", "unread"],
+      ],
+    },
+  );
+
+export const useMarkAllNotificationsRead = () =>
+  useAPIMutation<void, void>("/whatsapp/notifications/mark-all-read", "POST", {
+    invalidateKeys: [
+      ["whatsapp", "notifications", "unread-count"],
+      ["whatsapp", "notifications", "unread"],
+    ],
+  });
 
 // Existing static hooks (kept for backward compatibility if used)
 export const useResendPrescriptionWhatsApp = (id: string) =>

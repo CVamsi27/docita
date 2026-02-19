@@ -29,12 +29,14 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { token } = useAuth();
 
   const fetchLogs = useCallback(async () => {
     if (!token) return;
 
     setLoading(true);
+    setErrorMessage(null);
     try {
       const res = await fetch(`${API_URL}/super-admin/logs?limit=50&offset=0`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -44,11 +46,11 @@ export default function LogsPage() {
         const logsData = json.data || json;
         setLogs(Array.isArray(logsData) ? logsData : []);
       } else {
-        console.error(`Failed to fetch logs: ${res.status} ${res.statusText}`);
+        setErrorMessage(`Failed to fetch logs: ${res.status} ${res.statusText}`);
         setLogs([]);
       }
-    } catch (error) {
-      console.error("Failed to fetch logs", error);
+    } catch {
+      setErrorMessage("Failed to fetch logs");
       setLogs([]);
     } finally {
       setLoading(false);
@@ -106,6 +108,12 @@ export default function LogsPage() {
           Refresh
         </Button>
       </div>
+
+      {errorMessage && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {errorMessage}
+        </div>
+      )}
 
       <div className="rounded-md border">
         <Table>

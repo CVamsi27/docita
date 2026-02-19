@@ -79,6 +79,7 @@ export function ClinicGeneralSettings() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
+            noValidate
             className="space-y-4"
           >
             <FormField

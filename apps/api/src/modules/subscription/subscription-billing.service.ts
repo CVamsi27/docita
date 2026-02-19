@@ -22,7 +22,7 @@ import {
 import {
   TIER_PRICING,
   ANNUAL_DISCOUNT_PERCENT,
-  WHATSAPP_ADDON_PRICING,
+  INTELLIGENCE_ADDON_PRICING,
   Feature,
 } from '@workspace/types';
 
@@ -94,26 +94,18 @@ export class SubscriptionBillingService {
       totalCents += typeof monthlyPrice === 'number' ? monthlyPrice * 100 : 0;
     }
 
-    // Add-ons Price
-    if (addOns.includes('WHATSAPP')) {
-      const whatsappPricing =
-        WHATSAPP_ADDON_PRICING[tier as keyof typeof WHATSAPP_ADDON_PRICING];
-      if (whatsappPricing) {
-        // Assume add-on pricing is monthly base, multiplied by 12 for yearly (or check if it has yearly)
-        // types/tier.ts says: "pricing: { monthly: number, yearly: number ... }" ??
-        // Actually types/tier.ts: WHATSAPP_ADDON_PRICING values are { basePrice: number ... }
-        // It does NOT distinguish monthly/yearly in basePrice in the simple map?
-        // Let's re-read tier.ts carefully.
-        // It says: "basePrice: 499" (implied monthly).
-        // Common logic: Yearly = Monthly * 12 * (1 - ANNUAL_DISCOUNT).
-        // Or simple multiplication.
-        // Let's assume straight multiplication for now or better, check if simple multiplication matches TIER_PRICING logic.
+    // Add-ons Price (Intelligence only; WhatsApp is included for paid tiers)
+    if (addOns.includes('INTELLIGENCE') && tier !== 'CAPTURE') {
+      const intelligencePricing = INTELLIGENCE_ADDON_PRICING[tier];
+      if (intelligencePricing) {
         const addOnMonthly =
-          typeof whatsappPricing.basePrice === 'number'
-            ? whatsappPricing.basePrice
+          typeof intelligencePricing.basePrice === 'number'
+            ? intelligencePricing.basePrice
             : 0;
         if (cycle === 'YEARLY') {
-          totalCents += addOnMonthly * 12 * 100; // No separate discount logic for add-on yet?
+          totalCents += Math.round(
+            addOnMonthly * 12 * (1 - ANNUAL_DISCOUNT_PERCENT / 100) * 100,
+          );
         } else {
           totalCents += addOnMonthly * 100;
         }
@@ -439,12 +431,11 @@ export class SubscriptionBillingService {
       },
     });
 
-    // Update clinic tier and add-on features
+    // Update clinic tier and paid-tier WhatsApp workflow features
     const featureUpdates: Record<string, boolean> = {};
-    if (addOns.includes('WHATSAPP')) {
-      // Enable WhatsApp features
+    if (tier !== 'CAPTURE') {
+      // Core WhatsApp workflow is included for all paid tiers
       featureUpdates['WHATSAPP'] = true; // Marker feature
-      // Also enable granular features
       featureUpdates[Feature.PAYMENT_LINKS] = true;
       featureUpdates['WHATSAPP_REMINDERS'] = true;
     }

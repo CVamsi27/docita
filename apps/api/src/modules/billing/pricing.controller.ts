@@ -57,12 +57,13 @@ export class PricingController {
   @ApiQuery({
     name: 'whatsapp',
     required: false,
-    description: 'Include WhatsApp add-on (true/false)',
+    description:
+      'Legacy flag (ignored for paid tiers; WhatsApp workflow is included by default)',
   })
   @ApiQuery({
     name: 'whatsappMessages',
     required: false,
-    description: 'Expected WhatsApp messages per month',
+    description: 'Expected WhatsApp messages per month for overage estimate',
   })
   @ApiQuery({
     name: 'intelligence',

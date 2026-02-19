@@ -28,6 +28,10 @@ import {
   WhatsappMessageResponseDto,
   WhatsappLogListResponseDto,
   WhatsappStatsResponseDto,
+  WhatsappUnreadCountResponseDto,
+  WhatsappUnreadNotificationsResponseDto,
+  MarkNotificationsReadRequestDto,
+  markNotificationsReadRequestSchema,
   SuccessResponseDto,
 } from './dto/whatsapp-response.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -280,6 +284,64 @@ export class WhatsappController {
     }
 
     return this.whatsappService.getWhatsappStats(user.clinicId);
+  }
+
+  /**
+   * Get unread in-app notification count for current user
+   */
+  @Get('notifications/unread-count')
+  @ZodSerializerDto(WhatsappUnreadCountResponseDto)
+  async getUnreadNotificationCount(@Req() req: Request) {
+    const user = req.user as { id: string };
+    const count = await this.whatsappService.getUnreadNotificationCount(
+      user.id,
+    );
+    return { count };
+  }
+
+  /**
+   * Get unread in-app notifications for current user
+   */
+  @Get('notifications/unread')
+  @ZodSerializerDto(WhatsappUnreadNotificationsResponseDto)
+  async getUnreadNotifications(
+    @Req() req: Request,
+    @Query('limit') limit?: string,
+  ) {
+    const user = req.user as { id: string };
+    return this.whatsappService.getUnreadNotifications(
+      user.id,
+      limit ? parseInt(limit, 10) : undefined,
+    );
+  }
+
+  /**
+   * Mark selected in-app notifications as read
+   */
+  @Post('notifications/mark-read')
+  @ZodSerializerDto(SuccessResponseDto)
+  @UsePipes(new ZodValidationPipe(markNotificationsReadRequestSchema))
+  async markNotificationsRead(
+    @Req() req: Request,
+    @Body() dto: MarkNotificationsReadRequestDto,
+  ) {
+    const user = req.user as { id: string };
+    await this.whatsappService.markNotificationsAsRead(
+      dto.notificationIds,
+      user.id,
+    );
+    return { success: true, message: 'Notifications marked as read' };
+  }
+
+  /**
+   * Mark all in-app notifications as read
+   */
+  @Post('notifications/mark-all-read')
+  @ZodSerializerDto(SuccessResponseDto)
+  async markAllNotificationsRead(@Req() req: Request) {
+    const user = req.user as { id: string };
+    await this.whatsappService.markAllNotificationsAsRead(user.id);
+    return { success: true, message: 'All notifications marked as read' };
   }
 
   // ==========================================================================

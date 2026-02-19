@@ -33,9 +33,43 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    subject?: string;
+    message?: string;
+  }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: {
+      name?: string;
+      email?: string;
+      subject?: string;
+      message?: string;
+    } = {};
+
+    if (!formData.name.trim()) {
+      errors.name = "Full name is required";
+    }
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!formData.subject.trim()) {
+      errors.subject = "Subject is required";
+    }
+    if (!formData.message.trim()) {
+      errors.message = "Message is required";
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Simulate form submission - in production, this would send to your backend
@@ -208,6 +242,7 @@ export default function ContactPage() {
                         variant="outline"
                         onClick={() => {
                           setSubmitted(false);
+                          setFieldErrors({});
                           setFormData({
                             name: "",
                             email: "",
@@ -220,7 +255,7 @@ export default function ContactPage() {
                       </Button>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} noValidate className="space-y-6">
                       <div className="grid gap-6 sm:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="name">Full Name *</Label>
@@ -228,11 +263,20 @@ export default function ContactPage() {
                             id="name"
                             placeholder="Dr. John Doe"
                             value={formData.name}
-                            onChange={(e) =>
-                              setFormData({ ...formData, name: e.target.value })
-                            }
-                            required
+                            onChange={(e) => {
+                              setFormData({ ...formData, name: e.target.value });
+                              if (fieldErrors.name) {
+                                setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                              }
+                            }}
+                            aria-invalid={!!fieldErrors.name}
+                            aria-describedby={fieldErrors.name ? "contact-name-error" : undefined}
                           />
+                          {fieldErrors.name && (
+                            <p id="contact-name-error" className="text-sm text-destructive">
+                              {fieldErrors.name}
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="email">Email Address *</Label>
@@ -241,14 +285,25 @@ export default function ContactPage() {
                             type="email"
                             placeholder="john@clinic.com"
                             value={formData.email}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setFormData({
                                 ...formData,
                                 email: e.target.value,
-                              })
+                              });
+                              if (fieldErrors.email) {
+                                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                              }
+                            }}
+                            aria-invalid={!!fieldErrors.email}
+                            aria-describedby={
+                              fieldErrors.email ? "contact-email-error" : undefined
                             }
-                            required
                           />
+                          {fieldErrors.email && (
+                            <p id="contact-email-error" className="text-sm text-destructive">
+                              {fieldErrors.email}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -258,14 +313,25 @@ export default function ContactPage() {
                           id="subject"
                           placeholder="How can we help you?"
                           value={formData.subject}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setFormData({
                               ...formData,
                               subject: e.target.value,
-                            })
+                            });
+                            if (fieldErrors.subject) {
+                              setFieldErrors((prev) => ({ ...prev, subject: undefined }));
+                            }
+                          }}
+                          aria-invalid={!!fieldErrors.subject}
+                          aria-describedby={
+                            fieldErrors.subject ? "contact-subject-error" : undefined
                           }
-                          required
                         />
+                        {fieldErrors.subject && (
+                          <p id="contact-subject-error" className="text-sm text-destructive">
+                            {fieldErrors.subject}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -275,14 +341,25 @@ export default function ContactPage() {
                           placeholder="Tell us more about your inquiry..."
                           className="min-h-[150px]"
                           value={formData.message}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setFormData({
                               ...formData,
                               message: e.target.value,
-                            })
+                            });
+                            if (fieldErrors.message) {
+                              setFieldErrors((prev) => ({ ...prev, message: undefined }));
+                            }
+                          }}
+                          aria-invalid={!!fieldErrors.message}
+                          aria-describedby={
+                            fieldErrors.message ? "contact-message-error" : undefined
                           }
-                          required
                         />
+                        {fieldErrors.message && (
+                          <p id="contact-message-error" className="text-sm text-destructive">
+                            {fieldErrors.message}
+                          </p>
+                        )}
                       </div>
 
                       <Button

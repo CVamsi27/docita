@@ -63,8 +63,14 @@ export function PromptDialog({
                 onSubmit();
               }
             }}
+            aria-invalid={!!error}
+            aria-describedby={error ? "prompt-input-error" : undefined}
           />
-          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+          {error && (
+            <p id="prompt-input-error" className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          )}
         </div>
 
         <DialogFooter>

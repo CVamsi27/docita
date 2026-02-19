@@ -139,15 +139,48 @@ export function EditClinicDialog({
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
   const [formData, setFormData] = useState(() => getInitialFormData(clinic));
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+  }>({});
+
+  const validateForm = () => {
+    const errors: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+    } = {};
+
+    if (!formData.name.trim()) errors.name = "Clinic name is required";
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!formData.phone.trim()) errors.phone = "Phone is required";
+    if (!formData.address.trim()) errors.address = "Address is required";
+
+    return errors;
+  };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
       setFormData(getInitialFormData(clinic));
     }
+    setFieldErrors({});
     setOpen(newOpen);
   };
 
   const handleSubmit = () => {
+    const errors = validateForm();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setLoading(true);
     (async () => {
       try {
@@ -216,11 +249,20 @@ export function EditClinicDialog({
                 <Input
                   id="edit-name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (fieldErrors.name) {
+                      setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? "edit-clinic-name-error" : undefined}
                 />
+                {fieldErrors.name && (
+                  <p id="edit-clinic-name-error" className="text-sm text-destructive">
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email</Label>
@@ -228,11 +270,20 @@ export function EditClinicDialog({
                   id="edit-email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (fieldErrors.email) {
+                      setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? "edit-clinic-email-error" : undefined}
                 />
+                {fieldErrors.email && (
+                  <p id="edit-clinic-email-error" className="text-sm text-destructive">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -241,11 +292,20 @@ export function EditClinicDialog({
                 <Input
                   id="edit-phone"
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (fieldErrors.phone) {
+                      setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                    }
+                  }}
+                  aria-invalid={!!fieldErrors.phone}
+                  aria-describedby={fieldErrors.phone ? "edit-clinic-phone-error" : undefined}
                 />
+                {fieldErrors.phone && (
+                  <p id="edit-clinic-phone-error" className="text-sm text-destructive">
+                    {fieldErrors.phone}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-tier">Subscription Tier</Label>
@@ -299,11 +359,20 @@ export function EditClinicDialog({
               <Input
                 id="edit-address"
                 value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                required
+                onChange={(e) => {
+                  setFormData({ ...formData, address: e.target.value });
+                  if (fieldErrors.address) {
+                    setFieldErrors((prev) => ({ ...prev, address: undefined }));
+                  }
+                }}
+                aria-invalid={!!fieldErrors.address}
+                aria-describedby={fieldErrors.address ? "edit-clinic-address-error" : undefined}
               />
+              {fieldErrors.address && (
+                <p id="edit-clinic-address-error" className="text-sm text-destructive">
+                  {fieldErrors.address}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-active">Status</Label>
