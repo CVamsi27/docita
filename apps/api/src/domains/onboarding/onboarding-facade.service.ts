@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from '../../shared/modules/auth/auth/auth.service';
 import { SubscriptionStatus } from '@workspace/db';
 import type {
   CompleteOnboardingDto,

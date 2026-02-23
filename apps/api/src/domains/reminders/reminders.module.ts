@@ -6,7 +6,7 @@ import { ReminderSchedulerService } from './reminder-scheduler.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { ReminderHistoryService } from './reminder-history.service';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { WhatsappModule } from '../../shared/modules/messaging/whatsapp/whatsapp.module';
 
 @Module({
   imports: [PrismaModule, forwardRef(() => WhatsappModule)],

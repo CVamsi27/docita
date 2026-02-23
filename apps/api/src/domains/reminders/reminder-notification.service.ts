@@ -13,8 +13,8 @@ import {
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
-import { TemplatesService } from '../whatsapp/templates.service';
+import { WhatsappClientService } from '../../shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { TemplatesService } from '../../shared/modules/messaging/whatsapp/templates.service';
 
 interface AppointmentForReminder {
   id: string;

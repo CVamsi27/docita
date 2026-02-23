@@ -6,14 +6,14 @@ import { PaymentRetryService } from './payment-retry.service';
 import { PaymentsController } from './payments.controller';
 import { WebhooksController } from './webhooks.controller';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappModule } from '../whatsapp/whatsapp.module';
-import { AuditModule } from '../audit/audit.module';
+import { WhatsappModule } from '../../shared/modules/messaging/whatsapp/whatsapp.module';
+import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { PaymentReminderSchedulerService } from './payment-reminder-scheduler.service';
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
-import { AuthModule } from '../auth/auth.module';
+import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
 import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
 
 @Module({

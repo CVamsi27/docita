@@ -13,7 +13,7 @@ import {
 import { MedicalHistoryService } from './medical-history.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../shared/modules/audit/audit/audit.service';
 import { RequestWithUser } from '../../common/types/common.types';
 import { PatientsService } from './patients.service';
 

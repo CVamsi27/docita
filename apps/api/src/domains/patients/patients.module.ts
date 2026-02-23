@@ -5,11 +5,11 @@ import { MedicalHistoryController } from './medical-history.controller';
 import { MedicalHistoryService } from './medical-history.service';
 import { PatientsRepository } from '../../common/repositories';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { AuthModule } from '../auth/auth.module';
-import { AuditModule } from '../audit/audit.module';
+import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
+import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
 import { MedicalHistoryFactory } from './factories/medical-history.factory';
 import { VitalsFactory } from './factories/vitals.factory';
-import { AiModule } from '../ai-core/ai.module';
+import { AiModule } from '../../shared/modules/ai-core/ai.module';
 @Module({
   imports: [PrismaModule, AuthModule, AuditModule, AiModule],
   controllers: [PatientsController, MedicalHistoryController],

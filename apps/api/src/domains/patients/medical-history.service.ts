@@ -8,8 +8,8 @@ import {
   SocialHistoryInput,
   SurgicalHistoryInput,
 } from './schemas/medical-history.schema';
-import { AiService } from '../ai-core/ai.service';
-import { AiFactory } from '../ai-core/factories/ai.factory';
+import { AiService } from '../../shared/modules/ai-core/ai.service';
+import { AiFactory } from '../../shared/modules/ai-core/factories/ai.factory';
 
 @Injectable()
 export class MedicalHistoryService {

@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../shared/modules/audit/audit/audit.service';
 import { Cron } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
 import type { PaymentRetryInvoice } from '@workspace/types';

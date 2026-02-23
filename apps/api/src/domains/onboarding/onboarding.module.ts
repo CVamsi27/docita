@@ -6,11 +6,11 @@ import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { AuditModule } from '../audit/audit.module';
-import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
+import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { PaymentsModule } from '../payments/payments.module';
-import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { WhatsappModule } from '../../shared/modules/messaging/whatsapp/whatsapp.module';
 
 @Module({
   imports: [

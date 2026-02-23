@@ -6,8 +6,8 @@ import {
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WhatsappClientService } from '../whatsapp/whatsapp-client.service';
-import { TemplatesService } from '../whatsapp/templates.service';
+import { WhatsappClientService } from '../../shared/modules/messaging/whatsapp/whatsapp-client.service';
+import { TemplatesService } from '../../shared/modules/messaging/whatsapp/templates.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { IPaymentProvider } from './providers/payment.provider.interface';
