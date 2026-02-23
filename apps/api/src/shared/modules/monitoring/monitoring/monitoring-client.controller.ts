@@ -11,7 +11,7 @@ import { createZodDto, ZodSerializerDto } from 'nestjs-zod';
 import { ErrorSeverity } from '@workspace/db';
 import { z } from 'zod';
 import { MonitoringService } from './monitoring.service';
-import { JwtAuthGuard } from '../auth/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/auth/jwt-auth.guard';
 import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
 
 const ClientErrorReportSchema = z.object({
