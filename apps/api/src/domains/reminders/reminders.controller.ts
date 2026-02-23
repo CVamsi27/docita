@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import {
   ReminderSettingsDto,
   SendReminderDto,

@@ -14,7 +14,7 @@ import { MAX_FILE_SIZE } from '@workspace/utils';
 import { UploadSessionResponseDto } from './dto/uploads.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
 
 @Controller('uploads')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

@@ -13,7 +13,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 
 import {

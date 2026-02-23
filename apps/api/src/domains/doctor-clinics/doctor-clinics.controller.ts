@@ -19,7 +19,7 @@ import {
 } from './dto/doctor-clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Request } from '@nestjs/common';
 
 interface AuthRequest {

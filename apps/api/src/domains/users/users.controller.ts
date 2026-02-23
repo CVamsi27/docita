@@ -14,7 +14,7 @@ import {
   UpdateProfileSchema,
 } from './dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 

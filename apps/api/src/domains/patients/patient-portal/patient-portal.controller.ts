@@ -17,11 +17,11 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { PatientPortalService } from './patient-portal.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../../../shared/modules/auth/auth/jwt-auth.guard';
+import { RolesGuard } from '../../../shared/modules/auth/auth/roles.guard';
+import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import type { RequestWithUser } from '../../common/types/common.types';
+import type { RequestWithUser } from '../../../common/types/common.types';
 import {
   GetPatientPortalSnapshotQueryDto,
   UpdatePatientProfileBodyDto,

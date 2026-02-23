@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import type { Response } from 'express';
-import { TierGuard } from '../auth/tier.guard';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
-import { Roles } from '../auth/roles.decorator';
+import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
+import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role, InvoiceStatus } from '@workspace/db';
 
 import {

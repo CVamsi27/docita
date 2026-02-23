@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { MedicalCodingService } from './medical-coding.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
+import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
 import {
   AddFavoriteDto,
   AddCptFavoriteDto,

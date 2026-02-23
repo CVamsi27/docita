@@ -8,9 +8,9 @@ import {
 import { DashboardService } from './dashboard.service';
 import { DashboardStatsResponseDto } from './dto/dashboard.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { RequestWithUser } from '../../common/types/common.types';
+import { RequestWithUser } from '../../../common/types/common.types';
 
 @Controller('dashboard')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

@@ -11,11 +11,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { LabTestsService } from './lab-tests.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TierGuard } from '../auth/tier.guard';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../../shared/modules/auth/auth/jwt-auth.guard';
+import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
+import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import { RolesGuard } from '../../shared/modules/auth/auth/roles.guard';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 
 import {

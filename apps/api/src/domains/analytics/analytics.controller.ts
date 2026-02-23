@@ -1,9 +1,9 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
-import { TierGuard } from '../auth/tier.guard';
+import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
+import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
 import { RateLimit } from '../../common/interceptors/rate-limit.interceptor';
 import {
   OverviewStatsResponseDto,

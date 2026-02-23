@@ -21,7 +21,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 
 interface AuthRequest {
   user: {

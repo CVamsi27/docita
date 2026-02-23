@@ -24,11 +24,11 @@ import {
   UpdateAppointmentSchema,
   VitalsSchema,
 } from './dto/appointments.dto';
-import { TierGuard } from '../auth/tier.guard';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
+import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
 import { CacheDuration } from '../../common/interceptors/cache.interceptor';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';

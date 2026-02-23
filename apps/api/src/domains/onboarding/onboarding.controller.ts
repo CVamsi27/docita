@@ -25,7 +25,7 @@ import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 
 @Public()
 @Controller('onboarding')

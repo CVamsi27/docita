@@ -9,8 +9,8 @@ import {
   Query,
   UsePipes,
 } from '@nestjs/common';
-import { Roles } from '../auth/roles.decorator';
-import { Public } from '../auth/public.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionBillingService } from './subscription-billing.service';
 import { ClinicTier, BillingCycle, Role } from '@workspace/db';

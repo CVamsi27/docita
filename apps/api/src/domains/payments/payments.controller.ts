@@ -9,7 +9,7 @@ import {
 } from './dto/payments.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Idempotent } from '../../shared/modules/auth/decorators/idempotent.decorator';
 import { IdempotencyInterceptor } from '../../common/interceptors/idempotency.interceptor';
 import { UseInterceptors } from '@nestjs/common';

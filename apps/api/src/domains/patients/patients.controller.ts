@@ -24,7 +24,7 @@ import {
 } from './dto/patients.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 
 interface AuthRequest {

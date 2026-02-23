@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
+import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import {
   CreateTemplateSchema,
   UpdateTemplateSchema,

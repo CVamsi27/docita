@@ -12,7 +12,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Specialization, HospitalRole, Role } from '@workspace/db';
 
 import {

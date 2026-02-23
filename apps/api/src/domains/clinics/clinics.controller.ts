@@ -14,7 +14,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ClinicsService } from './clinics.service';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
   CreateClinicDto,

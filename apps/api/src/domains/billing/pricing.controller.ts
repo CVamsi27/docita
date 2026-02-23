@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SupportedCurrency } from '@workspace/types';
 import { PricingService } from './pricing.service';
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 
 @ApiTags('pricing')
 @Controller('pricing')

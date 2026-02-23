@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UploadsController } from './uploads.controller';
 import { UploadsService } from './uploads.service';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '../../../prisma/prisma.module';
 import { StorageProvider } from './storage.provider';
 import { LocalStorageProvider } from './local-storage.provider';
 

@@ -12,7 +12,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import type { RazorpayWebhookPayload } from '@workspace/types';
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
 
 @Controller('webhooks/subscriptions')
