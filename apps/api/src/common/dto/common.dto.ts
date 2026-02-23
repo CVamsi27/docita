@@ -17,3 +17,13 @@ export class RazorpayWebhookDto {
   payload?: Record<string, any>;
   created_at?: number;
 }
+
+export const BulkImportRequestSchema = z.object({
+  entityType: z.string(),
+  file: z.any(),
+});
+
+export class BulkImportRequestDto {
+  entityType: string;
+  file: any;
+}

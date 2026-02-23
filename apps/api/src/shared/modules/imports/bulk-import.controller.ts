@@ -17,7 +17,7 @@ import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import {
   BulkImportRequestSchema,
   BulkImportRequestDto,
-} from '../../common/dto/common.dto';
+} from '../../../common/dto/common.dto';
 
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
