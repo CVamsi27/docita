@@ -1,7 +1,7 @@
 import { NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PaginatedResult } from '../repositories/base.repository';
-import { paginateWithCursor } from '../pagination.helper';
+import { paginateWithCursor } from '../database/pagination.helper';
 
 /**
  * Standard pagination options used across all services
