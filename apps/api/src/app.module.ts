@@ -65,9 +65,9 @@ import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor'
 import { RateLimitInterceptor } from './shared/modules/interceptors/rate-limit.interceptor';
 
 // Extensibility Infrastructure
-import { EventsModule } from './shared/modules/events';
+import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services';
-import { MockBullModule } from './shared/modules/mocks/mock-bull.module';
+import { MockBullModule } from './common/mocks/mock-bull.module';
 
 const BullModule = MockBullModule;
 

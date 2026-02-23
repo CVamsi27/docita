@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { Public } from '../../shared/modules/auth/auth/public.decorator';
-import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../webhooks/webhooks/webhook-error-handling.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
   RazorpayWebhookSchema,

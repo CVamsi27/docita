@@ -13,7 +13,7 @@ import { Request } from 'express';
 import { SubscriptionWebhookService } from './subscription-webhook.service';
 import type { RazorpayWebhookPayload } from '@workspace/types';
 import { Public } from '../../shared/modules/auth/auth/public.decorator';
-import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../webhooks/webhooks/webhook-error-handling.service';
 
 @Controller('webhooks/subscriptions')
 @SkipThrottle()

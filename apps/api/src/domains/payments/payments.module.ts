@@ -14,7 +14,7 @@ import { PaymentReminderSchedulerService } from './payment-reminder-scheduler.se
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
 import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
-import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../webhooks/webhooks/webhook-error-handling.service';
 
 @Module({
   imports: [

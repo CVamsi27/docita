@@ -9,7 +9,7 @@ import { BusinessRulesService } from './services/business-rules.service';
 import { StartupValidationService } from './services/startup-validation.service';
 import { SecretsManagerService } from './services/secrets-manager.service';
 import { ObservabilityService } from './services/observability.service';
-import { IpRateLimitGuard } from '../shared/modules/auth/auth/guards/ip-rate-limit.guard';
+import { IpRateLimitGuard } from '../shared/modules/auth/guards/ip-rate-limit.guard';
 import { HealthCheckController } from './controllers/health-check.controller';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { DatabaseBackupService } from '../shared/modules/database/database-backup.service';

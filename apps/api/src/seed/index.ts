@@ -8,9 +8,9 @@ import * as path from 'path';
 import { seedClinicUsers } from './seed-clinic-users';
 import { seedPatientsAndEncounters } from './seed-patients-encounters';
 import { seedStructuredMedicalHistory } from './seed-structured-medical-history';
-import { seedDoctorSchedulesAndLabTests } from './seed-schedules-lab-tests';
-import { seedClinicConfigAndTemplates } from './seed-clinic-config-templates';
-import { main as seedIcdCodes } from './seed-icd-codes';
+import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
+import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
+import { seedIcdCodes } from './seed-icd-codes';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -77,7 +77,7 @@ async function main() {
 
     // 4. Schedules & Lab Tests
     console.log('\n--- Seeding Schedules & Lab Tests ---');
-    await seedDoctorSchedulesAndLabTests(prisma, {
+    await seedSchedulesAndLabTests(prisma, {
       defaultClinicId: defaultClinic.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
@@ -87,14 +87,14 @@ async function main() {
 
     // 5. Clinic Config & Templates (WhatsApp, Prescriptions)
     console.log('\n--- Seeding Config & Templates ---');
-    await seedClinicConfigAndTemplates(prisma, {
+    await seedClinicConfigTemplates(prisma, {
       clinicId: defaultClinic.id,
     });
     console.log('✅ Config & Templates seeded');
 
     // 6. ICD-10 Codes (uses its own internal logic/files)
     console.log('\n--- Seeding ICD-10 Codes ---');
-    await seedIcdCodes();
+    await seedIcdCodes(prisma);
     console.log('✅ ICD-10 Codes seeded');
 
     console.log('\n🎉 Database seed completed successfully!');

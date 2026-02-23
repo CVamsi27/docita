@@ -19,7 +19,7 @@ import { SubscriptionLifecycleService } from './subscription-lifecycle.service';
 import { ReferralService } from './referral.service';
 import { BillingHistoryService } from './billing-history.service';
 import { ProrationService } from './proration.service';
-import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../webhooks/webhooks/webhook-error-handling.service';
 
 @Module({
   imports: [
