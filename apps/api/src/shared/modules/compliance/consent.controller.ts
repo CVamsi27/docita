@@ -22,9 +22,9 @@ interface AuthUser {
 }
 import { z } from 'zod';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { RolesGuard } from '../../auth/auth/roles.guard';
-import { Roles } from '../../auth/auth/roles.decorator';
-import { JwtAuthGuard } from '../../auth/auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/auth/roles.guard';
+import { Roles } from '../auth/auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/auth/jwt-auth.guard';
 import { DeletePatientDataDto } from './dto/compliance.dto';
 
 const recordConsentSchema = z.object({

@@ -9,7 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
 import {
   ApiTags,
   ApiOperation,

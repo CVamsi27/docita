@@ -9,11 +9,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { MonitoringService } from './monitoring.service';
-import { JwtAuthGuard } from '../../auth/auth/jwt-auth.guard';
-import { TierGuard } from '../../auth/auth/tier.guard';
+import { JwtAuthGuard } from '../auth/auth/jwt-auth.guard';
+import { TierGuard } from '../auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
-import { RequireFeature, Feature } from '../../auth/auth/tier.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
+import { RequireFeature, Feature } from '../auth/auth/tier.decorator';
 import {
   WebVitalDto,
   RequestStatsResponseDto,

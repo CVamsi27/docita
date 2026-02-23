@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
 import type { AuthenticatedRequest } from '@workspace/types';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import {

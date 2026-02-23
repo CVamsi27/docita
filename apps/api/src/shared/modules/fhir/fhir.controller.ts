@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { FhirService } from './fhir.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
 import {
   FhirResourceDto,
   FhirBundleDto,

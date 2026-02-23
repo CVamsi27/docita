@@ -5,7 +5,7 @@ import {
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
-import { Public } from '../../auth/auth/public.decorator';
+import { Public } from '../auth/auth/public.decorator';
 import { ContactService } from './contact.service';
 
 import {

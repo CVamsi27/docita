@@ -6,7 +6,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { PrismaHealthIndicator } from './health/prisma.health';
-import { Public } from '../../auth/auth/public.decorator';
+import { Public } from '../auth/auth/public.decorator';
 
 @Controller('health')
 @Public()

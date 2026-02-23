@@ -8,10 +8,10 @@ import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
 import { PrismaModule } from '../../../prisma/prisma.module';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
-import { ClinicsModule } from '../clinics/clinics.module';
-import { UsersModule } from '../users/users.module';
-import { PaymentsModule } from '../payments/payments.module';
+import { PaymentWebSocketGateway } from '../../../gateways/payment.websocket.gateway';
+import { ClinicsModule } from '../../../domains/clinics/clinics.module';
+import { UsersModule } from '../../../domains/users/users.module';
+import { PaymentsModule } from '../../../domains/payments/payments.module';
 
 @Module({
   imports: [PrismaModule, ClinicsModule, UsersModule, PaymentsModule],

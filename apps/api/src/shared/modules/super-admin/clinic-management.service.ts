@@ -4,21 +4,21 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
+import { PaymentWebSocketGateway } from '../../../gateways/payment.websocket.gateway';
 import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
-} from '../../common/select-fragments';
-import { paginateWithCursor } from '../../common/pagination.helper';
+} from '../../../common/select-fragments';
+import { paginateWithCursor } from '../../../common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
   SuperAdminCreateClinicDto,
   SuperAdminUpdateClinicDto,
 } from './dto/clinic-management.dto';
-import { ClinicFactory } from '../clinics/factories/clinic.factory';
-import { UserFactory } from '../users/factories/user.factory';
+import { ClinicFactory } from '../../../domains/clinics/factories/clinic.factory';
+import { UserFactory } from '../../../domains/users/factories/user.factory';
 
 @Injectable()
 export class ClinicManagementService {

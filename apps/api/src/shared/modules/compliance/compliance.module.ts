@@ -6,7 +6,7 @@ import { PrismaModule } from '../../../prisma/prisma.module';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
 import { DataRetentionScheduler } from './data-retention.scheduler';
-import { AuthModule } from '../../auth/auth/auth.module';
+import { AuthModule } from '../auth/auth/auth.module';
 
 import { ArchivalService } from './archival.service';
 

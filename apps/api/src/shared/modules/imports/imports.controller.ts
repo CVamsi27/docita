@@ -15,10 +15,10 @@ import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
 import { ImportSessionService } from './import-session.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { TierGuard } from '../../auth/auth/tier.guard';
+import { TierGuard } from '../auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
-import { RequireFeature, Feature } from '../../auth/auth/tier.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
+import { RequireFeature, Feature } from '../auth/auth/tier.decorator';
 import { RateLimit } from '../../../common/interceptors/rate-limit.interceptor';
 import {
   ImportPatientFieldsResponseDto,
