@@ -1,17 +1,17 @@
 import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
-import { FeatureFlagGuard } from '../../shared/modules/auth/guards/feature-flag.guard';
-import { PDFGeneratorService } from '../../shared/modules/document-generation/pdf/pdf-generator.service';
-import { BasePdfService } from '../../shared/modules/document-generation/pdf/base-pdf.service';
+import { FeatureFlagGuard } from '../auth/guards/feature-flag.guard';
+import { PDFGeneratorService } from '../document-generation/pdf/pdf-generator.service';
+import { BasePdfService } from '../document-generation/pdf/base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
-import { ClinicScopedGuard } from '../../shared/modules/auth/decorators/clinic-scoped.decorator';
+import { ClinicScopedGuard } from '../auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../../prisma/prisma.module';
-import { WhatsappModule } from '../../messaging/whatsapp/whatsapp.module';
-import { EncryptionService } from '../../encryption.service';
-import { DPDPComplianceService } from '../../compliance/dpdp-compliance.service';
-import { AuditModule } from '../../audit/audit/audit.module';
-import { ComplianceModule } from '../../compliance/compliance.module';
-import { UsersModule } from '../../users/users.module';
+import { WhatsappModule } from '../messaging/whatsapp/whatsapp.module';
+import { EncryptionService } from '../../../common/encryption.service';
+import { DPDPComplianceService } from '../compliance/dpdp-compliance.service';
+import { AuditModule } from '../audit/audit/audit.module';
+import { ComplianceModule } from '../compliance/compliance.module';
+import { UsersModule } from '../../../domains/users/users.module';
 
 /**
  * Common Services Module
