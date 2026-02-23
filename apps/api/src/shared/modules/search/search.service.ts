@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { RedisCachingService } from '../../common/services/redis-caching.service';
+import { RedisCachingService } from '../services/redis-caching.service';
 
 export type SearchEntityType =
   | 'patient'

@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../../../prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { ApiRequestInput } from '../schemas/monitoring.schema';
 import { MonitoringFactory } from '../factories/monitoring.factory';
