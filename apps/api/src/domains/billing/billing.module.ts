@@ -16,6 +16,7 @@ import {
 // Infrastructure layer
 import {
   InMemoryInvoiceRepository,
+  PrismaInvoiceRepository,
 } from './infrastructure/repositories';
 
 // Presentation layer
@@ -58,12 +59,11 @@ import { INVOICE_REPOSITORY_TOKEN } from './application/ports';
     // INFRASTRUCTURE LAYER (Implementations)
     // ============================================
     // Repository implementations
+    // Production: Uses PrismaInvoiceRepository with real database
+    // Testing: Can be swapped with InMemoryInvoiceRepository
     {
       provide: INVOICE_REPOSITORY_TOKEN,
-      useClass: InMemoryInvoiceRepository,
-      // In production, replace with:
-      // provide: INVOICE_REPOSITORY_TOKEN,
-      // useClass: PrismaInvoiceRepository,
+      useClass: PrismaInvoiceRepository,
     },
 
     // ============================================
@@ -87,5 +87,4 @@ import { INVOICE_REPOSITORY_TOKEN } from './application/ports';
     OverageCalculationService,
   ],
 })
-export class BillingModule {}
 export class BillingModule {}

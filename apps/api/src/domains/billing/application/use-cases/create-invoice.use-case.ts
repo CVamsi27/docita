@@ -71,8 +71,6 @@ export class CreateInvoiceUseCase {
       status,
       billingPeriod,
       items,
-      issueDate: dto.issueDate,
-      dueDate: dto.dueDate,
       createdAt: new Date(),
       updatedAt: new Date(),
       notes: dto.notes,

@@ -1,6 +1,10 @@
 /**
  * Invoice Entity - Core business aggregate
  * Represents a single invoice with line items
+ * 
+ * Note: clinicId is optional because the Prisma schema stores appointmentId
+ * instead. In practice, clinicId is typically derived from the appointment
+ * or passed through the request context/service layer.
  */
 
 import { Money } from '../value-objects/money.value-object';
@@ -10,43 +14,64 @@ import { InvoiceItem } from './invoice-item.entity';
 
 export interface InvoiceProps {
   id: string;
-  clinicId: string;
   patientId: string;
+  appointmentId?: string;
+  clinicId?: string; // Optional - can be derived from appointment context
   status: InvoiceStatus;
   billingPeriod: BillingPeriod;
   items: InvoiceItem[];
-  issueDate: Date;
-  dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
   notes?: string;
+  doctorContext?: {
+    doctorName?: string;
+    doctorEmail?: string;
+    doctorPhone?: string;
+    doctorSpecialization?: string;
+    doctorRole?: string;
+    doctorRegistrationNumber?: string;
+    doctorLicenseNumber?: string;
+  };
+  whatsappContext?: {
+    approvalStatus?: string;
+    approvedById?: string;
+    approvedAt?: Date;
+    whatsappSentAt?: Date;
+    whatsappMessageId?: string;
+    whatsappStatus?: string;
+  };
+  version?: number;
 }
 
 export class Invoice {
   readonly id: string;
-  readonly clinicId: string;
   readonly patientId: string;
+  readonly appointmentId?: string;
+  readonly clinicId?: string;
   private status: InvoiceStatus;
   readonly billingPeriod: BillingPeriod;
   private items: InvoiceItem[];
-  readonly issueDate: Date;
-  readonly dueDate: Date;
   readonly createdAt: Date;
   updatedAt: Date;
-  notes?: string;
+  private notes?: string;
+  readonly doctorContext?: InvoiceProps['doctorContext'];
+  readonly whatsappContext?: InvoiceProps['whatsappContext'];
+  readonly version: number;
 
   constructor(props: InvoiceProps) {
     this.id = props.id;
-    this.clinicId = props.clinicId;
     this.patientId = props.patientId;
+    this.appointmentId = props.appointmentId;
+    this.clinicId = props.clinicId;
     this.status = props.status;
     this.billingPeriod = props.billingPeriod;
     this.items = props.items;
-    this.issueDate = props.issueDate;
-    this.dueDate = props.dueDate;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.notes = props.notes;
+    this.doctorContext = props.doctorContext;
+    this.whatsappContext = props.whatsappContext;
+    this.version = props.version || 1;
 
     this.validate();
   }
@@ -56,9 +81,18 @@ export class Invoice {
       throw new Error('Invoice must have at least one item');
     }
 
-    if (this.issueDate > this.dueDate) {
-      throw new Error('Issue date must be before due date');
+    if (!this.patientId) {
+      throw new Error('Invoice must have a patient ID');
     }
+  }
+
+  // Derived properties from billingPeriod
+  get issueDate(): Date {
+    return this.billingPeriod.startDate;
+  }
+
+  get dueDate(): Date {
+    return this.billingPeriod.endDate;
   }
 
   getStatus(): InvoiceStatus {
