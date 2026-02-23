@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Prisma } from '@workspace/db';

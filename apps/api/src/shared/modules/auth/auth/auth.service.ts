@@ -6,14 +6,14 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
-import { UserFactory } from '../users/factories/user.factory';
-import { MonitoringService } from '../monitoring/monitoring.service';
-import { ObservabilityService } from '../../common/services/observability.service';
+import { UserFactory } from '../../../../domains/users/factories/user.factory';
+import { MonitoringService } from '../../monitoring/monitoring/monitoring.service';
+import { ObservabilityService } from '../../../../common/services/observability.service';
 import { nanoid } from 'nanoid';
 
 interface UserWithoutPassword {

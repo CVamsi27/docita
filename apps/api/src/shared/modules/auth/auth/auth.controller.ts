@@ -23,8 +23,8 @@ import { Public } from './public.decorator';
 import { Roles } from './roles.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { IpRateLimitGuard } from '../../shared/modules/auth/auth/guards/ip-rate-limit.guard';
-import { RequestWithUser } from '../../common/types/common.types';
+import { IpRateLimitGuard } from '../../guards/ip-rate-limit.guard';
+import { RequestWithUser } from '../../../../common/types/common.types';
 import { Role } from '@workspace/db';
 import {
   LoginDto,

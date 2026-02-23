@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { ClinicType } from '@workspace/db';
 import { FacilityType } from '@workspace/types';
 import { CLINIC_TYPES_KEY, FACILITY_TYPES_KEY } from './clinic-type.decorator';
