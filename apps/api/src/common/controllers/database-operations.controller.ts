@@ -11,12 +11,12 @@ import {
   ApiTags,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { DatabaseBackupService } from '../database/database-backup.service';
-import { SlowQueryLoggingService } from '../database/slow-query-logging.service';
-import { DatabaseIndexOptimizationService } from '../database/database-index-optimization.service';
-import { DatabasePoolingService } from '../database/database-pooling.service';
-import { RolesGuard } from '../../modules/auth/roles.guard';
-import { Roles } from '../../modules/auth/roles.decorator';
+import { DatabaseBackupService } from '../../shared/modules/database/database-backup.service';
+import { SlowQueryLoggingService } from '../../shared/modules/database/slow-query-logging.service';
+import { DatabaseIndexOptimizationService } from '../../shared/modules/database/database-index-optimization.service';
+import { DatabasePoolingService } from '../../shared/modules/database/database-pooling.service';
+import { RolesGuard } from '../../shared/modules/auth/auth/roles.guard';
+import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { VerifyBackupRequestDto } from '../dto/database-operations.dto';
 
 @ApiTags('Database Operations')

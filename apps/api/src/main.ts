@@ -4,16 +4,16 @@ import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ZodValidationPipe } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
-import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
-import { MonitoringService } from './modules/monitoring/monitoring.service';
+import { MonitoringService } from './shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from './common/services/observability.service';
 import {
   getCorsOrigins,
   validateEnv,
   isDevelopment,
-} from './common/config/app-config';
+} from './shared/modules/config/app-config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import * as path from 'path';

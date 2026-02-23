@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { MonitoringService } from '../../modules/monitoring/monitoring.service';
+import { MonitoringService } from '../../shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
 
 interface RequestUser {

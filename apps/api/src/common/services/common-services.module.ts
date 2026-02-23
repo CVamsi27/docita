@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
-import { FeatureFlagGuard } from '../guards/feature-flag.guard';
-import { PDFGeneratorService } from './pdf/pdf-generator.service';
-import { BasePdfService } from './pdf/base-pdf.service';
+import { FeatureFlagGuard } from '../../shared/modules/auth/guards/feature-flag.guard';
+import { PDFGeneratorService } from '../../shared/modules/document-generation/pdf/pdf-generator.service';
+import { BasePdfService } from '../../shared/modules/document-generation/pdf/base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
-import { ClinicScopedGuard } from '../decorators/clinic-scoped.decorator';
+import { ClinicScopedGuard } from '../../shared/modules/auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { WhatsappModule } from '../../modules/whatsapp/whatsapp.module';
 import { EncryptionService } from '../encryption.service';

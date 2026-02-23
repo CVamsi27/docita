@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { AuditService } from '../../modules/audit/audit.service';
 import { tenantStorage } from '../middleware/tenant.middleware';
-import { EMERGENCY_ACCESS_KEY } from '../decorators/emergency-access.decorator';
+import { EMERGENCY_ACCESS_KEY } from '../../shared/modules/auth/decorators/emergency-access.decorator';
 
 @Injectable()
 export class BreakTheGlassInterceptor implements NestInterceptor {

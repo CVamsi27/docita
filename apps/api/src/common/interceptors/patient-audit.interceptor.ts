@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { AuditService } from '../../modules/audit/audit.service';
+import { AuditService } from '../../shared/modules/audit/audit/audit.service';
 import { Request } from 'express';
 
 interface AuthUser {

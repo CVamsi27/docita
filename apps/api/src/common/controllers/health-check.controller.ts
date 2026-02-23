@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { Public } from '../../modules/auth/public.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 import { ObservabilityService } from '../services/observability.service';
 
 /**

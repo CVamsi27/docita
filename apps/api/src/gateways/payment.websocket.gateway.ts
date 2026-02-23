@@ -7,8 +7,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards, BadRequestException } from '@nestjs/common';
-import { getWebSocketCorsOrigins } from '../common/config/app-config';
-import { WsJwtAuthGuard } from '../modules/auth/ws-jwt-auth.guard';
+import { getWebSocketCorsOrigins } from '../shared/modules/config/app-config';
+import { WsJwtAuthGuard } from '../shared/modules/auth/auth/ws-jwt-auth.guard';
 import {
   ClinicTier,
   SubscriptionStatus,

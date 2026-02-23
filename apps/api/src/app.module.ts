@@ -6,68 +6,68 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
-import { PatientsModule } from './modules/patients/patients.module';
-import { AppointmentsModule } from './modules/appointments/appointments.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { PrescriptionsModule } from './modules/prescriptions/prescriptions.module';
-import { InvoicesModule } from './modules/invoices/invoices.module';
-import { DocumentsModule } from './modules/documents/documents.module';
-import { ImportsModule } from './modules/imports/imports.module';
+import { PatientsModule } from './domains/patients/patients.module';
+import { AppointmentsModule } from './domains/appointments/appointments.module';
+import { AuthModule } from './shared/modules/auth/auth/auth.module';
+import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
+import { InvoicesModule } from './domains/invoices/invoices.module';
+// import { DocumentsModule } from './domains/documents/documents.module'; // TODO: Create documents module
+import { ImportsModule } from './shared/modules/imports/imports.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { UploadsModule } from './modules/uploads/uploads.module';
-import { TemplatesModule } from './modules/templates/templates.module';
-import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module';
-import { AnalyticsModule } from './modules/analytics/analytics.module';
-import { RemindersModule } from './modules/reminders/reminders.module';
-import { ClinicsModule } from './modules/clinics/clinics.module';
-import { DoctorClinicsModule } from './modules/doctor-clinics/doctor-clinics.module';
-import { DoctorsModule } from './modules/doctors/doctors.module';
+import { DashboardModule } from './domains/dashboards/dashboard/dashboard.module';
+import { UploadsModule } from './domains/documents/uploads/uploads.module';
+import { TemplatesModule } from './domains/documents/templates/templates.module';
+import { CustomFieldsModule } from './domains/custom-fields/custom-fields.module';
+import { AnalyticsModule } from './domains/analytics/analytics.module';
+import { RemindersModule } from './domains/reminders/reminders.module';
+import { ClinicsModule } from './domains/clinics/clinics.module';
+import { DoctorClinicsModule } from './domains/doctor-clinics/doctor-clinics.module';
+import { DoctorsModule } from './domains/doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
-import { MockBullModule } from './common/mocks/mock-bull.module';
 
 import { join } from 'path';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
-import { SuperAdminModule } from './modules/super-admin/super-admin.module';
-import { SubscriptionModule } from './modules/subscription/subscription.module';
-import { BillingModule } from './modules/billing/billing.module';
-import { PrescriptionTemplatesModule } from './modules/prescription-templates/prescription-templates.module';
-import { MedicalCodingModule } from './modules/medical-coding/medical-coding.module';
-import { ConfigModule as AppConfigModule } from './modules/config/config.module';
+import { PaymentsModule } from './domains/payments/payments.module';
+import { WhatsappModule } from './shared/modules/messaging/whatsapp/whatsapp.module';
+import { SuperAdminModule } from './shared/modules/super-admin/super-admin.module';
+import { SubscriptionModule } from './domains/subscription/subscription.module';
+import { BillingModule } from './domains/billing/billing.module';
+import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
+import { MedicalCodingModule } from './domains/clinical/medical-coding.module';
+import { AppConfigModule } from './shared/modules/config/config.module';
 import { PaymentWebSocketGateway } from './gateways/payment.websocket.gateway';
-import { LabTestsModule } from './modules/lab-tests/lab-tests.module';
-import { InventoryModule } from './modules/inventory/inventory.module';
-import { FeedbackModule } from './modules/feedback/feedback.module';
-import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { LabTestsModule } from './domains/clinical/lab-tests.module';
+// import { InventoryModule } from './domains/inventory/inventory.module'; // TODO: Create inventory module
+import { FeedbackModule } from './domains/feedback/feedback.module';
+import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
-import { FhirModule } from './modules/fhir/fhir.module';
-import { UsersModule } from './modules/users/users.module';
-import { ContactModule } from './modules/contact/contact.module';
-import { AIModule } from './modules/ai/ai.module';
-import { AuditModule } from './modules/audit/audit.module';
-import { OnboardingModule } from './modules/onboarding/onboarding.module';
-import { IpdModule } from './modules/ipd/ipd.module';
-import { QueueModule } from './modules/queue/queue.module';
-import { PerformanceModule } from './modules/performance/performance.module';
-import { ComplianceModule } from './modules/compliance/compliance.module';
-import { PatientPortalModule } from './modules/patient-portal/patient-portal.module';
-import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from './common/interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from './common/interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from './common/interceptors/emergency-access.interceptor';
-import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
-import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
-import { RolesGuard } from './modules/auth/roles.guard';
-import { CsrfInterceptor } from './common/interceptors/csrf.interceptor';
-import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
+import { FhirModule } from './shared/modules/fhir/fhir.module';
+import { UsersModule } from './domains/users/users.module';
+import { ContactModule } from './shared/modules/contact/contact.module';
+import { AIModule } from './shared/modules/ai/ai.module';
+import { AuditModule } from './shared/modules/audit/audit/audit.module';
+import { OnboardingModule } from './domains/onboarding/onboarding.module';
+// import { IpdModule } from './domains/ipd/ipd.module'; // TODO: Create IPD module
+// import { QueueModule } from './domains/queue/queue.module'; // TODO: Create queue module
+import { PerformanceModule } from './shared/modules/performance/performance.module';
+import { ComplianceModule } from './shared/modules/compliance/compliance.module';
+import { PatientPortalModule } from './domains/patients/patient-portal/patient-portal.module';
+import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from './shared/modules/interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from './shared/modules/interceptors/emergency-access.interceptor';
+import { RequestIdInterceptor } from './shared/modules/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from './shared/modules/interceptors/request-context.interceptor';
+import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
+import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
+import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
+import { RateLimitInterceptor } from './shared/modules/interceptors/rate-limit.interceptor';
 
 // Extensibility Infrastructure
-import { EventsModule } from './common/events';
-import { CommonServicesModule } from './common/services';
+import { EventsModule } from './shared/modules/events';
+import { CommonServicesModule } from './shared/modules/services';
+import { MockBullModule } from './shared/modules/mocks/mock-bull.module';
 
 const BullModule = MockBullModule;
 
@@ -139,7 +139,7 @@ const BullModule = MockBullModule;
     AppointmentsModule,
     PrescriptionsModule,
     InvoicesModule,
-    DocumentsModule,
+    // DocumentsModule, // TODO: Create documents module
     ImportsModule,
     DashboardModule,
     UploadsModule,
@@ -159,7 +159,7 @@ const BullModule = MockBullModule;
     MedicalCodingModule,
     AppConfigModule,
     LabTestsModule,
-    InventoryModule,
+    // InventoryModule, // TODO: Create inventory module
     FeedbackModule,
     FhirModule,
     UsersModule,
@@ -167,8 +167,8 @@ const BullModule = MockBullModule;
     AIModule,
     AuditModule,
     OnboardingModule,
-    IpdModule,
-    QueueModule,
+    // IpdModule, // TODO: Create IPD module
+    // QueueModule, // TODO: Create queue module
     PerformanceModule,
     ComplianceModule,
     PatientPortalModule,
