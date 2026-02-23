@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WhatsappService } from '../whatsapp.service';
-import { PrescriptionCreatedEvent } from '../../../../domains/prescriptions/events/prescription-created.event';
-import { InvoiceGeneratedEvent } from '../../../../domains/invoices/events/invoice-generated.event';
-import { AppointmentCreatedEvent } from '../../../../domains/appointments/events/appointment-created.event';
-import { AppointmentUpdatedEvent } from '../../../../domains/appointments/events/appointment-updated.event';
+import { PrescriptionCreatedEvent } from '../../../../../domains/prescriptions/events/prescription-created.event';
+import { InvoiceGeneratedEvent } from '../../../../../domains/invoices/events/invoice-generated.event';
+import { AppointmentCreatedEvent } from '../../../../../domains/appointments/events/appointment-created.event';
+import { AppointmentUpdatedEvent } from '../../../../../domains/appointments/events/appointment-updated.event';
 
 @Injectable()
 export class WhatsappEventListener {

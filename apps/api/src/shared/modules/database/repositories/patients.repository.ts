@@ -10,7 +10,7 @@ import {
 import {
   PATIENT_LIST_SELECT,
   PATIENT_DETAIL_SELECT,
-} from '../../../common/select-fragments';
+} from '../../../../common/select-fragments';
 
 /**
  * DTO for creating patients

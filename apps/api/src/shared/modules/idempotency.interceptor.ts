@@ -11,8 +11,8 @@ import { Reflector } from '@nestjs/core';
 import {
   IDEMPOTENT_METADATA_KEY,
   IdempotentOptions,
-} from '../auth/auth/decorators/idempotent.decorator';
-import { IdempotencyService } from '../services/idempotency.service';
+} from './auth/decorators/idempotent.decorator';
+import { IdempotencyService } from './services/idempotency.service';
 
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {

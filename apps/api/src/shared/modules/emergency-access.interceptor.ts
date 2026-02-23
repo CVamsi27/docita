@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { AuditService } from '../../shared/modules/audit/audit/audit.service';
+import { AuditService } from './audit/audit/audit.service';
 import { tenantStorage } from '../../common/middleware/tenant.middleware';
-import { EMERGENCY_ACCESS_KEY } from '../../shared/modules/auth/auth/emergency-access.decorator';
+import { EMERGENCY_ACCESS_KEY } from './auth/decorators/emergency-access.decorator';
 
 @Injectable()
 export class BreakTheGlassInterceptor implements NestInterceptor {
