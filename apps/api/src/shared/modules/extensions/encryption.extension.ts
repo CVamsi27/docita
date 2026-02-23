@@ -1,5 +1,5 @@
 import { Prisma } from '@workspace/db';
-import { EncryptionService } from '../../common/encryption.service';
+import { EncryptionService } from '../../../common/encryption.service';
 
 export const createEncryptionExtension = (
   encryptionService: EncryptionService,

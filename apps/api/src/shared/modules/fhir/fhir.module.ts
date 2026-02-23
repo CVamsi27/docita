@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { FhirController } from './fhir.controller';
 import { FhirService } from './fhir.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 import { FhirPatientFactory } from './factories/fhir-patient.factory';
 import { FhirObservationFactory } from './factories/fhir-observation.factory';
 import { FhirMedicationFactory } from './factories/fhir-medication.factory';

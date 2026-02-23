@@ -6,7 +6,7 @@ import {
   ResendEmailProvider,
   EMAIL_PROVIDER,
 } from './providers';
-import { PrismaModule } from '../../../prisma/prisma.module';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 
 /**
  * Email module providing email delivery capabilities.

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PerformanceController } from './performance.controller';
 import { PerformanceService } from './performance.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
-import { EncryptionService } from '../../common/encryption.service';
+import { AuditService } from '../audit/audit/audit.service';
+import { EncryptionService } from '../../../common/encryption.service';
 import { ArchivalService } from './archival.service';
 
 @Injectable()

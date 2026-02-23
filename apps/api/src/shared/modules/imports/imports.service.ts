@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
 import { Gender } from '@workspace/db';

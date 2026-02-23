@@ -1,6 +1,6 @@
 import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { AuditService, AuditLogFilter } from './audit.service';
-import { Roles } from '../../../auth/auth/roles.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
   AnyAuditResponseDto,

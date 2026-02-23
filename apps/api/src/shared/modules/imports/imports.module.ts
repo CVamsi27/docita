@@ -13,7 +13,7 @@ import { DocumentClassifierService } from './document-classifier.service';
 import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
 import { ImportSessionService } from './import-session.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 import { AIModule } from '../ai/ai.module';
 
 @Module({

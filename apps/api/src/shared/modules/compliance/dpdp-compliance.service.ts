@@ -5,7 +5,7 @@
 
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../audit/audit/audit.service';
 import {
   ConsentType,
   ConsentStatus,
