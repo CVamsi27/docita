@@ -3,7 +3,7 @@ import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
 import { PrismaAppointmentRepository } from './repositories/prisma-appointment.repository';
 import { AppointmentSchedulingRulesService } from './domain-services/appointment-scheduling-rules.service';
-import { PatientsModule } from '../patients/patients.module';
+import { PatientsModule } from '../patients';
 
 @Module({
   imports: [PatientsModule],

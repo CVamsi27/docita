@@ -8,13 +8,13 @@ import { WebhooksController } from './webhooks.controller';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappModule } from '../../shared/modules/messaging/whatsapp/whatsapp.module';
 import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
-import { NotificationsModule } from '../notifications/notifications.module';
+import { NotificationsModule } from '../../shared/modules/messaging/notifications';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { PaymentReminderSchedulerService } from './payment-reminder-scheduler.service';
 
 import { RazorpayPaymentProvider } from './providers/razorpay.provider';
 import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
-import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
 
 @Module({
   imports: [

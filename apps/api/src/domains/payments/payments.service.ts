@@ -8,7 +8,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { WhatsappClientService } from '../../shared/modules/messaging/whatsapp/whatsapp-client.service';
 import { TemplatesService } from '../../shared/modules/messaging/whatsapp/templates.service';
-import { PushNotificationService } from '../notifications/push-notification.service';
+import { PushNotificationService } from '../../shared/modules/messaging/notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
 import { IPaymentProvider } from './providers/payment.provider.interface';
 import {

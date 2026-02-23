@@ -9,7 +9,7 @@ import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PaymentGatewayFactory } from '../../gateways/payment-gateway.factory';
 import { RazorpaySubscriptionGateway } from '../../gateways/razorpay-subscription.gateway';
-import { ReferralsModule } from '../referrals/referrals.module';
+import { ReferralsModule } from '../referrals';
 import { PaymentsModule } from '../payments/payments.module';
 
 // Import new specialized services
@@ -19,7 +19,7 @@ import { SubscriptionLifecycleService } from './subscription-lifecycle.service';
 import { ReferralService } from './referral.service';
 import { BillingHistoryService } from './billing-history.service';
 import { ProrationService } from './proration.service';
-import { WebhookErrorHandlingService } from '../webhooks/webhook-error-handling.service';
+import { WebhookErrorHandlingService } from '../../common/services/webhook-error-handling.service';
 
 @Module({
   imports: [

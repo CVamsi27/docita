@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { CacheDuration } from '../../common/interceptors/cache.interceptor';
 import { ConfigService } from './config.service';
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../shared/modules/auth/auth/public.decorator';
 import {
   FormOptionsResponseDto,
   AppConstantsResponseDto,

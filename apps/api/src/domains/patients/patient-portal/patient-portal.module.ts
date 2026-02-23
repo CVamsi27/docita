@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { PatientPortalController } from './patient-portal.controller';
 import { PatientPortalService } from './patient-portal.service';
 import { PrismaModule } from '../../../prisma/prisma.module';
-import { PatientsModule } from '../patients/patients.module';
-import { AppointmentsModule } from '../appointments/appointments.module';
+import { PatientsModule } from '../patients';
+import { AppointmentsModule } from '../appointments';
 // Domain services (SRP decomposition)
 import { PatientDashboardService } from './domain-services/patient-dashboard.service';
 import { PatientRecordsService } from './domain-services/patient-records.service';
