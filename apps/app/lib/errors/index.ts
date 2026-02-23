@@ -2,6 +2,9 @@
  * Centralized Error Definitions
  */
 
+// Import error parser utilities
+export { parseError, getErrorMessage, handleError, type ApiError } from './error-parser';
+
 export class AppError extends Error {
   constructor(
     message: string,
