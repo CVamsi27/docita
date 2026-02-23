@@ -5,4 +5,4 @@ export { BasePdfService } from '../../shared/modules/document-generation/pdf/bas
 export * from './whatsapp-notification.service';
 export * from './common-services.module';
 export * from '../encryption.service';
-export * from '../../modules/compliance/dpdp-compliance.service';
+export * from '../../shared/modules/compliance/dpdp-compliance.service';

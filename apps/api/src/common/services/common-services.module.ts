@@ -6,12 +6,12 @@ import { BasePdfService } from '../../shared/modules/document-generation/pdf/bas
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '../../shared/modules/auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { WhatsappModule } from '../../modules/whatsapp/whatsapp.module';
+import { WhatsappModule } from '../../shared/modules/messaging/whatsapp/whatsapp.module';
 import { EncryptionService } from '../encryption.service';
-import { DPDPComplianceService } from '../../modules/compliance/dpdp-compliance.service';
-import { AuditModule } from '../../modules/audit/audit.module';
-import { ComplianceModule } from '../../modules/compliance/compliance.module';
-import { UsersModule } from '../../modules/users/users.module';
+import { DPDPComplianceService } from '../../shared/modules/compliance/dpdp-compliance.service';
+import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
+import { ComplianceModule } from '../../shared/modules/compliance/compliance.module';
+import { UsersModule } from '../../domains/users/users.module';
 
 /**
  * Common Services Module

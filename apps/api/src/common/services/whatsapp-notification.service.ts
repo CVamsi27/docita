@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
-import { UsersService } from '../../modules/users/users.service';
-import { WhatsappClientService } from '../../modules/whatsapp/whatsapp-client.service';
+import { UsersService } from '../../domains/users/users.service';
+import { WhatsappClientService } from '../../shared/modules/messaging/whatsapp/whatsapp-client.service';
 
 /**
  * Configuration for sending WhatsApp notifications
