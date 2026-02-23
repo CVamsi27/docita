@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { Patient } from '@workspace/types';
 import { Gender, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import {
@@ -10,7 +10,7 @@ import {
 import {
   PATIENT_LIST_SELECT,
   PATIENT_DETAIL_SELECT,
-} from '../select-fragments';
+} from '../../../common/select-fragments';
 
 /**
  * DTO for creating patients

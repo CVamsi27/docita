@@ -8,7 +8,7 @@ import {
 import { SearchService, SearchEntityType } from './search.service';
 import { AuthenticatedRequest } from '@workspace/types';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
 
 @ApiTags('search')
 @ApiBearerAuth('JWT-auth')

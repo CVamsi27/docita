@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { ResponseHandlerService } from './response-handler.service';
 import { MetaWebhookPayload } from './types/webhook.types';

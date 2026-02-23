@@ -17,7 +17,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
 import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto, sendTemplateSchema } from './dto/send-template.dto';
 import { MetaWebhookPayload } from './types/webhook.types';
@@ -35,11 +35,11 @@ import {
   SuccessResponseDto,
 } from './dto/whatsapp-response.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
 
 // ... (comments elided for brevity if not strictly needed)
 
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../auth/auth/public.decorator';
 
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 

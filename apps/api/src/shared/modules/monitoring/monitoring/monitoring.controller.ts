@@ -9,11 +9,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { MonitoringService } from './monitoring.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TierGuard } from '../auth/tier.guard';
+import { JwtAuthGuard } from '../../auth/auth/jwt-auth.guard';
+import { TierGuard } from '../../auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
-import { RequireFeature, Feature } from '../auth/tier.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
+import { RequireFeature, Feature } from '../../auth/auth/tier.decorator';
 import {
   WebVitalDto,
   RequestStatsResponseDto,
@@ -33,9 +33,9 @@ import {
   ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
 
-import { ArchivalService } from '../compliance/archival.service';
+import { ArchivalService } from '../../compliance/archival.service';
 
 @Controller('monitoring')
 @Roles(Role.SUPER_ADMIN)

@@ -8,7 +8,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ClinicTier } from '@workspace/db';
 import { ClinicManagementService } from './clinic-management.service';

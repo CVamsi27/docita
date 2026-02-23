@@ -7,7 +7,7 @@ import {
 } from './dto/performance.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../../auth/auth/roles.decorator';
 
 @Controller('performance')
 @Roles(Role.ADMIN, Role.SUPER_ADMIN)

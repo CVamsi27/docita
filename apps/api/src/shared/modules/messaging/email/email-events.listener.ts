@@ -7,7 +7,7 @@ import {
   AppointmentScheduledPayload,
   PatientCreatedPayload,
   EventMetadata,
-} from '../../common/events/domain-events';
+} from '../../../common/events/domain-events';
 
 /**
  * Email event listener that responds to domain events.

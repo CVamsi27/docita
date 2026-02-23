@@ -17,7 +17,7 @@ import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { WhatsappController } from './whatsapp.controller';
 import { ResponseHandlerService } from './response-handler.service';
 import { StaffNotificationService } from './staff-notification.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
+import { PrismaModule } from '../../../../prisma/prisma.module';
 import { WhatsappEventListener } from './listeners/whatsapp.listener';
 
 @Module({

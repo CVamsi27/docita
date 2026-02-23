@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable, from } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
-import { tenantStorage } from '../middleware/tenant.middleware';
+import { tenantStorage } from '../../common/middleware/tenant.middleware';
 
 /**
  * Interceptor that populates the tenant storage from the request user.
