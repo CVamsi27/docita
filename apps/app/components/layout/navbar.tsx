@@ -16,12 +16,13 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
       ref={ref}
       className={cn(
         "w-full bg-background border-b border-border px-4 py-3",
-        sticky && "sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        className
+        sticky &&
+          "sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 Navbar.displayName = "Navbar";
 
@@ -40,7 +41,7 @@ const NavbarBrand = React.forwardRef<HTMLDivElement, NavbarBrandProps>(
       {logo}
       {title && <span className="font-semibold text-foreground">{title}</span>}
     </div>
-  )
+  ),
 );
 NavbarBrand.displayName = "NavbarBrand";
 
@@ -53,7 +54,7 @@ const NavbarMenu = React.forwardRef<HTMLDivElement, NavbarMenuProps>(
       className={cn("flex items-center gap-4", className)}
       {...props}
     />
-  )
+  ),
 );
 NavbarMenu.displayName = "NavbarMenu";
 

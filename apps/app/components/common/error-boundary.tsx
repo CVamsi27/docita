@@ -81,7 +81,8 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
               {this.state.eventId && (
                 <p className="text-xs text-muted-foreground mt-2 text-left">
-                  Event ID: <code className="font-mono">{this.state.eventId}</code>
+                  Event ID:{" "}
+                  <code className="font-mono">{this.state.eventId}</code>
                 </p>
               )}
             </div>

@@ -61,7 +61,7 @@ export const useInvoiceCreateLogic = () => {
   const onSubmit = async (data: CreateInvoiceFormValues) => {
     try {
       setIsSaving(true);
-      
+
       const payload = {
         ...data,
         notes: data.notes ?? "",
@@ -71,7 +71,7 @@ export const useInvoiceCreateLogic = () => {
       const result = await createInvoice.mutateAsync(payload);
       toast.success("Invoice created successfully");
 
-    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         router.push(`/invoices/${result.id}`);
       });
     } catch (error) {

@@ -27,10 +27,7 @@ export class BillingCalculatorService {
     return new Money(Math.round(taxAmount * 100) / 100, amount.currency);
   }
 
-  calculateDiscount(
-    amount: Money,
-    discount: DiscountConfiguration,
-  ): Money {
+  calculateDiscount(amount: Money, discount: DiscountConfiguration): Money {
     let discountAmount: number;
 
     if (discount.type === 'PERCENTAGE') {

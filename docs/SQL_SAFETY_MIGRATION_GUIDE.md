@@ -11,16 +11,18 @@ All raw SQL queries should use Prisma's parameterized `$queryRaw` instead of the
 ## Why SQL Injection Matters
 
 ### Vulnerable Pattern ❌
+
 ```typescript
 const id = req.query.id; // User input
 const result = await prisma.$queryRawUnsafe(
-  `SELECT * FROM users WHERE id = ${id}` // SQL INJECTION RISK!
+  `SELECT * FROM users WHERE id = ${id}`, // SQL INJECTION RISK!
 );
 ```
 
 An attacker could pass `id = "1 OR 1=1"` and retrieve all users.
 
 ### Safe Pattern ✅
+
 ```typescript
 const id = req.query.id;
 const result = await prisma.$queryRaw`
@@ -35,6 +37,7 @@ const result = await prisma.$queryRaw`
 ## Migration Pattern
 
 ### Before
+
 ```typescript
 async analyzeIndexes() {
   const query = `
@@ -42,13 +45,14 @@ async analyzeIndexes() {
     FROM pg_indexes
     WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
   `;
-  
+
   const result = await this.prisma.$queryRawUnsafe(query);
   return (result as any[]).map(...);
 }
 ```
 
 ### After
+
 ```typescript
 async analyzeIndexes() {
   const result = await this.prisma.$queryRaw<Array<{
@@ -59,12 +63,13 @@ async analyzeIndexes() {
     FROM pg_indexes
     WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
   `);
-  
+
   return result.map(...);
 }
 ```
 
 ### Key Changes
+
 1. **Use template literal** with backticks (`)
 2. **Add type annotation** for query results
 3. **Wrap in Prisma.sql** helper
@@ -76,22 +81,25 @@ async analyzeIndexes() {
 ## Usage Patterns
 
 ### Static Query (No Parameters)
+
 ```typescript
 const result = await prisma.$queryRaw<UserResult[]>(
-  Prisma.sql`SELECT * FROM users`
+  Prisma.sql`SELECT * FROM users`,
 );
 ```
 
 ### Query with Parameters
+
 ```typescript
 const userId = "123";
 const result = await prisma.$queryRaw<User>(
-  Prisma.sql`SELECT * FROM users WHERE id = ${userId}`
+  Prisma.sql`SELECT * FROM users WHERE id = ${userId}`,
 );
 // Becomes: SELECT * FROM users WHERE id = $1 (safe!)
 ```
 
 ### Multiple Parameters
+
 ```typescript
 const status = "active";
 const days = 30;
@@ -100,11 +108,12 @@ const result = await prisma.$queryRaw<Appointment[]>(
     SELECT * FROM appointments
     WHERE status = ${status}
     AND created_at > NOW() - INTERVAL '${days} days'
-  `
+  `,
 );
 ```
 
 ### System Tables (PostgreSQL)
+
 System table queries like `pg_indexes`, `pg_stats`, `pg_class` can still use `$queryRaw` safely:
 
 ```typescript
@@ -117,7 +126,7 @@ const result = await prisma.$queryRaw<IndexInfo[]>(
     FROM pg_indexes idx
     JOIN pg_stat_user_indexes s ON s.indexrelname = idx.indexname
     WHERE idx.schemaname NOT IN ('pg_catalog', 'information_schema')
-  `
+  `,
 );
 ```
 
@@ -135,11 +144,11 @@ interface UserResult {
 }
 
 const result = await prisma.$queryRaw<UserResult[]>(
-  Prisma.sql`SELECT id, email, name FROM users WHERE status = ${status}`
+  Prisma.sql`SELECT id, email, name FROM users WHERE status = ${status}`,
 );
 
 // result is typed as UserResult[] - IDE knows column names!
-result.forEach(user => {
+result.forEach((user) => {
   console.log(user.email); // ✅ TypeScript knows this exists
   console.log(user.missing); // ❌ TypeScript error!
 });
@@ -150,6 +159,7 @@ result.forEach(user => {
 ## Common Patterns
 
 ### Conditional WHERE Clauses
+
 ```typescript
 const clauses = [];
 const values = [];
@@ -160,7 +170,7 @@ if (filters.status) {
 }
 
 // ❌ Don't build SQL strings manually
-const query = `SELECT * FROM users WHERE ${clauses.join(' AND ')}`;
+const query = `SELECT * FROM users WHERE ${clauses.join(" AND ")}`;
 
 // ✅ Use array of conditions with parameters
 const result = await prisma.$queryRaw`
@@ -171,6 +181,7 @@ const result = await prisma.$queryRaw`
 ```
 
 ### Array Parameters
+
 ```typescript
 const statuses = ["active", "pending"];
 const result = await prisma.$queryRaw`
@@ -179,7 +190,9 @@ const result = await prisma.$queryRaw`
 ```
 
 ### Literal SQL (Use Sparingly)
+
 When you need literal SQL without parameterization:
+
 ```typescript
 const result = await prisma.$queryRaw`
   SELECT * FROM users 
@@ -197,6 +210,7 @@ const result = await prisma.$queryRaw`
   - [x] getIndexBloat()
 
 **Find remaining $queryRawUnsafe calls:**
+
 ```bash
 grep -r "\$queryRawUnsafe" apps/api/src --include="*.ts"
 ```
@@ -206,26 +220,27 @@ grep -r "\$queryRawUnsafe" apps/api/src --include="*.ts"
 ## Testing Safe Queries
 
 ### Unit Test Example
+
 ```typescript
-describe('Database queries', () => {
-  it('should prevent SQL injection', async () => {
+describe("Database queries", () => {
+  it("should prevent SQL injection", async () => {
     const maliciousId = "1 OR 1=1";
-    
+
     const result = await prisma.$queryRaw<User>(
-      Prisma.sql`SELECT * FROM users WHERE id = ${maliciousId}`
+      Prisma.sql`SELECT * FROM users WHERE id = ${maliciousId}`,
     );
-    
+
     // Should safely find user with id "1 OR 1=1" (not bypass the clause)
     expect(result).toBeNull();
   });
 
-  it('should handle special characters', async () => {
+  it("should handle special characters", async () => {
     const email = "user'@example.com"; // Single quote!
-    
+
     const result = await prisma.$queryRaw<User>(
-      Prisma.sql`SELECT * FROM users WHERE email = ${email}`
+      Prisma.sql`SELECT * FROM users WHERE email = ${email}`,
     );
-    
+
     // Should correctly find or not find user with special char
     expect(result).toBeDefined();
   });

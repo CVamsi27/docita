@@ -1,9 +1,13 @@
-import { AuthProvider } from '@workspace/auth';
-import { PatientAuthGuard } from '@/features/patient-portal/components/PatientAuthGuard';
-import { PortalNav } from '@/features/patient-portal/components/PortalNav';
-import { ConsentBanner } from '@/features/patient-portal/components/ConsentBanner';
+import { AuthProvider } from "@workspace/auth";
+import { PatientAuthGuard } from "@/features/patient-portal/components/PatientAuthGuard";
+import { PortalNav } from "@/features/patient-portal/components/PortalNav";
+import { ConsentBanner } from "@/features/patient-portal/components/ConsentBanner";
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+export default function PortalLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <AuthProvider>
       <PatientAuthGuard>

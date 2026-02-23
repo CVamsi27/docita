@@ -35,9 +35,7 @@ export const useDashboardLogic = () => {
     const paginatedResponse =
       recentPatientsResponse as unknown as PaginatedResponse<DashboardPatient>;
     const patients = paginatedResponse?.items || [];
-    return patients.filter(
-      (p): p is DashboardPatient => !!(p && p.id),
-    );
+    return patients.filter((p): p is DashboardPatient => !!(p && p.id));
   }, [recentPatientsResponse]);
 
   // ✅ OPTIMIZATION: Memoize sorted appointments and computed values

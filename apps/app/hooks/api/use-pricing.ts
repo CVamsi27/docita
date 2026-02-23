@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-const API_URL = process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+const API_URL =
+  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
 // Types matching backend response
 interface TierPricing {
@@ -33,7 +34,10 @@ interface AddOnInfo {
     yearly: number;
     currency: string;
   };
-  pricingByTier?: Record<string, { monthly: number | string; yearly: number | string }>;
+  pricingByTier?: Record<
+    string,
+    { monthly: number | string; yearly: number | string }
+  >;
 }
 
 interface PricingConfig {
@@ -119,11 +123,17 @@ export function useEstimate(params: EstimateRequest | null) {
         tier: params.tier,
         billingCycle: params.billingCycle || "monthly",
         ...(params.patients && { patients: String(params.patients) }),
-        ...(params.appointments && { appointments: String(params.appointments) }),
+        ...(params.appointments && {
+          appointments: String(params.appointments),
+        }),
         ...(params.users && { users: String(params.users) }),
         ...(params.whatsapp && { whatsapp: String(params.whatsapp) }),
-        ...(params.whatsappMessages && { whatsappMessages: String(params.whatsappMessages) }),
-        ...(params.intelligence && { intelligence: String(params.intelligence) }),
+        ...(params.whatsappMessages && {
+          whatsappMessages: String(params.whatsappMessages),
+        }),
+        ...(params.intelligence && {
+          intelligence: String(params.intelligence),
+        }),
         ...(params.aiCredits && { aiCredits: String(params.aiCredits) }),
       }).toString()
     : null;
@@ -142,4 +152,10 @@ export function useEstimate(params: EstimateRequest | null) {
   };
 }
 
-export type { PricingConfig, TierPricing, AddOnInfo, EstimateRequest, EstimateResponse };
+export type {
+  PricingConfig,
+  TierPricing,
+  AddOnInfo,
+  EstimateRequest,
+  EstimateResponse,
+};

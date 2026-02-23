@@ -19,9 +19,7 @@ export const CreateSubscriptionDtoSchema = z.object({
   trialEnd: z.date().optional(),
 });
 
-export type CreateSubscriptionDto = z.infer<
-  typeof CreateSubscriptionDtoSchema
->;
+export type CreateSubscriptionDto = z.infer<typeof CreateSubscriptionDtoSchema>;
 
 // ============================================================================
 // SUBSCRIPTION RESPONSE DTO
@@ -149,17 +147,25 @@ export interface SubscriptionListResponseDto {
 // VALIDATION HELPERS
 // ============================================================================
 
-export function validateCreateSubscription(data: unknown): CreateSubscriptionDto {
+export function validateCreateSubscription(
+  data: unknown,
+): CreateSubscriptionDto {
   return CreateSubscriptionDtoSchema.parse(data);
 }
-export function validateCancelSubscription(data: unknown): CancelSubscriptionDto {
+export function validateCancelSubscription(
+  data: unknown,
+): CancelSubscriptionDto {
   return CancelSubscriptionDtoSchema.parse(data);
 }
-export function validateUpgradeSubscription(data: unknown): UpgradeSubscriptionDto {
+export function validateUpgradeSubscription(
+  data: unknown,
+): UpgradeSubscriptionDto {
   return UpgradeSubscriptionDtoSchema.parse(data);
 }
 
-export function validateDowngradeSubscription(data: unknown): DowngradeSubscriptionDto {
+export function validateDowngradeSubscription(
+  data: unknown,
+): DowngradeSubscriptionDto {
   return DowngradeSubscriptionDtoSchema.parse(data);
 }
 

@@ -36,16 +36,16 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Complete medical history)
--  Examination (Physical examination)
--  Vitals (BP, HR, Temp, SpO2, etc.)
--  Diagnosis (ICD-10 coding)
--  Treatment (Treatment plans)
--  Investigations (Lab orders, imaging)
--  Prescriptions (Medications)
--  Procedures (Minor procedures)
--  Follow Up (Scheduling and notes)
+- Chief Complaint
+- History (Complete medical history)
+- Examination (Physical examination)
+- Vitals (BP, HR, Temp, SpO2, etc.)
+- Diagnosis (ICD-10 coding)
+- Treatment (Treatment plans)
+- Investigations (Lab orders, imaging)
+- Prescriptions (Medications)
+- Procedures (Minor procedures)
+- Follow Up (Scheduling and notes)
 
 **Workflow Characteristics:**
 
@@ -71,17 +71,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Simplified - not shown every visit)
--  Examination (Replaced by dental chart)
--  Vitals (For sedation/extraction cases)
--  Diagnosis
--  Treatment
--  Investigations (X-rays, OPG, CBCT)
--  Prescriptions (Antibiotics, pain management)
--  Procedures (Fillings, extractions, RCT)
--  Follow Up
--  **Dental Chart** (Interactive tooth charting)
+- Chief Complaint
+- History (Simplified - not shown every visit)
+- Examination (Replaced by dental chart)
+- Vitals (For sedation/extraction cases)
+- Diagnosis
+- Treatment
+- Investigations (X-rays, OPG, CBCT)
+- Prescriptions (Antibiotics, pain management)
+- Procedures (Fillings, extractions, RCT)
+- Follow Up
+- **Dental Chart** (Interactive tooth charting)
 
 **Special Features:**
 
@@ -122,17 +122,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History
--  Examination (Pediatric physical exam)
--  Vitals (Age-specific vital ranges)
--  Diagnosis
--  Treatment
--  Investigations
--  Prescriptions (Age/weight-based dosing)
--  Procedures (Immunizations)
--  Follow Up
--  **Growth Chart** (Height/weight percentiles)
+- Chief Complaint
+- History
+- Examination (Pediatric physical exam)
+- Vitals (Age-specific vital ranges)
+- Diagnosis
+- Treatment
+- Investigations
+- Prescriptions (Age/weight-based dosing)
+- Procedures (Immunizations)
+- Follow Up
+- **Growth Chart** (Height/weight percentiles)
 
 **Special Features:**
 
@@ -173,17 +173,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Injury history, pain assessment)
--  Examination (Musculoskeletal examination)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations (X-rays, MRI, CT scans)
--  Prescriptions
--  Procedures (Joint injections, casting)
--  Follow Up
--  **Imaging Review** (Built-in imaging viewer)
+- Chief Complaint
+- History (Injury history, pain assessment)
+- Examination (Musculoskeletal examination)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations (X-rays, MRI, CT scans)
+- Prescriptions
+- Procedures (Joint injections, casting)
+- Follow Up
+- **Imaging Review** (Built-in imaging viewer)
 
 **Special Features:**
 
@@ -225,17 +225,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Detailed cardiac history)
--  Examination (Cardiovascular examination)
--  Vitals (BP, HR, O2 saturation - critical)
--  Diagnosis
--  Treatment
--  Investigations (ECG, Echo, Stress tests)
--  Prescriptions (Cardiac medications)
--  Procedures (Pacemaker checks, cardioversion)
--  Follow Up
--  **ECG Monitoring** (ECG documentation and trending)
+- Chief Complaint
+- History (Detailed cardiac history)
+- Examination (Cardiovascular examination)
+- Vitals (BP, HR, O2 saturation - critical)
+- Diagnosis
+- Treatment
+- Investigations (ECG, Echo, Stress tests)
+- Prescriptions (Cardiac medications)
+- Procedures (Pacemaker checks, cardioversion)
+- Follow Up
+- **ECG Monitoring** (ECG documentation and trending)
 
 **Special Features:**
 
@@ -277,17 +277,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Skin condition history)
--  Examination (Skin examination)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations (Biopsy, patch testing)
--  Prescriptions (Topical/systemic medications)
--  Procedures (Biopsies, excisions, cryotherapy)
--  Follow Up
--  **Skin Lesion Tracking** (Photo documentation)
+- Chief Complaint
+- History (Skin condition history)
+- Examination (Skin examination)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations (Biopsy, patch testing)
+- Prescriptions (Topical/systemic medications)
+- Procedures (Biopsies, excisions, cryotherapy)
+- Follow Up
+- **Skin Lesion Tracking** (Photo documentation)
 
 **Special Features:**
 
@@ -329,17 +329,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History
--  Examination (ENT-specific examination)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations (Audiometry, endoscopy, CT/MRI)
--  Prescriptions
--  Procedures (Foreign body removal, cauterization)
--  Follow Up
--  **Imaging Review** (CT/MRI for sinuses, neck)
+- Chief Complaint
+- History
+- Examination (ENT-specific examination)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations (Audiometry, endoscopy, CT/MRI)
+- Prescriptions
+- Procedures (Foreign body removal, cauterization)
+- Follow Up
+- **Imaging Review** (CT/MRI for sinuses, neck)
 
 **Special Features:**
 
@@ -381,17 +381,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Menstrual, obstetric, sexual history)
--  Examination (Gynecological examination)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations (Ultrasound, Pap smear, hormone tests)
--  Prescriptions
--  Procedures (IUD insertion, colposcopy)
--  Follow Up
--  **Prenatal Care** (Pregnancy tracking)
+- Chief Complaint
+- History (Menstrual, obstetric, sexual history)
+- Examination (Gynecological examination)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations (Ultrasound, Pap smear, hormone tests)
+- Prescriptions
+- Procedures (IUD insertion, colposcopy)
+- Follow Up
+- **Prenatal Care** (Pregnancy tracking)
 
 **Special Features:**
 
@@ -433,17 +433,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Ocular and systemic history)
--  Examination (Eye examination)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations (OCT, fundus photography, visual fields)
--  Prescriptions (Eye drops, systemic medications)
--  Procedures (Laser procedures, injections)
--  Follow Up
--  **Vision Test** (Visual acuity, refraction)
+- Chief Complaint
+- History (Ocular and systemic history)
+- Examination (Eye examination)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations (OCT, fundus photography, visual fields)
+- Prescriptions (Eye drops, systemic medications)
+- Procedures (Laser procedures, injections)
+- Follow Up
+- **Vision Test** (Visual acuity, refraction)
 
 **Special Features:**
 
@@ -485,17 +485,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  Chief Complaint
--  History (Psychiatric and social history)
--  Examination (Mental status examination)
--  Vitals (For medication monitoring)
--  Diagnosis (DSM/ICD psychiatric coding)
--  Treatment (Therapy notes, treatment plans)
--  Investigations (Psychological assessments, lab work)
--  Prescriptions (Psychiatric medications)
--  Procedures (No physical procedures)
--  Follow Up
--  **Mental Status Exam** (Structured assessment)
+- Chief Complaint
+- History (Psychiatric and social history)
+- Examination (Mental status examination)
+- Vitals (For medication monitoring)
+- Diagnosis (DSM/ICD psychiatric coding)
+- Treatment (Therapy notes, treatment plans)
+- Investigations (Psychological assessments, lab work)
+- Prescriptions (Psychiatric medications)
+- Procedures (No physical procedures)
+- Follow Up
+- **Mental Status Exam** (Structured assessment)
 
 **Special Features:**
 
@@ -539,17 +539,17 @@ This document provides a detailed overview of all hospital/clinic types supporte
 
 **Enabled Features:**
 
--  All consultation features enabled
--  Chief Complaint
--  History
--  Examination
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations
--  Prescriptions
--  Procedures
--  Follow Up
+- All consultation features enabled
+- Chief Complaint
+- History
+- Examination
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations
+- Prescriptions
+- Procedures
+- Follow Up
 
 **Workflow Characteristics:**
 
@@ -637,11 +637,11 @@ To change an existing clinic's type:
 
 When you change a clinic's type:
 
--  Consultation interface updates immediately
--  Relevant tabs show/hide based on new type
--  Specialty features activate/deactivate
--  Existing data remains intact
--  No data loss occurs
+- Consultation interface updates immediately
+- Relevant tabs show/hide based on new type
+- Specialty features activate/deactivate
+- Existing data remains intact
+- No data loss occurs
 - ️ Some tabs may become hidden (but data is preserved)
 
 ---
@@ -650,25 +650,25 @@ When you change a clinic's type:
 
 | Feature                | GEN | DEN | PED | ORT | CAR | DER | ENT | GYN | OPH | PSY | SPE |
 | ---------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Chief Complaint        |   |   |   |   |   |   |   |   |   |   |   |
-| History                |   |   |   |   |   |   |   |   |   |   |   |
-| Examination            |   |   |   |   |   |   |   |   |   |   |   |
-| Vitals                 |   |   |   |   |   |   |   |   |   |   |   |
-| Diagnosis              |   |   |   |   |   |   |   |   |   |   |   |
-| Treatment              |   |   |   |   |   |   |   |   |   |   |   |
-| Investigations         |   |   |   |   |   |   |   |   |   |   |   |
-| Prescriptions          |   |   |   |   |   |   |   |   |   |   |   |
-| Procedures             |   |   |   |   |   |   |   |   |   |   |   |
-| Follow Up              |   |   |   |   |   |   |   |   |   |   |   |
+| Chief Complaint        |     |     |     |     |     |     |     |     |     |     |     |
+| History                |     |     |     |     |     |     |     |     |     |     |     |
+| Examination            |     |     |     |     |     |     |     |     |     |     |     |
+| Vitals                 |     |     |     |     |     |     |     |     |     |     |     |
+| Diagnosis              |     |     |     |     |     |     |     |     |     |     |     |
+| Treatment              |     |     |     |     |     |     |     |     |     |     |     |
+| Investigations         |     |     |     |     |     |     |     |     |     |     |     |
+| Prescriptions          |     |     |     |     |     |     |     |     |     |     |     |
+| Procedures             |     |     |     |     |     |     |     |     |     |     |     |
+| Follow Up              |     |     |     |     |     |     |     |     |     |     |     |
 | **Specialty Features** |     |     |     |     |     |     |     |     |     |     |     |
-| Dental Chart           | -   |   | -   | -   | -   | -   | -   | -   | -   | -   | -   |
-| Growth Chart           | -   | -   |   | -   | -   | -   | -   | -   | -   | -   | -   |
-| ECG Monitoring         | -   | -   | -   | -   |   | -   | -   | -   | -   | -   | -   |
-| Imaging Review         | -   | -   | -   |   | -   | -   |   | -   | -   | -   | -   |
-| Skin Lesion Tracking   | -   | -   | -   | -   | -   |   | -   | -   | -   | -   | -   |
-| Prenatal Care          | -   | -   | -   | -   | -   | -   | -   |   | -   | -   | -   |
-| Vision Test            | -   | -   | -   | -   | -   | -   | -   | -   |   | -   | -   |
-| Mental Status Exam     | -   | -   | -   | -   | -   | -   | -   | -   | -   |   | -   |
+| Dental Chart           | -   |     | -   | -   | -   | -   | -   | -   | -   | -   | -   |
+| Growth Chart           | -   | -   |     | -   | -   | -   | -   | -   | -   | -   | -   |
+| ECG Monitoring         | -   | -   | -   | -   |     | -   | -   | -   | -   | -   | -   |
+| Imaging Review         | -   | -   | -   |     | -   | -   |     | -   | -   | -   | -   |
+| Skin Lesion Tracking   | -   | -   | -   | -   | -   |     | -   | -   | -   | -   | -   |
+| Prenatal Care          | -   | -   | -   | -   | -   | -   | -   |     | -   | -   | -   |
+| Vision Test            | -   | -   | -   | -   | -   | -   | -   | -   |     | -   | -   |
+| Mental Status Exam     | -   | -   | -   | -   | -   | -   | -   | -   | -   |     | -   |
 
 **Legend:**
 

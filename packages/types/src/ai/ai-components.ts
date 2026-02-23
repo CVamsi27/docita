@@ -5,12 +5,14 @@
 import { z } from "zod";
 
 export const aiPrescriptionAnalysisInputSchema = z.object({
-  medications: z.array(z.object({
-    name: z.string(),
-    dosage: z.string(),
-    frequency: z.string().optional(),
-    duration: z.string().optional(),
-  })),
+  medications: z.array(
+    z.object({
+      name: z.string(),
+      dosage: z.string(),
+      frequency: z.string().optional(),
+      duration: z.string().optional(),
+    }),
+  ),
   patientConditions: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
 });
@@ -32,12 +34,16 @@ export const aiMedicationRecommendationSchema = z.object({
 });
 
 export const aiAnalysisResultSchema = z.object({
-  interactions: z.array(z.object({
-    drug1: z.string(),
-    drug2: z.string(),
-    severity: z.enum(['low', 'moderate', 'high']),
-    description: z.string(),
-  })).optional(),
+  interactions: z
+    .array(
+      z.object({
+        drug1: z.string(),
+        drug2: z.string(),
+        severity: z.enum(["low", "moderate", "high"]),
+        description: z.string(),
+      }),
+    )
+    .optional(),
   recommendations: z.array(aiMedicationRecommendationSchema).optional(),
   warnings: z.array(z.string()).optional(),
 });
@@ -122,18 +128,18 @@ export interface SmartTasksTabHandlers {
 
 export interface AIAssistantState {
   activeTab: string;
-  // Prescription tab fields  
+  // Prescription tab fields
   symptoms: string;
   diagnosis: string;
   currentMedications: string;
   allergies: string;
-  drugInteractions: PrescriptionTabState['drugInteractions'];
-  prescriptionSuggestions: PrescriptionTabState['prescriptionSuggestions'];
+  drugInteractions: PrescriptionTabState["drugInteractions"];
+  prescriptionSuggestions: PrescriptionTabState["prescriptionSuggestions"];
   // Diagnosis tab fields
   chiefComplaint: string;
   vitalSigns: string;
   examFindings: string;
-  diagnosisSuggestions: DiagnosisTabState['diagnosisSuggestions'];
+  diagnosisSuggestions: DiagnosisTabState["diagnosisSuggestions"];
   // Smart tasks tab fields
   taskType: string;
   // Common fields

@@ -65,11 +65,16 @@ export class InvoiceValidatorService {
     return errors;
   }
 
-  validateCanIssueInvoice(invoice: Invoice): { canIssue: boolean; errors: string[] } {
+  validateCanIssueInvoice(invoice: Invoice): {
+    canIssue: boolean;
+    errors: string[];
+  } {
     const validation = this.validateInvoice(invoice);
 
     if (!invoice.canBeEdited()) {
-      validation.errors.push(`Invoice cannot be issued from status: ${invoice.getStatus()}`);
+      validation.errors.push(
+        `Invoice cannot be issued from status: ${invoice.getStatus()}`,
+      );
     }
 
     return {

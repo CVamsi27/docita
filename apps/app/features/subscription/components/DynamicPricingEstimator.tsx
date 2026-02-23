@@ -1,17 +1,31 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Switch } from "@workspace/ui/components/switch";
 import { Badge } from "@workspace/ui/components/badge";
 import { useEstimate, usePricingConfig } from "@/hooks/api/use-pricing";
 
 export function DynamicPricingEstimator() {
   const [tier, setTier] = useState("CORE");
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
   const [patients, setPatients] = useState(300);
   const [appointments, setAppointments] = useState(500);
   const [users, setUsers] = useState(1);
@@ -45,7 +59,9 @@ export function DynamicPricingEstimator() {
 
   const tiers = (pricingConfig?.tiers || [])
     .map((tierInfo) => tierInfo.id)
-    .filter((tierInfo) => tierInfo !== "CAPTURE" && tierInfo !== "INTELLIGENCE");
+    .filter(
+      (tierInfo) => tierInfo !== "CAPTURE" && tierInfo !== "INTELLIGENCE",
+    );
 
   return (
     <Card>
@@ -108,7 +124,9 @@ export function DynamicPricingEstimator() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Include Docita Intelligence</p>
-              <p className="text-xs text-muted-foreground">Optional AI credits for coding and automation</p>
+              <p className="text-xs text-muted-foreground">
+                Optional AI credits for coding and automation
+              </p>
             </div>
             <Switch checked={intelligence} onCheckedChange={setIntelligence} />
           </div>
@@ -131,14 +149,26 @@ export function DynamicPricingEstimator() {
             {isLoading ? (
               <Badge variant="outline">Calculating...</Badge>
             ) : (
-              <Badge>{estimate?.currency?.symbol || "₹"}{(estimate?.totalMonthly || 0).toLocaleString()}/mo</Badge>
+              <Badge>
+                {estimate?.currency?.symbol || "₹"}
+                {(estimate?.totalMonthly || 0).toLocaleString()}/mo
+              </Badge>
             )}
           </div>
           {!isLoading && estimate && (
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>Base: {estimate.currency.symbol}{estimate.breakdown.basePrice.toLocaleString()}</p>
-              <p>Add-ons: {estimate.currency.symbol}{estimate.breakdown.addOnTotal.toLocaleString()}</p>
-              <p>Usage overage: {estimate.currency.symbol}{estimate.breakdown.overageTotal.toLocaleString()}</p>
+              <p>
+                Base: {estimate.currency.symbol}
+                {estimate.breakdown.basePrice.toLocaleString()}
+              </p>
+              <p>
+                Add-ons: {estimate.currency.symbol}
+                {estimate.breakdown.addOnTotal.toLocaleString()}
+              </p>
+              <p>
+                Usage overage: {estimate.currency.symbol}
+                {estimate.breakdown.overageTotal.toLocaleString()}
+              </p>
               <div className="pt-2 space-y-1 border-t">
                 <p className="font-medium text-foreground">
                   Total (monthly): {estimate.currency.symbol}

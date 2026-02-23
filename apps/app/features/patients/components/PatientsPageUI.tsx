@@ -18,7 +18,13 @@ import {
 } from "@workspace/ui/components/card";
 import { PageContainer } from "@workspace/ui/components/page-container";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Pencil } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Calendar,
+  Pencil,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
 
@@ -90,14 +96,17 @@ export function PatientsPageUI({
     <PageContainer className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
-        <p className="text-muted-foreground">Manage your patient records and history.</p>
+        <p className="text-muted-foreground">
+          Manage your patient records and history.
+        </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>All Patients</CardTitle>
           <CardDescription>
-            A list of all patients in your practice including their name, contact, and medical history.
+            A list of all patients in your practice including their name,
+            contact, and medical history.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,7 +147,9 @@ export function PatientsPageUI({
                       <SortIcon column="fullName" />
                     </div>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">Contact</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Contact
+                  </TableHead>
                   <TableHead
                     className="cursor-pointer transition-colors hover:bg-muted/50"
                     onClick={() => onSort("gender")}
@@ -149,7 +160,9 @@ export function PatientsPageUI({
                       <SortIcon column="gender" />
                     </div>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">Blood Group</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Blood Group
+                  </TableHead>
                   <TableHead
                     className="cursor-pointer transition-colors hover:bg-muted/50"
                     onClick={() => onSort("updatedAt")}
@@ -175,7 +188,10 @@ export function PatientsPageUI({
                   </TableRow>
                 ) : filteredPatients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="h-24 text-center text-muted-foreground"
+                    >
                       {searchQuery
                         ? `No patients found matching "${searchQuery}"`
                         : "No patients found."}
@@ -187,7 +203,10 @@ export function PatientsPageUI({
 
                     return (
                       <TableRow
-                        key={patient.id ?? `${patient.firstName}-${patient.lastName}`}
+                        key={
+                          patient.id ??
+                          `${patient.firstName}-${patient.lastName}`
+                        }
                         className="cursor-pointer hover:bg-muted/50"
                         tabIndex={patientId ? 0 : -1}
                         onKeyDown={(event) => {
@@ -203,65 +222,75 @@ export function PatientsPageUI({
                           }
                         }}
                       >
-                      <TableCell>
-                        <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {patient.firstName.charAt(0)}
-                            {patient.lastName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {patient.firstName} {patient.lastName}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="flex flex-col text-sm">
-                          <span>{patient.phoneNumber}</span>
-                          <span className="text-muted-foreground">{patient.email}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="capitalize">{patient.gender}</TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {patient.bloodGroup ? (
-                          <span className="font-medium">{patient.bloodGroup}</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">--</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {patient.updatedAt ? format(new Date(patient.updatedAt), "MMM d, yyyy") : "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (patientId) {
-                                onSchedulePatient(patientId);
-                              }
-                            }}
-                            disabled={!patientId}
-                          >
-                            <Calendar className="h-4 w-4" />
-                            Schedule
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditPatient(patient);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        </div>
-                      </TableCell>
+                        <TableCell>
+                          <Avatar className="h-8 w-8 bg-primary/10 text-primary">
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {patient.firstName.charAt(0)}
+                              {patient.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {patient.firstName} {patient.lastName}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex flex-col text-sm">
+                            <span>{patient.phoneNumber}</span>
+                            <span className="text-muted-foreground">
+                              {patient.email}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {patient.gender}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {patient.bloodGroup ? (
+                            <span className="font-medium">
+                              {patient.bloodGroup}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              --
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {patient.updatedAt
+                            ? format(new Date(patient.updatedAt), "MMM d, yyyy")
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 gap-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (patientId) {
+                                  onSchedulePatient(patientId);
+                                }
+                              }}
+                              disabled={!patientId}
+                            >
+                              <Calendar className="h-4 w-4" />
+                              Schedule
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 gap-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditPatient(patient);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Edit
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })
@@ -272,13 +301,24 @@ export function PatientsPageUI({
 
           <div className="mt-4 flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">
-              Page {currentPage} • Showing up to {pageSize} records • Total {totalPatients}
+              Page {currentPage} • Showing up to {pageSize} records • Total{" "}
+              {totalPatients}
             </p>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={onPrevPage} disabled={!canGoPrev}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPrevPage}
+                disabled={!canGoPrev}
+              >
                 Previous
               </Button>
-              <Button variant="outline" size="sm" onClick={onNextPage} disabled={!canGoNext}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNextPage}
+                disabled={!canGoNext}
+              >
                 Next
               </Button>
             </div>

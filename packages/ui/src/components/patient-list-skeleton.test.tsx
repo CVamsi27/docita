@@ -5,7 +5,9 @@ import { PatientListSkeleton } from "./patient-list-skeleton";
 describe("PatientListSkeleton", () => {
   it("renders with default 8 skeleton items", () => {
     const { container } = render(<PatientListSkeleton />);
-    const skeletonItems = container.querySelectorAll(".flex.items-center.gap-4");
+    const skeletonItems = container.querySelectorAll(
+      ".flex.items-center.gap-4",
+    );
     expect(skeletonItems).toHaveLength(8);
   });
 
@@ -32,7 +34,7 @@ describe("PatientListSkeleton", () => {
   it("has proper spacing between items", () => {
     const { container } = render(<PatientListSkeleton />);
     const items = container.querySelectorAll(".flex.items-center.gap-4");
-    
+
     items.forEach((item) => {
       // Check for padding and border
       expect(item.className).toContain("p-4");
@@ -43,7 +45,7 @@ describe("PatientListSkeleton", () => {
   it("renders all skeleton elements with animation", () => {
     const { container } = render(<PatientListSkeleton />);
     const animatedElements = container.querySelectorAll(".animate-pulse");
-    
+
     // Should have many animated elements (avatars + content lines + buttons)
     // Each of 8 items has: 1 avatar + 1 name + 3 details + 2 buttons = 7 skeletons
     expect(animatedElements.length).toBeGreaterThanOrEqual(40);

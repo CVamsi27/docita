@@ -178,10 +178,13 @@ describe("auth context", () => {
       expect(result.current.isAuthenticated).toBe(true);
     });
 
-    await waitFor(() => {
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.errorCode).toBe("SESSION_EXPIRED");
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(result.current.isAuthenticated).toBe(false);
+        expect(result.current.errorCode).toBe("SESSION_EXPIRED");
+      },
+      { timeout: 2000 },
+    );
   });
 
   it("exposes granular auth error code on login failure", async () => {
@@ -226,17 +229,20 @@ describe("auth context", () => {
   });
 
   it("supports permission hook checks via provider", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: string) => {
-      if (input === "/api/v1/auth/me") {
-        return createMockResponse(200, authenticatedUser);
-      }
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string) => {
+        if (input === "/api/v1/auth/me") {
+          return createMockResponse(200, authenticatedUser);
+        }
 
-      if (input === "/api/v1/auth/refresh") {
-        return createMockResponse(200, {});
-      }
+        if (input === "/api/v1/auth/refresh") {
+          return createMockResponse(200, {});
+        }
 
-      return createMockResponse(404, {});
-    }));
+        return createMockResponse(404, {});
+      }),
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(AuthProvider, { disableIdleTimeout: true }, children);

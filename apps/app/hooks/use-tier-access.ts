@@ -2,7 +2,12 @@
 
 import { useCallback, useMemo } from "react";
 import { useAuth } from "../lib/auth-context";
-import { Feature, FEATURE_TIER_MAP, Tier, type TierName } from "@workspace/types";
+import {
+  Feature,
+  FEATURE_TIER_MAP,
+  Tier,
+  type TierName,
+} from "@workspace/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**

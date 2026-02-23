@@ -13,7 +13,10 @@ import {
 import type { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
 import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '../../shared/modules/auth/auth/tier.decorator';
 import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role, Specialization, HospitalRole } from '@workspace/db';
 

@@ -24,25 +24,35 @@ export interface HistoryOperations {
   // Conditions
   addCondition: (conditionName: string) => void;
   removeCondition: (id: string) => void;
-  
+
   // Allergies
-  addAllergy: (allergen: string, severity?: string, allergyType?: string) => void;
+  addAllergy: (
+    allergen: string,
+    severity?: string,
+    allergyType?: string,
+  ) => void;
   removeAllergy: (id: string) => void;
   updateAllergy: (allergy: PatientAllergy) => void;
-  
+
   // Surgeries
   addSurgery: (procedureName: string, procedureDate?: string) => void;
   removeSurgery: (id: string) => void;
-  
+
   // Family History
   addFamilyHistory: (condition: string, relationship: string) => void;
   removeFamilyHistory: (id: string) => void;
-  
+
   // Social History
-  updateSocialHistory: (field: keyof PatientSocialHistory, value: string) => void;
-  
+  updateSocialHistory: (
+    field: keyof PatientSocialHistory,
+    value: string,
+  ) => void;
+
   // Custom Data (for specialty fields)
-  updateCustomData: (key: string, value: string | number | boolean | Record<string, unknown>) => void;
+  updateCustomData: (
+    key: string,
+    value: string | number | boolean | Record<string, unknown>,
+  ) => void;
 }
 
 export interface PatientHistoryData {
@@ -60,7 +70,7 @@ export interface UsePatientHistoryResult {
   patient: PatientWithMedicalHistory | undefined;
   isLoading: boolean;
   isError: boolean;
-  
+
   // Operations
   operations: HistoryOperations;
 }
@@ -72,7 +82,7 @@ export interface UsePatientHistoryResult {
 export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   const { data: patientData, isLoading, isError } = usePatient(patientId);
   const { mutate: updatePatient } = useUpdatePatient(patientId);
-  
+
   // Cast to PatientWithMedicalHistory for proper typing
   const patient = patientData as PatientWithMedicalHistory | undefined;
 
@@ -90,7 +100,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         },
       });
     },
-    [updatePatient]
+    [updatePatient],
   );
 
   // Condition operations
@@ -110,10 +120,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       };
       handleUpdate(
         { medicalConditions: [...currentConditions, newEntry] },
-        "Condition added"
+        "Condition added",
       );
     },
-    [patient, patientId, handleUpdate]
+    [patient, patientId, handleUpdate],
   );
 
   const removeCondition = useCallback(
@@ -121,11 +131,15 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentConditions = patient.medicalConditions || [];
       handleUpdate(
-        { medicalConditions: currentConditions.filter((c: PatientMedicalCondition) => c.id !== id) },
-        "Condition removed"
+        {
+          medicalConditions: currentConditions.filter(
+            (c: PatientMedicalCondition) => c.id !== id,
+          ),
+        },
+        "Condition removed",
       );
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   // Allergy operations
@@ -145,10 +159,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       };
       handleUpdate(
         { patientAllergies: [...currentAllergies, newEntry] },
-        "Allergy added"
+        "Allergy added",
       );
     },
-    [patient, patientId, handleUpdate]
+    [patient, patientId, handleUpdate],
   );
 
   const removeAllergy = useCallback(
@@ -156,11 +170,15 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentAllergies = patient.patientAllergies || [];
       handleUpdate(
-        { patientAllergies: currentAllergies.filter((a: PatientAllergy) => a.id !== id) },
-        "Allergy removed"
+        {
+          patientAllergies: currentAllergies.filter(
+            (a: PatientAllergy) => a.id !== id,
+          ),
+        },
+        "Allergy removed",
       );
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   const updateAllergy = useCallback(
@@ -168,11 +186,11 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentAllergies = patient.patientAllergies || [];
       const updated = currentAllergies.map((a: PatientAllergy) =>
-        a.id === allergy.id ? allergy : a
+        a.id === allergy.id ? allergy : a,
       );
       handleUpdate({ patientAllergies: updated }, "Allergy updated");
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   // Surgery operations
@@ -190,10 +208,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       };
       handleUpdate(
         { surgicalHistory: [...currentSurgeries, newEntry] },
-        "Surgery added"
+        "Surgery added",
       );
     },
-    [patient, patientId, handleUpdate]
+    [patient, patientId, handleUpdate],
   );
 
   const removeSurgery = useCallback(
@@ -201,11 +219,15 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentSurgeries = patient.surgicalHistory || [];
       handleUpdate(
-        { surgicalHistory: currentSurgeries.filter((s: PatientSurgicalHistory) => s.id !== id) },
-        "Surgery removed"
+        {
+          surgicalHistory: currentSurgeries.filter(
+            (s: PatientSurgicalHistory) => s.id !== id,
+          ),
+        },
+        "Surgery removed",
       );
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   // Family history operations
@@ -221,10 +243,10 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       };
       handleUpdate(
         { familyHistory: [...currentHistory, newEntry] },
-        "Family history added"
+        "Family history added",
       );
     },
-    [patient, patientId, handleUpdate]
+    [patient, patientId, handleUpdate],
   );
 
   const removeFamilyHistory = useCallback(
@@ -232,11 +254,15 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
       if (!patient) return;
       const currentHistory = patient.familyHistory || [];
       handleUpdate(
-        { familyHistory: currentHistory.filter((h: PatientFamilyHistory) => h.id !== id) },
-        "Family history removed"
+        {
+          familyHistory: currentHistory.filter(
+            (h: PatientFamilyHistory) => h.id !== id,
+          ),
+        },
+        "Family history removed",
       );
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   // Social history operations
@@ -260,12 +286,15 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         },
       });
     },
-    [patient, patientId, handleUpdate]
+    [patient, patientId, handleUpdate],
   );
 
   // Custom data operations (for specialty fields like dental chart, growth data, etc.)
   const updateCustomData = useCallback(
-    (key: string, value: string | number | boolean | Record<string, unknown>) => {
+    (
+      key: string,
+      value: string | number | boolean | Record<string, unknown>,
+    ) => {
       if (!patient) return;
       const currentCustomData =
         (patient.customData as Record<string, unknown>) || {};
@@ -276,7 +305,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
         } as PatientWithMedicalHistory["customData"],
       });
     },
-    [patient, handleUpdate]
+    [patient, handleUpdate],
   );
 
   // Compose history data
@@ -319,7 +348,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
  */
 export function usePatientHistoryReadOnly(patientId: string) {
   const { data: patientData, isLoading, isError } = usePatient(patientId);
-  
+
   // Cast to PatientWithMedicalHistory for proper typing
   const patient = patientData as PatientWithMedicalHistory | undefined;
 

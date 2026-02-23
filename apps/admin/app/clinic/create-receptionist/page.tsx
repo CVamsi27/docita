@@ -123,7 +123,10 @@ export default function CreateReceptionistPage() {
                     onChange={(e) => {
                       setForm({ ...form, name: e.target.value });
                       if (fieldErrors.name) {
-                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          name: undefined,
+                        }));
                       }
                     }}
                     aria-invalid={!!fieldErrors.name}
@@ -150,7 +153,10 @@ export default function CreateReceptionistPage() {
                     onChange={(e) => {
                       setForm({ ...form, email: e.target.value });
                       if (fieldErrors.email) {
-                        setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          email: undefined,
+                        }));
                       }
                     }}
                     aria-invalid={!!fieldErrors.email}

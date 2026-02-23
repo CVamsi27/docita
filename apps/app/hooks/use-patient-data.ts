@@ -127,7 +127,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         hasFetchedRef.current = patientId;
         loadPatientData();
       }
-      return () => { };
+      return () => {};
     }, [patientId, loadPatientData]),
     () => patient,
     () => null,

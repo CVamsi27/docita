@@ -39,10 +39,10 @@ export function usePermissions() {
       // Role Checks (Use sparingly, prefer capabilities above)
       isAdmin: isAdmin(role),
       isDoctor: isDoctorRole(role),
-      
+
       // Raw role for edge cases
       role,
     }),
-    [role]
+    [role],
   );
 }

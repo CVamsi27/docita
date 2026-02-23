@@ -1,15 +1,15 @@
 /**
  * Cache Module
- * 
+ *
  * Provides caching abstraction with multiple implementation options:
  * - InMemoryCacheService: For development
  * - RedisCacheService: For production distributed caching
- * 
+ *
  * Usage:
  * 1. Import CacheModule in your feature module
  * 2. Inject ICacheProvider -> 'cache' into your service
  * 3. Use cache.get(), cache.set(), etc.
- * 
+ *
  * Example:
  * @Injectable()
  * export class UserService {

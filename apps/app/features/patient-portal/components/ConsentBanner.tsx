@@ -1,18 +1,28 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Button } from '@workspace/ui/components/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@workspace/ui/components/card';
-import { Checkbox } from '@workspace/ui/components/checkbox';
-import { Bell, Shield, X } from 'lucide-react';
-import { usePatientConsentSettings, useUpdatePatientConsent } from '@/hooks/api/use-patient-portal';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Bell, Shield, X } from "lucide-react";
+import {
+  usePatientConsentSettings,
+  useUpdatePatientConsent,
+} from "@/hooks/api/use-patient-portal";
+import { toast } from "sonner";
 
 export function ConsentBanner() {
   const [dismissed, setDismissed] = useState(false);
   const [whatsappConsent, setWhatsappConsent] = useState(false);
   const [dataStorageConsent, setDataStorageConsent] = useState(false);
-  
+
   const { data: consentSettings, isLoading } = usePatientConsentSettings();
   const updateConsent = useUpdatePatientConsent();
 
@@ -30,11 +40,11 @@ export function ConsentBanner() {
         dataStorageConsent,
       });
 
-      toast.success('Your privacy preferences have been updated.');
+      toast.success("Your privacy preferences have been updated.");
 
       setDismissed(true);
     } catch (_error) {
-      toast.error('Failed to save consent preferences');
+      toast.error("Failed to save consent preferences");
     }
   };
 
@@ -61,7 +71,8 @@ export function ConsentBanner() {
             </Button>
           </div>
           <CardDescription>
-            Welcome to the Patient Portal! Please review and accept our privacy preferences.
+            Welcome to the Patient Portal! Please review and accept our privacy
+            preferences.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,7 +110,8 @@ export function ConsentBanner() {
                 Data Storage Consent
               </label>
               <p className="text-sm text-muted-foreground">
-                I consent to storing my health data securely for medical purposes
+                I consent to storing my health data securely for medical
+                purposes
               </p>
             </div>
             <Shield className="h-4 w-4 text-muted-foreground mt-1" />
@@ -122,7 +134,7 @@ export function ConsentBanner() {
             disabled={updateConsent.isPending}
             className="flex-1"
           >
-            {updateConsent.isPending ? 'Saving...' : 'Save Preferences'}
+            {updateConsent.isPending ? "Saving..." : "Save Preferences"}
           </Button>
         </CardFooter>
       </Card>

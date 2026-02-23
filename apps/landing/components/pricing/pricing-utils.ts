@@ -66,7 +66,7 @@ export function getCurrencyInfo(currency: string) {
  */
 export function formatPriceWithCurrency(
   amount: number,
-  currency: string
+  currency: string,
 ): string {
   const symbol = getCurrencySymbol(currency);
   return `${symbol}${amount.toLocaleString()}`;

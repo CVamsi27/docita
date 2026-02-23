@@ -23,7 +23,8 @@ test.describe("Auth Flow", () => {
     const user = (await registerRes.json()) as Record<string, unknown>;
 
     // Create a clinic for this user so they can login
-    const token = (user?.access_token as string) || (user?.accessToken as string);
+    const token =
+      (user?.access_token as string) || (user?.accessToken as string);
     const clinicRes = await context.request.post(`${API_URL}/clinics`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
@@ -41,7 +42,7 @@ test.describe("Auth Flow", () => {
     const assignRes = await context.request.post(`${API_URL}/doctor-clinics`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
-        doctorId: (user.id as string) || ((user.user as { id?: string })?.id),
+        doctorId: (user.id as string) || (user.user as { id?: string })?.id,
         clinicId: clinic.id,
         role: "DOCTOR", // Use uppercase to match strict role check if needed, or 'doctor'
       },
@@ -62,7 +63,7 @@ test.describe("Auth Flow", () => {
     // Fill form - Step 1
     await page.fill('input[type="email"]', uniqueEmail);
     await page.click('button:has-text("Continue")');
-    
+
     // Fill form - Step 2
     await page.waitForSelector('input[type="password"]');
     await page.fill('input[type="password"]', password);
@@ -114,7 +115,7 @@ test.describe("Auth Flow", () => {
     // Try wrong password
     await page.fill('input[type="email"]', uniqueEmail);
     await page.click('button:has-text("Continue")');
-    
+
     await page.waitForSelector('input[type="password"]');
     await page.fill('input[type="password"]', "WrongPassword123");
 

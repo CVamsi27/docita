@@ -15,8 +15,9 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ### Test Structure
 
 **3 Applications × Multiple Flows:**
+
 - 📱 **Main App:** 7 critical flows (patient & doctor operations)
-- 🏥 **Admin App:** 6 critical flows (admin & system operations)  
+- 🏥 **Admin App:** 6 critical flows (admin & system operations)
 - 🌐 **Landing Page:** 8 critical flows (public site functionality)
 
 **Total:** 21 comprehensive test scenarios
@@ -26,9 +27,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ## Main App Critical Flows (7 Tests)
 
 ### FLOW 1: Patient Onboarding
+
 **Scenario:** Patient Registration → Clinic Assignment → First Appointment
 
 **Steps Validated:**
+
 1. ✅ Patient registration creates account
 2. ✅ Patient can join clinic
 3. ✅ Patient can create first appointment
@@ -42,9 +45,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 2: Doctor Dashboard Operations
+
 **Scenario:** Doctor Login → Dashboard → Access Patient Records
 
 **Steps Validated:**
+
 1. ✅ Doctor authentication successful
 2. ✅ Dashboard loads with metrics
 3. ✅ Can access patient list for clinic
@@ -58,9 +63,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 3: Appointment Lifecycle
+
 **Scenario:** Create → Confirm → In Progress → Complete
 
 **Steps Validated:**
+
 1. ✅ Appointment creation with valid data
 2. ✅ Status transition to CONFIRMED
 3. ✅ Status transition to IN_PROGRESS
@@ -70,6 +77,7 @@ TEST-3 validates the critical business workflows that users will execute immedia
 **Business Impact:** CRITICAL - Core appointment workflow
 
 **Status Transitions Tested:**
+
 - SCHEDULED → (create)
 - SCHEDULED → CONFIRMED (confirm)
 - CONFIRMED → IN_PROGRESS (start)
@@ -80,9 +88,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 4: Patient Records Management
+
 **Scenario:** Access Patient → View History → Update Notes
 
 **Steps Validated:**
+
 1. ✅ Can fetch patient record by ID
 2. ✅ Can access consultation history
 3. ✅ Can update patient notes
@@ -96,9 +106,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 5: Clinic Operations
+
 **Scenario:** View Stats → Manage Staff → Access Analytics
 
 **Steps Validated:**
+
 1. ✅ Can fetch clinic details
 2. ✅ Can view staff members
 3. ✅ Can access clinic appointments
@@ -112,9 +124,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 6: Data Isolation & Security
+
 **Scenario:** Verify No Cross-Clinic Data Access
 
 **Steps Validated:**
+
 1. ✅ Doctor cannot access other clinic's patients
 2. ✅ Doctor cannot view other clinic's appointments
 3. ✅ Doctor can only access own clinic data
@@ -128,9 +142,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### FLOW 7: Error Handling & Resilience
+
 **Scenario:** Invalid Operations & Edge Cases
 
 **Steps Validated:**
+
 1. ✅ Invalid appointment data rejected (400/422)
 2. ✅ Non-existent patient returns 404
 3. ✅ Invalid token rejected (401/403)
@@ -146,9 +162,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ## Admin App Critical Flows (6 Tests)
 
 ### ADMIN FLOW 1: Admin Authentication & Dashboard
+
 **Scenario:** Admin Login → Dashboard Access
 
 **Steps Validated:**
+
 1. ✅ Admin login works correctly
 2. ✅ Dashboard loads with system metrics
 3. ✅ Can access admin-specific endpoints
@@ -162,9 +180,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### ADMIN FLOW 2: User Management
+
 **Scenario:** List → Create → Update → Deactivate Users
 
 **Steps Validated:**
+
 1. ✅ Can fetch all users list
 2. ✅ Can create new user via admin interface
 3. ✅ Can update user information
@@ -178,9 +198,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### ADMIN FLOW 3: Clinic Management
+
 **Scenario:** View → Create → Update → Monitor Clinics
 
 **Steps Validated:**
+
 1. ✅ Can list all clinics
 2. ✅ Can view clinic details
 3. ✅ Can create new clinic
@@ -194,9 +216,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### ADMIN FLOW 4: System Analytics & Reporting
+
 **Scenario:** View System-Wide Analytics & Generate Reports
 
 **Steps Validated:**
+
 1. ✅ System-wide statistics available
 2. ✅ User analytics accessible
 3. ✅ Appointment analytics working
@@ -210,9 +234,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### ADMIN FLOW 5: System Monitoring
+
 **Scenario:** Health Checks → Database Status → Performance Metrics
 
 **Steps Validated:**
+
 1. ✅ Health check endpoint responds
 2. ✅ Database connection confirmed
 3. ✅ Cache system operational
@@ -226,9 +252,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### ADMIN FLOW 6: Permission & Access Control
+
 **Scenario:** Verify RBAC - Non-admins Cannot Access Admin Functions
 
 **Steps Validated:**
+
 1. ✅ Doctor cannot access /admin/users
 2. ✅ Doctor cannot create users
 3. ✅ Doctor cannot access /admin/clinics
@@ -244,9 +272,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ## Landing Page Critical Flows (8 Tests)
 
 ### LANDING FLOW 1: Home Page Load & Navigation
+
 **Scenario:** Page Load → Navigation → CTA Buttons
 
 **Steps Validated:**
+
 1. ✅ Home page loads without errors
 2. ✅ Page title and meta tags present
 3. ✅ Navigation menu renders
@@ -260,9 +290,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 2: All Pages Accessible
+
 **Scenario:** Navigation to All Public Pages
 
 **Steps Validated:**
+
 1. ✅ Home page loads (status 200)
 2. ✅ Features page accessible
 3. ✅ Pricing page accessible
@@ -276,9 +308,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 3: Forms Functionality
+
 **Scenario:** Forms Work & Accept Input
 
 **Steps Validated:**
+
 1. ✅ Signup form renders
 2. ✅ Email input accepts data
 3. ✅ Contact information available
@@ -292,9 +326,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 4: Performance
+
 **Scenario:** Page Load Times Under Threshold
 
 **Steps Validated:**
+
 1. ✅ Home page < 5 seconds
 2. ✅ Features page < 5 seconds
 3. ✅ Pricing page < 5 seconds
@@ -308,9 +344,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 5: SEO Configuration
+
 **Scenario:** Verify Meta Tags & SEO Setup
 
 **Steps Validated:**
+
 1. ✅ Page titles present & descriptive
 2. ✅ Meta descriptions configured
 3. ✅ Canonical tags present (if needed)
@@ -324,9 +362,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 6: Mobile Responsiveness
+
 **Scenario:** Mobile Viewport Rendering
 
 **Steps Validated:**
+
 1. ✅ Mobile viewport renders correctly
 2. ✅ Navigation is responsive
 3. ✅ Text is readable (12px minimum)
@@ -340,9 +380,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 7: Security
+
 **Scenario:** No Sensitive Data Exposed
 
 **Steps Validated:**
+
 1. ✅ No API keys in network requests
 2. ✅ No sensitive data in page source
 3. ✅ External resources from trusted domains
@@ -356,9 +398,11 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ---
 
 ### LANDING FLOW 8: User Journey
+
 **Scenario:** Complete CTA Path - Home → Features → Pricing → Signup
 
 **Steps Validated:**
+
 1. ✅ User lands on home page
 2. ✅ Navigates to features
 3. ✅ Explores pricing options
@@ -376,36 +420,42 @@ TEST-3 validates the critical business workflows that users will execute immedia
 ### Execute All Critical Flows Tests
 
 **Main App:**
+
 ```bash
 cd apps/app
 pnpm test:critical-flows
 ```
 
 **Admin App:**
+
 ```bash
 cd apps/admin
 pnpm test:critical-flows
 ```
 
 **Landing Page:**
+
 ```bash
 cd apps/landing
 pnpm test:critical-flows
 ```
 
 ### Run with UI (Visual):
+
 ```bash
 cd apps/[app]
 pnpm exec playwright test e2e/critical-flows.spec.ts --ui
 ```
 
 ### Run in Debug Mode:
+
 ```bash
 cd apps/[app]
 pnpm exec playwright test e2e/critical-flows.spec.ts --debug
 ```
 
 ### Generate Report:
+
 ```bash
 cd apps/[app]
 pnpm exec playwright show-report
@@ -416,6 +466,7 @@ pnpm exec playwright show-report
 ## Test Configuration
 
 ### Playwright Setup
+
 - **Framework:** Playwright with TypeScript
 - **Browser:** Chromium (headless)
 - **Base URLs:**
@@ -425,15 +476,18 @@ pnpm exec playwright show-report
 - **API:** `http://127.0.0.1:3001/api`
 
 ### Timeouts
+
 - Default: 30 seconds per test
 - Navigation: 30 seconds
 - Network idle: 2 seconds
 
 ### Retries
+
 - On CI: 2 retries
 - Local: 0 retries
 
 ### Parallel Execution
+
 - Tests run in parallel by default
 - Each test is independent
 
@@ -443,12 +497,12 @@ pnpm exec playwright show-report
 
 **All 21 flows must pass for TEST-3 completion:**
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Main App Flows | 7 | ⏳ Ready |
-| Admin App Flows | 6 | ⏳ Ready |
-| Landing Flows | 8 | ⏳ Ready |
-| **Total** | **21** | **✅ Ready** |
+| Category        | Count  | Status       |
+| --------------- | ------ | ------------ |
+| Main App Flows  | 7      | ⏳ Ready     |
+| Admin App Flows | 6      | ⏳ Ready     |
+| Landing Flows   | 8      | ⏳ Ready     |
+| **Total**       | **21** | **✅ Ready** |
 
 ---
 
@@ -464,6 +518,7 @@ pnpm exec playwright show-report
 - [ ] Node dependencies are installed (`pnpm install`)
 
 ### Quick Setup:
+
 ```bash
 # Add this to workspace root and run:
 # Terminal 1: API Server
@@ -496,6 +551,7 @@ Each test will output:
 ```
 
 ### Success Example:
+
 ```
 ✅ Step 1: Patient registered with email patient-critical-1707921234567@test.com
 ✅ Step 2: Patient joined clinic Test Clinic 1707921234567
@@ -509,6 +565,7 @@ Each test will output:
 ## Common Test Scenarios Covered
 
 ### Authentication
+
 - ✅ User registration works
 - ✅ Login succeeds with valid credentials
 - ✅ Token is issued and valid
@@ -516,6 +573,7 @@ Each test will output:
 - ✅ Logout clears session
 
 ### CRUD Operations
+
 - ✅ Create operations with valid data
 - ✅ Read data correctly
 - ✅ Update operations persist
@@ -523,12 +581,14 @@ Each test will output:
 - ✅ Cascade operations handled
 
 ### Data Isolation
+
 - ✅ Cross-tenant access blocked
 - ✅ User can only access own data
 - ✅ Clinic data isolated by clinic_id
 - ✅ RBAC enforced at API level
 
 ### Error Handling
+
 - ✅ Invalid data rejected
 - ✅ Non-existent resources return 404
 - ✅ Unauthorized requests return 401/403
@@ -536,12 +596,14 @@ Each test will output:
 - ✅ Server errors handled gracefully
 
 ### Performance
+
 - ✅ API responds within timeout
 - ✅ Pages load in acceptable time
 - ✅ No memory leaks in tests
 - ✅ Concurrent requests handled
 
 ### Security
+
 - ✅ No sensitive data exposed
 - ✅ HTTPS enforced
 - ✅ XSS prevention tested
@@ -553,23 +615,27 @@ Each test will output:
 ## Troubleshooting Common Issues
 
 ### Test Fails: "Address already in use"
+
 ```bash
 # Kill processes on ports
 lsof -ti:3000,3001,3002,3003 | xargs kill -9
 ```
 
 ### Test Fails: "Connection refused"
+
 ```bash
 # Ensure all servers are running
 pnpm dev  # from root runs all apps
 ```
 
 ### Test Fails: "Timeout waiting for response"
+
 - Increase timeout in playwright.config.ts
 - Check network connectivity
 - Verify API is responding: `curl http://127.0.0.1:3001/api/health`
 
 ### Test Fails: "Authentication failed"
+
 - Ensure test email format is unique (includes timestamp)
 - Check API auth endpoint is working
 - Verify JWT signing keys configured
@@ -579,6 +645,7 @@ pnpm dev  # from root runs all apps
 ## Maintenance & Updates
 
 ### Adding New Critical Flow
+
 1. Create new test function in same describe block
 2. Follow 7-step format (setup → execute → verify)
 3. Ensure test is independent
@@ -586,12 +653,14 @@ pnpm dev  # from root runs all apps
 5. Commit with test code
 
 ### Updating Flow
+
 1. Update test code
 2. Update documentation
 3. Run full test suite
 4. Verify no regressions
 
 ### Deprecating Flow
+
 1. Mark as deprecated in comment
 2. Keep for 2 release cycles
 3. Remove and document removal
@@ -601,6 +670,7 @@ pnpm dev  # from root runs all apps
 ## Next Steps After TEST-3
 
 **Upon Successful Completion:**
+
 1. ✅ All 21 flows passing
 2. ✅ Performance metrics documented
 3. ✅ No known issues
@@ -608,6 +678,7 @@ pnpm dev  # from root runs all apps
 5. → Move to Deploy-2: Production Deployment
 
 **Upon Failures:**
+
 1. Document failures in detail
 2. Create bug tickets for each failure
 3. Fix and re-run
@@ -632,11 +703,13 @@ pnpm dev  # from root runs all apps
 ## Files Created/Modified
 
 **New Test Files:**
+
 - `apps/app/e2e/critical-flows.spec.ts` (330 lines)
 - `apps/admin/e2e/critical-flows.spec.ts` (320 lines)
 - `apps/landing/e2e/critical-flows.spec.ts` (390 lines)
 
 **Modified Package Files:**
+
 - `apps/app/package.json` (added test:critical-flows)
 - `apps/admin/package.json` (added test:critical-flows)
 - `apps/landing/package.json` (added test:critical-flows)

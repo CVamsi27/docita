@@ -10,7 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "../types";
@@ -20,7 +26,10 @@ interface ClinicDetailsStepProps {
   onSubmit: (data: ClinicDetails) => void;
 }
 
-export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepProps) {
+export function ClinicDetailsStep({
+  clinicForm,
+  onSubmit,
+}: ClinicDetailsStepProps) {
   return (
     <Card>
       <CardHeader>
@@ -41,7 +50,9 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               placeholder="HealthPlus Clinic"
               aria-invalid={!!clinicForm.formState.errors.name}
               aria-describedby={
-                clinicForm.formState.errors.name ? "clinic-name-error" : undefined
+                clinicForm.formState.errors.name
+                  ? "clinic-name-error"
+                  : undefined
               }
             />
             {clinicForm.formState.errors.name && (
@@ -66,17 +77,21 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               <SelectTrigger
                 aria-invalid={!!clinicForm.formState.errors.type}
                 aria-describedby={
-                  clinicForm.formState.errors.type ? "clinic-type-error" : undefined
+                  clinicForm.formState.errors.type
+                    ? "clinic-type-error"
+                    : undefined
                 }
               >
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(CLINIC_TYPE_LABELS) as ClinicType[]).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {CLINIC_TYPE_LABELS[type]}
-                  </SelectItem>
-                ))}
+                {(Object.keys(CLINIC_TYPE_LABELS) as ClinicType[]).map(
+                  (type) => (
+                    <SelectItem key={type} value={type}>
+                      {CLINIC_TYPE_LABELS[type]}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
             {clinicForm.formState.errors.type && (
@@ -95,7 +110,9 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               placeholder="contact@clinic.com"
               aria-invalid={!!clinicForm.formState.errors.email}
               aria-describedby={
-                clinicForm.formState.errors.email ? "clinic-email-error" : undefined
+                clinicForm.formState.errors.email
+                  ? "clinic-email-error"
+                  : undefined
               }
             />
             {clinicForm.formState.errors.email && (
@@ -127,7 +144,9 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               )}
               aria-invalid={!!clinicForm.formState.errors.phone}
               aria-describedby={
-                clinicForm.formState.errors.phone ? "clinic-phone-error" : undefined
+                clinicForm.formState.errors.phone
+                  ? "clinic-phone-error"
+                  : undefined
               }
             />
             {clinicForm.formState.errors.phone && (
@@ -145,7 +164,9 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               placeholder="123 Medical Lane, City"
               aria-invalid={!!clinicForm.formState.errors.address}
               aria-describedby={
-                clinicForm.formState.errors.address ? "clinic-address-error" : undefined
+                clinicForm.formState.errors.address
+                  ? "clinic-address-error"
+                  : undefined
               }
             />
             {clinicForm.formState.errors.address && (
@@ -163,7 +184,9 @@ export function ClinicDetailsStep({ clinicForm, onSubmit }: ClinicDetailsStepPro
               placeholder="https://clinic.com"
               aria-invalid={!!clinicForm.formState.errors.website}
               aria-describedby={
-                clinicForm.formState.errors.website ? "clinic-website-error" : undefined
+                clinicForm.formState.errors.website
+                  ? "clinic-website-error"
+                  : undefined
               }
             />
             {clinicForm.formState.errors.website && (

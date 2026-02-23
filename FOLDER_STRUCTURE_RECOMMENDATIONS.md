@@ -3,6 +3,7 @@
 ## Current vs. Proposed Backend Organization
 
 ### Current Structure (Module-based, Mixed Concerns)
+
 ```
 apps/api/src/
 ├── modules/
@@ -37,6 +38,7 @@ apps/api/src/
 ```
 
 ### Proposed Structure (DDD-based, Clear Separation of Concerns)
+
 ```
 apps/api/src/
 ├── domains/                              [DOMAIN-DRIVEN DESIGN]
@@ -189,6 +191,7 @@ apps/api/src/
 ## Frontend Structure - Recommended Organization
 
 ### Current Frontend (Route-based but scattered components)
+
 ```
 apps/app/
 ├── app/
@@ -215,6 +218,7 @@ apps/app/
 ```
 
 ### Recommended Frontend Structure
+
 ```
 apps/app/
 ├── app/                                [Next.js routes]
@@ -366,6 +370,7 @@ apps/app/
 ## Shared Packages - Recommended Structure
 
 ### Current Organization (Good baseline)
+
 ```
 packages/
 ├── db/                      [Prisma & DB client]
@@ -380,6 +385,7 @@ packages/
 ```
 
 ### Proposed - More Focused Packages
+
 ```
 packages/
 ├── db/                      [Prisma client]
@@ -475,27 +481,32 @@ packages/
 ## Key Principles
 
 ### 1. **Domain-Driven Design (DDD)**
+
 - Organize around business domains, not technical layers
 - Each domain has clear boundaries
 - Easy to understand business logic
 
 ### 2. **Single Responsibility Principle**
+
 - Services do ONE thing well
 - Composition through dependency injection
 - Easy to test and reuse
 
 ### 3. **Layered Architecture (per domain)**
+
 - **Core**: Business entities, domain services, value objects
 - **Application**: Use cases, DTOs, ports (interfaces)
 - **Infrastructure**: Repository implementations, external service clients
 - **Presentation**: Controllers, middleware, schemas
 
 ### 4. **Dependency Inversion**
+
 - Domains depend on abstractions (ports)
 - Implementations injected at runtime
 - Easy to swap implementations (testing, alternative providers)
 
 ### 5. **Shared Conventions**
+
 - File naming: `entity.ts`, `service.ts`, `.dto.ts`, `.repository.ts`
 - Folder structure: Core > Application > Infrastructure > Presentation
 - Barrel exports: `index.ts` in each folder for clean imports
@@ -507,6 +518,7 @@ packages/
 ### Incremental Approach (Don't rewrite everything)
 
 **Phase 1**: Start with new features in DDD structure
+
 ```typescript
 // New features use DDD:
 src/domains/new-feature/ { core, application, infrastructure, presentation }
@@ -516,6 +528,7 @@ src/modules/billing/ { existing code with small improvements }
 ```
 
 **Phase 2**: Refactor existing large modules
+
 ```
 Week 1-2: Billing module
 Week 3-4: Subscription module
@@ -523,6 +536,7 @@ Week 5-6: WhatsApp module
 ```
 
 **Phase 3**: Reorganize frontend gradually
+
 ```
 - New features in recommended structure
 - Slowly migrate existing routes
@@ -532,13 +546,13 @@ Week 5-6: WhatsApp module
 
 ## Benefits of Recommended Structure
 
-| Aspect | Current | Proposed |
-|--------|---------|----------|
-| **Discoverability** | Hard - scattered across 100+ modules | Easy - organized by domain |
-| **Testing** | Complex dependencies | Clear ports/interfaces |
-| **Reusability** | Difficult - tight coupling | Natural - composition |
-| **Onboarding** | Steep - where is billing logic? | Fast - clear domain boundaries |
-| **Scaling** | Services grow large | Bounded contexts, manageable size |
-| **Shared Logic** | Duplicated in services | Centralized in domain services |
-| **Feature Development** | Risk of breaking other features | Isolated within domain |
-| **Database Changes** | Ripple through 10+ services | Contained in repositories |
+| Aspect                  | Current                              | Proposed                          |
+| ----------------------- | ------------------------------------ | --------------------------------- |
+| **Discoverability**     | Hard - scattered across 100+ modules | Easy - organized by domain        |
+| **Testing**             | Complex dependencies                 | Clear ports/interfaces            |
+| **Reusability**         | Difficult - tight coupling           | Natural - composition             |
+| **Onboarding**          | Steep - where is billing logic?      | Fast - clear domain boundaries    |
+| **Scaling**             | Services grow large                  | Bounded contexts, manageable size |
+| **Shared Logic**        | Duplicated in services               | Centralized in domain services    |
+| **Feature Development** | Risk of breaking other features      | Isolated within domain            |
+| **Database Changes**    | Ripple through 10+ services          | Contained in repositories         |

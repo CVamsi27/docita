@@ -42,7 +42,7 @@ export const OCRResults = ({
 
   const hasPatientInfoLowConfidence = Object.entries(confidenceScores)
     .filter(([key]) =>
-      ["firstName", "lastName", "phoneNumber", "email"].includes(key)
+      ["firstName", "lastName", "phoneNumber", "email"].includes(key),
     )
     .some(([, score]) => score < 0.6);
 

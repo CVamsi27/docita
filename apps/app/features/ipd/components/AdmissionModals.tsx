@@ -50,7 +50,7 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
                     <option key={ward.value} value={ward.value}>
                       {ward.label}
                     </option>
-                  )
+                  ),
                 )}
               </select>
             </div>
@@ -67,7 +67,7 @@ export const AdmissionModal: FC<ModalProps> = ({ open, onOpenChange }) => {
                     <option key={bed.value} value={bed.value}>
                       {bed.label}
                     </option>
-                  )
+                  ),
                 )}
               </select>
             </div>

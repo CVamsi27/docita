@@ -4,7 +4,10 @@
  */
 
 // Error Handling (Global)
-export { ErrorHandlingModule, LoggerService } from './modules/error-handling/error-handling.module';
+export {
+  ErrorHandlingModule,
+  LoggerService,
+} from './modules/error-handling/error-handling.module';
 export * from './modules/error-handling';
 
 // Document Generation

@@ -1,7 +1,7 @@
 /**
  * Subscription Repository Port
  * Abstract interface for subscription persistence
- * 
+ *
  * Allows swapping between Prisma, in-memory, or other implementations
  */
 

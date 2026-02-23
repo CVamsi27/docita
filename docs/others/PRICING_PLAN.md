@@ -140,13 +140,13 @@ The pricing page automatically detects user location and shows appropriate curre
 - Custom training
 - White-label option
 
-**Add-on Eligible:**  WhatsApp (volume pricing),  Docita Intelligence (volume pricing)
+**Add-on Eligible:** WhatsApp (volume pricing), Docita Intelligence (volume pricing)
 
 ---
 
 ## Add-Ons
 
-###  WhatsApp Integration
+### WhatsApp Integration
 
 **Automated patient communication**
 
@@ -184,7 +184,7 @@ The pricing page automatically detects user location and shows appropriate curre
 
 ---
 
-###  Docita Intelligence
+### Docita Intelligence
 
 **AI-powered clinical assistant**
 
@@ -229,7 +229,7 @@ The pricing page automatically detects user location and shows appropriate curre
 
 ## Discount Structure
 
-###  Annual Commitment Discount
+### Annual Commitment Discount
 
 | Commitment  | Discount        |
 | ----------- | --------------- |
@@ -249,7 +249,7 @@ _Add-ons also receive the same annual discount_
 
 ---
 
-###  Referral Program
+### Referral Program
 
 **For Referrers (Credit Rewards):**
 
@@ -275,7 +275,7 @@ _Add-ons also receive the same annual discount_
 
 ---
 
-###  Healthcare Program Discounts
+### Healthcare Program Discounts
 
 | Category                      | Discount           |
 | ----------------------------- | ------------------ |
@@ -287,7 +287,7 @@ _Add-ons also receive the same annual discount_
 
 ---
 
-###  Early Adopter / Loyalty Discounts
+### Early Adopter / Loyalty Discounts
 
 | Tenure   | Loyalty Discount |
 | -------- | ---------------- |
@@ -459,13 +459,13 @@ interface UsageEvent {
 
 ## Competitive Positioning
 
-| Feature              | Docita         | Competitor A   | Competitor B   |
-| -------------------- | -------------- | -------------- | -------------- |
-| Usage-based pricing  |              |  (flat only) | Partial        |
-| WhatsApp integration |  Add-on      |              |  Built-in    |
-| AI features          |  Add-on      |              |              |
-| Free tier            |  50 patients |              |  30 patients |
-| Annual discount      | 10%            | 10%            | 15%            |
+| Feature              | Docita      | Competitor A | Competitor B |
+| -------------------- | ----------- | ------------ | ------------ |
+| Usage-based pricing  |             | (flat only)  | Partial      |
+| WhatsApp integration | Add-on      |              | Built-in     |
+| AI features          | Add-on      |              |              |
+| Free tier            | 50 patients |              | 30 patients  |
+| Annual discount      | 10%         | 10%          | 15%          |
 
 ---
 

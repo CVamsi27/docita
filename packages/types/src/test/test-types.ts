@@ -38,8 +38,20 @@ export interface MockBullQueue<T = unknown> {
   empty: jest.Mock<Promise<void>, []>;
   clean: jest.Mock<Promise<string[]>, [number, string]>;
   obliterate: jest.Mock<Promise<void>, []>;
-  on: jest.Mock<void, [string, (...args: Array<string | number | Record<string, unknown>>) => void]>;
-  off: jest.Mock<void, [string, (...args: Array<string | number | Record<string, unknown>>) => void]>;
+  on: jest.Mock<
+    void,
+    [
+      string,
+      (...args: Array<string | number | Record<string, unknown>>) => void,
+    ]
+  >;
+  off: jest.Mock<
+    void,
+    [
+      string,
+      (...args: Array<string | number | Record<string, unknown>>) => void,
+    ]
+  >;
 }
 
 // ============================================================================

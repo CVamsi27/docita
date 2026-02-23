@@ -140,14 +140,22 @@ export default function CreateDoctorPage() {
                     onChange={(e) => {
                       setForm({ ...form, name: e.target.value });
                       if (fieldErrors.name) {
-                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          name: undefined,
+                        }));
                       }
                     }}
                     aria-invalid={!!fieldErrors.name}
-                    aria-describedby={fieldErrors.name ? "doctor-name-error" : undefined}
+                    aria-describedby={
+                      fieldErrors.name ? "doctor-name-error" : undefined
+                    }
                   />
                   {fieldErrors.name && (
-                    <p id="doctor-name-error" className="text-sm text-destructive">
+                    <p
+                      id="doctor-name-error"
+                      className="text-sm text-destructive"
+                    >
                       {fieldErrors.name}
                     </p>
                   )}
@@ -162,14 +170,22 @@ export default function CreateDoctorPage() {
                     onChange={(e) => {
                       setForm({ ...form, email: e.target.value });
                       if (fieldErrors.email) {
-                        setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          email: undefined,
+                        }));
                       }
                     }}
                     aria-invalid={!!fieldErrors.email}
-                    aria-describedby={fieldErrors.email ? "doctor-email-error" : undefined}
+                    aria-describedby={
+                      fieldErrors.email ? "doctor-email-error" : undefined
+                    }
                   />
                   {fieldErrors.email && (
-                    <p id="doctor-email-error" className="text-sm text-destructive">
+                    <p
+                      id="doctor-email-error"
+                      className="text-sm text-destructive"
+                    >
                       {fieldErrors.email}
                     </p>
                   )}
@@ -199,7 +215,10 @@ export default function CreateDoctorPage() {
                     }
                   />
                   {fieldErrors.password && (
-                    <p id="doctor-password-error" className="text-sm text-destructive">
+                    <p
+                      id="doctor-password-error"
+                      className="text-sm text-destructive"
+                    >
                       {fieldErrors.password}
                     </p>
                   )}

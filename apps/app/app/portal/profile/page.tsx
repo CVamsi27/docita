@@ -1,47 +1,60 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card';
-import { Button } from '@workspace/ui/components/button';
-import { Checkbox } from '@workspace/ui/components/checkbox';
-import { Label } from '@workspace/ui/components/label';
-import { AlertCircle, Bell, Shield, Trash2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/alert';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Label } from "@workspace/ui/components/label";
+import { AlertCircle, Bell, Shield, Trash2 } from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert";
 import {
   usePatientConsentSettings,
   useRequestDataDeletion,
   useUpdatePatientConsent,
-} from '@/hooks/api/use-patient-portal';
-import { toast } from 'sonner';
-import { Textarea } from '@workspace/ui/components/textarea';
+} from "@/hooks/api/use-patient-portal";
+import { toast } from "sonner";
+import { Textarea } from "@workspace/ui/components/textarea";
 
 export default function PatientProfilePage() {
-  const [deletionReason, setDeletionReason] = useState('');
+  const [deletionReason, setDeletionReason] = useState("");
   const [confirmDeletion, setConfirmDeletion] = useState(false);
   const { data: consentSettings } = usePatientConsentSettings();
   const updateConsent = useUpdatePatientConsent();
   const requestDeletion = useRequestDataDeletion();
 
-  const handleConsentChange = async (field: 'whatsappConsent' | 'dataStorageConsent', value: boolean) => {
+  const handleConsentChange = async (
+    field: "whatsappConsent" | "dataStorageConsent",
+    value: boolean,
+  ) => {
     try {
       await updateConsent.mutateAsync({
         [field]: value,
       });
 
-      toast.success('Your consent preferences have been saved.');
+      toast.success("Your consent preferences have been saved.");
     } catch (_error) {
-      toast.error('Failed to update preferences');
+      toast.error("Failed to update preferences");
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!deletionReason.trim()) {
-      toast.error('Please provide a reason for deletion');
+      toast.error("Please provide a reason for deletion");
       return;
     }
 
     if (!confirmDeletion) {
-      toast.error('Please confirm that you want to delete your account');
+      toast.error("Please confirm that you want to delete your account");
       return;
     }
 
@@ -51,9 +64,11 @@ export default function PatientProfilePage() {
         confirmDeletion: true,
       });
 
-      toast.success('Account deletion requested. Your account will be deleted within 30 days.');
+      toast.success(
+        "Account deletion requested. Your account will be deleted within 30 days.",
+      );
     } catch (_error) {
-      toast.error('Failed to submit deletion request');
+      toast.error("Failed to submit deletion request");
     }
   };
 
@@ -91,14 +106,19 @@ export default function PatientProfilePage() {
               </p>
               {consentSettings?.whatsappConsentAt && (
                 <p className="text-xs text-muted-foreground">
-                  Consent given on {new Date(consentSettings.whatsappConsentAt).toLocaleDateString()}
+                  Consent given on{" "}
+                  {new Date(
+                    consentSettings.whatsappConsentAt,
+                  ).toLocaleDateString()}
                 </p>
               )}
             </div>
             <Checkbox
               id="whatsapp-consent"
               checked={consentSettings?.whatsappConsent || false}
-              onCheckedChange={(checked) => handleConsentChange('whatsappConsent', !!checked)}
+              onCheckedChange={(checked) =>
+                handleConsentChange("whatsappConsent", !!checked)
+              }
               disabled={updateConsent.isPending}
             />
           </div>
@@ -112,14 +132,11 @@ export default function PatientProfilePage() {
                 </Label>
               </div>
               <p className="text-sm text-muted-foreground">
-                I consent to storing my health data securely for medical purposes
+                I consent to storing my health data securely for medical
+                purposes
               </p>
             </div>
-            <Checkbox
-              id="storage-consent"
-              checked={true}
-              disabled
-            />
+            <Checkbox id="storage-consent" checked={true} disabled />
           </div>
         </CardContent>
       </Card>
@@ -129,10 +146,13 @@ export default function PatientProfilePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-destructive">Delete Account & Data</CardTitle>
+            <CardTitle className="text-destructive">
+              Delete Account & Data
+            </CardTitle>
           </div>
           <CardDescription>
-            Permanently delete your account and all associated health data (GDPR/DPDP compliant)
+            Permanently delete your account and all associated health data
+            (GDPR/DPDP compliant)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -140,13 +160,16 @@ export default function PatientProfilePage() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
             <AlertDescription>
-              This action cannot be undone. All your appointments, prescriptions, invoices, and medical
-              records will be permanently deleted after 30 days.
+              This action cannot be undone. All your appointments,
+              prescriptions, invoices, and medical records will be permanently
+              deleted after 30 days.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="deletion-reason">Reason for deletion (required)</Label>
+            <Label htmlFor="deletion-reason">
+              Reason for deletion (required)
+            </Label>
             <Textarea
               id="deletion-reason"
               placeholder="Please tell us why you're deleting your account..."
@@ -163,18 +186,23 @@ export default function PatientProfilePage() {
               onCheckedChange={(checked) => setConfirmDeletion(!!checked)}
             />
             <Label htmlFor="confirm-deletion" className="text-sm font-normal">
-              I understand this action cannot be undone and all my data will be permanently deleted
+              I understand this action cannot be undone and all my data will be
+              permanently deleted
             </Label>
           </div>
 
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             className="w-full"
             onClick={handleDeleteAccount}
-            disabled={requestDeletion.isPending || !deletionReason || !confirmDeletion}
+            disabled={
+              requestDeletion.isPending || !deletionReason || !confirmDeletion
+            }
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            {requestDeletion.isPending ? 'Processing...' : 'Delete My Account & Data'}
+            {requestDeletion.isPending
+              ? "Processing..."
+              : "Delete My Account & Data"}
           </Button>
         </CardContent>
       </Card>

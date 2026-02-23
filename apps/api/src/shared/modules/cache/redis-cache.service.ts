@@ -1,6 +1,6 @@
 /**
  * Redis Cache Service
- * 
+ *
  * Redis-based cache implementation for production use.
  * Provides distributed caching across multiple instances.
  */
@@ -10,7 +10,9 @@ import { ICacheProvider } from './cache.interface';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisCacheService implements ICacheProvider, OnModuleInit, OnModuleDestroy {
+export class RedisCacheService
+  implements ICacheProvider, OnModuleInit, OnModuleDestroy
+{
   private redis: Redis | null = null;
 
   constructor(
@@ -58,7 +60,8 @@ export class RedisCacheService implements ICacheProvider, OnModuleInit, OnModule
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     this.ensureConnected();
-    const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    const serialized =
+      typeof value === 'string' ? value : JSON.stringify(value);
 
     if (ttl) {
       await this.redis!.setex(key, ttl, serialized);

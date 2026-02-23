@@ -3,6 +3,7 @@
 ## Completed: Domain-Driven Design Structure for Billing
 
 ### Overview
+
 Successfully established a **complete DDD (Domain-Driven Design) architecture** for the Billing domain, demonstrating how to organize business logic across layered boundaries.
 
 ### Created Structure
@@ -42,11 +43,11 @@ src/domains/billing/
 ### Key Architectural Decisions
 
 #### 1. **Core Layer - Domain Logic**
+
 - **Entities**: `Invoice`, `InvoiceItem`, `Payment` - represent business concepts
   - Encapsulate business rules (e.g., status transitions, calculations)
   - Independent of infrastructure/persistence details
   - Full control over valid state changes
-  
 - **Value Objects**: `Money`, `InvoiceStatus`, `BillingPeriod`
   - Immutable, replaceable objects with no identity
   - Ensure type safety (e.g., prevent currency mixing)
@@ -59,6 +60,7 @@ src/domains/billing/
   - Stateless and reusable
 
 #### 2. **Application Layer - Orchestration**
+
 - **Ports (Interfaces)**: `IInvoiceRepository`, `IPaymentGateway`
   - Define contracts without implementation
   - Enable dependency inversion
@@ -72,7 +74,9 @@ src/domains/billing/
   - Schema-driven API documentation
 
 #### 3. **Use Cases** (Ready for Phase 2)
+
 Will implement:
+
 - `CreateInvoiceUseCase` - Business logic orchestration
 - `ProcessPaymentUseCase` - Payment handling with repository/gateway
 - `UpdateInvoiceStatusUseCase` - Encapsulates state transition logic
@@ -80,22 +84,25 @@ Will implement:
 ### Value Object Patterns Demonstrated
 
 #### Money - Type Safety
+
 ```typescript
 // Prevents dangerous operations
-const usd = new Money(100, 'USD');
-const inr = new Money(100, 'INR');
+const usd = new Money(100, "USD");
+const inr = new Money(100, "INR");
 usd.add(inr); // ❌ Throws: "Cannot add INR to USD"
 ```
 
 #### InvoiceStatus - State Machine
+
 ```typescript
 // Enforces valid transitions
 let status = new InvoiceStatus(InvoiceStatusEnum.DRAFT);
 status = status.transitionTo(InvoiceStatusEnum.ISSUED); // ✓
-status = status.transitionTo(InvoiceStatusEnum.DRAFT);  // ❌ Throws
+status = status.transitionTo(InvoiceStatusEnum.DRAFT); // ❌ Throws
 ```
 
 #### BillingPeriod - Constraint Enforcement
+
 ```typescript
 // Self-validates constraints
 const period = new BillingPeriod(endDate, startDate); // ❌ "Start date must be before end date"
@@ -103,16 +110,17 @@ const period = new BillingPeriod(endDate, startDate); // ❌ "Start date must be
 
 ### Benefits of This Structure
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Business Logic Location** | Scattered in multiple services | Centralized in domain entities |
-| **State Safety** | Invoice could be in invalid state | Value objects enforce valid states |
-| **Calculation Reuse** | Duplicated in services | Centralized in domain & use cases |
-| **Testing** | Complex dependencies | Pure functions, easy unit tests |
-| **Extension** | Add new payment gateway = change PaymentsService | Implement IPaymentGateway interface |
-| **Team Communication** | Ambiguous: "Which service?", "What's the rule?" | Clear: Invoice entity handles state |
+| Aspect                      | Before                                           | After                               |
+| --------------------------- | ------------------------------------------------ | ----------------------------------- |
+| **Business Logic Location** | Scattered in multiple services                   | Centralized in domain entities      |
+| **State Safety**            | Invoice could be in invalid state                | Value objects enforce valid states  |
+| **Calculation Reuse**       | Duplicated in services                           | Centralized in domain & use cases   |
+| **Testing**                 | Complex dependencies                             | Pure functions, easy unit tests     |
+| **Extension**               | Add new payment gateway = change PaymentsService | Implement IPaymentGateway interface |
+| **Team Communication**      | Ambiguous: "Which service?", "What's the rule?"  | Clear: Invoice entity handles state |
 
 ### Build Status
+
 ✅ **ZERO ERRORS** - 367 errors originally, now 0 errors maintained after DDD refactoring
 
 ### Next Steps (Phase 2)

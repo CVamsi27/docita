@@ -154,7 +154,10 @@ export function PaymentStep({
                 onChange={(e) => {
                   setNameOnCard(e.target.value);
                   if (formErrors.nameOnCard) {
-                    setFormErrors((prev) => ({ ...prev, nameOnCard: undefined }));
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      nameOnCard: undefined,
+                    }));
                   }
                 }}
                 aria-invalid={!!formErrors.nameOnCard}
@@ -179,7 +182,10 @@ export function PaymentStep({
                   onChange={(e) => {
                     setCardNumber(e.target.value);
                     if (formErrors.cardNumber) {
-                      setFormErrors((prev) => ({ ...prev, cardNumber: undefined }));
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        cardNumber: undefined,
+                      }));
                     }
                   }}
                   className="pl-10"
@@ -211,10 +217,15 @@ export function PaymentStep({
                     }
                   }}
                   aria-invalid={!!formErrors.expiry}
-                  aria-describedby={formErrors.expiry ? "payment-expiry-error" : undefined}
+                  aria-describedby={
+                    formErrors.expiry ? "payment-expiry-error" : undefined
+                  }
                 />
                 {formErrors.expiry && (
-                  <p id="payment-expiry-error" className="text-sm text-destructive">
+                  <p
+                    id="payment-expiry-error"
+                    className="text-sm text-destructive"
+                  >
                     {formErrors.expiry}
                   </p>
                 )}
@@ -234,12 +245,17 @@ export function PaymentStep({
                     }}
                     className="pl-10"
                     aria-invalid={!!formErrors.cvc}
-                    aria-describedby={formErrors.cvc ? "payment-cvc-error" : undefined}
+                    aria-describedby={
+                      formErrors.cvc ? "payment-cvc-error" : undefined
+                    }
                   />
                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
                 {formErrors.cvc && (
-                  <p id="payment-cvc-error" className="text-sm text-destructive">
+                  <p
+                    id="payment-cvc-error"
+                    className="text-sm text-destructive"
+                  >
                     {formErrors.cvc}
                   </p>
                 )}

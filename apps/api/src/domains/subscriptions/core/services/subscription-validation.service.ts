@@ -9,9 +9,10 @@ export class SubscriptionValidationService {
   /**
    * Validate subscription state
    */
-  validateSubscription(
-    subscription: Subscription,
-  ): { valid: boolean; errors: string[] } {
+  validateSubscription(subscription: Subscription): {
+    valid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     // Check if subscription is in a valid state

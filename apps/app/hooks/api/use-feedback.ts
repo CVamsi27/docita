@@ -124,10 +124,10 @@ export const useSubmitFeedback = () =>
   >("/feedback", "POST");
 
 export const useUpdateFeedbackStatus = () =>
-  useAPIMutation<Record<string, unknown>, { status: string; adminNotes?: string }>(
-    (id) => `/feedback/${id}/status`,
-    "PATCH",
-  );
+  useAPIMutation<
+    Record<string, unknown>,
+    { status: string; adminNotes?: string }
+  >((id) => `/feedback/${id}/status`, "PATCH");
 
 export const useDeleteFeedback = (id: string) =>
   useAPIMutation<Record<string, unknown>, void>(`/feedback/${id}`, "DELETE");

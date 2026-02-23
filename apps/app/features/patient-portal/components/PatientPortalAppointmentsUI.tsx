@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalAppointment } from "../types/patient-portal-types";
@@ -51,7 +56,8 @@ export function PatientPortalAppointmentsUI({
                     </Badge>
                   </div>
                   <div className="text-muted-foreground">
-                    {new Date(appointment.scheduledAt).toLocaleString()} • {appointment.clinicName}
+                    {new Date(appointment.scheduledAt).toLocaleString()} •{" "}
+                    {appointment.clinicName}
                   </div>
                 </div>
               ))}

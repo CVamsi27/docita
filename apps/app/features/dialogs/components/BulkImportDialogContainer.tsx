@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useBulkImport,
-  useBulkImportTemplate,
-} from "@/hooks/api/use-import";
+import { useBulkImport, useBulkImportTemplate } from "@/hooks/api/use-import";
 import {
   BulkImportDialogUI,
   BulkImportStep,

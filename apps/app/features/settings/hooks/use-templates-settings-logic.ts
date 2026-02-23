@@ -11,10 +11,8 @@ import { toast } from "sonner";
 export const useTemplatesSettingsLogic = () => {
   const { data: templates, isLoading } = useTemplates();
   const { mutate: deleteTemplate } = useDeleteTemplate();
-  const { mutate: createTemplate, isPending: isCreating } =
-    useCreateTemplate();
-  const { mutate: updateTemplate, isPending: isUpdating } =
-    useUpdateTemplate();
+  const { mutate: createTemplate, isPending: isCreating } = useCreateTemplate();
+  const { mutate: updateTemplate, isPending: isUpdating } = useUpdateTemplate();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentTemplate, setCurrentTemplate] =

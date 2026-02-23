@@ -36,7 +36,7 @@ export function DoctorAvailabilitySettings() {
       // Try to find a schedule specific to Mon-Fri, or just take the first one
       const sample =
         schedules.find(
-          (s) => s.dayOfWeek !== "Sunday" && s.dayOfWeek !== "Saturday"
+          (s) => s.dayOfWeek !== "Sunday" && s.dayOfWeek !== "Saturday",
         ) || schedules[0];
       if (sample) {
         setOpeningTime(sample.startTime);
@@ -78,7 +78,7 @@ export function DoctorAvailabilitySettings() {
         onError: (err) => {
           toast.error("Failed to update availability: " + err.message);
         },
-      }
+      },
     );
   };
 

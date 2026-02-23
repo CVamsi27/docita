@@ -213,15 +213,25 @@ export function UsersPageContainer() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Name</p>
-                  <p className="text-sm font-semibold mt-1">{selectedUser.name}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Name
+                  </p>
+                  <p className="text-sm font-semibold mt-1">
+                    {selectedUser.name}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Email</p>
-                  <p className="text-sm font-semibold mt-1">{selectedUser.email}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Email
+                  </p>
+                  <p className="text-sm font-semibold mt-1">
+                    {selectedUser.email}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Role</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Role
+                  </p>
                   <div className="mt-1">
                     <Badge className={getRoleBadgeColor(selectedUser.role)}>
                       {selectedUser.role.replace("_", " ")}
@@ -229,7 +239,9 @@ export function UsersPageContainer() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Phone Number
+                  </p>
                   <p className="text-sm font-semibold mt-1">
                     {selectedUser.phoneNumber || "N/A"}
                   </p>
@@ -240,7 +252,9 @@ export function UsersPageContainer() {
                 selectedUser.role === "ADMIN_DOCTOR") && (
                 <>
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-3">Professional Information</h3>
+                    <h3 className="font-semibold mb-3">
+                      Professional Information
+                    </h3>
                     <div className="grid grid-cols-2 gap-4">
                       {selectedUser.specialization && (
                         <div>
@@ -276,7 +290,9 @@ export function UsersPageContainer() {
                       )}
                       {selectedUser.yearsOfExperience !== undefined && (
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Experience</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Experience
+                          </p>
                           <p className="text-sm font-semibold mt-1">
                             {selectedUser.yearsOfExperience} years
                           </p>
@@ -286,7 +302,9 @@ export function UsersPageContainer() {
                   </div>
                   {selectedUser.bio && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Bio</p>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Bio
+                      </p>
                       <p className="text-sm mt-1">{selectedUser.bio}</p>
                     </div>
                   )}
@@ -294,7 +312,9 @@ export function UsersPageContainer() {
               )}
 
               <div className="border-t pt-4">
-                <p className="text-sm font-medium text-muted-foreground">Joined</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Joined
+                </p>
                 <p className="text-sm font-semibold mt-1">
                   {new Date(selectedUser.createdAt).toLocaleString()}
                 </p>

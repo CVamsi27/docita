@@ -40,7 +40,9 @@ export function PatientsPageContainer() {
       <EditPatientDialog
         patient={state.editingPatient}
         open={!!state.editingPatient}
-        onOpenChange={(open: boolean) => !open && handlers.setEditingPatient(null)}
+        onOpenChange={(open: boolean) =>
+          !open && handlers.setEditingPatient(null)
+        }
         onPatientUpdated={handlers.onPatientUpdated}
       />
     </>

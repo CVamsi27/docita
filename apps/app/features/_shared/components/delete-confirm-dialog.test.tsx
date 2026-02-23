@@ -14,12 +14,12 @@ describe("DeleteConfirmDialog", () => {
         onConfirm={mockOnConfirm}
         itemName="Patient Record"
         isLoading={false}
-      />
+      />,
     );
 
     expect(screen.getByText("Delete Patient Record?")).toBeInTheDocument();
     expect(
-      screen.getByText(/Are you sure you want to delete/i)
+      screen.getByText(/Are you sure you want to delete/i),
     ).toBeInTheDocument();
   });
 
@@ -31,7 +31,7 @@ describe("DeleteConfirmDialog", () => {
         onConfirm={mockOnConfirm}
         itemName="Appointment"
         isLoading={false}
-      />
+      />,
     );
 
     const deleteButton = screen.getByRole("button", { name: /delete/i });
@@ -48,7 +48,7 @@ describe("DeleteConfirmDialog", () => {
         onConfirm={mockOnConfirm}
         itemName="Test Item"
         isLoading={false}
-      />
+      />,
     );
 
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
@@ -65,7 +65,7 @@ describe("DeleteConfirmDialog", () => {
         onConfirm={mockOnConfirm}
         itemName="Test Item"
         isLoading={true}
-      />
+      />,
     );
 
     const deleteButton = screen.getByRole("button", { name: /delete/i });

@@ -12,6 +12,7 @@
 DEPLOY-1 focuses on setting up the production infrastructure on Vercel (frontend) and Railway (backend), configuring staging environments, and ensuring all systems are ready for production deployment.
 
 ### Success Criteria
+
 - ✅ All 3 frontend apps deployed to Vercel
 - ✅ API server deployed to Railway
 - ✅ PostgreSQL database configured
@@ -28,6 +29,7 @@ DEPLOY-1 focuses on setting up the production infrastructure on Vercel (frontend
 ### Task 1.1: Set Up Main App on Vercel
 
 **Actions:**
+
 ```bash
 # 1. Go to https://vercel.com/dashboard
 # 2. Click "Add New" → "Project"
@@ -47,6 +49,7 @@ DEPLOY-1 focuses on setting up the production infrastructure on Vercel (frontend
    - Output Directory: `.next`
 
 2. **Section: Environment Variables**
+
    ```
    NEXT_PUBLIC_API_URL = https://api.yourdomain.com/api
    NEXT_PUBLIC_SENTRY_DSN = https://xxx@sentry.io/xxx
@@ -63,8 +66,9 @@ DEPLOY-1 focuses on setting up the production infrastructure on Vercel (frontend
    - Verify: Visit deployment URL
 
 **Verification:**
+
 ```bash
-curl -s https://app.yourdomain.com | grep "<title>" 
+curl -s https://app.yourdomain.com | grep "<title>"
 # Should show proper title
 ```
 
@@ -73,6 +77,7 @@ curl -s https://app.yourdomain.com | grep "<title>"
 ### Task 1.2: Set Up Admin App on Vercel
 
 **Same process as Main App:**
+
 ```
 Project Name: docita-admin
 Root Directory: apps/admin
@@ -88,6 +93,7 @@ NEXT_PUBLIC_SENTRY_DSN = <same as main app>
 ### Task 1.3: Set Up Landing Page on Vercel
 
 **Same process as Main App:**
+
 ```
 Project Name: docita-landing
 Root Directory: apps/landing
@@ -127,6 +133,7 @@ For each app, enable in Vercel project settings:
 ### Task 2.1: Create Railway Project
 
 **Actions:**
+
 ```bash
 # 1. Go to https://railway.app/dashboard
 # 2. Click "Create New" → "Project"
@@ -187,61 +194,63 @@ For each app, enable in Vercel project settings:
 1. **Go to: Variables** tab in Railway
 
 2. **Add all required variables:**
+
    ```env
    # Database
    DATABASE_URL = postgresql://...copied from Railway...
-   
+
    # Redis
    REDIS_URL = redis://:...copied from Railway...
-   
+
    # Authentication
    JWT_SECRET = <generate: openssl rand -hex 32>
    JWT_EXPIRES_IN = 7d
-   
+
    # Encryption
    ENCRYPTION_KEY = <generate: openssl rand -hex 32 (must be exactly 64 hex chars)>
-   
+
    # Payment (Razorpay)
    RAZORPAY_KEY_ID = <from Razorpay dashboard>
    RAZORPAY_KEY_SECRET = <from Razorpay dashboard>
-   
+
    # WhatsApp
    WHATSAPP_BUSINESS_ACCOUNT_ID = <from Meta Business Manager>
    WHATSAPP_PHONE_NUMBER_ID = <from Meta>
    WHATSAPP_API_TOKEN = <from Meta>
-   
+
    # Email (if configured)
    EMAIL_SERVICE = <sendgrid, mailgun, etc>
    EMAIL_FROM = noreply@yourdomain.com
-   
+
    # Sentry
    SENTRY_DSN = https://xxx@sentry.io/xxx
    SENTRY_ENVIRONMENT = production
-   
+
    # Monitoring
    NODE_ENV = production
    LOG_LEVEL = info
-   
+
    # Frontend URLs
    FRONTEND_URL = https://app.yourdomain.com
    ADMIN_URL = https://admin.yourdomain.com
    LANDING_URL = https://www.yourdomain.com
-   
+
    # AWS (if needed for file uploads)
    AWS_S3_BUCKET = docita-prod-uploads
    AWS_REGION = us-east-1
    AWS_ACCESS_KEY_ID = <from AWS IAM>
    AWS_SECRET_ACCESS_KEY = <from AWS IAM>
-   
+
    # CORS
    CORS_ORIGIN = https://app.yourdomain.com,https://admin.yourdomain.com
    ```
 
 3. **Generate Required Secrets:**
+
    ```bash
    # JWT_SECRET (32 hex chars = 128 bits)
    openssl rand -hex 32
-   
+
    # ENCRYPTION_KEY (32 hex chars = 128 bits or 64 for AES-256)
    openssl rand -hex 32  # for AES-128
    # OR
@@ -259,6 +268,7 @@ For each app, enable in Vercel project settings:
 **Two options:**
 
 **Option A: Via Railway CLI**
+
 ```bash
 # 1. Install Railway CLI
 brew install railway
@@ -279,12 +289,14 @@ railway run pnpm db:seed
 ```
 
 **Option B: Via Vercel CLI + SSH**
+
 ```bash
 # Use Railway's connection string to connect remotely:
 DATABASE_URL="..." pnpm db:migrate:deploy
 ```
 
 **Verification:**
+
 ```bash
 # After migration, test:
 # - Query a table: SELECT COUNT(*) FROM "User";
@@ -300,12 +312,14 @@ DATABASE_URL="..." pnpm db:migrate:deploy
 **For each app (main, admin, landing):**
 
 1. **Add staging domain in Vercel**
+
    ```
    Production: app.yourdomain.com
    Staging: staging-app.yourdomain.com
    ```
 
 2. **Create staging branch**
+
    ```bash
    git checkout -b staging
    git push origin staging
@@ -323,6 +337,7 @@ DATABASE_URL="..." pnpm db:migrate:deploy
 **Two approaches:**
 
 **Approach A: Separate Railway Project (Recommended)**
+
 ```
 1. Create new Railway project: "docita-staging"
 2. Create staging PostgreSQL & Redis instances
@@ -332,6 +347,7 @@ DATABASE_URL="..." pnpm db:migrate:deploy
 ```
 
 **Approach B: Same Project, Separate Database**
+
 ```
 1. In same Railway project
 2. Create second Postgres: "docita-postgres-staging"
@@ -346,6 +362,7 @@ DATABASE_URL="..." pnpm db:migrate:deploy
 ### Task 3.3: Configure Staging Environment Variables
 
 In Railway staging project, set:
+
 ```env
 NODE_ENV = staging
 SENTRY_ENVIRONMENT = staging
@@ -370,6 +387,7 @@ REDIS_URL = redis://:pass@staging-redis:6379
 ### Task 4.1: Create Environment Variable Documentation
 
 **Create `.env.production.example`:**
+
 ```bash
 # This file documents all required production environment variables
 # Never commit actual secrets to git!
@@ -422,6 +440,7 @@ AWS_SECRET_ACCESS_KEY=xxx
 ### Task 4.2: Secret Management Best Practices
 
 **Rules:**
+
 - ✅ Never commit `.env` files with secrets
 - ✅ Use Vercel Secrets for frontend env vars
 - ✅ Use Railway Variables for backend env vars
@@ -472,6 +491,7 @@ curl https://api.yourdomain.com/api/health/metrics
 **Test API calls from frontend:**
 
 1. **From Main App:**
+
    ```bash
    # Navigate to app.yourdomain.com/login
    # Open DevTools → Network tab
@@ -481,6 +501,7 @@ curl https://api.yourdomain.com/api/health/metrics
    ```
 
 2. **From Admin App:**
+
    ```bash
    # Navigate to admin.yourdomain.com/login
    # Same test as above
@@ -522,20 +543,21 @@ const app = await NestFactory.create(AppModule);
 
 app.enableCors({
   origin: [
-    'https://app.yourdomain.com',
-    'https://admin.yourdomain.com',
-    'https://staging-app.yourdomain.com',
-    'https://staging-admin.yourdomain.com',
+    "https://app.yourdomain.com",
+    "https://admin.yourdomain.com",
+    "https://staging-app.yourdomain.com",
+    "https://staging-admin.yourdomain.com",
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 });
 
 await app.listen(process.env.PORT || 3001);
 ```
 
 **Verify in production by checking CORS headers:**
+
 ```bash
 curl -H "Origin: https://app.yourdomain.com" -v https://api.yourdomain.com/api/health
 
@@ -551,6 +573,7 @@ curl -H "Origin: https://app.yourdomain.com" -v https://api.yourdomain.com/api/h
 **Railway:** Automatically handles HTTPS (automatic with custom domain)
 
 **Verify:**
+
 ```bash
 # Should return HTTPS connection
 curl -v https://api.yourdomain.com/api/health 2>&1 | grep "SSL"
@@ -566,7 +589,7 @@ curl -v https://api.yourdomain.com/api/health 2>&1 | grep "SSL"
 
 ```typescript
 // apps/api/src/main.ts
-import { RateLimitGuard } from '@nestjs/throttler';
+import { RateLimitGuard } from "@nestjs/throttler";
 
 app.useGlobalGuards(new RateLimitGuard());
 ```
@@ -578,7 +601,7 @@ app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
-  })
+  }),
 );
 ```
 
@@ -614,12 +637,14 @@ app.use(
 ### Task 7.3: Enable Uptime Monitoring
 
 **Choose a service (free or paid):**
+
 - UptimeRobot (free tier available)
 - Pingdom (has free trial)
 - Freshping
 - StatusPage.io
 
 **Configure monitors:**
+
 ```
 Primary: https://api.yourdomain.com/api/health
 Secondary: https://app.yourdomain.com (home page)
@@ -693,6 +718,7 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 5. [ ] Malformed requests (send invalid JSON)
 
 **Verify:**
+
 - [ ] Errors are logged in Sentry
 - [ ] Alerts trigger in Slack/Email
 - [ ] Frontend shows appropriate error messages
@@ -705,6 +731,7 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 **Before deploying to production, verify:**
 
 ### Infrastructure
+
 - ✅ Vercel projects created for all 3 apps
 - ✅ Railway projects created for API
 - ✅ PostgreSQL database in production
@@ -717,6 +744,7 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 - ✅ Health checks passing
 
 ### Testing
+
 - ✅ All workflows tested in staging
 - ✅ Performance meets targets
 - ✅ Error handling verified
@@ -724,6 +752,7 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 - ✅ Database migrations successful
 
 ### Monitoring
+
 - ✅ Sentry configured for errors
 - ✅ Railway monitoring enabled
 - ✅ Uptime monitoring configured
@@ -731,6 +760,7 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 - ✅ Team can respond to alerts
 
 ### Documentation
+
 - ✅ Runbooks written for common issues
 - ✅ Escalation procedures documented
 - ✅ Emergency contacts listed
@@ -743,11 +773,13 @@ wrk -t12 -c400 -d30s https://api-staging.yourdomain.com/api/health
 ### Issue: CORS Errors in Production
 
 **Symptoms:**
+
 ```
 Access to XMLHttpRequest blocked by CORS policy
 ```
 
 **Solution:**
+
 ```typescript
 // Update CORS configuration in API
 app.enableCors({
@@ -764,11 +796,13 @@ railway deploy --with-output
 ### Issue: Database Migration Fails
 
 **Symptoms:**
+
 ```
 Error: Migration "xxx_migration" failed
 ```
 
 **Solution:**
+
 ```bash
 # 1. Check migration file for syntax errors
 # 2. Verify DATABASE_URL is correct
@@ -787,11 +821,13 @@ pnpm db:migrate:resolve --rolled-back <migration-name>
 ### Issue: Secret Not Found Error
 
 **Symptoms:**
+
 ```
 Error: JWT_SECRET is not defined
 ```
 
 **Solution:**
+
 1. Check variable name spelling (case-sensitive!)
 2. Verify in Railway Variables tab
 3. Restart the service to pick up new variables:
@@ -805,11 +841,13 @@ Error: JWT_SECRET is not defined
 ### Issue: Slow API Response Times
 
 **Symptoms:**
+
 ```
 Average response time > 1 second
 ```
 
 **Solution:**
+
 1. Check database slow query logs
 2. Verify indices are created
 3. Check Redis connectivity

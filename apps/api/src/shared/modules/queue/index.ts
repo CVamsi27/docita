@@ -1,4 +1,9 @@
-export { IQueueProvider, QueueJob, QueueJobOptions, QueueStats } from './queue.interface';
+export {
+  IQueueProvider,
+  QueueJob,
+  QueueJobOptions,
+  QueueStats,
+} from './queue.interface';
 export { JobNames } from './queue.interface';
 export {
   SendEmailJobData,

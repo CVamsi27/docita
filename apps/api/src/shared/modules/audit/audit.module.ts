@@ -1,14 +1,14 @@
 /**
  * Audit Module
- * 
+ *
  * Provides comprehensive audit logging for compliance and security.
  * Logs all sensitive operations with user context and audit trail.
- * 
+ *
  * Usage:
  * 1. Import AuditModule in your feature module
  * 2. Inject IAuditLogger into your service
  * 3. Call logger.log() for important operations
- * 
+ *
  * Example:
  * @Injectable()
  * export class UserService {

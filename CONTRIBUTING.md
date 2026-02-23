@@ -130,24 +130,28 @@ If your contribution involves database schema changes:
 This project uses **two different test frameworks** optimized for their respective use cases:
 
 #### **Jest** (API - `apps/api`)
+
 - **Why Jest?** NestJS has first-class Jest support through `@nestjs/testing` module
 - Native integration with NestJS dependency injection, decorators, Guards, and Interceptors
 - Established ecosystem and patterns for backend testing
 - Official NestJS documentation standardizes on Jest
 
 **Running API tests:**
+
 ```bash
 pnpm --filter @docita/api test      # Run all tests
 pnpm --filter @docita/api test:watch # Watch mode
 ```
 
 #### **Vitest** (Frontend - `apps/app`, `apps/admin`)
+
 - **Why Vitest?** Lightning-fast unit testing with HMR support
 - Perfect for React component testing and form logic
 - Significantly faster feedback loop during development
 - ESM-native, integrates seamlessly with Vite bundler
 
 **Running frontend tests:**
+
 ```bash
 pnpm --filter @docita/app test      # Run all tests
 pnpm --filter @docita/app test:watch # Watch mode
@@ -164,6 +168,7 @@ pnpm --filter @docita/app test:ui    # UI test runner
 - Mock external dependencies (API calls, stripe, WhatsApp)
 
 **Run all tests across the monorepo:**
+
 ```bash
 pnpm test
 ```

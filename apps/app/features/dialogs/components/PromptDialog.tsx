@@ -67,7 +67,10 @@ export function PromptDialog({
             aria-describedby={error ? "prompt-input-error" : undefined}
           />
           {error && (
-            <p id="prompt-input-error" className="text-sm text-destructive mt-1">
+            <p
+              id="prompt-input-error"
+              className="text-sm text-destructive mt-1"
+            >
               {error}
             </p>
           )}

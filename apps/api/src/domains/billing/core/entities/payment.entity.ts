@@ -57,7 +57,8 @@ export class Payment {
     this.processedAt = props.processedAt;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
-    this.refundedAmount = props.refundedAmount ?? new Money(0, props.amount.currency);
+    this.refundedAmount =
+      props.refundedAmount ?? new Money(0, props.amount.currency);
     this.failureReason = props.failureReason;
   }
 
@@ -86,10 +87,7 @@ export class Payment {
     this.refundedAmount = totalRefunded;
     this.updatedAt = new Date();
 
-    if (
-      this.refundedAmount.amount >=
-      this.amount.amount * 0.9999
-    ) {
+    if (this.refundedAmount.amount >= this.amount.amount * 0.9999) {
       this.status = PaymentStatus.REFUNDED;
     }
   }

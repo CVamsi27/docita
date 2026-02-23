@@ -15,7 +15,13 @@ export const fieldClass = (fieldErrors: FieldErrors, field: string) =>
     ? "border-destructive focus-visible:ring-destructive"
     : "";
 
-export function InlineFieldError({ id, message }: { id: string; message: string }) {
+export function InlineFieldError({
+  id,
+  message,
+}: {
+  id: string;
+  message: string;
+}) {
   return (
     <p id={id} className="text-xs text-destructive flex items-center gap-1">
       <AlertCircle className="h-3 w-3" />

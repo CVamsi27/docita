@@ -25,7 +25,10 @@ import {
   VitalsSchema,
 } from './dto/appointments.dto';
 import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '../../shared/modules/auth/auth/tier.decorator';
 import { CacheDuration } from '../../common/interceptors/cache.interceptor';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '../../shared/modules/auth/auth/roles.decorator';

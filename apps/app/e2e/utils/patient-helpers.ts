@@ -96,8 +96,8 @@ export async function setupTestUser(
             loginData.access_token || loginData.accessToken;
           userData.clinicId = loginData.user?.clinicId || userData.clinicId;
         } else {
-             console.log("Login failed in setupTestUser:", await loginRes.text());
-             throw new Error("Login failed during test user setup");
+          console.log("Login failed in setupTestUser:", await loginRes.text());
+          throw new Error("Login failed during test user setup");
         }
       }
     }
@@ -105,9 +105,9 @@ export async function setupTestUser(
     console.log("Clinic setup error:", err);
     throw err;
   }
-  
+
   if (!userData.accessToken) {
-      throw new Error("No access token obtained for test user");
+    throw new Error("No access token obtained for test user");
   }
 
   return userData;
@@ -115,7 +115,7 @@ export async function setupTestUser(
 
 export async function loginUser(page: Page, user: UserData) {
   await page.goto("/login");
-  
+
   // Step 1: Email
   const emailInput = page.locator('input[type="email"]');
   await emailInput.waitFor({ state: "visible" });
@@ -126,7 +126,7 @@ export async function loginUser(page: Page, user: UserData) {
   const passwordInput = page.locator('input[type="password"]');
   await passwordInput.waitFor({ state: "visible" });
   await passwordInput.fill(TEST_PASSWORD);
-  
+
   // Submit Login
   await page.click('button:has-text("Sign In")');
 

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { usePatientPortalInvoices } from '@/hooks/api/use-patient-portal';
-import { Card, CardContent } from '@workspace/ui/components/card';
+import { usePatientPortalInvoices } from "@/hooks/api/use-patient-portal";
+import { Card, CardContent } from "@workspace/ui/components/card";
 
 export default function PortalBillingPage() {
   const { data, isLoading } = usePatientPortalInvoices();

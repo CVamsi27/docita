@@ -15,7 +15,10 @@ import { DoctorAvailabilityService } from './doctor-availability.service';
 import { Role } from '@workspace/db';
 import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '../../shared/modules/auth/auth/tier.decorator';
 
 import {
   CreateScheduleDto,

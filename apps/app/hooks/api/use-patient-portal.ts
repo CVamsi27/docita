@@ -1,4 +1,4 @@
-import { useAPIMutation, useAPIQuery } from '@/lib/api-core';
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 // Type definitions for patient portal DTOs
 interface UpdatePatientProfileBodyDto {
@@ -31,10 +31,7 @@ export const usePatientPortalDashboard = () =>
     upcomingAppointments: Record<string, unknown>[];
     activePrescriptions: Record<string, unknown>[];
     outstandingInvoices: Record<string, unknown>[];
-  }>(
-    ['patient-portal', 'dashboard'],
-    '/patient-portal/dashboard'
-  );
+  }>(["patient-portal", "dashboard"], "/patient-portal/dashboard");
 
 // ============================================================================
 // Appointments
@@ -56,23 +53,23 @@ export const usePatientPortalAppointments = (filters?: {
       hasMore: boolean;
     };
   }>(
-    ['patient-portal', 'appointments', filters || {}],
-    '/patient-portal/appointments'
+    ["patient-portal", "appointments", filters || {}],
+    "/patient-portal/appointments",
   );
 
 export const usePatientPortalAppointmentById = (appointmentId: string) =>
   useAPIQuery(
-    ['patient-portal', 'appointments', appointmentId],
+    ["patient-portal", "appointments", appointmentId],
     `/patient-portal/appointments/${appointmentId}`,
     {
       enabled: !!appointmentId,
-    }
+    },
   );
 
 export const useRequestAppointment = () =>
   useAPIMutation<Record<string, unknown>, RequestAppointmentBodyDto>(
-    '/patient-portal/appointments/request',
-    'POST'
+    "/patient-portal/appointments/request",
+    "POST",
   );
 
 // ============================================================================
@@ -92,17 +89,17 @@ export const usePatientPortalPrescriptions = (filters?: {
       hasMore: boolean;
     };
   }>(
-    ['patient-portal', 'prescriptions', filters || {}],
-    '/patient-portal/prescriptions'
+    ["patient-portal", "prescriptions", filters || {}],
+    "/patient-portal/prescriptions",
   );
 
 export const usePatientPortalPrescriptionById = (prescriptionId: string) =>
   useAPIQuery(
-    ['patient-portal', 'prescriptions', prescriptionId],
+    ["patient-portal", "prescriptions", prescriptionId],
     `/patient-portal/prescriptions/${prescriptionId}`,
     {
       enabled: !!prescriptionId,
-    }
+    },
   );
 
 // ============================================================================
@@ -122,10 +119,7 @@ export const usePatientPortalInvoices = (filters?: {
       offset: number;
       hasMore: boolean;
     };
-  }>(
-    ['patient-portal', 'invoices', filters || {}],
-    '/patient-portal/invoices'
-  );
+  }>(["patient-portal", "invoices", filters || {}], "/patient-portal/invoices");
 
 // ============================================================================
 // Profile
@@ -133,8 +127,8 @@ export const usePatientPortalInvoices = (filters?: {
 
 export const useUpdatePatientProfile = () =>
   useAPIMutation<Record<string, unknown>, UpdatePatientProfileBodyDto>(
-    '/patient-portal/profile',
-    'PATCH'
+    "/patient-portal/profile",
+    "PATCH",
   );
 
 // ============================================================================
@@ -146,23 +140,20 @@ export const usePatientConsentSettings = () =>
     whatsappConsent: boolean;
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
-  }>(
-    ['patient-portal', 'consent'],
-    '/patient-portal/consent'
-  );
+  }>(["patient-portal", "consent"], "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>
-  useAPIMutation<Record<string, unknown>, { whatsappConsent?: boolean; dataStorageConsent?: boolean }>(
-    '/patient-portal/consent',
-    'PATCH'
-  );
+  useAPIMutation<
+    Record<string, unknown>,
+    { whatsappConsent?: boolean; dataStorageConsent?: boolean }
+  >("/patient-portal/consent", "PATCH");
 
 // ============================================================================
 // Data Deletion (GDPR/DPDP)
 // ============================================================================
 
 export const useRequestDataDeletion = () =>
-  useAPIMutation<Record<string, unknown>, { reason: string; confirmDeletion?: boolean }>(
-    '/patient-portal/profile/delete-request',
-    'POST'
-  );
+  useAPIMutation<
+    Record<string, unknown>,
+    { reason: string; confirmDeletion?: boolean }
+  >("/patient-portal/profile/delete-request", "POST");

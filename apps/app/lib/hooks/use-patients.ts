@@ -3,9 +3,9 @@
  * Example feature-specific hook for patients API and state management
  */
 
-import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiFetch, API_ENDPOINTS } from '@/lib/api';
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, API_ENDPOINTS } from "@/lib/api";
 
 export interface Patient {
   id: string;
@@ -19,7 +19,7 @@ export interface Patient {
 
 export interface PatientsFilter {
   search?: string;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   page?: number;
   limit?: number;
 }
@@ -32,26 +32,26 @@ export function usePatients(filters?: PatientsFilter) {
 
   // Fetch patients
   const patientsQuery = useQuery({
-    queryKey: ['patients', filters],
+    queryKey: ["patients", filters],
     queryFn: () =>
       apiFetch<{ data: Patient[]; total: number }>(
         API_ENDPOINTS.patients.list,
         {
           params: filters as any,
-        }
+        },
       ),
     enabled: true,
   });
 
   // Create patient
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Patient, 'id' | 'createdAt'>) =>
+    mutationFn: (data: Omit<Patient, "id" | "createdAt">) =>
       apiFetch<Patient>(API_ENDPOINTS.patients.create, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
     },
   });
 
@@ -59,11 +59,11 @@ export function usePatients(filters?: PatientsFilter) {
   const updateMutation = useMutation({
     mutationFn: ({ id, ...data }: Partial<Patient> & { id: string }) =>
       apiFetch<Patient>(API_ENDPOINTS.patients.update(id), {
-        method: 'PATCH',
+        method: "PATCH",
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
     },
   });
 
@@ -71,10 +71,10 @@ export function usePatients(filters?: PatientsFilter) {
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
       apiFetch(API_ENDPOINTS.patients.delete(id), {
-        method: 'DELETE',
+        method: "DELETE",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
     },
   });
 
@@ -105,9 +105,8 @@ export function usePatients(filters?: PatientsFilter) {
  */
 export function usePatient(id: string) {
   const patientQuery = useQuery({
-    queryKey: ['patient', id],
-    queryFn: () =>
-      apiFetch<Patient>(API_ENDPOINTS.patients.get(id)),
+    queryKey: ["patient", id],
+    queryFn: () => apiFetch<Patient>(API_ENDPOINTS.patients.get(id)),
     enabled: !!id,
   });
 

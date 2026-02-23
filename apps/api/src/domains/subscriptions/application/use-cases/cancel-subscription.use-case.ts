@@ -3,7 +3,11 @@
  * Handles subscription cancellation with optional end-of-period scheduling
  */
 
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SubscriptionValidationService } from '../../core/services';
 import { CancelSubscriptionDto } from '../dto/subscription.dto';
 import { ISubscriptionRepository, IPaymentGateway } from '../ports';
@@ -29,7 +33,8 @@ export class CancelSubscriptionUseCase {
     }
 
     // Validate can cancel
-    const canCancel = this.validationService.canCancelSubscription(subscription);
+    const canCancel =
+      this.validationService.canCancelSubscription(subscription);
     if (!canCancel.allowed) {
       throw new BadRequestException(canCancel.reason);
     }
@@ -38,7 +43,9 @@ export class CancelSubscriptionUseCase {
       // Schedule cancellation for end of billing period
       // In practice, this would set a scheduled change or flag
       // For now, mark for cancellation at period end
-      subscription.cancel(`Scheduled for end of period: ${dto.reason || 'User requested'}`);
+      subscription.cancel(
+        `Scheduled for end of period: ${dto.reason || 'User requested'}`,
+      );
     } else {
       // Cancel immediately
       subscription.cancel(dto.reason);

@@ -76,7 +76,7 @@ export interface AIRawResponse {
 }
 
 export interface OpenAIMessageContent {
-  type: 'text' | 'image_url';
+  type: "text" | "image_url";
   text?: string;
   image_url?: { url: string };
 }
@@ -118,7 +118,7 @@ export interface ScheduledChangeData {
   effectiveAt: string | Date;
   newPlan?: string;
   newBillingCycle?: string;
-  action?: 'upgrade' | 'downgrade' | 'cancel';
+  action?: "upgrade" | "downgrade" | "cancel";
 }
 
 // ============================================================================
@@ -166,7 +166,7 @@ export interface InvoiceLineItem {
 export interface SystemLogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG';
+  level: "INFO" | "WARNING" | "ERROR" | "DEBUG";
   module: string;
   message: string;
   details?: string;

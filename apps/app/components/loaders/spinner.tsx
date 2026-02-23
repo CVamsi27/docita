@@ -24,17 +24,16 @@ const Spinner = React.forwardRef<HTMLDivElement, LoaderProps>(
         className={cn(
           "inline-block animate-spin rounded-full border-2 border-muted border-t-primary",
           sizeClass,
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 Spinner.displayName = "Spinner";
 
-export interface LoadingOverlayProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface LoadingOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
   loading: boolean;
 }
 
@@ -43,21 +42,14 @@ const LoadingOverlay = React.forwardRef<HTMLDivElement, LoadingOverlayProps>(
     if (!loading) return children;
 
     return (
-      <div
-        ref={ref}
-        className={cn(
-          "relative isolate",
-          className
-        )}
-        {...props}
-      >
+      <div ref={ref} className={cn("relative isolate", className)} {...props}>
         {children}
         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-md">
           <Spinner />
         </div>
       </div>
     );
-  }
+  },
 );
 LoadingOverlay.displayName = "LoadingOverlay";
 

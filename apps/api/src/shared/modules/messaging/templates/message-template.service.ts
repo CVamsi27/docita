@@ -67,7 +67,10 @@ export class MessageTemplateService {
     // Substitute variables
     for (const variable of template.variables) {
       const value = variables[variable] || `{{${variable}}}`;
-      content = content.replace(new RegExp(`\\{\\{${variable}\\}\\}`, 'g'), value);
+      content = content.replace(
+        new RegExp(`\\{\\{${variable}\\}\\}`, 'g'),
+        value,
+      );
     }
 
     return content;

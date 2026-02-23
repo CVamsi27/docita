@@ -16,7 +16,7 @@ export function isValidEmail(email: string): boolean {
  */
 export function isValidPhoneNumber(phone: string): boolean {
   const phoneRegex = /^[6-9]\d{9}$/;
-  return phoneRegex.test(phone.replace(/\D/g, ''));
+  return phoneRegex.test(phone.replace(/\D/g, ""));
 }
 
 /**
@@ -45,20 +45,21 @@ export function hasMaxLength(value: string, maxLength: number): boolean {
  */
 export const validators = {
   email: (email: string) => {
-    if (!isNotEmpty(email)) return 'Email is required';
-    if (!isValidEmail(email)) return 'Invalid email address';
+    if (!isNotEmpty(email)) return "Email is required";
+    if (!isValidEmail(email)) return "Invalid email address";
     return null;
   },
 
   phone: (phone: string) => {
-    if (!isNotEmpty(phone)) return 'Phone number is required';
-    if (!isValidPhoneNumber(phone)) return 'Invalid phone number';
+    if (!isNotEmpty(phone)) return "Phone number is required";
+    if (!isValidPhoneNumber(phone)) return "Invalid phone number";
     return null;
   },
 
   password: (password: string) => {
-    if (!isNotEmpty(password)) return 'Password is required';
-    if (!hasMinLength(password, 8)) return 'Password must be at least 8 characters';
+    if (!isNotEmpty(password)) return "Password is required";
+    if (!hasMinLength(password, 8))
+      return "Password must be at least 8 characters";
     return null;
   },
 

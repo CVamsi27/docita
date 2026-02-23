@@ -58,7 +58,7 @@ export interface OcrExtractedFields {
   lastName?: string;
   age?: string;
   dateOfBirth?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  gender?: "MALE" | "FEMALE" | "OTHER";
   phoneNumber?: string;
   email?: string;
   bloodType?: string;
@@ -104,7 +104,12 @@ export interface OcrExtractedFields {
   referralTo?: string;
 
   // Document Analysis
-  documentType?: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'INVOICE' | 'GENERAL';
+  documentType?:
+    | "PRESCRIPTION"
+    | "CASE_SHEET"
+    | "LAB_REPORT"
+    | "INVOICE"
+    | "GENERAL";
   notes?: string;
   followUpRecommendations?: string[];
 
@@ -114,7 +119,7 @@ export interface OcrExtractedFields {
 
 export interface OcrExtractionResult {
   text: string;
-  documentType: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'GENERAL';
+  documentType: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
   confidence: number;
   fields: OcrExtractedFields;
   suggestedCorrections?: Record<string, unknown>;
@@ -135,7 +140,7 @@ export interface Contraindication {
 
 export interface DosageRecommendation {
   medication: string;
-  status: 'appropriate' | 'high' | 'low';
+  status: "appropriate" | "high" | "low";
   recommendation: string;
 }
 
@@ -143,7 +148,7 @@ export interface PrescriptionAnalysisResponse {
   drugInteractions: Array<{
     drug1: string;
     drug2: string;
-    severity: 'mild' | 'moderate' | 'severe';
+    severity: "mild" | "moderate" | "severe";
     description: string;
   }>;
   contraindications: Contraindication[];

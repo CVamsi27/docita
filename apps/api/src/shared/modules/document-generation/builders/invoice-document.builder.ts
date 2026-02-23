@@ -54,7 +54,12 @@ export class InvoiceDocumentBuilder extends BaseDocumentBuilder {
 
       // Line items
       .addHeading('Items', 2)
-      .addTable(data.items, ['Description', 'Quantity', 'Unit Price', 'Amount']);
+      .addTable(data.items, [
+        'Description',
+        'Quantity',
+        'Unit Price',
+        'Amount',
+      ]);
 
     // Totals
     this.addHeading('Totals', 2)

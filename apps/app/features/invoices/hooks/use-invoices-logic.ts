@@ -23,7 +23,7 @@ export const useInvoicesLogic = () => {
 
   const invoices = useMemo(
     () => (Array.isArray(invoicesResponse) ? invoicesResponse : []),
-    [invoicesResponse]
+    [invoicesResponse],
   );
 
   const filteredInvoices = useMemo(() => {

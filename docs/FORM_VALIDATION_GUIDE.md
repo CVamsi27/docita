@@ -23,9 +23,7 @@ export const RegisterSchema = z.object({
     .string()
     .min(1, "First name is required")
     .min(2, "First name must be at least 2 characters"),
-  email: z
-    .string()
-    .email("Please enter a valid email address"),
+  email: z.string().email("Please enter a valid email address"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -146,9 +144,11 @@ function FormField({ fieldName, label, value, onChange, fieldErrors }) {
         id={fieldName}
         value={value}
         onChange={onChange}
-        className={hasFieldError(fieldErrors, fieldName) 
-          ? "border-red-500 focus-visible:ring-red-500" 
-          : ""}
+        className={
+          hasFieldError(fieldErrors, fieldName)
+            ? "border-red-500 focus-visible:ring-red-500"
+            : ""
+        }
       />
       {hasFieldError(fieldErrors, fieldName) && (
         <p className="text-xs text-red-500 flex items-center gap-1">
@@ -167,7 +167,7 @@ function FormField({ fieldName, label, value, onChange, fieldErrors }) {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setError("");
-  setFieldErrors({});  // Clear previous errors
+  setFieldErrors({}); // Clear previous errors
   setLoading(true);
 
   try {
@@ -175,12 +175,12 @@ const handleSubmit = async (e: React.FormEvent) => {
   } catch (error) {
     if (error instanceof Error) {
       const errorWithFields = error as any;
-      
+
       // Extract field-level errors from error object
       if (errorWithFields.fieldErrors) {
         setFieldErrors(errorWithFields.fieldErrors);
       }
-      
+
       // Set general error message
       setError(error.message);
     }
@@ -213,19 +213,19 @@ const register = async (...) => {
 Test that Zod schemas produce correct validation errors:
 
 ```typescript
-describe('RegisterSchema', () => {
-  it('should validate email format', () => {
+describe("RegisterSchema", () => {
+  it("should validate email format", () => {
     const result = RegisterSchema.safeParse({
-      email: 'invalid-email',
-      password: 'Valid@123',
-      firstName: 'John',
-      lastName: 'Doe',
+      email: "invalid-email",
+      password: "Valid@123",
+      firstName: "John",
+      lastName: "Doe",
     });
-    
+
     expect(result.success).toBe(false);
     if (!result.success) {
-      const emailError = result.error.errors.find(e => e.path[0] === 'email');
-      expect(emailError?.message).toContain('valid email');
+      const emailError = result.error.errors.find((e) => e.path[0] === "email");
+      expect(emailError?.message).toContain("valid email");
     }
   });
 });
@@ -244,12 +244,12 @@ it('should display email field error', async () => {
       },
     })
   );
-  
+
   render(<SignupForm register={mockRegister} />);
-  
+
   await userEvent.type(screen.getByLabelText('Email'), 'invalid');
   fireEvent.click(screen.getByRole('button', { name: /submit/i }));
-  
+
   await waitFor(() => {
     expect(screen.getByText('Please enter a valid email')).toBeInTheDocument();
   });
@@ -263,8 +263,8 @@ it('should display email field error', async () => {
 Fields with errors should have a red border:
 
 ```tsx
-className={hasFieldError(fieldErrors, fieldName) 
-  ? "border-red-500 focus-visible:ring-red-500" 
+className={hasFieldError(fieldErrors, fieldName)
+  ? "border-red-500 focus-visible:ring-red-500"
   : ""}
 ```
 
@@ -273,12 +273,14 @@ className={hasFieldError(fieldErrors, fieldName)
 Error messages appear below the input field with an icon:
 
 ```tsx
-{hasFieldError(fieldErrors, fieldName) && (
-  <p className="text-xs text-red-500 flex items-center gap-1">
-    <AlertCircle className="h-3 w-3" />
-    {getFieldError(fieldErrors, fieldName)}
-  </p>
-)}
+{
+  hasFieldError(fieldErrors, fieldName) && (
+    <p className="text-xs text-red-500 flex items-center gap-1">
+      <AlertCircle className="h-3 w-3" />
+      {getFieldError(fieldErrors, fieldName)}
+    </p>
+  );
+}
 ```
 
 ### Form-Level Error Banner
@@ -286,11 +288,13 @@ Error messages appear below the input field with an icon:
 For general errors not tied to a specific field:
 
 ```tsx
-{generalError && (
-  <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-    {generalError}
-  </div>
-)}
+{
+  generalError && (
+    <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+      {generalError}
+    </div>
+  );
+}
 ```
 
 ## Checklist for New Forms
@@ -316,26 +320,34 @@ See [auth-context.tsx](../lib/auth-context.tsx) and [login/page.tsx](./login/pag
 ### Pattern 1: Optional Field with Conditional Display
 
 ```tsx
-{hasFieldError(fieldErrors, 'clinicName') && (
-  <p className="text-xs text-red-500">{getFieldError(fieldErrors, 'clinicName')}</p>
-)}
-{!hasFieldError(fieldErrors, 'clinicName') && (
-  <p className="text-xs text-muted-foreground">Optional field</p>
-)}
+{
+  hasFieldError(fieldErrors, "clinicName") && (
+    <p className="text-xs text-red-500">
+      {getFieldError(fieldErrors, "clinicName")}
+    </p>
+  );
+}
+{
+  !hasFieldError(fieldErrors, "clinicName") && (
+    <p className="text-xs text-muted-foreground">Optional field</p>
+  );
+}
 ```
 
 ### Pattern 2: Conditional Validation Help Text
 
 ```tsx
-{hasFieldError(fieldErrors, 'password') 
-  ? (
-    <p className="text-xs text-red-500">{getFieldError(fieldErrors, 'password')}</p>
-  )
-  : (
-    <p className="text-xs text-muted-foreground">
-      Must be 8+ characters with uppercase, lowercase, number, and special character
+{
+  hasFieldError(fieldErrors, "password") ? (
+    <p className="text-xs text-red-500">
+      {getFieldError(fieldErrors, "password")}
     </p>
-  )
+  ) : (
+    <p className="text-xs text-muted-foreground">
+      Must be 8+ characters with uppercase, lowercase, number, and special
+      character
+    </p>
+  );
 }
 ```
 

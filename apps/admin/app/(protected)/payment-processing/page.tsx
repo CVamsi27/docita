@@ -205,7 +205,7 @@ export default function PaymentProcessingPage() {
         `${API_URL}/super-admin/clinics/${clinic.id}/tier-info`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (res.ok) {
@@ -247,7 +247,7 @@ export default function PaymentProcessingPage() {
             paymentMethod: data.paymentMethod,
             notes: data.paymentNotes,
           }),
-        }
+        },
       );
 
       if (res.ok) {
@@ -462,7 +462,7 @@ export default function PaymentProcessingPage() {
                       onValueChange={(value) => {
                         field.onChange(value);
                         const tierData = tierPricing.find(
-                          (t) => t.tier === value
+                          (t) => t.tier === value,
                         );
                         if (tierData) {
                           form.setValue("amount", tierData.price.toString());

@@ -62,7 +62,8 @@ export const typedApi = {
     list: (params?: { limit?: number; cursor?: string; search?: string }) =>
       client.get(API_ROUTES.patients.list, { params }),
     get: (id: string) => client.get(API_ROUTES.patients.get(id)),
-    create: (data: Record<string, unknown>) => client.post(API_ROUTES.patients.create, data),
+    create: (data: Record<string, unknown>) =>
+      client.post(API_ROUTES.patients.create, data),
     update: (id: string, data: unknown) =>
       client.patch(API_ROUTES.patients.update(id), data),
     delete: (id: string) => client.delete(API_ROUTES.patients.delete(id)),

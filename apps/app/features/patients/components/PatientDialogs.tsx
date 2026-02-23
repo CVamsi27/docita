@@ -50,7 +50,12 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="patient-first-name" className="text-sm font-medium">First Name *</label>
+              <label
+                htmlFor="patient-first-name"
+                className="text-sm font-medium"
+              >
+                First Name *
+              </label>
               <input
                 id="patient-first-name"
                 className="w-full p-2 mt-1 rounded border bg-background"
@@ -61,7 +66,12 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="patient-last-name" className="text-sm font-medium">Last Name *</label>
+              <label
+                htmlFor="patient-last-name"
+                className="text-sm font-medium"
+              >
+                Last Name *
+              </label>
               <input
                 id="patient-last-name"
                 className="w-full p-2 mt-1 rounded border bg-background"
@@ -72,7 +82,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="patient-phone" className="text-sm font-medium">Phone *</label>
+              <label htmlFor="patient-phone" className="text-sm font-medium">
+                Phone *
+              </label>
               <input
                 id="patient-phone"
                 className="w-full p-2 mt-1 rounded border bg-background"
@@ -83,7 +95,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="patient-email" className="text-sm font-medium">Email</label>
+              <label htmlFor="patient-email" className="text-sm font-medium">
+                Email
+              </label>
               <input
                 id="patient-email"
                 className="w-full p-2 mt-1 rounded border bg-background"
@@ -95,7 +109,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="patient-gender" className="text-sm font-medium">Gender</label>
+              <label htmlFor="patient-gender" className="text-sm font-medium">
+                Gender
+              </label>
               <select
                 id="patient-gender"
                 className="w-full p-2 mt-1 rounded border bg-background"
@@ -111,7 +127,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               </select>
             </div>
             <div>
-              <label htmlFor="patient-dob" className="text-sm font-medium">Date of Birth</label>
+              <label htmlFor="patient-dob" className="text-sm font-medium">
+                Date of Birth
+              </label>
               <input
                 id="patient-dob"
                 className="w-full p-2 mt-1 rounded border bg-background"

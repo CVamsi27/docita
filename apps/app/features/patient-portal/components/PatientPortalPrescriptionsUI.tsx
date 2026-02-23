@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalPrescription } from "../types/patient-portal-types";
@@ -40,7 +45,10 @@ export function PatientPortalPrescriptionsUI({
           ) : (
             <div className="space-y-3 pb-4">
               {prescriptions.map((prescription) => (
-                <div key={prescription.id} className="rounded-md border p-3 text-sm">
+                <div
+                  key={prescription.id}
+                  className="rounded-md border p-3 text-sm"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-medium">{prescription.title}</div>
                     <Badge variant="secondary">
@@ -48,7 +56,8 @@ export function PatientPortalPrescriptionsUI({
                     </Badge>
                   </div>
                   <div className="text-muted-foreground">
-                    {prescription.prescribedBy} • {new Date(prescription.issuedAt).toLocaleDateString()}
+                    {prescription.prescribedBy} •{" "}
+                    {new Date(prescription.issuedAt).toLocaleDateString()}
                   </div>
                 </div>
               ))}

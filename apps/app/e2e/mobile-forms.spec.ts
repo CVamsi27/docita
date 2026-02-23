@@ -83,7 +83,7 @@ for (const device of DEVICES) {
           })
           .filter(
             (target) =>
-              target.width < MIN_TARGET_SIZE || target.height < MIN_TARGET_SIZE
+              target.width < MIN_TARGET_SIZE || target.height < MIN_TARGET_SIZE,
           );
       });
 

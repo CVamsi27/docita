@@ -1,7 +1,7 @@
 /**
  * Subscription Status Value Object
  * Implements state machine for subscription lifecycle
- * 
+ *
  * Valid transitions:
  * ACTIVE → PAUSED, CANCELLED, EXPIRED
  * PAUSED → ACTIVE, CANCELLED
@@ -16,7 +16,10 @@ export enum SubscriptionStatusEnum {
   EXPIRED = 'EXPIRED',
 }
 
-const VALID_TRANSITIONS: Record<SubscriptionStatusEnum, SubscriptionStatusEnum[]> = {
+const VALID_TRANSITIONS: Record<
+  SubscriptionStatusEnum,
+  SubscriptionStatusEnum[]
+> = {
   [SubscriptionStatusEnum.ACTIVE]: [
     SubscriptionStatusEnum.PAUSED,
     SubscriptionStatusEnum.CANCELLED,
@@ -59,9 +62,7 @@ export class SubscriptionStatus {
 
   transitionTo(newStatus: SubscriptionStatusEnum): SubscriptionStatus {
     if (!this.canTransitionTo(newStatus)) {
-      throw new Error(
-        `Cannot transition from ${this.value} to ${newStatus}`,
-      );
+      throw new Error(`Cannot transition from ${this.value} to ${newStatus}`);
     }
     return new SubscriptionStatus(newStatus);
   }

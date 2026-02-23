@@ -21,17 +21,19 @@ export class RefreshTokenDto extends createZodDto(RefreshTokenSchema) {}
 ### 2. Import DTO in controller
 
 ```typescript
-import { RefreshTokenDto } from './dto/auth.dto';
+import { RefreshTokenDto } from "./dto/auth.dto";
 ```
 
 ### 3. Replace inline @Body() type with DTO
 
 **Before:**
+
 ```typescript
 async refresh(@Body() body: { refresh_token?: string }) {}
 ```
 
 **After:**
+
 ```typescript
 async refresh(@Body() dto: RefreshTokenDto) {}
 ```
@@ -42,7 +44,8 @@ async refresh(@Body() dto: RefreshTokenDto) {}
 
 ### Priority 1: Business Critical (Next 2-3 hours)
 
-**[ ] Subscription - Create Checkout** (HIGH - Monetization)  
+**[ ] Subscription - Create Checkout** (HIGH - Monetization)
+
 - File: `apps/api/src/modules/subscription/subscription.controller.ts`
 - Current: `@Body() body: { tier: string; days?: number }`
 - Create: `CreateCheckoutDto`
@@ -52,14 +55,15 @@ async refresh(@Body() dto: RefreshTokenDto) {}
 
 ```typescript
 export const CreateCheckoutSchema = z.object({
-  tier: z.string().min(1, 'Tier is required'),
-  days: z.number().int().positive('Days must be positive').optional(),
+  tier: z.string().min(1, "Tier is required"),
+  days: z.number().int().positive("Days must be positive").optional(),
 });
 
 export class CreateCheckoutDto extends createZodDto(CreateCheckoutSchema) {}
 ```
 
 **[ ] Compliance - Emergency Access** (HIGH - Audit Trail)
+
 - File: `apps/api/src/modules/compliance/consent.controller.ts`
 - Current: `@Body() body: { reason: string; requestedBy: string }`
 - Create: `EmergencyAccessDto`
@@ -69,21 +73,24 @@ export class CreateCheckoutDto extends createZodDto(CreateCheckoutSchema) {}
 
 ```typescript
 export const EmergencyAccessSchema = z.object({
-  reason: z.string().min(10, 'Reason must be at least 10 characters'),
-  requestedBy: z.string().min(1, 'RequestedBy is required'),
+  reason: z.string().min(10, "Reason must be at least 10 characters"),
+  requestedBy: z.string().min(1, "RequestedBy is required"),
 });
 
 export class EmergencyAccessDto extends createZodDto(EmergencyAccessSchema) {}
 ```
 
 **[ ] Subscription - Update Features** (MEDIUM - Settings)
+
 - File: `apps/api/src/modules/subscription/subscription.controller.ts`
 - Current: `@Body() body: { features: Record<string, boolean> }`
 - Create: `UpdateFeaturesDto`
 
 ```typescript
 export const UpdateFeaturesSchema = z.object({
-  features: z.record(z.boolean(), { message: 'Features must be a map of boolean values' }),
+  features: z.record(z.boolean(), {
+    message: "Features must be a map of boolean values",
+  }),
 });
 
 export class UpdateFeaturesDto extends createZodDto(UpdateFeaturesSchema) {}
@@ -92,17 +99,20 @@ export class UpdateFeaturesDto extends createZodDto(UpdateFeaturesSchema) {}
 ### Priority 2: Important (Next 2-3 hours)
 
 **[ ] Payments - Razorpay Webhook** (HIGH - Security)
+
 - File: `apps/api/src/modules/payments/webhooks.controller.ts`
 - Current: `@Body() payload: RazorpayWebhookPayload`
 - Status: Already has type, needs validation pipe
 - Action: Add `@UsePipes(ZodValidationPipe)` with Zod schema
 
 **[ ] Subscription - Additional Endpoints** (3-4 more with inline types)
+
 - `immediate?: boolean`
 - `enabled: boolean`
 - `amountCents: number; description?: string`
 
 **[ ] Imports - Column Mapping** (MEDIUM - Data Import)
+
 - File: `apps/api/src/modules/imports/imports.controller.ts`
 - Current: `@Body() body: { columnMapping?: Record<string, string> }`
 - Create: `ColumnMappingDto`
@@ -181,7 +191,7 @@ password_confirm: z.object({
 
 - [ ] RefreshToken (DONE)
 - [ ] CreateCheckout
-- [ ] EmergencyAccess  
+- [ ] EmergencyAccess
 - [ ] UpdateFeatures
 - [ ] RazorpayWebhook (add validation)
 - [ ] ColumnMapping

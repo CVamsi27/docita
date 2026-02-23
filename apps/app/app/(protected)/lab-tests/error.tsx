@@ -24,7 +24,8 @@ export default function LabTestsError({
         </div>
         <h2 className="mb-2 text-xl font-semibold">Error loading Lab Tests</h2>
         <p className="mb-6 text-muted-foreground">
-          We couldn&apos;t load Lab Tests. Please retry or return to the dashboard.
+          We couldn&apos;t load Lab Tests. Please retry or return to the
+          dashboard.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>

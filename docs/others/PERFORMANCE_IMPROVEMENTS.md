@@ -30,12 +30,12 @@ This document summarizes all performance optimizations implemented across the Do
 
 #### Applied To:
 
--  `patients.service.ts` - findAll, findOne
--  `appointments.service.ts` - findAll, findOne, create, update
--  `doctors.service.ts` - findAll
--  `invoices.service.ts` - findAll, findOne
--  `analytics.service.ts` - getRevenueTrends, getPatientGrowth, getOverview
--  `super-admin.service.ts` - getAllClinics, getClinicDoctors, getGlobalStats
+- `patients.service.ts` - findAll, findOne
+- `appointments.service.ts` - findAll, findOne, create, update
+- `doctors.service.ts` - findAll
+- `invoices.service.ts` - findAll, findOne
+- `analytics.service.ts` - getRevenueTrends, getPatientGrowth, getOverview
+- `super-admin.service.ts` - getAllClinics, getClinicDoctors, getGlobalStats
 
 **Results**:
 
@@ -82,9 +82,9 @@ return stats;
 
 **Files Modified**:
 
--  `dashboard.service.ts` - 60s TTL
--  `super-admin.service.ts` - 300s TTL on getGlobalStats
--  `analytics.service.ts` - 3600s TTL on getRevenueTrends, getPatientGrowth
+- `dashboard.service.ts` - 60s TTL
+- `super-admin.service.ts` - 300s TTL on getGlobalStats
+- `analytics.service.ts` - 3600s TTL on getRevenueTrends, getPatientGrowth
 
 ---
 
@@ -155,10 +155,10 @@ GET /patients?cursor=Y2xqczBqZDAwMDAwMQ&limit=50
 
 #### Applied To:
 
--  `patients.service.ts` - findAll with search support
--  `appointments.service.ts` - findAll with date/range/patient filters
--  `invoices.service.ts` - findAll
--  `super-admin.service.ts` - getAllClinics
+- `patients.service.ts` - findAll with search support
+- `appointments.service.ts` - findAll with date/range/patient filters
+- `invoices.service.ts` - findAll
+- `super-admin.service.ts` - getAllClinics
 
 **Results**:
 
@@ -275,18 +275,18 @@ export class PrismaService {
 
 **Read Replica** (analytics, reporting, dashboards):
 
--  Analytics queries (`getRevenueTrends`, `getPatientGrowth`, `getAppointmentStats`)
--  Super admin statistics (`getGlobalStats`)
--  Dashboard metrics
--  Historical data queries
--  All `groupBy` and `aggregate` operations
+- Analytics queries (`getRevenueTrends`, `getPatientGrowth`, `getAppointmentStats`)
+- Super admin statistics (`getGlobalStats`)
+- Dashboard metrics
+- Historical data queries
+- All `groupBy` and `aggregate` operations
 
 **Primary Database** (writes and real-time data):
 
--  All write operations (create, update, delete)
--  User authentication
--  Transactional operations
--  Just-created records (within last second)
+- All write operations (create, update, delete)
+- User authentication
+- Transactional operations
+- Just-created records (within last second)
 
 **Results**:
 
@@ -338,11 +338,11 @@ const totalRevenue = result._sum.total;
 
 #### Optimized Methods:
 
--  `getOverview()` - Parallel count/aggregate queries instead of findMany
--  `getAppointmentMetrics()` - 5 parallel count queries instead of fetching all appointments
--  `getDiseaseTrends()` - groupBy with \_count instead of findMany + JS grouping
--  `getRevenueByCptCode()` - groupBy with \_count instead of fetching all procedures
--  `getTopConditions()` - groupBy with \_count and orderBy
+- `getOverview()` - Parallel count/aggregate queries instead of findMany
+- `getAppointmentMetrics()` - 5 parallel count queries instead of fetching all appointments
+- `getDiseaseTrends()` - groupBy with \_count instead of findMany + JS grouping
+- `getRevenueByCptCode()` - groupBy with \_count instead of fetching all procedures
+- `getTopConditions()` - groupBy with \_count and orderBy
 
 **Results**:
 
@@ -1023,8 +1023,8 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 | **Pagination query time** (offset 1000) | 450ms  | 45ms   | **90%** ⬆️  |
 | **Database connections** (peak)         | 150    | 90     | **40%** ⬇️  |
 | **Database load** (primary)             | 100%   | 30%    | **70%** ⬇️  |
-| **Cache hit rate**                      | 0%     | 50-70% |  NEW      |
-| **HTTP 304 responses**                  | 0%     | 40%    |  NEW      |
+| **Cache hit rate**                      | 0%     | 50-70% | NEW         |
+| **HTTP 304 responses**                  | 0%     | 40%    | NEW         |
 
 ### Frontend Performance
 
@@ -1043,8 +1043,8 @@ async reportWebVital(@Body() vital: WebVitalDto) {
 | ---------------------------------- | ------ | ----- | ----------- |
 | **Docker build time** (cold)       | 60s    | 60s   | 0%          |
 | **Docker build time** (warm cache) | 60s    | 5s    | **92%** ⬆️  |
-| **Core Web Vitals tracking**       |      |     |  NEW      |
-| **Real user monitoring**           |      |     |  NEW      |
+| **Core Web Vitals tracking**       |        |       | NEW         |
+| **Real user monitoring**           |        |       | NEW         |
 
 ### Cost Impact
 
@@ -1097,10 +1097,10 @@ All 4 phases successfully addressed the core concern of **"unwanted information 
 
 All changes are:
 
--  Backward compatible
--  Feature-flagged for safe rollback
--  Fully documented
--  Production-ready
+- Backward compatible
+- Feature-flagged for safe rollback
+- Fully documented
+- Production-ready
 
 ---
 

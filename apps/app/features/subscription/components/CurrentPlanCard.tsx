@@ -28,19 +28,14 @@ interface CurrentPlanCardProps {
   onViewBillingHistory: () => void;
 }
 
-const TIER_COLOR_MAP: Record<
-  string,
-  { gradient: string; badge: string }
-> = {
+const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
   gray: {
     gradient: "from-slate-500 to-slate-600",
-    badge:
-      "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   },
   blue: {
     gradient: "from-blue-500 to-blue-600",
-    badge:
-      "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
+    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
   },
   green: {
     gradient: "from-emerald-500 to-emerald-600",
@@ -100,7 +95,9 @@ export function CurrentPlanCard({
         {hasIntelligence && (
           <div className="flex items-center gap-2 text-pink-600 dark:text-pink-400">
             <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">Intelligence Add-on Active</span>
+            <span className="text-sm font-medium">
+              Intelligence Add-on Active
+            </span>
           </div>
         )}
 

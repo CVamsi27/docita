@@ -231,6 +231,7 @@ Vercel auto-detects the monorepo structure. For each app:
    - Output Directory: (auto-detected)
 
 3. **Environment Variables:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_APP_URL=https://app.yourdomain.com
@@ -243,9 +244,11 @@ NEXT_PUBLIC_APP_URL=https://app.yourdomain.com
 #### Main App (`apps/app`)
 
 **Configure Project:**
+
 - Root Directory: `apps/app`
 
 **Environment Variables:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_SOCKET_URL=https://api.yourdomain.com
@@ -253,26 +256,30 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
 
 **Domain:**
+
 - Production: `app.yourdomain.com`
 
 #### Admin Dashboard (`apps/admin`)
 
 **Configure Project:**
+
 - Root Directory: `apps/admin`
 
 **Environment Variables:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
 
 **Domain:**
+
 - Production: `admin.yourdomain.com`
 
 ### 2.3 Important Notes
 
 > **Critical**: `NEXT_PUBLIC_*` variables are embedded at **build time**. After updating environment variables, you must redeploy:
-> 
+>
 > 1. Go to Deployments tab
 > 2. Click "..." → "Redeploy"
 > 3. **Uncheck** "Use existing Build Cache"
@@ -333,11 +340,13 @@ railway run pnpm prisma db seed
 ### 4.1 Automatic Deployments
 
 **Frontend (Vercel):**
+
 - Automatically deploys on push to `main` branch
 - Preview deployments for all pull requests
 - Zero configuration needed
 
 **Backend (Railway):**
+
 - Automatically deploys on push to `main` branch
 - Preview environments available with Railway Pro
 - Configure in Railway dashboard → Deployments
@@ -345,6 +354,7 @@ railway run pnpm prisma db seed
 ### 4.2 Manual Deployments
 
 **Frontend:**
+
 ```bash
 # Deploy specific app to Vercel
 cd apps/app
@@ -355,6 +365,7 @@ vercel --prod --cwd apps/app
 ```
 
 **Backend:**
+
 ```bash
 # Deploy to Railway
 railway up
@@ -388,6 +399,7 @@ pnpm build:api
 ### 5.1 Railway Monitoring
 
 **View Metrics:**
+
 - CPU, Memory, Network usage in Railway Dashboard
 - Real-time logs: `railway logs --follow`
 - Deployment history and rollbacks available
@@ -395,16 +407,19 @@ pnpm build:api
 ### 5.2 Sentry Error Tracking
 
 **Backend (NestJS):**
+
 - Configured in `apps/api/src/main.ts`
 - Automatic error capture
 - Performance monitoring enabled
 
 **Frontend (Next.js):**
+
 - Configured in `instrumentation.ts` files
 - Client-side error tracking
 - Server-side error tracking
 
 **Sentry Dashboard:**
+
 - View errors, stack traces, breadcrumbs
 - Configure alerts for critical errors
 - Monitor performance metrics
@@ -412,6 +427,7 @@ pnpm build:api
 ### 5.3 Health Checks
 
 **API Endpoints:**
+
 ```bash
 # Liveness check
 curl https://api.yourdomain.com/api/health/live
@@ -424,6 +440,7 @@ curl https://api.yourdomain.com/api/health/metrics
 ```
 
 **Railway Health Checks:**
+
 - Configured automatically
 - HTTP GET to `/api/health/live`
 - Unhealthy containers automatically restarted
@@ -435,6 +452,7 @@ curl https://api.yourdomain.com/api/health/metrics
 Before going live:
 
 ### Infrastructure
+
 - [ ] Railway API service deployed and running
 - [ ] PostgreSQL database configured
 - [ ] Redis cache configured
@@ -444,6 +462,7 @@ Before going live:
 - [ ] CORS origins configured correctly
 
 ### Security
+
 - [ ] JWT secrets generated and set (32+ characters)
 - [ ] Encryption keys set (32+ characters)
 - [ ] API keys for third-party services configured
@@ -451,24 +470,28 @@ Before going live:
 - [ ] Secrets stored in Railway/Vercel (not in code)
 
 ### Testing
+
 - [ ] All unit tests passing (`pnpm test`)
 - [ ] E2E tests passing
 - [ ] Manual testing of critical flows
 - [ ] Performance testing completed
 
 ### Monitoring
+
 - [ ] Sentry configured for all apps
 - [ ] Railway monitoring reviewed
 - [ ] Health checks responding
 - [ ] Alerts configured for critical errors
 
 ### Documentation
+
 - [ ] Incident response plan documented
 - [ ] On-call runbook prepared
 - [ ] Team has access to all dashboards
 - [ ] Rollback procedures documented
 
 ---
+
 ## 7. AWS EC2 Deployment (Alternative)
 
 > **Note**: This is an alternative deployment strategy for organizations requiring AWS infrastructure compliance or existing AWS investments. The primary recommended approach is Railway (Section 1).
@@ -581,6 +604,7 @@ docker --version
 **Best for**: Production workloads requiring high availability, automated backups, and AWS compliance.
 
 **Setup:**
+
 1. Create RDS PostgreSQL instance in AWS Console
    - Engine: PostgreSQL 15.x
    - Instance class: db.t3.medium (minimum)
@@ -604,6 +628,7 @@ docker --version
 **Best for**: Development, staging, and cost-conscious production deployments.
 
 **Setup:**
+
 1. Create Neon account at [neon.tech](https://neon.tech)
 2. Create project: `docita-production`
 3. Select region closest to your EC2 (e.g., `us-east-1`)
@@ -613,6 +638,7 @@ docker --version
    ```
 
 **Benefits:**
+
 - Instant provisioning
 - Scales to zero when idle
 - Database branching for testing
@@ -620,6 +646,7 @@ docker --version
 - Pay-per-use pricing (~$20-40/month typical usage)
 
 **Migration from Neon to RDS:**
+
 ```bash
 # Export from Neon
 pg_dump -h ep-xxx.region.aws.neon.tech -U user dbname > backup.sql
@@ -702,14 +729,14 @@ The project includes pre-configured GitHub Actions workflows for AWS deployment:
 
 **Required GitHub Secrets:**
 
-| Secret | Description | Example |
-|--------|-------------|---------|
-| `AWS_ACCESS_KEY_ID` | AWS IAM access key | `AKIA...` |
-| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret key | `wJalr...` |
-| `AWS_ACCOUNT_ID` | AWS Account ID | `123456789012` |
-| `EC2_HOST` | EC2 public IP or domain | `54.123.45.67` |
-| `EC2_USERNAME` | EC2 SSH username | `ubuntu` |
-| `EC2_SSH_KEY` | EC2 private key (full content) | `-----BEGIN...` |
+| Secret                  | Description                    | Example         |
+| ----------------------- | ------------------------------ | --------------- |
+| `AWS_ACCESS_KEY_ID`     | AWS IAM access key             | `AKIA...`       |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret key             | `wJalr...`      |
+| `AWS_ACCOUNT_ID`        | AWS Account ID                 | `123456789012`  |
+| `EC2_HOST`              | EC2 public IP or domain        | `54.123.45.67`  |
+| `EC2_USERNAME`          | EC2 SSH username               | `ubuntu`        |
+| `EC2_SSH_KEY`           | EC2 private key (full content) | `-----BEGIN...` |
 
 **See:** [.github/workflows/README.md](../../.github/workflows/README.md) for detailed workflow documentation.
 
@@ -737,6 +764,7 @@ The project includes pre-configured GitHub Actions workflows for AWS deployment:
    - Value: Your Service ARN
 
 **Deploy:**
+
 ```bash
 # Via GitHub Actions
 # Go to Actions → "Build & Deploy to App Runner" → Run workflow
@@ -748,22 +776,23 @@ The project includes pre-configured GitHub Actions workflows for AWS deployment:
 
 ## 8. Deployment Comparison
 
-| Feature | Railway (Primary) | AWS EC2 | AWS App Runner |
-|---------|------------------|---------|----------------|
-| **Setup Time** | 15 minutes | 2-3 hours | 1-2 hours |
-| **Monthly Cost** | $20-50 | $30-80 | $15-60 |
-| **Maintenance** | Zero | Medium | Low |
-| **Scalability** | Auto (horizontal) | Manual | Auto (horizontal) |
-| **Database** | Managed PostgreSQL | RDS or external | External required |
-| **Redis** | Managed Redis | ElastiCache or external | External required |
-| **CI/CD** | Built-in | GitHub Actions | GitHub Actions |
-| **Monitoring** | Built-in | CloudWatch | CloudWatch |
-| **SSL/HTTPS** | Auto (Let's Encrypt) | Manual (Nginx) | Auto (AWS) |
-| **Health Checks** | Auto | Manual | Auto |
-| **Zero-downtime** | Yes | Yes (with workflow) | Yes |
-| **Best For** | Rapid deployment, startups | AWS compliance, enterprise | Serverless preference |
+| Feature           | Railway (Primary)          | AWS EC2                    | AWS App Runner        |
+| ----------------- | -------------------------- | -------------------------- | --------------------- |
+| **Setup Time**    | 15 minutes                 | 2-3 hours                  | 1-2 hours             |
+| **Monthly Cost**  | $20-50                     | $30-80                     | $15-60                |
+| **Maintenance**   | Zero                       | Medium                     | Low                   |
+| **Scalability**   | Auto (horizontal)          | Manual                     | Auto (horizontal)     |
+| **Database**      | Managed PostgreSQL         | RDS or external            | External required     |
+| **Redis**         | Managed Redis              | ElastiCache or external    | External required     |
+| **CI/CD**         | Built-in                   | GitHub Actions             | GitHub Actions        |
+| **Monitoring**    | Built-in                   | CloudWatch                 | CloudWatch            |
+| **SSL/HTTPS**     | Auto (Let's Encrypt)       | Manual (Nginx)             | Auto (AWS)            |
+| **Health Checks** | Auto                       | Manual                     | Auto                  |
+| **Zero-downtime** | Yes                        | Yes (with workflow)        | Yes                   |
+| **Best For**      | Rapid deployment, startups | AWS compliance, enterprise | Serverless preference |
 
 **Recommendation:**
+
 - **Start with Railway**: Fastest path to production, excellent developer experience
 - **Migrate to AWS later** if needed for compliance, existing infrastructure, or specific AWS services
 
@@ -774,6 +803,7 @@ The project includes pre-configured GitHub Actions workflows for AWS deployment:
 ### 9.1 CORS Errors
 
 **Symptoms:**
+
 ```
 Access to XMLHttpRequest blocked by CORS policy
 ```
@@ -781,6 +811,7 @@ Access to XMLHttpRequest blocked by CORS policy
 **Solutions:**
 
 1. **Verify API CORS Configuration** (`apps/api/src/main.ts`):
+
 ```typescript
 app.enableCors({
   origin: [
@@ -805,6 +836,7 @@ app.enableCors({
 ### 9.2 Database Connection Issues
 
 **Symptoms:**
+
 ```
 Error: P1001: Can't reach database server
 ```
@@ -812,6 +844,7 @@ Error: P1001: Can't reach database server
 **Solutions:**
 
 **Railway:**
+
 ```bash
 # Verify DATABASE_URL is set
 railway variables | grep DATABASE_URL
@@ -823,6 +856,7 @@ railway run pnpm prisma db pull
 ```
 
 **AWS:**
+
 ```bash
 # Test RDS connection from EC2
 psql $DATABASE_URL -c "SELECT 1"
@@ -868,6 +902,7 @@ docker build --dry-run -f apps/api/Dockerfile .
 ### 9.4 Migration Failures
 
 **Symptoms:**
+
 ```
 Error: Migration "xxx_migration" failed
 ```
@@ -894,6 +929,7 @@ pnpm prisma migrate resolve --rolled-back "xxx_migration"
 ### 9.5 Environment Variables Not Loading
 
 **Railway:**
+
 ```bash
 # List all variables
 railway variables
@@ -907,6 +943,7 @@ railway logs | grep -i "environment"
 ```
 
 **Vercel:**
+
 ```bash
 # List environment variables
 vercel env ls
@@ -1152,12 +1189,14 @@ HOST=0.0.0.0
 ### Frontend Apps (Vercel)
 
 **apps/landing:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_APP_URL=https://app.yourdomain.com
 ```
 
 **apps/app:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_SOCKET_URL=https://api.yourdomain.com
@@ -1165,6 +1204,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
 ```
 
 **apps/admin:**
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
 NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
@@ -1532,14 +1572,14 @@ The workflow is located at `.github/workflows/deploy-api.yml` and includes:
 
 Key features:
 
--  Tests run before deployment (gated)
--  Database migrations run before deployment
--  Zero-downtime deployment (blue-green style)
--  **Multi-architecture image builds** (linux/amd64 + linux/arm64)
--  Docker layer caching via ECR
--  Health check verification before switching traffic
--  Automatic old image cleanup
--  Rollback workflow available
+- Tests run before deployment (gated)
+- Database migrations run before deployment
+- Zero-downtime deployment (blue-green style)
+- **Multi-architecture image builds** (linux/amd64 + linux/arm64)
+- Docker layer caching via ECR
+- Health check verification before switching traffic
+- Automatic old image cleanup
+- Rollback workflow available
 
 Example workflow structure:
 
@@ -1785,11 +1825,11 @@ jobs:
 
 **Why use `aws-actions/amazon-ecr-login@v2`?**
 
--  Handles ECR login correctly without TTY requirements
--  Works seamlessly in GitHub Actions environments
--  No need for `aws ecr get-login` (deprecated command)
--  Automatically manages credentials
--  Better security practices
+- Handles ECR login correctly without TTY requirements
+- Works seamlessly in GitHub Actions environments
+- No need for `aws ecr get-login` (deprecated command)
+- Automatically manages credentials
+- Better security practices
 
 ### Alternative: Direct SSH Deployment (Build on EC2)
 
@@ -2020,8 +2060,8 @@ no matching manifest for linux/amd64 in the manifest list entries
 
 The GitHub Actions workflow now uses Docker Buildx to build for both architectures:
 
--  `linux/amd64` - for AWS EC2 instances
--  `linux/arm64` - for Apple Silicon and ARM systems
+- `linux/amd64` - for AWS EC2 instances
+- `linux/arm64` - for Apple Silicon and ARM systems
 
 All new deployments will have manifests for both architectures, and Docker will automatically pull the correct one.
 
@@ -2394,26 +2434,26 @@ If you add a new domain, update this list and redeploy the API.
 
 1.  **Push your image to ECR** (follow the ECR steps in section 3).
 2.  **Create App Runner Service** in AWS Console:
-    *   **Source**: Container Registry
-    *   **Provider**: Amazon ECR
-    *   **Image URI**: Select your `docita-api` image (Region: `us-west-1`)
-    *   **Deployment settings**: Automatic or Manual (Manual is fine if using GitHub Actions)
-    *   **Configuration**:
-        *   **CPU**: 1 vCPU
-        *   **Memory**: 2 GB
-        *   **Environment variables**: Add `DATABASE_URL`, `JWT_SECRET`, etc.
-        *   **Port**: 3001
+    - **Source**: Container Registry
+    - **Provider**: Amazon ECR
+    - **Image URI**: Select your `docita-api` image (Region: `us-west-1`)
+    - **Deployment settings**: Automatic or Manual (Manual is fine if using GitHub Actions)
+    - **Configuration**:
+      - **CPU**: 1 vCPU
+      - **Memory**: 2 GB
+      - **Environment variables**: Add `DATABASE_URL`, `JWT_SECRET`, etc.
+      - **Port**: 3001
 3.  **Copy Service ARN**: It looks like `arn:aws:apprunner:us-west-1:1234567890:service/docita-api/xyz`.
 4.  **Add Secret to GitHub**:
-    *   Name: `APP_RUNNER_SERVICE_ARN`
-    *   Value: Your Service ARN (e.g., `arn:aws:apprunner:...`)
+    - Name: `APP_RUNNER_SERVICE_ARN`
+    - Value: Your Service ARN (e.g., `arn:aws:apprunner:...`)
 
 ### 2. Deployment Workflow
 
 A dedicated workflow file exists at `.github/workflows/deploy-app-runner.yml`.
 
-*   **Status**: Disabled (Manual Trigger Only)
-*   **To Enable**:
-    1.  Add `APP_RUNNER_SERVICE_ARN` to GitHub Secrets.
-    2.  Go to "Actions" tab in GitHub -> "Build & Deploy to App Runner" -> "Run workflow".
-    3.  (Optional) Uncomment the `push: branches: [main]` section in the YAML file to enable auto-deploy.
+- **Status**: Disabled (Manual Trigger Only)
+- **To Enable**:
+  1.  Add `APP_RUNNER_SERVICE_ARN` to GitHub Secrets.
+  2.  Go to "Actions" tab in GitHub -> "Build & Deploy to App Runner" -> "Run workflow".
+  3.  (Optional) Uncomment the `push: branches: [main]` section in the YAML file to enable auto-deploy.

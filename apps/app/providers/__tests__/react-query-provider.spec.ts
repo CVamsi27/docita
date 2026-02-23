@@ -7,9 +7,9 @@
  * - Uses exponential backoff with max 30s delay
  */
 
-import { describe, expect, it } from 'vitest';
-import type { DefaultError } from '@tanstack/react-query';
-import { ApiError } from '@/lib/errors';
+import { describe, expect, it } from "vitest";
+import type { DefaultError } from "@tanstack/react-query";
+import { ApiError } from "@/lib/errors";
 
 /**
  * The retry logic from react-query-provider.tsx
@@ -227,17 +227,22 @@ describe("React Query Retry Logic (§9.3)", () => {
     it("should respect ApiError with explicit statusCode", () => {
       const apiError = new ApiError("Custom error", 418, "TEAPOT");
       expect(apiError.statusCode).toBe(418);
-      
+
       // 418 is 4xx, so should NOT retry
       const shouldRetry = retryFunc(0, apiError as DefaultError);
       expect(shouldRetry).toBe(false);
     });
 
     it("should handle ApiError with details", () => {
-      const apiError = new ApiError("Validation failed", 422, "VALIDATION_ERROR", {
-        field: "email",
-        reason: "invalid format",
-      });
+      const apiError = new ApiError(
+        "Validation failed",
+        422,
+        "VALIDATION_ERROR",
+        {
+          field: "email",
+          reason: "invalid format",
+        },
+      );
       expect(apiError.statusCode).toBe(422);
       expect(apiError.details).toEqual({
         field: "email",

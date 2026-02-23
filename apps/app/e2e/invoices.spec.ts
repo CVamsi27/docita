@@ -20,7 +20,7 @@ test.describe("Invoices", () => {
           firstName: "Dr.",
           lastName: "Invoice",
           role: "DOCTOR",
-        clinicName: "Test Clinic",
+          clinicName: "Test Clinic",
         },
       });
 
@@ -97,7 +97,7 @@ test.describe("Invoices", () => {
           lastName: `Patient${Date.now()}`,
           dateOfBirth: "1990-01-01",
           gender: "MALE",
-          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, '0'),
+          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, "0"),
         },
       });
       if (patientRes.ok()) {

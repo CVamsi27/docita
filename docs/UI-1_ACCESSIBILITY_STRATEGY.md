@@ -10,21 +10,24 @@
 ## 1. Accessibility Audit Infrastructure
 
 ### Setup Completed ✅
+
 - **Tool:** Axe-core with Playwright integration
 - **Test Files:** Created accessibility.spec.ts in all 3 apps (app, admin, landing)
 - **Playwright Config:** Added to admin and landing apps (app already had it)
 - **Dependencies:** @axe-core/playwright, @playwright/test installed
-- **Run Commands:** 
+- **Run Commands:**
   ```bash
   pnpm audit:app           # Run app accessibility audit
-  pnpm audit:admin         # Run admin accessibility audit  
+  pnpm audit:admin         # Run admin accessibility audit
   pnpm audit:landing       # Run landing accessibility audit
   pnpm audit:accessibility # Root script for all apps (in progress)
   ```
 - **Reports:** Generated in `accessibility-reports/baseline-{app}-{date}.json`
 
 ### Pages Being Audited
+
 **Main App (Patient Portal):**
+
 - `/` - Home/Login
 - `/dashboard` - Patient dashboard
 - `/appointments` - Appointments list
@@ -34,6 +37,7 @@
 - `/settings` - User settings
 
 **Admin App (Admin Dashboard):**
+
 - `/` - Home/login
 - `/dashboard` - Admin dashboard
 - `/users` - User management
@@ -42,6 +46,7 @@
 - `/settings` - Admin settings
 
 **Landing App (Marketing Site):**
+
 - `/` - Homepage
 - `/features` - Features page
 - `/pricing` - Pricing page
@@ -54,6 +59,7 @@
 Based on typical healthcare software patterns, we expect 40-60 total violations:
 
 ### 🔴 CRITICAL Issues (Must Fix - WCAG 2.1 Level A, blocks AA compliance)
+
 **Estimated: 5-10 violations**
 
 1. **Form Input Labels** (0:57 - required WCAG 2.1 rule)
@@ -89,6 +95,7 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
    - Example: `<button><ChevronIcon /></button>` → `<button aria-label="Next"><ChevronIcon /></button>`
 
 ### 🟡 SERIOUS Issues (High Priority - WCAG 2.1 Level AA)
+
 **Estimated: 15-25 violations**
 
 1. **Keyboard Navigation Issues** (2.1.1)
@@ -128,6 +135,7 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
    - Impact: Users cannot understand form requirements
 
 ### 🟡 MODERATE Issues (Medium Priority - WCAG 2.1 Level AA)
+
 **Estimated: 10-15 violations**
 
 1. **Text Resizing** (1.4.4)
@@ -161,6 +169,7 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
 ## 3. High-Impact Fix Targets (Highest ROI)
 
 ### Phase 1 Priority (Days 1-2) - Fix 30-40 Violations
+
 **Effort:** Focus on the most common violations affecting most pages
 
 1. **Add ARIA labels to all icon buttons**
@@ -168,11 +177,12 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
    - IMPACT: Fixes 8-12 violations across all pages
    - TIME: 3-4 hours
    - EXAMPLE:
+
      ```tsx
      // Before
      <button onClick={onClose}><X /></button>
-     
-     // After  
+
+     // After
      <button onClick={onClose} aria-label="Close"><X /></button>
      ```
 
@@ -181,11 +191,12 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
    - IMPACT: Fixes 5-8 violations
    - TIME: 2-3 hours
    - EXAMPLE:
+
      ```tsx
      // Before
      <label>Email</label>
      <input type="email" />
-     
+
      // After
      <label htmlFor="email">Email</label>
      <input id="email" type="email" />
@@ -206,15 +217,17 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
 
 5. **Add focus indicators**
    - LOCATION: Global CSS/Tailwind config
-   - IMPACT: Fixes 5-10 violations  
+   - IMPACT: Fixes 5-10 violations
    - TIME: 1-2 hours
    - SOLUTION: Ensure Tailwind's `focus-visible` ring is visible
      ```tsx
      // Tailwind: ensure focus ring is visible
-     className="... focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
+     className =
+       "... focus:outline-2 focus:outline-offset-2 focus:outline-blue-600";
      ```
 
-### Phase 2 Priority (Days 2-3) - Fix 10-20 Violations  
+### Phase 2 Priority (Days 2-3) - Fix 10-20 Violations
+
 **Effort:** Structural and semantic improvements
 
 6. **Fix heading hierarchies**
@@ -234,6 +247,7 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
    - FOCUS: Dropdowns, date pickers, modals
 
 ### Phase 3 Priority (Day 3-4) - Final Polish
+
 **Effort:** Testing and edge cases
 
 10. **Zoom and resize testing** - Ensure 200% zoom works
@@ -245,18 +259,22 @@ Based on typical healthcare software patterns, we expect 40-60 total violations:
 ## 4. Testing Methodology
 
 ### 1. Run Automated Audit (Baseline)
+
 ```bash
 pnpm audit:app      # 30 seconds per page
 pnpm audit:admin    # Generates JSON report
 pnpm audit:landing
 ```
+
 **Expected Output:** `accessibility-reports/baseline-app-{date}.json`
+
 - Lists all violations by page
 - Sorted by impact (critical → minor)
 - Includes HTML snippets causing violations
 - Provides WCAG rule links for context
 
 ### 2. Manual Testing Checklist
+
 - [ ] Keyboard navigation (Tab, Enter, Escape, Arrow keys work)
 - [ ] Tab order is logical (left-to-right, top-to-bottom)
 - [ ] Focus indicators are visible
@@ -268,13 +286,16 @@ pnpm audit:landing
 - [ ] All buttons have accessible names
 
 ### 3. Browser Testing
+
 - Chrome with axe DevTools extension
 - Firefox with NVDA (screen reader)
 - Safari with VoiceOver
 - Mobile browsers (iOS Safari, Android Chrome)
 
 ### 4. Regression Testing
+
 After each fix phase:
+
 ```bash
 pnpm audit:app      # Re-run audit
 # Compare with baseline - violations should ↓
@@ -285,47 +306,59 @@ pnpm audit:app      # Re-run audit
 ## 5. Component-Level Fixes (By Priority)
 
 ### Component: Navigation/Header
+
 **Issues:** Icon buttons without labels, color contrast
 **Fix:** Add aria-label to all icon buttons (close, menu, settings)
-**Files:** 
+**Files:**
+
 - `components/Header.tsx`
 - `components/Sidebar.tsx`
 - `components/Navbar.tsx`
 
 ### Component: Buttons
+
 **Issues:** Missing aria-label on icon buttons, focus indicators
 **Fix:** Template for proper ARIA labels
 **Files:**
+
 - `components/Button.tsx`
 - `components/IconButton.tsx`
 - `components/ActionMenu.tsx`
 
 ### Component: Forms
+
 **Issues:** Missing label associations, error messaging
 **Fix:** Ensure label htmlFor and input id match
 **Files:**
-- `components/FormField.tsx`  
+
+- `components/FormField.tsx`
 - `components/Input.tsx`
 - `components/Select.tsx`
 
 ### Component: Modals/Dialogs
+
 **Issues:** Focus trap, keyboard handling, heading hierarchy
 **Fix:** Add focus management and aria-modal
 **Files:**
+
 - `components/Modal.tsx`
 - `components/Dialog.tsx`
 
 ### Component: Data Tables
+
 **Issues:** Missing headers, no scope attributes
 **Fix:** Use `<thead>`, `<th scope="col">`, `<th scope="row">`
 **Files:**
+
 - `components/DataTable.tsx`
 - `components/Table.tsx`
 
 ### Component: Status/Alerts
+
 **Issues:** No aria-live announcements
 **Fix:** Add `role="alert"` or `aria-live="polite"`
 **Files:**
+
 - `components/Toast.tsx`
 - `components/Alert.tsx`
 - `components/Badge.tsx`
@@ -337,7 +370,7 @@ pnpm audit:app      # Re-run audit
 ```tsx
 /**
  * Accessible Button Component
- * 
+ *
  * WCAG 2.1 AA Requirements Met:
  * - 2.1.1 Keyboard: All functions available via keyboard
  * - 2.4.7 Focus Visible: Clear focus indicator (≥3:1 contrast)
@@ -351,16 +384,16 @@ export interface AccessibleButtonProps {
   /** Describe button if needed for context */
   ariaDescription?: string;
   /** button | submit | reset */
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
 }
 
-export const Button = ({ 
-  children, 
+export const Button = ({
+  children,
   ariaLabel,
   ariaDescription,
-  ...props 
+  ...props
 }: AccessibleButtonProps) => (
-  <button 
+  <button
     aria-label={ariaLabel}
     aria-description={ariaDescription}
     className="focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
@@ -375,13 +408,13 @@ export const Button = ({
 
 ## 7. Timeline & Resource Planning
 
-| Phase | Days | Tasks | Violations Fixed | Status |
-|-------|------|-------|------------------|--------|
-| **Setup** | 0.5 | Install tools, create test files | 0 | ✅ COMPLETE |
-| **Phase 1** | 1-2 | Icon labels, form labels, alt text, contrast, focus | 30-40 | Starting Now |
-| **Phase 2** | 1.5-2 | Headings, tables, forms, keyboard nav | 10-20 | Next |
-| **Phase 3** | 0.5-1 | Testing, edge cases, mobile | 0-5 | Final |
-| **Total** | 3-5 | | 40-65 | → 100% AA |
+| Phase       | Days  | Tasks                                               | Violations Fixed | Status       |
+| ----------- | ----- | --------------------------------------------------- | ---------------- | ------------ |
+| **Setup**   | 0.5   | Install tools, create test files                    | 0                | ✅ COMPLETE  |
+| **Phase 1** | 1-2   | Icon labels, form labels, alt text, contrast, focus | 30-40            | Starting Now |
+| **Phase 2** | 1.5-2 | Headings, tables, forms, keyboard nav               | 10-20            | Next         |
+| **Phase 3** | 0.5-1 | Testing, edge cases, mobile                         | 0-5              | Final        |
+| **Total**   | 3-5   |                                                     | 40-65            | → 100% AA    |
 
 ---
 
@@ -394,7 +427,7 @@ export const Button = ({
 ✅ Text readable at 200% zoom  
 ✅ All color combinations meet 4.5:1 contrast ratio  
 ✅ Documentation shows component accessibility patterns  
-✅ Team trained on ongoing accessibility requirements  
+✅ Team trained on ongoing accessibility requirements
 
 ---
 
@@ -443,4 +476,3 @@ export const Button = ({
 ---
 
 **Next: Run the baseline audit and review violations by severity.**
-

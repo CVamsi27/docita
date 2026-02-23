@@ -5,8 +5,10 @@ This document defines the public API for each module to ensure clean separation 
 ## Core Infrastructure Modules
 
 ### PrismaModule
+
 **Responsibility:** Database abstraction and query layer
 **Public Exports:**
+
 - PrismaService
 
 **Dependencies:** None (foundation module)
@@ -14,8 +16,10 @@ This document defines the public API for each module to ensure clean separation 
 ---
 
 ### CommonServicesModule
+
 **Responsibility:** Shared business services (email, encryption, observability)
 **Public Exports:**
+
 - ObservabilityService
 - HealthCheckController
 - RequestContextInterceptor
@@ -25,8 +29,10 @@ This document defines the public API for each module to ensure clean separation 
 ---
 
 ### EventsModule
+
 **Responsibility:** Event-driven architecture support
 **Public Exports:**
+
 - EventBus
 - EventListener decorator
 - Event types
@@ -38,29 +44,36 @@ This document defines the public API for each module to ensure clean separation 
 ## Domain Modules
 
 ### AuthModule
+
 **Responsibility:** Authentication, authorization, token management
 **Public Exports:**
+
 - AuthService
 - JwtAuthGuard
 - RolesGuard
 - JwtStrategy
 
 **Dependencies:**
+
 - PrismaModule
 - CommonServicesModule (for logging)
 
 **Who Depends on AuthModule:**
+
 - All modules that require authenticated endpoints
 
 ---
 
 ### PatientsModule
+
 **Responsibility:** Patient data management
 **Public Exports:**
+
 - PatientsService
 - PatientsController
 
 **Interfaces:**
+
 ```typescript
 export interface IPatientRepository {
   create(data: any): Promise<Patient>;
@@ -72,23 +85,28 @@ export interface IPatientRepository {
 ```
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule (for @Roles decorators)
 - CommonServicesModule (for validation/logging)
 
 **Protected Internal Services:**
+
 - PatientRepository (injected into PatientsService only)
 
 ---
 
 ### AppointmentsModule
+
 **Responsibility:** Appointment scheduling, conflict detection, status management
 **Public Exports:**
+
 - AppointmentsService
 - AppointmentsController
 - AppointmentSchedulingRulesService (domain service)
 
 **Interfaces:**
+
 ```typescript
 export interface IAppointmentRepository {
   create(data: any): Promise<Appointment>;
@@ -101,25 +119,30 @@ export interface IAppointmentRepository {
 ```
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - CommonServicesModule
 - PatientsModule (to validate patient existence)
 
 **Query Patients Privately:**
+
 - Use PatientsService.getPatient() to verify patient exists
 - Never directly access PatientsRepository
 
 ---
 
 ### PrescriptionsModule
+
 **Responsibility:** Prescription creation, validation, refill management
 **Public Exports:**
+
 - PrescriptionsService
 - PrescriptionsController
 - PrescriptionValidationRulesService (domain service)
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - CommonServicesModule
@@ -128,13 +151,16 @@ export interface IAppointmentRepository {
 ---
 
 ### InvoicesModule
+
 **Responsibility:** Invoice generation, calculations, payment tracking
 **Public Exports:**
+
 - InvoicesService
 - InvoicesController
 - InvoiceCalculationRulesService (domain service)
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - CommonServicesModule
@@ -142,19 +168,23 @@ export interface IAppointmentRepository {
 ---
 
 ### PaymentsModule
+
 **Responsibility:** Payment processing, Razorpay integration, webhooks
 **Public Exports:**
+
 - PaymentsService
 - PaymentsController
 - PaymentWebSocketGateway
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - CommonServicesModule
 - InvoicesModule (to update invoice payment status)
 
 **Integration Points:**
+
 - PaymentsService.updateInvoicePayment() → InvoicesService
 - Never directly mutate Invoice data; use InvoicesService
 
@@ -163,12 +193,15 @@ export interface IAppointmentRepository {
 ## Feature Modules
 
 ### WhatsappModule
+
 **Responsibility:** WhatsApp messaging, appointment reminders, notification delivery
 **Public Exports:**
+
 - WhatsappService
 - WhatsappController
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - CommonServicesModule
@@ -178,39 +211,49 @@ export interface IAppointmentRepository {
 ---
 
 ### EmailModule (implicit in CommonServices)
+
 **Responsibility:** Email delivery, templates
 **Public Exports:**
+
 - EmailService
 
 **Dependencies:**
+
 - ConfigModule
 - PrismaModule
 
 ---
 
 ### TemplatesModule
+
 **Responsibility:** Email/SMS template management
 **Public Exports:**
+
 - TemplatesService
 - TemplatesController
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 
 ---
 
 ### DashboardModule
+
 **Responsibility:** Clinic overview, metrics, quick stats
 **Public Exports:**
+
 - DashboardService
 - DashboardController
 
 **Responsibilities:**
+
 - Aggregate data from: AppointmentsModule, PatientsModule, InvoicesModule, PaymentsModule
 - Never expose internal details; use public service methods only
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - AppointmentsModule
@@ -221,12 +264,15 @@ export interface IAppointmentRepository {
 ---
 
 ### RemindersModule
+
 **Responsibility:** Scheduled reminders for appointments, follow-ups
 **Public Exports:**
+
 - RemindersService
 - RemindersScheduler
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 - AppointmentsModule (to get appointments for reminding)
@@ -236,23 +282,29 @@ export interface IAppointmentRepository {
 ---
 
 ### MonitoringModule
+
 **Responsibility:** Request logging, error tracking, metrics
 **Public Exports:**
+
 - MonitoringService
 
 **Dependencies:**
+
 - PrismaModule
 - CommonServicesModule (ObservabilityService)
 
 ---
 
 ### AuditModule
+
 **Responsibility:** PHI access logging, compliance tracking
 **Public Exports:**
+
 - AuditService
 - AuditController
 
 **Dependencies:**
+
 - PrismaModule
 - AuthModule
 
@@ -261,6 +313,7 @@ export interface IAppointmentRepository {
 ## Dependency Graph Rules
 
 ### ✅ ALLOWED:
+
 - Modules depend on PrismaModule
 - Modules depend on AuthModule (for guards/decorators)
 - Modules depend on CommonServicesModule (for shared services)
@@ -268,6 +321,7 @@ export interface IAppointmentRepository {
 - Feature modules depend on domain modules (e.g., RemindersModule → AppointmentsModule)
 
 ### ❌ PROHIBITED:
+
 - Circular dependencies (e.g., A → B → A)
 - Child modules depending on parent modules
 - Cross-domain module dependencies (e.g., PatientsModule → InvoicesModule)
@@ -286,6 +340,7 @@ If a circular dependency is discovered:
 4. **Document:** Update this file
 
 Example:
+
 - If PaymentsModule → InvoicesModule and InvoicesModule → PaymentsModule
 - Extract shared interface to packages/types
 - Use EventBus for event-driven communication instead
@@ -295,6 +350,7 @@ Example:
 ## Testing Module Boundaries
 
 Each module should have:
+
 1. `.module.ts` - Clear imports/exports
 2. `*.service.ts` - Domain logic, dependency injection
 3. `*.controller.ts` - HTTP routes, request/response handling

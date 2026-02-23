@@ -32,13 +32,13 @@ Total Duration: ~6 minutes
 
 All thresholds must PASS for production readiness:
 
-| Metric | Threshold | Priority | Status |
-|--------|-----------|----------|--------|
-| p(95) Response Time | < 500ms | 🔴 CRITICAL | ⏳ Pending |
-| p(99) Response Time | < 1000ms | 🔴 CRITICAL | ⏳ Pending |
-| p(99.9) Response Time | < 2000ms | 🟡 HIGH | ⏳ Pending |
-| Error Rate | < 5% | 🔴 CRITICAL | ⏳ Pending |
-| Connection Time p(95) | < 100ms | 🟡 HIGH | ⏳ Pending |
+| Metric                | Threshold | Priority    | Status     |
+| --------------------- | --------- | ----------- | ---------- |
+| p(95) Response Time   | < 500ms   | 🔴 CRITICAL | ⏳ Pending |
+| p(99) Response Time   | < 1000ms  | 🔴 CRITICAL | ⏳ Pending |
+| p(99.9) Response Time | < 2000ms  | 🟡 HIGH     | ⏳ Pending |
+| Error Rate            | < 5%      | 🔴 CRITICAL | ⏳ Pending |
+| Connection Time p(95) | < 100ms   | 🟡 HIGH     | ⏳ Pending |
 
 ### Endpoints Being Tested
 
@@ -97,25 +97,29 @@ k6 run --out csv=results.csv scripts/k6-baseline.js
 ### Common Issues & Solutions
 
 **Issue:** `Connection refused: 127.0.0.1:3001`
+
 - **Cause:** API not running
 - **Fix:** `pnpm --filter @docita/api dev` in separate terminal
 
 **Issue:** `context deadline exceeded` (timeouts)
+
 - **Cause:** API too slow or database queries inefficient
 - **Fix:** Check database query performance, add indexes, optimize endpoints
 
 **Issue:** High error rate (>5%)
+
 - **Cause:** Endpoint bugs or auth failures
 - **Fix:** Check API logs, verify auth headers, debug failed requests
 
 **Issue:** p(99) > 1000ms
+
 - **Cause:** Some queries too slow or database locks
 - **Fix:** Add caching, optimize N+1 queries, check connection pool
 
 ### Next Steps After Testing
 
 1. **If PASS:** Document baseline and prepare for production deployment
-2. **If FAIL:** 
+2. **If FAIL:**
    - Identify slow endpoint (see logs)
    - Add database indexes if needed
    - Optimize queries or add caching

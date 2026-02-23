@@ -1,21 +1,21 @@
 /**
  * Enhanced Toast Notification System
- * 
+ *
  * UI/UX IMPROVEMENTS:
  * - Typed toast helpers (success/error/warning/info)
  * - Action buttons for quick recovery
  * - Persistent notifications for critical errors
  * - Consistent API across the app
- * 
+ *
  * Built on top of `sonner` (already used project-wide)
  */
 
-'use client';
+"use client";
 
-import React, { createContext, useCallback, useContext } from 'react';
-import { toast as sonnerToast } from 'sonner';
+import React, { createContext, useCallback, useContext } from "react";
+import { toast as sonnerToast } from "sonner";
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = "success" | "error" | "warning" | "info";
 
 export interface ToastAction {
   label: string;
@@ -46,12 +46,16 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within EnhancedToastProvider');
+    throw new Error("useToast must be used within EnhancedToastProvider");
   }
   return context;
 }
 
-export function EnhancedToastProvider({ children }: { children: React.ReactNode }) {
+export function EnhancedToastProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const showToast = useCallback((options: ToastOptions) => {
     const sonnerOptions = {
       id: options.id,
@@ -63,19 +67,20 @@ export function EnhancedToastProvider({ children }: { children: React.ReactNode 
     };
 
     switch (options.type) {
-      case 'success':
+      case "success":
         sonnerToast.success(options.title, sonnerOptions);
         break;
-      case 'error':
+      case "error":
         sonnerToast.error(options.title, {
           ...sonnerOptions,
-          duration: sonnerOptions.duration === 5000 ? 7000 : sonnerOptions.duration,
+          duration:
+            sonnerOptions.duration === 5000 ? 7000 : sonnerOptions.duration,
         });
         break;
-      case 'warning':
+      case "warning":
         sonnerToast.warning(options.title, sonnerOptions);
         break;
-      case 'info':
+      case "info":
         sonnerToast.info(options.title, sonnerOptions);
         break;
     }
@@ -83,28 +88,28 @@ export function EnhancedToastProvider({ children }: { children: React.ReactNode 
 
   const success = useCallback(
     (title: string, description?: string) => {
-      showToast({ type: 'success', title, description });
+      showToast({ type: "success", title, description });
     },
     [showToast],
   );
 
   const error = useCallback(
     (title: string, description?: string, action?: ToastAction) => {
-      showToast({ type: 'error', title, description, action, duration: 7000 });
+      showToast({ type: "error", title, description, action, duration: 7000 });
     },
     [showToast],
   );
 
   const warning = useCallback(
     (title: string, description?: string) => {
-      showToast({ type: 'warning', title, description });
+      showToast({ type: "warning", title, description });
     },
     [showToast],
   );
 
   const info = useCallback(
     (title: string, description?: string) => {
-      showToast({ type: 'info', title, description });
+      showToast({ type: "info", title, description });
     },
     [showToast],
   );
@@ -128,30 +133,28 @@ export function EnhancedToastProvider({ children }: { children: React.ReactNode 
   };
 
   return (
-    <ToastContext.Provider value={value}>
-      {children}
-    </ToastContext.Provider>
+    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
   );
 }
 
 /**
  * Usage Examples:
- * 
+ *
  * const toast = useToast();
- * 
+ *
  * // Success notification
  * toast.success('Appointment created', 'The appointment has been successfully scheduled.');
- * 
+ *
  * // Error with retry action
  * toast.error(
  *   'Failed to save',
  *   'Could not save your changes. Please try again.',
  *   { label: 'Retry', onClick: () => saveChanges() }
  * );
- * 
+ *
  * // Warning
  * toast.warning('Unsaved changes', 'You have unsaved changes that will be lost.');
- * 
+ *
  * // Persistent notification (duration: 0)
  * toast.showToast({
  *   type: 'error',

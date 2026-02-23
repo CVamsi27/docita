@@ -21,6 +21,7 @@ pnpm install
 Create env files from examples and populate required values.
 
 Minimum required for API startup typically includes:
+
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
@@ -49,6 +50,7 @@ pnpm dev
 ```
 
 Typical local URLs:
+
 - App: http://localhost:3000
 - API: http://localhost:3001
 - Admin/Landing: check app-specific scripts/ports

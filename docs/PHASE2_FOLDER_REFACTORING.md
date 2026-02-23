@@ -7,11 +7,13 @@ We have successfully implemented **Phase 2** of the folder structure refactoring
 ## ✅ Completed Components
 
 ### 1. Error Handling Module
+
 **Location**: `apps/api/src/shared/modules/error-handling/`
 
 **Purpose**: Centralized exception handling, logging, and error response formatting
 
 **Files Created**:
+
 ```
 error-handling/
 ├── exceptions/
@@ -27,6 +29,7 @@ error-handling/
 ```
 
 **Key Features**:
+
 - ✅ Custom exception types with HTTP status codes
 - ✅ Global exception filter for consistent error responses
 - ✅ Structured logging with context (userId, clinicId, requestId)
@@ -34,9 +37,13 @@ error-handling/
 - ✅ Validation error aggregation
 
 **Usage Example**:
+
 ```typescript
 // In your service
-import { NotFoundException, LoggerService } from '@shared/modules/error-handling';
+import {
+  NotFoundException,
+  LoggerService,
+} from "@shared/modules/error-handling";
 
 export class PatientService {
   constructor(private logger: LoggerService) {}
@@ -44,11 +51,11 @@ export class PatientService {
   async getPatient(id: string) {
     const patient = await this.patientRepository.findById(id);
     if (!patient) {
-      throw new NotFoundException('Patient', id);
+      throw new NotFoundException("Patient", id);
     }
-    this.logger.info('Patient retrieved', { 
-      action: 'fetch_patient',
-      metadata: { patientId: id }
+    this.logger.info("Patient retrieved", {
+      action: "fetch_patient",
+      metadata: { patientId: id },
     });
     return patient;
   }
@@ -58,11 +65,13 @@ export class PatientService {
 ---
 
 ### 2. Document Generation Module
+
 **Location**: `apps/api/src/shared/modules/document-generation/`
 
 **Purpose**: Generate PDFs for invoices, prescriptions, and reports (replaces 1,342-line GOD OBJECT)
 
 **Files Created**:
+
 ```
 document-generation/
 ├── builders/
@@ -80,6 +89,7 @@ document-generation/
 ```
 
 **Key Features**:
+
 - ✅ Builder pattern for flexible document composition
 - ✅ Fluent API: `builder.addHeading().addParagraph().addTable().build()`
 - ✅ Support for multiple document types
@@ -87,16 +97,20 @@ document-generation/
 - ✅ Extensible renderer design (PDF/HTML/etc.)
 
 **Usage Example**:
+
 ```typescript
 // In your invoice service
-import { DocumentGenerationService, InvoiceData } from '@shared/modules/document-generation';
+import {
+  DocumentGenerationService,
+  InvoiceData,
+} from "@shared/modules/document-generation";
 
 export class InvoiceService {
   constructor(private docGen: DocumentGenerationService) {}
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
     const invoice = await this.getInvoiceData(invoiceId);
-    
+
     // Convert to InvoiceData format
     const invoiceData: InvoiceData = {
       invoiceNumber: invoice.number,
@@ -119,11 +133,13 @@ export class InvoiceService {
 ---
 
 ### 3. Messaging Module
+
 **Location**: `apps/api/src/shared/modules/messaging/`
 
 **Purpose**: Multi-channel notifications (WhatsApp, Email, SMS) with templates
 
 **Files Created**:
+
 ```
 messaging/
 ├── channels/
@@ -141,6 +157,7 @@ messaging/
 ```
 
 **Key Features**:
+
 - ✅ Channel-agnostic design (easy to add new channels)
 - ✅ Template system with variable substitution
 - ✅ Multi-channel support (send via WhatsApp + Email simultaneously)
@@ -149,14 +166,16 @@ messaging/
 - ✅ Webhook handling framework
 
 **Usage Example**:
+
 ```typescript
 // In your appointment service
-import { NotificationOrchestrator, type NotificationRequest } from '@shared/modules/messaging';
+import {
+  NotificationOrchestrator,
+  type NotificationRequest,
+} from "@shared/modules/messaging";
 
 export class AppointmentService {
-  constructor(
-    private notificationService: NotificationOrchestrator,
-  ) {
+  constructor(private notificationService: NotificationOrchestrator) {
     // Register channels on module init
     // this.notificationService.registerChannel(whatsappChannel);
     // this.notificationService.registerChannel(emailChannel);
@@ -167,9 +186,9 @@ export class AppointmentService {
 
     // Send notification via both WhatsApp and Email
     await this.notificationService.sendNotification({
-      templateKey: 'appointment_confirmation',
+      templateKey: "appointment_confirmation",
       recipientId: appointment.patientPhoneNumber,
-      channels: ['whatsapp', 'email'],
+      channels: ["whatsapp", "email"],
       variables: {
         doctorName: appointment.doctor.name,
         appointmentDate: appointment.date.toLocaleDateString(),
@@ -185,6 +204,7 @@ export class AppointmentService {
 ## New Directory Structure
 
 ### Before (Monolith)
+
 ```
 apps/api/src/
 ├── modules/
@@ -200,6 +220,7 @@ apps/api/src/
 ```
 
 ### After (Well-Organized)
+
 ```
 apps/api/src/
 ├── domains/                          # Domain-Driven Design
@@ -266,13 +287,16 @@ domains/your-domain/
 
 ```typescript
 // Error handling
-import { ApplicationException, LoggerService } from '@shared/modules/error-handling';
+import {
+  ApplicationException,
+  LoggerService,
+} from "@shared/modules/error-handling";
 
 // Document generation
-import { DocumentGenerationService } from '@shared/modules/document-generation';
+import { DocumentGenerationService } from "@shared/modules/document-generation";
 
 // Messaging
-import { NotificationOrchestrator } from '@shared/modules/messaging';
+import { NotificationOrchestrator } from "@shared/modules/messaging";
 
 // Your implementation...
 ```
@@ -282,6 +306,7 @@ import { NotificationOrchestrator } from '@shared/modules/messaging';
 **Gradually migrate** modules from the old `modules/` folder to the new domains structure:
 
 **Example Migration Path**:
+
 1. Week 1: Migrate appointments → `domains/appointments/`
 2. Week 2: Migrate clinical → `domains/clinical/`
 3. Week 3: Migrate patients → `domains/patients/`
@@ -311,13 +336,19 @@ import { NotificationOrchestrator } from '@shared/modules/messaging';
 // In subscription-billing.service.ts refactoring:
 
 // Replace old PDF generation
-import { DocumentGenerationService, InvoiceData } from '@shared/modules/document-generation';
+import {
+  DocumentGenerationService,
+  InvoiceData,
+} from "@shared/modules/document-generation";
 
 // Replace scattered notification logic
-import { NotificationOrchestrator } from '@shared/modules/messaging';
+import { NotificationOrchestrator } from "@shared/modules/messaging";
 
 // Use centralized error handling
-import { ApplicationException, LoggerService } from '@shared/modules/error-handling';
+import {
+  ApplicationException,
+  LoggerService,
+} from "@shared/modules/error-handling";
 
 // Now the service is focused on domain logic only
 @Injectable()
@@ -332,28 +363,28 @@ export class SubscriptionBillingService {
     try {
       const data = await this.prepareInvoiceData(subscriptionId);
       const pdfBuffer = await this.docGen.generateInvoicePdf(data);
-      
+
       await this.notifications.sendNotification({
-        templateKey: 'payment_reminder',
+        templateKey: "payment_reminder",
         recipientId: data.patient.phone,
-        channels: ['whatsapp', 'email'],
+        channels: ["whatsapp", "email"],
         variables: {
           invoiceId: data.invoiceNumber,
           amount: String(data.total),
           dueDate: data.dueDate.toLocaleDateString(),
-          paymentLink: 'https://pay.example.com/inv/' + data.invoiceNumber,
+          paymentLink: "https://pay.example.com/inv/" + data.invoiceNumber,
         },
       });
 
-      this.logger.info('Invoice sent', {
-        action: 'invoice_sent',
+      this.logger.info("Invoice sent", {
+        action: "invoice_sent",
         metadata: { subscriptionId, invoiceNumber: data.invoiceNumber },
       });
     } catch (error) {
-      this.logger.error('Failed to send invoice', error);
+      this.logger.error("Failed to send invoice", error);
       throw new ApplicationException(
-        'INVOICE_GENERATION_FAILED',
-        'Could not generate or send invoice',
+        "INVOICE_GENERATION_FAILED",
+        "Could not generate or send invoice",
         500,
         { subscriptionId },
       );
@@ -366,33 +397,36 @@ export class SubscriptionBillingService {
 
 ## Benefits Realized
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **PDF Generation** | 1,342-line monolith | Modular builder pattern |
-| **Messaging** | Scattered WhatsApp code | Unified multi-channel system |
-| **Error Handling** | Inconsistent responses | Global filter, custom exceptions |
-| **Code Discoverability** | Hard to find logic | Clear module boundaries |
-| **Testing** | Complex dependencies | Easy to mock channels/services |
-| **Extensibility** | Tight coupling | Plugin new channels/renderers |
-| **Maintenance** | Error-prone | Single responsibility per module |
+| Aspect                   | Before                  | After                            |
+| ------------------------ | ----------------------- | -------------------------------- |
+| **PDF Generation**       | 1,342-line monolith     | Modular builder pattern          |
+| **Messaging**            | Scattered WhatsApp code | Unified multi-channel system     |
+| **Error Handling**       | Inconsistent responses  | Global filter, custom exceptions |
+| **Code Discoverability** | Hard to find logic      | Clear module boundaries          |
+| **Testing**              | Complex dependencies    | Easy to mock channels/services   |
+| **Extensibility**        | Tight coupling          | Plugin new channels/renderers    |
+| **Maintenance**          | Error-prone             | Single responsibility per module |
 
 ---
 
 ## Next Steps (Phase 3)
 
 ### Option 1: Complete Remaining Shared Modules
+
 - [ ] Database module (base repositories, pagination)
 - [ ] Auth module (strategies, guards, decorators)
 - [ ] Config module (centralized configuration)
 - [ ] Audit module (sensitive operation logging)
 
 ### Option 2: Refactor Existing Modules → Domains
+
 - [ ] Appointments → Domain (complex business logic)
 - [ ] Clinical → Domain (medical data management)
 - [ ] Patients → Domain (patient information)
 - [ ] Payments → Domain (payment processing)
 
 ### Option 3: Frontend Restructuring (Option C)
+
 - [ ] Organize components by feature (`features/`)
 - [ ] Create shared component library
 - [ ] Centralize utilities and hooks
@@ -403,12 +437,14 @@ export class SubscriptionBillingService {
 ## Files Summary
 
 ### Shared Module Files Created: 28
+
 - Error Handling: 6 files (exceptions, filter, logger, module)
 - Document Generation: 7 files (builders, renderers, service, module)
 - Messaging: 9 files (channels, templates, orchestrator, module)
 - Index files: 6
 
 ### Total Lines of Code: 1,400+
+
 - Well-organized, documented, and tested patterns
 - Zero TypeScript compilation errors
 - Full DDD pattern compliance
@@ -430,6 +466,7 @@ ad119d4 - feat: DDD Phase 2 Complete
 ## Questions & Support
 
 For questions about the new structure:
+
 1. See `FOLDER_STRUCTURE_RECOMMENDATIONS.md` for detailed rationale
 2. Check the inline code documentation in each module
 3. Existing domains (Billing, Subscription) serve as reference implementations

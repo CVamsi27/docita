@@ -114,7 +114,9 @@ export class SubscriptionPayment {
    */
   markAsFailed(reason: string): void {
     if (this.isPaid() || this.isRefunded()) {
-      throw new Error(`Cannot mark completed payment (${this.status}) as failed`);
+      throw new Error(
+        `Cannot mark completed payment (${this.status}) as failed`,
+      );
     }
     this.status = PaymentStatusEnum.FAILED;
     (this as any).failureReason = reason;

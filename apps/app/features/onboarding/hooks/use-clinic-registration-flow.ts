@@ -40,7 +40,8 @@ export function useClinicRegistrationFlow() {
       billingCycle: "MONTHLY" | "YEARLY",
       pricing: PlanPricing,
     ) => {
-      const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
+      const price =
+        billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
 
       setFormData((prev) => ({
         ...prev,
@@ -134,7 +135,10 @@ export function useClinicRegistrationFlow() {
 
         if (responseData.access_token && responseData.user) {
           localStorage.setItem("docita_token", responseData.access_token);
-          localStorage.setItem("docita_user", JSON.stringify(responseData.user));
+          localStorage.setItem(
+            "docita_user",
+            JSON.stringify(responseData.user),
+          );
         }
 
         toast.success("Registration Successful", {

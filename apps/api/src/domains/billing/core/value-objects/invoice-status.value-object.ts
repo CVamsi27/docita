@@ -16,7 +16,10 @@ export enum InvoiceStatusEnum {
 }
 
 export class InvoiceStatus {
-  private static readonly VALID_TRANSITIONS: Record<string, InvoiceStatusEnum[]> = {
+  private static readonly VALID_TRANSITIONS: Record<
+    string,
+    InvoiceStatusEnum[]
+  > = {
     [InvoiceStatusEnum.DRAFT]: [
       InvoiceStatusEnum.ISSUED,
       InvoiceStatusEnum.CANCELLED,
@@ -59,9 +62,7 @@ export class InvoiceStatus {
 
   transitionTo(nextStatus: InvoiceStatusEnum): InvoiceStatus {
     if (!this.canTransitionTo(nextStatus)) {
-      throw new Error(
-        `Cannot transition from ${this.value} to ${nextStatus}`,
-      );
+      throw new Error(`Cannot transition from ${this.value} to ${nextStatus}`);
     }
     return new InvoiceStatus(nextStatus);
   }

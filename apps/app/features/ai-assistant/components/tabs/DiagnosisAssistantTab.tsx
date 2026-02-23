@@ -108,7 +108,7 @@ export const DiagnosisAssistantTab = ({
                     "p-4 rounded-lg border transition-colors",
                     idx === 0
                       ? "bg-green-50 dark:bg-green-950/20 border-green-200"
-                      : "bg-muted/30"
+                      : "bg-muted/30",
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -129,7 +129,7 @@ export const DiagnosisAssistantTab = ({
                               ? "bg-green-500"
                               : suggestion.confidence >= 50
                                 ? "bg-yellow-500"
-                                : "bg-orange-500"
+                                : "bg-orange-500",
                           )}
                           style={{ width: `${suggestion.confidence}%` }}
                         />
@@ -151,7 +151,7 @@ export const DiagnosisAssistantTab = ({
                     </Button>
                   </div>
                 </div>
-              )
+              ),
             )}
           </div>
         ) : (

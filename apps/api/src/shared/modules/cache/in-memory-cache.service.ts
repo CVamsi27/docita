@@ -1,6 +1,6 @@
 /**
  * In-Memory Cache Service
- * 
+ *
  * Simple in-memory cache implementation.
  * Use for development/testing. For production, use Redis.
  */
@@ -98,7 +98,9 @@ export class InMemoryCacheService implements ICacheProvider {
       entries: Array.from(this.cache.entries()).map(([key, entry]) => ({
         key,
         expiresAt: entry.expiresAt ? new Date(entry.expiresAt) : null,
-        expiresIn: entry.expiresAt ? ((entry.expiresAt - Date.now()) / 1000).toFixed(1) + 's' : 'never',
+        expiresIn: entry.expiresAt
+          ? ((entry.expiresAt - Date.now()) / 1000).toFixed(1) + 's'
+          : 'never',
       })),
     };
   }

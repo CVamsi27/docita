@@ -1,6 +1,6 @@
 /**
  * Audit Logger Service Interface
- * 
+ *
  * Provides standardized audit logging for compliance and security.
  * Logs sensitive operations with user context, timestamps, and changes.
  */
@@ -88,9 +88,15 @@ export interface AuditLogEntry {
 
 export interface IAuditLogger {
   log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void>;
-  getLogsForResource(resourceType: string, resourceId: string): Promise<AuditLogEntry[]>;
+  getLogsForResource(
+    resourceType: string,
+    resourceId: string,
+  ): Promise<AuditLogEntry[]>;
   getLogsForUser(userId: string, clinicId: string): Promise<AuditLogEntry[]>;
   getLogsForClinic(clinicId: string): Promise<AuditLogEntry[]>;
-  getLogsForAction(action: AuditAction, clinicId: string): Promise<AuditLogEntry[]>;
+  getLogsForAction(
+    action: AuditAction,
+    clinicId: string,
+  ): Promise<AuditLogEntry[]>;
   deleteOldLogs(olderThanDays: number): Promise<number>;
 }

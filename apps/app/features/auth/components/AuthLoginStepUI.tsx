@@ -3,7 +3,13 @@ import { ErrorBanner } from "@/components/error-banner";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { BackEmailField, fieldClass, getFieldError, hasFieldError, InlineFieldError } from "./AuthSharedFields";
+import {
+  BackEmailField,
+  fieldClass,
+  getFieldError,
+  hasFieldError,
+  InlineFieldError,
+} from "./AuthSharedFields";
 import type { FieldErrors } from "../types/auth";
 
 interface LoginStepProps {
@@ -95,7 +101,9 @@ export function AuthLoginStepUI({
         )}
       </div>
 
-      {!Object.keys(fieldErrors).length && error && <ErrorBanner message={error} />}
+      {!Object.keys(fieldErrors).length && error && (
+        <ErrorBanner message={error} />
+      )}
 
       <Button
         type="submit"

@@ -47,7 +47,9 @@ describe("DashboardUI", () => {
 
     expect(screen.getByTestId("dashboard-header")).toBeInTheDocument();
     expect(screen.getByTestId("doctor-dashboard-cards")).toBeInTheDocument();
-    expect(screen.getByTestId("dashboard-quick-actions")).toHaveTextContent("3");
+    expect(screen.getByTestId("dashboard-quick-actions")).toHaveTextContent(
+      "3",
+    );
     expect(screen.getByTestId("dashboard-stats-grid")).toBeInTheDocument();
     expect(screen.getByTestId("recent-patients")).toBeInTheDocument();
     expect(screen.getByTestId("daily-progress")).toBeInTheDocument();

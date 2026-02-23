@@ -23,6 +23,7 @@ A new API version is required when making **breaking changes** such as:
 - ❌ Altering entity relationships or data structures
 
 Non-breaking changes do **NOT** require a new version:
+
 - ✅ Adding optional fields (with default values)
 - ✅ Adding new endpoints
 - ✅ Enhancing error messages
@@ -51,11 +52,11 @@ Non-breaking changes do **NOT** require a new version:
 
 Suppose breaking changes are released in v2:
 
-| Month | Phase | Action |
-|-------|-------|--------|
-| 1-2 | Announcement | v2 released, v1 deprecation announced, migration guide published |
-| 3-8 | Support | Both v1 and v2 fully operational |
-| 9+ | Sunset | v1 disabled, clients on v2 only |
+| Month | Phase        | Action                                                           |
+| ----- | ------------ | ---------------------------------------------------------------- |
+| 1-2   | Announcement | v2 released, v1 deprecation announced, migration guide published |
+| 3-8   | Support      | Both v1 and v2 fully operational                                 |
+| 9+    | Sunset       | v1 disabled, clients on v2 only                                  |
 
 ## Implementation
 
@@ -65,19 +66,19 @@ All versioned routes are automatically prefixed via NestJS configuration:
 
 ```typescript
 // apps/api/src/main.ts
-app.setGlobalPrefix('api/v1');
+app.setGlobalPrefix("api/v1");
 ```
 
 ### Creating Routes in Versioned API
 
 ```typescript
 // src/modules/patients/patients.controller.ts
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param } from "@nestjs/common";
 
-@Controller('patients')
+@Controller("patients")
 export class PatientsController {
-  @Get(':id')
-  getPatient(@Param('id') id: string) {
+  @Get(":id")
+  getPatient(@Param("id") id: string) {
     // Accessible at: /api/v1/patients/:id
   }
 }
@@ -89,15 +90,15 @@ To support both v1 and v2 simultaneously:
 
 ```typescript
 // src/modules/patients/v1/patients.controller.ts
-@Controller({ path: 'patients', version: '1' })
-export class PatientsControllerV1 { }
+@Controller({ path: "patients", version: "1" })
+export class PatientsControllerV1 {}
 
 // src/modules/patients/v2/patients.controller.ts
-@Controller({ path: 'patients', version: '2' })
-export class PatientsControllerV2 { }
+@Controller({ path: "patients", version: "2" })
+export class PatientsControllerV2 {}
 
 // app.module.ts
-import { VERSION_NEUTRAL, VersioningType } from '@nestjs/common';
+import { VERSION_NEUTRAL, VersioningType } from "@nestjs/common";
 
 app.enableVersioning({
   type: VersioningType.URI,
@@ -150,11 +151,13 @@ Invoices & Billing
 ### Step 1: Update Base URL
 
 **Before (v0 - Deprecated):**
+
 ```bash
 curl https://api.docita.work/patients
 ```
 
 **After (v1 - Current):**
+
 ```bash
 curl https://api.docita.work/api/v1/patients
 ```
@@ -181,9 +184,9 @@ export class PatientsService {
   async getPatient(id: string, apiVersion: string) {
     const patient = await this.prisma.patient.findUnique({ where: { id } });
 
-    if (apiVersion === 'v1') {
+    if (apiVersion === "v1") {
       return this.formatResponseV1(patient);
-    } else if (apiVersion === 'v2') {
+    } else if (apiVersion === "v2") {
       return this.formatResponseV2(patient);
     }
 
@@ -203,12 +206,14 @@ export class PatientsService {
 ## Future Versions
 
 **v2 Planning:**
+
 - Enhanced response caching headers
 - Async operations with webhooks
 - GraphQL endpoint in addition to REST
 - Improved pagination (cursor-based)
 
 **v3 Planning:**
+
 - GraphQL as primary API
 - Real-time WebSocket subscriptions
 - Event streaming for integration systems
@@ -243,6 +248,7 @@ Monitor these metrics via [Observability Dashboard](./PERFORMANCE_IMPROVEMENTS.m
 ## Support & Questions
 
 For versioning questions or to propose a new API version:
+
 1. Open an issue in the GitHub repository
 2. Reference the specific breaking change
 3. Provide migration examples

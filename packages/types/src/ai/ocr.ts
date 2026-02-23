@@ -1,7 +1,7 @@
 export interface ExtractedText {
   text: string;
   confidence: number;
-  documentType: 'PRESCRIPTION' | 'CASE_SHEET' | 'LAB_REPORT' | 'GENERAL';
+  documentType: "PRESCRIPTION" | "CASE_SHEET" | "LAB_REPORT" | "GENERAL";
 }
 
 export interface OCRMedication {
@@ -86,8 +86,6 @@ export interface ParsedMedicalFields {
     subtotal: number | null;
     items: OCRInvoiceItem[];
   };
-
-
 }
 
 // ============================================================================

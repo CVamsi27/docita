@@ -40,9 +40,9 @@ describe("Skeleton", () => {
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-4 w-full mb-2" />
         ))}
-      </div>
+      </div>,
     );
-    
+
     const skeletons = container.querySelectorAll(".animate-pulse");
     expect(skeletons).toHaveLength(3);
   });

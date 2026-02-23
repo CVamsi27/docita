@@ -31,19 +31,31 @@ For **Billing Domain**, extract from current monolithic service:
 
 export class BillingCalculationService {
   // Domain logic (move to core)
-  calculateProrations() { /* ... */ }
-  calculateMonthlyCost() { /* ... */ }
-  
+  calculateProrations() {
+    /* ... */
+  }
+  calculateMonthlyCost() {
+    /* ... */
+  }
+
   // Use case logic (move to application)
-  generateInvoice() { /* ... */ }
-  
+  generateInvoice() {
+    /* ... */
+  }
+
   // Persistence (move to infrastructure)
-  saveInvoice() { /* ... */ }
-  fetchInvoice() { /* ... */ }
-  
+  saveInvoice() {
+    /* ... */
+  }
+  fetchInvoice() {
+    /* ... */
+  }
+
   // API layer (move to presentation)
-  @Post('/invoices')
-  createInvoice() { /* ... */ }
+  @Post("/invoices")
+  createInvoice() {
+    /* ... */
+  }
 }
 
 // NEW STRUCTURE
@@ -56,7 +68,7 @@ export class BillingCalculationService {
 // src/domains/billing/infrastructure/repositories/invoice.repository.ts
 // Database access pattern
 
-// src/domains/billing/presentation/controllers/invoices.controller.ts  
+// src/domains/billing/presentation/controllers/invoices.controller.ts
 // HTTP endpoints
 ```
 
@@ -69,10 +81,10 @@ export class Invoice {
   clinicId: string;
   patientId: string;
   items: InvoiceItem[];
-  total: Money;  // Value object, not primitive
-  status: InvoiceStatus;  // Value object, not string
+  total: Money; // Value object, not primitive
+  status: InvoiceStatus; // Value object, not string
   createdAt: Date;
-  
+
   // Domain methods (business logic)
   markAsPaid(paymentMethod: PaymentMethod): void {
     if (this.status !== InvoiceStatus.PENDING) {
@@ -80,7 +92,7 @@ export class Invoice {
     }
     this.status = InvoiceStatus.PAID;
   }
-  
+
   // Validation
   isValid(): boolean {
     return this.items.length > 0 && this.total.isPositive();
@@ -90,36 +102,36 @@ export class Invoice {
 // src/domains/billing/core/value-objects/money.value-object.ts
 export class Money {
   readonly amount: number;
-  readonly currency: 'INR' | 'USD';
-  
-  constructor(amount: number, currency: 'INR' | 'USD') {
-    if (amount < 0) throw new Error('Amount must be positive');
+  readonly currency: "INR" | "USD";
+
+  constructor(amount: number, currency: "INR" | "USD") {
+    if (amount < 0) throw new Error("Amount must be positive");
     this.amount = amount;
     this.currency = currency;
   }
-  
+
   add(other: Money): Money {
     if (this.currency !== other.currency) {
-      throw new Error('Cannot add different currencies');
+      throw new Error("Cannot add different currencies");
     }
     return new Money(this.amount + other.amount, this.currency);
   }
-  
+
   multiply(factor: number): Money {
     return new Money(this.amount * factor, this.currency);
   }
-  
+
   isPositive(): boolean {
     return this.amount > 0;
   }
 }
 
-// src/domains/billing/core/value-objects/invoice-status.value-object.ts  
+// src/domains/billing/core/value-objects/invoice-status.value-object.ts
 export enum InvoiceStatus {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  CANCELLED = 'CANCELLED',
+  DRAFT = "DRAFT",
+  PENDING = "PENDING",
+  PAID = "PAID",
+  CANCELLED = "CANCELLED",
 }
 ```
 
@@ -152,22 +164,22 @@ export interface INotificationService {
 
 ```typescript
 // src/domains/billing/application/use-cases/create-invoice.use-case.ts
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class CreateInvoiceUseCase {
   constructor(
-    @Inject('IInvoiceRepository')
+    @Inject("IInvoiceRepository")
     private invoiceRepository: IInvoiceRepository,
-    
-    @Inject('INotificationService')
+
+    @Inject("INotificationService")
     private notificationService: INotificationService,
   ) {}
 
   async execute(command: CreateInvoiceCommand): Promise<CreateInvoiceResponse> {
     // 1. Validate input
     if (!command.items || command.items.length === 0) {
-      throw new InvalidInvoiceError('Invoice must have at least one item');
+      throw new InvalidInvoiceError("Invoice must have at least one item");
     }
 
     // 2. Create domain entity
@@ -175,7 +187,10 @@ export class CreateInvoiceUseCase {
       UUID.v4(),
       command.clinicId,
       command.patientId,
-      command.items.map(item => new InvoiceItem(item.description, new Money(item.amount, 'INR'))),
+      command.items.map(
+        (item) =>
+          new InvoiceItem(item.description, new Money(item.amount, "INR")),
+      ),
       InvoiceStatus.DRAFT,
     );
 
@@ -185,7 +200,7 @@ export class CreateInvoiceUseCase {
 
     // 4. Validate domain object
     if (!invoice.isValid()) {
-      throw new InvalidInvoiceError('Invoice validation failed');
+      throw new InvalidInvoiceError("Invoice validation failed");
     }
 
     // 5. Persist
@@ -210,7 +225,7 @@ export class CreateInvoiceUseCase {
 @Injectable()
 export class MarkInvoicePaidUseCase {
   constructor(
-    @Inject('IInvoiceRepository')
+    @Inject("IInvoiceRepository")
     private invoiceRepository: IInvoiceRepository,
   ) {}
 
@@ -234,8 +249,8 @@ export class MarkInvoicePaidUseCase {
 
 ```typescript
 // src/domains/billing/infrastructure/repositories/invoice.repository.ts
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class InvoiceRepository implements IInvoiceRepository {
@@ -278,7 +293,13 @@ export class InvoiceMapper {
       raw.id,
       raw.clinicId,
       raw.patientId,
-      raw.items.map(item => new InvoiceItem(item.description, new Money(item.amount, raw.currency))),
+      raw.items.map(
+        (item) =>
+          new InvoiceItem(
+            item.description,
+            new Money(item.amount, raw.currency),
+          ),
+      ),
       InvoiceStatus[raw.status],
       raw.createdAt,
     );
@@ -303,14 +324,12 @@ export class InvoiceMapper {
 
 ```typescript
 // src/domains/billing/presentation/controllers/invoices.controller.ts
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
-import { CreateInvoiceUseCase } from '../../application/use-cases/create-invoice.use-case';
+import { Controller, Post, Get, Body, Param, UseGuards } from "@nestjs/common";
+import { CreateInvoiceUseCase } from "../../application/use-cases/create-invoice.use-case";
 
-@Controller('invoices')
+@Controller("invoices")
 export class InvoicesController {
-  constructor(
-    private createInvoiceUseCase: CreateInvoiceUseCase,
-  ) {}
+  constructor(private createInvoiceUseCase: CreateInvoiceUseCase) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -327,9 +346,9 @@ export class InvoicesController {
     return this.createInvoiceUseCase.execute(command);
   }
 
-  @Get(':id')
+  @Get(":id")
   @Roles(Role.ADMIN, Role.DOCTOR)
-  async getInvoice(@Param('id') id: string): Promise<GetInvoiceResponse> {
+  async getInvoice(@Param("id") id: string): Promise<GetInvoiceResponse> {
     const command = new GetInvoiceQuery(id);
     return this.getInvoiceUseCase.execute(command);
   }
@@ -340,18 +359,18 @@ export class InvoicesController {
 
 ```typescript
 // src/domains/billing/billing.module.ts
-import { Module } from '@nestjs/common';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { Module } from "@nestjs/common";
+import { PrismaModule } from "src/prisma/prisma.module";
 
 // Use cases
-import { CreateInvoiceUseCase } from './application/use-cases/create-invoice.use-case';
-import { MarkInvoicePaidUseCase } from './application/use-cases/mark-invoice-paid.use-case';
+import { CreateInvoiceUseCase } from "./application/use-cases/create-invoice.use-case";
+import { MarkInvoicePaidUseCase } from "./application/use-cases/mark-invoice-paid.use-case";
 
 // Repositories
-import { InvoiceRepository } from './infrastructure/repositories/invoice.repository';
+import { InvoiceRepository } from "./infrastructure/repositories/invoice.repository";
 
 // Controllers
-import { InvoicesController } from './presentation/controllers/invoices.controller';
+import { InvoicesController } from "./presentation/controllers/invoices.controller";
 
 @Module({
   imports: [PrismaModule],
@@ -363,18 +382,14 @@ import { InvoicesController } from './presentation/controllers/invoices.controll
 
     // Repositories (implement ports)
     {
-      provide: 'IInvoiceRepository',
+      provide: "IInvoiceRepository",
       useClass: InvoiceRepository,
     },
 
     // Domain services
     BillingCalculatorService,
   ],
-  exports: [
-    CreateInvoiceUseCase,
-    MarkInvoicePaidUseCase,
-    'IInvoiceRepository',
-  ],
+  exports: [CreateInvoiceUseCase, MarkInvoicePaidUseCase, "IInvoiceRepository"],
 })
 export class BillingModule {}
 ```
@@ -383,30 +398,28 @@ export class BillingModule {}
 
 ```typescript
 // test/domains/billing/core/services/billing-calculator.service.spec.ts
-describe('BillingCalculatorService', () => {
+describe("BillingCalculatorService", () => {
   let service: BillingCalculatorService;
 
   beforeEach(() => {
     service = new BillingCalculatorService();
   });
 
-  describe('calculateTotal', () => {
-    it('should correctly sum invoice items', () => {
+  describe("calculateTotal", () => {
+    it("should correctly sum invoice items", () => {
       const items = [
-        new InvoiceItem('Service 1', new Money(1000, 'INR')),
-        new InvoiceItem('Service 2', new Money(500, 'INR')),
+        new InvoiceItem("Service 1", new Money(1000, "INR")),
+        new InvoiceItem("Service 2", new Money(500, "INR")),
       ];
 
       const total = service.calculateTotal(items);
       expect(total.amount).toBe(1500);
     });
 
-    it('should handle currency conversion', () => {
-      const items = [
-        new InvoiceItem('Service', new Money(100, 'INR')),
-      ];
+    it("should handle currency conversion", () => {
+      const items = [new InvoiceItem("Service", new Money(100, "INR"))];
 
-      const total = service.calculateTotal(items, 'USD');
+      const total = service.calculateTotal(items, "USD");
       // Assuming 1 USD = 80 INR
       expect(total.amount).toBe(1.25); // 100/80
     });
@@ -414,7 +427,7 @@ describe('BillingCalculatorService', () => {
 });
 
 // test/domains/billing/application/use-cases/create-invoice.use-case.spec.ts
-describe('CreateInvoiceUseCase', () => {
+describe("CreateInvoiceUseCase", () => {
   let useCase: CreateInvoiceUseCase;
   let mockRepository: Mock<IInvoiceRepository>;
   let mockNotificationService: Mock<INotificationService>;
@@ -425,9 +438,9 @@ describe('CreateInvoiceUseCase', () => {
     useCase = new CreateInvoiceUseCase(mockRepository, mockNotificationService);
   });
 
-  it('should create an invoice and send notification', async () => {
+  it("should create an invoice and send notification", async () => {
     const command = new CreateInvoiceCommand(/*...*/);
-    
+
     const response = await useCase.execute(command);
 
     expect(response.invoiceId).toBeDefined();
@@ -488,26 +501,29 @@ src/domains/{DOMAIN}/
 
 ## Timeline for Full Refactoring
 
-| Phase | Domain | Effort | Duration |
-|-------|--------|--------|----------|
-| 1 | **Billing** (priority - 1,182 lines) | High | 1 week |
-| 2 | **Clinical** + **Medical Coding** | High | 1 week |
-| 3 | **Messaging** (WhatsApp refactor) | Medium | 4 days |
-| 4 | **Payments** + **Appointments** | Medium | 1 week |
-| 5 | **Remaining Domains** | Medium | 2 weeks |
-| 6 | **Testing & Integration** | High | 1 week |
-| **TOTAL** | All Domains | - | **~6-7 weeks** |
+| Phase     | Domain                               | Effort | Duration       |
+| --------- | ------------------------------------ | ------ | -------------- |
+| 1         | **Billing** (priority - 1,182 lines) | High   | 1 week         |
+| 2         | **Clinical** + **Medical Coding**    | High   | 1 week         |
+| 3         | **Messaging** (WhatsApp refactor)    | Medium | 4 days         |
+| 4         | **Payments** + **Appointments**      | Medium | 1 week         |
+| 5         | **Remaining Domains**                | Medium | 2 weeks        |
+| 6         | **Testing & Integration**            | High   | 1 week         |
+| **TOTAL** | All Domains                          | -      | **~6-7 weeks** |
 
 ---
 
 ## Common Pitfalls & Solutions
 
 ### ❌ Pitfall 1: Mixing Concerns
+
 ```typescript
 // ❌ WRONG: Use case mixing presentation and persistence
 export class CreateInvoiceUseCase {
-  async execute(req: Request, res: Response) {  // Presentation logic
-    const invoice = await this.prisma.invoice.create({  // Persistence logic
+  async execute(req: Request, res: Response) {
+    // Presentation logic
+    const invoice = await this.prisma.invoice.create({
+      // Persistence logic
       data: req.body,
     });
     res.json(invoice);
@@ -520,6 +536,7 @@ export class CreateInvoiceUseCase {
 ```
 
 ### ❌ Pitfall 2: Exposing Core to Presentation
+
 ```typescript
 // ❌ WRONG: Controller directly mutates domain entity
 @Post('/invoices/:id/pay')
@@ -537,15 +554,16 @@ async payInvoice(@Param('id') id: string) {
 ```
 
 ### ❌ Pitfall 3: Over-Engineering
+
 ```typescript
 // ❌ WRONG: Creating value objects for everything
-class CliniId extends ValueObject { }
-class PatientId extends ValueObject { }
+class CliniId extends ValueObject {}
+class PatientId extends ValueObject {}
 // ... now every parameter needs these
 
 // ✅ CORRECT: Use value objects for complex domain concepts
-class Money extends ValueObject { }  // Has business rules
-class InvoiceStatus extends ValueObject { }  // Has validation
+class Money extends ValueObject {} // Has business rules
+class InvoiceStatus extends ValueObject {} // Has validation
 // Regular primitives for IDs
 ```
 

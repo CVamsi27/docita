@@ -158,10 +158,10 @@ async createPatient(data) {
 
 The following services automatically use read replica when `DATABASE_READ_URL` is configured:
 
--  `AnalyticsService` - All analytics queries (revenue, patient growth, appointment stats)
--  `SuperAdminService` - Global statistics (`getGlobalStats`)
--  `DashboardService` - Dashboard metrics (when implemented)
--  `MonitoringService` - System metrics queries (when implemented)
+- `AnalyticsService` - All analytics queries (revenue, patient growth, appointment stats)
+- `SuperAdminService` - Global statistics (`getGlobalStats`)
+- `DashboardService` - Dashboard metrics (when implemented)
+- `MonitoringService` - System metrics queries (when implemented)
 
 ---
 
@@ -173,7 +173,7 @@ Read replicas may have a small delay (typically <1 second) compared to the prima
 
 ### Acceptable Use Cases
 
- **Good for read replica**:
+**Good for read replica**:
 
 - Historical analytics (last 30 days revenue)
 - Patient demographics
@@ -181,7 +181,7 @@ Read replicas may have a small delay (typically <1 second) compared to the prima
 - Performance metrics
 - Audit logs
 
- **Must use primary**:
+  **Must use primary**:
 
 - Just-created records (within last second)
 - Critical transactions
@@ -387,11 +387,11 @@ this.readReplica = new PrismaClient({
 
 ### Neon Serverless
 
-| Tier  | Monthly Cost | Read Replicas         | Max Storage |
-| ----- | ------------ | --------------------- | ----------- |
-| Free  | $0           |  Not available      | 0.5GB       |
-| Pro   | $19          |  1 replica included | 10GB        |
-| Scale | Custom       |  Multiple replicas  | Unlimited   |
+| Tier  | Monthly Cost | Read Replicas      | Max Storage |
+| ----- | ------------ | ------------------ | ----------- |
+| Free  | $0           | Not available      | 0.5GB       |
+| Pro   | $19          | 1 replica included | 10GB        |
+| Scale | Custom       | Multiple replicas  | Unlimited   |
 
 **Estimated savings**: $50-200/month by preventing primary database upgrades
 

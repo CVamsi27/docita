@@ -7,7 +7,7 @@ describe("FormFieldGroup", () => {
     render(
       <FormFieldGroup label="Email Address">
         <input type="email" />
-      </FormFieldGroup>
+      </FormFieldGroup>,
     );
 
     expect(screen.getByText("Email Address")).toBeInTheDocument();
@@ -17,7 +17,7 @@ describe("FormFieldGroup", () => {
     render(
       <FormFieldGroup label="Password" required>
         <input type="password" />
-      </FormFieldGroup>
+      </FormFieldGroup>,
     );
 
     const label = screen.getByText("Password");
@@ -28,12 +28,12 @@ describe("FormFieldGroup", () => {
     render(
       <FormFieldGroup label="Username" error="Username is required">
         <input type="text" />
-      </FormFieldGroup>
+      </FormFieldGroup>,
     );
 
     expect(screen.getByText("Username is required")).toBeInTheDocument();
     expect(screen.getByText("Username is required")).toHaveClass(
-      "text-destructive"
+      "text-destructive",
     );
   });
 
@@ -41,14 +41,14 @@ describe("FormFieldGroup", () => {
     render(
       <FormFieldGroup label="Password" hint="Must be at least 8 characters">
         <input type="password" />
-      </FormFieldGroup>
+      </FormFieldGroup>,
     );
 
     expect(
-      screen.getByText("Must be at least 8 characters")
+      screen.getByText("Must be at least 8 characters"),
     ).toBeInTheDocument();
     expect(screen.getByText("Must be at least 8 characters")).toHaveClass(
-      "text-muted-foreground"
+      "text-muted-foreground",
     );
   });
 
@@ -56,7 +56,7 @@ describe("FormFieldGroup", () => {
     render(
       <FormFieldGroup label="Test Field">
         <input type="text" placeholder="Enter text" />
-      </FormFieldGroup>
+      </FormFieldGroup>,
     );
 
     expect(screen.getByPlaceholderText("Enter text")).toBeInTheDocument();

@@ -7,8 +7,10 @@ import { useDebounce } from "@workspace/hooks";
 import { Input } from "./input";
 import { cn } from "../lib/utils";
 
-interface DebouncedSearchInputProps
-  extends Omit<React.ComponentProps<typeof Input>, "value" | "onChange"> {
+interface DebouncedSearchInputProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  "value" | "onChange"
+> {
   value: string;
   onChange: (value: string) => void;
   delay?: number;

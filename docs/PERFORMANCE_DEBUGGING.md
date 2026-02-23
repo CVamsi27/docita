@@ -91,13 +91,13 @@ pnpm --filter @docita/api test:e2e
 
 ## Common Root Causes and Fix Patterns
 
-| Symptom | Typical Root Cause | Fast Mitigation |
-|---------|--------------------|-----------------|
-| sudden P95 increase | missing/inefficient DB index | add/adjust index, verify query plan |
+| Symptom                 | Typical Root Cause                                      | Fast Mitigation                                             |
+| ----------------------- | ------------------------------------------------------- | ----------------------------------------------------------- |
+| sudden P95 increase     | missing/inefficient DB index                            | add/adjust index, verify query plan                         |
 | periodic timeout bursts | overloaded worker/queue or external dependency slowdown | reduce concurrency, add backoff, isolate failing dependency |
-| elevated 5xx | unhandled edge case after deploy | rollback/canary halt, patch guardrails |
-| high DB CPU | N+1 query or wide scan | batch query, narrow select, add pagination |
-| frontend TTI regression | oversized client bundle | split route-level chunks, defer non-critical code |
+| elevated 5xx            | unhandled edge case after deploy                        | rollback/canary halt, patch guardrails                      |
+| high DB CPU             | N+1 query or wide scan                                  | batch query, narrow select, add pagination                  |
+| frontend TTI regression | oversized client bundle                                 | split route-level chunks, defer non-critical code           |
 
 ## Incident Workflow
 

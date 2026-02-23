@@ -51,6 +51,7 @@ Apply these rules when generating or editing code in this repository.
 ## 8) PR Readiness
 
 Before finalizing, ensure:
+
 - lint/typecheck/tests are green,
 - no debug artifacts are added,
 - user-impact and rollout risk are clearly described.

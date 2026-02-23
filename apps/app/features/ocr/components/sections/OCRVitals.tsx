@@ -36,7 +36,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">BP</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_bp")
+                    getScore("vitals_bp"),
                   )}
                 />
               </div>
@@ -59,7 +59,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">Temp (°F)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_temp")
+                    getScore("vitals_temp"),
                   )}
                 />
               </div>
@@ -82,7 +82,7 @@ export const OCRVitals = ({
                 <Label className="text-xs">Pulse</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("vitals_pulse")
+                    getScore("vitals_pulse"),
                   )}
                 />
               </div>

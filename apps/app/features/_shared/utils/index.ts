@@ -44,10 +44,11 @@ export const truncateText = (text: string, maxLength: number): string => {
 /**
  * Debounce function utility
  */
-export function debounce<T extends (...args: Array<string | number | Record<string, unknown>>) => void | Promise<void>>(
-  func: T,
-  wait: number,
-): (...args: Parameters<T>) => void {
+export function debounce<
+  T extends (
+    ...args: Array<string | number | Record<string, unknown>>
+  ) => void | Promise<void>,
+>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
   return (...args: Parameters<T>) => {

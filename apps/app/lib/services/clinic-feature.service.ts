@@ -328,7 +328,7 @@ export const ClinicFeatureService = {
    */
   supportsFeature(
     clinicType: ClinicType | undefined,
-    feature: "growthChart" | "dentalChart" | "visionExam"
+    feature: "growthChart" | "dentalChart" | "visionExam",
   ): boolean {
     const config = this.getConfig(clinicType);
     switch (feature) {
@@ -354,13 +354,15 @@ export const ClinicFeatureService = {
    * Get medication routes for a clinic type (prioritized)
    */
   getMedicationRoutes(clinicType: ClinicType | undefined): MedicationRoute[] {
-    const defaultRoutes = CLINIC_DEFAULT_ROUTES[clinicType || "GENERAL"] || CLINIC_DEFAULT_ROUTES.GENERAL;
-    
+    const defaultRoutes =
+      CLINIC_DEFAULT_ROUTES[clinicType || "GENERAL"] ||
+      CLINIC_DEFAULT_ROUTES.GENERAL;
+
     // Sort routes: prioritized ones first, then rest
     return [...MEDICATION_ROUTES].sort((a, b) => {
       const aIndex = defaultRoutes.indexOf(a.value);
       const bIndex = defaultRoutes.indexOf(b.value);
-      
+
       if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
@@ -371,27 +373,31 @@ export const ClinicFeatureService = {
   /**
    * Get medication routes grouped by category
    */
-  getMedicationRoutesGrouped(clinicType: ClinicType | undefined): Record<string, MedicationRoute[]> {
+  getMedicationRoutesGrouped(
+    clinicType: ClinicType | undefined,
+  ): Record<string, MedicationRoute[]> {
     const routes = this.getMedicationRoutes(clinicType);
     const grouped: Record<string, MedicationRoute[]> = {};
-    
+
     for (const route of routes) {
       if (!grouped[route.category]) {
         grouped[route.category] = [];
       }
       grouped[route.category].push(route);
     }
-    
+
     return grouped;
   },
 
   /**
    * Get preset tags grouped by category
    */
-  getCategorizedTags(clinicType: ClinicType | undefined): Record<string, PresetTag[]> {
+  getCategorizedTags(
+    clinicType: ClinicType | undefined,
+  ): Record<string, PresetTag[]> {
     const tags = this.getPresetTags(clinicType);
     const grouped: Record<string, PresetTag[]> = {};
-    
+
     for (const tag of tags) {
       const category = tag.category || "General";
       if (!grouped[category]) {
@@ -399,7 +405,7 @@ export const ClinicFeatureService = {
       }
       grouped[category].push(tag);
     }
-    
+
     return grouped;
   },
 };

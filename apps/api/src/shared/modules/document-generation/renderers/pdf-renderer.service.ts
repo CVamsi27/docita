@@ -1,7 +1,7 @@
 /**
  * PDF Renderer Service
  * Converts document content to PDF format
- * 
+ *
  * NOTE: This is a simplified interface. In production, use libraries like:
  * - PDFKit
  * - PuppeteerSharp
@@ -68,10 +68,7 @@ export class PdfRendererService {
     return html;
   }
 
-  private renderTable(tableData: {
-    columns: string[];
-    data: any[];
-  }): string {
+  private renderTable(tableData: { columns: string[]; data: any[] }): string {
     let html = '<table>';
 
     // Header

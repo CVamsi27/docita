@@ -1,6 +1,6 @@
 /**
  * Audit Logger Service
- * 
+ *
  * Logs audit trail using Prisma for persistence.
  */
 
@@ -53,7 +53,10 @@ export class AuditLoggerService implements IAuditLogger {
     return this.parseAuditLogs(logs);
   }
 
-  async getLogsForUser(userId: string, clinicId: string): Promise<AuditLogEntry[]> {
+  async getLogsForUser(
+    userId: string,
+    clinicId: string,
+  ): Promise<AuditLogEntry[]> {
     const logs = await (this.prisma as any).auditLog.findMany({
       where: {
         userId,
@@ -76,7 +79,10 @@ export class AuditLoggerService implements IAuditLogger {
     return this.parseAuditLogs(logs);
   }
 
-  async getLogsForAction(action: AuditAction, clinicId: string): Promise<AuditLogEntry[]> {
+  async getLogsForAction(
+    action: AuditAction,
+    clinicId: string,
+  ): Promise<AuditLogEntry[]> {
     const logs = await (this.prisma as any).auditLog.findMany({
       where: {
         action,

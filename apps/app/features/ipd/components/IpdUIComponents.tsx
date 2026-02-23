@@ -224,7 +224,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
                 }
               }}
               aria-invalid={!!formErrors.patientId}
-              aria-describedby={formErrors.patientId ? "ipd-patient-error" : undefined}
+              aria-describedby={
+                formErrors.patientId ? "ipd-patient-error" : undefined
+              }
             />
             {formErrors.patientId && (
               <p id="ipd-patient-error" className="text-sm text-destructive">
@@ -247,7 +249,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
                   }
                 }}
                 aria-invalid={!!formErrors.wardId}
-                aria-describedby={formErrors.wardId ? "ipd-ward-error" : undefined}
+                aria-describedby={
+                  formErrors.wardId ? "ipd-ward-error" : undefined
+                }
               >
                 <option value="">Select Ward</option>
                 <option value="general">General Ward</option>
@@ -274,7 +278,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
                   }
                 }}
                 aria-invalid={!!formErrors.bedId}
-                aria-describedby={formErrors.bedId ? "ipd-bed-error" : undefined}
+                aria-describedby={
+                  formErrors.bedId ? "ipd-bed-error" : undefined
+                }
               >
                 <option value="">Select Bed</option>
                 <option value="bed-1">Bed 101</option>
@@ -334,7 +340,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
                 }
               }}
               aria-invalid={!!formErrors.diagnosis}
-              aria-describedby={formErrors.diagnosis ? "ipd-diagnosis-error" : undefined}
+              aria-describedby={
+                formErrors.diagnosis ? "ipd-diagnosis-error" : undefined
+              }
             />
             {formErrors.diagnosis && (
               <p id="ipd-diagnosis-error" className="text-sm text-destructive">

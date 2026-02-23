@@ -166,7 +166,8 @@ export const ClinicalDocumentationDynamic: FC<
           if (typeof val === "object" && val !== null) {
             // Handle nested objects by extracting notes field if present
             const obj = val as Record<string, unknown>;
-            if ("notes" in obj && typeof obj.notes === "string") return obj.notes;
+            if ("notes" in obj && typeof obj.notes === "string")
+              return obj.notes;
             return JSON.stringify(val);
           }
           if (val === null || val === undefined) return "";

@@ -17,6 +17,7 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 ### Primary Strategy: Railway + Vercel
 
 **Components:**
+
 - **Frontend**: Vercel (apps/landing, apps/app, apps/admin)
 - **Backend**: Railway (apps/api)
 - **Database**: Railway PostgreSQL 15+
@@ -25,6 +26,7 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 ### Alternative Strategy: AWS + Vercel
 
 **Components:**
+
 - **Frontend**: Vercel (same as primary)
 - **Backend**: AWS EC2 with Docker
 - **Database**: AWS RDS PostgreSQL or Neon Serverless
@@ -96,21 +98,21 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 
 ## Comparison Matrix
 
-| Criteria | Railway | AWS EC2 | Winner |
-|----------|---------|---------|--------|
-| Setup Time | 15 min | 2-3 hours | Railway |
-| Monthly Cost (Startup) | $20-50 | $50-100 | Railway |
-| Monthly Cost (Scale) | $50-200 | $100-500 | AWS |
-| Developer Experience | Excellent | Good | Railway |
-| Operational Overhead | Minimal | Medium | Railway |
-| Compliance (HIPAA) | Available | Available | Tie |
-| Customization | Good | Excellent | AWS |
-| Vendor Lock-in | Medium | Low | AWS |
-| Auto-scaling | Built-in | Manual setup | Railway |
-| Database Management | Fully managed | Self-managed* | Railway |
-| Learning Curve | Low | Medium | Railway |
+| Criteria               | Railway       | AWS EC2        | Winner  |
+| ---------------------- | ------------- | -------------- | ------- |
+| Setup Time             | 15 min        | 2-3 hours      | Railway |
+| Monthly Cost (Startup) | $20-50        | $50-100        | Railway |
+| Monthly Cost (Scale)   | $50-200       | $100-500       | AWS     |
+| Developer Experience   | Excellent     | Good           | Railway |
+| Operational Overhead   | Minimal       | Medium         | Railway |
+| Compliance (HIPAA)     | Available     | Available      | Tie     |
+| Customization          | Good          | Excellent      | AWS     |
+| Vendor Lock-in         | Medium        | Low            | AWS     |
+| Auto-scaling           | Built-in      | Manual setup   | Railway |
+| Database Management    | Fully managed | Self-managed\* | Railway |
+| Learning Curve         | Low           | Medium         | Railway |
 
-*Can use RDS for managed database
+\*Can use RDS for managed database
 
 ---
 
@@ -130,12 +132,14 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 **Decision Point: Stay on Railway or migrate to AWS**
 
 **Stay on Railway if:**
+
 - Team size < 10 people
 - < 10,000 active users
 - No specific AWS compliance requirements
 - Prefer simplicity over control
 
 **Migrate to AWS if:**
+
 - Team has DevOps capacity
 - > 10,000 active users
 - AWS compliance required
@@ -181,6 +185,7 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 ### Production Readiness
 
 **Railway Deployment:**
+
 - Status: READY (all infrastructure configured)
 - Database: Ready (migration scripts tested)
 - Redis: Ready (caching configured)
@@ -188,6 +193,7 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 - Health Checks: Ready (/api/health/live, /api/health/ready)
 
 **AWS Deployment:**
+
 - Status: ALTERNATIVE (workflows ready, not primary)
 - Docker: Ready (multi-stage build optimized)
 - GitHub Actions: Ready (deploy-api.yml, rollback-api.yml)
@@ -195,6 +201,7 @@ This document outlines the deployment strategy for Docita, a healthcare practice
 - Documentation: Complete
 
 **Vercel Deployment:**
+
 - Status: READY (all 3 apps configured)
 - Landing: Ready (apps/landing)
 - App: Ready (apps/app)
@@ -295,10 +302,10 @@ If Railway experiences prolonged outage:
 
 ## Revision History
 
-| Date | Version | Changes | Author |
-|------|---------|---------|--------|
-| 2026-02-15 | 1.0 | Initial deployment strategy document | Docita Team |
-| 2026-02-15 | 1.1 | Updated based on latest infrastructure changes | Docita Team |
+| Date       | Version | Changes                                        | Author      |
+| ---------- | ------- | ---------------------------------------------- | ----------- |
+| 2026-02-15 | 1.0     | Initial deployment strategy document           | Docita Team |
+| 2026-02-15 | 1.1     | Updated based on latest infrastructure changes | Docita Team |
 
 ---
 

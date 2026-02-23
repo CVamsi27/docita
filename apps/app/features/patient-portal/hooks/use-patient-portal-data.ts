@@ -45,7 +45,9 @@ function mapAppointmentStatus(
   return "PENDING";
 }
 
-function mapInvoiceStatus(status: string | undefined): "PENDING" | "PAID" | "OVERDUE" {
+function mapInvoiceStatus(
+  status: string | undefined,
+): "PENDING" | "PAID" | "OVERDUE" {
   const normalized = (status || "").toUpperCase();
   if (normalized === "PAID") {
     return "PAID";
@@ -76,8 +78,8 @@ export function usePatientPortalData(patientId?: string | null) {
     }
 
     const items =
-      ((appointmentsResponse?.items ?? []) as unknown as AppointmentWithPortalRelations[]) ||
-      [];
+      ((appointmentsResponse?.items ??
+        []) as unknown as AppointmentWithPortalRelations[]) || [];
 
     const now = Date.now();
 
@@ -108,7 +110,8 @@ export function usePatientPortalData(patientId?: string | null) {
     const activePrescriptions = items
       .filter((item) => Boolean(item.prescription?.id))
       .map((item) => {
-        const medicationName = item.prescription?.medications?.[0]?.name || "Prescription";
+        const medicationName =
+          item.prescription?.medications?.[0]?.name || "Prescription";
         const prescriptionStatus: PatientPrescriptionStatus =
           mapAppointmentStatus(item.status) === "COMPLETED"
             ? "COMPLETED"
@@ -123,7 +126,10 @@ export function usePatientPortalData(patientId?: string | null) {
         };
       });
 
-    const invoiceMap = new Map<string, PatientPortalSnapshot["outstandingInvoices"][number]>();
+    const invoiceMap = new Map<
+      string,
+      PatientPortalSnapshot["outstandingInvoices"][number]
+    >();
     for (const item of items) {
       if (!item.invoice?.id) {
         continue;

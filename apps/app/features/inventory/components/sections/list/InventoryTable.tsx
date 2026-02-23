@@ -72,7 +72,7 @@ export function InventoryTable({
                 {items.map((item) => {
                   const status = getStockStatus(
                     item.quantity,
-                    item.minQuantity
+                    item.minQuantity,
                   );
                   return (
                     <TableRow

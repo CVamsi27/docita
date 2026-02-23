@@ -129,7 +129,10 @@ export const useInfiniteAppointments = (options?: {
 
 // Queue related
 export const useCheckInAppointment = () =>
-  useAPIMutation<Record<string, unknown>, string>((id) => `/queue/check-in/${id}`, "POST");
+  useAPIMutation<Record<string, unknown>, string>(
+    (id) => `/queue/check-in/${id}`,
+    "POST",
+  );
 
 export const useQueue = (options?: { search?: string }) => {
   const params = new URLSearchParams();

@@ -10,6 +10,7 @@
 ## Phase 1: Foundation (Weeks 1-2) - QUICK WINS
 
 ### P1.1: Consolidate Business Constants
+
 - [ ] Create `apps/api/src/modules/subscription/subscription.constants.ts`
   - [ ] Consolidate 3x `REFERRAL_DISCOUNT_PERCENT` definitions
   - [ ] Consolidate common billing constants
@@ -23,11 +24,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1 day  
-**Impact**: HIGH - Improves maintainability, reduces duplication  
+**Impact**: HIGH - Improves maintainability, reduces duplication
 
 ---
 
 ### P1.2: Centralize Configuration
+
 - [ ] Create `apps/api/src/config/app.configuration.ts`
   - [ ] Class-based config with typed getters
   - [ ] Support for environment variable fallbacks
@@ -41,23 +43,24 @@
 
 **Owner**: [Assign]  
 **Effort**: 1.5 days  
-**Impact**: MEDIUM - Improves security, reduces env var bugs  
+**Impact**: MEDIUM - Improves security, reduces env var bugs
 
 ---
 
 ### P1.3: Migrate Raw SQL to Safer Queries
+
 - [ ] Identify all `$queryRawUnsafe` calls
   - [ ] Search: `grep_search "$queryRawUnsafe"`
 - [ ] Convert to `$queryRaw` with tagged templates
   - [ ] Current: `prisma.$queryRawUnsafe("SELECT * FROM " + table)`
-  - [ ] Target: `prisma.$queryRaw\`SELECT * FROM ${table}\``
+  - [ ] Target: `prisma.$queryRaw\`SELECT \* FROM ${table}\``
 - [ ] Add parameterized query examples to data-access docs
 - [ ] Create utility functions for common raw SQL patterns
 - [ ] Add security review checklist to PR template
 
 **Owner**: [Assign]  
 **Effort**: 1 day  
-**Impact**: HIGH - Security vulnerability mitigation  
+**Impact**: HIGH - Security vulnerability mitigation
 
 ---
 
@@ -68,6 +71,7 @@
 ## Phase 2: Type Safety (Weeks 3-5)
 
 ### P2.1: Eliminate `any` Types
+
 - [ ] **Audit 145+ `any` instances**
   - [ ] Search: `grep_search " any" --isRegexp`
   - [ ] Categorize: function params (45), return types (30), variable types (35), error handlers (35)
@@ -86,11 +90,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 3+ weeks (parallel team work recommended)  
-**Impact**: MEDIUM - Better IDE support, fewer runtime bugs  
+**Impact**: MEDIUM - Better IDE support, fewer runtime bugs
 
 ---
 
 ### P2.2: Standardize Error Handling
+
 - [ ] Create error hierarchy
   ```typescript
   src/common/errors/
@@ -114,11 +119,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1.5 weeks  
-**Impact**: MEDIUM - Consistent error responses, better debugging  
+**Impact**: MEDIUM - Consistent error responses, better debugging
 
 ---
 
 ### P2.3: Refactor Large Test Files
+
 - [ ] Identify test files >500 lines
   - [ ] `subscription.service.spec.ts` (680 lines)
   - [ ] `appointment.service.spec.ts` (620 lines)
@@ -136,7 +142,7 @@
 
 **Owner**: [Assign]  
 **Effort**: 1.5 weeks  
-**Impact**: LOW-MEDIUM - Easier to navigate, faster test runs  
+**Impact**: LOW-MEDIUM - Easier to navigate, faster test runs
 
 ---
 
@@ -147,6 +153,7 @@
 ## Phase 3: Architecture (Weeks 6-12) - CRITICAL WORK
 
 ### P3.1: Break Subscription Billing God Object
+
 **Current State**: `subscription-billing.service.ts` (1,182 lines, 22 methods)
 
 - [ ] **Analysis**
@@ -175,11 +182,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 4-6 weeks (2 devs recommended)  
-**Impact**: HIGH - Enables other features, prevents merge conflicts  
+**Impact**: HIGH - Enables other features, prevents merge conflicts
 
 ---
 
 ### P3.2: Implement Repository Pattern
+
 **Current State**: 779+ direct Prisma calls, only 3 repositories
 
 - [ ] **Week 6-7: Create repository infrastructure**
@@ -223,11 +231,12 @@
 
 **Owner**: [Assign] (2+ devs for extraction phase)  
 **Effort**: 5-6 weeks (can parallelize Priority 1 & 2)  
-**Impact**: HIGH - Better testability, data consistency, reduced Prisma knowledge spread  
+**Impact**: HIGH - Better testability, data consistency, reduced Prisma knowledge spread
 
 ---
 
 ### P3.3: Refactor WhatsApp Module
+
 **Current State**: 23 files, 19 providers, excessive coupling
 
 - [ ] **Sub-module 1: Message Templates** (Weeks 6-7)
@@ -260,7 +269,7 @@
 
 **Owner**: [Assign]  
 **Effort**: 4-6 weeks  
-**Impact**: MEDIUM - Easier to maintain, reduce bugs from coupling  
+**Impact**: MEDIUM - Easier to maintain, reduce bugs from coupling
 
 ---
 
@@ -271,6 +280,7 @@
 ## Phase 4: Optimization (Weeks 13-16)
 
 ### P4.1: Query Optimization Pattern
+
 - [ ] Create Query Object pattern
   ```typescript
   // Example: InvoiceQueryBuilder.byClinic(clinicId).unpaid().withPatient()
@@ -285,11 +295,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1-2 weeks  
-**Impact**: MEDIUM - Performance improvements  
+**Impact**: MEDIUM - Performance improvements
 
 ---
 
 ### P4.2: PDF Generator Refactoring
+
 **Current State**: `pdf-generator.service.ts` (1,342 lines, 3 document types)
 
 - [ ] Create Strategy pattern (Week 13)
@@ -310,11 +321,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1.5-2 weeks  
-**Impact**: MEDIUM - Easier to add new document types  
+**Impact**: MEDIUM - Easier to add new document types
 
 ---
 
 ### P4.3: Frontend Organization
+
 - [ ] Reorganize `apps/app/components/` by type
   - [ ] `common/` - Generic, reusable components
   - [ ] `forms/` - Form-specific components
@@ -328,11 +340,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1.5-2 weeks  
-**Impact**: MEDIUM - Easier navigation, reduced duplication  
+**Impact**: MEDIUM - Easier navigation, reduced duplication
 
 ---
 
 ### P4.4: Deep Relative Imports Elimination
+
 - [ ] Audit all `../../../` imports (558 identified)
 - [ ] Strategy:
   - [ ] Create path alias for each domain: `@features/billing`, `@features/patients`
@@ -344,7 +357,7 @@
 
 **Owner**: [Assign]  
 **Effort**: 1-1.5 weeks  
-**Impact**: LOW - Code readability, maintainability  
+**Impact**: LOW - Code readability, maintainability
 
 ---
 
@@ -355,6 +368,7 @@
 ## Phase 5: Polish (Weeks 17-18)
 
 ### P5.1: Magic Numbers to Constants
+
 - [ ] Identify 40+ magic numbers
   - [ ] Search: `grep_search "\b[0-9]+\b"` in service files
   - [ ] Filter constants (page sizes 20, 50; timeouts 5000; retry counts)
@@ -364,11 +378,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 2-3 days  
-**Impact**: LOW - Code clarity  
+**Impact**: LOW - Code clarity
 
 ---
 
 ### P5.2: Technical Debt Triage
+
 - [ ] Collate all TODO/FIXME comments
 - [ ] Create GitHub Issues for each major item
 - [ ] Prioritize by impact/effort
@@ -377,11 +392,12 @@
 
 **Owner**: [Assign]  
 **Effort**: 1-2 days  
-**Impact**: LOW - Housekeeping  
+**Impact**: LOW - Housekeeping
 
 ---
 
 ### P5.3: Documentation & Training
+
 - [ ] Update architecture documentation
 - [ ] Create runbooks for common tasks
 - [ ] Record walkthrough video for new developers
@@ -390,7 +406,7 @@
 
 **Owner**: [Assign]  
 **Effort**: 2-3 days  
-**Impact**: MEDIUM - Team velocity, fewer bugs  
+**Impact**: MEDIUM - Team velocity, fewer bugs
 
 ---
 
@@ -400,22 +416,23 @@
 
 ## Summary: 18-Week Refactoring Roadmap
 
-| Phase | Weeks | Focus | Effort | Parallel Work |
-|-------|-------|-------|--------|------------------|
-| **1** | 1-2 | Foundation (constants, config, security) | 3.5 days | All 3 in parallel |
-| **2** | 3-5 | Type Safety (any types, error handling, tests) | 6 weeks | All 3 in parallel (2 devs) |
-| **3** | 6-12 | Architecture (God Objects, repositories, modules) | 10 weeks | Parallelize: P3.1 + P3.2 (2 devs), P3.3 (1 dev) |
-| **4** | 13-16 | Optimization (queries, UI, imports) | 5-6 weeks | All 4 in parallel |
-| **5** | 17-18 | Polish (constants, TODOs, docs) | 5-7 days | Can parallelize |
-| | | | **28-30 weeks** | **12-16 weeks with 2-3 devs** |
+| Phase | Weeks | Focus                                             | Effort          | Parallel Work                                   |
+| ----- | ----- | ------------------------------------------------- | --------------- | ----------------------------------------------- |
+| **1** | 1-2   | Foundation (constants, config, security)          | 3.5 days        | All 3 in parallel                               |
+| **2** | 3-5   | Type Safety (any types, error handling, tests)    | 6 weeks         | All 3 in parallel (2 devs)                      |
+| **3** | 6-12  | Architecture (God Objects, repositories, modules) | 10 weeks        | Parallelize: P3.1 + P3.2 (2 devs), P3.3 (1 dev) |
+| **4** | 13-16 | Optimization (queries, UI, imports)               | 5-6 weeks       | All 4 in parallel                               |
+| **5** | 17-18 | Polish (constants, TODOs, docs)                   | 5-7 days        | Can parallelize                                 |
+|       |       |                                                   | **28-30 weeks** | **12-16 weeks with 2-3 devs**                   |
 
 ---
 
 ## Parallel Execution Recommendation
 
 ### Team Configuration
+
 - **Developer A**: P3.1 (Subscription refactoring) - 6 weeks
-- **Developer B**: P3.2 (Repository pattern) - 6 weeks  
+- **Developer B**: P3.2 (Repository pattern) - 6 weeks
 - **Developer C**: P1 + P2 + P3.3 (Sequential completion) - 10 weeks
 
 **Result**: 6-week critical path with parallel feature development possible
@@ -441,6 +458,7 @@ After completing all 5 phases:
 ## Risk Mitigation
 
 ### For P3.1 & P3.2 (Critical Architecture Work)
+
 - [ ] Feature flag new repository calls
 - [ ] Dual-write pattern: old service + new repository
 - [ ] Gradual migration service-by-service
@@ -449,6 +467,7 @@ After completing all 5 phases:
 - [ ] Rollback procedures for each phase
 
 ### Conflict Prevention
+
 - [ ] Daily syncs during P3 work
 - [ ] Git workflow: separate git branches per refactoring
 - [ ] Code review requirement: 1 arch team member
@@ -459,12 +478,14 @@ After completing all 5 phases:
 ## Tracking & Reporting
 
 ### Weekly Progress Updates
+
 - Checklist completion status (% done)
 - Blockers and mitigation
-- Team velocity metrics  
+- Team velocity metrics
 - Quality metrics (tests, linting, types)
 
 ### Monthly Milestones
+
 - **After Week 2**: Foundation solid, constants & config centralized
 - **After Week 5**: Type safety, test organization - easier to develop
 - **After Week 12**: Architecture refactoring complete - team agility increases
@@ -488,17 +509,17 @@ After completing this refactoring, enforce:
 
 ## Responsible Parties (to fill in)
 
-| Task | Owner | Backup |
-|------|-------|--------|
-| Phase 1 Coordination | [ ] | [ ] |
-| Phase 2 Type Safety Lead | [ ] | [ ] |
-| Phase 3.1 Subscription Refactoring | [ ] | [ ] |
-| Phase 3.2 Repository Implementation | [ ] | [ ] |
-| Phase 3.3 WhatsApp Reorganization | [ ] | [ ] |
-| Phase 4 Optimization | [ ] | [ ] |
-| Phase 5 polish | [ ] | [ ] |
-| Quality Assurance | [ ] | [ ] |
-| Documentation Update | [ ] | [ ] |
+| Task                                | Owner | Backup |
+| ----------------------------------- | ----- | ------ |
+| Phase 1 Coordination                | [ ]   | [ ]    |
+| Phase 2 Type Safety Lead            | [ ]   | [ ]    |
+| Phase 3.1 Subscription Refactoring  | [ ]   | [ ]    |
+| Phase 3.2 Repository Implementation | [ ]   | [ ]    |
+| Phase 3.3 WhatsApp Reorganization   | [ ]   | [ ]    |
+| Phase 4 Optimization                | [ ]   | [ ]    |
+| Phase 5 polish                      | [ ]   | [ ]    |
+| Quality Assurance                   | [ ]   | [ ]    |
+| Documentation Update                | [ ]   | [ ]    |
 
 ---
 

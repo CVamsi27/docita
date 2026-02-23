@@ -50,12 +50,12 @@ interface ConfirmContextValue {
   alert: (options: AlertOptions) => Promise<void>;
   confirmDelete: (
     itemName: string,
-    options?: Partial<ConfirmOptions>
+    options?: Partial<ConfirmOptions>,
   ) => Promise<boolean>;
   confirmDiscard: (options?: Partial<ConfirmOptions>) => Promise<boolean>;
   confirmAction: (
     action: string,
-    options?: Partial<ConfirmOptions>
+    options?: Partial<ConfirmOptions>,
   ) => Promise<boolean>;
 }
 
@@ -129,7 +129,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
         setPromptError(null);
       });
     },
-    []
+    [],
   );
 
   const handlePromptSubmit = useCallback(() => {
@@ -187,7 +187,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
         ...options,
       });
     },
-    [confirm]
+    [confirm],
   );
 
   const confirmDiscard = useCallback(
@@ -202,7 +202,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
         ...options,
       });
     },
-    [confirm]
+    [confirm],
   );
 
   const confirmAction = useCallback(
@@ -216,7 +216,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
         ...options,
       });
     },
-    [confirm]
+    [confirm],
   );
 
   return (
@@ -295,7 +295,7 @@ interface UseConfirmDialogReturn {
 }
 
 export function useConfirmDialog(
-  options: UseConfirmDialogOptions = {}
+  options: UseConfirmDialogOptions = {},
 ): UseConfirmDialogReturn {
   const [isOpen, setIsOpen] = useState(options.defaultOpen ?? false);
 

@@ -27,7 +27,7 @@ interface AddAppointmentDialogUIProps {
   doctorsLoading: boolean;
   onSubmit: (
     data: CreateAppointmentInput,
-    onSuccess?: () => void
+    onSuccess?: () => void,
   ) => Promise<void>;
   appointmentTypeOptions: SelectOption[];
   patientComboboxOpen: boolean;

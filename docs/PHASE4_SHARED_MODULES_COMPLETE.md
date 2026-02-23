@@ -34,17 +34,17 @@ Provides data access layer abstractions and base repository pattern.
 ### BaseRepository Usage
 
 ```typescript
-import { BaseRepository } from '@workspace/modules/database';
-import { PrismaService } from '@workspace/prisma';
+import { BaseRepository } from "@workspace/modules/database";
+import { PrismaService } from "@workspace/prisma";
 
 @Injectable()
 export class PatientRepository extends BaseRepository<Patient> {
   constructor(private prisma: PrismaService) {
-    super(prisma, 'patient');
+    super(prisma, "patient");
   }
 
   protected getSearchFields(): string[] {
-    return ['firstName', 'lastName', 'email', 'phoneNumber'];
+    return ["firstName", "lastName", "email", "phoneNumber"];
   }
 
   protected getDefaultSelect() {
@@ -72,15 +72,15 @@ export class PatientRepository extends BaseRepository<Patient> {
 ```typescript
 // Offset-based pagination
 const result = await repository.findAll(
-  { clinicId: 'clinic-123' },
-  { page: 1, limit: 20, sortBy: 'created', sortOrder: 'desc' }
+  { clinicId: "clinic-123" },
+  { page: 1, limit: 20, sortBy: "created", sortOrder: "desc" },
 );
 // Returns: { data, total, page, limit, hasMore }
 
 // Cursor-based pagination (better for real-time data)
 const result = await repository.findAllWithCursor(
-  { status: 'ACTIVE' },
-  { limit: 50, cursor: 'patient-id-123' }
+  { status: "ACTIVE" },
+  { limit: 50, cursor: "patient-id-123" },
 );
 // Returns: { data, hasMore, cursor: nextId }
 ```
@@ -109,18 +109,18 @@ Handles JWT authentication, role-based access control, and authorization guards.
 
 ```typescript
 // Protect routes with JWT
-@Controller('patients')
+@Controller("patients")
 @UseGuards(JwtAuthGuard)
 export class PatientsController {
   @Get()
-  @Roles('CLINIC_ADMIN', 'CLINIC_DOCTOR')
+  @Roles("CLINIC_ADMIN", "CLINIC_DOCTOR")
   async listPatients() {
     // Only clinic admins and doctors can list patients
   }
 
-  @Get(':id')
-  @RequireTier('CORE', 'GROWTH', 'SCALE')
-  async getPatient(@Param('id') id: string) {
+  @Get(":id")
+  @RequireTier("CORE", "GROWTH", "SCALE")
+  async getPatient(@Param("id") id: string) {
     // Only clinics on CORE tier or above can access
   }
 }
@@ -161,54 +161,54 @@ Centralized configuration management for the application.
 
 ```typescript
 // Database
-DATABASE_URL: string                    // PostgreSQL connection
-DATABASE_MAX_CONNECTIONS: number        // Connection pool size
+DATABASE_URL: string; // PostgreSQL connection
+DATABASE_MAX_CONNECTIONS: number; // Connection pool size
 
 // JWT
-JWT_SECRET: string                      // Signing secret
-JWT_EXPIRATION: string                  // Token expiry (e.g., '7d')
+JWT_SECRET: string; // Signing secret
+JWT_EXPIRATION: string; // Token expiry (e.g., '7d')
 
 // Redis (Cache & Queue)
-REDIS_HOST: string                      // Redis hostname
-REDIS_PORT: string                      // Redis port
-REDIS_PASSWORD: string                  // Redis password
+REDIS_HOST: string; // Redis hostname
+REDIS_PORT: string; // Redis port
+REDIS_PASSWORD: string; // Redis password
 
 // Payment Gateway
-RAZORPAY_KEY_ID: string                 // Razorpay public key
-RAZORPAY_KEY_SECRET: string             // Razorpay secret key
+RAZORPAY_KEY_ID: string; // Razorpay public key
+RAZORPAY_KEY_SECRET: string; // Razorpay secret key
 
 // Email
-SMTP_HOST: string                       // Email server
-SMTP_PORT: number
-SMTP_USER: string
-SMTP_PASSWORD: string
+SMTP_HOST: string; // Email server
+SMTP_PORT: number;
+SMTP_USER: string;
+SMTP_PASSWORD: string;
 
 // WhatsApp Cloud API
-WHATSAPP_BUSINESS_ACCOUNT_ID: string
-WHATSAPP_PHONE_NUMBER_ID: string
-WHATSAPP_ACCESS_TOKEN: string
-WHATSAPP_WEBHOOK_VERIFY_TOKEN: string
+WHATSAPP_BUSINESS_ACCOUNT_ID: string;
+WHATSAPP_PHONE_NUMBER_ID: string;
+WHATSAPP_ACCESS_TOKEN: string;
+WHATSAPP_WEBHOOK_VERIFY_TOKEN: string;
 
 // AWS
-AWS_REGION: string
-AWS_ACCESS_KEY_ID: string
-AWS_SECRET_ACCESS_KEY: string
-S3_BUCKET_DOCUMENTS: string
-S3_BUCKET_UPLOADS: string
+AWS_REGION: string;
+AWS_ACCESS_KEY_ID: string;
+AWS_SECRET_ACCESS_KEY: string;
+S3_BUCKET_DOCUMENTS: string;
+S3_BUCKET_UPLOADS: string;
 ```
 
 ### Usage
 
 ```typescript
-import { AppConfigurationService } from '@workspace/modules/config';
+import { AppConfigurationService } from "@workspace/modules/config";
 
 @Injectable()
 export class EmailService {
   constructor(private config: AppConfigurationService) {}
 
   async sendEmail() {
-    const smtpHost = this.config.get('SMTP_HOST');
-    const smtpPort = this.config.getNumber('SMTP_PORT');
+    const smtpHost = this.config.get("SMTP_HOST");
+    const smtpPort = this.config.getNumber("SMTP_PORT");
     // Use config values
   }
 }
@@ -236,22 +236,22 @@ Provides custom exception classes and global exception filter.
 
 ```typescript
 // Validation error
-throw new ValidationException('Invalid input', {
-  field: 'email',
-  message: 'Email must be valid',
+throw new ValidationException("Invalid input", {
+  field: "email",
+  message: "Email must be valid",
 });
 
 // Resource not found
-throw new NotFoundException('Patient', 'patient-123');
+throw new NotFoundException("Patient", "patient-123");
 
 // Conflict (e.g., duplicate email)
-throw new ConflictException('Email already exists');
+throw new ConflictException("Email already exists");
 
 // Business logic error
 throw new ApplicationException(
-  'SUBSCRIPTION_EXPIRED',
-  { clinicId, tier: 'GROWTH' },
-  HttpStatus.PAYMENT_REQUIRED
+  "SUBSCRIPTION_EXPIRED",
+  { clinicId, tier: "GROWTH" },
+  HttpStatus.PAYMENT_REQUIRED,
 );
 ```
 
@@ -316,7 +316,10 @@ Builder pattern for generating PDFs (invoices, prescriptions, reports).
 ### Document Builder Usage
 
 ```typescript
-import { InvoiceDocumentBuilder, DocumentGenerationService } from '@workspace/modules/document-generation';
+import {
+  InvoiceDocumentBuilder,
+  DocumentGenerationService,
+} from "@workspace/modules/document-generation";
 
 @Injectable()
 export class InvoiceService {
@@ -328,16 +331,16 @@ export class InvoiceService {
   async generateInvoicePdf(invoiceId: string) {
     const builder = new InvoiceDocumentBuilder();
     const document = builder
-      .setMetadata({ title: 'Invoice', author: 'Clinic' })
-      .addHeader('INVOICE')
+      .setMetadata({ title: "Invoice", author: "Clinic" })
+      .addHeader("INVOICE")
       .addClinicInfo(clinic)
       .addPatientInfo(patient)
       .addInvoiceItems([
-        { description: 'Consultation', amount: 500 },
-        { description: 'Lab Test', amount: 300 },
+        { description: "Consultation", amount: 500 },
+        { description: "Lab Test", amount: 300 },
       ])
       .addTotals({ subtotal: 800, tax: 80, total: 880 })
-      .addNotes('Thank you for choosing our clinic!')
+      .addNotes("Thank you for choosing our clinic!")
       .build();
 
     const pdf = await this.pdfService.render(document);
@@ -366,7 +369,7 @@ Multi-channel notifications (WhatsApp, Email, SMS) with templates.
 ### Channel Usage
 
 ```typescript
-import { NotificationOrchestrator } from '@workspace/modules/messaging';
+import { NotificationOrchestrator } from "@workspace/modules/messaging";
 
 @Injectable()
 export class AppointmentService {
@@ -378,14 +381,14 @@ export class AppointmentService {
 
     // Send multi-channel notification with fallback
     await this.notifications.sendWithFallback(
-      'appointment_confirmation',
+      "appointment_confirmation",
       appointment.patientPhone,
       {
         patientName: appointment.patientName,
         appointmentTime: appointment.dateTime,
         clinicName: appointment.clinicName,
       },
-      ['whatsapp', 'sms', 'email'] // Priority order
+      ["whatsapp", "sms", "email"], // Priority order
     );
   }
 }
@@ -444,27 +447,25 @@ REDIS_PASSWORD=optional
 ### Cache Usage
 
 ```typescript
-import { CacheKeys } from '@workspace/modules/cache';
+import { CacheKeys } from "@workspace/modules/cache";
 
 @Injectable()
 export class UserService {
-  constructor(
-    @Inject('cache') private cache: ICacheProvider,
-  ) {}
+  constructor(@Inject("cache") private cache: ICacheProvider) {}
 
   async getUser(userId: string) {
     const cacheKey = CacheKeys.userById(userId);
-    
+
     // Try cache first
     let user = await this.cache.get<User>(cacheKey);
     if (user) return user;
 
     // Cache miss - fetch from DB
     user = await this.db.user.findUnique({ where: { id: userId } });
-    
+
     // Store in cache for 1 hour (3600 seconds)
     await this.cache.set(cacheKey, user, 3600);
-    
+
     return user;
   }
 
@@ -484,7 +485,7 @@ export class UserService {
   async invalidateClinicCache(clinicId: string) {
     // Invalidate all patients of clinic
     await this.cache.deletePattern(CacheKeys.patientsByClinic(clinicId));
-    
+
     // Invalidate clinic settings
     await this.cache.delete(CacheKeys.clinicSettings(clinicId));
   }
@@ -494,18 +495,18 @@ export class UserService {
 ### Predefined Cache Keys
 
 ```typescript
-CacheKeys.userById(userId)                    // 'user:user-123'
-CacheKeys.userByEmail(email)                  // 'user:email:user@example.com'
-CacheKeys.clinicById(clinicId)                // 'clinic:clinic-123'
-CacheKeys.clinicSettings(clinicId)            // 'clinic:clinic-123:settings'
-CacheKeys.clinicSubscription(clinicId)        // 'clinic:clinic-123:subscription'
-CacheKeys.patientById(patientId)              // 'patient:patient-123'
-CacheKeys.patientsList(clinicId)              // 'patients:clinic-123'
-CacheKeys.appointmentById(appointmentId)      // 'appointment:appt-123'
-CacheKeys.invoiceById(invoiceId)              // 'invoice:inv-123'
-CacheKeys.featureFlag(flag)                   // 'feature:new-ui'
-CacheKeys.rateLimit(identifier, action)       // 'ratelimit:user-123:login'
-CacheKeys.session(sessionId)                  // 'session:sess-123'
+CacheKeys.userById(userId); // 'user:user-123'
+CacheKeys.userByEmail(email); // 'user:email:user@example.com'
+CacheKeys.clinicById(clinicId); // 'clinic:clinic-123'
+CacheKeys.clinicSettings(clinicId); // 'clinic:clinic-123:settings'
+CacheKeys.clinicSubscription(clinicId); // 'clinic:clinic-123:subscription'
+CacheKeys.patientById(patientId); // 'patient:patient-123'
+CacheKeys.patientsList(clinicId); // 'patients:clinic-123'
+CacheKeys.appointmentById(appointmentId); // 'appointment:appt-123'
+CacheKeys.invoiceById(invoiceId); // 'invoice:inv-123'
+CacheKeys.featureFlag(flag); // 'feature:new-ui'
+CacheKeys.rateLimit(identifier, action); // 'ratelimit:user-123:login'
+CacheKeys.session(sessionId); // 'session:sess-123'
 ```
 
 ---
@@ -536,13 +537,11 @@ REDIS_PORT=6379
 ### Queue Usage
 
 ```typescript
-import { JobNames, SendEmailJobData } from '@workspace/modules/queue';
+import { JobNames, SendEmailJobData } from "@workspace/modules/queue";
 
 @Injectable()
 export class EmailService {
-  constructor(
-    @Inject('queue') private queue: IQueueProvider,
-  ) {
+  constructor(@Inject("queue") private queue: IQueueProvider) {
     // Register handler
     this.queue.process(JobNames.SEND_EMAIL, this.handleSendEmail.bind(this));
   }
@@ -551,20 +550,20 @@ export class EmailService {
     // Enqueue email job
     await this.queue.enqueue(
       JobNames.SEND_EMAIL,
-      { to, subject, template: 'email-template', variables: { body } },
+      { to, subject, template: "email-template", variables: { body } },
       {
-        delay: 1000,           // Process after 1 second
-        attempts: 3,           // Retry 3 times on failure
-        backoff: { type: 'exponential', delay: 1000 },
-        priority: 'high',
-        timeout: 30000,        // 30 second timeout
-      }
+        delay: 1000, // Process after 1 second
+        attempts: 3, // Retry 3 times on failure
+        backoff: { type: "exponential", delay: 1000 },
+        priority: "high",
+        timeout: 30000, // 30 second timeout
+      },
     );
   }
 
   private async handleSendEmail(job: QueueJob<SendEmailJobData>) {
     console.log(`Processing email job ${job.id}`);
-    
+
     try {
       // Send actual email
       await this.nodemailer.send({
@@ -572,7 +571,7 @@ export class EmailService {
         subject: job.data.subject,
         // ...
       });
-      
+
       console.log(`Email sent: ${job.id}`);
     } catch (error) {
       console.error(`Email failed: ${error}`);
@@ -590,14 +589,14 @@ export class EmailService {
 ### Predefined Job Names
 
 ```typescript
-JobNames.SEND_EMAIL               // 'send-email'
-JobNames.SEND_SMS                 // 'send-sms'
-JobNames.SEND_WHATSAPP            // 'send-whatsapp'
-JobNames.GENERATE_INVOICE_PDF     // 'generate-invoice-pdf'
-JobNames.SEND_APPOINTMENT_REMINDER // 'send-appointment-reminder'
-JobNames.PROCESS_SUBSCRIPTION_RENEWALS
-JobNames.GENERATE_MONTHLY_REPORTS
-JobNames.DATABASE_BACKUP
+JobNames.SEND_EMAIL; // 'send-email'
+JobNames.SEND_SMS; // 'send-sms'
+JobNames.SEND_WHATSAPP; // 'send-whatsapp'
+JobNames.GENERATE_INVOICE_PDF; // 'generate-invoice-pdf'
+JobNames.SEND_APPOINTMENT_REMINDER; // 'send-appointment-reminder'
+JobNames.PROCESS_SUBSCRIPTION_RENEWALS;
+JobNames.GENERATE_MONTHLY_REPORTS;
+JobNames.DATABASE_BACKUP;
 // ... and more
 ```
 
@@ -619,15 +618,17 @@ Compliance audit logging for all sensitive operations.
 ### Audit Usage
 
 ```typescript
-import { AuditAction } from '@workspace/modules/audit';
+import { AuditAction } from "@workspace/modules/audit";
 
 @Injectable()
 export class UserService {
-  constructor(
-    @Inject('auditLogger') private audit: IAuditLogger,
-  ) {}
+  constructor(@Inject("auditLogger") private audit: IAuditLogger) {}
 
-  async updateUser(userId: string, updates: UpdateUserDto, context: RequestContext) {
+  async updateUser(
+    userId: string,
+    updates: UpdateUserDto,
+    context: RequestContext,
+  ) {
     const before = await this.getUser(userId);
     const after = await this.db.user.update({
       where: { id: userId },
@@ -636,10 +637,10 @@ export class UserService {
 
     // Log the change
     await this.audit.log({
-      userId: context.userId,         // Who made the change
-      clinicId: context.clinicId,     // Which clinic
+      userId: context.userId, // Who made the change
+      clinicId: context.clinicId, // Which clinic
       action: AuditAction.USER_UPDATED,
-      resourceType: 'User',
+      resourceType: "User",
       resourceId: userId,
       changes: {
         name: { before: before.name, after: after.name },
@@ -650,7 +651,7 @@ export class UserService {
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      status: 'success',
+      status: "success",
     });
   }
 
@@ -666,9 +667,9 @@ export class UserService {
       userId: context.userId,
       clinicId: context.clinicId,
       action: AuditAction.USER_PASSWORD_CHANGED,
-      resourceType: 'User',
+      resourceType: "User",
       resourceId: userId,
-      status: 'success',
+      status: "success",
     });
   }
 
@@ -682,22 +683,22 @@ export class UserService {
 
 ```typescript
 // User-related
-AuditAction.USER_LOGIN
-AuditAction.USER_LOGOUT
-AuditAction.USER_CREATED
-AuditAction.USER_UPDATED
-AuditAction.USER_DELETED
-AuditAction.USER_PASSWORD_CHANGED
+AuditAction.USER_LOGIN;
+AuditAction.USER_LOGOUT;
+AuditAction.USER_CREATED;
+AuditAction.USER_UPDATED;
+AuditAction.USER_DELETED;
+AuditAction.USER_PASSWORD_CHANGED;
 
 // Data-related
-AuditAction.PATIENT_CREATED
-AuditAction.PATIENT_UPDATED
-AuditAction.DATA_EXPORT
+AuditAction.PATIENT_CREATED;
+AuditAction.PATIENT_UPDATED;
+AuditAction.DATA_EXPORT;
 
 // Billing-related
-AuditAction.INVOICE_CREATED
-AuditAction.INVOICE_PAID
-AuditAction.REFUND_ISSUED
+AuditAction.INVOICE_CREATED;
+AuditAction.INVOICE_PAID;
+AuditAction.REFUND_ISSUED;
 
 // And 30+ more actions for comprehensive audit coverage
 ```
@@ -714,17 +715,17 @@ export class InvoiceService {
   constructor(
     // Data access
     private invoiceRepo: InvoiceRepository,
-    @Inject('cache') private cache: ICacheProvider,
-    
+    @Inject("cache") private cache: ICacheProvider,
+
     // Document generation
     private documentService: DocumentGenerationService,
-    @Inject('queue') private queue: IQueueProvider,
-    
+    @Inject("queue") private queue: IQueueProvider,
+
     // Notifications
     private notifications: NotificationOrchestrator,
-    
+
     // Audit
-    @Inject('auditLogger') private audit: IAuditLogger,
+    @Inject("auditLogger") private audit: IAuditLogger,
   ) {}
 
   async createInvoice(dto: CreateInvoiceDto, context: RequestContext) {
@@ -742,24 +743,24 @@ export class InvoiceService {
     await this.queue.enqueue(
       JobNames.GENERATE_INVOICE_PDF,
       { invoiceId: invoice.id, clinicId: context.clinicId },
-      { delay: 1000 }
+      { delay: 1000 },
     );
 
     // 4. Queue notifications (async)
-    await this.queue.enqueue(
-      JobNames.SEND_EMAIL,
-      { to: invoice.patientEmail, subject: 'Invoice Ready' }
-    );
+    await this.queue.enqueue(JobNames.SEND_EMAIL, {
+      to: invoice.patientEmail,
+      subject: "Invoice Ready",
+    });
 
     // 5. Log operation for audit trail
     await this.audit.log({
       userId: context.userId,
       clinicId: context.clinicId,
       action: AuditAction.INVOICE_CREATED,
-      resourceType: 'Invoice',
+      resourceType: "Invoice",
       resourceId: invoice.id,
       metadata: { amount: invoice.total },
-      status: 'success',
+      status: "success",
     });
 
     return invoice;
@@ -818,11 +819,11 @@ S3_BUCKET_DOCUMENTS=docita-documents
 ## Testing Shared Modules
 
 ```typescript
-import { Test } from '@nestjs/testing';
-import { CacheModule } from '@workspace/modules/cache';
-import { QueueModule } from '@workspace/modules/queue';
+import { Test } from "@nestjs/testing";
+import { CacheModule } from "@workspace/modules/cache";
+import { QueueModule } from "@workspace/modules/queue";
 
-describe('User Service with Shared Modules', () => {
+describe("User Service with Shared Modules", () => {
   let service: UserService;
   let cache: ICacheProvider;
   let queue: IQueueProvider;
@@ -834,23 +835,23 @@ describe('User Service with Shared Modules', () => {
     }).compile();
 
     service = module.get(UserService);
-    cache = module.get('cache');
-    queue = module.get('queue');
+    cache = module.get("cache");
+    queue = module.get("queue");
 
     // Clear cache before each test
     await cache.clear();
   });
 
-  it('should cache user data', async () => {
-    const user = await service.getUser('user-123');
-    const cached = await cache.get('user:user-123');
-    
+  it("should cache user data", async () => {
+    const user = await service.getUser("user-123");
+    const cached = await cache.get("user:user-123");
+
     expect(cached).toEqual(user);
   });
 
-  it('should queue email notifications', async () => {
+  it("should queue email notifications", async () => {
     await service.createUser(userDto);
-    
+
     const stats = await queue.getStats(JobNames.SEND_EMAIL);
     expect(stats.waiting).toBeGreaterThan(0);
   });

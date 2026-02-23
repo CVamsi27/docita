@@ -28,9 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
-      <body
-        className="font-sans bg-background text-foreground antialiased overflow-x-hidden"
-      >
+      <body className="font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />
         <AuthProvider>

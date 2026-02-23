@@ -2,7 +2,7 @@
  * Subscription Price Value Object
  * Represents pricing in paise (cents) to avoid floating point issues
  * All prices stored as integers (paise)
- * 
+ *
  * @example
  * const price = new SubscriptionPrice(99900); // ₹999.00
  * price.displayAmount(); // "999.00"
@@ -51,9 +51,7 @@ export class SubscriptionPrice {
     if (percentOff < 0 || percentOff > 100) {
       throw new Error('Discount percentage must be between 0 and 100');
     }
-    const discountedPaise = Math.round(
-      this.paise * ((100 - percentOff) / 100),
-    );
+    const discountedPaise = Math.round(this.paise * ((100 - percentOff) / 100));
     return new SubscriptionPrice(discountedPaise);
   }
 
@@ -71,9 +69,7 @@ export class SubscriptionPrice {
     if (daysUsed < 0 || totalCycleDays <= 0) {
       throw new Error('Invalid day values for proration');
     }
-    const proratedPaise = Math.round(
-      this.paise * (daysUsed / totalCycleDays),
-    );
+    const proratedPaise = Math.round(this.paise * (daysUsed / totalCycleDays));
     return new SubscriptionPrice(proratedPaise);
   }
 

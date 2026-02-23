@@ -55,9 +55,7 @@ export function PricingAddon({
     >
       <div
         className={`absolute top-0 right-0 w-24 h-24 bg-linear-to-bl ${
-          iconBgColor === "green"
-            ? "from-green-500/10"
-            : "from-primary/10"
+          iconBgColor === "green" ? "from-green-500/10" : "from-primary/10"
         } to-transparent`}
       />
 

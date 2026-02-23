@@ -156,7 +156,9 @@ const meta = {
 export default meta;
 
 function FormExample() {
-  const form = useForm<{ fullName: string }>({ defaultValues: { fullName: "" } });
+  const form = useForm<{ fullName: string }>({
+    defaultValues: { fullName: "" },
+  });
 
   return (
     <Form {...form}>
@@ -200,7 +202,10 @@ export function CorePrimitives() {
       <Input id="input-demo" placeholder="Type here" />
       <Textarea placeholder="Textarea" />
       <div className="flex items-center gap-4">
-        <Checkbox checked={checked} onCheckedChange={(v) => setChecked(Boolean(v))} />
+        <Checkbox
+          checked={checked}
+          onCheckedChange={(v) => setChecked(Boolean(v))}
+        />
         <Switch checked={switchValue} onCheckedChange={setSwitchValue} />
       </div>
       <Slider value={slider} onValueChange={setSlider} max={100} step={1} />
@@ -215,7 +220,11 @@ export function CorePrimitives() {
           <Label htmlFor="b">Option B</Label>
         </div>
       </RadioGroup>
-      <DebouncedSearchInput value={search} onChange={setSearch} placeholder="Search" />
+      <DebouncedSearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search"
+      />
       <DatePicker value={date} onChange={setDate} />
       <DateTimePicker value={dateTime} onChange={setDateTime} />
       <Separator />
@@ -274,16 +283,27 @@ export function DataDisplayAndLayout() {
         </div>
         <ScrollBar orientation="vertical" />
       </ScrollArea>
-      <ResizablePanelGroup direction="horizontal" className="max-w-lg rounded border min-h-[120px]">
-        <ResizablePanel defaultSize={50} className="p-2">Left panel</ResizablePanel>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="max-w-lg rounded border min-h-[120px]"
+      >
+        <ResizablePanel defaultSize={50} className="p-2">
+          Left panel
+        </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={50} className="p-2">Right panel</ResizablePanel>
+        <ResizablePanel defaultSize={50} className="p-2">
+          Right panel
+        </ResizablePanel>
       </ResizablePanelGroup>
       <FormGrid>
         <Input placeholder="First" />
         <Input placeholder="Second" />
       </FormGrid>
-      <FormSection title="Section" description="Section description" icon={<Activity className="h-4 w-4" />}>
+      <FormSection
+        title="Section"
+        description="Section description"
+        icon={<Activity className="h-4 w-4" />}
+      >
         <Input placeholder="Within section" />
       </FormSection>
       <FormFieldGroup label="Grouped field" hint="Help text">
@@ -325,7 +345,9 @@ export function OverlaysAndMenus() {
             Profile
             <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuCheckboxItem checked>Subscribed</DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Subscribed
+          </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
@@ -456,7 +478,12 @@ export function DialogVariants() {
       >
         <Input placeholder="Name" />
       </CRUDDialog>
-      <FormDialog open={openC} onOpenChange={setOpenC} title="Form dialog" description="Form container">
+      <FormDialog
+        open={openC}
+        onOpenChange={setOpenC}
+        title="Form dialog"
+        description="Form container"
+      >
         <form className="space-y-3">
           <Input placeholder="Field" />
           <FormDialogFooter onCancel={() => setOpenC(false)} />
@@ -480,11 +507,36 @@ export function StatusAndFeedback() {
         <OnlineStatus online label="Doctor online" />
         <Badge className={getStatusColor("info")}>getStatusColor()</Badge>
       </div>
-      <GradientStatCard title="Visits" value={128} icon={Activity} color="primary" subtitle="this week" />
-      <QuickActionCard icon={CalendarIcon} label="Schedule" color="blue" badge={3} />
-      <ProgressStat label="Completion" value="72%" progress={72} description="Weekly target" />
-      <EmptyState icon={Inbox} title="No data" description="Add an entry to continue" />
-      <SectionHeader icon={User} title="Patients" subtitle="Recent updates" action={{ label: "View all", href: "#" }} />
+      <GradientStatCard
+        title="Visits"
+        value={128}
+        icon={Activity}
+        color="primary"
+        subtitle="this week"
+      />
+      <QuickActionCard
+        icon={CalendarIcon}
+        label="Schedule"
+        color="blue"
+        badge={3}
+      />
+      <ProgressStat
+        label="Completion"
+        value="72%"
+        progress={72}
+        description="Weekly target"
+      />
+      <EmptyState
+        icon={Inbox}
+        title="No data"
+        description="Add an entry to continue"
+      />
+      <SectionHeader
+        icon={User}
+        title="Patients"
+        subtitle="Recent updates"
+        action={{ label: "View all", href: "#" }}
+      />
       <LoadingState message="Loading dashboard" />
       <Skeleton className="h-8 w-full" />
       <StatCardSkeleton />
@@ -516,7 +568,9 @@ export function VoiceThemeAndBrand() {
         </TooltipProvider>
         <VoiceRecorder onTranscript={setTranscript} />
         <LiveSpeechToText onTranscript={(text) => setTranscript(text)} />
-        <p className="text-sm text-muted-foreground">Transcript: {transcript || "(none)"}</p>
+        <p className="text-sm text-muted-foreground">
+          Transcript: {transcript || "(none)"}
+        </p>
       </div>
     </ThemeProvider>
   );

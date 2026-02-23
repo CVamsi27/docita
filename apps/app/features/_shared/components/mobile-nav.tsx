@@ -30,7 +30,11 @@ const navItems = [
   { href: "/invoices", icon: Receipt, label: "Invoices" },
   { href: "/inventory", icon: Package, label: "Inventory" },
   { href: "/documents", icon: FileText, label: "Documents" },
-  { href: "/settings?tab=notification-feed", icon: Bell, label: "Notifications" },
+  {
+    href: "/settings?tab=notification-feed",
+    icon: Bell,
+    label: "Notifications",
+  },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -69,7 +73,8 @@ export function MobileNav() {
             <nav className="flex flex-col gap-1 p-4">
               {navItems.map((item) => {
                 const isActive =
-                  (item.href.startsWith("/settings?") && pathname === "/settings") ||
+                  (item.href.startsWith("/settings?") &&
+                    pathname === "/settings") ||
                   pathname === item.href ||
                   pathname.startsWith(`${item.href}/`);
                 return (

@@ -7,6 +7,7 @@
 ## Changes Made
 
 ### New Directory Structure Created
+
 ```
 apps/api/src/
 ├── domains/              [Business domain modules]
@@ -77,6 +78,7 @@ apps/api/src/
 ## Modules Moved to domains/
 
 From `modules/` → `domains/`:
+
 - ✅ analytics
 - ✅ appointments
 - ✅ billing
@@ -104,6 +106,7 @@ From `modules/` → `domains/`:
 ## Modules Moved to shared/modules/
 
 From `modules/` → `shared/modules/`:
+
 - ✅ ai
 - ✅ ai-core
 - ✅ audit
@@ -119,6 +122,7 @@ From `modules/` → `shared/modules/`:
 - ✅ super-admin
 
 From `common/` → `shared/modules/`:
+
 - ✅ abstractions/
 - ✅ builders/
 - ✅ dto/
@@ -133,6 +137,7 @@ From `common/` → `shared/modules/`:
 ## Combined Modules
 
 Multiple related modules combined into single domains:
+
 - **clinical/** ← lab-tests, medical-coding, medications
 - **documents/** ← documents, templates, uploads
 - **messaging/** ← email, whatsapp, notifications
@@ -141,7 +146,9 @@ Multiple related modules combined into single domains:
 ## Remaining Work
 
 ### Phase 1: Update Import Paths (Critical)
+
 All files importing from old `modules/` paths need updating to new paths:
+
 - `./modules/auth/` → `./shared/modules/auth/`
 - `./modules/subscription/` → `./domains/subscription/`
 - `./modules/payments/` → `./domains/payments/`
@@ -149,10 +156,13 @@ All files importing from old `modules/` paths need updating to new paths:
 - etc.
 
 ### Phase 2: Module.ts Updates
+
 Each domain and shared module needs its module.ts updated to reflect new imports and dependencies.
 
 ### Phase 3: Internal Module Structure (Optional - Future DDD Refactor)
+
 Each domain CAN be further organized with DDD layers:
+
 ```
 domains/billing/
 ├── core/          [Entity, value-objects, domain services]
@@ -160,13 +170,17 @@ domains/billing/
 ├── infrastructure/[Repository implementations, external services]
 └── presentation/  [Controllers, schemas, middleware]
 ```
+
 This requires deeper refactoring beyond file moves.
 
 ## Build Status
+
 ⚠️ TypeScript compilation will fail until import paths are updated throughout the codebase.
 
 ## Files to Update (Summary)
+
 Estimated 100+ files need import path updates:
+
 - `app.module.ts` (primary imports)
 - All service files importing from other domains/modules
 - All controller files
@@ -175,12 +189,14 @@ Estimated 100+ files need import path updates:
 - Test files
 
 ## Next Steps
+
 1. Run a codemod or script to update import paths (`./modules/X` → `./domains/X` or `./shared/modules/X`)
 2. Update all module exports and re-exports
 3. Test build completion
 4. Validate runtime behavior
 
 ## Rollback Instructions
+
 ```bash
 git checkout -- apps/api/src/
 ```

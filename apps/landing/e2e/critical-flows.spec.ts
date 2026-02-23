@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * LANDING PAGE - CRITICAL FLOWS TEST SUITE
- * 
+ *
  * Tests public landing page functionality:
  * 1. Page loads and renders correctly
  * 2. Navigation works
@@ -15,7 +15,9 @@ import { expect, test } from "@playwright/test";
 const LANDING_URL = "http://127.0.0.1:3003";
 
 test.describe("Landing Page - Critical Flows", () => {
-  test("LANDING FLOW 1: Home Page - Load, Navigation, CTA", async ({ page }) => {
+  test("LANDING FLOW 1: Home Page - Load, Navigation, CTA", async ({
+    page,
+  }) => {
     /**
      * Tests home page:
      * 1. Page loads without errors
@@ -61,7 +63,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] Step 3: Navigation menu found (${linkCount} links)`);
 
     // Step 5: Check CTA buttons
-    const ctaButtons = await page.locator("a:has-text('Get Started'), button:has-text('Get Started'), a:has-text('Sign Up'), button:has-text('Sign Up')");
+    const ctaButtons = await page.locator(
+      "a:has-text('Get Started'), button:has-text('Get Started'), a:has-text('Sign Up'), button:has-text('Sign Up')",
+    );
     const ctaCount = await ctaButtons.count();
     if (ctaCount > 0) {
       await expect(ctaButtons.first()).toBeVisible();
@@ -77,7 +81,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] LANDING FLOW 1 COMPLETE: Home page functional`);
   });
 
-  test("🔗 LANDING FLOW 2: Navigation - All Pages Accessible", async ({ page }) => {
+  test("🔗 LANDING FLOW 2: Navigation - All Pages Accessible", async ({
+    page,
+  }) => {
     /**
      * Tests navigation to all public pages:
      * 1. Features page accessible
@@ -100,7 +106,9 @@ test.describe("Landing Page - Critical Flows", () => {
       });
 
       expect(response?.status()).toBeLessThan(400);
-      console.log(`[OK] ${pageConfig.name} page accessible (status: ${response?.status()})`);
+      console.log(
+        `[OK] ${pageConfig.name} page accessible (status: ${response?.status()})`,
+      );
 
       // Verify page has content
       const body = await page.locator("body");
@@ -111,7 +119,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] LANDING FLOW 2 COMPLETE: All pages accessible`);
   });
 
-  test("📝 LANDING FLOW 3: Forms - Signup & Contact Forms Work", async ({ page }) => {
+  test("📝 LANDING FLOW 3: Forms - Signup & Contact Forms Work", async ({
+    page,
+  }) => {
     /**
      * Tests form functionality:
      * 1. Signup form renders
@@ -126,7 +136,11 @@ test.describe("Landing Page - Critical Flows", () => {
     const signupForm = await page.locator("form, [role='form']").first();
     if (signupForm) {
       // Check for email field
-      const emailInput = await page.locator("input[type='email'], input[name*='email'], input[placeholder*='email']").first();
+      const emailInput = await page
+        .locator(
+          "input[type='email'], input[name*='email'], input[placeholder*='email']",
+        )
+        .first();
       if (emailInput) {
         console.log(`[OK] Step 1: Signup form found with email input`);
 
@@ -145,11 +159,11 @@ test.describe("Landing Page - Critical Flows", () => {
     const phoneNumber = await page.locator("a[href^='tel:']");
     const email = await page.locator("a[href^='mailto:']");
 
-    if (await phoneNumber.count() > 0) {
+    if ((await phoneNumber.count()) > 0) {
       console.log(`[OK] Step 3: Phone number contact available`);
     }
 
-    if (await email.count() > 0) {
+    if ((await email.count()) > 0) {
       console.log(`[OK] Step 4: Email contact available`);
     }
 
@@ -185,7 +199,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] LANDING FLOW 4 COMPLETE: Performance acceptable`);
   });
 
-  test("🔍 LANDING FLOW 5: SEO & Meta Tags - Pages Properly Configured", async ({ page }) => {
+  test("🔍 LANDING FLOW 5: SEO & Meta Tags - Pages Properly Configured", async ({
+    page,
+  }) => {
     /**
      * Tests SEO configuration:
      * 1. Pages have proper titles
@@ -202,7 +218,9 @@ test.describe("Landing Page - Critical Flows", () => {
     ];
 
     for (const pageConfig of pageChecks) {
-      await page.goto(`${LANDING_URL}${pageConfig.path}`, { waitUntil: "networkidle2" });
+      await page.goto(`${LANDING_URL}${pageConfig.path}`, {
+        waitUntil: "networkidle2",
+      });
 
       // Check page title
       const title = await page.title();
@@ -215,15 +233,19 @@ test.describe("Landing Page - Critical Flows", () => {
 
       // Check for og:title (social sharing)
       const ogTitle = await page.locator('meta[property="og:title"]');
-      const hasOgTitle = await ogTitle.count() > 0;
+      const hasOgTitle = (await ogTitle.count()) > 0;
 
-      console.log(`[OK] ${pageConfig.path}: Title="${title}", Meta description present, OG tags=${hasOgTitle}`);
+      console.log(
+        `[OK] ${pageConfig.path}: Title="${title}", Meta description present, OG tags=${hasOgTitle}`,
+      );
     }
 
     console.log(`[OK] LANDING FLOW 5 COMPLETE: SEO configuration verified`);
   });
 
-  test("🎯 LANDING FLOW 6: Responsive Design - Mobile Compatibility", async ({ page }) => {
+  test("🎯 LANDING FLOW 6: Responsive Design - Mobile Compatibility", async ({
+    page,
+  }) => {
     /**
      * Tests responsive design:
      * 1. Mobile viewport renders correctly
@@ -240,8 +262,10 @@ test.describe("Landing Page - Critical Flows", () => {
     await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
 
     // Check for mobile menu
-    const hamburger = await page.locator("button[aria-label*='menu'], .hamburger, [class*='mobile-menu']").first();
-    const hasHamburger = await hamburger.count() > 0;
+    const hamburger = await page
+      .locator("button[aria-label*='menu'], .hamburger, [class*='mobile-menu']")
+      .first();
+    const hasHamburger = (await hamburger.count()) > 0;
 
     if (hasHamburger) {
       console.log(`[OK] Mobile menu (hamburger) found`);
@@ -275,7 +299,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] LANDING FLOW 6 COMPLETE: Responsive design verified`);
   });
 
-  test("🔐 LANDING FLOW 7: Security - No Sensitive Data Exposed", async ({ page }) => {
+  test("🔐 LANDING FLOW 7: Security - No Sensitive Data Exposed", async ({
+    page,
+  }) => {
     /**
      * Tests security aspects:
      * 1. No API keys in network requests
@@ -292,7 +318,11 @@ test.describe("Landing Page - Critical Flows", () => {
       requests.push(url);
 
       // Check for suspicious patterns
-      if (url.includes("api_key=") || url.includes("token=") || url.includes("password=")) {
+      if (
+        url.includes("api_key=") ||
+        url.includes("token=") ||
+        url.includes("password=")
+      ) {
         console.log(`[WARN] Potential exposed credential in URL: ${url}`);
       }
     });
@@ -321,7 +351,9 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] LANDING FLOW 7 COMPLETE: Security verified`);
   });
 
-  test("💬 LANDING FLOW 8: CTA Journey - Home → Feature → Pricing → Signup", async ({ page }) => {
+  test("💬 LANDING FLOW 8: CTA Journey - Home → Feature → Pricing → Signup", async ({
+    page,
+  }) => {
     /**
      * Tests complete user journey:
      * 1. Start at home
@@ -335,24 +367,32 @@ test.describe("Landing Page - Critical Flows", () => {
     console.log(`[OK] Step 1: User lands on home page`);
 
     // Step 2: Navigate to features
-    const featuresLink = await page.locator("a:has-text('Features'), a[href*='/features']").first();
-    if (await featuresLink.count() > 0) {
+    const featuresLink = await page
+      .locator("a:has-text('Features'), a[href*='/features']")
+      .first();
+    if ((await featuresLink.count()) > 0) {
       await featuresLink.click();
       await page.waitForURL(`**/features`);
       console.log(`[OK] Step 2: User navigates to features`);
     }
 
     // Step 3: Navigate to pricing
-    const pricingLink = await page.locator("a:has-text('Pricing'), a[href*='/pricing']").first();
-    if (await pricingLink.count() > 0) {
+    const pricingLink = await page
+      .locator("a:has-text('Pricing'), a[href*='/pricing']")
+      .first();
+    if ((await pricingLink.count()) > 0) {
       await pricingLink.click();
       await page.waitForURL(`**/pricing`);
       console.log(`[OK] Step 3: User navigates to pricing`);
     }
 
     // Step 4: Find and click signup/CTA
-    const ctaButton = await page.locator("a:has-text('Get Started'), button:has-text('Sign Up'), a:has-text('Start Free Trial')").first();
-    if (await ctaButton.count() > 0) {
+    const ctaButton = await page
+      .locator(
+        "a:has-text('Get Started'), button:has-text('Sign Up'), a:has-text('Start Free Trial')",
+      )
+      .first();
+    if ((await ctaButton.count()) > 0) {
       const href = await ctaButton.getAttribute("href");
       console.log(`[OK] Step 4: CTA found, points to: ${href}`);
     }
@@ -361,6 +401,8 @@ test.describe("Landing Page - Critical Flows", () => {
   });
 
   test.afterAll(async () => {
-    console.log(`\n[OK] All landing page critical flows completed successfully!\n`);
+    console.log(
+      `\n[OK] All landing page critical flows completed successfully!\n`,
+    );
   });
 });

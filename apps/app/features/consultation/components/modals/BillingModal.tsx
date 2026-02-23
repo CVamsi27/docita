@@ -38,14 +38,14 @@ export function BillingModal({
     { description: "Consultation Fee", quantity: 1, price: 50 },
   ]);
   const [dueDate, setDueDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
 
   // New fields for Tax, Discount, Payment Mode
   const [taxRate, setTaxRate] = useState<number>(0);
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [discountType, setDiscountType] = useState<"PERCENTAGE" | "AMOUNT">(
-    "AMOUNT"
+    "AMOUNT",
   );
   const [paymentMode, setPaymentMode] = useState<string>("CASH");
 
@@ -55,7 +55,7 @@ export function BillingModal({
   const calculations = useMemo(() => {
     const subtotal = items.reduce(
       (sum, item) => sum + item.quantity * item.price,
-      0
+      0,
     );
 
     const taxAmount = subtotal * (taxRate / 100);
@@ -132,7 +132,7 @@ export function BillingModal({
   const updateItem = (
     index: number,
     field: keyof LineItem,
-    value: string | number
+    value: string | number,
   ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
@@ -198,7 +198,7 @@ export function BillingModal({
                       updateItem(
                         index,
                         "quantity",
-                        parseInt(e.target.value) || 1
+                        parseInt(e.target.value) || 1,
                       )
                     }
                     className="h-9"
@@ -214,7 +214,7 @@ export function BillingModal({
                       updateItem(
                         index,
                         "price",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     className="h-9"

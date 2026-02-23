@@ -1,16 +1,16 @@
 /**
  * Queue Module
- * 
+ *
  * Provides job queue abstraction with two implementations:
  * - InMemoryQueueService: For development (no persistence)
  * - BullMQQueueService: For production (Redis-backed)
- * 
+ *
  * Usage:
  * 1. Import QueueModule in your feature module
  * 2. Inject IQueueProvider into your service
  * 3. Use queue.enqueue() to add jobs
  * 4. Register handlers with queue.process()
- * 
+ *
  * Example:
  * @Injectable()
  * export class EmailService {

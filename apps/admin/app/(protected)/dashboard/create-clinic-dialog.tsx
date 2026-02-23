@@ -253,10 +253,15 @@ export function CreateClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.name}
-                  aria-describedby={fieldErrors.name ? "create-clinic-name-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.name ? "create-clinic-name-error" : undefined
+                  }
                 />
                 {fieldErrors.name && (
-                  <p id="create-clinic-name-error" className="text-sm text-destructive">
+                  <p
+                    id="create-clinic-name-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.name}
                   </p>
                 )}
@@ -274,10 +279,15 @@ export function CreateClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.email}
-                  aria-describedby={fieldErrors.email ? "create-clinic-email-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.email ? "create-clinic-email-error" : undefined
+                  }
                 />
                 {fieldErrors.email && (
-                  <p id="create-clinic-email-error" className="text-sm text-destructive">
+                  <p
+                    id="create-clinic-email-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.email}
                   </p>
                 )}
@@ -296,10 +306,15 @@ export function CreateClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.phone}
-                  aria-describedby={fieldErrors.phone ? "create-clinic-phone-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.phone ? "create-clinic-phone-error" : undefined
+                  }
                 />
                 {fieldErrors.phone && (
-                  <p id="create-clinic-phone-error" className="text-sm text-destructive">
+                  <p
+                    id="create-clinic-phone-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.phone}
                   </p>
                 )}
@@ -363,10 +378,17 @@ export function CreateClinicDialog({
                   }
                 }}
                 aria-invalid={!!fieldErrors.address}
-                aria-describedby={fieldErrors.address ? "create-clinic-address-error" : undefined}
+                aria-describedby={
+                  fieldErrors.address
+                    ? "create-clinic-address-error"
+                    : undefined
+                }
               />
               {fieldErrors.address && (
-                <p id="create-clinic-address-error" className="text-sm text-destructive">
+                <p
+                  id="create-clinic-address-error"
+                  className="text-sm text-destructive"
+                >
                   {fieldErrors.address}
                 </p>
               )}
@@ -394,7 +416,9 @@ export function CreateClinicDialog({
                   }}
                   aria-invalid={!!fieldErrors.adminName}
                   aria-describedby={
-                    fieldErrors.adminName ? "create-clinic-admin-name-error" : undefined
+                    fieldErrors.adminName
+                      ? "create-clinic-admin-name-error"
+                      : undefined
                   }
                 />
                 {fieldErrors.adminName && (
@@ -423,7 +447,9 @@ export function CreateClinicDialog({
                   }}
                   aria-invalid={!!fieldErrors.adminEmail}
                   aria-describedby={
-                    fieldErrors.adminEmail ? "create-clinic-admin-email-error" : undefined
+                    fieldErrors.adminEmail
+                      ? "create-clinic-admin-email-error"
+                      : undefined
                   }
                 />
                 {fieldErrors.adminEmail && (

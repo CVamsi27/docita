@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { MessageSquare, Sparkles } from "lucide-react";
 import { PricingTierCard } from "@/components/pricing/pricing-tier-card";
 import { PricingAddon } from "@/components/pricing/pricing-addon";
-import { detectCurrencyFromTimezone, getCurrencyInfo } from "@/components/pricing/pricing-utils";
+import {
+  detectCurrencyFromTimezone,
+  getCurrencyInfo,
+} from "@/components/pricing/pricing-utils";
 import { useTierConfig } from "@/app/hooks/use-tier-config";
 import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";
 
@@ -12,7 +15,7 @@ export function PricingSection() {
   const [detectedCurrency, setDetectedCurrency] = useState("USD");
   const [isHydrated, setIsHydrated] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
-    "monthly"
+    "monthly",
   );
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
@@ -229,11 +232,26 @@ export function PricingSection() {
               price="+₹499"
               priceNote="(from Core tier)"
               features={[
-                { label: "500+ messages included", icon: <MessageSquare className="h-3 w-3" /> },
-                { label: "Appointment reminders", icon: <MessageSquare className="h-3 w-3" /> },
-                { label: "Prescription sharing", icon: <MessageSquare className="h-3 w-3" /> },
-                { label: "Two-way messaging", icon: <MessageSquare className="h-3 w-3" /> },
-                { label: "₹0.50/extra message", icon: <MessageSquare className="h-3 w-3" /> },
+                {
+                  label: "500+ messages included",
+                  icon: <MessageSquare className="h-3 w-3" />,
+                },
+                {
+                  label: "Appointment reminders",
+                  icon: <MessageSquare className="h-3 w-3" />,
+                },
+                {
+                  label: "Prescription sharing",
+                  icon: <MessageSquare className="h-3 w-3" />,
+                },
+                {
+                  label: "Two-way messaging",
+                  icon: <MessageSquare className="h-3 w-3" />,
+                },
+                {
+                  label: "₹0.50/extra message",
+                  icon: <MessageSquare className="h-3 w-3" />,
+                },
               ]}
               iconBgColor="green"
             />
@@ -245,11 +263,26 @@ export function PricingSection() {
               price={`+${formatPrice("INTELLIGENCE")}`}
               priceNote="(from Core tier)"
               features={[
-                { label: "500+ AI credits included", icon: <Sparkles className="h-3 w-3" /> },
-                { label: "AI-assisted clinical notes", icon: <Sparkles className="h-3 w-3" /> },
-                { label: "Smart prescriptions", icon: <Sparkles className="h-3 w-3" /> },
-                { label: "Voice-to-text dictation", icon: <Sparkles className="h-3 w-3" /> },
-                { label: "Predictive analytics", icon: <Sparkles className="h-3 w-3" /> },
+                {
+                  label: "500+ AI credits included",
+                  icon: <Sparkles className="h-3 w-3" />,
+                },
+                {
+                  label: "AI-assisted clinical notes",
+                  icon: <Sparkles className="h-3 w-3" />,
+                },
+                {
+                  label: "Smart prescriptions",
+                  icon: <Sparkles className="h-3 w-3" />,
+                },
+                {
+                  label: "Voice-to-text dictation",
+                  icon: <Sparkles className="h-3 w-3" />,
+                },
+                {
+                  label: "Predictive analytics",
+                  icon: <Sparkles className="h-3 w-3" />,
+                },
               ]}
               iconBgColor="primary"
             />

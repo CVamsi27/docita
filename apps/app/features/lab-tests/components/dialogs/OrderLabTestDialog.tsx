@@ -112,7 +112,7 @@ export function OrderLabTestDialog({
                           aria-expanded={patientComboboxOpen}
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {selectedPatient
@@ -162,7 +162,7 @@ export function OrderLabTestDialog({
                                       "mr-2 h-4 w-4",
                                       field.value === patient.id
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <div className="flex flex-col">
@@ -208,7 +208,7 @@ export function OrderLabTestDialog({
                           aria-expanded={testComboboxOpen}
                           className={cn(
                             "w-full justify-between",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {selectedTest
@@ -244,7 +244,7 @@ export function OrderLabTestDialog({
                                 .filter((test: LabTest) =>
                                   test.name
                                     .toLowerCase()
-                                    .includes(testSearch.toLowerCase())
+                                    .includes(testSearch.toLowerCase()),
                                 )
                                 .map((test: LabTest) => (
                                   <div
@@ -260,7 +260,7 @@ export function OrderLabTestDialog({
                                         "mr-2 h-4 w-4",
                                         field.value === test.id
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <div className="flex flex-col flex-1">

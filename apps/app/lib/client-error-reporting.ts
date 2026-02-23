@@ -31,7 +31,9 @@ const normalizeErrorMessage = (error: unknown): string => {
   }
 };
 
-export const reportClientError = async (payload: ClientErrorPayload): Promise<void> => {
+export const reportClientError = async (
+  payload: ClientErrorPayload,
+): Promise<void> => {
   if (typeof window === "undefined") {
     return;
   }

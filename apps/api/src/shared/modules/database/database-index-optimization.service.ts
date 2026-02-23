@@ -39,17 +39,19 @@ export class DatabaseIndexOptimizationService {
    */
   async analyzeAllIndexes(): Promise<IndexAnalysis[]> {
     try {
-      const result = await this.prisma.$queryRaw<Array<{
-        tablename: string;
-        indexname: string;
-        is_primary: boolean;
-        is_unique: boolean;
-        index_type: string;
-        index_size: string;
-        scan_count: number;
-        tuple_read: number;
-        tuple_fetched: number;
-      }>>(Prisma.sql`
+      const result = await this.prisma.$queryRaw<
+        Array<{
+          tablename: string;
+          indexname: string;
+          is_primary: boolean;
+          is_unique: boolean;
+          index_type: string;
+          index_size: string;
+          scan_count: number;
+          tuple_read: number;
+          tuple_fetched: number;
+        }>
+      >(Prisma.sql`
         SELECT
           t.tablename,
           i.indexname,
@@ -109,13 +111,15 @@ export class DatabaseIndexOptimizationService {
    */
   async findMissingIndexes(): Promise<MissingIndexRecommendation[]> {
     try {
-      const result = await this.prisma.$queryRaw<Array<{
-        schemaname: string;
-        tablename: string;
-        attname: string;
-        n_distinct: number;
-        correlation: number;
-      }>>(Prisma.sql`
+      const result = await this.prisma.$queryRaw<
+        Array<{
+          schemaname: string;
+          tablename: string;
+          attname: string;
+          n_distinct: number;
+          correlation: number;
+        }>
+      >(Prisma.sql`
         SELECT
           schemaname,
           tablename,
@@ -152,11 +156,13 @@ export class DatabaseIndexOptimizationService {
     Array<{ tableName: string; indexName: string; bloatPercent: number }>
   > {
     try {
-      const result = await this.prisma.$queryRaw<Array<{
-        tablename: string;
-        indexname: string;
-        bloat_percent: string;
-      }>>(Prisma.sql`
+      const result = await this.prisma.$queryRaw<
+        Array<{
+          tablename: string;
+          indexname: string;
+          bloat_percent: string;
+        }>
+      >(Prisma.sql`
         SELECT
           t.relname AS tablename,
           i.relname AS indexname,

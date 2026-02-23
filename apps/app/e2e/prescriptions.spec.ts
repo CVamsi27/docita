@@ -26,7 +26,11 @@ test.describe("Prescriptions", () => {
       });
 
       if (!registerRes.ok()) {
-        console.log("Doctor registration failed", registerRes.status(), await registerRes.text());
+        console.log(
+          "Doctor registration failed",
+          registerRes.status(),
+          await registerRes.text(),
+        );
         prescriptionEndpointAvailable = false;
         return;
       }
@@ -43,7 +47,7 @@ test.describe("Prescriptions", () => {
           email: `clinic${Date.now()}@test.com`,
           phone: "1234567890",
           address: "123 Test St",
-            tier: "PRO",
+          tier: "PRO",
         },
       });
 
@@ -94,7 +98,7 @@ test.describe("Prescriptions", () => {
           lastName: `Patient${Date.now()}`,
           dateOfBirth: "1990-01-01",
           gender: "MALE",
-          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, '0'),
+          phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, "0"),
         },
       });
       if (patientRes.ok()) {
@@ -125,8 +129,15 @@ test.describe("Prescriptions", () => {
               appointmentId: appointmentId,
               patientId,
               doctorId,
-              medications: [{ name: "Test Med", dosage: "500mg", frequency: "QD", duration: "7 days" }]
-            }
+              medications: [
+                {
+                  name: "Test Med",
+                  dosage: "500mg",
+                  frequency: "QD",
+                  duration: "7 days",
+                },
+              ],
+            },
           });
 
           if (!presRes.ok()) {
@@ -202,7 +213,7 @@ test.describe("Prescriptions", () => {
       console.log("Appointment creation failed for test:", apptRes.status());
       test.skip();
     }
-    
+
     // Use the fresh appointment ID
     const specificAppointmentId = (await apptRes.json()).id;
 
@@ -337,7 +348,10 @@ test.describe("Prescriptions", () => {
     // And existing tests use ({ request }). To add UI tests I should use ({ page }).
   });
 
-  test("should navigate to prescription details", async ({ page, request: requestContext }) => {
+  test("should navigate to prescription details", async ({
+    page,
+    request: requestContext,
+  }) => {
     // Only run if setup was successful
     if (!prescriptionEndpointAvailable) test.skip();
 
@@ -359,76 +373,100 @@ test.describe("Prescriptions", () => {
         type: "consultation",
       },
     });
-    
+
     // Check if appointment creation failed
     if (!apptRes.ok()) {
-       console.log("Failed to create appointment for nav test", await apptRes.text());
-       // Try to proceed anyway if there is existing data
+      console.log(
+        "Failed to create appointment for nav test",
+        await apptRes.text(),
+      );
+      // Try to proceed anyway if there is existing data
     } else {
-        const appt = await apptRes.json();
-        await requestContext.post(`${API_URL}/prescriptions`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-          data: {
-            appointmentId: appt.id,
-            diagnosis: "Test Diagnosis for Nav",
-            medications: [{ name: "Test Med", dosage: "10mg", frequency: "daily", duration: "7 days" }]
-          },
-        });
+      const appt = await apptRes.json();
+      await requestContext.post(`${API_URL}/prescriptions`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: {
+          appointmentId: appt.id,
+          diagnosis: "Test Diagnosis for Nav",
+          medications: [
+            {
+              name: "Test Med",
+              dosage: "10mg",
+              frequency: "daily",
+              duration: "7 days",
+            },
+          ],
+        },
+      });
     }
 
     // 2. Inject Auth & Clinic Data
-    await page.addInitScript(({ token, uid, cid }) => {
-      localStorage.setItem("docita_token", token);
-      localStorage.setItem("docita_user", JSON.stringify({
-        id: uid,
-        clinicId: cid,
-        role: "DOCTOR"
-      }));
-      localStorage.setItem("selectedClinicId", cid);
-      localStorage.setItem("selectedClinic", JSON.stringify({
-        id: cid,
-        name: "Test Clinic",
-        tier: "PRO",
-        type: "GENERAL"
-      }));
-    }, { token: authToken, uid: doctorId, cid: _clinicId });
+    await page.addInitScript(
+      ({ token, uid, cid }) => {
+        localStorage.setItem("docita_token", token);
+        localStorage.setItem(
+          "docita_user",
+          JSON.stringify({
+            id: uid,
+            clinicId: cid,
+            role: "DOCTOR",
+          }),
+        );
+        localStorage.setItem("selectedClinicId", cid);
+        localStorage.setItem(
+          "selectedClinic",
+          JSON.stringify({
+            id: cid,
+            name: "Test Clinic",
+            tier: "PRO",
+            type: "GENERAL",
+          }),
+        );
+      },
+      { token: authToken, uid: doctorId, cid: _clinicId },
+    );
 
     // 3. Navigate
     await page.goto("/prescriptions", { waitUntil: "networkidle" });
-    
+
     // 4. Debugging: Check where we are
     const url = page.url();
     console.log("Current URL:", url);
-    
+
     // Check if redirected to login
     if (url.includes("/login")) {
-        console.error("Redirected to login! Auth injection failed.");
-        // Try to recover or fail with clear message
-        // await page.getByLabel("Email").fill(...) // We could try manual login here but that needs credentials
+      console.error("Redirected to login! Auth injection failed.");
+      // Try to recover or fail with clear message
+      // await page.getByLabel("Email").fill(...) // We could try manual login here but that needs credentials
     }
 
     // 5. Wait for table
-    const table = page.locator('table tbody');
+    const table = page.locator("table tbody");
     await expect(table).toBeVisible({ timeout: 15000 });
-    
+
     // 6. Navigate to details
-    const row = table.locator('tr').first();
+    const row = table.locator("tr").first();
     await expect(row).toBeVisible();
-    
+
     // Try to find a view button or clickable row
     const viewButton = row.locator('a[href*="/prescriptions/"]').first();
-    
+
     // If specific view button/link exists
-    if (await viewButton.count() > 0 && await viewButton.isVisible()) {
-        await viewButton.click();
+    if ((await viewButton.count()) > 0 && (await viewButton.isVisible())) {
+      await viewButton.click();
     } else {
-        // Fallback: click the row
-        await row.click();
+      // Fallback: click the row
+      await row.click();
     }
-    
+
     await expect(page).toHaveURL(/\/prescriptions\//, { timeout: 10000 });
-    
+
     // Relaxed assertion to avoid strict mode violation on "Prescription"
-    await expect(page.locator('h1, h2, h3').filter({ hasText: /Prescription/ }).first()).toBeVisible({ timeout: 15000 });
+    await expect(
+      page
+        .locator("h1, h2, h3")
+        .filter({ hasText: /Prescription/ })
+        .first(),
+    ).toBeVisible({ timeout: 15000 });
   });
 });

@@ -38,9 +38,7 @@ export function useAppointmentForm({
     });
 
   // Fetch preselected patient separately to ensure it's available
-  const { data: preselectedPatient } = usePatient(
-    preselectedPatientId || "",
-  );
+  const { data: preselectedPatient } = usePatient(preselectedPatientId || "");
 
   // Combine preselected patient with search results, avoiding duplicates
   const patients = useMemo(() => {
@@ -59,8 +57,7 @@ export function useAppointmentForm({
 
   // Track if we've auto-selected a single patient
   const lastSinglePatientIdRef = useRef<string | null>(null);
-  const { data: doctors = [], isLoading: doctorsLoading } =
-    useDoctors();
+  const { data: doctors = [], isLoading: doctorsLoading } = useDoctors();
 
   // API now returns strictly doctors, so no need to filter manually
   const filteredDoctors = doctors;
@@ -204,7 +201,7 @@ export function useAppointmentForm({
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
             data.endTime ||
-            new Date(new Date(data.startTime).getTime() + durationMs),
+              new Date(new Date(data.startTime).getTime() + durationMs),
           ).toISOString(),
         });
 

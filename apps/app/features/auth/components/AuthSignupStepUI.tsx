@@ -4,7 +4,13 @@ import { FormField } from "@/components/form-field";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { BackEmailField, fieldClass, getFieldError, hasFieldError, InlineFieldError } from "./AuthSharedFields";
+import {
+  BackEmailField,
+  fieldClass,
+  getFieldError,
+  hasFieldError,
+  InlineFieldError,
+} from "./AuthSharedFields";
 import type { FieldErrors } from "../types/auth";
 
 interface SignupStepProps {
@@ -75,7 +81,11 @@ export function AuthSignupStepUI({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Registering a new clinic? Complete onboarding at <a href="/onboarding" className="underline">/onboarding</a> to accept SLA, choose plan/add-ons, and configure billing.
+        Registering a new clinic? Complete onboarding at{" "}
+        <a href="/onboarding" className="underline">
+          /onboarding
+        </a>{" "}
+        to accept SLA, choose plan/add-ons, and configure billing.
       </p>
 
       <div className="space-y-2">
@@ -121,13 +131,15 @@ export function AuthSignupStepUI({
         )}
         {!hasFieldError(fieldErrors, "password") && (
           <p className="text-xs text-muted-foreground">
-            Must be 8+ characters with uppercase, lowercase, number, and
-            special character
+            Must be 8+ characters with uppercase, lowercase, number, and special
+            character
           </p>
         )}
       </div>
 
-      {!Object.keys(fieldErrors).length && error && <ErrorBanner message={error} />}
+      {!Object.keys(fieldErrors).length && error && (
+        <ErrorBanner message={error} />
+      )}
 
       <Button
         type="submit"

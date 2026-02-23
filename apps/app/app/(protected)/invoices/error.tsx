@@ -24,7 +24,8 @@ export default function InvoicesError({
         </div>
         <h2 className="mb-2 text-xl font-semibold">Error loading invoices</h2>
         <p className="mb-6 text-muted-foreground">
-          Invoice data is unavailable right now. Please retry or return to the dashboard.
+          Invoice data is unavailable right now. Please retry or return to the
+          dashboard.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>

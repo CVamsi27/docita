@@ -36,7 +36,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Glucose (mg/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_glucose")
+                    getScore("labValues_glucose"),
                   )}
                 />
               </div>
@@ -59,7 +59,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Hemoglobin (g/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_hemoglobin")
+                    getScore("labValues_hemoglobin"),
                   )}
                 />
               </div>
@@ -82,7 +82,7 @@ export const OCRLabValues = ({
                 <Label className="text-xs">Creatinine (mg/dL)</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("labValues_creatinine")
+                    getScore("labValues_creatinine"),
                   )}
                 />
               </div>

@@ -1,5 +1,5 @@
 /**
- * Invoice Repository Port (Interface) 
+ * Invoice Repository Port (Interface)
  * Defines contract for invoice persistence
  */
 

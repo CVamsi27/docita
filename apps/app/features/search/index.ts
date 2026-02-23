@@ -1,1 +1,1 @@
-export { GlobalSearch } from './components/GlobalSearch';
+export { GlobalSearch } from "./components/GlobalSearch";

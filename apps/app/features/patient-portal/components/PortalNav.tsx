@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@workspace/ui/lib/utils';
-import { Calendar, FileText, LogOut, Receipt, User } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { useAuth } from '@workspace/auth';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@workspace/ui/lib/utils";
+import { Calendar, FileText, LogOut, Receipt, User } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { useAuth } from "@workspace/auth";
 
 const navigation = [
-  { name: 'Dashboard', href: '/portal', icon: User },
-  { name: 'Appointments', href: '/portal/appointments', icon: Calendar },
-  { name: 'Prescriptions', href: '/portal/prescriptions', icon: FileText },
-  { name: 'Billing', href: '/portal/billing', icon: Receipt },
-  { name: 'Profile', href: '/portal/profile', icon: User },
+  { name: "Dashboard", href: "/portal", icon: User },
+  { name: "Appointments", href: "/portal/appointments", icon: Calendar },
+  { name: "Prescriptions", href: "/portal/prescriptions", icon: FileText },
+  { name: "Billing", href: "/portal/billing", icon: Receipt },
+  { name: "Profile", href: "/portal/profile", icon: User },
 ];
 
 export function PortalNav() {
@@ -36,10 +36,10 @@ export function PortalNav() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                      "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
                       isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
                     )}
                   >
                     <Icon className="h-4 w-4" />

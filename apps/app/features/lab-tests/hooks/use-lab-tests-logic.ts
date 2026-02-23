@@ -53,11 +53,10 @@ export const useLabTestsLogic = () => {
   const { data: stats, refetch: refetchStats } = useLabTestStats();
 
   // Search logic for patients for sorting/dropdown
-  const { data: patientsResponse, isLoading: patientsLoading } =
-    usePatients({
-      ...(patientSearch && { search: patientSearch }),
-      limit: patientSearch ? 20 : 5,
-    });
+  const { data: patientsResponse, isLoading: patientsLoading } = usePatients({
+    ...(patientSearch && { search: patientSearch }),
+    limit: patientSearch ? 20 : 5,
+  });
 
   const paginatedResponse = patientsResponse as
     | PaginatedResponse<Patient>

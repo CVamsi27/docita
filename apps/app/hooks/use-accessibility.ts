@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Focus trap hook for modals and dialogs.
@@ -12,7 +12,7 @@ export function useFocusTrap(isActive: boolean = true) {
 
     const container = containerRef.current;
     const focusableElements = container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const firstFocusable = focusableElements[0];
@@ -22,7 +22,7 @@ export function useFocusTrap(isActive: boolean = true) {
     firstFocusable?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== "Tab") return;
 
       if (e.shiftKey) {
         // Shift + Tab: go backwards
@@ -39,8 +39,8 @@ export function useFocusTrap(isActive: boolean = true) {
       }
     };
 
-    container.addEventListener('keydown', handleKeyDown);
-    return () => container.removeEventListener('keydown', handleKeyDown);
+    container.addEventListener("keydown", handleKeyDown);
+    return () => container.removeEventListener("keydown", handleKeyDown);
   }, [isActive]);
 
   return containerRef;
@@ -50,21 +50,24 @@ export function useFocusTrap(isActive: boolean = true) {
  * Hook for announcing live regions to screen readers.
  */
 export function useAnnounce() {
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', priority);
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
-    announcement.textContent = message;
+  const announce = useCallback(
+    (message: string, priority: "polite" | "assertive" = "polite") => {
+      const announcement = document.createElement("div");
+      announcement.setAttribute("role", "status");
+      announcement.setAttribute("aria-live", priority);
+      announcement.setAttribute("aria-atomic", "true");
+      announcement.className = "sr-only";
+      announcement.textContent = message;
 
-    document.body.appendChild(announcement);
+      document.body.appendChild(announcement);
 
-    // Remove after announcement is read
-    setTimeout(() => {
-      document.body.removeChild(announcement);
-    }, 1000);
-  }, []);
+      // Remove after announcement is read
+      setTimeout(() => {
+        document.body.removeChild(announcement);
+      }, 1000);
+    },
+    [],
+  );
 
   return announce;
 }
@@ -75,14 +78,17 @@ export function useAnnounce() {
  */
 export function useRovingTabIndex<T extends HTMLElement>(
   itemCount: number,
-  initialIndex: number = 0
+  initialIndex: number = 0,
 ) {
   const itemsRef = useRef<(T | null)[]>([]);
   const currentIndex = useRef(initialIndex);
 
-  const setRef = useCallback((index: number) => (el: T | null) => {
-    itemsRef.current[index] = el;
-  }, []);
+  const setRef = useCallback(
+    (index: number) => (el: T | null) => {
+      itemsRef.current[index] = el;
+    },
+    [],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -90,21 +96,21 @@ export function useRovingTabIndex<T extends HTMLElement>(
       let newIndex = currentIndex.current;
 
       switch (key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
+        case "ArrowRight":
+        case "ArrowDown":
           e.preventDefault();
           newIndex = (currentIndex.current + 1) % itemCount;
           break;
-        case 'ArrowLeft':
-        case 'ArrowUp':
+        case "ArrowLeft":
+        case "ArrowUp":
           e.preventDefault();
           newIndex = (currentIndex.current - 1 + itemCount) % itemCount;
           break;
-        case 'Home':
+        case "Home":
           e.preventDefault();
           newIndex = 0;
           break;
-        case 'End':
+        case "End":
           e.preventDefault();
           newIndex = itemCount - 1;
           break;
@@ -115,7 +121,7 @@ export function useRovingTabIndex<T extends HTMLElement>(
       currentIndex.current = newIndex;
       itemsRef.current[newIndex]?.focus();
     },
-    [itemCount]
+    [itemCount],
   );
 
   return { setRef, handleKeyDown, currentIndex };
@@ -124,12 +130,16 @@ export function useRovingTabIndex<T extends HTMLElement>(
 /**
  * Props helper for accessible buttons.
  */
-export function getButtonA11yProps(label: string, isLoading?: boolean, isDisabled?: boolean) {
+export function getButtonA11yProps(
+  label: string,
+  isLoading?: boolean,
+  isDisabled?: boolean,
+) {
   return {
-    'aria-label': label,
-    'aria-busy': isLoading,
-    'aria-disabled': isDisabled,
-    role: 'button',
+    "aria-label": label,
+    "aria-busy": isLoading,
+    "aria-disabled": isDisabled,
+    role: "button",
     tabIndex: isDisabled ? -1 : 0,
   };
 }
@@ -141,13 +151,13 @@ export function getInputA11yProps(
   id: string,
   label: string,
   error?: string,
-  required?: boolean
+  required?: boolean,
 ) {
   return {
     id,
-    'aria-label': label,
-    'aria-required': required,
-    'aria-invalid': !!error,
-    'aria-describedby': error ? `${id}-error` : undefined,
+    "aria-label": label,
+    "aria-required": required,
+    "aria-invalid": !!error,
+    "aria-describedby": error ? `${id}-error` : undefined,
   };
 }

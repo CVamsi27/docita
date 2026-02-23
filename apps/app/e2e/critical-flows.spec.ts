@@ -2,10 +2,10 @@ import { APIRequestContext, expect, test } from "@playwright/test";
 
 /**
  * CRITICAL FLOWS TEST SUITE
- * 
+ *
  * Tests core business workflows that users will perform immediately after launch.
  * These flows represent the most critical user journeys and must be fully functional.
- * 
+ *
  * Flows Tested:
  * 1. Patient Onboarding: Register → Clinic Assignment → First Appointment
  * 2. Doctor Dashboard: Login → View Dashboard → Access Key Reports
@@ -75,7 +75,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(doctorRegRes.ok()).toBeTruthy();
-    const doctorData = await doctorRegRes.json() as {
+    const doctorData = (await doctorRegRes.json()) as {
       access_token?: string;
       accessToken?: string;
       user: { id: string; clinicId?: string };
@@ -105,14 +105,25 @@ test.describe("Critical Business Flows", () => {
         },
       });
       expect(clinicRes.ok()).toBeTruthy();
-      const clinicData = await clinicRes.json() as { id: string; name: string; tier: string };
+      const clinicData = (await clinicRes.json()) as {
+        id: string;
+        name: string;
+        tier: string;
+      };
       clinic = clinicData;
       doctor.clinicId = clinicData.id;
     } else {
-      const clinicRes = await request.get(`${API_URL}/clinics/${doctor.clinicId}`, {
-        headers: { Authorization: `Bearer ${doctorToken}` },
-      });
-      clinic = await clinicRes.json() as { id: string; name: string; tier: string };
+      const clinicRes = await request.get(
+        `${API_URL}/clinics/${doctor.clinicId}`,
+        {
+          headers: { Authorization: `Bearer ${doctorToken}` },
+        },
+      );
+      clinic = (await clinicRes.json()) as {
+        id: string;
+        name: string;
+        tier: string;
+      };
     }
 
     // Create patient
@@ -130,7 +141,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(patientRegRes.ok()).toBeTruthy();
-    const patientData = await patientRegRes.json() as {
+    const patientData = (await patientRegRes.json()) as {
       access_token?: string;
       accessToken?: string;
       user: { id: string };
@@ -165,7 +176,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(patientRegRes.ok()).toBeTruthy();
-    const onboardPatientData = await patientRegRes.json() as {
+    const onboardPatientData = (await patientRegRes.json()) as {
       id: string;
       firstName: string;
       lastName: string;
@@ -179,41 +190,37 @@ test.describe("Critical Business Flows", () => {
     };
 
     // Step 2: Patient joins clinic (via API or UI)
-    const joinClinicRes = await request.post(
-      `${API_URL}/patient-clinics`,
-      {
-        headers: { Authorization: `Bearer ${onboardPatientData.access_token}` },
-        data: {
-          patientId: onboardPatient.id,
-          clinicId: clinic.id,
-        },
-      }
-    );
+    const joinClinicRes = await request.post(`${API_URL}/patient-clinics`, {
+      headers: { Authorization: `Bearer ${onboardPatientData.access_token}` },
+      data: {
+        patientId: onboardPatient.id,
+        clinicId: clinic.id,
+      },
+    });
 
     expect(joinClinicRes.ok()).toBeTruthy();
-    console.log(`✅ Patient ${onboardPatient.email} joined clinic ${clinic.id}`);
+    console.log(
+      `✅ Patient ${onboardPatient.email} joined clinic ${clinic.id}`,
+    );
 
     // Step 3: Create first appointment
     const appointmentDate = new Date();
     appointmentDate.setDate(appointmentDate.getDate() + 1); // Tomorrow
 
-    const appointmentRes = await request.post(
-      `${API_URL}/appointments`,
-      {
-        headers: { Authorization: `Bearer ${onboardPatientData.access_token}` },
-        data: {
-          patientId: onboardPatient.id,
-          doctorId: doctor.id,
-          clinicId: clinic.id,
-          appointmentDate: appointmentDate.toISOString(),
-          status: "SCHEDULED",
-          notes: "First appointment",
-        },
-      }
-    );
+    const appointmentRes = await request.post(`${API_URL}/appointments`, {
+      headers: { Authorization: `Bearer ${onboardPatientData.access_token}` },
+      data: {
+        patientId: onboardPatient.id,
+        doctorId: doctor.id,
+        clinicId: clinic.id,
+        appointmentDate: appointmentDate.toISOString(),
+        status: "SCHEDULED",
+        notes: "First appointment",
+      },
+    });
 
     expect(appointmentRes.ok()).toBeTruthy();
-    const appointmentData = await appointmentRes.json() as {
+    const appointmentData = (await appointmentRes.json()) as {
       id: string;
       patientId: string;
       doctorId: string;
@@ -229,13 +236,17 @@ test.describe("Critical Business Flows", () => {
       `${API_URL}/clinics/${clinic.id}/appointments`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect(clinicAppointmentsRes.ok()).toBeTruthy();
-    const appointments = await clinicAppointmentsRes.json() as Array<{ id: string; patientId: string }>;
+    const appointments = (await clinicAppointmentsRes.json()) as Array<{
+      id: string;
+      patientId: string;
+    }>;
     const appointmentExists = appointments.some(
-      (a: { id: string; patientId: string }) => a.id === appointment.id && a.patientId === onboardPatient.id
+      (a: { id: string; patientId: string }) =>
+        a.id === appointment.id && a.patientId === onboardPatient.id,
     );
     expect(appointmentExists).toBeTruthy();
 
@@ -260,7 +271,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(loginRes.ok()).toBeTruthy();
-    const loginData = await loginRes.json() as {
+    const loginData = (await loginRes.json()) as {
       access_token?: string;
       accessToken?: string;
       user: { id: string; clinicId?: string };
@@ -276,7 +287,7 @@ test.describe("Critical Business Flows", () => {
 
     // Allow 404 for metrics if not implemented, but log it
     if (metricsRes.ok()) {
-      const metrics = await metricsRes.json() as Record<string, unknown>;
+      const metrics = (await metricsRes.json()) as Record<string, unknown>;
       console.log(`✅ Dashboard metrics loaded:`, {
         totalPatients: metrics.totalPatients,
         totalAppointments: metrics.totalAppointments,
@@ -287,27 +298,42 @@ test.describe("Critical Business Flows", () => {
     }
 
     // Step 3: Get clinic patients
-    const patientsRes = await request.get(`${API_URL}/clinics/${clinic.id}/patients`, {
-      headers: { Authorization: `Bearer ${freshToken}` },
-    });
+    const patientsRes = await request.get(
+      `${API_URL}/clinics/${clinic.id}/patients`,
+      {
+        headers: { Authorization: `Bearer ${freshToken}` },
+      },
+    );
 
     expect(patientsRes.ok()).toBeTruthy();
-    const patients = await patientsRes.json() as { data: unknown[]; total: number };
+    const patients = (await patientsRes.json()) as {
+      data: unknown[];
+      total: number;
+    };
     expect(Array.isArray(patients)).toBeTruthy();
     expect(patients.length).toBeGreaterThan(0);
 
-    console.log(`✅ Doctor can access patient records (${patients.length} patients in clinic)`);
+    console.log(
+      `✅ Doctor can access patient records (${patients.length} patients in clinic)`,
+    );
 
     // Step 4: Get clinic appointments
-    const appointmentsRes = await request.get(`${API_URL}/clinics/${clinic.id}/appointments`, {
-      headers: { Authorization: `Bearer ${freshToken}` },
-    });
+    const appointmentsRes = await request.get(
+      `${API_URL}/clinics/${clinic.id}/appointments`,
+      {
+        headers: { Authorization: `Bearer ${freshToken}` },
+      },
+    );
 
     expect(appointmentsRes.ok()).toBeTruthy();
-    const fetchedAppointments = await appointmentsRes.json() as { data: unknown[] };
+    const fetchedAppointments = (await appointmentsRes.json()) as {
+      data: unknown[];
+    };
     expect(Array.isArray(fetchedAppointments)).toBeTruthy();
 
-    console.log(`✅ FLOW 2 COMPLETE: Doctor dashboard operational (${fetchedAppointments.length} appointments)`);
+    console.log(
+      `✅ FLOW 2 COMPLETE: Doctor dashboard operational (${fetchedAppointments.length} appointments)`,
+    );
   });
 
   test("📅 FLOW 3: Appointment Workflow - Create → Confirm → Update Status → Complete", async () => {
@@ -337,10 +363,15 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(createRes.ok()).toBeTruthy();
-    const newAppointment = await createRes.json() as { id: string; status: string };
+    const newAppointment = (await createRes.json()) as {
+      id: string;
+      status: string;
+    };
     expect(newAppointment.status).toBe("SCHEDULED");
 
-    console.log(`✅ Step 1: Appointment created (${newAppointment.id}, status: SCHEDULED)`);
+    console.log(
+      `✅ Step 1: Appointment created (${newAppointment.id}, status: SCHEDULED)`,
+    );
 
     // Step 2: Confirm appointment
     const confirmRes = await request.patch(
@@ -348,11 +379,14 @@ test.describe("Critical Business Flows", () => {
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
         data: { status: "CONFIRMED" },
-      }
+      },
     );
 
     expect(confirmRes.ok()).toBeTruthy();
-    const confirmedAppointment = await confirmRes.json() as { id: string; status: string };
+    const confirmedAppointment = (await confirmRes.json()) as {
+      id: string;
+      status: string;
+    };
     expect(confirmedAppointment.status).toBe("CONFIRMED");
 
     console.log(`✅ Step 2: Appointment confirmed (status: CONFIRMED)`);
@@ -363,11 +397,14 @@ test.describe("Critical Business Flows", () => {
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
         data: { status: "IN_PROGRESS" },
-      }
+      },
     );
 
     expect(progressRes.ok()).toBeTruthy();
-    const progressAppointment = await progressRes.json() as { id: string; status: string };
+    const progressAppointment = (await progressRes.json()) as {
+      id: string;
+      status: string;
+    };
     expect(progressAppointment.status).toBe("IN_PROGRESS");
 
     console.log(`✅ Step 3: Appointment started (status: IN_PROGRESS)`);
@@ -378,11 +415,14 @@ test.describe("Critical Business Flows", () => {
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
         data: { status: "COMPLETED" },
-      }
+      },
     );
 
     expect(completeRes.ok()).toBeTruthy();
-    const completedAppointment = await completeRes.json() as { id: string; status: string };
+    const completedAppointment = (await completeRes.json()) as {
+      id: string;
+      status: string;
+    };
     expect(completedAppointment.status).toBe("COMPLETED");
 
     console.log(`✅ Step 4: Appointment completed (status: COMPLETED)`);
@@ -392,11 +432,14 @@ test.describe("Critical Business Flows", () => {
       `${API_URL}/appointments/${newAppointment.id}`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect(finalRes.ok()).toBeTruthy();
-    const finalAppointment = await finalRes.json() as { id: string; status: string };
+    const finalAppointment = (await finalRes.json()) as {
+      id: string;
+      status: string;
+    };
     expect(finalAppointment.status).toBe("COMPLETED");
 
     console.log(`✅ FLOW 3 COMPLETE: Full appointment lifecycle validated`);
@@ -412,60 +455,61 @@ test.describe("Critical Business Flows", () => {
      */
 
     // Step 1: Get patient record
-    const patientRes = await request.get(
-      `${API_URL}/patients/${patient.id}`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
-    );
+    const patientRes = await request.get(`${API_URL}/patients/${patient.id}`, {
+      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    });
 
     expect(patientRes.ok()).toBeTruthy();
-    const patientRecord = await patientRes.json() as { id: string; firstName: string };
+    const patientRecord = (await patientRes.json()) as {
+      id: string;
+      firstName: string;
+    };
     expect(patientRecord.id).toBe(patient.id);
     expect(patientRecord.firstName).toBe(patient.firstName);
 
-    console.log(`✅ Step 1: Patient record accessed (${patientRecord.firstName} ${patientRecord.lastName})`);
+    console.log(
+      `✅ Step 1: Patient record accessed (${patientRecord.firstName} ${patientRecord.lastName})`,
+    );
 
     // Step 2: Get patient consultation history
     const historyRes = await request.get(
       `${API_URL}/patients/${patient.id}/consultations`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect(historyRes.ok()).toBeTruthy();
-    const history = await historyRes.json() as unknown[];
+    const history = (await historyRes.json()) as unknown[];
     expect(Array.isArray(history)).toBeTruthy();
 
-    console.log(`✅ Step 2: Consultation history loaded (${history.length} consultations)`);
-
-    // Step 3: Update patient notes
-    const updateRes = await request.patch(
-      `${API_URL}/patients/${patient.id}`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-        data: {
-          notes: `Updated notes at ${new Date().toISOString()} - Critical flow test`,
-        },
-      }
+    console.log(
+      `✅ Step 2: Consultation history loaded (${history.length} consultations)`,
     );
 
+    // Step 3: Update patient notes
+    const updateRes = await request.patch(`${API_URL}/patients/${patient.id}`, {
+      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+      data: {
+        notes: `Updated notes at ${new Date().toISOString()} - Critical flow test`,
+      },
+    });
+
     expect(updateRes.ok()).toBeTruthy();
-    await updateRes.json() as { id: string; phoneNumber: string };
+    (await updateRes.json()) as { id: string; phoneNumber: string };
 
     console.log(`✅ Step 3: Patient notes updated`);
 
     // Step 4: Verify update persisted
-    const verifyRes = await request.get(
-      `${API_URL}/patients/${patient.id}`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
-    );
+    const verifyRes = await request.get(`${API_URL}/patients/${patient.id}`, {
+      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    });
 
     expect(verifyRes.ok()).toBeTruthy();
-    const verifiedPatient = await verifyRes.json() as { id: string; verified: boolean };
+    const verifiedPatient = (await verifyRes.json()) as {
+      id: string;
+      verified: boolean;
+    };
     expect(verifiedPatient.notes).toContain("Critical flow test");
 
     console.log(`✅ FLOW 4 COMPLETE: Patient record management validated`);
@@ -486,7 +530,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(clinicRes.ok()).toBeTruthy();
-    const clinicData = await clinicRes.json() as { id: string; name: string };
+    const clinicData = (await clinicRes.json()) as { id: string; name: string };
     expect(clinicData.id).toBe(clinic.id);
 
     console.log(`✅ Step 1: Clinic data fetched (${clinicData.name})`);
@@ -496,13 +540,15 @@ test.describe("Critical Business Flows", () => {
       `${API_URL}/clinics/${clinic.id}/staff`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     if (staffRes.ok()) {
-      const staff = await staffRes.json() as { data: unknown[] };
+      const staff = (await staffRes.json()) as { data: unknown[] };
       expect(Array.isArray(staff)).toBeTruthy();
-      console.log(`✅ Step 2: Clinic staff loaded (${staff.length} staff members)`);
+      console.log(
+        `✅ Step 2: Clinic staff loaded (${staff.length} staff members)`,
+      );
     } else {
       console.log(`⚠️ Staff endpoint returned ${staffRes.status()}`);
     }
@@ -512,25 +558,29 @@ test.describe("Critical Business Flows", () => {
       `${API_URL}/clinics/${clinic.id}/appointments`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect(appointmentsRes.ok()).toBeTruthy();
-    const clinicAppointments = await appointmentsRes.json() as { data: unknown[] };
+    const clinicAppointments = (await appointmentsRes.json()) as {
+      data: unknown[];
+    };
     expect(Array.isArray(clinicAppointments)).toBeTruthy();
 
-    console.log(`✅ Step 3: Clinic appointments loaded (${clinicAppointments.length} appointments)`);
+    console.log(
+      `✅ Step 3: Clinic appointments loaded (${clinicAppointments.length} appointments)`,
+    );
 
     // Step 4: Get clinic analytics if available
     const analyticsRes = await request.get(
       `${API_URL}/clinics/${clinic.id}/analytics`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     if (analyticsRes.ok()) {
-      const analytics = await analyticsRes.json() as Record<string, unknown>;
+      const analytics = (await analyticsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 4: Analytics available:`, {
         totalAppointments: analytics.totalAppointments,
         completedAppointments: analytics.completedAppointments,
@@ -565,12 +615,13 @@ test.describe("Critical Business Flows", () => {
     });
 
     expect(otherDoctorRes.ok()).toBeTruthy();
-    const otherDoctorData = await otherDoctorRes.json() as {
+    const otherDoctorData = (await otherDoctorRes.json()) as {
       access_token?: string;
       accessToken?: string;
       user: { id: string; clinicId?: string };
     };
-    const otherToken = otherDoctorData.access_token || otherDoctorData.accessToken;
+    const otherToken =
+      otherDoctorData.access_token || otherDoctorData.accessToken;
 
     // Get other doctor's clinic ID
     let otherClinicId = otherDoctorData.user.clinicId;
@@ -585,7 +636,7 @@ test.describe("Critical Business Flows", () => {
           tier: "ENTERPRISE",
         },
       });
-      const otherClinicData = await otherClinicRes.json() as { id: string };
+      const otherClinicData = (await otherClinicRes.json()) as { id: string };
       otherClinicId = otherClinicData.id;
     }
 
@@ -596,19 +647,21 @@ test.describe("Critical Business Flows", () => {
       `${API_URL}/clinics/${clinic.id}/patients`,
       {
         headers: { Authorization: `Bearer ${otherToken}` },
-      }
+      },
     );
 
     // Should either be 403 Forbidden or return empty array (depends on implementation)
     expect([403, 404, 200]).toContain(unauthorizedRes.status());
-    console.log(`✅ Step 1: Cross-clinic access blocked (status: ${unauthorizedRes.status()})`);
+    console.log(
+      `✅ Step 1: Cross-clinic access blocked (status: ${unauthorizedRes.status()})`,
+    );
 
     // Verify doctor can access own clinic
     const ownClinicRes = await request.get(
       `${API_URL}/clinics/${otherClinicId}/patients`,
       {
         headers: { Authorization: `Bearer ${otherToken}` },
-      }
+      },
     );
 
     expect(ownClinicRes.ok()).toBeTruthy();
@@ -625,49 +678,60 @@ test.describe("Critical Business Flows", () => {
      */
 
     // Test 1: Invalid appointment creation (missing required fields)
-    const invalidAppointmentRes = await request.post(`${API_URL}/appointments`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        // Missing patientId and appointmentDate
-        status: "SCHEDULED",
+    const invalidAppointmentRes = await request.post(
+      `${API_URL}/appointments`,
+      {
+        headers: { Authorization: `Bearer ${doctor.accessToken}` },
+        data: {
+          // Missing patientId and appointmentDate
+          status: "SCHEDULED",
+        },
       },
-    });
+    );
 
     expect([400, 422, 500]).toContain(invalidAppointmentRes.status());
-    console.log(`✅ Test 1: Invalid appointment rejected (status: ${invalidAppointmentRes.status()})`);
+    console.log(
+      `✅ Test 1: Invalid appointment rejected (status: ${invalidAppointmentRes.status()})`,
+    );
 
     // Test 2: Non-existent patient
     const invalidPatientRes = await request.get(
       `${API_URL}/patients/nonexistent-id-12345`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect([404, 401]).toContain(invalidPatientRes.status());
-    console.log(`✅ Test 2: Non-existent patient returns error (status: ${invalidPatientRes.status()})`);
+    console.log(
+      `✅ Test 2: Non-existent patient returns error (status: ${invalidPatientRes.status()})`,
+    );
 
     // Test 3: Invalid token
     const invalidTokenRes = await request.get(
       `${API_URL}/clinics/${clinic.id}/patients`,
       {
         headers: { Authorization: `Bearer invalid-token-xyz` },
-      }
+      },
     );
 
     expect([401, 403]).toContain(invalidTokenRes.status());
-    console.log(`✅ Test 3: Invalid token rejected (status: ${invalidTokenRes.status()})`);
+    console.log(
+      `✅ Test 3: Invalid token rejected (status: ${invalidTokenRes.status()})`,
+    );
 
     // Test 4: Non-existent clinic
     const invalidClinicRes = await request.get(
       `${API_URL}/clinics/nonexistent-clinic-id`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      }
+      },
     );
 
     expect([404, 401]).toContain(invalidClinicRes.status());
-    console.log(`✅ Test 4: Non-existent clinic returns error (status: ${invalidClinicRes.status()})`);
+    console.log(
+      `✅ Test 4: Non-existent clinic returns error (status: ${invalidClinicRes.status()})`,
+    );
 
     console.log(`✅ FLOW 7 COMPLETE: Error handling validated`);
   });

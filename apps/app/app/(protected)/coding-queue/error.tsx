@@ -22,9 +22,12 @@ export default function CodingQueueError({
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h2 className="mb-2 text-xl font-semibold">Error loading Coding Queue</h2>
+        <h2 className="mb-2 text-xl font-semibold">
+          Error loading Coding Queue
+        </h2>
         <p className="mb-6 text-muted-foreground">
-          We couldn&apos;t load Coding Queue. Please retry or return to the dashboard.
+          We couldn&apos;t load Coding Queue. Please retry or return to the
+          dashboard.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>

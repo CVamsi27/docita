@@ -84,7 +84,9 @@ export function PricingTierCard({
         <div className="mt-3">
           <span className="text-3xl font-bold">{price}</span>
           {pricePerMonth && (
-            <span className="text-muted-foreground text-sm">{pricePerMonth}</span>
+            <span className="text-muted-foreground text-sm">
+              {pricePerMonth}
+            </span>
           )}
           {billingNote && (
             <p className="text-xs text-muted-foreground mt-1">{billingNote}</p>

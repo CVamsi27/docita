@@ -10,6 +10,7 @@
 ## Overview
 
 A status page provides:
+
 - **Public transparency:** Users see real-time service health
 - **Incident communication:** Automated updates during outages
 - **Trust building:** Proactive communication reduces support load
@@ -24,6 +25,7 @@ A status page provides:
 **Best For:** Quick launch, minimal maintenance
 
 ### Prerequisites
+
 - UptimeRobot account (already configured per `MONITORING_SETUP_GUIDE.md`)
 - Monitors set up for all critical endpoints
 
@@ -44,6 +46,7 @@ A status page provides:
 #### 2. Select Monitors to Display
 
 Add all production monitors:
+
 - ✅ **@docita/app** (Main Application) - `https://app.docita.work`
 - ✅ **@docita/admin** (Admin Portal) - `https://admin.docita.work`
 - ✅ **@docita/landing** (Marketing Site) - `https://docita.work`
@@ -52,6 +55,7 @@ Add all production monitors:
 - ✅ **Redis Health** - `https://api.docita.work/api/health/redis`
 
 Display settings:
+
 ```
 Monitor grouping: By service (Apps / API / Infrastructure)
 Show uptime percentage: Yes (90 days)
@@ -75,6 +79,7 @@ Show incident history: Yes (last 30 days)
 4. Verify: `https://status.docita.work`
 
 **Using Default UptimeRobot URL:**
+
 - Format: `https://yourname.betteruptime.com`
 - No DNS setup required
 - Update `INCIDENT_RESPONSE.md` with actual URL
@@ -91,6 +96,7 @@ Footer Text: "Having issues? Contact support@docita.work"
 #### 5. Enable Subscriber Notifications (Optional)
 
 Allow users to subscribe to status updates:
+
 ```
 Email notifications: Enabled
 SMS notifications: Disabled (cost)
@@ -116,6 +122,7 @@ Webhook notifications: Disabled
 ### Using Cachet (Open Source)
 
 **Tech Stack:**
+
 - Laravel-based status page system
 - MySQL/PostgreSQL database
 - Can be deployed on Railway alongside API
@@ -170,6 +177,7 @@ Add status page to incident checklist:
 
 ```markdown
 During Incident:
+
 - [ ] Update status page with incident details
 - [ ] Post initial update within 15 minutes
 - [ ] Post updates every 30 minutes until resolved
@@ -202,6 +210,7 @@ Having trouble? Check our <a href="https://status.docita.work">service status</a
 When deploying updates:
 
 1. Create "Scheduled Maintenance" announcement 24 hours in advance:
+
    ```
    Title: Scheduled Maintenance - Database Migration
    Affected Services: Main Application, API
@@ -220,6 +229,7 @@ When deploying updates:
 ### Auto-Update from UptimeRobot Monitors
 
 UptimeRobot status page automatically reflects monitor status:
+
 - ✅ **Up** (green) - Monitor responding normally
 - ⚠️ **Degraded** (yellow) - Partial outage or slow response
 - ❌ **Down** (red) - Monitor failing
@@ -281,6 +291,7 @@ Before launch:
 **Cause:** Monitor configuration issue (wrong URL, SSL validation, timeout too short)
 
 **Fix:**
+
 1. Check monitor URL is correct (include `/api` prefix for API endpoints)
 2. Verify SSL certificate is valid
 3. Increase timeout if legitimate requests take >30 seconds
@@ -291,6 +302,7 @@ Before launch:
 **Cause:** DNS propagation delay or incorrect CNAME
 
 **Fix:**
+
 1. Verify CNAME record: `dig status.docita.work` should show UptimeRobot target
 2. Wait 30-60 minutes for DNS propagation
 3. Clear browser DNS cache
@@ -301,6 +313,7 @@ Before launch:
 **Cause:** Cache or visibility settings
 
 **Fix:**
+
 1. In UptimeRobot, verify incident is set to "Public"
 2. Refresh status page (Ctrl+Shift+R for hard refresh)
 3. Check incident date range filter
@@ -321,9 +334,10 @@ After creating the status page:
 
 **Setup Owner:** DevOps Lead  
 **Maintenance Owner:** On-Call Engineer (per `ON_CALL_RUNBOOK.md`)  
-**Review Cadence:** Monthly  
+**Review Cadence:** Monthly
 
 **Related Docs:**
+
 - `INCIDENT_RESPONSE.md` - Incident communication procedures
 - `ON_CALL_RUNBOOK.md` - On-call playbook
 - `MONITORING_SETUP_GUIDE.md` - UptimeRobot monitor setup

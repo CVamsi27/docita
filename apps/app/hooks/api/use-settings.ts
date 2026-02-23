@@ -13,7 +13,7 @@ export interface ClinicAppSettings {
   theme?: "light" | "dark" | "system";
   primaryColor?: string;
   compactMode?: boolean;
-  
+
   // Notifications
   whatsappNotifications?: boolean;
   inAppNotifications?: boolean;

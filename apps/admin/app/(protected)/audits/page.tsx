@@ -39,12 +39,17 @@ export default function AuditsPage() {
     setErrorMessage(null);
 
     try {
-      const res = await fetch(`${API_URL}/super-admin/logs?limit=100&offset=0`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/super-admin/logs?limit=100&offset=0`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (!res.ok) {
-        setErrorMessage(`Failed to fetch logs: ${res.status} ${res.statusText}`);
+        setErrorMessage(
+          `Failed to fetch logs: ${res.status} ${res.statusText}`,
+        );
         setLogs([]);
         return;
       }

@@ -18,7 +18,10 @@ import {
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,
 } from './application/use-cases';
-import { SUBSCRIPTION_REPOSITORY_TOKEN, PAYMENT_GATEWAY_TOKEN } from './application/ports';
+import {
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+  PAYMENT_GATEWAY_TOKEN,
+} from './application/ports';
 
 // Infrastructure layer
 import { PrismaSubscriptionRepository } from './infrastructure/repositories';

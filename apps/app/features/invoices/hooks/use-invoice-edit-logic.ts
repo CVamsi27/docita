@@ -28,7 +28,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: invoice, isLoading, } = useInvoice(invoiceId);
+  const { data: invoice, isLoading } = useInvoice(invoiceId);
 
   const updateInvoice = useUpdateInvoice(invoiceId);
 
@@ -54,7 +54,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       interface ExtendedInvoice extends Invoice {
         discount?: number;
       }
-      
+
       const safeInvoice = invoice as unknown as ExtendedInvoice;
 
       form.reset({

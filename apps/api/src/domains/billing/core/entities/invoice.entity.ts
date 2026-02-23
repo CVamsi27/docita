@@ -1,14 +1,17 @@
 /**
  * Invoice Entity - Core business aggregate
  * Represents a single invoice with line items
- * 
+ *
  * Note: clinicId is optional because the Prisma schema stores appointmentId
  * instead. In practice, clinicId is typically derived from the appointment
  * or passed through the request context/service layer.
  */
 
 import { Money } from '../value-objects/money.value-object';
-import { InvoiceStatus, InvoiceStatusEnum } from '../value-objects/invoice-status.value-object';
+import {
+  InvoiceStatus,
+  InvoiceStatusEnum,
+} from '../value-objects/invoice-status.value-object';
 import { BillingPeriod } from '../value-objects/billing-period.value-object';
 import { InvoiceItem } from './invoice-item.entity';
 

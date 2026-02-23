@@ -69,7 +69,7 @@ export const FeedbackForm: FC<{
                     "h-8 w-8 transition-colors",
                     star <= rating
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 />
               </button>

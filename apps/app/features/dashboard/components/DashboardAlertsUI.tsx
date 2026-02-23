@@ -48,7 +48,7 @@ export function DashboardAlertsUI({
               "bg-destructive/10 border-destructive/30",
             alert.type === "warning" && "bg-amber-500/10 border-amber-500/30",
             alert.type === "success" && "bg-green-500/10 border-green-500/30",
-            alert.type === "info" && "bg-primary/5 border-primary/20"
+            alert.type === "info" && "bg-primary/5 border-primary/20",
           )}
         >
           <div
@@ -57,7 +57,7 @@ export function DashboardAlertsUI({
               alert.type === "urgent" && "bg-destructive/20 text-destructive",
               alert.type === "warning" && "bg-amber-500/20 text-amber-600",
               alert.type === "success" && "bg-green-500/20 text-green-600",
-              alert.type === "info" && "bg-primary/20 text-primary"
+              alert.type === "info" && "bg-primary/20 text-primary",
             )}
           >
             <alert.icon className="h-4 w-4" />
@@ -107,7 +107,7 @@ export function DashboardAlertsUI({
             <div
               className={cn(
                 "h-full transition-all duration-500",
-                progressPercentage === 100 ? "bg-green-500" : "bg-primary"
+                progressPercentage === 100 ? "bg-green-500" : "bg-primary",
               )}
               style={{ width: `${progressPercentage}%` }}
             />
@@ -140,7 +140,7 @@ export function AlertStripUI({
         type === "urgent" && "bg-destructive text-destructive-foreground",
         type === "warning" && "bg-amber-500 text-white",
         type === "success" && "bg-green-500 text-white",
-        type === "info" && "bg-primary text-primary-foreground"
+        type === "info" && "bg-primary text-primary-foreground",
       )}
     >
       <div className="flex items-center gap-2">

@@ -67,13 +67,13 @@ export function PatientSelector<
                   role="combobox"
                   className={cn(
                     "w-full justify-between",
-                    !field.value && "text-muted-foreground"
+                    !field.value && "text-muted-foreground",
                   )}
                 >
                   {field.value
                     ? (() => {
                         const patient = patients.find(
-                          (p) => p.id === field.value
+                          (p) => p.id === field.value,
                         );
                         return patient
                           ? `${patient.firstName} ${patient.lastName}`
@@ -114,7 +114,7 @@ export function PatientSelector<
                               patient.id as import("react-hook-form").PathValue<
                                 T,
                                 import("react-hook-form").Path<T>
-                              >
+                              >,
                             );
                           }
                           setPatientComboboxOpen(false);
@@ -125,7 +125,7 @@ export function PatientSelector<
                             "mr-2 h-4 w-4",
                             patient.id === field.value
                               ? "opacity-100"
-                              : "opacity-0"
+                              : "opacity-0",
                           )}
                         />
                         <div className="flex flex-col">

@@ -1,4 +1,4 @@
-import type { UserRole } from './users';
+import type { UserRole } from "./users";
 
 /**
  * Authenticated Express Request

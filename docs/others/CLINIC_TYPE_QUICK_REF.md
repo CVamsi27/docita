@@ -47,59 +47,59 @@ Configure clinic specialty types to automatically customize consultation feature
 
 ### GENERAL (All Tabs)
 
--  Chief Complaint
--  History
--  Examination
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations
--  Prescriptions
--  Procedures
--  Follow Up
+- Chief Complaint
+- History
+- Examination
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations
+- Prescriptions
+- Procedures
+- Follow Up
 
 ### DENTAL (Simplified)
 
--  Chief Complaint
--  History (Hidden)
--  Examination (Hidden)
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations
--  Prescriptions
--  Procedures
--  Follow Up
+- Chief Complaint
+- History (Hidden)
+- Examination (Hidden)
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations
+- Prescriptions
+- Procedures
+- Follow Up
 
 ### PSYCHIATRY (No Procedures)
 
--  Chief Complaint
--  History
--  Examination
--  Vitals
--  Diagnosis
--  Treatment
--  Investigations
--  Prescriptions
--  Procedures (Hidden)
--  Follow Up
--  Mental Status Exam (Future)
+- Chief Complaint
+- History
+- Examination
+- Vitals
+- Diagnosis
+- Treatment
+- Investigations
+- Prescriptions
+- Procedures (Hidden)
+- Follow Up
+- Mental Status Exam (Future)
 
 ## Type Badge Colors
 
 Each clinic type has a distinct color for easy identification:
 
--  GENERAL - Slate
--  DENTAL - Cyan
--  PEDIATRIC - Pink
--  ORTHOPEDIC - Blue
--  CARDIOLOGY - Red
--  DERMATOLOGY - Amber
--  ENT - Teal
--  GYNECOLOGY - Purple
--  OPHTHALMOLOGY - Indigo
--  PSYCHIATRY - Violet
--  SPECIALTY - Emerald
+- GENERAL - Slate
+- DENTAL - Cyan
+- PEDIATRIC - Pink
+- ORTHOPEDIC - Blue
+- CARDIOLOGY - Red
+- DERMATOLOGY - Amber
+- ENT - Teal
+- GYNECOLOGY - Purple
+- OPHTHALMOLOGY - Indigo
+- PSYCHIATRY - Violet
+- SPECIALTY - Emerald
 
 ## Common Use Cases
 

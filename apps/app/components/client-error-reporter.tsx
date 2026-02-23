@@ -64,7 +64,8 @@ export function ClientErrorReporter() {
 
     const handleError = (event: ErrorEvent) => {
       const message = event.message || "Unhandled error";
-      const stack = event.error instanceof Error ? event.error.stack : undefined;
+      const stack =
+        event.error instanceof Error ? event.error.stack : undefined;
       report(`window-error:${message}:${stack ?? ""}`, {
         type: "WindowError",
         message,

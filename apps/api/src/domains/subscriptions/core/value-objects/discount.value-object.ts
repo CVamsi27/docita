@@ -1,7 +1,7 @@
 /**
  * Discount Value Object
  * Represents a discount (percentage-based) applied to a subscription
- * 
+ *
  * Discount types: REFERRAL, ANNUAL, LOYALTY, PROMOTIONAL, etc.
  */
 
@@ -116,9 +116,7 @@ export class DiscountAggregate {
    * Get discount by type
    */
   getDiscount(type: DiscountType): Discount | null {
-    return (
-      this.discounts.find((d) => d.type === type && d.isValid()) || null
-    );
+    return this.discounts.find((d) => d.type === type && d.isValid()) || null;
   }
 
   toArray(): Discount[] {

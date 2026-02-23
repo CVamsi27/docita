@@ -35,7 +35,10 @@ interface PatientMedicalHistoryUIProps {
   readOnly: boolean;
   className?: string;
   clinicType?: string;
-  onCustomDataUpdate?: (key: string, value: string | number | boolean | Record<string, unknown>) => void;
+  onCustomDataUpdate?: (
+    key: string,
+    value: string | number | boolean | Record<string, unknown>,
+  ) => void;
 
   // Conditions
   newCondition: string;

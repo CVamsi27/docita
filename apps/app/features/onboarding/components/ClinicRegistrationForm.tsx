@@ -105,7 +105,9 @@ export function ClinicRegistrationForm({
             setPlanSelection(
               tier,
               billingCycle,
-              pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
+              pricing as PlanSelection["billingCycle"] extends
+                | "MONTHLY"
+                | "YEARLY"
                 ? { monthly: number | "custom"; yearly: number | "custom" }
                 : never,
             )
@@ -124,10 +126,7 @@ export function ClinicRegistrationForm({
       )}
 
       {step === 5 && (
-        <TeamInviteStep
-          onSkip={() => setStep(6)}
-          onComplete={setTeamMembers}
-        />
+        <TeamInviteStep onSkip={() => setStep(6)} onComplete={setTeamMembers} />
       )}
 
       {step === 6 && (

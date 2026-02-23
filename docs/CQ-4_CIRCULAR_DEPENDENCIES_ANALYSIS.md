@@ -1,6 +1,7 @@
 # CQ-4: Circular Dependencies Analysis & Mitigation
 
 ## Executive Summary
+
 - **Status:** ✅ VERIFIED CLEAN (minor optimization opportunities)
 - **Blocking Issues:** None detected
 - **Refactoring Complexity:** Low-to-Medium (candidate for post-launch)
@@ -10,7 +11,9 @@
 ## Analysis Findings
 
 ### Current Architecture
+
 The Docita API uses a modular monolith architecture with:
+
 - **Modules:** Auth, Payments, Patients, Doctors, Appointments, etc. (25+ modules)
 - **Shared Infrastructure:** Common (pipes, interceptors, guards), Cache, Database
 - **Dependency Pattern:** Controllers → Services → Repositories → Database
@@ -18,11 +21,12 @@ The Docita API uses a modular monolith architecture with:
 ### Dependency Flow Validation
 
 **✅ Healthy Patterns Detected:**
+
 1. **Unidirectional Flow:** Controllers → Services → Repositories
    - No bidirectional imports between layers
    - Clean separation of concerns
 
-2. **Shared Module Isolation:** 
+2. **Shared Module Isolation:**
    - `common/` is isolated and only imports NestJS/standard libraries
    - Cache, Logger, Pipes are pure utilities
    - Guards and decorators don't import domain logic
@@ -37,10 +41,12 @@ The Docita API uses a modular monolith architecture with:
 
 **Module 1: Audit Trail System**
 **Current State:**
+
 - Some services directly log to database
 - Audit logging scattered across controllers/services
 
 **Possible Refactor:**
+
 - Create dedicated AuditService
 - Services inject AuditService (unidirectional)
 - Reduces code duplication
@@ -51,10 +57,12 @@ The Docita API uses a modular monolith architecture with:
 
 **Module 2: Error Handling Service**
 **Current State:**
+
 - ErrorAlertingService recently added (CQ-2)
 - Some services use it, others don't yet
 
 **Possible Refactor:**
+
 - Centralize error handling further
 - Create ErrorRecoveryService for retry logic
 - **Estimated Complexity:** Low (1-2 days)
@@ -64,11 +72,13 @@ The Docita API uses a modular monolith architecture with:
 
 **Module 3: Webhook Orchestration**
 **Current State:**
+
 - PaymentsService handles Razorpay webhooks
 - Other services handle their own webhooks
 - Some coordination between modules
 
 **Possible Refactor:**
+
 - Create WebhookOrchestratorService
 - Centralize all webhook routing and dispatch
 - Services subscribe to webhook events via DI
@@ -79,11 +89,13 @@ The Docita API uses a modular monolith architecture with:
 
 **Module 4: Multi-Tenant Context**
 **Current State:**
+
 - TenantContextInterceptor manages tenant isolation
 - Some services directly access user/clinic context
 - Dependencies on Request object in services
 
 **Possible Refactor:**
+
 - Create TenantService as single source of truth
 - Services receive tenant context via DI, not Request
 - Eliminates request scope dependencies
@@ -93,6 +105,7 @@ The Docita API uses a modular monolith architecture with:
 ### Circular Dependency Verification
 
 **Methods Used:**
+
 1. ✅ Import pattern analysis (no reciprocal imports found)
 2. ✅ Manual code walkthrough (20+ critical services)
 3. ✅ NestJS module dependency analysis (all modules properly isolated)
@@ -103,6 +116,7 @@ The Docita API uses a modular monolith architecture with:
 ### Testing Verification
 
 **All Tests Pass:** ✅ 908 tests
+
 - No resolution errors from circular imports
 - All module instantiation successful
 - Dependency injection working correctly
@@ -112,22 +126,28 @@ The Docita API uses a modular monolith architecture with:
 ## Recommendations
 
 ### ✅ For Launch (Feb 19, 2026)
+
 **Nothing required** - CQ-4 is not blocking
 
 **Rationale:**
+
 - No circular dependencies detected that impact runtime
 - Architecture is clean and maintainable
 - All modules can be independently tested
 - Performance impact is minimal
 
 ### 🟢 For Post-Launch (Weeks 1-2)
+
 **If time permits, consider:**
+
 1. AuditService consolidation (1 day, high value)
 2. WebhookOrchestratorService review (2 days, medium value)
 3. TenantService extraction (2-3 days, medium value)
 
 ### 🔵 Future (Post-Launch Stabilization)
+
 If micro-services migration is planned, these refactorings would make it easier:
+
 - Audit Trail → can become separate service
 - Webhook Orchestration → can become event-driven
 - Multi-Tenant Context → can become shared service
@@ -181,6 +201,7 @@ No ← → relationships detected ✅
 **CQ-4 Status: ✅ VERIFICATION COMPLETE - NO BLOCKING ISSUES**
 
 The codebase is architecturally sound with:
+
 - ✅ Unidirectional dependency flows
 - ✅ Clean module isolation
 - ✅ Zero circular imports

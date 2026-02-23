@@ -54,7 +54,7 @@ export function formatFieldError(error: unknown): string {
  */
 export function hasFieldError(
   fieldErrors: FormValidationErrors,
-  fieldName: string
+  fieldName: string,
 ): boolean {
   return fieldName in fieldErrors;
 }
@@ -64,7 +64,7 @@ export function hasFieldError(
  */
 export function getFieldError(
   fieldErrors: FormValidationErrors,
-  fieldName: string
+  fieldName: string,
 ): string {
   const error = fieldErrors[fieldName];
   if (!error) return "";

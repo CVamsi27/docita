@@ -134,7 +134,14 @@ export function useSubscriptionCheckout(
         setProcessingId(null);
       }
     },
-    [token, openCheckout, setTier, invalidateSubscriptionQueries, onSuccess, user],
+    [
+      token,
+      openCheckout,
+      setTier,
+      invalidateSubscriptionQueries,
+      onSuccess,
+      user,
+    ],
   );
 
   const checkoutAddon = useCallback(

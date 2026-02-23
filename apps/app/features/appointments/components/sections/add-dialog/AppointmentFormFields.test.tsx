@@ -44,15 +44,19 @@ describe("AppointmentFormFields", () => {
     expect(screen.getByText("Type")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Add any additional notes...")
+      screen.getByPlaceholderText("Add any additional notes..."),
     ).toBeInTheDocument();
   });
 
   it("updates notes value", () => {
     render(<TestForm />);
 
-    const notesInput = screen.getByPlaceholderText("Add any additional notes...");
-    fireEvent.change(notesInput, { target: { value: "Patient requested evening slot" } });
+    const notesInput = screen.getByPlaceholderText(
+      "Add any additional notes...",
+    );
+    fireEvent.change(notesInput, {
+      target: { value: "Patient requested evening slot" },
+    });
 
     expect(notesInput).toHaveValue("Patient requested evening slot");
   });
@@ -60,9 +64,13 @@ describe("AppointmentFormFields", () => {
   it("shows field-level validation state and message when notes has an error", () => {
     render(<TestForm />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Trigger Notes Error" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Trigger Notes Error" }),
+    );
 
-    const notesInput = screen.getByPlaceholderText("Add any additional notes...");
+    const notesInput = screen.getByPlaceholderText(
+      "Add any additional notes...",
+    );
     expect(notesInput).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText("Notes are required")).toBeInTheDocument();
   });

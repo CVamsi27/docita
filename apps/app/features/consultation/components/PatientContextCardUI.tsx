@@ -83,7 +83,7 @@ export function PatientContextCardUI({
       className={cn(
         "border rounded-lg bg-card shadow-sm overflow-hidden",
         hasAllergies && "border-l-4 border-l-red-500",
-        className
+        className,
       )}
     >
       {/* Header */}

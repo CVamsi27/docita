@@ -4,10 +4,7 @@ export type PatientPortalSection =
   | "prescriptions"
   | "billing";
 
-export type PatientAppointmentStatus =
-  | "CONFIRMED"
-  | "PENDING"
-  | "COMPLETED";
+export type PatientAppointmentStatus = "CONFIRMED" | "PENDING" | "COMPLETED";
 
 export type PatientPrescriptionStatus = "ACTIVE" | "COMPLETED";
 

@@ -14,7 +14,10 @@ export default function InvoicesLoading() {
       <div className="rounded-xl border bg-card p-4 space-y-4">
         <Skeleton className="h-10 w-full" />
         {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
+          <div
+            key={index}
+            className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4"
+          >
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />

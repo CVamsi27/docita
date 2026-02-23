@@ -9,7 +9,9 @@ export function getAPIClient(config?: APIClientConfig): APIClient {
   }
 
   if (!defaultClient) {
-    throw new Error("API client not initialized. Call getAPIClient(config) first.");
+    throw new Error(
+      "API client not initialized. Call getAPIClient(config) first.",
+    );
   }
 
   return defaultClient;

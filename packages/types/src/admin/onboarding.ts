@@ -8,22 +8,28 @@ import { userSchema } from "../shared/users";
  * =====================================================
  * Schema-based types for onboarding flow state management
  */
-export const onboardingStepSchema = z.enum(["clinic-details", "owner-details", "documents", "subscription", "review"]);
+export const onboardingStepSchema = z.enum([
+  "clinic-details",
+  "owner-details",
+  "documents",
+  "subscription",
+  "review",
+]);
 export type OnboardingStep = z.infer<typeof onboardingStepSchema>;
 
 export const onboardingSessionSchema = z.object({
-    id: z.string(),
-    currentStep: onboardingStepSchema,
-    clinicDetails: clinicSchema.partial().optional(),
-    ownerDetails: userSchema.partial().optional(),
-    isCompleted: z.boolean(),
-    createdAt: z.date().or(z.string()),
-    updatedAt: z.date().or(z.string()),
+  id: z.string(),
+  currentStep: onboardingStepSchema,
+  clinicDetails: clinicSchema.partial().optional(),
+  ownerDetails: userSchema.partial().optional(),
+  isCompleted: z.boolean(),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
 });
 
 export const onboardingInitResponseSchema = z.object({
-    onboardingId: z.string(),
-    step: onboardingStepSchema,
+  onboardingId: z.string(),
+  step: onboardingStepSchema,
 });
 
 /**
@@ -83,7 +89,12 @@ export interface OnboardingStepData {
   payment?: OnboardingPaymentData;
 }
 
-export type OnboardingStepType = "clinic_info" | "doctor_info" | "plan_selection" | "payment" | "complete";
+export type OnboardingStepType =
+  | "clinic_info"
+  | "doctor_info"
+  | "plan_selection"
+  | "payment"
+  | "complete";
 
 // Backward compatibility export
 export type PaymentData = OnboardingPaymentData;

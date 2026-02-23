@@ -27,7 +27,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
   const handleChange = (
     eye: "OD" | "OS",
     field: string, // Simplified key for mapping
-    val: string
+    val: string,
   ) => {
     if (readOnly) return;
     const eyeKey = eye === "OD" ? "od" : "os";

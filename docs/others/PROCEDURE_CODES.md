@@ -260,12 +260,12 @@ D6058: Implant crown
 
 ### Required for Claims
 
--  Correct CDT/CPT code
--  Tooth number (for tooth-specific procedures)
--  Surface(s) treated (for restorative)
--  Date of service
--  Provider NPI number
--  Diagnosis code (ICD-10)
+- Correct CDT/CPT code
+- Tooth number (for tooth-specific procedures)
+- Surface(s) treated (for restorative)
+- Date of service
+- Provider NPI number
+- Diagnosis code (ICD-10)
 
 ### Pre-Authorization
 

@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/features/dashboard", () => ({
-  DashboardPageContainer: () => <div data-testid="dashboard-page-container">Dashboard Container</div>,
+  DashboardPageContainer: () => (
+    <div data-testid="dashboard-page-container">Dashboard Container</div>
+  ),
 }));
 
 import SuperAdminDashboard from "./page";

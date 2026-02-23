@@ -14,7 +14,7 @@ interface UseOnboardingReturn {
   prevStep: () => void;
   updateData: <K extends keyof OnboardingData>(
     key: K,
-    value: OnboardingData[K]
+    value: OnboardingData[K],
   ) => void;
   submit: () => Promise<void>;
   reset: () => void;
@@ -60,7 +60,7 @@ export function useOnboarding(): UseOnboardingReturn {
     <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
       setData((prev) => ({ ...prev, [key]: value }));
     },
-    []
+    [],
   );
 
   const submit = useCallback(async () => {

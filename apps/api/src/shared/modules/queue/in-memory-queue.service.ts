@@ -1,13 +1,19 @@
 /**
  * In-Memory Queue Service
- * 
+ *
  * Simple queue implementation for development.
  * Jobs are processed immediately or with delays, but NOT persisted.
  * For production, use BullMQ with Redis.
  */
 
 import { Injectable } from '@nestjs/common';
-import { IQueueProvider, QueueJob, QueueJobOptions, QueueStats, JobNames } from './queue.interface';
+import {
+  IQueueProvider,
+  QueueJob,
+  QueueJobOptions,
+  QueueStats,
+  JobNames,
+} from './queue.interface';
 
 interface InMemoryJob<T> extends QueueJob<T> {
   handler?: (job: QueueJob<T>) => Promise<void>;
@@ -44,7 +50,13 @@ export class InMemoryQueueService implements IQueueProvider {
 
     if (!this.jobsByName.has(name)) {
       this.jobsByName.set(name, new Set());
-      this.stats.set(name, { processed: 0, failed: 0, waiting: 0, active: 0, delayed: 0 });
+      this.stats.set(name, {
+        processed: 0,
+        failed: 0,
+        waiting: 0,
+        active: 0,
+        delayed: 0,
+      });
     }
 
     this.jobsByName.get(name)!.add(jobId);

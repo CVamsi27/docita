@@ -24,9 +24,7 @@ export class UpdateInvoiceStatusUseCase {
     // 1. Fetch invoice
     const invoice = await this.invoiceRepository.findById(command.invoiceId);
     if (!invoice) {
-      throw new NotFoundException(
-        `Invoice ${command.invoiceId} not found`,
-      );
+      throw new NotFoundException(`Invoice ${command.invoiceId} not found`);
     }
 
     // 2. Attempt state transition (entity validates this)

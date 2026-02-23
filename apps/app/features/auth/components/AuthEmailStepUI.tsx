@@ -35,7 +35,9 @@ export function AuthEmailStepUI({
         autoFocus
       />
 
-      {!Object.keys(fieldErrors).length && error && <ErrorBanner message={error} />}
+      {!Object.keys(fieldErrors).length && error && (
+        <ErrorBanner message={error} />
+      )}
 
       <Button
         type="submit"

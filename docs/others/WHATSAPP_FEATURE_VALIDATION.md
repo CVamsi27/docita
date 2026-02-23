@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
- **VALIDATED** - All requested WhatsApp features are implemented and functional with the following configuration:
+**VALIDATED** - All requested WhatsApp features are implemented and functional with the following configuration:
 
 - **Business Display Name**: Configurable per clinic (e.g., "Docita Business", "Clinic Name")
 - **Reminders**: 24-hour and 30-minute automated reminders with interactive buttons
@@ -21,7 +21,7 @@
 
 ## 1. Business Display Name Configuration
 
-###  Status: IMPLEMENTED
+### Status: IMPLEMENTED
 
 **Location**: WhatsApp Cloud API Configuration  
 **Documentation**: [WHATSAPP_CLOUD_API_SETUP.md](WHATSAPP_CLOUD_API_SETUP.md#32-set-display-name)
@@ -34,18 +34,19 @@
    - Requires approval (usually instant, max 24 hours)
 
 2. **Clinic Name in Messages**:
-  - File: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts#L364)
 
-   ```typescript
-   const clinicName = appointment.clinic?.name || "Docita";
-   ```
+- File: [apps/api/src/modules/reminders/reminders.service.ts](../../apps/api/src/modules/reminders/reminders.service.ts#L364)
 
-   - All WhatsApp messages include `{{clinicName}}` variable
-   - Dynamically populated from clinic database record
+```typescript
+const clinicName = appointment.clinic?.name || "Docita";
+```
+
+- All WhatsApp messages include `{{clinicName}}` variable
+- Dynamically populated from clinic database record
 
 3. **Message Template Variables**:
    - `clinicName`: Clinic's registered business name
-   - Example: "Hi {{patientName}}!  This is a reminder from _{{clinicName}}_"
+   - Example: "Hi {{patientName}}! This is a reminder from _{{clinicName}}_"
 
 **Verification**:
 
@@ -57,7 +58,7 @@
 
 ## 2. Appointment Reminders
 
-###  Status: FULLY IMPLEMENTED
+### Status: FULLY IMPLEMENTED
 
 ### 2.1 24-Hour Reminder (Scheduled At)
 
@@ -78,7 +79,7 @@ async checkAndSendReminders() {
 **Template** (Line 889 in [seed.ts](../../apps/api/src/seed.ts)):
 
 ```
-Hi {{patientName}}! 
+Hi {{patientName}}!
 
 This is a reminder for your appointment tomorrow:
 
@@ -95,9 +96,9 @@ Reply with:
 
 **Interactive Buttons**:
 
--  Confirm
--  Cancel
--  Delay
+- Confirm
+- Cancel
+- Delay
 
 ### 2.2 30-Minute Reminder
 
@@ -130,9 +131,9 @@ Are you on your way?
 
 **Interactive Buttons**:
 
--  On The Way
--  Delay
--  Reschedule
+- On The Way
+- Delay
+- Reschedule
 
 **Verification**:
 
@@ -145,7 +146,7 @@ Are you on your way?
 
 ## 3. Patient Response Handling (Interactive Buttons)
 
-###  Status: FULLY IMPLEMENTED
+### Status: FULLY IMPLEMENTED
 
 **Files**:
 
@@ -179,7 +180,7 @@ type PatientResponseType =
 
 ### 3.3 Response Actions
 
-####  CONFIRM / ON_THE_WAY
+#### CONFIRM / ON_THE_WAY
 
 - **Appointment Status**: Updated to `confirmed`
 - **Patient Response**:
@@ -193,7 +194,7 @@ type PatientResponseType =
 
 - **Staff Notification**: "Patient confirmed appointment"
 
-####  DELAY
+#### DELAY
 
 - **Appointment Status**: Unchanged (delay noted)
 - **Delay Extraction**: Parses minutes from text (e.g., "15 min", "running 10 late")
@@ -210,7 +211,7 @@ type PatientResponseType =
 - **Staff Notification**: "Patient will be delayed by 15 minutes"
 - **Data Stored**: `AppointmentResponse.delayMinutes`
 
-####  RESCHEDULE
+#### RESCHEDULE
 
 - **Appointment Status**: Updated to `rescheduling`
 - **Patient Response**:
@@ -227,7 +228,7 @@ type PatientResponseType =
 - **Staff Notification**: "Patient requested to reschedule"
 - **Staff Action Required**: Manual follow-up to reschedule
 
-####  CANCEL
+#### CANCEL
 
 - **Appointment Status**: Updated to `cancelled`
 - **Patient Response**:
@@ -273,7 +274,7 @@ model AppointmentResponse {
 
 ## 4. Staff Notifications
 
-###  Status: FULLY IMPLEMENTED
+### Status: FULLY IMPLEMENTED
 
 **File**: [apps/api/src/modules/whatsapp/staff-notification.service.ts](../../apps/api/src/modules/whatsapp/staff-notification.service.ts)
 
@@ -375,7 +376,7 @@ model Notification {
 
 ## 5. Invoice Sending via WhatsApp
 
-###  Status: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
+### Status: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
 
 **File**: [apps/api/src/modules/invoices/invoices.service.ts](../../apps/api/src/modules/invoices/invoices.service.ts#L176-L265)
 
@@ -408,9 +409,9 @@ enum ApprovalStatus {
 
 **Who Can Send**:
 
--  **DOCTOR**: Auto-approved
--  **ADMIN_DOCTOR**: Auto-approved
--  **ADMIN**: Auto-approved
+- **DOCTOR**: Auto-approved
+- **ADMIN_DOCTOR**: Auto-approved
+- **ADMIN**: Auto-approved
 - ️ **Other Staff**: Requires approval from doctor/admin
 
 **Implementation**:
@@ -428,7 +429,7 @@ if (!isAuthorized && invoice.approvalStatus !== "APPROVED") {
 **Template** (Line 931 in seed.ts):
 
 ```
-Hi {{patientName}}! 
+Hi {{patientName}}!
 
 Your invoice #{{invoiceNumber}} for ₹{{amount}} is ready.
 
@@ -487,7 +488,7 @@ const automationConfig = clinic.whatsappAutomation as {
 
 ## 6. Prescription Sending via WhatsApp
 
-###  STATUS: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
+### STATUS: FULLY IMPLEMENTED WITH APPROVAL WORKFLOW
 
 **File**: [apps/api/src/modules/prescriptions/prescriptions.service.ts](../../apps/api/src/modules/prescriptions/prescriptions.service.ts#L189-L258)
 
@@ -513,8 +514,8 @@ model Prescription {
 
 **Who Can Send**:
 
--  **DOCTOR**: Auto-approved
--  **ADMIN_DOCTOR**: Auto-approved
+- **DOCTOR**: Auto-approved
+- **ADMIN_DOCTOR**: Auto-approved
 - ️ **Other Staff**: Requires approval from doctor/admin_doctor
 
 **Implementation**:
@@ -944,7 +945,7 @@ Send manual reminder
 
 ## 11. Testing Checklist
 
-###  Reminder Testing
+### Reminder Testing
 
 - [x] 24-hour reminder sent automatically
 - [x] 30-minute reminder sent automatically
@@ -953,7 +954,7 @@ Send manual reminder
 - [x] No duplicate reminders sent
 - [x] Only scheduled/confirmed appointments get reminders
 
-###  Button Response Testing
+### Button Response Testing
 
 - [x] CONFIRM button updates status to 'confirmed'
 - [x] CANCEL button updates status to 'cancelled'
@@ -964,7 +965,7 @@ Send manual reminder
 - [x] Patient receives confirmation message
 - [x] Staff receives notification (WhatsApp + In-app)
 
-###  Delay Handling Testing
+### Delay Handling Testing
 
 - [x] "15 min" extracts delayMinutes: 15
 - [x] "running 20 late" extracts delayMinutes: 20
@@ -972,7 +973,7 @@ Send manual reminder
 - [x] Delay stored in AppointmentResponse table
 - [x] Staff notification includes delay time
 
-###  Prescription Testing
+### Prescription Testing
 
 - [x] Doctor can send directly (auto-approved)
 - [x] Admin_Doctor can send directly (auto-approved)
@@ -983,7 +984,7 @@ Send manual reminder
 - [x] WhatsApp log created with status
 - [x] Automation setting respected
 
-###  Invoice Testing
+### Invoice Testing
 
 - [x] Doctor/Admin/Admin_Doctor can send directly
 - [x] Other staff requires approval
@@ -992,7 +993,7 @@ Send manual reminder
 - [x] WhatsApp log created
 - [x] Automation setting respected
 
-###  Staff Notification Testing
+### Staff Notification Testing
 
 - [x] Assigned doctor receives notification
 - [x] Clinic admins receive notification
@@ -1026,18 +1027,18 @@ Send manual reminder
 
 ### Data Privacy
 
--  Patient consent assumed for appointment-related messages
--  Opt-out mechanism: Patients can text "STOP"
--  HIPAA consideration: No PHI in templates, use variables
--  Audit trail: All messages logged with timestamps
+- Patient consent assumed for appointment-related messages
+- Opt-out mechanism: Patients can text "STOP"
+- HIPAA consideration: No PHI in templates, use variables
+- Audit trail: All messages logged with timestamps
 
 ### Security Measures
 
--  Webhook signature verification (Meta App Secret)
--  Role-based access control (RBAC) for sending messages
--  Approval workflow for non-authorized staff
--  Encrypted storage of access tokens
--  Rate limiting on API endpoints
+- Webhook signature verification (Meta App Secret)
+- Role-based access control (RBAC) for sending messages
+- Approval workflow for non-authorized staff
+- Encrypted storage of access tokens
+- Rate limiting on API endpoints
 
 ---
 
@@ -1062,21 +1063,21 @@ Send manual reminder
 
 ## 15. Final Verification Summary
 
-| Feature                          | Status      | Implementation                                                    | Notes                                      |
-| -------------------------------- | ----------- | ----------------------------------------------------------------- | ------------------------------------------ |
-| **Business Display Name**        |  COMPLETE | Configurable in Meta Business Manager + `{{clinicName}}` variable | Shows "Docita Business" or clinic name     |
-| **24-Hour Reminders**            |  COMPLETE | Cron job every hour                                               | Template: `appointment_reminder_24hr`      |
-| **30-Minute Reminders**          |  COMPLETE | Cron job every 5 minutes                                          | Template: `appointment_reminder_30min`     |
-| **Confirm Button**               |  COMPLETE | Response handler updates status to `confirmed`                    | Patient + staff notified                   |
-| **Delay Button**                 |  COMPLETE | Logs delay, extracts minutes, notifies staff                      | Default: 15 min                            |
-| **Reschedule Button**            |  COMPLETE | Updates status to `rescheduling`, requires staff follow-up        | Staff notified                             |
-| **Cancel Button**                |  COMPLETE | Updates status to `cancelled`                                     | Patient + staff notified                   |
-| **On-Time Notification**         |  COMPLETE | "On The Way" button confirms arrival                              | Staff notified of imminent arrival         |
-| **Staff WhatsApp Notifications** |  COMPLETE | Sent to assigned doctor + admins                                  | All patient responses trigger notification |
-| **Staff In-App Notifications**   |  COMPLETE | Stored in `Notification` table                                    | Priority-based, real-time                  |
-| **Invoice Sending**              |  COMPLETE | Approval workflow for non-doctors/admins                          | Includes Razorpay payment link             |
-| **Prescription Sending**         |  COMPLETE | Approval workflow for non-doctors                                 | Includes medications + instructions        |
-| **Doctor/Admin Approval**        |  COMPLETE | Auto-approved for DOCTOR, ADMIN_DOCTOR, ADMIN                     | Others require approval                    |
+| Feature                          | Status   | Implementation                                                    | Notes                                      |
+| -------------------------------- | -------- | ----------------------------------------------------------------- | ------------------------------------------ |
+| **Business Display Name**        | COMPLETE | Configurable in Meta Business Manager + `{{clinicName}}` variable | Shows "Docita Business" or clinic name     |
+| **24-Hour Reminders**            | COMPLETE | Cron job every hour                                               | Template: `appointment_reminder_24hr`      |
+| **30-Minute Reminders**          | COMPLETE | Cron job every 5 minutes                                          | Template: `appointment_reminder_30min`     |
+| **Confirm Button**               | COMPLETE | Response handler updates status to `confirmed`                    | Patient + staff notified                   |
+| **Delay Button**                 | COMPLETE | Logs delay, extracts minutes, notifies staff                      | Default: 15 min                            |
+| **Reschedule Button**            | COMPLETE | Updates status to `rescheduling`, requires staff follow-up        | Staff notified                             |
+| **Cancel Button**                | COMPLETE | Updates status to `cancelled`                                     | Patient + staff notified                   |
+| **On-Time Notification**         | COMPLETE | "On The Way" button confirms arrival                              | Staff notified of imminent arrival         |
+| **Staff WhatsApp Notifications** | COMPLETE | Sent to assigned doctor + admins                                  | All patient responses trigger notification |
+| **Staff In-App Notifications**   | COMPLETE | Stored in `Notification` table                                    | Priority-based, real-time                  |
+| **Invoice Sending**              | COMPLETE | Approval workflow for non-doctors/admins                          | Includes Razorpay payment link             |
+| **Prescription Sending**         | COMPLETE | Approval workflow for non-doctors                                 | Includes medications + instructions        |
+| **Doctor/Admin Approval**        | COMPLETE | Auto-approved for DOCTOR, ADMIN_DOCTOR, ADMIN                     | Others require approval                    |
 
 ---
 

@@ -256,10 +256,15 @@ export function EditClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.name}
-                  aria-describedby={fieldErrors.name ? "edit-clinic-name-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.name ? "edit-clinic-name-error" : undefined
+                  }
                 />
                 {fieldErrors.name && (
-                  <p id="edit-clinic-name-error" className="text-sm text-destructive">
+                  <p
+                    id="edit-clinic-name-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.name}
                   </p>
                 )}
@@ -277,10 +282,15 @@ export function EditClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.email}
-                  aria-describedby={fieldErrors.email ? "edit-clinic-email-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.email ? "edit-clinic-email-error" : undefined
+                  }
                 />
                 {fieldErrors.email && (
-                  <p id="edit-clinic-email-error" className="text-sm text-destructive">
+                  <p
+                    id="edit-clinic-email-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.email}
                   </p>
                 )}
@@ -299,10 +309,15 @@ export function EditClinicDialog({
                     }
                   }}
                   aria-invalid={!!fieldErrors.phone}
-                  aria-describedby={fieldErrors.phone ? "edit-clinic-phone-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.phone ? "edit-clinic-phone-error" : undefined
+                  }
                 />
                 {fieldErrors.phone && (
-                  <p id="edit-clinic-phone-error" className="text-sm text-destructive">
+                  <p
+                    id="edit-clinic-phone-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.phone}
                   </p>
                 )}
@@ -366,10 +381,15 @@ export function EditClinicDialog({
                   }
                 }}
                 aria-invalid={!!fieldErrors.address}
-                aria-describedby={fieldErrors.address ? "edit-clinic-address-error" : undefined}
+                aria-describedby={
+                  fieldErrors.address ? "edit-clinic-address-error" : undefined
+                }
               />
               {fieldErrors.address && (
-                <p id="edit-clinic-address-error" className="text-sm text-destructive">
+                <p
+                  id="edit-clinic-address-error"
+                  className="text-sm text-destructive"
+                >
                   {fieldErrors.address}
                 </p>
               )}

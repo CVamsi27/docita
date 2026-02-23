@@ -11,8 +11,6 @@ export {
 export { PrescriptionDefaultsSettingsContainer } from "./PrescriptionDefaultsSettingsContainer";
 export { PrescriptionDefaultsSettingsContainer as PrescriptionDefaultsSettings } from "./PrescriptionDefaultsSettingsContainer";
 
-
-
 // Member Management (API-connected - uses useClinicMembers hook)
 export { MemberManagementSettings } from "./MemberManagementSettings";
 
@@ -27,7 +25,6 @@ export {
   ClinicGeneralSettings,
   SecuritySettings,
   ChangePasswordSettings,
-
   SubscriptionSettings,
   DoctorManagementSettings,
   TemplatesSettings,
@@ -53,7 +50,6 @@ export {
   PatientFormDialogDynamic,
   BulkImportDialogDynamic,
   FhirExportDialogDynamic,
-
   AddWalkInDialogDynamic,
   WhatsAppSettingsDialogDynamic,
   WhatsAppBroadcastDialogDynamic,

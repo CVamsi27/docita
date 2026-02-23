@@ -3,15 +3,15 @@
  * Used across all API endpoints for consistent validation
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Common validators
-export const IdSchema = z.string().uuid('Invalid ID format');
-export const EmailSchema = z.string().email('Invalid email address');
+export const IdSchema = z.string().uuid("Invalid ID format");
+export const EmailSchema = z.string().email("Invalid email address");
 export const PhoneSchema = z
   .string()
-  .regex(/^\+?[\d\s\-()]{10,}$/, 'Invalid phone number');
-export const URLSchema = z.string().url('Invalid URL');
+  .regex(/^\+?[\d\s\-()]{10,}$/, "Invalid phone number");
+export const URLSchema = z.string().url("Invalid URL");
 export const DateTimeSchema = z.coerce.date();
 export const PositiveIntSchema = z.number().int().positive();
 export const NonNegativeIntSchema = z.number().int().nonnegative();
@@ -21,7 +21,7 @@ export const PaginationSchema = z.object({
   page: NonNegativeIntSchema.default(1),
   limit: z.number().int().min(1).max(100).default(20),
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  sortOrder: z.enum(["asc", "desc"]).default("asc"),
 });
 
 export type Pagination = z.infer<typeof PaginationSchema>;
@@ -45,7 +45,7 @@ export const CreatePatientSchema = z.object({
   email: EmailSchema.optional(),
   phoneNumber: PhoneSchema.optional(),
   dateOfBirth: DateTimeSchema.optional(),
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -66,16 +66,16 @@ export const CreateAppointmentSchema = z.object({
   reason: z.string().min(1).max(500),
   status: z
     .enum([
-      'SCHEDULED',
-      'CONFIRMED',
-      'IN_PROGRESS',
-      'COMPLETED',
-      'CANCELLED',
-      'NO_SHOW',
+      "SCHEDULED",
+      "CONFIRMED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "CANCELLED",
+      "NO_SHOW",
     ])
-    .default('SCHEDULED'),
+    .default("SCHEDULED"),
   notes: z.string().optional(),
-  type: z.enum(['IN_PERSON', 'TELEHEALTH']).default('IN_PERSON'),
+  type: z.enum(["IN_PERSON", "TELEHEALTH"]).default("IN_PERSON"),
   duration: PositiveIntSchema.default(30),
 });
 
@@ -136,7 +136,7 @@ export const CreateClinicSchema = z.object({
   state: z.string().min(1),
   postalCode: z.string(),
   country: z.string(),
-  clinicType: z.enum(['GENERAL', 'DENTAL', 'CARDIOLOGY', 'PEDIATRIC']),
+  clinicType: z.enum(["GENERAL", "DENTAL", "CARDIOLOGY", "PEDIATRIC"]),
   licenseNumber: z.string().optional(),
   registrationNumber: z.string().optional(),
 });
@@ -153,7 +153,7 @@ export const CreateLabTestSchema = z.object({
   testName: z.string().min(1),
   category: z.string().min(1),
   instructions: z.string().optional(),
-  priority: z.enum(['ROUTINE', 'URGENT', 'STAT']).default('ROUTINE'),
+  priority: z.enum(["ROUTINE", "URGENT", "STAT"]).default("ROUTINE"),
 });
 
 export type CreateLabTest = z.infer<typeof CreateLabTestSchema>;
@@ -163,11 +163,11 @@ export const SignUpSchema = z.object({
   email: EmailSchema,
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain uppercase letter')
-    .regex(/[a-z]/, 'Password must contain lowercase letter')
-    .regex(/[0-9]/, 'Password must contain number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain special character'),
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain uppercase letter")
+    .regex(/[a-z]/, "Password must contain lowercase letter")
+    .regex(/[0-9]/, "Password must contain number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain special character"),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   clinicId: IdSchema,
@@ -186,10 +186,10 @@ export const ChangePasswordSchema = z.object({
   currentPassword: z.string(),
   newPassword: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain uppercase letter')
-    .regex(/[a-z]/, 'Password must contain lowercase letter')
-    .regex(/[0-9]/, 'Password must contain number'),
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain uppercase letter")
+    .regex(/[a-z]/, "Password must contain lowercase letter")
+    .regex(/[0-9]/, "Password must contain number"),
 });
 
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
@@ -211,9 +211,7 @@ export const ListAppointmentsQuerySchema = PaginationSchema.extend({
   clinicId: IdSchema.optional(),
 });
 
-export type ListAppointmentsQuery = z.infer<
-  typeof ListAppointmentsQuerySchema
->;
+export type ListAppointmentsQuery = z.infer<typeof ListAppointmentsQuerySchema>;
 
 // Export all schemas as a namespace
 export const API_SCHEMAS = {

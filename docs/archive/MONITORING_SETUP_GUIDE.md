@@ -11,6 +11,7 @@
 This guide walks you through setting up **Option B: Enhanced Monitoring** for Docita — the industry-standard monitoring setup for production SaaS applications.
 
 ### What's Included
+
 - ✅ Sentry error tracking (frontend + backend)
 - ✅ UptimeRobot uptime monitoring
 - ✅ Slack integration for real-time alerts
@@ -18,6 +19,7 @@ This guide walks you through setting up **Option B: Enhanced Monitoring** for Do
 - ✅ Performance tracking
 
 ### Why Option B?
+
 - Industry standard for production SaaS
 - Perfect balance of coverage vs. setup time
 - Real-time alerts for critical issues
@@ -29,6 +31,7 @@ This guide walks you through setting up **Option B: Enhanced Monitoring** for Do
 ## 📋 Prerequisites
 
 Before starting, ensure you have:
+
 - [ ] Docita API deployed to Railway (or staging URL)
 - [ ] Admin access to Docita Slack workspace
 - [ ] Email for alert notifications
@@ -40,6 +43,7 @@ Before starting, ensure you have:
 ## 1️⃣ Configure Sentry Alerts (30 minutes)
 
 ### Step 1.1: Access Sentry Dashboard
+
 ```bash
 # Navigate to: https://sentry.io
 # Login with your Docita Sentry account
@@ -47,6 +51,7 @@ Before starting, ensure you have:
 ```
 
 ### Step 1.2: Configure Error Rate Alerts
+
 ```bash
 # For Backend (docita-api):
 # 1. Go to Alerts → Create Alert Rule
@@ -56,12 +61,13 @@ Before starting, ensure you have:
    - Filter: error.type equals Error
    - Frequency: 10 errors in 1 minute
    - Action: Send email + Slack notification
-   
+
 # Name: "High Error Rate - Backend"
 # Save alert
 ```
 
 ### Step 1.3: Configure Critical Error Alerts
+
 ```bash
 # For Both Projects:
 # 1. Go to Alerts → Create Alert Rule
@@ -71,12 +77,13 @@ Before starting, ensure you have:
    - Filter: level equals fatal OR http.status_code equals 500
    - Frequency: 1 error
    - Action: Send email + Slack notification (immediate)
-   
+
 # Name: "Critical Error - Immediate Alert"
 # Save alert
 ```
 
 ### Step 1.4: Configure Performance Degradation Alerts
+
 ```bash
 # For Backend (docita-api):
 # 1. Go to Alerts → Create Alert Rule
@@ -87,12 +94,13 @@ Before starting, ensure you have:
    - Threshold: 2000ms (2 seconds)
    - Time window: 10 minutes
    - Action: Send email notification
-   
+
 # Name: "Performance Degradation - P95"
 # Save alert
 ```
 
 ### Step 1.5: Verify Sentry Configuration
+
 ```bash
 # Test error tracking:
 # Backend: Trigger a test error
@@ -113,6 +121,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ## 2️⃣ Set Up UptimeRobot (15 minutes)
 
 ### Step 2.1: Create Account
+
 ```bash
 # Navigate to: https://uptimerobot.com
 # Sign up for free account (50 monitors included)
@@ -120,6 +129,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 2.2: Create API Health Monitor
+
 ```bash
 # 1. Click "+ Add New Monitor"
 # 2. Configure:
@@ -128,11 +138,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - URL: https://api.docita.work/api/health
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
-   
+
 # 3. Click "Create Monitor"
 ```
 
 ### Step 2.3: Create Database Health Monitor
+
 ```bash
 # 1. Click "+ Add New Monitor"
 # 2. Configure:
@@ -142,11 +153,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    - Keyword: "status":"up"
-   
+
 # 3. Click "Create Monitor"
 ```
 
 ### Step 2.4: Create Redis Health Monitor
+
 ```bash
 # 1. Click "+ Add New Monitor"
 # 2. Configure:
@@ -156,11 +168,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
    - Keyword: "status":"up"
-   
+
 # 3. Click "Create Monitor"
 ```
 
 ### Step 2.5: Create Frontend Monitor
+
 ```bash
 # 1. Click "+ Add New Monitor"
 # 2. Configure:
@@ -169,18 +182,19 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - URL: https://app.docita.work
    - Monitoring Interval: 5 minutes
    - Monitor Timeout: 30 seconds
-   
+
 # 3. Click "Create Monitor"
 ```
 
 ### Step 2.6: Configure Alert Contacts
+
 ```bash
 # 1. Go to "My Settings" → "Alert Contacts"
 # 2. Add Email:
    - Type: Email
    - Email: your-team-email@docita.work
    - Verify email
-   
+
 # 3. Add Slack (we'll get webhook in next section)
 # 4. Apply to all monitors
 ```
@@ -192,6 +206,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ## 3️⃣ Configure Slack Integration (30 minutes)
 
 ### Step 3.1: Create Slack Channel
+
 ```bash
 # In Slack:
 # 1. Create channel: #docita-alerts
@@ -200,6 +215,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 3.2: Set Up Sentry → Slack Integration
+
 ```bash
 # In Sentry:
 # 1. Go to Settings → Integrations
@@ -209,12 +225,13 @@ curl -X POST https://api.docita.work/api/health/test-error \
 # 5. Configure notification preferences:
    - Send alerts for: Critical issues, High error rates
    - Frequency: Real-time (no batching)
-   
+
 # 6. Test integration:
 # Settings → Integrations → Slack → "Send Test Notification"
 ```
 
 ### Step 3.3: Set Up UptimeRobot → Slack Integration
+
 ```bash
 # In Slack:
 # 1. Go to #docita-alerts channel
@@ -233,11 +250,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
      {
        "text": "*Monitor: *name** *status*\n*Reason:* *alertDetails*\n*Time:* *alertDateTime*"
      }
-   
+
 # 5. Save and apply to monitors
 ```
 
 ### Step 3.4: Set Up Railway → Slack (Optional)
+
 ```bash
 # If Railway supports webhooks:
 # 1. In Railway project → Settings → Webhooks
@@ -246,12 +264,14 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 3.5: Create Alert Runbook in Slack
+
 ```markdown
 # Post this message in #docita-alerts (pinned):
 
 🚨 **DOCITA ALERTS - RUNBOOK** 🚨
 
 **Alert Types:**
+
 1. 🔴 **Critical Error** (Sentry) - Immediate action required
    - Severity: CRITICAL
    - Response time: < 15 minutes
@@ -284,6 +304,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ## 4️⃣ Set Up Railway Dashboards (30 minutes)
 
 ### Step 4.1: Access Railway Metrics
+
 ```bash
 # Navigate to Railway dashboard
 # Select project: docita-api
@@ -291,6 +312,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 4.2: Configure CPU Usage Alert
+
 ```bash
 # In Railway:
 # 1. Metrics → CPU Usage
@@ -300,11 +322,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - Duration: 5 minutes
    - Alert method: Email
    - Email: your-team-email@docita.work
-   
+
 # 4. Save alert
 ```
 
 ### Step 4.3: Configure Memory Usage Alert
+
 ```bash
 # In Railway:
 # 1. Metrics → Memory Usage
@@ -313,11 +336,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - Threshold: 85%
    - Duration: 5 minutes
    - Alert method: Email
-   
+
 # 4. Save alert
 ```
 
 ### Step 4.4: Configure Disk Space Alert
+
 ```bash
 # In Railway:
 # 1. Metrics → Disk Usage
@@ -326,11 +350,12 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - Threshold: 90%
    - Duration: 10 minutes
    - Alert method: Email
-   
+
 # 4. Save alert
 ```
 
 ### Step 4.5: Create Custom Dashboard
+
 ```bash
 # In Railway:
 # 1. Go to "Metrics" → "Create Dashboard"
@@ -341,12 +366,13 @@ curl -X POST https://api.docita.work/api/health/test-error \
    - CPU Usage (%)
    - Memory Usage (%)
    - Active Connections
-   
+
 # 3. Name: "Docita Production Overview"
 # 4. Save and pin to favorites
 ```
 
 ### Step 4.6: Configure Request Latency Monitoring
+
 ```bash
 # If Railway supports custom metrics:
 # 1. Metrics → Response Time
@@ -362,6 +388,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ## 5️⃣ Test All Alerts (15 minutes)
 
 ### Step 5.1: Test Sentry Error Alert
+
 ```bash
 # Trigger test error in backend:
 curl -X POST https://api.docita.work/api/health/test-error \
@@ -374,6 +401,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 5.2: Test UptimeRobot Down Alert
+
 ```bash
 # Temporarily stop API service (in Railway):
 # 1. Go to Railway dashboard
@@ -390,6 +418,7 @@ curl -X POST https://api.docita.work/api/health/test-error \
 ```
 
 ### Step 5.3: Test Performance Alert
+
 ```bash
 # Trigger slow query (if test endpoint exists):
 curl -X GET https://api.docita.work/api/health/slow-query
@@ -403,6 +432,7 @@ k6 run scripts/k6-baseline.js
 ```
 
 ### Step 5.4: Verify Alert Delivery
+
 ```bash
 # Checklist:
 # ✅ Sentry alerts appear in Slack
@@ -419,6 +449,7 @@ k6 run scripts/k6-baseline.js
 ## 6️⃣ Post-Setup Verification
 
 ### Verification Checklist
+
 ```bash
 # Sentry:
 ✅ Error tracking active for frontend + backend
@@ -461,32 +492,40 @@ k6 run scripts/k6-baseline.js
 ## 📊 Monitoring Dashboard Overview
 
 ### Quick Links
+
 ```markdown
 **Sentry Dashboards:**
+
 - Backend: https://sentry.io/organizations/docita/projects/docita-api
 - Frontend: https://sentry.io/organizations/docita/projects/docita-app
 
 **UptimeRobot:**
+
 - Dashboard: https://uptimerobot.com/dashboard
 - Public Status Page: [Optional - can create]
 
 **Railway:**
+
 - Metrics: https://railway.app/project/[project-id]/metrics
 - Logs: https://railway.app/project/[project-id]/logs
 
 **Slack:**
+
 - Alerts: #docita-alerts
 ```
 
 ### Daily Monitoring Routine
+
 ```markdown
 **Morning Check (5 minutes):**
+
 1. Check UptimeRobot - all monitors "Up"?
 2. Review Sentry - any new critical errors?
 3. Check Railway - CPU/Memory within normal range?
 4. Scan #docita-alerts - any overnight issues?
 
 **Weekly Review (30 minutes):**
+
 1. Sentry: Review error trends, top issues
 2. UptimeRobot: Check uptime percentage (target: >99.9%)
 3. Railway: Review performance trends
@@ -499,6 +538,7 @@ k6 run scripts/k6-baseline.js
 ## 🚨 Alert Response Procedures
 
 ### Critical Error (Sentry)
+
 ```markdown
 1. Acknowledge alert in Slack (add 👀 reaction)
 2. Open Sentry dashboard → View full error details
@@ -511,6 +551,7 @@ k6 run scripts/k6-baseline.js
 ```
 
 ### Service Down (UptimeRobot)
+
 ```markdown
 1. Acknowledge alert immediately (add 🚨 reaction)
 2. Check Railway dashboard - service status?
@@ -523,6 +564,7 @@ k6 run scripts/k6-baseline.js
 ```
 
 ### Performance Degradation
+
 ```markdown
 1. Acknowledge alert (add ⚡ reaction)
 2. Check Railway metrics - which resource constraint?
@@ -538,8 +580,10 @@ k6 run scripts/k6-baseline.js
 ## 🎯 Success Metrics
 
 ### Week 1 Post-Launch
+
 ```markdown
 Target Metrics:
+
 - Uptime: >99.9% (UptimeRobot)
 - Error rate: <1% (Sentry)
 - P95 response time: <500ms (Sentry)
@@ -548,6 +592,7 @@ Target Metrics:
 ```
 
 ### Monthly Goals
+
 ```markdown
 - Zero critical bugs reaching production
 - 99.95% uptime
@@ -561,12 +606,14 @@ Target Metrics:
 ## 📚 Additional Resources
 
 ### Documentation
+
 - [Sentry Documentation](https://docs.sentry.io)
 - [UptimeRobot Documentation](https://uptimerobot.com/help)
 - [Railway Monitoring](https://docs.railway.app/reference/monitoring)
 - [Slack Webhooks](https://api.slack.com/messaging/webhooks)
 
 ### Docita-Specific
+
 - [INCIDENT_RESPONSE.md](docs/INCIDENT_RESPONSE.md) - To be created
 - [ON_CALL_RUNBOOK.md](docs/ON_CALL_RUNBOOK.md) - To be created
 - [PERFORMANCE_DEBUGGING.md](docs/PERFORMANCE_DEBUGGING.md) - To be created
@@ -578,6 +625,7 @@ Target Metrics:
 **Congratulations!** You've successfully set up **Option B: Enhanced Monitoring** for Docita.
 
 ### What You've Achieved:
+
 - ✅ Real-time error tracking (Sentry)
 - ✅ Uptime monitoring (UptimeRobot)
 - ✅ Centralized alerts (Slack)
@@ -586,6 +634,7 @@ Target Metrics:
 - ✅ Production-ready monitoring stack
 
 ### Next Steps:
+
 1. **Train team** on alert response procedures
 2. **Create** incident response runbook
 3. **Schedule** weekly monitoring reviews

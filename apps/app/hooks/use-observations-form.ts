@@ -17,8 +17,7 @@ export function useObservationsForm({
   fieldName = "consultationNotes", // Default to consultationNotes for new implementation
 }: UseObservationsFormProps) {
   const queryClient = useQueryClient();
-  const updateObservations =
-    useUpdateAppointmentObservations(appointmentId);
+  const updateObservations = useUpdateAppointmentObservations(appointmentId);
   const [observations, setObservations] = useState(initialObservations);
 
   const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {

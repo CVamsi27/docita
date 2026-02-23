@@ -65,7 +65,7 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
 
   // Placeholder logic for percentiles - in a real app, this would use WHO/CDC tables
   const calculatePercentile = (
-    val: number
+    val: number,
     // type: "height" | "weight" | "head",
   ) => {
     if (!val) return null;
@@ -130,7 +130,7 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
               {activeMeasurement.headCircumference && (
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
                   {calculatePercentile(
-                    Number(activeMeasurement.headCircumference)
+                    Number(activeMeasurement.headCircumference),
                   )}{" "}
                   %ile
                 </span>

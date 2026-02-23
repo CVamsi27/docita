@@ -131,8 +131,8 @@ Navigate to **WhatsApp** → **API Setup**:
 
 Enable these webhook fields:
 
--  `messages` - Incoming messages from patients
--  `message_status` - Delivery/read receipts
+- `messages` - Incoming messages from patients
+- `message_status` - Delivery/read receipts
 
 ---
 
@@ -157,7 +157,7 @@ Language: English
 
 Header: None
 Body:
-Hello {{1}} 
+Hello {{1}}
 
 Your appointment at *{{2}}* is confirmed!
 
@@ -226,7 +226,7 @@ Category: UTILITY
 Language: English
 
 Body:
-Hello {{1}} 
+Hello {{1}}
 
 Your prescription from *{{2}}* is ready!
 
@@ -238,7 +238,7 @@ Your prescription from *{{2}}* is ready!
 
 ‍️ Prescribed by: Dr. {{5}}
 
-For queries, contact us. Get well soon! 
+For queries, contact us. Get well soon!
 ```
 
 #### Template 5: `invoice_ready`
@@ -248,7 +248,7 @@ Category: UTILITY
 Language: English
 
 Body:
-Hello {{1}} 
+Hello {{1}}
 
 Your invoice from *{{2}}* is ready.
 
@@ -256,7 +256,7 @@ Your invoice from *{{2}}* is ready.
  *Invoice #:* {{4}}
  *Date:* {{5}}
 
-Thank you for choosing us! 
+Thank you for choosing us!
 
 Buttons:
 - Call to Action (URL):  Pay Now → {{6}}
@@ -280,7 +280,7 @@ Thank you {{2}}! We've received your payment.
 
 Your receipt is available in the app.
 
-Thank you for choosing us! 
+Thank you for choosing us!
 ```
 
 #### Template 7: `payment_link`
@@ -290,7 +290,7 @@ Category: UTILITY
 Language: English
 
 Body:
-Hello {{1}} 
+Hello {{1}}
 
 Here's your payment link from *{{2}}*:
 

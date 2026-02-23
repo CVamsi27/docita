@@ -9,14 +9,16 @@
 ## 📋 Quick Reference
 
 ### Severity Levels
-| Level | Description | Response Time | Escalation |
-|-------|-------------|---------------|------------|
-| **SEV-1** | Service Down / Data Loss | < 15 minutes | Immediate |
-| **SEV-2** | Degraded Performance | < 1 hour | Within 2 hours |
-| **SEV-3** | Non-Critical Bug | < 4 hours | Within 24 hours |
-| **SEV-4** | Minor Issue | < 24 hours | As needed |
+
+| Level     | Description              | Response Time | Escalation      |
+| --------- | ------------------------ | ------------- | --------------- |
+| **SEV-1** | Service Down / Data Loss | < 15 minutes  | Immediate       |
+| **SEV-2** | Degraded Performance     | < 1 hour      | Within 2 hours  |
+| **SEV-3** | Non-Critical Bug         | < 4 hours     | Within 24 hours |
+| **SEV-4** | Minor Issue              | < 24 hours    | As needed       |
 
 ### On-Call Contacts
+
 ```
 Primary On-Call: [Team Member Name] - [Phone] - [Email]
 Secondary On-Call: [Backup Name] - [Phone] - [Email]
@@ -25,6 +27,7 @@ CEO/Escalation: [Name] - [Phone] - [Email]
 ```
 
 ### Critical Links
+
 ```
 Sentry: https://sentry.io/organizations/docita/
 Railway: https://railway.app/project/[project-id]
@@ -38,6 +41,7 @@ Status Page: [To be created]
 ## 1️⃣ SEV-1: Service Down / Critical Outage
 
 ### Definition
+
 - Complete service unavailability
 - Database connection failure
 - Data loss or corruption
@@ -47,6 +51,7 @@ Status Page: [To be created]
 ### Immediate Response (< 5 minutes)
 
 **Step 1: Acknowledge & Triage**
+
 ```bash
 # 1. Acknowledge in Slack
 # - Post in #docita-incidents: "SEV-1 acknowledged - investigating"
@@ -59,6 +64,7 @@ Status Page: [To be created]
 ```
 
 **Step 2: Assess Impact**
+
 ```bash
 # Questions to answer:
 - How many users affected? (All / Some / Specific clinic)
@@ -68,6 +74,7 @@ Status Page: [To be created]
 ```
 
 **Step 3: Initial Communication (< 5 min)**
+
 ```markdown
 # Post to #docita-incidents:
 
@@ -88,6 +95,7 @@ Status Page: [To be created]
 **Common Scenarios & Solutions:**
 
 #### Scenario 1: Railway Service Crashed
+
 ```bash
 # 1. Check Railway logs
 # Navigate to: Railway → docita-api → Logs
@@ -109,6 +117,7 @@ curl https://api.docita.work/api/health
 ```
 
 #### Scenario 2: Database Connection Lost
+
 ```bash
 # 1. Check Railway database status
 # Railway → PostgreSQL → Metrics
@@ -127,6 +136,7 @@ curl https://api.docita.work/api/health/db
 ```
 
 #### Scenario 3: Redis Connection Lost
+
 ```bash
 # 1. Check Redis status
 # Railway → Redis → Metrics
@@ -141,6 +151,7 @@ curl https://api.docita.work/api/health/redis
 ```
 
 #### Scenario 4: Frontend Deploy Failed
+
 ```bash
 # 1. Check Vercel deployment logs
 # Vercel → Deployments → [Latest] → Logs
@@ -188,6 +199,7 @@ curl https://app.docita.work
 ### Communication Updates
 
 **During Investigation (every 15 minutes):**
+
 ```markdown
 **UPDATE - [Timestamp]**
 Status: [Investigating / Identified / Fixing / Recovering]
@@ -196,6 +208,7 @@ ETA: [Updated estimate]
 ```
 
 **Resolution Message:**
+
 ```markdown
 🎉 **SEV-1 RESOLVED**
 
@@ -205,11 +218,13 @@ ETA: [Updated estimate]
 **Prevention:** [What we'll do to prevent recurrence]
 
 **Impact:**
+
 - Users affected: [Number / All / Specific]
 - Downtime: [Duration]
 - Data loss: [None / Details]
 
 **Next Steps:**
+
 - [ ] Post-incident review scheduled: [Date/Time]
 - [ ] RCA document: [Link when ready]
 
@@ -221,6 +236,7 @@ ETA: [Updated estimate]
 ## 2️⃣ SEV-2: Degraded Performance
 
 ### Definition
+
 - Slow response times (p95 > 2s)
 - High error rate (5-10%)
 - Partial feature unavailability
@@ -229,6 +245,7 @@ ETA: [Updated estimate]
 ### Response Process (< 1 hour)
 
 **Step 1: Acknowledge & Assess**
+
 ```bash
 # 1. Check Sentry performance
 # Look for: Slow transactions, N+1 queries, high p95
@@ -243,6 +260,7 @@ ETA: [Updated estimate]
 **Step 2: Common Causes & Fixes**
 
 #### High CPU Usage
+
 ```bash
 # 1. Check Railway → Metrics → CPU
 # If > 80%:
@@ -259,6 +277,7 @@ ETA: [Updated estimate]
 ```
 
 #### Slow Database Queries
+
 ```bash
 # 1. Check Sentry → Performance → Database queries
 # Identify: Queries > 500ms
@@ -272,6 +291,7 @@ ETA: [Updated estimate]
 ```
 
 #### Memory Leak
+
 ```bash
 # 1. Check Railway → Memory usage trending up
 # 2. Restart service (temporary fix)
@@ -282,6 +302,7 @@ railway service restart
 ```
 
 **Step 3: Communication**
+
 ```markdown
 ⚠️ **SEV-2: PERFORMANCE DEGRADATION**
 
@@ -296,6 +317,7 @@ railway service restart
 ## 3️⃣ SEV-3: Non-Critical Bug
 
 ### Definition
+
 - Feature bug affecting some users
 - UI/UX issue
 - Non-blocking error
@@ -304,6 +326,7 @@ railway service restart
 ### Response Process (< 4 hours)
 
 **Step 1: Triage**
+
 ```bash
 # Assess:
 1. How many users affected?
@@ -313,6 +336,7 @@ railway service restart
 ```
 
 **Step 2: Document**
+
 ```bash
 # Create GitHub issue with:
 - Description
@@ -323,6 +347,7 @@ railway service restart
 ```
 
 **Step 3: Fix or Schedule**
+
 ```bash
 # If urgent: Fix in hotfix release
 # If can wait: Schedule for next sprint
@@ -338,6 +363,7 @@ railway service restart
 ## 4️⃣ SEV-4: Minor Issue
 
 ### Definition
+
 - Cosmetic issues
 - Documentation errors
 - Minor feature requests
@@ -360,6 +386,7 @@ railway service restart
 **Schedule:** Within 48 hours of incident resolution
 
 **Attendees:**
+
 - On-call engineer who responded
 - Engineering lead
 - Product manager
@@ -413,9 +440,11 @@ railway service restart
 **Status:** Resolved
 
 ## Summary
+
 [One paragraph explaining what happened]
 
 ## Timeline
+
 - **[Time]** - Incident detected (UptimeRobot alert)
 - **[Time]** - SEV-1 declared, team notified
 - **[Time]** - Root cause identified
@@ -424,9 +453,11 @@ railway service restart
 - **[Time]** - Incident closed
 
 ## Root Cause
+
 [Detailed explanation of what caused the incident]
 
 ## Impact
+
 - **Users Affected:** [Number / Percentage]
 - **Duration:** [Downtime in minutes]
 - **Features Affected:** [List]
@@ -434,12 +465,15 @@ railway service restart
 - **Revenue Impact:** [Estimate if applicable]
 
 ## Resolution
+
 [What we did to fix it]
 
 ## Prevention
+
 [What we'll do to prevent this from happening again]
 
 ## Action Items
+
 - [ ] [Action 1] - Owner: [Name] - Due: [Date]
 - [ ] [Action 2] - Owner: [Name] - Due: [Date]
 - [ ] [Action 3] - Owner: [Name] - Due: [Date]
@@ -447,14 +481,17 @@ railway service restart
 ## Lessons Learned
 
 **What Went Well:**
+
 - [Point 1]
 - [Point 2]
 
 **What Could Be Better:**
+
 - [Point 1]
 - [Point 2]
 
 ## References
+
 - Sentry: [Link]
 - Railway Logs: [Link]
 - Slack Thread: [Link]
@@ -467,12 +504,14 @@ railway service restart
 ### When to Escalate
 
 **Escalate to Engineering Lead if:**
+
 - Incident unresolved after 30 minutes
 - Need additional engineering resources
 - Unsure how to proceed
 - Complex technical decision required
 
 **Escalate to CEO/Founder if:**
+
 - Data breach or security incident
 - Potential legal/compliance issue
 - Major customer impact (> 50% users)
@@ -496,6 +535,7 @@ railway service restart
 ## 🛠️ Useful Commands & Scripts
 
 ### Health Check Script
+
 ```bash
 #!/bin/bash
 # File: scripts/health-check.sh
@@ -522,6 +562,7 @@ echo ""
 ```
 
 ### Quick Rollback
+
 ```bash
 #!/bin/bash
 # File: scripts/emergency-rollback.sh
@@ -541,6 +582,7 @@ echo "⏰ Wait 2 minutes for propagation"
 ```
 
 ### Database Connection Test
+
 ```bash
 #!/bin/bash
 # File: scripts/test-db-connection.sh
@@ -568,6 +610,7 @@ curl https://api.docita.work/api/health/db
 ## ✅ Incident Response Checklist
 
 ### During Incident
+
 - [ ] Acknowledged alert in Slack
 - [ ] SEV level declared
 - [ ] Initial status posted to #docita-incidents
@@ -583,6 +626,7 @@ curl https://api.docita.work/api/health/db
 - [ ] Customers notified (if needed)
 
 ### Post-Incident
+
 - [ ] Post-incident review scheduled
 - [ ] Timeline documented
 - [ ] Root cause documented

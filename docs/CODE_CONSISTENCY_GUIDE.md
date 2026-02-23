@@ -88,9 +88,9 @@ export class PatientResponseDto {
 }
 
 // Bad
-export class PatientDto {}                    // Too generic
-export class PatientCreateDto {}              // Wrong order
-export class Patient_Create_DTO {}            // Wrong format
+export class PatientDto {} // Too generic
+export class PatientCreateDto {} // Wrong order
+export class Patient_Create_DTO {} // Wrong format
 ```
 
 **Why:** Immediate clarity on DTO purpose. Alphabetically sorted in IDE.
@@ -114,9 +114,9 @@ interface IPatientRepository {
 
 // Bad
 interface IPatientRepository {
-  get(): Promise<Patient[]>;           // Too vague
-  set(data: any): Promise<any>;        // No type info
-  fetch(id): Promise<Patient>;         // Inconsistent
+  get(): Promise<Patient[]>; // Too vague
+  set(data: any): Promise<any>; // No type info
+  fetch(id): Promise<Patient>; // Inconsistent
 }
 ```
 
@@ -129,18 +129,18 @@ Event names MUST be past-tense verbs in SCREAMING_SNAKE_CASE:
 ```typescript
 // Good
 enum PatientEvents {
-  PATIENT_CREATED = 'patient.created',
-  PATIENT_UPDATED = 'patient.updated',
-  PATIENT_DELETED = 'patient.deleted',
-  APPOINTMENT_SCHEDULED = 'appointment.scheduled',
-  APPOINTMENT_CANCELLED = 'appointment.cancelled',
+  PATIENT_CREATED = "patient.created",
+  PATIENT_UPDATED = "patient.updated",
+  PATIENT_DELETED = "patient.deleted",
+  APPOINTMENT_SCHEDULED = "appointment.scheduled",
+  APPOINTMENT_CANCELLED = "appointment.cancelled",
 }
 
 // Bad
 enum PatientEvents {
-  CREATE_PATIENT = 'create_patient',      // Future tense
-  PatientCreated = 'patient_created',     // Mixed case
-  patient_create = 'patient_create',      // Verb position wrong
+  CREATE_PATIENT = "create_patient", // Future tense
+  PatientCreated = "patient_created", // Mixed case
+  patient_create = "patient_create", // Verb position wrong
 }
 ```
 
@@ -164,35 +164,38 @@ export class ApiError extends Error {
     public details?: Record<string, any>,
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
 
 export class NotFoundError extends ApiError {
   constructor(resource: string, id: string) {
-    super(404, `${resource} with ID ${id} not found`, 'NOT_FOUND', { resource, id });
+    super(404, `${resource} with ID ${id} not found`, "NOT_FOUND", {
+      resource,
+      id,
+    });
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 }
 
 export class ValidationError extends ApiError {
   constructor(fields: Record<string, string>) {
-    super(400, 'Validation failed', 'VALIDATION_ERROR', { fields });
+    super(400, "Validation failed", "VALIDATION_ERROR", { fields });
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
 export class UnauthorizedError extends ApiError {
-  constructor(reason: string = 'Unauthorized') {
-    super(401, reason, 'UNAUTHORIZED');
+  constructor(reason: string = "Unauthorized") {
+    super(401, reason, "UNAUTHORIZED");
     Object.setPrototypeOf(this, UnauthorizedError.prototype);
   }
 }
 
 export class ForbiddenError extends ApiError {
   constructor(resource: string) {
-    super(403, `Access to ${resource} denied`, 'FORBIDDEN', { resource });
+    super(403, `Access to ${resource} denied`, "FORBIDDEN", { resource });
     Object.setPrototypeOf(this, ForbiddenError.prototype);
   }
 }
@@ -324,27 +327,27 @@ npx --no -- commitlint --edit "$1"
 
 ```javascript
 module.exports = {
-  extends: ['@commitlint/config-conventional'],
+  extends: ["@commitlint/config-conventional"],
   rules: {
-    'type-enum': [
+    "type-enum": [
       2,
-      'always',
+      "always",
       [
-        'feat',
-        'fix',
-        'docs',
-        'style',
-        'refactor',
-        'perf',
-        'test',
-        'chore',
-        'ci',
-        'revert',
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "chore",
+        "ci",
+        "revert",
       ],
     ],
-    'subject-case': [2, 'never', ['start-case', 'pascal-case']],
-    'subject-empty': [2, 'never'],
-    'subject-full-stop': [2, 'never', '.'],
+    "subject-case": [2, "never", ["start-case", "pascal-case"]],
+    "subject-empty": [2, "never"],
+    "subject-full-stop": [2, "never", "."],
   },
 };
 ```
@@ -380,58 +383,61 @@ echo "All pre-push checks passed ✓"
 Recommended ESLint configuration updates in `eslint.config.mjs`:
 
 ```javascript
-import js from '@eslint/js';
-import ts from 'typescript-eslint';
-import prettier from 'eslint-config-prettier';
+import js from "@eslint/js";
+import ts from "typescript-eslint";
+import prettier from "eslint-config-prettier";
 
 export default [
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     rules: {
       // Naming conventions
-      '@typescript-eslint/naming-convention': [
-        'warn',
+      "@typescript-eslint/naming-convention": [
+        "warn",
         {
-          selector: 'default',
-          format: ['camelCase'],
-          leadingUnderscore: 'allow',
-          trailingUnderscore: 'allow',
+          selector: "default",
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          trailingUnderscore: "allow",
         },
         {
-          selector: 'variable',
-          format: ['camelCase', 'UPPER_CASE'],
-          leadingUnderscore: 'allow',
-          trailingUnderscore: 'allow',
+          selector: "variable",
+          format: ["camelCase", "UPPER_CASE"],
+          leadingUnderscore: "allow",
+          trailingUnderscore: "allow",
         },
         {
-          selector: 'typeLike',
-          format: ['PascalCase'],
+          selector: "typeLike",
+          format: ["PascalCase"],
         },
         {
-          selector: 'enumMember',
-          format: ['UPPER_CASE'],
+          selector: "enumMember",
+          format: ["UPPER_CASE"],
         },
       ],
 
       // Error handling
-      '@typescript-eslint/explicit-function-return-types': ['warn'],
-      '@typescript-eslint/no-explicit-any': ['error'],
-      '@typescript-eslint/no-throw-literal': ['error'],
-      'no-throw-literal': ['error'],
+      "@typescript-eslint/explicit-function-return-types": ["warn"],
+      "@typescript-eslint/no-explicit-any": ["error"],
+      "@typescript-eslint/no-throw-literal": ["error"],
+      "no-throw-literal": ["error"],
 
       // Async/await consistency
-      '@typescript-eslint/require-await': ['warn'],
-      '@typescript-eslint/await-thenable': ['error'],
+      "@typescript-eslint/require-await": ["warn"],
+      "@typescript-eslint/await-thenable": ["error"],
 
       // Best practices
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'eqeqeq': ['error', 'always'],
-      'prefer-const': ['error'],
-      'no-var': ['error'],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      eqeqeq: ["error", "always"],
+      "prefer-const": ["error"],
+      "no-var": ["error"],
     },
   },
   prettier,
@@ -445,6 +451,7 @@ export default [
 Use this checklist when reviewing code:
 
 ### Controllers
+
 - [ ] All endpoints follow REST conventions (POST create, GET findAll, GET :id findOne, PATCH update, DELETE remove)
 - [ ] All endpoints have @Roles() or @Public() decorators
 - [ ] All @Body() parameters are DTOs with validation
@@ -452,6 +459,7 @@ Use this checklist when reviewing code:
 - [ ] All errors are caught and converted to ApiError
 
 ### Services
+
 - [ ] All methods have explicit return types
 - [ ] All database operations are wrapped in try-catch
 - [ ] All validation happens before database writes
@@ -459,17 +467,20 @@ Use this checklist when reviewing code:
 - [ ] Logging uses consistent format (logger.log/error/warn)
 
 ### Repositories
+
 - [ ] All methods follow the naming convention (findById, findMany, update, delete, etc.)
 - [ ] All methods return typed responses
 - [ ] No business logic in repository methods (only data access)
 
 ### DTOs
-- [ ] Follows pattern: Create*, Update*, *Response
+
+- [ ] Follows pattern: Create*, Update*, \*Response
 - [ ] All fields are properly typed (not any)
 - [ ] All fields have JSDoc comments
 - [ ] Includes validation decorators (IsEmail, IsString, etc.)
 
 ### Tests
+
 - [ ] Test file naming: `*.spec.ts`
 - [ ] Test describe block per method: `describe('methodName', () => { ... })`
 - [ ] Test names start with "should": `it('should create patient with valid data')`
@@ -500,8 +511,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -569,6 +580,6 @@ Document any deviations from these guidelines:
 
 ✅ **Documentation Created** - Code consistency guidelines established  
 ⏳ **Enforcement** - Husky hooks to be installed in next session  
-✅ **Audit** - Existing code follows these patterns  
+✅ **Audit** - Existing code follows these patterns
 
 **Note:** These guidelines have been documented comprehensively. Implementation of Husky hooks and automated enforcement can be done incrementally as part of CI/CD improvements.

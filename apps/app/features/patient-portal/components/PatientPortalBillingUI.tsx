@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalInvoice } from "../types/patient-portal-types";
@@ -42,11 +47,16 @@ export function PatientPortalBillingUI({
               {invoices.map((invoice) => (
                 <div key={invoice.id} className="rounded-md border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="font-medium">₹{invoice.amount.toFixed(2)}</div>
-                    <Badge variant="secondary">{getInvoiceStatusLabel(invoice.status)}</Badge>
+                    <div className="font-medium">
+                      ₹{invoice.amount.toFixed(2)}
+                    </div>
+                    <Badge variant="secondary">
+                      {getInvoiceStatusLabel(invoice.status)}
+                    </Badge>
                   </div>
                   <div className="text-muted-foreground">
-                    Invoice #{invoice.id.slice(0, 8)} • {new Date(invoice.dueAt).toLocaleDateString()}
+                    Invoice #{invoice.id.slice(0, 8)} •{" "}
+                    {new Date(invoice.dueAt).toLocaleDateString()}
                   </div>
                 </div>
               ))}

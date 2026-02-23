@@ -36,9 +36,17 @@ export interface PaginatedResponse<T> {
 
 export interface APIClient {
   get<T>(endpoint: string, options?: RequestConfig): Promise<T>;
-  post<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T>;
+  post<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: RequestConfig,
+  ): Promise<T>;
   put<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T>;
-  patch<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T>;
+  patch<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: RequestConfig,
+  ): Promise<T>;
   delete<T>(endpoint: string, options?: RequestConfig): Promise<T>;
   request<T>(endpoint: string, options?: RequestConfig): Promise<T>;
   validate<T>(
@@ -46,7 +54,10 @@ export interface APIClient {
     schema: z.ZodType<T>,
     options?: RequestConfig,
   ): Promise<T>;
-  safeParse<T>(schema: z.ZodType<T>, data: Record<string, unknown>): T | undefined;
+  safeParse<T>(
+    schema: z.ZodType<T>,
+    data: Record<string, unknown>,
+  ): T | undefined;
   upload<T>(
     endpoint: string,
     files: File | File[],

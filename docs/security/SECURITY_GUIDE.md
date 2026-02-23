@@ -34,6 +34,7 @@ Security controls for Docita (healthcare SaaS) and required engineering practice
 ## 4) Secure Coding Checklist
 
 Before merge:
+
 - [ ] New endpoint has explicit auth annotations.
 - [ ] Validation added/updated.
 - [ ] Tenant boundaries preserved and tested.

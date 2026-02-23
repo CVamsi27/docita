@@ -1,7 +1,7 @@
 /**
  * Subscription Entity - Core aggregate
  * Represents a clinic's subscription with tier, billing cycle, and lifecycle
- * 
+ *
  * Responsibilities:
  * - Track subscription status and lifecycle
  * - Manage pricing and discounts

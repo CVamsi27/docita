@@ -18,7 +18,9 @@ describe("AppointmentCalendarSkeleton", () => {
 
   it("renders 7 day header skeletons", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
-    const dayHeadersContainer = container.querySelector(".grid-cols-7.gap-px.border-b");
+    const dayHeadersContainer = container.querySelector(
+      ".grid-cols-7.gap-px.border-b",
+    );
     expect(dayHeadersContainer).toBeInTheDocument();
     const dayHeaders = dayHeadersContainer?.querySelectorAll(".h-6");
     expect(dayHeaders).toHaveLength(7);
@@ -59,7 +61,7 @@ describe("AppointmentCalendarSkeleton", () => {
   it("renders all skeleton elements with animation", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
     const animatedElements = container.querySelectorAll(".animate-pulse");
-    
+
     // Should have many animated elements (header + nav + days + slots + legend)
     // 1 header + 2 nav + 7 day names + 35 day numbers + various slots + 3 legend = many
     expect(animatedElements.length).toBeGreaterThan(40);

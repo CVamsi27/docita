@@ -4,10 +4,10 @@
  * Sentry is already initialized by withSentryConfig in next.config.ts
  */
 
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 
 /**
  * Initialize Sentry context on the client
@@ -18,7 +18,6 @@ export function initializeSentryClient() {
   }
 
   try {
-
     // Set admin context
     const adminInfo = getAdminContextFromStorage();
     if (adminInfo) {
@@ -27,20 +26,20 @@ export function initializeSentryClient() {
         email: adminInfo.email,
         username: adminInfo.role,
       });
-      Sentry.setTag('role', adminInfo.role);
-      Sentry.setTag('app', 'admin');
+      Sentry.setTag("role", adminInfo.role);
+      Sentry.setTag("app", "admin");
     }
 
     // Capture unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       Sentry.captureException(
         new Error(
-          `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`
-        )
+          `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`,
+        ),
       );
     });
   } catch (error) {
-    console.error('Failed to initialize Sentry on client:', error);
+    console.error("Failed to initialize Sentry on client:", error);
   }
 }
 
@@ -53,13 +52,13 @@ function getAdminContextFromStorage(): {
   role: string;
 } | null {
   try {
-    const adminStr = sessionStorage.getItem('docita_admin_context');
+    const adminStr = sessionStorage.getItem("docita_admin_context");
     if (adminStr) {
       return JSON.parse(adminStr);
     }
     return null;
   } catch (error) {
-    console.error('Failed to get admin context for Sentry:', error);
+    console.error("Failed to get admin context for Sentry:", error);
     return null;
   }
 }
@@ -69,26 +68,32 @@ function getAdminContextFromStorage(): {
  */
 export function captureException(
   error: Error | string,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ) {
   if (isDev) {
-    console.error('Sentry error (dev mode):', error, context);
+    console.error("Sentry error (dev mode):", error, context);
     return;
   }
 
   try {
-    Sentry.captureException(typeof error === 'string' ? new Error(error) : error, {
-      contexts: context ? { custom: context } : undefined,
-    });
+    Sentry.captureException(
+      typeof error === "string" ? new Error(error) : error,
+      {
+        contexts: context ? { custom: context } : undefined,
+      },
+    );
   } catch (err) {
-    console.error('Failed to capture exception in Sentry:', err);
+    console.error("Failed to capture exception in Sentry:", err);
   }
 }
 
 /**
  * Capture a message event
  */
-export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info') {
+export function captureMessage(
+  message: string,
+  level: Sentry.SeverityLevel = "info",
+) {
   if (isDev) {
     console.log(`Sentry message [${level}] (dev mode):`, message);
     return;
@@ -97,7 +102,7 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
   try {
     Sentry.captureMessage(message, level);
   } catch (err) {
-    console.error('Failed to capture message in Sentry:', err);
+    console.error("Failed to capture message in Sentry:", err);
   }
 }
 
@@ -107,18 +112,18 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
 export function addBreadcrumb(
   message: string,
   data?: Record<string, unknown>,
-  category: string = 'admin-action'
+  category: string = "admin-action",
 ) {
   try {
     Sentry.addBreadcrumb({
       message,
-      level: 'info',
+      level: "info",
       category,
       data,
       timestamp: Date.now() / 1000,
     });
   } catch (err) {
-    console.error('Failed to add breadcrumb to Sentry:', err);
+    console.error("Failed to add breadcrumb to Sentry:", err);
   }
 }
 

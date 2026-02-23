@@ -109,7 +109,7 @@ export class InvoiceMapper {
    */
   static toPersistence(invoice: Invoice): any {
     const items = invoice.getItems();
-    
+
     // Convert domain items to JSON format for storage
     const itemsJson = items.map((item) => ({
       id: item.id,
@@ -136,13 +136,12 @@ export class InvoiceMapper {
       doctorName: (invoice as any).doctorContext?.doctorName,
       doctorEmail: (invoice as any).doctorContext?.doctorEmail,
       doctorPhone: (invoice as any).doctorContext?.doctorPhone,
-      doctorSpecialization:
-        (invoice as any).doctorContext?.doctorSpecialization,
+      doctorSpecialization: (invoice as any).doctorContext
+        ?.doctorSpecialization,
       doctorRole: (invoice as any).doctorContext?.doctorRole,
-      doctorRegistrationNumber:
-        (invoice as any).doctorContext?.doctorRegistrationNumber,
-      doctorLicenseNumber:
-        (invoice as any).doctorContext?.doctorLicenseNumber,
+      doctorRegistrationNumber: (invoice as any).doctorContext
+        ?.doctorRegistrationNumber,
+      doctorLicenseNumber: (invoice as any).doctorContext?.doctorLicenseNumber,
       // WhatsApp context
       approvalStatus: (invoice as any).whatsappContext?.approvalStatus,
       approvedById: (invoice as any).whatsappContext?.approvedById,

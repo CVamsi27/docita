@@ -79,7 +79,7 @@ export function DashboardUI({
             "grid gap-4 sm:gap-6",
             canAccess(Feature.CALENDAR_SLOTS)
               ? "lg:grid-cols-3"
-              : "lg:grid-cols-1"
+              : "lg:grid-cols-1",
           )}
         >
           {/* Schedule Section */}

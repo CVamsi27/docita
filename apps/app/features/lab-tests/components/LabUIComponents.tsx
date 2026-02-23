@@ -130,14 +130,14 @@ export const LabOrderForm: FC<{
     setSelectedTests((prev: string[]) =>
       prev.includes(testId)
         ? prev.filter((id: string) => id !== testId)
-        : [...prev, testId]
+        : [...prev, testId],
     );
   };
 
   const filteredTests = availableTests.filter(
     (t) =>
       t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchTerm.toLowerCase())
+      t.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

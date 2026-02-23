@@ -92,7 +92,9 @@ export function TierGate({
       return (
         <UpgradePrompt
           requiredTier={
-            feature ? getRequiredTier(feature) : getTierDisplayName(requiredTier!)
+            feature
+              ? getRequiredTier(feature)
+              : getTierDisplayName(requiredTier!)
           }
           currentTier={currentTierName}
           featureName={feature}
@@ -120,13 +122,7 @@ export function SubscriptionGate({
   const { isSubscriptionActive } = useTierAccess();
 
   if (!isSubscriptionActive) {
-    return (
-      <>
-        {fallback ?? (
-          <SubscriptionExpiredBanner />
-        )}
-      </>
-    );
+    return <>{fallback ?? <SubscriptionExpiredBanner />}</>;
   }
 
   return <>{children}</>;

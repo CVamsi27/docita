@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { usePrescriptionDefaults, useUpdatePrescriptionDefaults } from "@/hooks/api/use-settings";
+import {
+  usePrescriptionDefaults,
+  useUpdatePrescriptionDefaults,
+} from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import {
   PrescriptionDefaultsSettings,

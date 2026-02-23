@@ -102,7 +102,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     else {
       this.logger.error(
         'Unhandled exception',
-        exception instanceof Error ? exception.stack : JSON.stringify(exception),
+        exception instanceof Error
+          ? exception.stack
+          : JSON.stringify(exception),
       );
     }
 

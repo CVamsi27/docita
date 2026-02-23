@@ -22,7 +22,6 @@ import {
   SEMI_ANNUAL_DISCOUNT_PERCENT,
 } from './subscription.constants';
 
-
 export interface ProratedAmount {
   creditCents: number;
   chargeCents: number;

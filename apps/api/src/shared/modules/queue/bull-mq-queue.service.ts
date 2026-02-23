@@ -1,26 +1,34 @@
 /**
  * BullMQ Queue Service
- * 
+ *
  * Production-grade queue using BullMQ + Redis.
  * Provides job persistence, retries, delays, priorities, etc.
  */
 
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { IQueueProvider, QueueJob, QueueJobOptions, QueueStats, JobNames } from './queue.interface';
+import {
+  IQueueProvider,
+  QueueJob,
+  QueueJobOptions,
+  QueueStats,
+  JobNames,
+} from './queue.interface';
 
 /**
  * BullMQ service (requires 'bull' and 'ioredis' packages)
- * 
+ *
  * Installation:
  * npm install bull ioredis
- * 
+ *
  * Environment variables:
  * REDIS_HOST=localhost
  * REDIS_PORT=6379
  * REDIS_PASSWORD=optional
  */
 @Injectable()
-export class BullMQQueueService implements IQueueProvider, OnModuleInit, OnModuleDestroy {
+export class BullMQQueueService
+  implements IQueueProvider, OnModuleInit, OnModuleDestroy
+{
   private queues = new Map<string, any>();
   private initialized = false;
 
@@ -64,7 +72,11 @@ export class BullMQQueueService implements IQueueProvider, OnModuleInit, OnModul
     return this.queues.get(name);
   }
 
-  async enqueue<T>(name: string, data: T, options?: QueueJobOptions): Promise<QueueJob<T>> {
+  async enqueue<T>(
+    name: string,
+    data: T,
+    options?: QueueJobOptions,
+  ): Promise<QueueJob<T>> {
     const queue = await this.getQueue(name);
 
     const bullOptions: any = {
@@ -100,7 +112,10 @@ export class BullMQQueueService implements IQueueProvider, OnModuleInit, OnModul
     };
   }
 
-  async process<T>(name: string, handler: (job: QueueJob<T>) => Promise<void>): Promise<void> {
+  async process<T>(
+    name: string,
+    handler: (job: QueueJob<T>) => Promise<void>,
+  ): Promise<void> {
     const queue = await this.getQueue(name);
 
     queue.process(async (bullJob: any) => {

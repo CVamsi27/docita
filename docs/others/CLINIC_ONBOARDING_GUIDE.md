@@ -719,7 +719,7 @@ The wizard uses React state to track:
 
 ## Compliance Checklist
 
-###  DPDP Act 2023 Compliance
+### DPDP Act 2023 Compliance
 
 - [x] **Consent Management**
   - [x] Explicit consent for data processing
@@ -755,7 +755,7 @@ The wizard uses React state to track:
   - [x] Right to data portability
   - [x] Right to withdraw consent
 
-###  Security Best Practices
+### Security Best Practices
 
 - [x] Password strength enforcement
 - [x] SQL injection prevention (Prisma ORM)
@@ -766,14 +766,14 @@ The wizard uses React state to track:
 - [x] IP address logging
 - [x] User agent tracking
 
-###  Payment Security (PCI DSS)
+### Payment Security (PCI DSS)
 
 - [x] No card data stored on server
 - [x] Razorpay integration (PCI DSS compliant)
 - [x] Payment signature verification
 - [x] Secure checkout flow
 
-###  Audit & Compliance
+### Audit & Compliance
 
 - [x] All actions logged
 - [x] Timestamp tracking

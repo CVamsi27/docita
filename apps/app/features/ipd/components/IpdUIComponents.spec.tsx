@@ -12,8 +12,12 @@ describe("AdmissionForm", () => {
     expect(screen.getByText("Patient is required")).toBeInTheDocument();
     expect(screen.getByText("Ward is required")).toBeInTheDocument();
     expect(screen.getByText("Bed is required")).toBeInTheDocument();
-    expect(screen.getByText("Attending doctor is required")).toBeInTheDocument();
-    expect(screen.getByText("Admission diagnosis is required")).toBeInTheDocument();
+    expect(
+      screen.getByText("Attending doctor is required"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Admission diagnosis is required"),
+    ).toBeInTheDocument();
 
     expect(onSubmit).not.toHaveBeenCalled();
   });

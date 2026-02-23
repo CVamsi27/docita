@@ -15,9 +15,7 @@ export class Money {
 
   add(other: Money): Money {
     if (this.currency !== other.currency) {
-      throw new Error(
-        `Cannot add ${other.currency} to ${this.currency}`,
-      );
+      throw new Error(`Cannot add ${other.currency} to ${this.currency}`);
     }
     return new Money(this.amount + other.amount, this.currency);
   }

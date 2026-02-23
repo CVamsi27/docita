@@ -29,7 +29,8 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
  */
 export const canDeletePatient = (patient: Patient, user: User): boolean => {
   // Only clinic admins (ADMIN / ADMIN_DOCTOR) can delete patients
-  if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR")) return false;
+  if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
+    return false;
 
   // Cannot delete patient with active appointments (if appointments exist)
   // This would need actual appointment data to check

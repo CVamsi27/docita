@@ -95,13 +95,7 @@ export function AuthPageContainer() {
     setLoading(true);
 
     try {
-      await register(
-        email,
-        password,
-        firstName,
-        lastName,
-        undefined,
-      );
+      await register(email, password, firstName, lastName, undefined);
     } catch (err) {
       handleCatchError(err, "An error occurred during registration");
     } finally {

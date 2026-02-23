@@ -16,8 +16,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   onSubmit: (data: CreatePatientInput, onSuccess?: () => void) => Promise<void>;
 } {
   const { clinicId } = useClinic();
-  const { mutateAsync: createPatient, isPending: loading } =
-    useCreatePatient();
+  const { mutateAsync: createPatient, isPending: loading } = useCreatePatient();
 
   const defaultValues = useMemo(
     () => ({

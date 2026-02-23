@@ -23,7 +23,7 @@ export const tokenStorage = {
   setToken: (_token: string): void => {
     // Do not implement - tokens set by API via Set-Cookie
     console.warn(
-      'Tokens are managed by the API via HTTP-only cookies. Do not set tokens from the frontend.'
+      "Tokens are managed by the API via HTTP-only cookies. Do not set tokens from the frontend.",
     );
   },
 
@@ -40,14 +40,14 @@ export const tokenStorage = {
    * Frontend should call refreshAuth() from useAuth hook
    */
   refreshToken: async (): Promise<void> => {
-    const response = await fetch('/api/v1/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/v1/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
-      throw new Error('Token refresh failed');
+      throw new Error("Token refresh failed");
     }
   },
 
@@ -58,7 +58,7 @@ export const tokenStorage = {
   getCsrfToken: (): string | null => {
     const token = document
       .querySelector('meta[name="csrf-token"]')
-      ?.getAttribute('content');
+      ?.getAttribute("content");
     return token || null;
   },
 };

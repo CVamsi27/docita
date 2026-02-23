@@ -104,7 +104,9 @@ export function AdvancedMetricsCharts({
       <Card>
         <CardHeader>
           <CardTitle>Revenue Trends</CardTitle>
-          <CardDescription>Daily/weekly trend in billed collections</CardDescription>
+          <CardDescription>
+            Daily/weekly trend in billed collections
+          </CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           {revenueLoading ? (
@@ -137,7 +139,9 @@ export function AdvancedMetricsCharts({
       <Card>
         <CardHeader>
           <CardTitle>Appointment Performance</CardTitle>
-          <CardDescription>Operational appointment outcomes snapshot</CardDescription>
+          <CardDescription>
+            Operational appointment outcomes snapshot
+          </CardDescription>
         </CardHeader>
         <CardContent className="h-80 space-y-4">
           {appointmentLoading ? (
@@ -145,7 +149,9 @@ export function AdvancedMetricsCharts({
           ) : appointmentMetrics ? (
             <>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-md border p-2">Fill rate: {appointmentMetrics.fillRate}%</div>
+                <div className="rounded-md border p-2">
+                  Fill rate: {appointmentMetrics.fillRate}%
+                </div>
                 <div className="rounded-md border p-2">
                   Completion: {appointmentMetrics.completionRate}%
                 </div>
@@ -157,7 +163,10 @@ export function AdvancedMetricsCharts({
                   <Tooltip />
                   <Bar dataKey="value">
                     {appointmentChartData.map((entry, index) => (
-                      <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={entry.name}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -183,14 +192,26 @@ export function AdvancedMetricsCharts({
           ) : patientDemographics && demographicsChartData.length > 0 ? (
             <>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-md border p-2">Total: {patientDemographics.totalPatients}</div>
-                <div className="rounded-md border p-2">New: {patientDemographics.newPatients}</div>
+                <div className="rounded-md border p-2">
+                  Total: {patientDemographics.totalPatients}
+                </div>
+                <div className="rounded-md border p-2">
+                  New: {patientDemographics.newPatients}
+                </div>
               </div>
               <ResponsiveContainer width="100%" height="75%">
                 <PieChart>
-                  <Pie data={demographicsChartData} dataKey="value" nameKey="name" outerRadius={90}>
+                  <Pie
+                    data={demographicsChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={90}
+                  >
                     {demographicsChartData.map((entry, index) => (
-                      <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={entry.name}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -231,10 +252,18 @@ export function AdvancedMetricsCharts({
                 <TableBody>
                   {doctorPerformance.map((doctor) => (
                     <TableRow key={doctor.doctorId}>
-                      <TableCell className="font-medium">{doctor.doctorName}</TableCell>
-                      <TableCell className="text-right">{doctor.totalAppointments}</TableCell>
-                      <TableCell className="text-right">{doctor.completionRate}%</TableCell>
-                      <TableCell className="text-right">₹{doctor.revenue.toLocaleString()}</TableCell>
+                      <TableCell className="font-medium">
+                        {doctor.doctorName}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {doctor.totalAppointments}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {doctor.completionRate}%
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ₹{doctor.revenue.toLocaleString()}
+                      </TableCell>
                       <TableCell className="text-right">
                         ₹{doctor.avgRevenuePerAppointment.toLocaleString()}
                       </TableCell>

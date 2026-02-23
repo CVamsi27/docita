@@ -4,9 +4,7 @@ import {
   loginResponseSchema,
   validateSessionResponseSchema,
 } from "../src/auth.js";
-import {
-  createPatientSchema,
-} from "../src/patients.js";
+import { createPatientSchema } from "../src/patients.js";
 
 describe("@workspace/types schemas", () => {
   it("validates login response payload", () => {
@@ -42,14 +40,17 @@ describe("@workspace/types schemas", () => {
 
   it("validates session and email response contracts", () => {
     expect(
-      validateSessionResponseSchema.safeParse({ valid: true, user: {} }).success,
+      validateSessionResponseSchema.safeParse({ valid: true, user: {} })
+        .success,
     ).toBe(false);
 
     expect(
       validateSessionResponseSchema.safeParse({ valid: true }).success,
     ).toBe(false);
 
-    expect(checkEmailResponseSchema.parse({ exists: false }).exists).toBe(false);
+    expect(checkEmailResponseSchema.parse({ exists: false }).exists).toBe(
+      false,
+    );
   });
 
   it("rejects future DOB and sanitizes HTML fields", () => {

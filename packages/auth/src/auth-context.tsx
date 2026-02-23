@@ -4,7 +4,7 @@
  * Centralized auth state management, token handling, permissions
  */
 
-'use client';
+"use client";
 
 import React, {
   createContext,
@@ -13,13 +13,13 @@ import React, {
   useEffect,
   useState,
   ReactNode,
-} from 'react';
+} from "react";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'SUPER_ADMIN' | 'CLINIC_ADMIN' | 'DOCTOR' | 'STAFF' | 'PATIENT';
+  role: "SUPER_ADMIN" | "CLINIC_ADMIN" | "DOCTOR" | "STAFF" | "PATIENT";
   clinicId?: string;
   clinicName?: string;
   permissions: Permission[];
@@ -28,34 +28,34 @@ export interface User {
 }
 
 export type Permission =
-  | 'VIEW_PATIENTS'
-  | 'CREATE_PATIENTS'
-  | 'EDIT_PATIENTS'
-  | 'DELETE_PATIENTS'
-  | 'VIEW_APPOINTMENTS'
-  | 'CREATE_APPOINTMENTS'
-  | 'EDIT_APPOINTMENTS'
-  | 'DELETE_APPOINTMENTS'
-  | 'VIEW_CONSULTATIONS'
-  | 'CREATE_CONSULTATIONS'
-  | 'EDIT_CONSULTATIONS'
-  | 'VIEW_INVOICES'
-  | 'CREATE_INVOICES'
-  | 'EDIT_INVOICES'
-  | 'VIEW_PRESCRIPTIONS'
-  | 'CREATE_PRESCRIPTIONS'
-  | 'EDIT_PRESCRIPTIONS'
-  | 'VIEW_SETTINGS'
-  | 'EDIT_SETTINGS'
-  | 'VIEW_ANALYTICS'
-  | 'VIEW_STAFF'
-  | 'CREATE_STAFF'
-  | 'EDIT_STAFF'
-  | 'DELETE_STAFF'
-  | 'MANAGE_BILLING'
-  | 'MANAGE_SUBSCRIPTIONS'
-  | 'VIEW_AUDIT_LOGS'
-  | 'ADMIN_PANEL';
+  | "VIEW_PATIENTS"
+  | "CREATE_PATIENTS"
+  | "EDIT_PATIENTS"
+  | "DELETE_PATIENTS"
+  | "VIEW_APPOINTMENTS"
+  | "CREATE_APPOINTMENTS"
+  | "EDIT_APPOINTMENTS"
+  | "DELETE_APPOINTMENTS"
+  | "VIEW_CONSULTATIONS"
+  | "CREATE_CONSULTATIONS"
+  | "EDIT_CONSULTATIONS"
+  | "VIEW_INVOICES"
+  | "CREATE_INVOICES"
+  | "EDIT_INVOICES"
+  | "VIEW_PRESCRIPTIONS"
+  | "CREATE_PRESCRIPTIONS"
+  | "EDIT_PRESCRIPTIONS"
+  | "VIEW_SETTINGS"
+  | "EDIT_SETTINGS"
+  | "VIEW_ANALYTICS"
+  | "VIEW_STAFF"
+  | "CREATE_STAFF"
+  | "EDIT_STAFF"
+  | "DELETE_STAFF"
+  | "MANAGE_BILLING"
+  | "MANAGE_SUBSCRIPTIONS"
+  | "VIEW_AUDIT_LOGS"
+  | "ADMIN_PANEL";
 
 export interface AuthContextType {
   user: User | null;
@@ -86,9 +86,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/v1/auth/me', {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/v1/auth/me", {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         });
 
         if (response.ok) {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
         }
       } catch (err) {
-        console.error('Auth check failed:', err);
+        console.error("Auth check failed:", err);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -108,46 +108,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth();
   }, []);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const response = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
+      const response = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-        if (!response.ok) {
-          throw new Error('Login failed');
-        }
-
-        const userData = await response.json();
-        setUser(userData);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Login failed';
-        setError(message);
-        throw err;
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error("Login failed");
       }
-    },
-    []
-  );
+
+      const userData = await response.json();
+      setUser(userData);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Login failed";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      await fetch('/api/v1/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
     } catch (err) {
-      console.error('Logout failed:', err);
+      console.error("Logout failed:", err);
     } finally {
       setUser(null);
       setIsLoading(false);
@@ -160,36 +157,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch('/api/v1/auth/register', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/v1/auth/register", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, name }),
         });
 
         if (!response.ok) {
-          throw new Error('Registration failed');
+          throw new Error("Registration failed");
         }
 
         const userData = await response.json();
         setUser(userData);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Registration failed';
+        const message =
+          err instanceof Error ? err.message : "Registration failed";
         setError(message);
         throw err;
       } finally {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   const refreshAuth = useCallback(async () => {
     try {
-      const response = await fetch('/api/v1/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/v1/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (response.ok) {
@@ -199,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
       }
     } catch (err) {
-      console.error('Token refresh failed:', err);
+      console.error("Token refresh failed:", err);
       setUser(null);
     }
   }, []);
@@ -208,23 +206,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     (permission: Permission): boolean => {
       return user?.permissions.includes(permission) ?? false;
     },
-    [user]
+    [user],
   );
 
   const hasRole = useCallback(
     (role: string): boolean => {
       return user?.role === role;
     },
-    [user]
+    [user],
   );
 
   const canAccess = useCallback(
     (requiredPermissions: Permission[]): boolean => {
       return requiredPermissions.every((perm) =>
-        user?.permissions.includes(perm)
+        user?.permissions.includes(perm),
       );
     },
-    [user]
+    [user],
   );
 
   const value: AuthContextType = {
@@ -251,7 +249,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

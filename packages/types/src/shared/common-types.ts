@@ -1,6 +1,6 @@
 // Common types to replace 'any' and 'unknown' throughout the codebase
 // Note: JsonValue is already defined in common.ts
-import type { JsonValue } from './common';
+import type { JsonValue } from "./common";
 
 // ============================================================================
 // Generic Types
@@ -8,7 +8,13 @@ import type { JsonValue } from './common';
 
 export type JsonPrimitive = string | number | boolean | null;
 export interface JsonObject {
-  [key: string]: string | number | boolean | null | JsonObject | Array<string | number | boolean | null>;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | JsonObject
+    | Array<string | number | boolean | null>;
 }
 export type JsonArray = Array<string | number | boolean | null | JsonObject>;
 
@@ -43,7 +49,10 @@ export interface MockQueue<T = JsonValue> {
   add(data: T, opts?: QueueJobOptions): Promise<QueueJob<T>>;
   add(name: string, data: T, opts?: QueueJobOptions): Promise<QueueJob<T>>;
   process(callback: (job: QueueJob<T>) => Promise<void> | void): Promise<void>;
-  process(name: string, callback: (job: QueueJob<T>) => Promise<void> | void): Promise<void>;
+  process(
+    name: string,
+    callback: (job: QueueJob<T>) => Promise<void> | void,
+  ): Promise<void>;
   on(event: string, callback: (...args: JsonValue[]) => void): void;
 }
 
@@ -131,7 +140,7 @@ export interface SnapshotTrends {
   summary: {
     total: number;
     average: number;
-    trend: 'up' | 'down' | 'stable';
+    trend: "up" | "down" | "stable";
   };
 }
 
@@ -155,7 +164,7 @@ export interface TestAppointment extends AppointmentResponse {
 
 export interface AxeViolation {
   id: string;
-  impact: 'critical' | 'serious' | 'moderate' | 'minor';
+  impact: "critical" | "serious" | "moderate" | "minor";
   description: string;
   help: string;
   helpUrl: string;
@@ -189,8 +198,16 @@ export interface WhatsAppPayload {
 
 export interface WhatsAppComponent {
   type: string;
-  parameters?: Array<{ type: string; text?: string; [key: string]: string | undefined }>;
-  buttons?: Array<{ type: string; text: string; [key: string]: string | undefined }>;
+  parameters?: Array<{
+    type: string;
+    text?: string;
+    [key: string]: string | undefined;
+  }>;
+  buttons?: Array<{
+    type: string;
+    text: string;
+    [key: string]: string | undefined;
+  }>;
 }
 
 // ============================================================================
@@ -237,8 +254,8 @@ export interface ValidationResult {
 // ============================================================================
 
 export interface ClinicalAlert {
-  type: 'allergy' | 'interaction' | 'contraindication' | 'warning';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "allergy" | "interaction" | "contraindication" | "warning";
+  severity: "low" | "medium" | "high" | "critical";
   message: string;
   details?: string;
   actionRequired?: boolean;
@@ -296,7 +313,7 @@ export interface HistoryItem {
 
 export interface OpenAPIParameter {
   name: string;
-  in: 'path' | 'query' | 'header' | 'cookie';
+  in: "path" | "query" | "header" | "cookie";
   required?: boolean;
   schema?: OpenAPISchema;
   description?: string;
@@ -315,12 +332,18 @@ export interface OpenAPISchema {
 export interface OpenAPIDocument {
   openapi: string;
   info: { title: string; version: string };
-  paths: Record<string, Record<string, {
-    summary?: string;
-    parameters?: OpenAPIParameter[];
-    requestBody?: JsonObject;
-    responses?: JsonObject;
-  }>>;
+  paths: Record<
+    string,
+    Record<
+      string,
+      {
+        summary?: string;
+        parameters?: OpenAPIParameter[];
+        requestBody?: JsonObject;
+        responses?: JsonObject;
+      }
+    >
+  >;
   components?: {
     schemas?: Record<string, OpenAPISchema>;
     securitySchemes?: JsonObject;

@@ -13,7 +13,7 @@ export {
   type AuthContextType,
   type User,
   type Permission,
-} from './auth-context';
+} from "./auth-context";
 
-export { tokenStorage } from './token-storage';
-export { PERMISSIONS_BY_ROLE } from './permissions-map';
+export { tokenStorage } from "./token-storage";
+export { PERMISSIONS_BY_ROLE } from "./permissions-map";

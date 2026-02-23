@@ -1,6 +1,6 @@
 /**
  * Queue Service Interface
- * 
+ *
  * Abstraction for job queue processing.
  * Allows scheduling async tasks with retries, delays, etc.
  */
@@ -28,8 +28,15 @@ export interface QueueJob<T = any> {
 }
 
 export interface IQueueProvider {
-  enqueue<T>(name: string, data: T, options?: QueueJobOptions): Promise<QueueJob<T>>;
-  process<T>(name: string, handler: (job: QueueJob<T>) => Promise<void>): Promise<void>;
+  enqueue<T>(
+    name: string,
+    data: T,
+    options?: QueueJobOptions,
+  ): Promise<QueueJob<T>>;
+  process<T>(
+    name: string,
+    handler: (job: QueueJob<T>) => Promise<void>,
+  ): Promise<void>;
   getJob<T>(jobId: string): Promise<QueueJob<T> | null>;
   removeJob(jobId: string): Promise<void>;
   clear(name: string): Promise<void>;

@@ -41,11 +41,17 @@ export default function ProtectedLayout({
             <ResizableHandle withHandle className="hidden md:flex" />
             <ResizablePanel defaultSize={82}>
               <div className="flex h-full flex-col overflow-hidden">
-                <header className="flex h-14 items-center gap-4 border-b bg-background px-6 md:hidden" aria-label="Mobile navigation">
+                <header
+                  className="flex h-14 items-center gap-4 border-b bg-background px-6 md:hidden"
+                  aria-label="Mobile navigation"
+                >
                   <MobileNav />
                   <span className="font-bold text-lg">Docita</span>
                 </header>
-                <main className="flex-1 overflow-y-auto p-4 md:p-6" aria-label="Main content">
+                <main
+                  className="flex-1 overflow-y-auto p-4 md:p-6"
+                  aria-label="Main content"
+                >
                   <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
                 </main>
               </div>

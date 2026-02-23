@@ -500,6 +500,7 @@ psql <paste-database-url-here>
 ---
 
 **For Help:**
+
 - Railway Docs: https://docs.railway.app/
 - Vercel Docs: https://vercel.com/docs
 - Prisma Docs: https://www.prisma.io/docs/

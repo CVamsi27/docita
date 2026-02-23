@@ -21,25 +21,13 @@ export const useAnalyticsLogic = () => {
   const { data: overview, isLoading: overviewLoading } = useAnalyticsOverview();
 
   const { data: diseaseTrends = [], isLoading: trendsLoading } =
-    useDiseaseTrends(
-      clinicId || "default",
-      dateRange.start,
-      dateRange.end,
-    );
+    useDiseaseTrends(clinicId || "default", dateRange.start, dateRange.end);
 
   const { data: revenueByCPT = [], isLoading: revenueLoading } =
-    useRevenueByCPT(
-      clinicId || "default",
-      dateRange.start,
-      dateRange.end,
-    );
+    useRevenueByCPT(clinicId || "default", dateRange.start, dateRange.end);
 
   const { data: complianceMetrics = [], isLoading: complianceLoading } =
-    useComplianceMetrics(
-      clinicId || "default",
-      dateRange.start,
-      dateRange.end,
-    );
+    useComplianceMetrics(clinicId || "default", dateRange.start, dateRange.end);
 
   const isLoading = overviewLoading; // Primary loading state
 

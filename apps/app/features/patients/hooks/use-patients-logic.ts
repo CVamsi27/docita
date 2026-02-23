@@ -72,7 +72,8 @@ export function usePatientsLogic() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((patient) => {
-        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        const fullName =
+          `${patient.firstName} ${patient.lastName}`.toLowerCase();
         const phoneNumber = patient.phoneNumber.toLowerCase();
         return fullName.includes(query) || phoneNumber.includes(query);
       });
@@ -111,7 +112,9 @@ export function usePatientsLogic() {
 
   const error = queryError ? (queryError as Error).message : null;
 
-  const hasMore = Boolean(patientsResponse?.hasMore && patientsResponse?.nextCursor);
+  const hasMore = Boolean(
+    patientsResponse?.hasMore && patientsResponse?.nextCursor,
+  );
   const canGoPrev = cursorHistory.length > 0;
 
   const goToNextPage = useCallback(() => {

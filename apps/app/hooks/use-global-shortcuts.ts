@@ -138,14 +138,7 @@ export function useGlobalShortcuts({
           break;
       }
     },
-    [
-      enabled,
-      router,
-      isInConsultation,
-      isOnQueue,
-      isOnDashboard,
-      context,
-    ],
+    [enabled, router, isInConsultation, isOnQueue, isOnDashboard, context],
   );
 
   useEffect(() => {

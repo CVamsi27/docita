@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { usePatientPortalPrescriptions } from '@/hooks/api/use-patient-portal';
-import { Card, CardContent } from '@workspace/ui/components/card';
+import { usePatientPortalPrescriptions } from "@/hooks/api/use-patient-portal";
+import { Card, CardContent } from "@workspace/ui/components/card";
 
 export default function PortalPrescriptionsPage() {
   const { data, isLoading } = usePatientPortalPrescriptions();

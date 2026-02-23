@@ -255,7 +255,11 @@ export default function ContactPage() {
                       </Button>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                    <form
+                      onSubmit={handleSubmit}
+                      noValidate
+                      className="space-y-6"
+                    >
                       <div className="grid gap-6 sm:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="name">Full Name *</Label>
@@ -264,16 +268,29 @@ export default function ContactPage() {
                             placeholder="Dr. John Doe"
                             value={formData.name}
                             onChange={(e) => {
-                              setFormData({ ...formData, name: e.target.value });
+                              setFormData({
+                                ...formData,
+                                name: e.target.value,
+                              });
                               if (fieldErrors.name) {
-                                setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                                setFieldErrors((prev) => ({
+                                  ...prev,
+                                  name: undefined,
+                                }));
                               }
                             }}
                             aria-invalid={!!fieldErrors.name}
-                            aria-describedby={fieldErrors.name ? "contact-name-error" : undefined}
+                            aria-describedby={
+                              fieldErrors.name
+                                ? "contact-name-error"
+                                : undefined
+                            }
                           />
                           {fieldErrors.name && (
-                            <p id="contact-name-error" className="text-sm text-destructive">
+                            <p
+                              id="contact-name-error"
+                              className="text-sm text-destructive"
+                            >
                               {fieldErrors.name}
                             </p>
                           )}
@@ -291,16 +308,24 @@ export default function ContactPage() {
                                 email: e.target.value,
                               });
                               if (fieldErrors.email) {
-                                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                                setFieldErrors((prev) => ({
+                                  ...prev,
+                                  email: undefined,
+                                }));
                               }
                             }}
                             aria-invalid={!!fieldErrors.email}
                             aria-describedby={
-                              fieldErrors.email ? "contact-email-error" : undefined
+                              fieldErrors.email
+                                ? "contact-email-error"
+                                : undefined
                             }
                           />
                           {fieldErrors.email && (
-                            <p id="contact-email-error" className="text-sm text-destructive">
+                            <p
+                              id="contact-email-error"
+                              className="text-sm text-destructive"
+                            >
                               {fieldErrors.email}
                             </p>
                           )}
@@ -319,16 +344,24 @@ export default function ContactPage() {
                               subject: e.target.value,
                             });
                             if (fieldErrors.subject) {
-                              setFieldErrors((prev) => ({ ...prev, subject: undefined }));
+                              setFieldErrors((prev) => ({
+                                ...prev,
+                                subject: undefined,
+                              }));
                             }
                           }}
                           aria-invalid={!!fieldErrors.subject}
                           aria-describedby={
-                            fieldErrors.subject ? "contact-subject-error" : undefined
+                            fieldErrors.subject
+                              ? "contact-subject-error"
+                              : undefined
                           }
                         />
                         {fieldErrors.subject && (
-                          <p id="contact-subject-error" className="text-sm text-destructive">
+                          <p
+                            id="contact-subject-error"
+                            className="text-sm text-destructive"
+                          >
                             {fieldErrors.subject}
                           </p>
                         )}
@@ -347,16 +380,24 @@ export default function ContactPage() {
                               message: e.target.value,
                             });
                             if (fieldErrors.message) {
-                              setFieldErrors((prev) => ({ ...prev, message: undefined }));
+                              setFieldErrors((prev) => ({
+                                ...prev,
+                                message: undefined,
+                              }));
                             }
                           }}
                           aria-invalid={!!fieldErrors.message}
                           aria-describedby={
-                            fieldErrors.message ? "contact-message-error" : undefined
+                            fieldErrors.message
+                              ? "contact-message-error"
+                              : undefined
                           }
                         />
                         {fieldErrors.message && (
-                          <p id="contact-message-error" className="text-sm text-destructive">
+                          <p
+                            id="contact-message-error"
+                            className="text-sm text-destructive"
+                          >
                             {fieldErrors.message}
                           </p>
                         )}

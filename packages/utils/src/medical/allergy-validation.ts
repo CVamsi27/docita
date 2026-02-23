@@ -123,7 +123,13 @@ const MEDICATION_CLASSES: Record<string, string[]> = {
     "xarelto",
     "eliquis",
   ],
-  sulfonylureas: ["glipizide", "glyburide", "glimepiride", "glucotrol", "diabeta"],
+  sulfonylureas: [
+    "glipizide",
+    "glyburide",
+    "glimepiride",
+    "glucotrol",
+    "diabeta",
+  ],
   biguanides: ["metformin", "glucophage"],
   local_anesthetics: [
     "lidocaine",
@@ -160,7 +166,9 @@ export function checkMedicationAllergies(
 
   const medLower = medicationName.toLowerCase().trim();
 
-  const drugAllergies = patientAllergies.filter((a) => a.allergyType === "DRUG");
+  const drugAllergies = patientAllergies.filter(
+    (a) => a.allergyType === "DRUG",
+  );
 
   for (const allergy of drugAllergies) {
     const allergenLower = allergy.allergen.toLowerCase().trim();
@@ -179,7 +187,9 @@ export function checkMedicationAllergies(
     }
 
     for (const [className, medications] of Object.entries(MEDICATION_CLASSES)) {
-      const allergenInClass = medications.some((med) => allergenLower.includes(med));
+      const allergenInClass = medications.some((med) =>
+        allergenLower.includes(med),
+      );
       const medInClass = medications.some((med) => medLower.includes(med));
 
       if (allergenInClass && medInClass) {
@@ -244,9 +254,13 @@ export function checkPrescriptionAllergies(
     allergyCheck: checkMedicationAllergies(med.name, patientAllergies),
   }));
 
-  const hasAllergies = medicationChecks.some((mc) => mc.allergyCheck.hasAllergy);
+  const hasAllergies = medicationChecks.some(
+    (mc) => mc.allergyCheck.hasAllergy,
+  );
 
-  const allWarnings = medicationChecks.flatMap((mc) => mc.allergyCheck.warnings);
+  const allWarnings = medicationChecks.flatMap(
+    (mc) => mc.allergyCheck.warnings,
+  );
 
   const criticalWarnings = medicationChecks
     .filter((mc) =>

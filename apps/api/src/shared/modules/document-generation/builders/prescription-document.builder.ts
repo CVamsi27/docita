@@ -76,9 +76,7 @@ export class PrescriptionDocumentBuilder extends BaseDocumentBuilder {
 
     // Additional notes
     if (data.additionalNotes) {
-      this.addHeading('Additional Notes', 2).addParagraph(
-        data.additionalNotes,
-      );
+      this.addHeading('Additional Notes', 2).addParagraph(data.additionalNotes);
     }
 
     return this;

@@ -18,7 +18,7 @@ test.describe("Lab Tests", () => {
           firstName: "Dr.",
           lastName: "Lab",
           role: "DOCTOR",
-        clinicName: "Test Clinic",
+          clinicName: "Test Clinic",
         },
       });
 
@@ -38,7 +38,7 @@ test.describe("Lab Tests", () => {
           email: `clinic${Date.now()}@test.com`,
           phone: "1234567890",
           address: "123 Lab St",
-        tier: "ENTERPRISE",
+          tier: "ENTERPRISE",
           city: "Lab City",
           state: "LC",
           zipCode: "55555",

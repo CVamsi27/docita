@@ -1,13 +1,13 @@
 /**
  * Database Query Optimization Examples and Best Practices
- * 
+ *
  * COST OPTIMIZATION STRATEGIES:
  * - Reduce N+1 queries
  * - Use proper indexing
  * - Implement connection pooling
  * - Batch operations
  * - Use select to fetch only needed fields
- * 
+ *
  * ESTIMATED SAVINGS:
  * - Query reduction: ~30% database cost savings
  * - Proper indexing: ~40% faster queries
@@ -15,8 +15,8 @@
  * - Total: ~50% database cost optimization
  */
 
-import { PrismaService } from '../../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { PrismaService } from "../../prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class QueryOptimizationService {
@@ -161,7 +161,7 @@ export class QueryOptimizationService {
     for (const id of appointmentIds) {
       await this.prisma.appointment.update({
         where: { id },
-        data: { status: 'COMPLETED' },
+        data: { status: "COMPLETED" },
       });
     }
   }
@@ -176,7 +176,7 @@ export class QueryOptimizationService {
         id: { in: appointmentIds },
       },
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
     });
   }
@@ -203,9 +203,9 @@ export class QueryOptimizationService {
 
   /**
    * ✅ OPTIMIZATION: Use indexes effectively
-   * 
+   *
    * Add these to your schema:
-   * 
+   *
    * @@index([clinicId, status, startTime]) // Composite index for common queries
    * @@index([doctorId, startTime]) // For doctor schedule queries
    * @@index([patientId]) // For patient history queries
@@ -227,14 +227,12 @@ export class QueryOptimizationService {
         cursor: { id: params.cursor },
         skip: 1, // Skip the cursor
       }),
-      orderBy: { startTime: 'desc' },
+      orderBy: { startTime: "desc" },
     });
 
     const hasMore = appointments.length > params.limit;
     const items = hasMore ? appointments.slice(0, -1) : appointments;
-    const nextCursor = hasMore
-      ? items[items.length - 1].id
-      : undefined;
+    const nextCursor = hasMore ? items[items.length - 1].id : undefined;
 
     return {
       items,
@@ -246,21 +244,21 @@ export class QueryOptimizationService {
 
 /**
  * CONNECTION POOLING CONFIGURATION
- * 
+ *
  * Add to your Prisma schema:
- * 
+ *
  * datasource db {
  *   provider = "postgresql"
  *   url      = env("DATABASE_URL")
  *   directUrl = env("DIRECT_DATABASE_URL")
  * }
- * 
+ *
  * DATABASE_URL with pooling (for most queries):
  * postgresql://user:password@host:5432/dbname?pgbouncer=true&connection_limit=10
- * 
+ *
  * DIRECT_DATABASE_URL (for migrations, transactions):
  * postgresql://user:password@host:5432/dbname
- * 
+ *
  * Neon-specific optimization:
  * - Use connection pooling: reduces connection overhead by ~70%
  * - Set connection_limit based on your plan
@@ -269,15 +267,15 @@ export class QueryOptimizationService {
 
 /**
  * INDEX RECOMMENDATIONS
- * 
+ *
  * Run this query to find missing indexes:
- * 
+ *
  * SELECT schemaname, tablename, attname, n_distinct, correlation
  * FROM pg_stats
  * WHERE schemaname = 'public'
  * AND n_distinct > 100
  * ORDER BY abs(correlation) DESC;
- * 
+ *
  * Common indexes needed:
  * - Appointment: (clinicId, startTime, status)
  * - Patient: (clinicId, email), (clinicId, phoneNumber)

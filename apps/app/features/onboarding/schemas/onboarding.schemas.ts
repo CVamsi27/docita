@@ -17,33 +17,41 @@ export const clinicDetailsSchema = z.object({
 });
 
 // Step 2: Admin Account
-export const adminAccountSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+export const adminAccountSchema = z
+  .object({
+    name: z.string().min(2, "Name is required"),
+    email: z.string().email("Invalid email"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 // Step 3: Plan Selection
 export const planSelectionSchema = z.object({
   tier: z.enum(["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"]),
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
-  addons: z.object({
-    intelligence: z.boolean(),
-  }).default({ intelligence: false }),
+  addons: z
+    .object({
+      intelligence: z.boolean(),
+    })
+    .default({ intelligence: false }),
   referralCode: z.string().optional(),
 });
 
 // Step 4: Team Invites
 export const teamInviteSchema = z.object({
-  members: z.array(z.object({
-    email: z.string().email(),
-    role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),
-    name: z.string().optional(),
-  })).default([]),
+  members: z
+    .array(
+      z.object({
+        email: z.string().email(),
+        role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+        name: z.string().optional(),
+      }),
+    )
+    .default([]),
 });
 
 // Step 5: Compliance

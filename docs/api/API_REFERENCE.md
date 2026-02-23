@@ -12,6 +12,7 @@ This document complements Swagger/OpenAPI and captures implementation convention
 ## 2) Endpoint Standards
 
 All endpoints should include:
+
 - Validation at request boundary.
 - Auth posture (`@Public` or `@Roles(...)`).
 - Explicit response DTO/shape.
@@ -31,6 +32,7 @@ All endpoints should include:
 ## 5) Module Taxonomy (High Level)
 
 Primary domains include:
+
 - Auth
 - Patients
 - Appointments

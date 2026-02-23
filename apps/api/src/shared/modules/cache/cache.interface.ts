@@ -1,6 +1,6 @@
 /**
  * Cache Service Interface
- * 
+ *
  * Abstraction for caching layer (Redis, in-memory, etc.)
  * Allows switching implementations without changing application code.
  */

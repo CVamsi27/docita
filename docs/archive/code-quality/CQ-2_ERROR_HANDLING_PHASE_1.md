@@ -13,12 +13,14 @@
 ### Problem Identified
 
 **Root Causes:**
+
 1. Webhook handlers catch errors but don't log/track them properly
 2. Errors are swallowed "to ensure 200 is returned to Razorpay"
 3. Payment/subscription failures can happen silently, undetected
 4. No audit trail of failed webhook events
 
 **Critical Impact:**
+
 - Payment confirmations could fail without alerting
 - Subscription status updates could be lost
 - Revenue issues undetected until reconciliation
@@ -27,15 +29,18 @@
 ### Solution Implemented
 
 #### 1. **WebhookErrorHandlingService** (New Service)
+
 Location: `/apps/api/src/modules/webhooks/webhook-error-handling.service.ts`
 
 **Capabilities:**
+
 - Log webhook errors with context (event type, provider ID, payload hash, IP, user agent)
 - Determine error severity (CRITICAL vs ERROR)
 - Track webhook events in AuditLog for audit trail
 - Support database fallback if logging fails
 
 **Methods:**
+
 ```typescript
 // Log errors with severity levels
 async logWebhookError(
@@ -44,7 +49,7 @@ async logWebhookError(
   isCritical: boolean
 ): Promise<void>
 
-// Track event processing status (PENDING/SUCCESS/FAILED)  
+// Track event processing status (PENDING/SUCCESS/FAILED)
 async trackWebhookEvent(
   eventType: string,
   providerId: string,
@@ -57,9 +62,11 @@ isCriticalError(error: Error, eventType: string): boolean
 ```
 
 #### 2. **Payment Webhooks Controller**
+
 Location: `/apps/api/src/modules/payments/webhooks.controller.ts`
 
 **Changes:**
+
 - ✅ Added try-catch around webhook processing
 - ✅ Log errors with context (event type, payment link ID, IP, user agent)
 - ✅ Track successful/failed webhook events
@@ -67,6 +74,7 @@ Location: `/apps/api/src/modules/payments/webhooks.controller.ts`
 - ✅ Include error message in response for debugging
 
 **Error Flow:**
+
 ```
 Webhook Request
     ↓
@@ -76,9 +84,11 @@ Webhook Request
 ```
 
 #### 3. **Subscription Webhooks Controller**
+
 Location: `/apps/api/src/modules/subscription/subscription-webhooks.controller.ts`
 
 **Changes:**
+
 - ✅ Added try-catch around webhook processing
 - ✅ Moved error handling from service to controller (CQ-2 enhancement)
 - ✅ Log critical subscription/payment errors
@@ -86,9 +96,11 @@ Location: `/apps/api/src/modules/subscription/subscription-webhooks.controller.t
 - ✅ Return 200 to Razorpay
 
 #### 4. **Subscription Webhook Service**
+
 Location: `/apps/api/src/modules/subscription/subscription-webhook.service.ts`
 
 **Changes:**
+
 - ✅ Removed try-catch error swallowing
 - ✅ Error handling now delegated to controller
 - ✅ Service throws errors for proper propagation and logging
@@ -99,6 +111,7 @@ Location: `/apps/api/src/modules/subscription/subscription-webhook.service.ts`
 ## Database Tables Used
 
 ### ErrorLog Table
+
 ```prisma
 model ErrorLog {
   id          String   @id
@@ -118,6 +131,7 @@ model ErrorLog {
 ```
 
 ### AuditLog Table
+
 ```prisma
 model AuditLog {
   id        String
@@ -173,7 +187,7 @@ try {
     ipAddress,
     userAgent,
   }, isCritical);
-  
+
   // Track failure
   await this.webhookErrorHandler.trackWebhookEvent(
     payload.event,
@@ -181,7 +195,7 @@ try {
     'FAILED',
     error
   );
-  
+
   // Return 200 to prevent gateway retries
   return { status: 'ok', error: 'logged for review' };
 }
@@ -192,15 +206,19 @@ try {
 ## Remaining Error-Swallowing Issues (Future Phases)
 
 ### Phase 2: Import Error Handling (Future)
+
 **Files Affected:**
+
 - `/modules/imports/imports.service.ts` - Row-by-row import failures
 - `/modules/imports/import-session.service.ts` - Temp file deletion
 - `/modules/imports/bulk-import.service.ts` - Batch processing errors
 
 ### Phase 3: Non-Critical Services (Lower Priority)
+
 **Categories:**
+
 - Notification failures (WhatsApp, email, SMS) - Already logging
-- Monitoring/audit failures - Already logging  
+- Monitoring/audit failures - Already logging
 - Search/indexing errors - Already logging
 
 ---
@@ -218,7 +236,7 @@ WHERE type = 'WebhookError'
 ORDER BY "createdAt" DESC;
 
 -- Check webhook failure patterns
-SELECT 
+SELECT
   metadata->>'eventType' as event_type,
   count(*) as failure_count
 FROM "ErrorLog"
@@ -227,7 +245,7 @@ WHERE type = 'WebhookError'
 GROUP BY event_type;
 
 -- Check payment webhook success rate
-SELECT 
+SELECT
   status,
   count(*) as count
 FROM "AuditLog"
@@ -240,14 +258,14 @@ GROUP BY status;
 
 ## Code Changes Summary
 
-| File | Changes | Impact |
-|------|---------|--------|
-| webhook-error-handling.service.ts | NEW | Centralized error handling service |
-| payments/webhooks.controller.ts | ✅ Added try-catch | Payment webhook error handling |
-| payments/payments.module.ts | ✅ Added provider | Wire up error service |
-| subscription/subscription-webhooks.controller.ts | ✅ Added try-catch | Subscription webhook error handling |
-| subscription/subscription-webhook.service.ts | ✅ Removed try-catch | Error propagation to controller |
-| subscription/subscription.module.ts | ✅ Added provider | Wire up error service |
+| File                                             | Changes              | Impact                              |
+| ------------------------------------------------ | -------------------- | ----------------------------------- |
+| webhook-error-handling.service.ts                | NEW                  | Centralized error handling service  |
+| payments/webhooks.controller.ts                  | ✅ Added try-catch   | Payment webhook error handling      |
+| payments/payments.module.ts                      | ✅ Added provider    | Wire up error service               |
+| subscription/subscription-webhooks.controller.ts | ✅ Added try-catch   | Subscription webhook error handling |
+| subscription/subscription-webhook.service.ts     | ✅ Removed try-catch | Error propagation to controller     |
+| subscription/subscription.module.ts              | ✅ Added provider    | Wire up error service               |
 
 **Total Lines Added:** ~320  
 **Total Lines Removed:** ~50  
@@ -285,17 +303,20 @@ GROUP BY status;
 ## Risk Assessment
 
 **Implementation Risk:** ✅ LOW
+
 - No changes to webhook behavior
 - Still returns 200 to gateways
 - All tests passing
 - Error logging uses try-catch itself
 
 **Runtime Impact:** ✅ MINIMAL
+
 - Additional database writes for errors (rare)
 - Negligible performance impact
 - Actually improves troubleshooting
 
 **Rollback Risk:** ✅ VERY LOW
+
 - Pure additive changes
 - No breaking changes
 - Can be disabled by removing try-catch
@@ -313,4 +334,3 @@ GROUP BY status;
 ✅ Pattern can be applied to other modules
 
 **Overall:** Phase 1 COMPLETE, ready for Phase 2
-

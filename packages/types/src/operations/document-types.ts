@@ -172,34 +172,48 @@ export const DOCUMENT_TYPE_DESCRIPTIONS: Record<DocumentType, string> = {
  * Check if a document type is an X-ray
  */
 export function isXRayDocument(type: DocumentType): boolean {
-  return (DOCUMENT_TYPE_CATEGORIES.ALL_XRAYS as readonly string[]).includes(type);
+  return (DOCUMENT_TYPE_CATEGORIES.ALL_XRAYS as readonly string[]).includes(
+    type,
+  );
 }
 
 /**
  * Check if a document type is a dental X-ray
  */
 export function isDentalXRay(type: DocumentType): boolean {
-  return (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(type);
+  return (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(
+    type,
+  );
 }
 
 /**
  * Check if a document type is a medical X-ray
  */
 export function isMedicalXRay(type: DocumentType): boolean {
-  return (DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS as readonly string[]).includes(type);
+  return (DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS as readonly string[]).includes(
+    type,
+  );
 }
 
 /**
  * Get category for a document type
  */
 export function getDocumentCategory(type: DocumentType): string {
-  if ((DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(type)) {
+  if (
+    (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(type)
+  ) {
     return "Dental X-rays";
   }
-  if ((DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS as readonly string[]).includes(type)) {
+  if (
+    (DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS as readonly string[]).includes(type)
+  ) {
     return "Medical X-rays";
   }
-  if ((DOCUMENT_TYPE_CATEGORIES.GENERAL_DOCUMENTS as readonly string[]).includes(type)) {
+  if (
+    (DOCUMENT_TYPE_CATEGORIES.GENERAL_DOCUMENTS as readonly string[]).includes(
+      type,
+    )
+  ) {
     return "General Documents";
   }
   return "Other";

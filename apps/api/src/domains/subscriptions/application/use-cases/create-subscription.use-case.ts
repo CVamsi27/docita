@@ -30,7 +30,9 @@ export class CreateSubscriptionUseCase {
     private validationService: SubscriptionValidationService,
   ) {}
 
-  async execute(dto: CreateSubscriptionDto): Promise<{ subscriptionId: string }> {
+  async execute(
+    dto: CreateSubscriptionDto,
+  ): Promise<{ subscriptionId: string }> {
     // Validate plan doesn't already exist for clinic
     const existing = await this.subscriptionRepository.findByClinicId(
       dto.clinicId,
@@ -66,7 +68,8 @@ export class CreateSubscriptionUseCase {
     });
 
     // Validate subscription
-    const validation = this.validationService.validateSubscription(subscription);
+    const validation =
+      this.validationService.validateSubscription(subscription);
     if (!validation.valid) {
       throw new BadRequestException({
         message: 'Invalid subscription',

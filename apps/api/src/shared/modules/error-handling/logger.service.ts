@@ -30,8 +30,7 @@ export class LoggerService {
   }
 
   error(message: string, error?: Error | string, context?: LogContext) {
-    const errorMessage =
-      error instanceof Error ? error.stack : String(error);
+    const errorMessage = error instanceof Error ? error.stack : String(error);
     this.log('ERROR', message, context, errorMessage);
   }
 

@@ -1,7 +1,7 @@
 /**
  * Shared - Cross-Cutting Concerns
  * Centralized infrastructure for all domains
- * 
+ *
  * Structure:
  * - modules/: Reusable application modules
  *   - error-handling/: Global exception handling, logging

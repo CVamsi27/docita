@@ -1,5 +1,11 @@
 // Common
-export type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue }
+  | JsonValue[];
 
 export type PrismaQuery = Record<string, unknown>;
 
@@ -32,7 +38,7 @@ export interface OffsetPaginationResult<T> {
 export interface LogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'WARNING' | 'ERROR';
+  level: "INFO" | "WARNING" | "ERROR";
   module: string;
   message: string;
   details?: string;
@@ -53,7 +59,7 @@ export interface WhatsAppAutomationSettings {
  * Payment Gateway Data
  */
 export interface PaymentGatewayData {
-  gateway: 'RAZORPAY' | 'STRIPE';
+  gateway: "RAZORPAY" | "STRIPE";
   customerId?: string;
   subscriptionId?: string;
   metadata?: Record<string, string>;
@@ -63,7 +69,7 @@ export interface PaymentGatewayData {
  * Scheduled Change for Subscriptions
  */
 export interface ScheduledChange {
-  type: 'UPGRADE' | 'DOWNGRADE' | 'CANCEL';
+  type: "UPGRADE" | "DOWNGRADE" | "CANCEL";
   newTier?: string;
   effectiveDate: Date;
   reason?: string;

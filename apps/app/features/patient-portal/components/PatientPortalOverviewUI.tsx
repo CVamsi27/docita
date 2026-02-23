@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { CalendarDays, CreditCard, FileText } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 
@@ -22,7 +27,9 @@ export function PatientPortalOverviewUI({
   return (
     <div className="space-y-6">
       <div className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-        <h1 className="text-2xl font-semibold tracking-tight">Patient Portal</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Patient Portal
+        </h1>
         <p className="text-sm text-muted-foreground">
           View your care journey, prescriptions, and billing in one place.
         </p>
@@ -60,7 +67,9 @@ export function PatientPortalOverviewUI({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-between">
-            <span className="text-2xl font-semibold">{outstandingInvoiceCount}</span>
+            <span className="text-2xl font-semibold">
+              {outstandingInvoiceCount}
+            </span>
             <CreditCard className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>

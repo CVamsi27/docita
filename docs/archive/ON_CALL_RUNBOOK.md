@@ -9,6 +9,7 @@
 ## 🎯 On-Call Quick Start
 
 ### Your Responsibilities
+
 - Monitor #docita-alerts channel 24/7
 - Respond to incidents within 15 minutes
 - Escalate when needed
@@ -16,6 +17,7 @@
 - Maintain system health
 
 ### Tools You Need
+
 - [ ] Laptop with VPN access
 - [ ] Slack mobile app (notifications ON)
 - [ ] Access to Railway dashboard
@@ -29,6 +31,7 @@
 ## 🚨 When You Get Alerted
 
 ### Step 1: Acknowledge (< 2 minutes)
+
 ```markdown
 1. See alert in #docita-alerts
 2. Add 👀 emoji reaction (I'm looking)
@@ -37,6 +40,7 @@
 ```
 
 ### Step 2: Respond (< 15 minutes)
+
 ```markdown
 For SEV-1 (Service Down):
 → Follow INCIDENT_RESPONSE.md → SEV-1 section
@@ -63,6 +67,7 @@ For SEV-3/4:
 **Response Time:** < 5 minutes
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Check which service
 # UptimeRobot shows: API / Frontend / Database
@@ -75,6 +80,7 @@ For SEV-3/4:
 ```
 
 **Quick Fix:**
+
 ```bash
 # Option 1: Service crashed → Restart
 railway service restart
@@ -97,6 +103,7 @@ curl https://api.docita.work/api/health
 **Response Time:** < 1 hour
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Open Sentry
 # Check: Which error? How many affected?
@@ -109,6 +116,7 @@ curl https://api.docita.work/api/health
 ```
 
 **Quick Fix:**
+
 ```bash
 # If database errors:
 # → Check Railway PostgreSQL status
@@ -131,6 +139,7 @@ curl https://api.docita.work/api/health
 **Response Time:** < 1 hour
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Check Sentry → Performance
 # Look for: Slow transactions (> 2s)
@@ -145,6 +154,7 @@ curl https://api.docita.work/api/health
 ```
 
 **Quick Fix:**
+
 ```bash
 # If high CPU/Memory:
 railway service restart  # Temporary
@@ -166,6 +176,7 @@ railway service restart  # Temporary
 **Response Time:** < 5 minutes
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Check Railway → PostgreSQL
 # Status: Running / Crashed?
@@ -178,6 +189,7 @@ curl https://api.docita.work/api/health/db
 ```
 
 **Quick Fix:**
+
 ```bash
 # Option 1: Connection pool exhausted
 # → Restart API service
@@ -200,6 +212,7 @@ railway service restart
 **Response Time:** < 30 minutes
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Check Railway → Redis status
 # 2. Test connection:
@@ -207,6 +220,7 @@ curl https://api.docita.work/api/health/redis
 ```
 
 **Quick Fix:**
+
 ```bash
 # Restart Redis:
 # Railway → Redis → Restart
@@ -225,6 +239,7 @@ curl https://api.docita.work/api/health/redis
 **Response Time:** < 30 minutes
 
 **Quick Diagnosis:**
+
 ```bash
 # 1. Check deployment logs
 # Vercel → Deployments → [Failed] → Logs
@@ -239,6 +254,7 @@ curl https://api.docita.work/api/health/redis
 ```
 
 **Quick Fix:**
+
 ```bash
 # Option 1: Rollback to last good deployment
 vercel rollback  # or railway rollback
@@ -312,18 +328,21 @@ echo "==========================="
 ### When to Escalate
 
 **Escalate to Secondary On-Call if:**
+
 - You're stuck after 30 minutes
 - Need help with diagnosis
 - Unfamiliar with affected system
 - Need someone to verify your fix
 
 **Escalate to Engineering Lead if:**
+
 - Incident unresolved after 1 hour
 - Need architectural decision
 - Considering major change (schema, infrastructure)
 - Multiple systems affected
 
 **Escalate to CTO/CEO if:**
+
 - Security breach suspected
 - Data loss occurred
 - Duration > 2 hours
@@ -407,9 +426,9 @@ psql $DATABASE_URL
 SELECT count(*) FROM pg_stat_activity;
 
 # Check slow queries
-SELECT query, state, wait_event 
-FROM pg_stat_activity 
-WHERE state != 'idle' 
+SELECT query, state, wait_event
+FROM pg_stat_activity
+WHERE state != 'idle'
 AND query_start < NOW() - INTERVAL '5 seconds';
 
 # Check database size
@@ -473,6 +492,7 @@ railway logs --lines 1000 > incident-logs.txt
 **On-Call Engineer:** [Your Name]
 
 **Incidents:**
+
 - SEV-1: [Count] - [Brief description]
 - SEV-2: [Count] - [Brief description]
 - SEV-3/4: [Count]
@@ -480,15 +500,18 @@ railway logs --lines 1000 > incident-logs.txt
 **Uptime:** [XX.XX%] (Target: 99.9%)
 
 **Top Issues:**
+
 1. [Issue 1] - [Frequency]
 2. [Issue 2] - [Frequency]
 3. [Issue 3] - [Frequency]
 
 **Action Items:**
+
 - [ ] [Item 1]
 - [ ] [Item 2]
 
 **Notes for Next On-Call:**
+
 - [Any ongoing issues]
 - [Scheduled maintenance]
 - [Watch items]
@@ -499,6 +522,7 @@ railway logs --lines 1000 > incident-logs.txt
 ## 🎯 On-Call Best Practices
 
 ### Do's ✅
+
 - Acknowledge alerts within 15 minutes
 - Document everything in Slack threads
 - Update status every 15-30 minutes
@@ -509,6 +533,7 @@ railway logs --lines 1000 > incident-logs.txt
 - Communicate clearly with users
 
 ### Don'ts ❌
+
 - Don't ignore alerts
 - Don't make database changes without backup
 - Don't deploy untested fixes
@@ -533,13 +558,16 @@ railway logs --lines 1000 > incident-logs.txt
 **On-Call:** [Your Name]
 
 ## What Happened
+
 [2-3 sentences describing the incident]
 
 ## Detection
+
 - **How detected:** [UptimeRobot / Sentry / User report]
 - **Alert link:** [Link]
 
 ## Timeline
+
 - **[HH:MM]** - Alert received
 - **[HH:MM]** - Investigation started
 - **[HH:MM]** - Root cause identified
@@ -548,15 +576,19 @@ railway logs --lines 1000 > incident-logs.txt
 - **[HH:MM]** - Incident closed
 
 ## Root Cause
+
 [What caused it]
 
 ## Fix Applied
+
 [What you did to fix it]
 
 ## Prevention
+
 [What can prevent this in future]
 
 ## Links
+
 - Sentry: [link]
 - Railway logs: [link]
 - Slack thread: [link]
@@ -593,6 +625,7 @@ External Support:
 ## ✅ On-Call Checklist
 
 ### Starting Your Shift
+
 - [ ] Laptop charged and ready
 - [ ] VPN working
 - [ ] Slack mobile notifications ON
@@ -604,6 +637,7 @@ External Support:
 - [ ] Post in #docita-oncall: "On-call now through [end date]"
 
 ### During Your Shift
+
 - [ ] Monitor #docita-alerts continuously
 - [ ] Check dashboards 2x per day (morning/evening)
 - [ ] Respond to all alerts within 15 minutes
@@ -612,6 +646,7 @@ External Support:
 - [ ] Keep team updated on any ongoing incidents
 
 ### Ending Your Shift
+
 - [ ] Run final health check
 - [ ] Document any ongoing issues
 - [ ] Create handoff notes for next on-call

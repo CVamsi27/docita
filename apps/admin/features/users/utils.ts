@@ -25,7 +25,11 @@ export function calculateRoleStats(users: User[]) {
   };
 }
 
-export function filterUsers(users: User[], searchTerm: string, role: RoleFilter) {
+export function filterUsers(
+  users: User[],
+  searchTerm: string,
+  role: RoleFilter,
+) {
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   return users.filter((user) => {

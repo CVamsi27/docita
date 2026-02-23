@@ -57,10 +57,7 @@ export function NotificationSettings() {
       const s = (clinic.settings as ClinicAppSettings) || {};
       form.reset({
         whatsappNotifications: s.whatsappNotifications ?? true,
-        inAppNotifications:
-          s.inAppNotifications ??
-          s.pushNotifications ??
-          true,
+        inAppNotifications: s.inAppNotifications ?? s.pushNotifications ?? true,
         appointmentAlerts: s.appointmentAlerts ?? true,
         reportAlerts: s.reportAlerts ?? true,
       });
@@ -115,7 +112,9 @@ export function NotificationSettings() {
                     <div className="flex items-center gap-3">
                       <Smartphone className="h-4 w-4 text-muted-foreground" />
                       <div className="space-y-1">
-                        <Label className="text-base">WhatsApp Notifications</Label>
+                        <Label className="text-base">
+                          WhatsApp Notifications
+                        </Label>
                         <CardDescription>
                           Receive WhatsApp updates and reminders
                         </CardDescription>
@@ -139,7 +138,9 @@ export function NotificationSettings() {
                     <div className="flex items-center gap-3">
                       <Bell className="h-4 w-4 text-muted-foreground" />
                       <div className="space-y-1">
-                        <Label className="text-base">In-App Notifications</Label>
+                        <Label className="text-base">
+                          In-App Notifications
+                        </Label>
                         <CardDescription>
                           Show real-time alerts inside the app
                         </CardDescription>

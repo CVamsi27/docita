@@ -3,10 +3,10 @@
  * Centralized HTTP client with error handling, auth, etc.
  */
 
-import { API_ENDPOINTS } from './endpoints';
+import { API_ENDPOINTS } from "./endpoints";
 
 export interface FetchOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   headers?: Record<string, string>;
   body?: unknown;
   params?: Record<string, string | number | boolean>;
@@ -18,18 +18,15 @@ export interface FetchOptions {
  */
 export async function apiFetch<T = unknown>(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
 ): Promise<T> {
-  const {
-    method = 'GET',
-    headers = {},
-    body,
-    params,
-    token,
-  } = options;
+  const { method = "GET", headers = {}, body, params, token } = options;
 
   // Add query parameters
-  const fullUrl = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+  const fullUrl = new URL(
+    url,
+    typeof window !== "undefined" ? window.location.origin : "http://localhost",
+  );
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       fullUrl.searchParams.append(key, String(value));
@@ -38,13 +35,13 @@ export async function apiFetch<T = unknown>(
 
   // Prepare headers
   const finalHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...headers,
   };
 
   // Add authorization token
   if (token) {
-    finalHeaders['Authorization'] = `Bearer ${token}`;
+    finalHeaders["Authorization"] = `Bearer ${token}`;
   }
 
   try {
@@ -58,7 +55,7 @@ export async function apiFetch<T = unknown>(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const error = new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
       );
       (error as any).status = response.status;
       (error as any).data = errorData;
@@ -79,19 +76,30 @@ export async function apiFetch<T = unknown>(
  */
 export function createApiClient(token?: string) {
   return {
-    get: <T = unknown>(url: string, options?: Omit<FetchOptions, 'method'>) =>
-      apiFetch<T>(url, { ...options, method: 'GET', token }),
+    get: <T = unknown>(url: string, options?: Omit<FetchOptions, "method">) =>
+      apiFetch<T>(url, { ...options, method: "GET", token }),
 
-    post: <T = unknown>(url: string, body?: unknown, options?: Omit<FetchOptions, 'method' | 'body'>) =>
-      apiFetch<T>(url, { ...options, method: 'POST', body, token }),
+    post: <T = unknown>(
+      url: string,
+      body?: unknown,
+      options?: Omit<FetchOptions, "method" | "body">,
+    ) => apiFetch<T>(url, { ...options, method: "POST", body, token }),
 
-    put: <T = unknown>(url: string, body?: unknown, options?: Omit<FetchOptions, 'method' | 'body'>) =>
-      apiFetch<T>(url, { ...options, method: 'PUT', body, token }),
+    put: <T = unknown>(
+      url: string,
+      body?: unknown,
+      options?: Omit<FetchOptions, "method" | "body">,
+    ) => apiFetch<T>(url, { ...options, method: "PUT", body, token }),
 
-    patch: <T = unknown>(url: string, body?: unknown, options?: Omit<FetchOptions, 'method' | 'body'>) =>
-      apiFetch<T>(url, { ...options, method: 'PATCH', body, token }),
+    patch: <T = unknown>(
+      url: string,
+      body?: unknown,
+      options?: Omit<FetchOptions, "method" | "body">,
+    ) => apiFetch<T>(url, { ...options, method: "PATCH", body, token }),
 
-    delete: <T = unknown>(url: string, options?: Omit<FetchOptions, 'method'>) =>
-      apiFetch<T>(url, { ...options, method: 'DELETE', token }),
+    delete: <T = unknown>(
+      url: string,
+      options?: Omit<FetchOptions, "method">,
+    ) => apiFetch<T>(url, { ...options, method: "DELETE", token }),
   };
 }

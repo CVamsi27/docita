@@ -75,7 +75,7 @@ export function ExaminationInput({
 
   const updateGeneral = (
     field: keyof typeof data.general,
-    checked: boolean | string
+    checked: boolean | string,
   ) => {
     onChange({
       ...data,
@@ -124,7 +124,7 @@ export function ExaminationInput({
                   onCheckedChange={(checked) =>
                     updateGeneral(
                       item.key as keyof typeof data.general,
-                      checked
+                      checked,
                     )
                   }
                   disabled={readOnly}

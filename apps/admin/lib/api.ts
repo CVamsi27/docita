@@ -226,8 +226,10 @@ export const feedbackAPI = {
   getStats: (clinicId?: string): Promise<FeedbackStats> =>
     client.get("/feedback/stats", { params: { clinicId } }),
   getOne: (id: string): Promise<Feedback> => client.get(`/feedback/${id}`),
-  updateStatus: (id: string, data: Record<string, unknown>): Promise<Feedback> =>
-    client.patch(`/feedback/${id}/status`, data),
+  updateStatus: (
+    id: string,
+    data: Record<string, unknown>,
+  ): Promise<Feedback> => client.patch(`/feedback/${id}/status`, data),
   delete: (id: string): Promise<void> => client.delete(`/feedback/${id}`),
 };
 

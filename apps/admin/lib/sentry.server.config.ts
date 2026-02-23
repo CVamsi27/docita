@@ -4,7 +4,7 @@
  * This file provides additional server-side context setup
  */
 
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 // Server-side initialization happens automatically with withSentryConfig
 // This is just for reference and additional setup if needed

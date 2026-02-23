@@ -21,19 +21,17 @@ export class SubscriptionMapper {
    */
   static toDomain(raw: PrismaSubscription): Subscription {
     // Parse status
-    const statusValue = (raw.status as any) as SubscriptionStatusEnum;
+    const statusValue = raw.status as any as SubscriptionStatusEnum;
     const status = new SubscriptionStatus(statusValue);
 
     // Parse plan tier
-    const plan = new ClinicTier((raw.plan as any) as any);
+    const plan = new ClinicTier(raw.plan as any as any);
 
     // Parse billing cycle
-    const cycle = new BillingCycle((raw.billingCycle as any) as any);
+    const cycle = new BillingCycle(raw.billingCycle as any as any);
 
     // Parse discounts from JSON
-    const discountAggregate = this.parseDiscounts(
-      raw.discountsApplied as any,
-    );
+    const discountAggregate = this.parseDiscounts(raw.discountsApplied as any);
 
     return new Subscription({
       id: raw.id,

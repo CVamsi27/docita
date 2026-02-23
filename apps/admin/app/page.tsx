@@ -129,10 +129,15 @@ export default function SuperAdminLogin() {
                     }
                   }}
                   aria-invalid={!!fieldErrors.email}
-                  aria-describedby={fieldErrors.email ? "admin-login-email-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.email ? "admin-login-email-error" : undefined
+                  }
                 />
                 {fieldErrors.email && (
-                  <p id="admin-login-email-error" className="text-sm text-destructive">
+                  <p
+                    id="admin-login-email-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.email}
                   </p>
                 )}
@@ -147,13 +152,18 @@ export default function SuperAdminLogin() {
                     onChange={(e) => {
                       setPassword(e.target.value);
                       if (fieldErrors.password) {
-                        setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          password: undefined,
+                        }));
                       }
                     }}
                     className="pr-10"
                     aria-invalid={!!fieldErrors.password}
                     aria-describedby={
-                      fieldErrors.password ? "admin-login-password-error" : undefined
+                      fieldErrors.password
+                        ? "admin-login-password-error"
+                        : undefined
                     }
                   />
                   <Button

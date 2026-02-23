@@ -79,12 +79,14 @@ export function PrescriptionDocument({
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
                 {clinicInfo?.phone && (
                   <span className="flex items-center gap-1">
-                    <span className="opacity-70">Phone:</span> {clinicInfo.phone}
+                    <span className="opacity-70">Phone:</span>{" "}
+                    {clinicInfo.phone}
                   </span>
                 )}
                 {clinicInfo?.email && (
                   <span className="flex items-center gap-1">
-                    <span className="opacity-70">Email:</span> {clinicInfo.email}
+                    <span className="opacity-70">Email:</span>{" "}
+                    {clinicInfo.email}
                   </span>
                 )}
               </div>

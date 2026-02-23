@@ -29,4 +29,3 @@ export const medicationSchema = z.object({
   prnInstructions: z.string().optional(), // e.g., "Take for pain"
 });
 export type Medication = z.infer<typeof medicationSchema>;
-

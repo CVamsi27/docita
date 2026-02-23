@@ -27,6 +27,4 @@ export {
 export { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
 // Dynamic Consultation Components
-export {
-  ClinicalDocumentationDynamic,
-} from "./ConsultationDynamic";
+export { ClinicalDocumentationDynamic } from "./ConsultationDynamic";

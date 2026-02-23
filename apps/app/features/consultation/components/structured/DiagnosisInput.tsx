@@ -48,7 +48,7 @@ export function DiagnosisInput({
   const updateItem = (
     index: number,
     field: keyof DiagnosisItem,
-    fieldValue: string
+    fieldValue: string,
   ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: fieldValue };

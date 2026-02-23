@@ -135,7 +135,7 @@ export const ConsultationDashboardUI: FC = () => {
                           Started:{" "}
                           {item.consultationStart
                             ? new Date(
-                                item.consultationStart
+                                item.consultationStart,
                               ).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",

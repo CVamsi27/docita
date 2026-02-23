@@ -110,7 +110,10 @@ export function usePrescriptionForm({
     }
   };
 
-  const validateMedicationAtIndex = (index: number, med: PrescriptionMedication) => {
+  const validateMedicationAtIndex = (
+    index: number,
+    med: PrescriptionMedication,
+  ) => {
     const warnings: string[] = [];
 
     // Validate dosage

@@ -70,9 +70,9 @@ async function main() {
           }
         } catch (err) {
           console.log(
-            '✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).',
+            "✅ SECURITY SUCCESS: Error thrown during access (expected if findUnique fails on extra fields).",
           );
-          console.log('Error:', (err as { message: string }).message);
+          console.log("Error:", (err as { message: string }).message);
         }
       },
     );
@@ -98,7 +98,7 @@ async function main() {
             );
           }
         } catch (err) {
-          console.log('Error:', (err as { message: string }).message);
+          console.log("Error:", (err as { message: string }).message);
         }
       },
     );

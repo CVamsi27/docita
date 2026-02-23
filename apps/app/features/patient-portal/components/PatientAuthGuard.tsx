@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useAuth } from '@workspace/auth';
-import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from "@workspace/auth";
+import { redirect } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      redirect('/login?returnTo=/portal');
+      redirect("/login?returnTo=/portal");
     }
-    if (!isLoading && user && user.role !== 'PATIENT') {
-      redirect('/dashboard'); // Redirect non-patients to clinic dashboard
+    if (!isLoading && user && user.role !== "PATIENT") {
+      redirect("/dashboard"); // Redirect non-patients to clinic dashboard
     }
   }, [user, isLoading]);
 
@@ -25,7 +25,7 @@ export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || user.role !== 'PATIENT') {
+  if (!user || user.role !== "PATIENT") {
     return null;
   }
 

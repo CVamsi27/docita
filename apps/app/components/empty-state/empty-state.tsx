@@ -19,7 +19,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       ref={ref}
       className={cn(
         "flex flex-col items-center justify-center py-12 px-4 text-center",
-        className
+        className,
       )}
       {...props}
     >
@@ -28,9 +28,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground mb-2">
-        {title}
-      </h3>
+      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
       {description && (
         <p className="text-sm text-muted-foreground mb-4 max-w-sm">
           {description}
@@ -38,7 +36,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       )}
       {action && <div>{action}</div>}
     </div>
-  )
+  ),
 );
 EmptyState.displayName = "EmptyState";
 

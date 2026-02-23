@@ -30,7 +30,9 @@ export function CtaBottomSection() {
             </Button>
           </Link>
         </div>
-        <p className="mt-4 text-sm opacity-90">7 day free trial • No credit card required</p>
+        <p className="mt-4 text-sm opacity-90">
+          7 day free trial • No credit card required
+        </p>
       </div>
     </section>
   );

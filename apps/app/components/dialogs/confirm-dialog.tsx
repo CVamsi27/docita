@@ -46,20 +46,12 @@ export function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
       <div className="bg-background rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
-        <h2 className="text-lg font-semibold text-foreground mb-2">
-          {title}
-        </h2>
+        <h2 className="text-lg font-semibold text-foreground mb-2">{title}</h2>
         {description && (
-          <p className="text-sm text-muted-foreground mb-4">
-            {description}
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">{description}</p>
         )}
         <div className="flex gap-3 justify-end mt-6">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             {cancelText}
           </Button>
           <Button

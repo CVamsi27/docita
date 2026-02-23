@@ -45,7 +45,10 @@ export const useConsultationLogic = (appointmentId: string) => {
   // Filter past appointments (exclude current, only completed)
   const pastAppointments = useMemo(() => {
     return patientAppointments
-      .filter((apt: Appointment) => apt.id !== appointmentId && apt.status === "completed")
+      .filter(
+        (apt: Appointment) =>
+          apt.id !== appointmentId && apt.status === "completed",
+      )
       .map((apt: Appointment) => ({
         id: apt.id || "",
         date: apt.startTime,
@@ -53,7 +56,10 @@ export const useConsultationLogic = (appointmentId: string) => {
         finalDiagnosis: apt.finalDiagnosis,
         diagnoses: apt.diagnoses,
       }))
-      .sort((a: { date: Date | string }, b: { date: Date | string }) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort(
+        (a: { date: Date | string }, b: { date: Date | string }) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      )
       .slice(0, 10);
   }, [patientAppointments, appointmentId]);
 

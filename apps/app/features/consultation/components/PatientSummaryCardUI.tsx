@@ -165,7 +165,7 @@ export function PatientSummaryCardUI({
                         variant="outline"
                         className={cn(
                           "text-xs cursor-help",
-                          SEVERITY_COLORS[allergy.severity]
+                          SEVERITY_COLORS[allergy.severity],
                         )}
                       >
                         {allergy.allergen}

@@ -1,6 +1,6 @@
 /**
  * Loading State Management Hook
- * 
+ *
  * UI/UX IMPROVEMENTS:
  * - Centralized loading state management
  * - Prevents layout shift with skeleton screens
@@ -8,9 +8,9 @@
  * - Handles timing for smooth transitions
  */
 
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface LoadingState {
   isLoading: boolean;
@@ -42,7 +42,11 @@ export function useLoading(options: UseLoadingOptions = {}) {
    */
   const stopLoading = useCallback(async () => {
     if (!startTimeRef.current) {
-      setState({ isLoading: false, loadingText: undefined, progress: undefined });
+      setState({
+        isLoading: false,
+        loadingText: undefined,
+        progress: undefined,
+      });
       return;
     }
 
@@ -57,7 +61,7 @@ export function useLoading(options: UseLoadingOptions = {}) {
 
     if (remaining > 0) {
       // Wait for minimum duration to prevent flash
-      await new Promise(resolve => setTimeout(resolve, remaining));
+      await new Promise((resolve) => setTimeout(resolve, remaining));
     }
 
     setState({ isLoading: false, loadingText: undefined, progress: undefined });
@@ -67,31 +71,37 @@ export function useLoading(options: UseLoadingOptions = {}) {
   /**
    * Start loading state
    */
-  const startLoading = useCallback((text?: string) => {
-    startTimeRef.current = Date.now();
-    setState({ isLoading: true, loadingText: text, progress: undefined });
+  const startLoading = useCallback(
+    (text?: string) => {
+      startTimeRef.current = Date.now();
+      setState({ isLoading: true, loadingText: text, progress: undefined });
 
-    // Set timeout if maxDuration specified
-    if (maxDuration && options.onTimeout) {
-      timeoutRef.current = setTimeout(() => {
-        options.onTimeout?.();
-        stopLoading();
-      }, maxDuration);
-    }
-  }, [maxDuration, options, stopLoading]);
+      // Set timeout if maxDuration specified
+      if (maxDuration && options.onTimeout) {
+        timeoutRef.current = setTimeout(() => {
+          options.onTimeout?.();
+          stopLoading();
+        }, maxDuration);
+      }
+    },
+    [maxDuration, options, stopLoading],
+  );
 
   /**
    * Set loading progress (for progress bars)
    */
   const setProgress = useCallback((progress: number) => {
-    setState(prev => ({ ...prev, progress: Math.max(0, Math.min(100, progress)) }));
+    setState((prev) => ({
+      ...prev,
+      progress: Math.max(0, Math.min(100, progress)),
+    }));
   }, []);
 
   /**
    * Update loading text
    */
   const setLoadingText = useCallback((text: string) => {
-    setState(prev => ({ ...prev, loadingText: text }));
+    setState((prev) => ({ ...prev, loadingText: text }));
   }, []);
 
   /**
@@ -142,7 +152,7 @@ export function useMultiLoading() {
   );
 
   const startLoading = useCallback((key: string, text?: string) => {
-    setLoadingStates(prev => {
+    setLoadingStates((prev) => {
       const next = new Map(prev);
       next.set(key, { isLoading: true, loadingText: text });
       return next;
@@ -150,7 +160,7 @@ export function useMultiLoading() {
   }, []);
 
   const stopLoading = useCallback((key: string) => {
-    setLoadingStates(prev => {
+    setLoadingStates((prev) => {
       const next = new Map(prev);
       next.delete(key);
       return next;

@@ -61,8 +61,12 @@ async function verifyJwtHs256(token: string, secret: string): Promise<boolean> {
   let payload: { exp?: number };
 
   try {
-    header = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedHeader)));
-    payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedPayload)));
+    header = JSON.parse(
+      new TextDecoder().decode(base64UrlDecode(encodedHeader)),
+    );
+    payload = JSON.parse(
+      new TextDecoder().decode(base64UrlDecode(encodedPayload)),
+    );
   } catch {
     return false;
   }
@@ -90,7 +94,11 @@ async function verifyJwtHs256(token: string, secret: string): Promise<boolean> {
       ["verify"],
     );
 
-    const computedSignatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, data);
+    const computedSignatureBuffer = await crypto.subtle.sign(
+      "HMAC",
+      cryptoKey,
+      data,
+    );
     const computedSignature = new Uint8Array(computedSignatureBuffer);
     return constantTimeEquals(computedSignature, expectedSignature);
   } catch {
@@ -105,7 +113,9 @@ function isProtectedPath(pathname: string): boolean {
 }
 
 function isAuthPath(pathname: string): boolean {
-  return AUTH_PAGES.some((authPath) => pathname === authPath || pathname.startsWith(`${authPath}/`));
+  return AUTH_PAGES.some(
+    (authPath) => pathname === authPath || pathname.startsWith(`${authPath}/`),
+  );
 }
 
 export async function proxy(request: NextRequest) {

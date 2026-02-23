@@ -34,8 +34,6 @@ const getCurrentTimeSlot = () => {
   return `${hours.toString().padStart(2, "0")}:${slotMinutes.toString().padStart(2, "0")}`;
 };
 
-
-
 export const useAppointmentsLogic = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [checkingIn, setCheckingIn] = useState<string | null>(null);

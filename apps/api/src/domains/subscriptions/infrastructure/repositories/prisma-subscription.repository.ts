@@ -3,7 +3,11 @@
  * Production implementation of ISubscriptionRepository
  */
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Subscription } from '../../core/entities';
 import { ISubscriptionRepository } from '../../application/ports/subscription.repository.port';
 import { SubscriptionMapper } from '../mappers/subscription.mapper';
@@ -125,7 +129,9 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       });
 
       if (!existing) {
-        throw new NotFoundException(`Subscription ${subscription.id} not found`);
+        throw new NotFoundException(
+          `Subscription ${subscription.id} not found`,
+        );
       }
 
       // Check version for optimistic concurrency control

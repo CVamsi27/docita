@@ -120,5 +120,4 @@ test.describe("Dashboard", () => {
     await page.click('text="New Patient"');
     await expect(page).toHaveURL(/.*\/patients\?action=new/);
   });
-
 });

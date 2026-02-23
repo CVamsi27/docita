@@ -14,7 +14,11 @@ export function useIntersectionObserver<T extends Element>(
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
-    if (!enabled || !ref.current || typeof IntersectionObserver === "undefined") {
+    if (
+      !enabled ||
+      !ref.current ||
+      typeof IntersectionObserver === "undefined"
+    ) {
       return;
     }
 

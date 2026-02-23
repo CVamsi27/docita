@@ -49,7 +49,7 @@ export function ChiefComplaintInput({
   const updateItem = (
     index: number,
     field: keyof ChiefComplaintItem,
-    fieldValue: string
+    fieldValue: string,
   ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: fieldValue };

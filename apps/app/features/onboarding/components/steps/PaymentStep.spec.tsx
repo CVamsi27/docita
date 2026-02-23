@@ -48,7 +48,10 @@ describe("PaymentStep", () => {
       "aria-invalid",
       "true",
     );
-    expect(screen.getByLabelText("CVC")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("CVC")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
 
     expect(onComplete).not.toHaveBeenCalled();
   });
@@ -112,6 +115,8 @@ describe("PaymentStep", () => {
       target: { value: "Dr Jane" },
     });
 
-    expect(screen.queryByText("Name on card is required")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Name on card is required"),
+    ).not.toBeInTheDocument();
   });
 });

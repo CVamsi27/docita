@@ -175,11 +175,16 @@ export function ContactSalesModal({
                   }}
                   placeholder="Your name"
                   aria-invalid={!!fieldErrors.name}
-                  aria-describedby={fieldErrors.name ? "landing-sales-name-error" : undefined}
+                  aria-describedby={
+                    fieldErrors.name ? "landing-sales-name-error" : undefined
+                  }
                   disabled={isSubmitting}
                 />
                 {fieldErrors.name && (
-                  <p id="landing-sales-name-error" className="text-sm text-destructive">
+                  <p
+                    id="landing-sales-name-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.name}
                   </p>
                 )}
@@ -206,7 +211,10 @@ export function ContactSalesModal({
                   disabled={isSubmitting}
                 />
                 {fieldErrors.email && (
-                  <p id="landing-sales-email-error" className="text-sm text-destructive">
+                  <p
+                    id="landing-sales-email-error"
+                    className="text-sm text-destructive"
+                  >
                     {fieldErrors.email}
                   </p>
                 )}
@@ -233,14 +241,19 @@ export function ContactSalesModal({
                   onChange={(e) => {
                     handleChange(e);
                     if (fieldErrors.message) {
-                      setFieldErrors((prev) => ({ ...prev, message: undefined }));
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        message: undefined,
+                      }));
                     }
                   }}
                   placeholder="Tell us about your needs..."
                   rows={4}
                   aria-invalid={!!fieldErrors.message}
                   aria-describedby={
-                    fieldErrors.message ? "landing-sales-message-error" : undefined
+                    fieldErrors.message
+                      ? "landing-sales-message-error"
+                      : undefined
                   }
                   disabled={isSubmitting}
                 />

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { usePatientPortalAppointments } from '@/hooks/api/use-patient-portal';
-import { Card, CardContent } from '@workspace/ui/components/card';
+import { usePatientPortalAppointments } from "@/hooks/api/use-patient-portal";
+import { Card, CardContent } from "@workspace/ui/components/card";
 
 export default function PortalAppointmentsPage() {
   const { data, isLoading } = usePatientPortalAppointments();

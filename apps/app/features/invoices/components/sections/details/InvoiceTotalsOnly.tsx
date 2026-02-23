@@ -42,7 +42,7 @@ export function InvoiceTotalsOnly({
           <span>
             -
             {formatCurrency(
-              (invoice as Invoice & { discount?: number }).discount || 0
+              (invoice as Invoice & { discount?: number }).discount || 0,
             )}
           </span>
         </div>

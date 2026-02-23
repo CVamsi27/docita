@@ -3,11 +3,12 @@
 **Status**: Started - app.module.ts updated, remaining work scoped  
 **Date**: February 23, 2026  
 **Errors to Fix**: 367 TypeScript compilation errors  
-**Files Affected**: ~100+ files across domains/ and shared/modules/  
+**Files Affected**: ~100+ files across domains/ and shared/modules/
 
 ## Completed Work
 
 ### ✅ app.module.ts Updated
+
 - Updated all 50+ module imports to use correct paths from domains/ and shared/modules/
 - Commented out 4 missing modules (Documents, Inventory, IPD, Queue) with TODOs
 - Fixed imports for:
@@ -17,6 +18,7 @@
   - **Extensibility**: Events, CommonServices, MockBullModule moved to shared/
 
 **Key Discoveries:**
+
 - Auth module structure: `./shared/modules/auth/auth/auth.module.ts` (nested auth folder)
 - Monitoring module structure: `./shared/modules/monitoring/monitoring/monitoring.module.ts` (nested)
 - Dashboard: `./domains/dashboards/dashboard/dashboard.module.ts` (nested)
@@ -28,6 +30,7 @@
 ### Error Count: 367 TypeScript Errors
 
 **Error Type Breakdown (from build output):**
+
 - **TS2307** (Cannot find module): ~50-100 errors - old relative import paths in:
   - `src/app.controller.ts`: Imports from `./modules/auth/`
   - `src/common/controllers/*.ts`: Import from `../../modules/auth/`
@@ -43,6 +46,7 @@
 ### File Groups Needing Updates
 
 **Group 1: Common Infrastructure (10-15 files)**
+
 - `src/app.controller.ts`
 - `src/common/controllers/*.ts`
 - `src/common/services/*.ts`
@@ -53,12 +57,14 @@
 - `src/common/pipes/*.ts`
 
 **Group 2: Shared Modules - Relative Imports (30-40 files)**
+
 - `src/shared/modules/auth/auth/` - files importing decorators from same module
 - `src/shared/modules/database/` - files importing repositories, fragments
 - `src/shared/modules/contact/` - importing from auth, pipes
 - `src/shared/modules/messaging/` - relative imports between email, whatsapp, notifications
 
 **Group 3: Domain Services (40-60 files)**
+
 - Services in each domain importing from:
   - `../../shared/modules/auth/` (guards, decorators)
   - `../../shared/modules/database/` (repositories)
@@ -66,16 +72,19 @@
   - `../../shared/modules/audit/` (AuditService)
 
 **Group 4: Test Files (100+ files)**
+
 - `.spec.ts` files importing from wrong paths
 - Mock helpers in `src/common/mocks/`
 
 **Group 5: Type Annotations (250+ issues)**
+
 - Parameters missing explicit types throughout repositories
 - Arrow functions in array methods without type annotations
 
 ## Migration Strategy - Phased Approach
 
 ### Phase 2a: Fix Direct Import Errors (Days 1-2)
+
 **Goal**: Get compilation working by fixing TS2307 "Cannot find module" errors
 
 1. **Fix app-level controller imports (2-3 files)**
@@ -87,7 +96,7 @@
    - Search patterns:
      - `from '../../modules/auth/*.ts'` → `from '../../shared/modules/auth/auth/*.ts'`
      - `from '../../modules/audit/'` → `from '../../shared/modules/audit/audit/'`
-   - Update common/interceptors/*.ts files to import from shared/modules/
+   - Update common/interceptors/\*.ts files to import from shared/modules/
 
 3. **Fix relative imports within shared/modules (10-15 files)**
    - `src/shared/modules/contact/contact.controller.ts`: Fix auth decorator import
@@ -98,6 +107,7 @@
    - Target: Reduce TS2307 errors from ~100 to 0
 
 ### Phase 2b: Fix Type Annotation Errors (Days 2-3)
+
 **Goal**: Fix remaining TS7006 "implicitly any" errors
 
 1. **Identify affected files**
@@ -119,21 +129,25 @@
    - Target: Reduce TS7006 errors from ~250 to 0
 
 ### Phase 2c: Create Missing Domain Modules (Days 3-4)
+
 **Goal**: Implement DocumentsModule, InventoryModule, IpdModule, QueueModule
 
 For each module:
+
 1. Create `module.ts` file with NestJS module definition
 2. Create `*.service.ts` and `*.controller.ts` files
 3. Import in app.module.ts (uncomment)
 4. Implement core functionality
 
 Timeline:
+
 - DocumentsModule: Should consolidate templates + uploads (inherit existing logic)
 - InventoryModule: Simplified inventory management
 - IpdModule: In-patient department module
 - QueueModule: Virtual queue management
 
 ### Phase 2d: Systematic Testing (Days 4-5)
+
 **Goal**: Ensure build passes and tests run successfully
 
 1. **Build validation**
@@ -156,6 +170,7 @@ Timeline:
 ### 1. Search & Replace (Per Error Group)
 
 **For auth imports in common/**
+
 ```bash
 # Files in src/common/* need imports updated
 find src/common -name "*.ts" -not -name "*.spec.ts" | xargs \
@@ -163,19 +178,23 @@ find src/common -name "*.ts" -not -name "*.spec.ts" | xargs \
 ```
 
 **For audit imports**
+
 ```bash
 find src -name "*.ts" -not -name "*.spec.ts" | xargs \
   sed -i '' "s|from '../../modules/audit/|from '../../shared/modules/audit/audit/|g"
 ```
 
 **For monitoring imports**
+
 ```bash
 find src -name "*.ts" -not -name "*.spec.ts" | xargs \
   sed -i '' "s|from '../../modules/monitoring/|from '../../shared/modules/monitoring/monitoring/|g"
 ```
 
 ### 2. TypeScript Strict Mode
+
 Add to `tsconfig.json` before fixing type errors:
+
 ```json
 {
   "compilerOptions": {
@@ -188,7 +207,9 @@ Add to `tsconfig.json` before fixing type errors:
 This will reveal all implicit any errors during type annotation phase.
 
 ### 3. Validation Script
+
 Create `scripts/validate-imports.ts`:
+
 ```typescript
 // Validation script to:
 // 1. Check all imports use correct paths
@@ -200,7 +221,9 @@ Create `scripts/validate-imports.ts`:
 ## Known Issues & Gotchas
 
 ### 1. Module Nesting Inconsistency
+
 Some modules have nested directories (`auth/auth/`, `monitoring/monitoring/`) while others don't. This causes confusion:
+
 - `auth` folder contains `auth/` subfolder with actual module files
 - `monitoring` folder contains `monitoring/` subfolder
 - But `contact` folder is flat (no nesting)
@@ -208,16 +231,19 @@ Some modules have nested directories (`auth/auth/`, `monitoring/monitoring/`) wh
 **Solution**: Standardize this in Phase 3 domain restructuring
 
 ### 2. Config Module Export Name
+
 - File: `src/shared/modules/config/config.module.ts`
 - Exports: `AppConfigModule` not `ConfigModule`
 - app.module.ts already handles this with alias
 
 ### 3. Common Module Still Exists
+
 - `src/common/` directory still has files that reference old import paths
 - These are "copies" that haven't been fully replaced by `src/shared/modules/`
 - Phase 3 plan: Remove `src/common/` entirely after migration
 
 ### 4. Circular Dependencies Possible
+
 - Domains may import from shared/modules
 - Shared modules may import from domain services
 - Need circular dependency analysis after migration
@@ -252,6 +278,7 @@ Some modules have nested directories (`auth/auth/`, `monitoring/monitoring/`) wh
 ## Files to Update (Prioritized)
 
 ### HIGH PRIORITY (Blocking main build)
+
 - [ ] `src/app.controller.ts`
 - [ ] `src/common/controllers/database-operations.controller.ts`
 - [ ] `src/common/controllers/health-check.controller.ts`
@@ -261,10 +288,12 @@ Some modules have nested directories (`auth/auth/`, `monitoring/monitoring/`) wh
 - [ ] `src/shared/modules/database/repositories/patients.repository.ts`
 
 ### MEDIUM PRIORITY (Domain services)
+
 - [ ] All files in `src/domains/*/` that import from `../../modules/`
 - [ ] Services importing auth, audit, database, config
 
 ### LOW PRIORITY (Tests & cleanup)
+
 - [ ] All `.spec.ts` files
 - [ ] Cleanup `src/common/` after migration
 - [ ] Remove duplicate module definitions

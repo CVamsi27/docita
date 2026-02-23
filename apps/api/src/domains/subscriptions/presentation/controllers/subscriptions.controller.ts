@@ -58,7 +58,9 @@ export class SubscriptionsController {
         throw error;
       }
       throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to create subscription',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create subscription',
       );
     }
   }
@@ -94,7 +96,8 @@ export class SubscriptionsController {
   @Get('clinic/:clinicId')
   async getClinicSubscription(@Param('clinicId') clinicId: string) {
     try {
-      const subscription = await this.subscriptionRepository.findByClinicId(clinicId);
+      const subscription =
+        await this.subscriptionRepository.findByClinicId(clinicId);
 
       if (!subscription) {
         throw new BadRequestException(
@@ -118,10 +121,7 @@ export class SubscriptionsController {
    * PATCH /subscriptions/:id/upgrade
    */
   @Patch(':id/upgrade')
-  async upgrade(
-    @Param('id') id: string,
-    @Body() body: any,
-  ) {
+  async upgrade(@Param('id') id: string, @Body() body: any) {
     try {
       const dto = validateUpgradeSubscription({ subscriptionId: id, ...body });
       const result = await this.upgradeSubscriptionUseCase.execute(dto);
@@ -132,7 +132,9 @@ export class SubscriptionsController {
       };
     } catch (error) {
       throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to upgrade subscription',
+        error instanceof Error
+          ? error.message
+          : 'Failed to upgrade subscription',
       );
     }
   }
@@ -142,10 +144,7 @@ export class SubscriptionsController {
    * DELETE /subscriptions/:id
    */
   @Delete(':id')
-  async cancel(
-    @Param('id') id: string,
-    @Body() body: any,
-  ) {
+  async cancel(@Param('id') id: string, @Body() body: any) {
     try {
       const dto = validateCancelSubscription({ subscriptionId: id, ...body });
       const result = await this.cancelSubscriptionUseCase.execute(dto);
@@ -156,7 +155,9 @@ export class SubscriptionsController {
       };
     } catch (error) {
       throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to cancel subscription',
+        error instanceof Error
+          ? error.message
+          : 'Failed to cancel subscription',
       );
     }
   }

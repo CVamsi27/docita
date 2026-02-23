@@ -55,7 +55,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       maxLength,
       className,
     },
-    ref
+    ref,
   ) => {
     const error = hasFieldError(fieldErrors, id);
     const errorMessage = getFieldError(fieldErrors, id);
@@ -104,7 +104,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 FormField.displayName = "FormField";

@@ -25,8 +25,7 @@ export default function PatientHistoryPage({
   const resolvedParams = use(params);
   const patientId = resolvedParams.id;
 
-  const { data: patient, isLoading: patientLoading } =
-    usePatient(patientId);
+  const { data: patient, isLoading: patientLoading } = usePatient(patientId);
   const { data: appointmentsResponse, isLoading: appointmentsLoading } =
     usePatientAppointments(patientId);
 

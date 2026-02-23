@@ -4,7 +4,11 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { IMessageChannel, MessageContent, SendMessageResult } from './message-channel.interface';
+import {
+  IMessageChannel,
+  MessageContent,
+  SendMessageResult,
+} from './message-channel.interface';
 
 @Injectable()
 export class WhatsAppChannel implements IMessageChannel {

@@ -1,6 +1,6 @@
 /**
  * Enhanced Error Boundary with User-Friendly Messages
- * 
+ *
  * UI/UX IMPROVEMENTS:
  * - Translates technical errors to user-friendly messages
  * - Provides actionable recovery options
@@ -8,12 +8,17 @@
  * - Graceful degradation
  */
 
-'use client';
+"use client";
 
-import React, { Component, ReactNode } from 'react';
-import { Button } from '@workspace/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
-import { AlertCircle, Home, Mail, RefreshCw } from 'lucide-react';
+import React, { Component, ReactNode } from "react";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { AlertCircle, Home, Mail, RefreshCw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -32,7 +37,7 @@ interface UserFriendlyError {
   actions: Array<{
     label: string;
     action: () => void;
-    variant?: 'default' | 'outline' | 'destructive';
+    variant?: "default" | "outline" | "destructive";
     icon?: ReactNode;
   }>;
 }
@@ -53,11 +58,18 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to monitoring service
-    console.error('Error caught by boundary:', error, errorInfo);
-    
+    console.error("Error caught by boundary:", error, errorInfo);
+
     // Send to error tracking (Sentry, etc.)
-    if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).Sentry) {
-      ((window as unknown as Record<string, unknown>).Sentry as { captureException: (err: Error, opts: Record<string, unknown>) => void }).captureException(error, {
+    if (
+      typeof window !== "undefined" &&
+      (window as unknown as Record<string, unknown>).Sentry
+    ) {
+      (
+        (window as unknown as Record<string, unknown>).Sentry as {
+          captureException: (err: Error, opts: Record<string, unknown>) => void;
+        }
+      ).captureException(error, {
         contexts: {
           react: {
             componentStack: errorInfo.componentStack,
@@ -74,19 +86,20 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   private getUserFriendlyError(): UserFriendlyError {
     const { error } = this.state;
-    
+
     if (!error) {
       return this.getDefaultError();
     }
 
     // Network errors
-    if (error.message.includes('fetch') || error.message.includes('network')) {
+    if (error.message.includes("fetch") || error.message.includes("network")) {
       return {
-        title: 'Connection Issue',
-        message: 'We couldn\'t connect to our servers. Please check your internet connection and try again.',
+        title: "Connection Issue",
+        message:
+          "We couldn't connect to our servers. Please check your internet connection and try again.",
         actions: [
           {
-            label: 'Retry',
+            label: "Retry",
             action: () => window.location.reload(),
             icon: <RefreshCw className="mr-2 h-4 w-4" />,
           },
@@ -95,14 +108,17 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     }
 
     // Authentication errors
-    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+    if (
+      error.message.includes("401") ||
+      error.message.includes("Unauthorized")
+    ) {
       return {
-        title: 'Session Expired',
-        message: 'Your session has expired. Please log in again to continue.',
+        title: "Session Expired",
+        message: "Your session has expired. Please log in again to continue.",
         actions: [
           {
-            label: 'Go to Login',
-            action: () => window.location.href = '/login',
+            label: "Go to Login",
+            action: () => (window.location.href = "/login"),
             icon: <Home className="mr-2 h-4 w-4" />,
           },
         ],
@@ -110,20 +126,21 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     }
 
     // Permission errors
-    if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    if (error.message.includes("403") || error.message.includes("Forbidden")) {
       return {
-        title: 'Access Denied',
-        message: 'You don\'t have permission to access this feature. Please contact your administrator if you believe this is an error.',
+        title: "Access Denied",
+        message:
+          "You don't have permission to access this feature. Please contact your administrator if you believe this is an error.",
         actions: [
           {
-            label: 'Go to Dashboard',
-            action: () => window.location.href = '/dashboard',
+            label: "Go to Dashboard",
+            action: () => (window.location.href = "/dashboard"),
             icon: <Home className="mr-2 h-4 w-4" />,
           },
           {
-            label: 'Contact Support',
-            action: () => window.location.href = 'mailto:support@docita.work',
-            variant: 'outline',
+            label: "Contact Support",
+            action: () => (window.location.href = "mailto:support@docita.work"),
+            variant: "outline",
             icon: <Mail className="mr-2 h-4 w-4" />,
           },
         ],
@@ -131,20 +148,24 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     }
 
     // Subscription errors
-    if (error.message.includes('subscription') || error.message.includes('upgrade')) {
+    if (
+      error.message.includes("subscription") ||
+      error.message.includes("upgrade")
+    ) {
       return {
-        title: 'Upgrade Required',
-        message: 'This feature is not available on your current plan. Upgrade to unlock more features.',
+        title: "Upgrade Required",
+        message:
+          "This feature is not available on your current plan. Upgrade to unlock more features.",
         actions: [
           {
-            label: 'View Plans',
-            action: () => window.location.href = '/upgrade',
+            label: "View Plans",
+            action: () => (window.location.href = "/upgrade"),
             icon: <RefreshCw className="mr-2 h-4 w-4" />,
           },
           {
-            label: 'Go Back',
+            label: "Go Back",
             action: () => window.history.back(),
-            variant: 'outline',
+            variant: "outline",
           },
         ],
       };
@@ -156,18 +177,19 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   private getDefaultError(): UserFriendlyError {
     return {
-      title: 'Something Went Wrong',
-      message: 'We encountered an unexpected error. Our team has been notified and is working on a fix.',
+      title: "Something Went Wrong",
+      message:
+        "We encountered an unexpected error. Our team has been notified and is working on a fix.",
       actions: [
         {
-          label: 'Refresh Page',
+          label: "Refresh Page",
           action: () => window.location.reload(),
           icon: <RefreshCw className="mr-2 h-4 w-4" />,
         },
         {
-          label: 'Go to Dashboard',
-          action: () => window.location.href = '/dashboard',
-          variant: 'outline',
+          label: "Go to Dashboard",
+          action: () => (window.location.href = "/dashboard"),
+          variant: "outline",
           icon: <Home className="mr-2 h-4 w-4" />,
         },
       ],
@@ -209,7 +231,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   <Button
                     key={index}
                     onClick={action.action}
-                    variant={action.variant || 'default'}
+                    variant={action.variant || "default"}
                   >
                     {action.icon}
                     {action.label}
@@ -218,7 +240,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Technical details (collapsed by default, for debugging) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {process.env.NODE_ENV === "development" && this.state.error && (
                 <details className="mt-6 p-4 bg-muted rounded-lg">
                   <summary className="cursor-pointer font-medium text-sm">
                     Technical Details (Development Only)

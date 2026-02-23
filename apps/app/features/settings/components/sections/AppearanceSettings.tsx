@@ -53,7 +53,7 @@ export function AppearanceSettings() {
         onError: (error) => {
           toast.error(`Failed to save settings: ${error.message}`);
         },
-      }
+      },
     );
   };
 

@@ -30,12 +30,11 @@ export const useReminderSettingsLogic = () => {
   // Initialize state from fetched data
   useEffect(() => {
     if (clinic) {
-      const clinicSettings = (clinic.settings as unknown) as ClinicSettingsJson | null;
+      const clinicSettings =
+        clinic.settings as unknown as ClinicSettingsJson | null;
       setSettings({
-        reminderBefore:
-          clinicSettings?.reminderBefore || "1",
-        reminderUnit:
-          clinicSettings?.reminderUnit || "day",
+        reminderBefore: clinicSettings?.reminderBefore || "1",
+        reminderUnit: clinicSettings?.reminderUnit || "day",
       });
     }
   }, [clinic]);

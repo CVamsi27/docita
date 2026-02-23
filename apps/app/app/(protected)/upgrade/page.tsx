@@ -53,12 +53,13 @@ export default function UpgradePage() {
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
 
-  const { checkoutTier, checkoutAddon, processingId } =
-    useSubscriptionCheckout((data) => {
+  const { checkoutTier, checkoutAddon, processingId } = useSubscriptionCheckout(
+    (data) => {
       setSuccessData(data);
       setShowSuccessModal(true);
       if (!data.isAddon) setShowTierChangeDialog(false);
-    });
+    },
+  );
 
   const canAccessPage = !!user && BILLING_ROLES.has(user.role);
 
@@ -113,8 +114,7 @@ export default function UpgradePage() {
   const intelligenceFeatures =
     featuresByTier
       .find((t) => t.tier === Tier.INTELLIGENCE)
-      ?.features.map((f) => ({ feature: f.feature, details: f.details })) ??
-    [];
+      ?.features.map((f) => ({ feature: f.feature, details: f.details })) ?? [];
 
   // Don't render page for non-admins (while redirecting)
   if (!user || !canAccessPage) {
@@ -128,162 +128,161 @@ export default function UpgradePage() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Upgrade Your Plan
-          </h1>
-          <p className="text-muted-foreground">
-            Choose a plan that fits your clinic now and scale when needed.
-          </p>
-        </div>
-      </div>
-
-      {/* Current Plan — SRP: display only */}
-      <CurrentPlanCard
-        tierInfo={currentTierInfo}
-        currentTier={currentTier}
-        hasIntelligence={hasIntelligence}
-        canChangeTier={canAccessPage}
-        onChangePlan={() => setShowPricingDialog(true)}
-        onViewBillingHistory={() => setShowInvoiceHistory(true)}
-      />
-
-      {/* Trust signals */}
-      <TrustSection />
-
-      {/* Locked features summary */}
-      <LockedFeatures lockedFeatures={lockedFeatures} />
-
-      {/* Next tier promotion */}
-      {nextTier !== null && (
-        <NextTierPromotion
-          nextTier={nextTier}
-          featuresByTier={featuresByTier}
-          onContactSales={() => setShowContactSalesModal(true)}
-        />
-      )}
-
-      {/* Add-ons — SRP: addon UI only */}
-      <AddonsSection
-        hasIntelligence={hasIntelligence}
-        intelligenceFeatures={intelligenceFeatures}
-        purchasingId={processingId}
-        currency="INR"
-        onPurchaseIntelligence={(cycle) =>
-          checkoutAddon({
-            addonId: "INTELLIGENCE",
-            billingCycle: cycle,
-            currentTier,
-          })
-        }
-      />
-
-      <DynamicPricingEstimator />
-
-      {/* All Tiers Comparison */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {featuresByTier
-            .filter((t) => t.tier !== Tier.INTELLIGENCE)
-            .map(({ tier, info, features }) => (
-              <TierCard
-                key={tier}
-                tier={tier}
-                info={info}
-                features={features}
-                isCurrentTier={tier === currentTier}
-                isLocked={tier > currentTier}
-                currentTierValue={currentTier}
-                onSelect={
-                  canAccessPage
-                    ? () =>
-                        handleSelectTier(Tier[tier] as TierName, "MONTHLY")
-                    : undefined
-                }
-              />
-            ))}
-        </div>
-      </div>
-
-      {/* Detailed comparison table */}
-      <ComparisonTable currentTier={currentTier} />
-
-      {/* Contact CTA */}
-      <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
-        <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
-          <div>
-            <h3 className="text-lg font-semibold">Need help choosing?</h3>
-            <p className="text-sm text-muted-foreground">
-              Our team can help you find the perfect plan for your practice
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Upgrade Your Plan
+            </h1>
+            <p className="text-muted-foreground">
+              Choose a plan that fits your clinic now and scale when needed.
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowPricingDialog(true)}
-            >
-              View Pricing
-            </Button>
-            <Button onClick={() => setShowContactSalesModal(true)}>
-              Contact Sales
-            </Button>
+        </div>
+
+        {/* Current Plan — SRP: display only */}
+        <CurrentPlanCard
+          tierInfo={currentTierInfo}
+          currentTier={currentTier}
+          hasIntelligence={hasIntelligence}
+          canChangeTier={canAccessPage}
+          onChangePlan={() => setShowPricingDialog(true)}
+          onViewBillingHistory={() => setShowInvoiceHistory(true)}
+        />
+
+        {/* Trust signals */}
+        <TrustSection />
+
+        {/* Locked features summary */}
+        <LockedFeatures lockedFeatures={lockedFeatures} />
+
+        {/* Next tier promotion */}
+        {nextTier !== null && (
+          <NextTierPromotion
+            nextTier={nextTier}
+            featuresByTier={featuresByTier}
+            onContactSales={() => setShowContactSalesModal(true)}
+          />
+        )}
+
+        {/* Add-ons — SRP: addon UI only */}
+        <AddonsSection
+          hasIntelligence={hasIntelligence}
+          intelligenceFeatures={intelligenceFeatures}
+          purchasingId={processingId}
+          currency="INR"
+          onPurchaseIntelligence={(cycle) =>
+            checkoutAddon({
+              addonId: "INTELLIGENCE",
+              billingCycle: cycle,
+              currentTier,
+            })
+          }
+        />
+
+        <DynamicPricingEstimator />
+
+        {/* All Tiers Comparison */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {featuresByTier
+              .filter((t) => t.tier !== Tier.INTELLIGENCE)
+              .map(({ tier, info, features }) => (
+                <TierCard
+                  key={tier}
+                  tier={tier}
+                  info={info}
+                  features={features}
+                  isCurrentTier={tier === currentTier}
+                  isLocked={tier > currentTier}
+                  currentTierValue={currentTier}
+                  onSelect={
+                    canAccessPage
+                      ? () =>
+                          handleSelectTier(Tier[tier] as TierName, "MONTHLY")
+                      : undefined
+                  }
+                />
+              ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Dialogs */}
-      <ContactSalesModal
-        open={showContactSalesModal}
-        onOpenChange={setShowContactSalesModal}
-      />
-      <PricingDialog
-        open={showPricingDialog}
-        onOpenChange={setShowPricingDialog}
-        currentTier={currentTier}
-        onSelectTier={handleSelectTier}
-      />
-      <TierChangeDialog
-        open={showTierChangeDialog}
-        onOpenChange={setShowTierChangeDialog}
-        currentTier={currentTier}
-        selectedTier={selectedTier}
-        onConfirm={handleConfirmTierChange}
-      />
-      <PaymentSuccessModal
-        open={showSuccessModal}
-        onOpenChange={setShowSuccessModal}
-        {...successData}
-      />
-      <InvoiceHistoryDialog
-        open={showInvoiceHistory}
-        onOpenChange={setShowInvoiceHistory}
-      />
+        {/* Detailed comparison table */}
+        <ComparisonTable currentTier={currentTier} />
 
-      {/* Legal */}
-      <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
-        <p>
-          By upgrading, you agree to our{" "}
-          <a href="#" className="underline hover:text-foreground">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#" className="underline hover:text-foreground">
-            Privacy Policy
-          </a>
-          .<br />
-          All prices are inclusive of GST and applicable taxes.
-        </p>
-      </div>
+        {/* Contact CTA */}
+        <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
+          <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
+            <div>
+              <h3 className="text-lg font-semibold">Need help choosing?</h3>
+              <p className="text-sm text-muted-foreground">
+                Our team can help you find the perfect plan for your practice
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowPricingDialog(true)}
+              >
+                View Pricing
+              </Button>
+              <Button onClick={() => setShowContactSalesModal(true)}>
+                Contact Sales
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* FAQ */}
-      <div className="pb-10">
-        <FaqSection />
-      </div>
+        {/* Dialogs */}
+        <ContactSalesModal
+          open={showContactSalesModal}
+          onOpenChange={setShowContactSalesModal}
+        />
+        <PricingDialog
+          open={showPricingDialog}
+          onOpenChange={setShowPricingDialog}
+          currentTier={currentTier}
+          onSelectTier={handleSelectTier}
+        />
+        <TierChangeDialog
+          open={showTierChangeDialog}
+          onOpenChange={setShowTierChangeDialog}
+          currentTier={currentTier}
+          selectedTier={selectedTier}
+          onConfirm={handleConfirmTierChange}
+        />
+        <PaymentSuccessModal
+          open={showSuccessModal}
+          onOpenChange={setShowSuccessModal}
+          {...successData}
+        />
+        <InvoiceHistoryDialog
+          open={showInvoiceHistory}
+          onOpenChange={setShowInvoiceHistory}
+        />
+
+        {/* Legal */}
+        <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
+          <p>
+            By upgrading, you agree to our{" "}
+            <a href="#" className="underline hover:text-foreground">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="underline hover:text-foreground">
+              Privacy Policy
+            </a>
+            .<br />
+            All prices are inclusive of GST and applicable taxes.
+          </p>
+        </div>
+
+        {/* FAQ */}
+        <div className="pb-10">
+          <FaqSection />
+        </div>
       </div>
     </div>
   );
 }
-

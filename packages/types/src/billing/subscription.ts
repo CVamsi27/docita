@@ -32,7 +32,7 @@ export const AddOnSchema = z.object({
       basePrice: z.number().or(z.literal("custom")),
       includedQuota: z.number(),
       overageRate: z.number(),
-    })
+    }),
   ),
 });
 
@@ -61,7 +61,10 @@ export const IntelligenceInfoSchema = z.object({
 export const SubscriptionConfigResponseSchema = z.object({
   tiers: z.array(SubscriptionTierConfigSchema),
   featureTierMap: z.record(z.string(), z.number()),
-  featureDisplay: z.record(z.string(), z.object({ name: z.string(), description: z.string() })),
+  featureDisplay: z.record(
+    z.string(),
+    z.object({ name: z.string(), description: z.string() }),
+  ),
   intelligenceAddons: z.array(IntelligenceAddonSchema),
   intelligenceBundleDiscount: z.number(),
   intelligenceInfo: IntelligenceInfoSchema,

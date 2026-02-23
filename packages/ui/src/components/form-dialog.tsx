@@ -56,7 +56,7 @@ export function FormDialog({
       <DialogContent
         className={cn(
           "sm:max-w-[600px] max-h-[85vh] sm:max-h-[90vh]",
-          contentClassName
+          contentClassName,
         )}
         onInteractOutside={(e: Event) => {
           if (isLoading || disabled) {

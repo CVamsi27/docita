@@ -3,7 +3,13 @@ import { UseFormReturn } from "react-hook-form";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AdminAccount } from "../types";
 
@@ -13,7 +19,11 @@ interface AdminAccountStepProps {
   onSubmit: (data: AdminAccount) => void;
 }
 
-export function AdminAccountStep({ adminForm, onBack, onSubmit }: AdminAccountStepProps) {
+export function AdminAccountStep({
+  adminForm,
+  onBack,
+  onSubmit,
+}: AdminAccountStepProps) {
   return (
     <Card>
       <CardHeader>
@@ -53,7 +63,9 @@ export function AdminAccountStep({ adminForm, onBack, onSubmit }: AdminAccountSt
               placeholder="john@clinic.com"
               aria-invalid={!!adminForm.formState.errors.email}
               aria-describedby={
-                adminForm.formState.errors.email ? "admin-email-error" : undefined
+                adminForm.formState.errors.email
+                  ? "admin-email-error"
+                  : undefined
               }
             />
             {adminForm.formState.errors.email && (
@@ -71,7 +83,9 @@ export function AdminAccountStep({ adminForm, onBack, onSubmit }: AdminAccountSt
               {...adminForm.register("password")}
               aria-invalid={!!adminForm.formState.errors.password}
               aria-describedby={
-                adminForm.formState.errors.password ? "admin-password-error" : undefined
+                adminForm.formState.errors.password
+                  ? "admin-password-error"
+                  : undefined
               }
             />
             {adminForm.formState.errors.password && (
@@ -102,7 +116,9 @@ export function AdminAccountStep({ adminForm, onBack, onSubmit }: AdminAccountSt
               )}
               aria-invalid={!!adminForm.formState.errors.phoneNumber}
               aria-describedby={
-                adminForm.formState.errors.phoneNumber ? "admin-phone-error" : undefined
+                adminForm.formState.errors.phoneNumber
+                  ? "admin-phone-error"
+                  : undefined
               }
             />
             {adminForm.formState.errors.phoneNumber && (

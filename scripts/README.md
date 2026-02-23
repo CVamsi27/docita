@@ -4,31 +4,31 @@ This directory contains utility scripts for the Docita monorepo. All scripts are
 
 ## Active Scripts (Maintained)
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `check_env.js` | Verify environment variables are set correctly | `node scripts/check_env.js` |
-| `check-coverage.js` | Display test coverage report | `node scripts/check-coverage.js` |
-| `kill-ports.js` | Kill processes using specific ports (useful for dev cleanup) | `node scripts/kill-ports.js` |
-| `analyze-indexes.ts` | Analyze database index performance and suggestions | `ts-node scripts/analyze-indexes.ts` |
-| `e2e-runner.js` | Run end-to-end tests with reporting | `node scripts/e2e-runner.js` |
-| `run-tests.sh` | Run all test suites across monorepo | `bash scripts/run-tests.sh` |
-| `run-test-report.sh` | Generate and display test coverage report | `bash scripts/run-test-report.sh` |
+| Script               | Purpose                                                      | Usage                                |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| `check_env.js`       | Verify environment variables are set correctly               | `node scripts/check_env.js`          |
+| `check-coverage.js`  | Display test coverage report                                 | `node scripts/check-coverage.js`     |
+| `kill-ports.js`      | Kill processes using specific ports (useful for dev cleanup) | `node scripts/kill-ports.js`         |
+| `analyze-indexes.ts` | Analyze database index performance and suggestions           | `ts-node scripts/analyze-indexes.ts` |
+| `e2e-runner.js`      | Run end-to-end tests with reporting                          | `node scripts/e2e-runner.js`         |
+| `run-tests.sh`       | Run all test suites across monorepo                          | `bash scripts/run-tests.sh`          |
+| `run-test-report.sh` | Generate and display test coverage report                    | `bash scripts/run-test-report.sh`    |
 
 ## Infrastructure Scripts (AWS-specific)
 
-| Script | Purpose |
-|--------|---------|
+| Script                      | Purpose                                              |
+| --------------------------- | ---------------------------------------------------- |
 | `ecr-lifecycle-policy.json` | AWS ECR lifecycle policy for container image cleanup |
-| `iam-policy-update.json` | IAM policy definitions for AWS permissions |
+| `iam-policy-update.json`    | IAM policy definitions for AWS permissions           |
 
 ## Moved/Deprecated Scripts
 
 The following scripts have been moved to their appropriate project locations:
 
-| Script | Previous Path | New Location | Reason |
-|--------|---------------|--------------|--------|
-| `test-db-connection.js` | `scripts/` | `apps/api/test/scripts/` | DB connection test should be in API test directory |
-| `test-tenant-isolation.ts` | `scripts/` | `apps/api/test/scripts/` | Tenant isolation test should be in API test directory |
+| Script                     | Previous Path | New Location             | Reason                                                |
+| -------------------------- | ------------- | ------------------------ | ----------------------------------------------------- |
+| `test-db-connection.js`    | `scripts/`    | `apps/api/test/scripts/` | DB connection test should be in API test directory    |
+| `test-tenant-isolation.ts` | `scripts/`    | `apps/api/test/scripts/` | Tenant isolation test should be in API test directory |
 
 ## Deleted Scripts
 
@@ -71,6 +71,7 @@ pnpm exec ts-node scripts/analyze-indexes.ts
 ## Maintenance
 
 Last updated: 2026-02-14 (Session 2.25.2)
+
 - Removed 8 ad-hoc debugging scripts
 - Moved 2 useful test scripts to `apps/api/test/scripts/`
 - Created this README to document kept scripts

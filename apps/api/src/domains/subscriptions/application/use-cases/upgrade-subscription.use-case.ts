@@ -3,7 +3,11 @@
  * Handles mid-cycle and end-of-cycle plan upgrades
  */
 
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ClinicTier } from '../../core/value-objects';
 import {
   SubscriptionPricingService,

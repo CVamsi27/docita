@@ -192,10 +192,7 @@ export const canManageAppointments = (role: UserRole) =>
  * only exists in the internal admin console (apps/admin) and cannot log in to
  * the clinic app (apps/app).
  */
-export const CLINIC_ADMIN_ROLES = new Set<UserRole>([
-  "ADMIN",
-  "ADMIN_DOCTOR",
-]);
+export const CLINIC_ADMIN_ROLES = new Set<UserRole>(["ADMIN", "ADMIN_DOCTOR"]);
 
 /**
  * Roles that can access billing / subscription management.

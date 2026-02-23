@@ -6,7 +6,7 @@ export {
   type NavbarProps,
   type NavbarBrandProps,
   type NavbarMenuProps,
-} from './navbar';
+} from "./navbar";
 export {
   Sidebar,
   SidebarNav,
@@ -14,4 +14,4 @@ export {
   type SidebarProps,
   type SidebarNavProps,
   type SidebarNavItem,
-} from './sidebar';
+} from "./sidebar";

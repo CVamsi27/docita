@@ -142,7 +142,9 @@ export const TemplatesSettingsUI: FC = () => {
           </DialogHeader>
           <form onSubmit={handleSubmit} noValidate className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Template Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="name">
+                Template Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name || ""}

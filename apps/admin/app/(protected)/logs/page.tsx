@@ -46,7 +46,9 @@ export default function LogsPage() {
         const logsData = json.data || json;
         setLogs(Array.isArray(logsData) ? logsData : []);
       } else {
-        setErrorMessage(`Failed to fetch logs: ${res.status} ${res.statusText}`);
+        setErrorMessage(
+          `Failed to fetch logs: ${res.status} ${res.statusText}`,
+        );
         setLogs([]);
       }
     } catch {

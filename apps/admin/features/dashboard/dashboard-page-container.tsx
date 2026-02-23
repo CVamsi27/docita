@@ -23,7 +23,8 @@ import { ClinicList } from "@/app/(protected)/dashboard/clinic-list";
 import { useDashboardData } from "./use-dashboard-data";
 
 export function DashboardPageContainer() {
-  const { token, clinics, stats, trends, loading, refetch } = useDashboardData();
+  const { token, clinics, stats, trends, loading, refetch } =
+    useDashboardData();
 
   const renderTrend = (value: number, isPercentage: boolean = false) => {
     const isPositive = value >= 0;
@@ -91,7 +92,9 @@ export function DashboardPageContainer() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Patients
+            </CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -101,7 +104,9 @@ export function DashboardPageContainer() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Invoices
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -126,7 +131,9 @@ export function DashboardPageContainer() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle>Clinics</CardTitle>
-              <CardDescription>All registered clinics on the platform</CardDescription>
+              <CardDescription>
+                All registered clinics on the platform
+              </CardDescription>
             </div>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

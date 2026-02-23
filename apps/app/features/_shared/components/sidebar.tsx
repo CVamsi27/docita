@@ -103,7 +103,11 @@ const navItems: NavItem[] = [
     label: "Analytics",
     feature: Feature.BASIC_ANALYTICS,
   },
-  { href: "/settings?tab=notification-feed", icon: Bell, label: "Notifications" },
+  {
+    href: "/settings?tab=notification-feed",
+    icon: Bell,
+    label: "Notifications",
+  },
   {
     href: "/coding-queue",
     icon: FileText,
@@ -140,7 +144,9 @@ export function Sidebar({
   const { user } = useAuth();
   // Only clinic admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
   const canSeeSubscription = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
-  const { data: subscription } = useSubscription({ enabled: canSeeSubscription });
+  const { data: subscription } = useSubscription({
+    enabled: canSeeSubscription,
+  });
   const { data: unreadNotificationCount } = useUnreadNotificationCount();
   const { getClinicSetting } = useAppConfig();
   const { canAccess } = usePermissionStore();
@@ -215,7 +221,8 @@ export function Sidebar({
           })
           .map((item) => {
             const isActive =
-              (item.href.startsWith("/settings?") && pathname === "/settings") ||
+              (item.href.startsWith("/settings?") &&
+                pathname === "/settings") ||
               pathname === item.href ||
               pathname.startsWith(`${item.href}/`);
 
@@ -237,7 +244,10 @@ export function Sidebar({
                 {!isCollapsed &&
                   item.href.startsWith("/settings?tab=notification-feed") &&
                   notificationCount > 0 && (
-                    <Badge variant="secondary" className="ml-auto px-1.5 min-w-5 h-5 text-[10px]">
+                    <Badge
+                      variant="secondary"
+                      className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                    >
                       {notificationCount > 9 ? "9+" : notificationCount}
                     </Badge>
                   )}

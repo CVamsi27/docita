@@ -1,7 +1,5 @@
 // Barrel export for ports
-export type {
-  ISubscriptionRepository,
-} from './subscription.repository.port';
+export type { ISubscriptionRepository } from './subscription.repository.port';
 export const SUBSCRIPTION_REPOSITORY_TOKEN = 'ISubscriptionRepository';
 
 export type {

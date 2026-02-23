@@ -13,7 +13,10 @@ import {
 import { TierGuard } from '../../../shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
 import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
-import { RequireFeature, Feature } from '../../../shared/modules/auth/auth/tier.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '../../../shared/modules/auth/auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
 
 import {

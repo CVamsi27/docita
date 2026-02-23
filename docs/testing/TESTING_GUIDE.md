@@ -47,6 +47,7 @@ This guide defines testing strategy, ownership, and execution standards across D
 ## 4.3 E2E Critical Flows
 
 Minimum protected set:
+
 - Login/session lifecycle.
 - Create/search/update patient.
 - Appointment create/reschedule/cancel.
@@ -77,6 +78,7 @@ pnpm audit:accessibility
 ## 8) Definition of Done (Testing)
 
 A feature is test-complete when:
+
 - relevant unit/integration tests are added,
 - critical flow E2E impact is covered,
 - accessibility checks pass for changed UI,

@@ -72,10 +72,7 @@ export class ProratingService {
   /**
    * Calculate effective amount after credits
    */
-  calculateNetAmount(
-    chargeCents: number,
-    availableCredits: number,
-  ): number {
+  calculateNetAmount(chargeCents: number, availableCredits: number): number {
     const charge = new SubscriptionPrice(chargeCents);
     const credits = new SubscriptionPrice(availableCredits);
 

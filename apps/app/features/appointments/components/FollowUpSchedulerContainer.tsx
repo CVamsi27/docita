@@ -75,7 +75,7 @@ export function FollowUpSchedulerContainer({
           description: reminderEnabled
             ? `Reminder will be sent ${reminderDays} day(s) before`
             : undefined,
-        }
+        },
       );
       setOpen(false);
 

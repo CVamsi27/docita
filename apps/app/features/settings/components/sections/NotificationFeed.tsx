@@ -16,7 +16,10 @@ import {
   useUnreadNotifications,
 } from "@/hooks/api/use-whatsapp";
 
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+const PRIORITY_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   LOW: "outline",
   MEDIUM: "secondary",
   HIGH: "default",
@@ -96,9 +99,7 @@ export function NotificationFeed() {
             <Bell className="h-5 w-5 text-amber-600" />
             <div>
               <CardTitle>Notification Feed</CardTitle>
-              <CardDescription>
-                Recent in-app notifications
-              </CardDescription>
+              <CardDescription>Recent in-app notifications</CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-2">

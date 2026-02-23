@@ -139,7 +139,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       }
     };
 
-    const requestPromise = executeWithRetry(makeRequest, requestRetries, retries);
+    const requestPromise = executeWithRetry(
+      makeRequest,
+      requestRetries,
+      retries,
+    );
 
     if (!dedupeKey) {
       return requestPromise;
@@ -159,7 +163,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       return request<T>(endpoint, { ...options, method: "GET" });
     },
 
-    post<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T> {
+    post<T>(
+      endpoint: string,
+      body?: unknown,
+      options?: RequestConfig,
+    ): Promise<T> {
       const serializedBody = body ? JSON.stringify(body) : null;
       return request<T>(endpoint, {
         ...options,
@@ -168,7 +176,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       });
     },
 
-    put<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T> {
+    put<T>(
+      endpoint: string,
+      body?: unknown,
+      options?: RequestConfig,
+    ): Promise<T> {
       const serializedBody = body ? JSON.stringify(body) : null;
       return request<T>(endpoint, {
         ...options,
@@ -177,7 +189,11 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       });
     },
 
-    patch<T>(endpoint: string, body?: unknown, options?: RequestConfig): Promise<T> {
+    patch<T>(
+      endpoint: string,
+      body?: unknown,
+      options?: RequestConfig,
+    ): Promise<T> {
       const serializedBody = body ? JSON.stringify(body) : null;
       return request<T>(endpoint, {
         ...options,
@@ -202,7 +218,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
       if (!result.success) {
         if (process.env["NODE_ENV"] === "development") {
-          console.error("API response validation failed:", result.error.format());
+          console.error(
+            "API response validation failed:",
+            result.error.format(),
+          );
           throw new APIRequestError(
             `Response validation failed: ${result.error.message}`,
             {
@@ -217,7 +236,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       return result.data;
     },
 
-    safeParse<T>(schema: z.ZodType<T>, data: Record<string, unknown>): T | undefined {
+    safeParse<T>(
+      schema: z.ZodType<T>,
+      data: Record<string, unknown>,
+    ): T | undefined {
       const result = schema.safeParse(data);
       return result.success ? result.data : undefined;
     },
@@ -232,7 +254,10 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
       const fileArray = Array.isArray(files) ? files : [files];
       fileArray.forEach((file, index) => {
-        formData.append(fileArray.length > 1 ? `files[${index}]` : "file", file);
+        formData.append(
+          fileArray.length > 1 ? `files[${index}]` : "file",
+          file,
+        );
       });
 
       if (data) {

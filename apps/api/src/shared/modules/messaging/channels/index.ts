@@ -1,5 +1,9 @@
 // Channel interface exports
-export type { IMessageChannel, MessageContent, SendMessageResult } from './message-channel.interface';
+export type {
+  IMessageChannel,
+  MessageContent,
+  SendMessageResult,
+} from './message-channel.interface';
 
 // Channel implementations
 export { WhatsAppChannel } from './whatsapp.channel';

@@ -85,7 +85,9 @@ export class APIRequestError extends Error implements APIError {
 
   /** True if there are field-level errors to display inline */
   get hasFieldErrors(): boolean {
-    return !!this.validationErrors && Object.keys(this.validationErrors).length > 0;
+    return (
+      !!this.validationErrors && Object.keys(this.validationErrors).length > 0
+    );
   }
 }
 
@@ -432,7 +434,10 @@ export function createAPIClient(config: APIClientConfig) {
     /**
      * Safe parse helper
      */
-    safeParse<T>(schema: z.ZodType<T>, data: Record<string, unknown>): T | undefined {
+    safeParse<T>(
+      schema: z.ZodType<T>,
+      data: Record<string, unknown>,
+    ): T | undefined {
       const result = schema.safeParse(data);
       return result.success ? result.data : undefined;
     },

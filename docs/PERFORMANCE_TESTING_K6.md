@@ -1,15 +1,19 @@
 # k6 Performance Testing Guide
 
 ## Overview
+
 This guide covers running k6 load tests for Docita's critical endpoints.
 
 ## Installation
+
 k6 is already installed via Homebrew:
+
 ```bash
 brew install k6
 ```
 
 Verify installation:
+
 ```bash
 k6 version
 ```
@@ -17,22 +21,27 @@ k6 version
 ## Running the Baseline Test
 
 ### Prerequisites
+
 1. Ensure the API is running:
+
 ```bash
 pnpm --filter @docita/api dev
 ```
 
 2. (Optional) Set admin token if needed:
+
 ```bash
 export ADMIN_TOKEN="your-test-token"
 ```
 
 ### Running Baseline Metrics
+
 ```bash
 k6 run scripts/k6-baseline.js
 ```
 
 This will:
+
 - Warm up with 10 virtual users for 30 seconds
 - Scale to 25 users for 2 minutes (normal load test)
 - Spike to 50 users for 30 seconds (stress test)
@@ -42,12 +51,14 @@ This will:
 ### Understanding the Output
 
 **Key Metrics:**
+
 - **http_req_duration**: Response time (p95 < 500ms threshold, p99 < 1000ms)
 - **http_req_failed**: Failed request rate (< 10% threshold)
 - **http_reqs**: Total requests made
 - **checks**: HTTP check results (assertions)
 
 ### Sample Output
+
 ```
 ✓ health status is 200
 ✓ list patients status is 200
@@ -74,6 +85,7 @@ This will:
 ## Advanced: Custom Performance Tests
 
 Create endpoint-specific test:
+
 ```bash
 k6 run scripts/k6-payments.js  # For payment processing tests
 k6 run scripts/k6-imports.js   # For bulk import tests
@@ -82,6 +94,7 @@ k6 run scripts/k6-imports.js   # For bulk import tests
 ## Continuous Integration
 
 In CI/production, run tests with JSON output:
+
 ```bash
 k6 run \
   --out json=results.json \
@@ -90,6 +103,7 @@ k6 run \
 ```
 
 Parse results:
+
 ```bash
 cat summary.json | jq '.metrics'
 ```
@@ -97,12 +111,14 @@ cat summary.json | jq '.metrics'
 ## Interpreting Results
 
 **Green Lights (Good Performance):**
+
 - p(95) response time < 500ms
-- p(99) response time < 1000ms  
+- p(99) response time < 1000ms
 - http_req_failed < 10%
 - checks pass rate > 90%
 
 **Red Lights (Performance Issues):**
+
 - p(95) response time > 1000ms
 - p(99) response time > 2000ms
 - http_req_failed > 5%
@@ -119,17 +135,21 @@ cat summary.json | jq '.metrics'
 ## Troubleshooting
 
 **Error: "Connection refused"**
+
 - Ensure API is running on port 3333
 - Check firewall/network settings
 
 **Error: "Too many open files"**
+
 - Increase system limits: `ulimit -n 10000`
 
 **High response times at the start**
+
 - Normal - this is the warm-up phase
 - Focus on steady-state metrics (2-4 minute mark)
 
 ## Next Steps
+
 - Set up CI/CD integration to run tests on each deployment
 - Create performance regression alerts
 - Monitor production with real-time k6 cloud (optional)

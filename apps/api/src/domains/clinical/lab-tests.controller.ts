@@ -13,7 +13,10 @@ import {
 import { LabTestsService } from './lab-tests.service';
 import { JwtAuthGuard } from '../../shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '../../shared/modules/auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '../../shared/modules/auth/auth/tier.decorator';
 import { RolesGuard } from '../../shared/modules/auth/auth/roles.guard';
 import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';

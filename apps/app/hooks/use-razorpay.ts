@@ -74,18 +74,21 @@ export function useRazorpay() {
           },
         });
 
-        rzp.on("payment.failed", function (response: { error: Record<string, unknown> }) {
-          const message =
-            typeof response.error?.description === "string"
-              ? response.error.description
-              : "Payment failed";
-          reject(new Error(message));
-        });
+        rzp.on(
+          "payment.failed",
+          function (response: { error: Record<string, unknown> }) {
+            const message =
+              typeof response.error?.description === "string"
+                ? response.error.description
+                : "Payment failed";
+            reject(new Error(message));
+          },
+        );
 
         rzp.open();
       });
     },
-    [loadRazorpay]
+    [loadRazorpay],
   );
 
   return { isLoaded, openCheckout };

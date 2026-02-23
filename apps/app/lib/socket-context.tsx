@@ -86,7 +86,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
       // If disconnected due to server-side auth failure, re-authenticate
       if (reason === "io server disconnect") {
-        console.warn("Server disconnected socket, attempting re-authentication");
+        console.warn(
+          "Server disconnected socket, attempting re-authentication",
+        );
         // Give server time to process disconnect
         reconnectTimeoutRef.current = setTimeout(() => {
           if (token && socketRef.current) {

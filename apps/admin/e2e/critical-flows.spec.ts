@@ -2,7 +2,7 @@ import { APIRequestContext, expect, test } from "@playwright/test";
 
 /**
  * ADMIN APP - CRITICAL FLOWS TEST SUITE
- * 
+ *
  * Tests core admin operations that must be functional for launch:
  * 1. Admin Login & Dashboard
  * 2. User Management (Create/Read/Update/Delete)
@@ -41,7 +41,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(adminRes.ok()).toBeTruthy();
-    const adminData = await adminRes.json() as Record<string, unknown>;
+    const adminData = (await adminRes.json()) as Record<string, unknown>;
     adminUser = {
       id: adminData.user.id,
       email: adminEmail,
@@ -67,7 +67,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(loginRes.ok()).toBeTruthy();
-    const loginData = await loginRes.json() as Record<string, unknown>;
+    const loginData = (await loginRes.json()) as Record<string, unknown>;
     const freshToken = loginData.access_token || loginData.accessToken;
     expect(freshToken).toBeTruthy();
 
@@ -79,7 +79,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (dashboardRes.ok()) {
-      const dashboard = await dashboardRes.json() as Record<string, unknown>;
+      const dashboard = (await dashboardRes.json()) as Record<string, unknown>;
       console.log(`✅ Admin dashboard loaded:`, {
         totalClinics: dashboard.totalClinics,
         totalUsers: dashboard.totalUsers,
@@ -95,7 +95,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (systemRes.ok()) {
-      const system = await systemRes.json() as Record<string, unknown>;
+      const system = (await systemRes.json()) as Record<string, unknown>;
       console.log(`✅ System info accessible:`, {
         version: system.version,
         environment: system.environment,
@@ -122,7 +122,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(usersRes.ok()).toBeTruthy();
-    const users = await usersRes.json() as Record<string, unknown>;
+    const users = (await usersRes.json()) as Record<string, unknown>;
     expect(Array.isArray(users)).toBeTruthy();
     const initialUserCount = users.length;
 
@@ -142,7 +142,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(createUserRes.ok()).toBeTruthy();
-    const newUser = await createUserRes.json() as Record<string, unknown>;
+    const newUser = (await createUserRes.json()) as Record<string, unknown>;
     expect(newUser.email).toBe(newUserEmail);
 
     console.log(`✅ Step 2: New user created (${newUserEmail})`);
@@ -156,11 +156,14 @@ test.describe("Admin App - Critical Flows", () => {
           firstName: "Updated",
           status: "ACTIVE",
         },
-      }
+      },
     );
 
     if (updateUserRes.ok()) {
-      const updatedUser = await updateUserRes.json() as Record<string, unknown>;
+      const updatedUser = (await updateUserRes.json()) as Record<
+        string,
+        unknown
+      >;
       expect(updatedUser.firstName).toBe("Updated");
       console.log(`✅ Step 3: User updated successfully`);
     } else {
@@ -173,8 +176,10 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(updatedUsersRes.ok()).toBeTruthy();
-    const updatedUsers = await updatedUsersRes.json() as unknown[];
-    const userExists = updatedUsers.some((u: { id: string }) => u.id === newUser.id);
+    const updatedUsers = (await updatedUsersRes.json()) as unknown[];
+    const userExists = updatedUsers.some(
+      (u: { id: string }) => u.id === newUser.id,
+    );
     expect(userExists).toBeTruthy();
 
     console.log(`✅ Step 4: New user appears in users list`);
@@ -185,7 +190,7 @@ test.describe("Admin App - Critical Flows", () => {
       {
         headers: { Authorization: `Bearer ${adminUser.accessToken}` },
         data: { status: "INACTIVE" },
-      }
+      },
     );
 
     if (deactivateRes.ok()) {
@@ -213,7 +218,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(clinicsRes.ok()).toBeTruthy();
-    const clinics = await clinicsRes.json() as Record<string, unknown>;
+    const clinics = (await clinicsRes.json()) as Record<string, unknown>;
     expect(Array.isArray(clinics)).toBeTruthy();
 
     console.log(`✅ Step 1: Clinics list fetched (${clinics.length} clinics)`);
@@ -224,12 +229,17 @@ test.describe("Admin App - Critical Flows", () => {
         `${API_URL}/admin/clinics/${clinics[0].id}`,
         {
           headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-        }
+        },
       );
 
       if (clinicDetailsRes.ok()) {
-        const clinicDetails = await clinicDetailsRes.json() as Record<string, unknown>;
-        console.log(`✅ Step 2: Clinic details fetched (${clinicDetails.name})`);
+        const clinicDetails = (await clinicDetailsRes.json()) as Record<
+          string,
+          unknown
+        >;
+        console.log(
+          `✅ Step 2: Clinic details fetched (${clinicDetails.name})`,
+        );
       }
     }
 
@@ -246,7 +256,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (newClinicRes.ok()) {
-      const newClinic = await newClinicRes.json() as Record<string, unknown>;
+      const newClinic = (await newClinicRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 3: New clinic created (${newClinic.name})`);
 
       // Step 4: Update clinic information
@@ -257,7 +267,7 @@ test.describe("Admin App - Critical Flows", () => {
           data: {
             phone: "9999888877",
           },
-        }
+        },
       );
 
       if (updateClinicRes.ok()) {
@@ -269,11 +279,11 @@ test.describe("Admin App - Critical Flows", () => {
         `${API_URL}/admin/clinics/${newClinic.id}/statistics`,
         {
           headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-        }
+        },
       );
 
       if (statsRes.ok()) {
-        const stats = await statsRes.json() as Record<string, unknown>;
+        const stats = (await statsRes.json()) as Record<string, unknown>;
         console.log(`✅ Step 5: Clinic statistics:`, {
           totalDoctors: stats.totalDoctors,
           totalPatients: stats.totalPatients,
@@ -282,7 +292,9 @@ test.describe("Admin App - Critical Flows", () => {
         });
       }
     } else {
-      console.log(`⚠️ Clinic creation returned ${newClinicRes.status()}, skipping clinic updates`);
+      console.log(
+        `⚠️ Clinic creation returned ${newClinicRes.status()}, skipping clinic updates`,
+      );
     }
 
     console.log(`✅ ADMIN FLOW 3 COMPLETE: Clinic management validated`);
@@ -304,7 +316,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (statsRes.ok()) {
-      const stats = await statsRes.json() as Record<string, unknown>;
+      const stats = (await statsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 1: Overall statistics:`, {
         totalClinics: stats.totalClinics,
         totalUsers: stats.totalUsers,
@@ -316,12 +328,15 @@ test.describe("Admin App - Critical Flows", () => {
     }
 
     // Step 2: Get user analytics
-    const userAnalyticsRes = await request.get(`${API_URL}/admin/analytics/users`, {
-      headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-    });
+    const userAnalyticsRes = await request.get(
+      `${API_URL}/admin/analytics/users`,
+      {
+        headers: { Authorization: `Bearer ${adminUser.accessToken}` },
+      },
+    );
 
     if (userAnalyticsRes.ok()) {
-      await userAnalyticsRes.json() as Record<string, unknown>;
+      (await userAnalyticsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 2: User analytics available`);
     }
 
@@ -330,24 +345,24 @@ test.describe("Admin App - Critical Flows", () => {
       `${API_URL}/admin/analytics/appointments`,
       {
         headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-      }
+      },
     );
 
     if (appointmentAnalyticsRes.ok()) {
-      await appointmentAnalyticsRes.json() as Record<string, unknown>;
+      (await appointmentAnalyticsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 3: Appointment analytics available`);
     }
 
-    // Step 4: Get revenue analytics  
+    // Step 4: Get revenue analytics
     const revenueAnalyticsRes = await request.get(
       `${API_URL}/admin/analytics/revenue`,
       {
         headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-      }
+      },
     );
 
     if (revenueAnalyticsRes.ok()) {
-      await revenueAnalyticsRes.json() as Record<string, unknown>;
+      (await revenueAnalyticsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 4: Revenue analytics available`);
     }
 
@@ -379,7 +394,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (healthRes.ok()) {
-      const health = await healthRes.json() as Record<string, unknown>;
+      const health = (await healthRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 1: System health check passed:`, {
         status: health.status,
         uptime: health.uptime,
@@ -393,7 +408,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (dbStatusRes.ok()) {
-      await dbStatusRes.json() as Record<string, unknown>;
+      (await dbStatusRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 2: Database status: Connected`);
     }
 
@@ -403,7 +418,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (cacheStatusRes.ok()) {
-      await cacheStatusRes.json() as Record<string, unknown>;
+      (await cacheStatusRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 3: Cache status: Operational`);
     }
 
@@ -413,7 +428,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (metricsRes.ok()) {
-      await metricsRes.json() as Record<string, unknown>;
+      (await metricsRes.json()) as Record<string, unknown>;
       console.log(`✅ Step 4: Performance metrics available`);
     }
 
@@ -423,8 +438,10 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (logsRes.ok()) {
-      const logs = await logsRes.json() as Record<string, unknown>;
-      console.log(`✅ Step 5: System logs accessible (${logs.length} recent entries)`);
+      const logs = (await logsRes.json()) as Record<string, unknown>;
+      console.log(
+        `✅ Step 5: System logs accessible (${logs.length} recent entries)`,
+      );
     }
 
     console.log(`✅ ADMIN FLOW 5 COMPLETE: System monitoring validated`);
@@ -453,7 +470,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(doctorRes.ok()).toBeTruthy();
-    const doctorData = await doctorRes.json() as Record<string, unknown>;
+    const doctorData = (await doctorRes.json()) as Record<string, unknown>;
     const doctorToken = doctorData.access_token || doctorData.accessToken;
 
     console.log(`✅ Test doctor created for permission testing`);
@@ -464,7 +481,9 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect([403, 401]).toContain(adminUsersRes.status());
-    console.log(`✅ Test 1: Doctor blocked from admin users endpoint (${adminUsersRes.status()})`);
+    console.log(
+      `✅ Test 1: Doctor blocked from admin users endpoint (${adminUsersRes.status()})`,
+    );
 
     // Test 2: Doctor cannot create users
     const createUserRes = await request.post(`${API_URL}/admin/users`, {
@@ -478,7 +497,9 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect([403, 401]).toContain(createUserRes.status());
-    console.log(`✅ Test 2: Doctor blocked from creating users (${createUserRes.status()})`);
+    console.log(
+      `✅ Test 2: Doctor blocked from creating users (${createUserRes.status()})`,
+    );
 
     // Test 3: Doctor cannot access admin clinics
     const adminClinicsRes = await request.get(`${API_URL}/admin/clinics`, {
@@ -486,7 +507,9 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect([403, 401]).toContain(adminClinicsRes.status());
-    console.log(`✅ Test 3: Doctor blocked from admin clinics (${adminClinicsRes.status()})`);
+    console.log(
+      `✅ Test 3: Doctor blocked from admin clinics (${adminClinicsRes.status()})`,
+    );
 
     // Test 4: Doctor can access own clinic data
     const doctorClinicRes = await request.get(`${API_URL}/clinics`, {

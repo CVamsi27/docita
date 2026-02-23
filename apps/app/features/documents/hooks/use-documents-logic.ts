@@ -45,7 +45,8 @@ export const useDocumentsLogic = () => {
         const url = window.URL.createObjectURL(blob);
         const a = window.document.createElement("a");
         a.href = url;
-        a.download = document.name || document.filename || document.title || "document";
+        a.download =
+          document.name || document.filename || document.title || "document";
         window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

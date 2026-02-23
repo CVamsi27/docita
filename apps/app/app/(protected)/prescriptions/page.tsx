@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import { Pill } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import Link from "next/link";
-import { useDownloadPrescriptionPDF, usePrescriptions } from "@/hooks/api/use-clinical";
+import {
+  useDownloadPrescriptionPDF,
+  usePrescriptions,
+} from "@/hooks/api/use-clinical";
 import { FeatureGate } from "@/features/_shared/components/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
@@ -19,8 +22,9 @@ import {
 export default function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const { data: prescriptions = [], isLoading: loading } =
-    usePrescriptions({ search: debouncedSearch });
+  const { data: prescriptions = [], isLoading: loading } = usePrescriptions({
+    search: debouncedSearch,
+  });
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: SortDirection;

@@ -1,7 +1,7 @@
 /**
  * Clinic Tier Value Object
  * Represents subscription tier/plan level
- * 
+ *
  * Plans: CAPTURE → CORE → GROWTH → SCALE → ENTERPRISE
  * Each tier has different feature sets and pricing
  */

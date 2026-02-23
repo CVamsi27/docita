@@ -2,7 +2,13 @@ import { UseFormReturn } from "react-hook-form";
 import { Button } from "@workspace/ui/components/button";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Label } from "@workspace/ui/components/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ComplianceSettings } from "../types";
 
@@ -33,11 +39,15 @@ export function ComplianceStep({
                 id="requireConsent"
                 checked={complianceForm.watch("requireConsent")}
                 onCheckedChange={(checked) =>
-                  complianceForm.setValue("requireConsent", checked as boolean, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
+                  complianceForm.setValue(
+                    "requireConsent",
+                    checked as boolean,
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    },
+                  )
                 }
               />
               <Label htmlFor="requireConsent">
@@ -49,11 +59,15 @@ export function ComplianceStep({
                 id="enableWhatsApp"
                 checked={complianceForm.watch("enableWhatsApp")}
                 onCheckedChange={(checked) =>
-                  complianceForm.setValue("enableWhatsApp", checked as boolean, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
+                  complianceForm.setValue(
+                    "enableWhatsApp",
+                    checked as boolean,
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    },
+                  )
                 }
               />
               <Label htmlFor="enableWhatsApp">
@@ -96,7 +110,10 @@ export function ComplianceStep({
                   </a>
                 </Label>
                 {complianceForm.formState.errors.acceptedSLA && (
-                  <p id="accepted-sla-error" className="text-sm text-destructive">
+                  <p
+                    id="accepted-sla-error"
+                    className="text-sm text-destructive"
+                  >
                     {complianceForm.formState.errors.acceptedSLA.message}
                   </p>
                 )}
@@ -123,7 +140,9 @@ export function ComplianceStep({
                     });
                   }
                 }}
-                aria-invalid={!!complianceForm.formState.errors.acceptedPrivacyPolicy}
+                aria-invalid={
+                  !!complianceForm.formState.errors.acceptedPrivacyPolicy
+                }
                 aria-describedby={
                   complianceForm.formState.errors.acceptedPrivacyPolicy
                     ? "accepted-privacy-error"
@@ -138,8 +157,14 @@ export function ComplianceStep({
                   </a>
                 </Label>
                 {complianceForm.formState.errors.acceptedPrivacyPolicy && (
-                  <p id="accepted-privacy-error" className="text-sm text-destructive">
-                    {complianceForm.formState.errors.acceptedPrivacyPolicy.message}
+                  <p
+                    id="accepted-privacy-error"
+                    className="text-sm text-destructive"
+                  >
+                    {
+                      complianceForm.formState.errors.acceptedPrivacyPolicy
+                        .message
+                    }
                   </p>
                 )}
               </div>
@@ -165,7 +190,9 @@ export function ComplianceStep({
                     },
                   )
                 }
-                aria-invalid={!!complianceForm.formState.errors.acceptedDataProcessing}
+                aria-invalid={
+                  !!complianceForm.formState.errors.acceptedDataProcessing
+                }
                 aria-describedby={
                   complianceForm.formState.errors.acceptedDataProcessing
                     ? "accepted-dpa-error"
@@ -180,8 +207,14 @@ export function ComplianceStep({
                   </a>
                 </Label>
                 {complianceForm.formState.errors.acceptedDataProcessing && (
-                  <p id="accepted-dpa-error" className="text-sm text-destructive">
-                    {complianceForm.formState.errors.acceptedDataProcessing.message}
+                  <p
+                    id="accepted-dpa-error"
+                    className="text-sm text-destructive"
+                  >
+                    {
+                      complianceForm.formState.errors.acceptedDataProcessing
+                        .message
+                    }
                   </p>
                 )}
               </div>
