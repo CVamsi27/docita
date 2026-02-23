@@ -69,16 +69,13 @@ async function main() {
 
     // 3. Structured Medical History (Conditions, Allergies, Family/Social History)
     console.log('\n--- Seeding Medical History ---');
-    await seedStructuredMedicalHistory(prisma, {
-      patientIds: patients.map((p) => p.id),
-      clinicId: defaultClinic.id,
-    });
+    await seedStructuredMedicalHistory(prisma, patients);
     console.log('✅ Medical History seeded');
 
     // 4. Schedules & Lab Tests
     console.log('\n--- Seeding Schedules & Lab Tests ---');
     await seedSchedulesAndLabTests(prisma, {
-      defaultClinicId: defaultClinic.id,
+      clinicId: defaultClinic.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       doctor3Id: doctor3.id,
@@ -89,6 +86,10 @@ async function main() {
     console.log('\n--- Seeding Config & Templates ---');
     await seedClinicConfigTemplates(prisma, {
       clinicId: defaultClinic.id,
+      doctor1Id: doctor1.id,
+      doctor2Id: doctor2.id,
+      doctor3Id: doctor3.id,
+      patients,
     });
     console.log('✅ Config & Templates seeded');
 

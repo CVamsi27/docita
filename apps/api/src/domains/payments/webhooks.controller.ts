@@ -12,9 +12,9 @@ import { Public } from '../../shared/modules/auth/auth/public.decorator';
 import { WebhookErrorHandlingService } from '../webhooks/webhooks/webhook-error-handling.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
-  RazorpayWebhookSchema,
-  RazorpayWebhookDto,
-} from '../../common/dto/common.dto';
+  paymentWebhookPayloadSchema,
+  type PaymentWebhookPayload,
+} from '@workspace/types';
 
 @Controller('webhooks/payments')
 export class WebhooksController {
@@ -28,12 +28,12 @@ export class WebhooksController {
   @Public()
   @Post('razorpay')
   @HttpCode(200)
-  @UsePipes(new ZodValidationPipe(RazorpayWebhookSchema))
+  @UsePipes(new ZodValidationPipe(paymentWebhookPayloadSchema))
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
     @Headers('x-forwarded-for') ipAddress: string | undefined,
     @Headers('user-agent') userAgent: string | undefined,
-    @Body() payload: RazorpayWebhookDto,
+    @Body() payload: PaymentWebhookPayload,
   ) {
     const paymentLinkId = 'razorpay_webhook';
 

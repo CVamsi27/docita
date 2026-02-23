@@ -10,9 +10,9 @@ export const RazorpayWebhookSchema = z.object({
 });
 
 export class RazorpayWebhookDto {
-  id: string;
-  entity: string;
-  event: string;
+  id!: string;
+  entity!: string;
+  event!: string;
   contains?: string[];
   payload?: Record<string, any>;
   created_at?: number;
@@ -20,10 +20,12 @@ export class RazorpayWebhookDto {
 
 export const BulkImportRequestSchema = z.object({
   entityType: z.string(),
-  file: z.any(),
+  fileName: z.string(),
+  fileBuffer: z.any(),
 });
 
 export class BulkImportRequestDto {
-  entityType: string;
-  file: any;
+  entityType!: string;
+  fileName!: string;
+  fileBuffer!: any;
 }

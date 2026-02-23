@@ -43,23 +43,30 @@ interface PaymentSessionWithRelations {
 interface RazorpayPaymentLinkEntity {
   id: string;
   amount: number;
-  currency: string;
   status: string;
-  short_url: string;
+  reference_id?: string;
 }
 
 interface RazorpayWebhookPayload {
   event: string;
   payload: {
     payment_link?: {
-      entity: RazorpayPaymentLinkEntity;
+      entity: {
+        id: string;
+        amount: number;
+        status: string;
+        reference_id?: string;
+      };
     };
     payment?: {
-      id: string;
-      entity: string;
-      amount: number;
-      currency: string;
-      status: string;
+      entity: {
+        id: string;
+        amount: number;
+        currency: string;
+        status: string;
+        order_id: string;
+        notes?: Record<string, unknown>;
+      };
     };
   };
 }

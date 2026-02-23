@@ -17,11 +17,11 @@ import { RequireFeature, Feature } from '../../shared/modules/auth/auth/tier.dec
 import {
   AddFavoriteDto,
   AddCptFavoriteDto,
-  IcdCodeListResponseDto,
-  CptCodeListResponseDto,
-  DoctorFavoriteCodeListResponseDto,
-  DoctorFavoriteCodeResponseDto,
-  UncodedVisitListResponseDto,
+  IcdCodeListResponseDtoSchema,
+  CptCodeListResponseDtoSchema,
+  DoctorFavoriteCodeListResponseDtoSchema,
+  DoctorFavoriteCodeResponseDtoSchema,
+  UncodedVisitListResponseDtoSchema,
 } from './dto/medical-coding.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '../../common/types/common.types';
@@ -47,25 +47,25 @@ export class MedicalCodingController {
   }
 
   @Get('icd-codes')
-  @ZodSerializerDto(IcdCodeListResponseDto)
+  @ZodSerializerDto(IcdCodeListResponseDtoSchema)
   async searchIcdCodes(@Query('search') search: string) {
     return this.medicalCodingService.searchIcdCodes(search);
   }
 
   @Get('cpt-codes')
-  @ZodSerializerDto(CptCodeListResponseDto)
+  @ZodSerializerDto(CptCodeListResponseDtoSchema)
   async searchCptCodes(@Query('search') search: string) {
     return this.medicalCodingService.searchCptCodes(search);
   }
 
   @Get('favorites')
-  @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
+  @ZodSerializerDto(DoctorFavoriteCodeListResponseDtoSchema)
   async getFavorites(@Request() req: RequestWithUser) {
     return this.medicalCodingService.getFavorites(this.getUserId(req));
   }
 
   @Post('favorites')
-  @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
+  @ZodSerializerDto(DoctorFavoriteCodeResponseDtoSchema)
   async addFavorite(
     @Request() req: RequestWithUser,
     @Body() dto: AddFavoriteDto,
@@ -89,13 +89,13 @@ export class MedicalCodingController {
 
   // CPT Favorites
   @Get('cpt-favorites')
-  @ZodSerializerDto(DoctorFavoriteCodeListResponseDto)
+  @ZodSerializerDto(DoctorFavoriteCodeListResponseDtoSchema)
   async getCptFavorites(@Request() req: RequestWithUser) {
     return this.medicalCodingService.getCptFavorites(this.getUserId(req));
   }
 
   @Post('cpt-favorites')
-  @ZodSerializerDto(DoctorFavoriteCodeResponseDto)
+  @ZodSerializerDto(DoctorFavoriteCodeResponseDtoSchema)
   async addCptFavorite(
     @Request() req: RequestWithUser,
     @Body() dto: AddCptFavoriteDto,
@@ -118,7 +118,7 @@ export class MedicalCodingController {
   }
 
   @Get('uncoded')
-  @ZodSerializerDto(UncodedVisitListResponseDto)
+  @ZodSerializerDto(UncodedVisitListResponseDtoSchema)
   async getUncodedVisits(
     @Request() req: RequestWithUser,
     @Query('search') search?: string,

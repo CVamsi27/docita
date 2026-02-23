@@ -46,10 +46,22 @@ export class BulkImportController {
     }
     const userId = req.user.userId;
 
+    // Validate entityType
+    const validEntityTypes: BulkImportEntityType[] = [
+      'PATIENT',
+      'PRESCRIPTION',
+      'DOCTOR',
+      'LAB_TEST',
+      'INVENTORY',
+    ];
+    if (!validEntityTypes.includes(data.entityType as BulkImportEntityType)) {
+      throw new BadRequestException(`Invalid entity type: ${data.entityType}`);
+    }
+
     return this.bulkImportService.startImport(
       clinicId,
       userId,
-      data.entityType,
+      data.entityType as BulkImportEntityType,
       data.fileName,
       Buffer.from(data.fileBuffer),
     );
