@@ -2,7 +2,7 @@
  * Invoice Mapper
  * Converts between Prisma models and domain entities
  * Separates database concerns from business logic
- * 
+ *
  * Handles Prisma Invoice schema where:
  * - items are stored as JSON (not a separate table)
  * - total is a single Float (all-in)
@@ -12,7 +12,12 @@
 
 import { Prisma, Invoice as PrismaInvoice } from '@workspace/db';
 import { Invoice, InvoiceItem } from '../../core/entities';
-import { Money, InvoiceStatus, InvoiceStatusEnum, BillingPeriod } from '../../core/value-objects';
+import {
+  Money,
+  InvoiceStatus,
+  InvoiceStatusEnum,
+  BillingPeriod,
+} from '../../core/value-objects';
 
 /**
  * Domain representation of a JSON invoice item
@@ -30,26 +35,27 @@ interface InvoiceItemData {
 export class InvoiceMapper {
   /**
    * Convert Prisma model to domain entity
-   * 
+   *
    * The Prisma Invoice stores items as JSON.
    * This method reconstructs the domain InvoiceItem entities from that JSON.
    */
   static toDomain(raw: PrismaInvoice): Invoice {
     // Parse items from JSON (Prisma stores as JSON or object depending on adapter)
-    const itemsData = Array.isArray(raw.items) 
+    const itemsData = Array.isArray(raw.items)
       ? (raw.items as unknown as InvoiceItemData[])
       : [];
 
-    const items = itemsData.map((item) =>
-      new InvoiceItem({
-        id: (item as any).id || '',
-        invoiceId: raw.id,
-        description: (item as any).description || '',
-        quantity: (item as any).quantity || 0,
-        unitPrice: new Money((item as any).unitPrice || 0, 'INR'),
-        taxRate: (item as any).taxRate || 0,
-        discount: (item as any).discount || 0,
-      }),
+    const items = itemsData.map(
+      (item) =>
+        new InvoiceItem({
+          id: (item as any).id || '',
+          invoiceId: raw.id,
+          description: (item as any).description || '',
+          quantity: (item as any).quantity || 0,
+          unitPrice: new Money((item as any).unitPrice || 0, 'INR'),
+          taxRate: (item as any).taxRate || 0,
+          discount: (item as any).discount || 0,
+        }),
     );
 
     // Create a billing period with createdAt as issue date
@@ -57,11 +63,11 @@ export class InvoiceMapper {
     const issueDate = new Date(raw.createdAt);
     const dueDate = new Date(raw.createdAt);
     dueDate.setDate(dueDate.getDate() + 30);
-    
+
     const billingPeriod = new BillingPeriod(issueDate, dueDate);
-    
+
     // Map the status - Prisma stores it as InvoiceStatus enum
-    const statusValue = (raw.status as any) as InvoiceStatusEnum;
+    const statusValue = raw.status as any;
     const status = new InvoiceStatus(statusValue);
 
     return new Invoice({
@@ -97,13 +103,11 @@ export class InvoiceMapper {
 
   /**
    * Convert domain entity to Prisma persistence format
-   * 
+   *
    * Converts domain items list back to JSON for Prisma storage.
    * Maintains the total as single float (already calculated by domain entity).
    */
-  static toPersistence(
-    invoice: Invoice,
-  ): any {
+  static toPersistence(invoice: Invoice): any {
     const items = invoice.getItems();
     
     // Convert domain items to JSON format for storage
@@ -132,10 +136,13 @@ export class InvoiceMapper {
       doctorName: (invoice as any).doctorContext?.doctorName,
       doctorEmail: (invoice as any).doctorContext?.doctorEmail,
       doctorPhone: (invoice as any).doctorContext?.doctorPhone,
-      doctorSpecialization: (invoice as any).doctorContext?.doctorSpecialization,
+      doctorSpecialization:
+        (invoice as any).doctorContext?.doctorSpecialization,
       doctorRole: (invoice as any).doctorContext?.doctorRole,
-      doctorRegistrationNumber: (invoice as any).doctorContext?.doctorRegistrationNumber,
-      doctorLicenseNumber: (invoice as any).doctorContext?.doctorLicenseNumber,
+      doctorRegistrationNumber:
+        (invoice as any).doctorContext?.doctorRegistrationNumber,
+      doctorLicenseNumber:
+        (invoice as any).doctorContext?.doctorLicenseNumber,
       // WhatsApp context
       approvalStatus: (invoice as any).whatsappContext?.approvalStatus,
       approvedById: (invoice as any).whatsappContext?.approvedById,

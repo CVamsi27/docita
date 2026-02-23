@@ -1,7 +1,7 @@
 /**
  * In-Memory Invoice Repository (Example Implementation)
  * Shows how to implement IInvoiceRepository port
- * 
+ *
  * In production, replace with PrismaInvoiceRepository
  * This demonstrates the dependency inversion pattern:
  * - Application depends on IInvoiceRepository (interface)
@@ -18,34 +18,41 @@ import { InvoiceMapper } from '../mappers/invoice.mapper';
 export class InMemoryInvoiceRepository implements IInvoiceRepository {
   private invoices = new Map<string, Invoice>();
 
-  async save(invoice: Invoice): Promise<void> {
+  save(invoice: Invoice): Promise<void> {
     this.invoices.set(invoice.id, invoice);
+    return Promise.resolve();
   }
 
-  async findById(id: string): Promise<Invoice | null> {
-    return this.invoices.get(id) ?? null;
+  findById(id: string): Promise<Invoice | null> {
+    return Promise.resolve(this.invoices.get(id) ?? null);
   }
 
-  async findByClinicId(clinicId: string): Promise<Invoice[]> {
-    return Array.from(this.invoices.values()).filter(
-      (invoice) => invoice.clinicId === clinicId,
+  findByClinicId(clinicId: string): Promise<Invoice[]> {
+    return Promise.resolve(
+      Array.from(this.invoices.values()).filter(
+        (invoice) => invoice.clinicId === clinicId,
+      ),
     );
   }
 
-  async findByPatientId(patientId: string): Promise<Invoice[]> {
-    return Array.from(this.invoices.values()).filter(
-      (invoice) => invoice.patientId === patientId,
+  findByPatientId(patientId: string): Promise<Invoice[]> {
+    return Promise.resolve(
+      Array.from(this.invoices.values()).filter(
+        (invoice) => invoice.patientId === patientId,
+      ),
     );
   }
 
-  async delete(id: string): Promise<void> {
+  delete(id: string): Promise<void> {
     this.invoices.delete(id);
+    return Promise.resolve();
   }
 
-  async update(invoice: Invoice): Promise<void> {
+  update(invoice: Invoice): Promise<void> {
     if (!this.invoices.has(invoice.id)) {
-      throw new Error(`Invoice ${invoice.id} not found`);
+      return Promise.reject(new Error(`Invoice ${invoice.id} not found`));
     }
     this.invoices.set(invoice.id, invoice);
+    return Promise.resolve();
   }
 }

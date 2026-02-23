@@ -50,7 +50,7 @@ export class InvoicesController {
   }
 
   @Get(':id')
-  async getInvoice(@Param('id') id: string) {
+  getInvoice(@Param('id') id: string) {
     // This would use GetInvoiceUseCase in a real app
     return {
       message: 'Get invoice - not implemented in example',
@@ -87,7 +87,10 @@ export class InvoicesController {
       });
       return { message: `Invoice status updated to ${status}` };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException((error as Error).message);
@@ -95,7 +98,7 @@ export class InvoicesController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
+  delete(@Param('id') id: string) {
     // This would use a DeleteInvoiceUseCase in a real app
     return {
       message: 'Delete invoice - not implemented in example',

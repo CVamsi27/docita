@@ -1,7 +1,7 @@
 /**
  * Create Invoice Use Case
  * Orchestrates invoice creation with validation and persistence
- * 
+ *
  * Flow:
  * 1. Convert DTO to domain items (Money value objects)
  * 2. Validate individual items
@@ -12,8 +12,16 @@
 
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Invoice, InvoiceItem } from '../../core/entities';
-import { Money, InvoiceStatus, InvoiceStatusEnum, BillingPeriod } from '../../core/value-objects';
-import { BillingCalculatorService, InvoiceValidatorService } from '../../core/services';
+import {
+  Money,
+  InvoiceStatus,
+  InvoiceStatusEnum,
+  BillingPeriod,
+} from '../../core/value-objects';
+import {
+  BillingCalculatorService,
+  InvoiceValidatorService,
+} from '../../core/services';
 import { CreateInvoiceDto } from '../dto/invoice.dto';
 import { IInvoiceRepository } from '../ports/invoice.repository.port';
 
@@ -33,25 +41,25 @@ export class CreateInvoiceUseCase {
     const invoiceId = `invoice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // 1. Create domain items with Money value objects
-    const items = dto.items.map((item, index) =>
-      new InvoiceItem({
-        id: `item_${invoiceId}_${index}`,
-        invoiceId,
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: new Money(item.unitPrice, 'INR'),
-        taxRate: item.taxRate,
-        discount: item.discount ?? 0,
-      }),
+    const items = dto.items.map(
+      (item, index) =>
+        new InvoiceItem({
+          id: `item_${invoiceId}_${index}`,
+          invoiceId,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: new Money(item.unitPrice, 'INR'),
+          taxRate: item.taxRate,
+          discount: item.discount ?? 0,
+        }),
     );
 
     // 2. Validate all items
-    const itemErrors = items
-      .flatMap((item, idx) =>
-        this.invoiceValidator
-          .validateInvoiceItem(item)
-          .map((e) => `Item ${idx + 1}: ${e}`),
-      );
+    const itemErrors = items.flatMap((item, idx) =>
+      this.invoiceValidator
+        .validateInvoiceItem(item)
+        .map((e) => `Item ${idx + 1}: ${e}`),
+    );
 
     if (itemErrors.length > 0) {
       throw new BadRequestException({

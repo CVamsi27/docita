@@ -16,7 +16,11 @@
  *                        → IInvoiceRepository (interface)
  */
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Invoice as PrismaInvoiceModel } from '@workspace/db';
 import { Invoice } from '../../core/entities';
 import { IInvoiceRepository } from '../../application/ports/invoice.repository.port';
@@ -77,11 +81,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       }
 
       // Add clinicId from appointment context if available
-      const invoiceWithClinicId: PrismaInvoiceModel & { clinicId?: string } =
-        {
-          ...prismaInvoice,
-          clinicId: (prismaInvoice.appointment as any)?.clinicId,
-        };
+      const invoiceWithClinicId: PrismaInvoiceModel & { clinicId?: string } = {
+        ...prismaInvoice,
+        clinicId: (prismaInvoice.appointment as any)?.clinicId,
+      };
 
       return InvoiceMapper.toDomain(invoiceWithClinicId as any);
     } catch (error) {
@@ -188,10 +191,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       }
 
       // Check version for optimistic concurrency control
-      if (
-        invoice.version &&
-        existingInvoice.version !== invoice.version
-      ) {
+      if (invoice.version && existingInvoice.version !== invoice.version) {
         throw new BadRequestException(
           'Invoice was modified by another user. Please refresh and try again.',
         );
@@ -207,7 +207,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
         },
       });
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException(

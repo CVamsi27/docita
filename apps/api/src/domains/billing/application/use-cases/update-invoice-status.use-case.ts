@@ -3,7 +3,11 @@
  * Demonstrates state machine pattern through use case
  */
 
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InvoiceStatusEnum } from '../../core/value-objects';
 import { IInvoiceRepository } from '../ports/invoice.repository.port';
 
@@ -60,7 +64,9 @@ export class UpdateInvoiceStatusUseCase {
         invoice.convertToCredit();
         break;
       default:
-        throw new BadRequestException(`Invalid status: ${command.targetStatus}`);
+        throw new BadRequestException(
+          `Invalid status: ${command.targetStatus}`,
+        );
     }
 
     // 4. Persist updated invoice
