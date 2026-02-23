@@ -11,9 +11,9 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AIService } from './ai.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
-import { TierGuard } from '../../auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../../auth/auth/tier.decorator';
+import { Roles } from '../auth/auth/roles.decorator';
+import { TierGuard } from '../auth/auth/tier.guard';
+import { RequireFeature, Feature } from '../auth/auth/tier.decorator';
 import { RateLimit } from '../../../common/interceptors/rate-limit.interceptor';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
