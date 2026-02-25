@@ -13,6 +13,7 @@ import {
   ClinicTier,
   BillingCycle,
   SubscriptionStatusEnum,
+  SubscriptionStatus,
 } from '../../core/value-objects';
 import { Subscription } from '../../core/entities/subscription.entity';
 
@@ -96,7 +97,7 @@ export class ProcessWebhookUseCase {
         plan: tier,
         billingCycle: cycle,
         basePriceCents: 0,
-        status: SubscriptionStatusEnum.ACTIVE as any,
+        status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         autoPayEnabled: true,

@@ -39,21 +39,34 @@ export class PdfRendererService {
       switch (section.type) {
         case 'heading': {
           const level = section.styling?.level || 1;
-          html += `<h${level}>${section.content}</h${level}>`;
+          const headingContent =
+            typeof section.content === 'string' ? section.content : '';
+          html += `<h${level}>${headingContent}</h${level}>`;
           break;
         }
-        case 'paragraph':
-          html += `<p>${section.content}</p>`;
+        case 'paragraph': {
+          const paragraphContent =
+            typeof section.content === 'string' ? section.content : '';
+          html += `<p>${paragraphContent}</p>`;
           break;
+        }
         case 'table':
-          html += this.renderTable(section.content);
+          html += this.renderTable(
+            section.content as {
+              columns: string[];
+              data: Record<string, string | number>[];
+            },
+          );
           break;
         case 'list':
-          html += this.renderList(section.content);
+          html += this.renderList(section.content as string[]);
           break;
-        case 'image':
-          html += `<img src="data:image/png;base64,${section.content}" />`;
+        case 'image': {
+          const imageContent =
+            typeof section.content === 'string' ? section.content : '';
+          html += `<img src="data:image/png;base64,${imageContent}" />`;
           break;
+        }
       }
     }
 

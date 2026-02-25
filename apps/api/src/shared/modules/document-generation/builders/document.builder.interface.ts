@@ -10,7 +10,10 @@ export interface DocumentContent {
 
 export interface DocumentSection {
   type: 'heading' | 'paragraph' | 'table' | 'list' | 'image';
-  content: string | string[] | { columns: string[]; data: Record<string, string | number>[] };
+  content:
+    | string
+    | string[]
+    | { columns: string[]; data: Record<string, string | number>[] };
   styling?: Record<string, string | number | boolean>;
 }
 

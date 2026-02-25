@@ -53,10 +53,14 @@ export abstract class BaseDocumentBuilder implements IDocumentBuilder {
   }
 
   addImage(base64: string, width?: number, height?: number): this {
+    const styling: Record<string, string | number | boolean> = {};
+    if (width !== undefined) styling.width = width;
+    if (height !== undefined) styling.height = height;
+
     this.sections.push({
       type: 'image',
       content: base64,
-      styling: { width, height },
+      styling: Object.keys(styling).length > 0 ? styling : undefined,
     });
     return this;
   }

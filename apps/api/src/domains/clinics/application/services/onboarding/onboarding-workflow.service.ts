@@ -5,7 +5,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../../../prisma/prisma.service';
-import { SubscriptionStatus, User, Clinic, Subscription } from '@workspace/db';
+import {
+  SubscriptionStatus,
+  User,
+  Clinic,
+  Subscription,
+  Specialization,
+} from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import type { PrismaTransaction } from '@workspace/types';
 import {
@@ -69,7 +75,7 @@ export class OnboardingWorkflowService {
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),
           onboardedFromIP: ipAddress,
-        } as any,
+        },
       },
     });
 
@@ -120,7 +126,7 @@ export class OnboardingWorkflowService {
         registrationNumber: adminData.registrationNumber,
         specialization: this.validation.validateSpecialization(
           adminData.specialization,
-        ) as any,
+        ),
       },
     });
 
@@ -183,7 +189,7 @@ export class OnboardingWorkflowService {
             ? `${planData.tier} ${planData.billingCycle} subscription (card ending ${paymentData.cardLast4})`
             : `${planData.tier} ${planData.billingCycle} subscription`,
           paidAt: now,
-        } as any,
+        },
       });
     }
 
@@ -228,7 +234,7 @@ export class OnboardingWorkflowService {
           registrationNumber: member.registrationNumber,
           specialization: this.validation.validateSpecialization(
             member.specialization,
-          ) as any,
+          ),
         },
       });
 
@@ -243,7 +249,7 @@ export class OnboardingWorkflowService {
             role: member.role,
             createdDuringOnboarding: true,
             ipAddress,
-          } as any,
+          },
         },
       });
 

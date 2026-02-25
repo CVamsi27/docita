@@ -31,21 +31,25 @@ export class WhatsAppChannel implements IMessageChannel {
     return !!(this.phoneNumberId && this.accessToken && this.businessAccountId);
   }
 
-  send(recipientId: string, content: MessageContent): SendMessageResult {
+  async send(
+    recipientId: string,
+    content: MessageContent,
+  ): Promise<SendMessageResult> {
     this.logger.log(
       `Sending WhatsApp message to ${recipientId} with template ${content.templateKey}`,
     );
 
     // Placeholder response
-    return {
+    return await Promise.resolve({
       messageId: `wh_${Date.now()}`,
       status: 'pending',
       channel: 'WhatsApp',
       sentAt: new Date(),
-    };
+    });
   }
 
-  handleWebhook(payload: unknown): void {
+  async handleWebhook(payload: unknown): Promise<void> {
+    await Promise.resolve();
     this.logger.log('Handling WhatsApp webhook:', payload);
   }
 }

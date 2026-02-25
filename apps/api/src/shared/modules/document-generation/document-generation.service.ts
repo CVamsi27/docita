@@ -38,7 +38,9 @@ export class DocumentGenerationService {
    * Generate report PDF
    * (Can be extended with report-specific builder)
    */
-  generateReportPdf(data: Record<string, string | number | boolean>): Promise<Buffer> {
+  generateReportPdf(
+    data: Record<string, string | number | boolean>,
+  ): Promise<Buffer> {
     return Promise.resolve(Buffer.from('Report PDF would go here'));
   }
 }

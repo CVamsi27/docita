@@ -37,7 +37,7 @@ export class SubscriptionPayment {
   readonly isProrated: boolean;
   readonly proratedDays?: number;
   readonly creditsApplied: number;
-  readonly failureReason?: string;
+  failureReason?: string;
   paidAt?: Date;
   readonly createdAt: Date;
   updatedAt: Date;
@@ -111,7 +111,7 @@ export class SubscriptionPayment {
       );
     }
     this.status = PaymentStatusEnum.FAILED;
-    (this as any).failureReason = reason;
+    this.failureReason = reason;
     this.updatedAt = new Date();
   }
 

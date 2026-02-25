@@ -58,7 +58,7 @@ export abstract class BaseRepository<T> {
    * Get the Prisma model delegate
    */
   protected get model() {
-    return (this.prisma as any)[this.modelName];
+    return (this.prisma as unknown as Record<string, unknown>)[this.modelName];
   }
 
   /**
@@ -117,7 +117,7 @@ export abstract class BaseRepository<T> {
     // Add cursor if provided
     const cursor = options?.cursor ? { id: options.cursor } : undefined;
 
-    const items = await this.model.findMany({
+    const items = await (this.model as any).findMany({
       where,
       take: limit + 1,
       cursor,
@@ -144,7 +144,7 @@ export abstract class BaseRepository<T> {
    * Find a single record by ID
    */
   async findOne(id: string): Promise<T | null> {
-    const result = await this.model.findUnique({
+    const result = await (this.model as any).findUnique({
       where: { id },
       select: this.getDetailSelect(),
     });
@@ -169,7 +169,7 @@ export abstract class BaseRepository<T> {
    */
 
   async create(data: Record<string, any>): Promise<T> {
-    const result = await this.model.create({
+    const result = await (this.model as any).create({
       data,
       select: this.getDetailSelect(),
     });
@@ -180,7 +180,7 @@ export abstract class BaseRepository<T> {
    * Update a record by ID
    */
   async update(id: string, data: Partial<T>): Promise<T> {
-    const result = await this.model.update({
+    const result = await (this.model as any).update({
       where: { id },
       data,
       select: this.getDetailSelect(),
@@ -192,7 +192,7 @@ export abstract class BaseRepository<T> {
    * Delete a record by ID
    */
   async delete(id: string): Promise<void> {
-    await this.model.delete({
+    await (this.model as any).delete({
       where: { id },
     });
   }
@@ -201,7 +201,7 @@ export abstract class BaseRepository<T> {
    * Check if a record exists
    */
   async exists(id: string): Promise<boolean> {
-    const count = await this.model.count({
+    const count = await (this.model as any).count({
       where: { id },
     });
     return count > 0;
@@ -211,6 +211,6 @@ export abstract class BaseRepository<T> {
    * Count records matching a condition
    */
   async count(where: Record<string, unknown> = {}): Promise<number> {
-    return await this.model.count({ where });
+    return await (this.model as any).count({ where });
   }
 }

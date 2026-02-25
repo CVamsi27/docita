@@ -56,7 +56,7 @@ export class OnboardingDataService {
     const key = this.getStepDataKey(step);
     session.data = {
       ...session.data,
-      [key]: data as any,
+      [key]: data,
     };
     session.currentStep = step;
     session.updatedAt = new Date();

@@ -15,25 +15,23 @@ export class AuditLoggerService implements IAuditLogger {
 
   async log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void> {
     try {
-      await (this.prisma as unknown as Record<string, unknown>).auditLog.create(
-        {
-          data: {
-            id: uuidv4(),
-            timestamp: new Date(),
-            userId: entry.userId,
-            clinicId: entry.clinicId,
-            action: entry.action,
-            resourceType: entry.resourceType,
-            resourceId: entry.resourceId,
-            changes: entry.changes ? JSON.stringify(entry.changes) : null,
-            metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
-            ipAddress: entry.ipAddress,
-            userAgent: entry.userAgent,
-            status: entry.status,
-            failureReason: entry.failureReason,
-          },
+      await (this.prisma as any).auditLog.create({
+        data: {
+          id: uuidv4(),
+          timestamp: new Date(),
+          userId: entry.userId,
+          clinicId: entry.clinicId,
+          action: entry.action,
+          resourceType: entry.resourceType,
+          resourceId: entry.resourceId,
+          changes: entry.changes ? JSON.stringify(entry.changes) : null,
+          metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+          ipAddress: entry.ipAddress,
+          userAgent: entry.userAgent,
+          status: entry.status,
+          failureReason: entry.failureReason,
         },
-      );
+      });
     } catch (error) {
       // Don't throw - audit failures should not break main flow
       console.error('Failed to log audit entry:', error);
@@ -44,7 +42,7 @@ export class AuditLoggerService implements IAuditLogger {
     resourceType: string,
     resourceId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
+    const logs = await (this.prisma as any).auditLog.findMany({
       where: {
         resourceType,
         resourceId,
@@ -59,7 +57,7 @@ export class AuditLoggerService implements IAuditLogger {
     userId: string,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
+    const logs = await (this.prisma as any).auditLog.findMany({
       where: {
         userId,
         clinicId,
@@ -72,7 +70,7 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   async getLogsForClinic(clinicId: string): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
+    const logs = await (this.prisma as any).auditLog.findMany({
       where: { clinicId },
       orderBy: { timestamp: 'desc' },
       take: 10000, // Large limit for clinic-wide audit
@@ -85,7 +83,7 @@ export class AuditLoggerService implements IAuditLogger {
     action: AuditAction,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
+    const logs = await (this.prisma as any).auditLog.findMany({
       where: {
         action,
         clinicId,
@@ -101,7 +99,7 @@ export class AuditLoggerService implements IAuditLogger {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
-    const result = await (this.prisma as unknown as Record<string, unknown>).auditLog.deleteMany({
+    const result = await (this.prisma as any).auditLog.deleteMany({
       where: {
         timestamp: {
           lt: cutoffDate,
@@ -113,7 +111,14 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   private parseAuditLogs(logs: unknown[]): AuditLogEntry[] {
-    return (logs as Array<{changes?: string; metadata?: string} & Omit<AuditLogEntry, 'changes' | 'metadata'>>).map((log) => ({
+    return (
+      logs as Array<
+        { changes?: string; metadata?: string } & Omit<
+          AuditLogEntry,
+          'changes' | 'metadata'
+        >
+      >
+    ).map((log) => ({
       ...log,
       changes: log.changes ? JSON.parse(log.changes) : undefined,
       metadata: log.metadata ? JSON.parse(log.metadata) : undefined,

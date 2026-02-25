@@ -32,17 +32,20 @@ export class EmailChannel implements IMessageChannel {
     return !!this.smtpConfig;
   }
 
-  send(recipientId: string, content: MessageContent): SendMessageResult {
+  async send(
+    recipientId: string,
+    content: MessageContent,
+  ): Promise<SendMessageResult> {
     this.logger.log(
       `Sending email to ${recipientId} with template ${content.templateKey}`,
     );
 
-    return {
+    return await Promise.resolve({
       messageId: `em_${Date.now()}`,
       status: 'sent',
       channel: 'Email',
       sentAt: new Date(),
-    };
+    });
   }
 
   async handleWebhook(payload: unknown): Promise<void> {

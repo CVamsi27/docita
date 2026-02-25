@@ -86,8 +86,8 @@ export class SubscriptionsController {
     }
     return this.createSubscriptionUseCase.execute({
       clinicId: req.user.clinicId,
-      plan: body.tier as any,
-      billingCycle: body.cycle as any,
+      plan: body.tier as ClinicTierEnum,
+      billingCycle: body.cycle as unknown as 'MONTHLY' | 'YEARLY',
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });

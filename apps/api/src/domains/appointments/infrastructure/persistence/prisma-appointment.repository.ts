@@ -13,7 +13,7 @@ import {
 import { Appointment } from '../../core/entities/appointment.entity';
 import { AppointmentMapper } from '../mappers/appointment.mapper';
 import { AppointmentStatusEnum } from '../../core/value-objects/appointment-status.value-object';
-import { Prisma } from '@workspace/db';
+import { Prisma, Appointment as PrismaAppointment } from '@workspace/db';
 
 @Injectable()
 export class PrismaAppointmentRepository implements IAppointmentRepository {
@@ -76,9 +76,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
         : undefined;
 
       return {
-        items: resultItems.map((item) =>
-          AppointmentMapper.toDomain(item as any),
-        ),
+        items: resultItems.map((item) => AppointmentMapper.toDomain(item)),
         nextCursor,
         hasMore,
         count: total,
@@ -96,7 +94,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     });
 
     if (!item) return null;
-    return AppointmentMapper.toDomain(item as any);
+    return AppointmentMapper.toDomain(item);
   }
 
   async save(appointment: Appointment): Promise<void> {
@@ -132,7 +130,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       orderBy: { startTime: 'desc' },
     });
 
-    return items.map((item) => AppointmentMapper.toDomain(item as any));
+    return items.map((item) => AppointmentMapper.toDomain(item));
   }
 
   async findByDoctorId(doctorId: string, date: Date): Promise<Appointment[]> {
@@ -153,7 +151,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       orderBy: { startTime: 'asc' },
     });
 
-    return items.map((item) => AppointmentMapper.toDomain(item as any));
+    return items.map((item) => AppointmentMapper.toDomain(item));
   }
 
   async exists(id: string): Promise<boolean> {

@@ -30,17 +30,20 @@ export class SmsChannel implements IMessageChannel {
     return !!this.smsConfig;
   }
 
-  send(recipientId: string, content: MessageContent): SendMessageResult {
+  async send(
+    recipientId: string,
+    content: MessageContent,
+  ): Promise<SendMessageResult> {
     this.logger.log(
       `Sending SMS to ${recipientId} with template ${content.templateKey}`,
     );
 
-    return {
+    return await Promise.resolve({
       messageId: `sms_${Date.now()}`,
       status: 'sent',
       channel: 'SMS',
       sentAt: new Date(),
-    };
+    });
   }
 
   async handleWebhook(payload: unknown): Promise<void> {
