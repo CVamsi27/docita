@@ -15,23 +15,25 @@ export class AuditLoggerService implements IAuditLogger {
 
   async log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void> {
     try {
-      await (this.prisma as any).auditLog.create({
-        data: {
-          id: uuidv4(),
-          timestamp: new Date(),
-          userId: entry.userId,
-          clinicId: entry.clinicId,
-          action: entry.action,
-          resourceType: entry.resourceType,
-          resourceId: entry.resourceId,
-          changes: entry.changes ? JSON.stringify(entry.changes) : null,
-          metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
-          ipAddress: entry.ipAddress,
-          userAgent: entry.userAgent,
-          status: entry.status,
-          failureReason: entry.failureReason,
+      await (this.prisma as unknown as Record<string, unknown>).auditLog.create(
+        {
+          data: {
+            id: uuidv4(),
+            timestamp: new Date(),
+            userId: entry.userId,
+            clinicId: entry.clinicId,
+            action: entry.action,
+            resourceType: entry.resourceType,
+            resourceId: entry.resourceId,
+            changes: entry.changes ? JSON.stringify(entry.changes) : null,
+            metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+            ipAddress: entry.ipAddress,
+            userAgent: entry.userAgent,
+            status: entry.status,
+            failureReason: entry.failureReason,
+          },
         },
-      });
+      );
     } catch (error) {
       // Don't throw - audit failures should not break main flow
       console.error('Failed to log audit entry:', error);

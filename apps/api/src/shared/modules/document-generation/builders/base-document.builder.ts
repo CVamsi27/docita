@@ -36,7 +36,7 @@ export abstract class BaseDocumentBuilder implements IDocumentBuilder {
     return this;
   }
 
-  addTable(data: any[], columns: string[]): this {
+  addTable(data: Record<string, string | number>[], columns: string[]): this {
     this.sections.push({
       type: 'table',
       content: { data, columns },

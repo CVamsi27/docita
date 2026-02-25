@@ -61,7 +61,10 @@ export class PdfRendererService {
     return html;
   }
 
-  private renderTable(tableData: { columns: string[]; data: any[] }): string {
+  private renderTable(tableData: {
+    columns: string[];
+    data: Record<string, string | number>[];
+  }): string {
     let html = '<table>';
 
     // Header

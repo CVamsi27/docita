@@ -10,8 +10,8 @@ export interface DocumentContent {
 
 export interface DocumentSection {
   type: 'heading' | 'paragraph' | 'table' | 'list' | 'image';
-  content: any;
-  styling?: Record<string, any>;
+  content: string | string[] | { columns: string[]; data: Record<string, string | number>[] };
+  styling?: Record<string, string | number | boolean>;
 }
 
 export interface DocumentMetadata {
