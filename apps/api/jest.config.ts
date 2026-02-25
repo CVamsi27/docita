@@ -29,6 +29,7 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
+  transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
   collectCoverageFrom: [
     'src/**/*.(t|j)s',
     '!src/main.ts',
@@ -38,6 +39,7 @@ const config: Config = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   moduleNameMapper: {
+    '^uuid$': '<rootDir>/test/uuid-mock.ts',
     '^src/(.*)$': '<rootDir>/src/$1',
     '^@workspace/db$': '<rootDir>/../../packages/db/src/index.ts',
     '^@workspace/db/(.*)$': '<rootDir>/../../packages/db/src/$1',

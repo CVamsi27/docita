@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   DiseaseTrendPoint,
@@ -15,6 +16,7 @@ export class ClinicalAnalyticsFactory {
 
   constructor(
     private prisma: PrismaService,
+    private configService: AppConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -101,12 +103,19 @@ export class ClinicalAnalyticsFactory {
 
     const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
 
-    const result: DiseaseTrendPoint[] = diagnoses.map((d) => ({
-      icdCode: icdCodeMap.get(d.icdCodeId as string) as unknown as
-        | { code: string; description: string; category: string }
-        | undefined,
-      count: d._count.id,
-    }));
+    const result: DiseaseTrendPoint[] = diagnoses.map((d) => {
+      const core = icdCodeMap.get(d.icdCodeId as string);
+      return {
+        icdCode: core
+          ? {
+              code: core.code,
+              description: core.description,
+              category: core.category,
+            }
+          : undefined,
+        count: d._count.id,
+      };
+    });
 
     await this.cacheManager.set(cacheKey, result, 86400000);
     return result;
@@ -371,7 +380,7 @@ export class ClinicalAnalyticsFactory {
     await this.cacheManager.set(
       cacheKey,
       result,
-      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+      this.configService.getAnalyticsCacheTtl() * 1000,
     );
     return result;
   }

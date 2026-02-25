@@ -74,9 +74,9 @@ export class BusinessRulesService {
   }
 
   /**
-   * Validates prescription medication data
+   * Validates medication data
    */
-  validatePrescriptionMedication(
+  validateMedication(
     name: string,
     dosage: string,
     frequency: string,

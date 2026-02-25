@@ -6,32 +6,30 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
+import { AppConfigService } from '../config/app-configuration.service';
 
 @Injectable()
 export class CsrfInterceptor implements NestInterceptor {
+  constructor(private configService: AppConfigService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
-    // 1. Generate and set token if it doesn't exist
     const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
     let csrfToken = existingCsrfToken;
     if (!existingCsrfToken) {
       csrfToken = randomBytes(24).toString('hex');
-      // Set the cookie. Important: HttpOnly MUST be false so the frontend can read it
-      // to put it into the header for mutating requests.
       response.cookie('XSRF-TOKEN', csrfToken, {
         path: '/',
         sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: false, // Accessible by frontend JS
+        secure: this.configService.isProduction(),
+        httpOnly: false,
       });
     }
 
-    // 2. Validate on mutating requests
     const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
     if (mutatingMethods.includes(request.method)) {
       if (!existingCsrfToken) {

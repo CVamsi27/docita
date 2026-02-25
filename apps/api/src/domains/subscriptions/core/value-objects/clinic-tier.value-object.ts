@@ -1,11 +1,3 @@
-/**
- * Clinic Tier Value Object
- * Represents subscription tier/plan level
- *
- * Plans: CAPTURE → CORE → GROWTH → SCALE → ENTERPRISE
- * Each tier has different feature sets and pricing
- */
-
 export enum ClinicTierEnum {
   CAPTURE = 'CAPTURE',
   CORE = 'CORE',
@@ -24,6 +16,16 @@ const TIER_HIERARCHY: Record<ClinicTierEnum, number> = {
 
 export class ClinicTier {
   constructor(readonly value: ClinicTierEnum) {}
+
+  static fromString(value: string): ClinicTier {
+    const tier = Object.values(ClinicTierEnum).find(
+      (v) => (v as string) === value,
+    );
+    if (!tier) {
+      throw new Error(`Invalid clinic tier: ${value}`);
+    }
+    return new ClinicTier(tier as ClinicTierEnum);
+  }
 
   isCapture(): boolean {
     return this.value === ClinicTierEnum.CAPTURE;
@@ -45,25 +47,16 @@ export class ClinicTier {
     return this.value === ClinicTierEnum.ENTERPRISE;
   }
 
-  /**
-   * Check if this tier is higher or equal to another
-   */
   isAtLeast(other: ClinicTier): boolean {
     return TIER_HIERARCHY[this.value] >= TIER_HIERARCHY[other.value];
   }
 
-  /**
-   * Check if downgrading to another tier
-   */
   isDowngradeTo(other: ClinicTier): boolean {
-    return TIER_HIERARCHY[this.value] > TIER_HIERARCHY[other.value];
+    return TIER_HIERARCHY[this.value] < TIER_HIERARCHY[other.value];
   }
 
-  /**
-   * Check if upgrading to another tier
-   */
   isUpgradeTo(other: ClinicTier): boolean {
-    return TIER_HIERARCHY[this.value] < TIER_HIERARCHY[other.value];
+    return TIER_HIERARCHY[this.value] > TIER_HIERARCHY[other.value];
   }
 
   equals(other: ClinicTier): boolean {

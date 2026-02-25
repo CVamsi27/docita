@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { userSchema } from "./users";
-import { embeddedMedicationSchema } from "./medications";
+import { embeddedMedicationSchema } from "../clinical/medications";
 
 export const prescriptionTemplateSchema = z.object({
   id: z.string(),

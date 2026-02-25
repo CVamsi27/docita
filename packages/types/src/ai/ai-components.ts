@@ -80,7 +80,7 @@ export interface PrescriptionTabState {
   prescriptionSuggestions: PrescriptionSuggestion[];
 }
 
-export interface DiagnosisSuggestion {
+export interface UIDiagnosisSuggestion {
   condition: string;
   icdCode: string;
   confidence: number;
@@ -92,7 +92,7 @@ export interface DiagnosisTabState {
   vitalSigns: string;
   examFindings: string;
   isLoading: boolean;
-  diagnosisSuggestions: DiagnosisSuggestion[];
+  diagnosisSuggestions: UIDiagnosisSuggestion[];
 }
 
 export interface SmartTasksTabState {
@@ -139,7 +139,7 @@ export interface AIAssistantState {
   chiefComplaint: string;
   vitalSigns: string;
   examFindings: string;
-  diagnosisSuggestions: DiagnosisTabState["diagnosisSuggestions"];
+  diagnosisSuggestions: UIDiagnosisSuggestion[];
   // Smart tasks tab fields
   taskType: string;
   // Common fields

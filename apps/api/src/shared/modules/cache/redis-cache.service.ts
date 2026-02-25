@@ -1,13 +1,7 @@
-/**
- * Redis Cache Service
- *
- * Redis-based cache implementation for production use.
- * Provides distributed caching across multiple instances.
- */
-
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ICacheProvider } from './cache.interface';
 import Redis from 'ioredis';
+import { AppConfigService } from '../config/app-configuration.service';
 
 @Injectable()
 export class RedisCacheService
@@ -15,18 +9,15 @@ export class RedisCacheService
 {
   private redis: Redis | null = null;
 
-  constructor(
-    private host: string = process.env.REDIS_HOST || 'localhost',
-    private port: number = parseInt(process.env.REDIS_PORT || '6379'),
-    private password?: string,
-  ) {}
+  constructor(private configService: AppConfigService) {}
 
   onModuleInit() {
+    const { host, port, password } = this.configService.getRedisConfig();
     this.redis = new Redis({
-      host: this.host,
-      port: this.port,
-      password: this.password || undefined,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      host,
+      port,
+      password: password || undefined,
+      retryStrategy: (times: number) => Math.min(times * 50, 2000),
     });
   }
 
@@ -53,7 +44,6 @@ export class RedisCacheService
     try {
       return JSON.parse(value);
     } catch {
-      // Return as string if JSON parse fails
       return value as unknown as T;
     }
   }
@@ -88,17 +78,14 @@ export class RedisCacheService
 
   async increment(key: string, by = 1): Promise<number> {
     this.ensureConnected();
-    return this.redis!.incrby(key, by);
+    return await this.redis!.incrby(key, by);
   }
 
   async decrement(key: string, by = 1): Promise<number> {
     this.ensureConnected();
-    return this.redis!.decrby(key, by);
+    return await this.redis!.decrby(key, by);
   }
 
-  /**
-   * Delete keys matching pattern
-   */
   async deletePattern(pattern: string): Promise<void> {
     this.ensureConnected();
     const keys = await this.redis!.keys(pattern);
@@ -108,9 +95,6 @@ export class RedisCacheService
     }
   }
 
-  /**
-   * Get stats for monitoring
-   */
   async getStats() {
     this.ensureConnected();
     const info = await this.redis!.info('memory');

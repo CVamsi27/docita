@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { IpRateLimitGuard } from '../../shared/modules/auth/auth/guards/ip-rate-limit.guard';
+import { IpRateLimitGuard } from '../guards/ip-rate-limit.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;

@@ -5,10 +5,8 @@ export function useRepeatPrescription() {
   const router = useRouter();
 
   const repeatPrescription = (appointmentId: string, patientId: string) => {
-    // Store the appointment ID to copy from in session storage
     sessionStorage.setItem("repeat_prescription_from", appointmentId);
 
-    // Navigate to create new appointment for this patient
     router.push(
       `/appointments?patientId=${patientId}&action=new&repeatPrescription=true`,
     );

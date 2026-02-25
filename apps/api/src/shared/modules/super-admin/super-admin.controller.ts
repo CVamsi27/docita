@@ -37,7 +37,7 @@ import {
   SuperAdminUserResponseDto,
   SuccessResponseDto,
 } from './dto/super-admin.dto';
-import { ClinicResponseDto } from '../../../domains/clinics/dto/clinics.dto';
+import { ClinicResponseDto } from '../../../domains/clinics/application/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('super-admin')

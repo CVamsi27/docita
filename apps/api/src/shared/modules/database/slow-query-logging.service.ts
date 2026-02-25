@@ -1,11 +1,6 @@
-/**
- * Slow Query Logging Service
- * Monitors and logs queries exceeding configured threshold
- * Helps identify performance bottlenecks
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AppConfigService } from '../config/app-configuration.service';
 
 interface SlowQuery {
   query: string;
@@ -16,20 +11,17 @@ interface SlowQuery {
 @Injectable()
 export class SlowQueryLoggingService {
   private readonly logger = new Logger(SlowQueryLoggingService.name);
-  private readonly slowQueryThresholdMs = parseInt(
-    process.env.SLOW_QUERY_THRESHOLD_MS || '1000',
-    10,
-  );
   private slowQueries: SlowQuery[] = [];
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private configService: AppConfigService,
+  ) {
     this.setupQueryLogging();
   }
 
-  /**
-   * Setup Prisma query event listener for slow query detection
-   */
   private setupQueryLogging(): void {
+    const threshold = this.configService.getSlowQueryThreshold();
     if (!this.prisma.$on) {
       this.logger.warn(
         'Prisma query event listener not available, slow query logging disabled',
@@ -49,8 +41,9 @@ export class SlowQueryLoggingService {
       ) => void
     )('query', (event: { query: string; duration: number; params: string }) => {
       const duration = event.duration;
+      const threshold = this.configService.getSlowQueryThreshold();
 
-      if (duration > this.slowQueryThresholdMs) {
+      if (duration > threshold) {
         const slowQuery: SlowQuery = {
           query: event.query,
           duration,
@@ -59,7 +52,6 @@ export class SlowQueryLoggingService {
 
         this.slowQueries.push(slowQuery);
 
-        // Keep only last 100 queries in memory
         if (this.slowQueries.length > 100) {
           this.slowQueries.shift();
         }
@@ -71,16 +63,10 @@ export class SlowQueryLoggingService {
     });
   }
 
-  /**
-   * Truncate query to 200 chars for logging
-   */
   private truncateQuery(query: string): string {
     return query.length > 200 ? query.substring(0, 200) + '...' : query;
   }
 
-  /**
-   * Get statistics on slow queries
-   */
   getSlowQueryStats(): {
     totalCount: number;
     averageDuration: number;
@@ -110,9 +96,6 @@ export class SlowQueryLoggingService {
     };
   }
 
-  /**
-   * Clear slow query history
-   */
   clearHistory(): void {
     this.slowQueries = [];
     this.logger.log('Slow query history cleared');

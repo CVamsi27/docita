@@ -22,10 +22,10 @@ import {
 
 export interface ConsultationData {
   chiefComplaint: ChiefComplaintItem[];
-  history: string | null; // Handled by PatientMedicalHistoryContainer using patient ID
+  history: string | null;
   examination: ExaminationData;
   diagnosis: DiagnosisItem[];
-  treatment: string; // Treatment notes
+  treatment: string;
   prescriptions: Medication[];
   dentalChart: DentalChartValue;
   eyeExam: OphthalmologyExamData;

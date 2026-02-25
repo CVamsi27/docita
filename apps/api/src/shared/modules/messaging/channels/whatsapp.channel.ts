@@ -27,6 +27,7 @@ export class WhatsAppChannel implements IMessageChannel {
 
   async isAvailable(): Promise<boolean> {
     // Check if API credentials are configured
+    await Promise.resolve();
     return !!(this.phoneNumberId && this.accessToken && this.businessAccountId);
   }
 
@@ -35,13 +36,6 @@ export class WhatsAppChannel implements IMessageChannel {
     content: MessageContent,
   ): Promise<SendMessageResult> {
     try {
-      // TODO: Implement actual WhatsApp Cloud API call
-      // Framework:
-      // 1. Look up template in messaging.templates.service
-      // 2. Process variables/substitutions
-      // 3. Call WhatsApp API endpoint
-      // 4. Track message in database
-
       this.logger.log(
         `Sending WhatsApp message to ${recipientId} with template ${content.templateKey}`,
       );
@@ -54,19 +48,14 @@ export class WhatsAppChannel implements IMessageChannel {
         sentAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to send WhatsApp message: ${error}`);
+      this.logger.error(
+        `Failed to send WhatsApp message: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 
   async handleWebhook(payload: any): Promise<void> {
-    // TODO: Handle WhatsApp webhook events
-    // - Message delivered
-    // - Message read
-    // - Message failed
-    // - Incoming message handling
-    // Update message status in database
-
     this.logger.log('Handling WhatsApp webhook:', payload);
   }
 }

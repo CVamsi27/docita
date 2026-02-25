@@ -78,8 +78,8 @@ export interface AuditLogEntry {
   action: AuditAction;
   resourceType: string; // 'User', 'Patient', 'Appointment', etc.
   resourceId?: string;
-  changes?: Record<string, { before: any; after: any }>;
-  metadata?: Record<string, any>;
+  changes?: Record<string, { before: unknown; after: unknown }>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   status: 'success' | 'failure';

@@ -7,7 +7,16 @@ export interface ApiError {
   message: string;
   code?: string;
   status?: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
+}
+
+interface GenericApiError extends Error {
+  status?: number;
+  data?: {
+    message?: string;
+    code?: string;
+    details?: Record<string, unknown>;
+  };
 }
 
 /**
@@ -24,8 +33,8 @@ export function parseError(error: unknown): ApiError {
 
   // API error
   if (error instanceof Error) {
-    if ("status" in error && "data" in error) {
-      const apiError = error as any;
+    if ("status" in error || "data" in error) {
+      const apiError = error as GenericApiError;
       return {
         message: apiError.data?.message || error.message,
         code: apiError.data?.code,

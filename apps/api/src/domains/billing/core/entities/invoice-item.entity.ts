@@ -1,7 +1,3 @@
-/**
- * Invoice Item Entity - Line item on an invoice
- */
-
 import { Money } from '../value-objects/money.value-object';
 
 export interface InvoiceItemProps {

@@ -1,2 +1,2 @@
-export * from "./dental-constants";
-export * from "./document-constants";
+export * from "./dental-constants.js";
+export * from "./document-constants.js";

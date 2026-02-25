@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { CustomFieldsController } from './custom-fields.controller';
-import { CustomFieldsService } from './custom-fields.service';
+import { CustomFieldsController } from './presentation/controllers/custom-fields.controller';
+import { CustomFieldsService } from './application/services/custom-fields.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({

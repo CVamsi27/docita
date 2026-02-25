@@ -17,8 +17,8 @@ import {
   SuperAdminCreateClinicDto,
   SuperAdminUpdateClinicDto,
 } from './dto/clinic-management.dto';
-import { ClinicFactory } from '../../../domains/clinics/factories/clinic.factory';
-import { UserFactory } from '../../../domains/users/factories/user.factory';
+import { ClinicFactory } from '../../../domains/clinics/core/factories/clinic.factory';
+import { UserFactory } from '../../../domains/users/core/factories/user.factory';
 
 @Injectable()
 export class ClinicManagementService {

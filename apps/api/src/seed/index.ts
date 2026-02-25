@@ -1,8 +1,7 @@
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import { getEnv } from '../shared/modules/config/app-config';
 
 // Seed Modules
 import { seedClinicUsers } from './seed-clinic-users';
@@ -12,13 +11,10 @@ import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
 import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
 import { seedIcdCodes } from './seed-icd-codes';
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
 async function main() {
-  let connectionString = process.env.DATABASE_URL;
+  const env = getEnv();
+  let connectionString = env.DATABASE_URL;
 
-  // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
   if (connectionString) {
     try {
       const url = new URL(connectionString);
@@ -34,8 +30,8 @@ async function main() {
         }
         connectionString = url.toString();
       }
-    } catch (error) {
-      console.warn('Failed to parse DATABASE_URL for SSL adjustment', error);
+    } catch {
+      console.warn('Failed to parse DATABASE_URL for SSL adjustment');
     }
   }
 
@@ -47,12 +43,9 @@ async function main() {
     console.log('🌱 Starting database seed...');
     console.log(
       'Using Database URL:',
-      process.env.DATABASE_URL
-        ? process.env.DATABASE_URL.substring(0, 20) + '...'
-        : 'UNDEFINED',
+      connectionString ? connectionString.substring(0, 20) + '...' : 'None',
     );
 
-    // 1. Clinic & Users (Doctors, Admin, Reception)
     console.log('\n--- Seeding Clinic & Users ---');
     const { defaultClinic, doctor1, doctor2, doctor3 } =
       await seedClinicUsers(prisma);

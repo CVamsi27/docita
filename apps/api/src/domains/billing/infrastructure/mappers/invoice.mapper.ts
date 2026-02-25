@@ -1,15 +1,3 @@
-/**
- * Invoice Mapper
- * Converts between Prisma models and domain entities
- * Separates database concerns from business logic
- *
- * Handles Prisma Invoice schema where:
- * - items are stored as JSON (not a separate table)
- * - total is a single Float (all-in)
- * - status is InvoiceStatus enum
- * - includes WhatsApp sharing and doctor context fields
- */
-
 import { Prisma, Invoice as PrismaInvoice } from '@workspace/db';
 import { Invoice, InvoiceItem } from '../../core/entities';
 import {
@@ -19,10 +7,6 @@ import {
   BillingPeriod,
 } from '../../core/value-objects';
 
-/**
- * Domain representation of a JSON invoice item
- * Matches the Prisma Invoice.items JSON structure
- */
 interface InvoiceItemData {
   id: string;
   description: string;
@@ -33,14 +17,7 @@ interface InvoiceItemData {
 }
 
 export class InvoiceMapper {
-  /**
-   * Convert Prisma model to domain entity
-   *
-   * The Prisma Invoice stores items as JSON.
-   * This method reconstructs the domain InvoiceItem entities from that JSON.
-   */
-  static toDomain(raw: PrismaInvoice): Invoice {
-    // Parse items from JSON (Prisma stores as JSON or object depending on adapter)
+  static toDomain(raw: PrismaInvoice & { clinicId?: string }): Invoice {
     const itemsData = Array.isArray(raw.items)
       ? (raw.items as unknown as InvoiceItemData[])
       : [];
@@ -48,38 +25,36 @@ export class InvoiceMapper {
     const items = itemsData.map(
       (item) =>
         new InvoiceItem({
-          id: (item as any).id || '',
+          id: item.id || '',
           invoiceId: raw.id,
-          description: (item as any).description || '',
-          quantity: (item as any).quantity || 0,
-          unitPrice: new Money((item as any).unitPrice || 0, 'INR'),
-          taxRate: (item as any).taxRate || 0,
-          discount: (item as any).discount || 0,
+          description: item.description || '',
+          quantity: item.quantity || 0,
+          unitPrice: new Money(item.unitPrice || 0, 'INR'),
+          taxRate: item.taxRate || 0,
+          discount: item.discount || 0,
         }),
     );
 
-    // Create a billing period with createdAt as issue date
-    // and add 30 days for due date (or use updatedAt if available)
     const issueDate = new Date(raw.createdAt);
     const dueDate = new Date(raw.createdAt);
     dueDate.setDate(dueDate.getDate() + 30);
 
     const billingPeriod = new BillingPeriod(issueDate, dueDate);
 
-    // Map the status - Prisma stores it as InvoiceStatus enum
-    const statusValue = raw.status as any;
-    const status = new InvoiceStatus(statusValue);
+    const status = new InvoiceStatus(
+      raw.status as unknown as InvoiceStatusEnum,
+    );
 
     return new Invoice({
       id: raw.id,
       patientId: raw.patientId,
+      clinicId: raw.clinicId,
       appointmentId: raw.appointmentId || undefined,
       status,
       billingPeriod,
       items,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
-      // Store additional fields as domain context
       doctorContext: {
         doctorName: raw.doctorName || undefined,
         doctorEmail: raw.doctorEmail || undefined,
@@ -101,16 +76,9 @@ export class InvoiceMapper {
     });
   }
 
-  /**
-   * Convert domain entity to Prisma persistence format
-   *
-   * Converts domain items list back to JSON for Prisma storage.
-   * Maintains the total as single float (already calculated by domain entity).
-   */
-  static toPersistence(invoice: Invoice): any {
+  static toPersistence(invoice: Invoice): Record<string, unknown> {
     const items = invoice.getItems();
 
-    // Convert domain items to JSON format for storage
     const itemsJson = items.map((item) => ({
       id: item.id,
       description: item.description,
@@ -120,43 +88,33 @@ export class InvoiceMapper {
       discount: item.discount,
     }));
 
-    // Note: Using `any` here because Prisma's strict types make it difficult
-    // to construct valid InvoiceCreateInput/InvoiceUpdateInput objects dynamically
-    // The runtime will validate these against the schema
-    const result: any = {
+    const result: Record<string, unknown> = {
       patientId: invoice.patientId,
       appointmentId: invoice.appointmentId || undefined,
       status: invoice.getStatus().value,
-      items: itemsJson,
+      items: itemsJson as Prisma.InputJsonValue,
       total: invoice.getTotal().amount,
       createdAt: invoice.createdAt,
       updatedAt: new Date(),
       version: invoice.version,
-      // Doctor context
-      doctorName: (invoice as any).doctorContext?.doctorName,
-      doctorEmail: (invoice as any).doctorContext?.doctorEmail,
-      doctorPhone: (invoice as any).doctorContext?.doctorPhone,
-      doctorSpecialization: (invoice as any).doctorContext
-        ?.doctorSpecialization,
-      doctorRole: (invoice as any).doctorContext?.doctorRole,
-      doctorRegistrationNumber: (invoice as any).doctorContext
-        ?.doctorRegistrationNumber,
-      doctorLicenseNumber: (invoice as any).doctorContext?.doctorLicenseNumber,
-      // WhatsApp context
-      approvalStatus: (invoice as any).whatsappContext?.approvalStatus,
-      approvedById: (invoice as any).whatsappContext?.approvedById,
-      approvedAt: (invoice as any).whatsappContext?.approvedAt,
-      whatsappSentAt: (invoice as any).whatsappContext?.whatsappSentAt,
-      whatsappMessageId: (invoice as any).whatsappContext?.whatsappMessageId,
-      whatsappStatus: (invoice as any).whatsappContext?.whatsappStatus,
+      doctorName: invoice.doctorContext?.doctorName,
+      doctorEmail: invoice.doctorContext?.doctorEmail,
+      doctorPhone: invoice.doctorContext?.doctorPhone,
+      doctorSpecialization: invoice.doctorContext?.doctorSpecialization,
+      doctorRole: invoice.doctorContext?.doctorRole,
+      doctorRegistrationNumber: invoice.doctorContext?.doctorRegistrationNumber,
+      doctorLicenseNumber: invoice.doctorContext?.doctorLicenseNumber,
+      approvalStatus: invoice.whatsappContext?.approvalStatus,
+      approvedById: invoice.whatsappContext?.approvedById,
+      approvedAt: invoice.whatsappContext?.approvedAt,
+      whatsappSentAt: invoice.whatsappContext?.whatsappSentAt,
+      whatsappMessageId: invoice.whatsappContext?.whatsappMessageId,
+      whatsappStatus: invoice.whatsappContext?.whatsappStatus,
     };
 
     return result;
   }
 
-  /**
-   * Extract domain ID (used for repository patterns)
-   */
   static getId(invoice: Invoice | PrismaInvoice): string {
     return invoice.id;
   }

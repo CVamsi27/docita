@@ -1,5 +1,5 @@
 import React from "react";
-import { UseFormReturn } from "react-hook-form";
+import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -25,9 +25,7 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Patient } from "@workspace/types";
 
-interface PatientSelectorProps<
-  T extends import("react-hook-form").FieldValues,
-> {
+interface PatientSelectorProps<T extends FieldValues> {
   form: UseFormReturn<T>;
   patients: Patient[];
   patientsLoading: boolean;
@@ -37,9 +35,7 @@ interface PatientSelectorProps<
   setPatientComboboxOpen: (open: boolean) => void;
 }
 
-export function PatientSelector<
-  T extends import("react-hook-form").FieldValues,
->({
+export function PatientSelector<T extends FieldValues>({
   form,
   patients,
   patientsLoading,
@@ -51,7 +47,7 @@ export function PatientSelector<
   return (
     <FormField
       control={form.control}
-      name={"patientId" as unknown as import("react-hook-form").Path<T>}
+      name={"patientId" as Path<T>}
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>Patient</FormLabel>
@@ -110,11 +106,8 @@ export function PatientSelector<
                         onSelect={() => {
                           if (patient.id) {
                             form.setValue(
-                              "patientId" as unknown as import("react-hook-form").Path<T>,
-                              patient.id as import("react-hook-form").PathValue<
-                                T,
-                                import("react-hook-form").Path<T>
-                              >,
+                              "patientId" as Path<T>,
+                              patient.id as PathValue<T, Path<T>>,
                             );
                           }
                           setPatientComboboxOpen(false);

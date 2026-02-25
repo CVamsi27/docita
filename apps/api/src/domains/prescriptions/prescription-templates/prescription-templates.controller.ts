@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   UsePipes,
+  ForbiddenException,
 } from '@nestjs/common';
 import { TierGuard } from '../../../shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
@@ -18,6 +19,7 @@ import {
   Feature,
 } from '../../../shared/modules/auth/auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
+import { RequestWithUser } from '../../../common/types/common.types';
 
 import {
   CreatePrescriptionTemplateDto,
@@ -47,40 +49,45 @@ export class PrescriptionTemplatesController {
 
   @Get()
   @ZodSerializerDto(PrescriptionTemplateListResponseDto)
-  async findAll(@Request() req: AuthRequest) {
-    return this.prescriptionTemplatesService.findAll(req.user.userId);
+  async findAll(@Request() req: RequestWithUser) {
+    if (!req.user?.id) throw new ForbiddenException('User session required');
+    return this.prescriptionTemplatesService.findAll(req.user.id);
   }
 
   @Get(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
-  async findOne(@Request() req: AuthRequest, @Param('id') id: string) {
-    return this.prescriptionTemplatesService.findOne(id, req.user.userId);
+  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
+    if (!req.user?.id) throw new ForbiddenException('User session required');
+    return this.prescriptionTemplatesService.findOne(id, req.user.id);
   }
 
   @Post()
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionTemplateSchema))
   async create(
-    @Request() req: AuthRequest,
+    @Request() req: RequestWithUser,
     @Body() dto: CreatePrescriptionTemplateDto,
   ) {
-    return this.prescriptionTemplatesService.create(req.user.userId, dto);
+    if (!req.user?.id) throw new ForbiddenException('User session required');
+    return this.prescriptionTemplatesService.create(req.user.id, dto);
   }
 
   @Put(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
   @UsePipes(new ZodValidationPipe(UpdatePrescriptionTemplateSchema))
   async update(
-    @Request() req: AuthRequest,
+    @Request() req: RequestWithUser,
     @Param('id') id: string,
     @Body() dto: UpdatePrescriptionTemplateDto,
   ) {
-    return this.prescriptionTemplatesService.update(id, dto, req.user.userId);
+    if (!req.user?.id) throw new ForbiddenException('User session required');
+    return this.prescriptionTemplatesService.update(id, dto, req.user.id);
   }
 
   @Delete(':id')
   @ZodSerializerDto(PrescriptionTemplateResponseDto)
-  async remove(@Request() req: AuthRequest, @Param('id') id: string) {
-    return this.prescriptionTemplatesService.remove(id, req.user.userId);
+  async remove(@Request() req: RequestWithUser, @Param('id') id: string) {
+    if (!req.user?.id) throw new ForbiddenException('User session required');
+    return this.prescriptionTemplatesService.remove(id, req.user.id);
   }
 }

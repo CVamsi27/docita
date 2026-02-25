@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { IpRateLimitService } from '../../../../common/services/ip-rate-limit.service';
+import { IpRateLimitService } from '../../services/ip-rate-limit.service';
 
 /**
  * Guard for IP-based rate limiting

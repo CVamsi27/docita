@@ -45,7 +45,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setLoading(true);
       setError(null);
 
-      // Fetch all data in parallel
       const [patientData, appointmentsData, documentsData, statisticsData] =
         await Promise.all([
           apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
@@ -54,7 +53,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
           apiFetch<PatientStatistics>(`/patients/${patientId}/statistics`),
         ]);
 
-      // Set patient
       if (
         patientData &&
         !("error" in patientData) &&
@@ -67,7 +65,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setError("Failed to load patient details");
       }
 
-      // Set appointments
       if (Array.isArray(appointmentsData)) {
         const uniqueAppointments = Array.from(
           new Map(appointmentsData.map((item) => [item.id, item])).values(),
@@ -78,7 +75,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setAppointments([]);
       }
 
-      // Set documents
       if (Array.isArray(documentsData)) {
         setDocuments(documentsData);
       } else {
@@ -86,7 +82,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setDocuments([]);
       }
 
-      // Set statistics
       if (
         statisticsData &&
         typeof statisticsData === "object" &&
@@ -120,7 +115,6 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
     }
   }, [patientId]);
 
-  // Use useSyncExternalStore to trigger fetch when patientId changes
   useSyncExternalStore(
     useCallback(() => {
       if (patientId && hasFetchedRef.current !== patientId) {

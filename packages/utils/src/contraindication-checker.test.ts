@@ -4,7 +4,7 @@ import {
   checkConditionContraindications,
   checkDrugDrugContraindications,
   checkMedicationContraindications,
-} from "./contraindication-checker";
+} from "./medical/contraindication-checker.js";
 import type { Allergy, PatientCondition } from "@workspace/types";
 
 describe("Contraindication Checker", () => {
@@ -98,8 +98,8 @@ describe("Contraindication Checker", () => {
         patientData,
       );
       expect(results.length).toBeGreaterThan(0);
-      expect(results.some((r) => r.reason === "condition")).toBe(true);
-      expect(results.some((r) => r.reason === "pregnancy")).toBe(true);
+      expect(results.some((r: any) => r.reason === "condition")).toBe(true);
+      expect(results.some((r: any) => r.reason === "pregnancy")).toBe(true);
     });
   });
 });

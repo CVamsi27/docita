@@ -45,16 +45,13 @@ export function useVitalsForm({
     notes: "",
   });
 
-  // Populate form with existing vital signs if available
   useEffect(() => {
     if (appointment?.vitalSign) {
       const vitals = appointment.vitalSign;
 
-      // Handle legacy BP vs structured BP
       let sys = vitals.systolicBP?.toString() || "";
       let dia = vitals.diastolicBP?.toString() || "";
 
-      // Fallback to parsing legacy string if structured is empty
       if ((!sys || !dia) && vitals.bloodPressure) {
         const parts = vitals.bloodPressure.split("/");
         if (parts.length === 2) {
@@ -94,7 +91,6 @@ export function useVitalsForm({
         ? parseInt(formData.diastolicBP)
         : undefined;
 
-      // Construct legacy string for backward compatibility
       let legacyBP: string | undefined = undefined;
       if (systolic && diastolic) {
         legacyBP = `${systolic}/${diastolic}`;
@@ -105,7 +101,7 @@ export function useVitalsForm({
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         systolicBP: systolic,
         diastolicBP: diastolic,
-        bloodPressure: legacyBP, // Keep synchronized
+        bloodPressure: legacyBP,
         pulse: formData.pulse ? parseInt(formData.pulse) : undefined,
         respiratoryRate: formData.respiratoryRate
           ? parseInt(formData.respiratoryRate)
@@ -113,7 +109,7 @@ export function useVitalsForm({
         temperature: formData.temperature
           ? parseFloat(formData.temperature)
           : undefined,
-        spo2: formData.spo2 ? parseInt(formData.spo2) : undefined, // Changed to Int based on schema
+        spo2: formData.spo2 ? parseInt(formData.spo2) : undefined,
         painScore: formData.painScore
           ? parseInt(formData.painScore)
           : undefined,
@@ -123,13 +119,11 @@ export function useVitalsForm({
         notes: formData.notes || undefined,
       });
 
-      // Invalidate queries to refresh all appointment views
       await queryClient.invalidateQueries({
         queryKey: ["appointments"],
         refetchType: "active",
       });
 
-      // Also invalidate patient queries
       await queryClient.invalidateQueries({
         queryKey: ["patients"],
         refetchType: "active",

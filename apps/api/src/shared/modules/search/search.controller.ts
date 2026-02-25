@@ -50,7 +50,7 @@ export class SearchController {
       : ['all' as SearchEntityType];
 
     return this.searchService.search({
-      clinicId: req.user.clinicId!,
+      clinicId: req.user.clinicId,
       query,
       types: searchTypes,
       limit: limit ? parseInt(limit, 10) : 20,

@@ -1,4 +1,3 @@
-export * from "./config";
-export * from "./config-options";
-export * from "./config-schema";
-export * from "./config-types";
+export * from "./config-options.js";
+export * from "./config-schema.js";
+export * from "./config-types.js";

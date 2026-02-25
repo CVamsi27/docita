@@ -1,8 +1,5 @@
 import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
-// NOTE: The imports controller is @Controller('imports') — all paths use /imports/ (plural).
-// /import/* (singular) paths do NOT exist in the backend.
-
 export const useProcessOCR = () =>
   useAPIMutation<
     {
@@ -39,7 +36,6 @@ export const useProcessOCR = () =>
         fieldConfidence?: Record<string, number>;
       };
       suggestedCorrections?: Record<string, string>;
-      // Legacy response format support
       firstName?: string;
       lastName?: string;
       age?: string;
@@ -55,7 +51,7 @@ export const useBulkImportTemplate = (entityType: string) =>
   useAPIQuery<{ template: string; format: string }>(
     ["import-template", entityType],
     `/imports/template?entityType=${entityType}`,
-    { staleTime: 1000 * 60 * 60 }, // Cache for 1 hour
+    { staleTime: 1000 * 60 * 60 },
   );
 
 export const useBulkImport = () =>

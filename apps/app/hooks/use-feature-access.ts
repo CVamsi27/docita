@@ -1,8 +1,3 @@
-/**
- * React Hook for Feature Access Control
- * Clean interface for accessing the SOLID-based access control system
- */
-
 "use client";
 
 import { useCallback, useMemo } from "react";
@@ -17,24 +12,16 @@ import {
 } from "../lib/access-control/interfaces";
 import { usePermissionStore } from "../lib/stores/permission-store";
 import { useAuth } from "../lib/auth-context";
-import { useClinic } from "../lib/clinic-context"; // NEW
+import { useClinic } from "../lib/clinic-context";
 import type { Permission } from "../lib/permissions";
 
-/**
- * Hook for feature access control
- * Provides a clean, React-friendly interface to the access control system
- */
 export function useFeatureAccess() {
-  // Get subscription data from permission store (temporary during migration)
   const { currentTier, hasIntelligence } = usePermissionStore();
 
-  // Get user role from auth context
   const { user } = useAuth();
 
-  // Get clinic type from clinic context
-  const { clinic } = useClinic(); // NEW
+  const { clinic } = useClinic();
 
-  // Create access control service instance (memoized)
   const accessService = useMemo(
     () =>
       AccessControlFactory.create({
@@ -44,27 +31,19 @@ export function useFeatureAccess() {
     [],
   );
 
-  /**
-   * Check if user can access a feature (synchronous)
-   * @param feature - The feature to check
-   * @param requiredPermission - Optional permission required for this feature
-   */
   const canAccess = useCallback(
     (feature: Feature | string, requiredPermission?: Permission): boolean => {
-      // Build access context
       const context: IAccessContext = {
         feature,
         userId: user?.id || "current-user",
         subscription: {
           tier: currentTier,
-          // NOTE: Subscription status is not yet available in store. Defaulting to active.
           status: "active",
           features: [],
           startDate: new Date(),
           billingCycle: "monthly",
         },
         addOns: [
-          // NOTE: Detailed add-ons not yet in store. Inferring from flags.
           ...(hasIntelligence
             ? [
                 {
@@ -81,17 +60,14 @@ export function useFeatureAccess() {
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
         requiredPermission,
-        clinicType: (clinic?.type as ClinicType) || undefined, // NEW: Include clinic type
+        clinicType: (clinic?.type as ClinicType) || undefined,
       };
 
       return accessService.canAccessSync(context).granted;
     },
-    [currentTier, hasIntelligence, accessService, user, clinic], // Added clinic
+    [currentTier, hasIntelligence, accessService, user, clinic],
   );
 
-  /**
-   * Check if user can access a feature (async with fresh data)
-   */
   const canAccessAsync = useCallback(
     async (feature: Feature | string): Promise<boolean> => {
       const context: IAccessContext = {
@@ -107,18 +83,15 @@ export function useFeatureAccess() {
         addOns: [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined, // NEW
+        clinicType: (clinic?.type as ClinicType) || undefined,
       };
 
       const decision = await accessService.canAccess(context);
       return decision.granted;
     },
-    [currentTier, accessService, user, clinic], // Added clinic
+    [currentTier, accessService, user, clinic],
   );
 
-  /**
-   * Get denial reason for a feature
-   */
   const getReason = useCallback(
     (feature: Feature | string): string => {
       const context: IAccessContext = {
@@ -145,7 +118,7 @@ export function useFeatureAccess() {
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined, // NEW
+        clinicType: (clinic?.type as ClinicType) || undefined,
       };
 
       return accessService.getReason(context);
@@ -187,12 +160,9 @@ export function useFeatureAccess() {
 
       return accessService.getUpgradeOptions(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic], // Added clinic
+    [currentTier, hasIntelligence, accessService, user, clinic],
   );
 
-  /**
-   * Get full access decision (useful for debugging)
-   */
   const getDecision = useCallback(
     (feature: Feature | string): IAccessDecision => {
       const context: IAccessContext = {
@@ -219,12 +189,12 @@ export function useFeatureAccess() {
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined, // NEW
+        clinicType: (clinic?.type as ClinicType) || undefined,
       };
 
       return accessService.canAccessSync(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic], // Added clinic
+    [currentTier, hasIntelligence, accessService, user, clinic],
   );
 
   return {

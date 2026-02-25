@@ -1,84 +1,104 @@
 import { z } from 'zod';
 
-/**
- * Environment variable validation schema.
- * Validates all required and optional env vars at startup.
- * Uses Zod for type-safe validation with clear error messages.
- */
 export const EnvSchema = z.object({
-  // Required - App will not start without these
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  JWT_SECRET: z
-    .string()
-    .min(1, 'JWT_SECRET is required')
-    .refine((val) => {
-      const isProd = process.env.NODE_ENV === 'production';
-      if (isProd && val.length < 32) return false;
-      return true;
-    }, 'JWT_SECRET must be at least 32 characters in production'),
-  ENCRYPTION_KEY: z
-    .string()
-    .min(1, 'ENCRYPTION_KEY is required')
-    .length(64, 'ENCRYPTION_KEY must be exactly 64 hex characters (256-bit)')
-    .regex(/^[0-9a-fA-F]+$/, 'ENCRYPTION_KEY must be a valid hex string'),
-
-  // Optional with defaults
+  DATABASE_URL: z.string().min(1),
+  DATABASE_READ_URL: z.string().optional(),
+  JWT_SECRET: z.string().min(1),
+  ENCRYPTION_KEY: z.string().length(64),
   NODE_ENV: z
-    .enum(['development', 'staging', 'production'])
+    .enum(['development', 'staging', 'production', 'test'])
     .default('development'),
   PORT: z.coerce.number().default(3001),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-
-  // Optional - Features gracefully degrade if not set
   APP_URL: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
+  NEXT_PUBLIC_API_URL: z.string().optional(),
   CORS_ORIGINS: z.string().optional(),
-
-  // Payment (Razorpay)
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
-
-  // WhatsApp (Meta)
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
   META_ACCESS_TOKEN: z.string().optional(),
   META_PHONE_NUMBER_ID: z.string().optional(),
   META_APP_SECRET: z.string().optional(),
   META_VERIFY_TOKEN: z.string().optional(),
-
-  // AI
+  WHATSAPP_PRODUCTION_MODE: z.coerce.boolean().default(false),
   AI_API_KEY: z.string().optional(),
-
-  // Google Cloud (OCR)
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('Docita <noreply@docita.work>'),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_CREDENTIALS_JSON: z.string().optional(),
-
-  // OCR Thresholds
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.75),
   OCR_MEDICAL_FIELD_THRESHOLD: z.coerce.number().min(0).max(1).default(0.8),
   OCR_CONTACT_FIELD_THRESHOLD: z.coerce.number().min(0).max(1).default(0.65),
-
-  // Redis
   REDIS_URL: z.string().optional(),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_USERNAME: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
+  SENTRY_PROFILES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
+  APP_VERSION: z.string().default('1.0.0'),
+  ANALYTICS_CACHE_TTL: z.coerce.number().default(300),
+  CLINIC_NAME: z.string().default('Docita Clinic'),
+  CLINIC_ADDRESS: z.string().optional(),
+  CLINIC_PHONE: z.string().optional(),
+  CLINIC_EMAIL: z.string().optional(),
+  CLINIC_WEBSITE: z.string().optional(),
+  CLINIC_GSTIN: z.string().optional(),
+  PAYMENT_TTL: z.coerce.number().default(3600),
+  PAYMENT_LINK_TTL_MINUTES: z.coerce.number().default(15),
+  PAYMENT_RETRY_MAX_ATTEMPTS: z.coerce.number().default(3),
+  PAYMENT_RETRY_BACKOFF_MULTIPLIER: z.coerce.number().default(24),
+  QUEUE_PROVIDER: z.enum(['bull', 'memory']).default('memory'),
+  CACHE_PROVIDER: z.enum(['redis', 'memory']).default('memory'),
+  BULK_IMPORT_MAX_FILE_SIZE: z.coerce.number().default(52428800),
+  BULK_IMPORT_MAX_ROWS: z.coerce.number().default(100000),
+  BULK_IMPORT_RATE_LIMIT_INTERVAL: z.coerce.number().default(300),
+  SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
 
+export function isDevelopment(): boolean {
+  return (process.env.NODE_ENV || 'development') === 'development';
+}
+
+export function getCorsOrigins(): (string | RegExp)[] {
+  const envOrigins = process.env.CORS_ORIGINS;
+  if (envOrigins) {
+    return envOrigins.split(',').map((origin) => origin.trim());
+  }
+
+  return [
+    'https://landing.docita.work',
+    'https://app.docita.work',
+    'https://admin.docita.work',
+    /^https:\/\/.*\.vercel\.app$/,
+    'http://localhost:3003',
+    'http://localhost:3000',
+    'http://localhost:3002',
+    'http://127.0.0.1:3003',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3002',
+  ];
+}
+
+export function getWebSocketCorsOrigins(): (string | RegExp)[] {
+  return getCorsOrigins();
+}
+
 let validatedEnv: EnvConfig | null = null;
 
-/**
- * Validates environment variables at startup.
- * Call this before starting the application.
- * Exits with code 1 if validation fails.
- */
 export function validateEnv(): EnvConfig {
   if (validatedEnv) return validatedEnv;
 
   const result = EnvSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error('\n❌ Environment configuration validation failed:\n');
+    console.error('\n Environment configuration validation failed:\n');
     const formatted = result.error.format();
 
-    // Print each error in a readable format
     Object.entries(formatted).forEach(([key, value]) => {
       if (
         key !== '_errors' &&
@@ -92,133 +112,16 @@ export function validateEnv(): EnvConfig {
       }
     });
 
-    console.error(
-      '\nPlease check your .env file and ensure all required variables are set.',
-    );
-    console.error('See .env.example for a template.\n');
     process.exit(1);
   }
 
   validatedEnv = result.data;
-  return validatedEnv;
+  return result.data;
 }
 
-/**
- * Gets a validated environment variable.
- * Must call validateEnv() first.
- */
 export function getEnv(): EnvConfig {
   if (!validatedEnv) {
-    throw new Error(
-      'Environment not validated. Call validateEnv() before accessing env vars.',
-    );
+    return validateEnv();
   }
   return validatedEnv;
 }
-
-export function getCorsOrigins(): (string | RegExp)[] {
-  const envOrigins = process.env.CORS_ORIGINS;
-  if (envOrigins) {
-    return envOrigins.split(',').map((origin) => origin.trim());
-  }
-
-  return [
-    // Production domains (Vercel)
-    'https://landing.docita.work',
-    'https://app.docita.work',
-    'https://admin.docita.work',
-    // Vercel preview deployments (*.vercel.app)
-    /^https:\/\/.*\.vercel\.app$/,
-    // Local dev
-    'http://localhost:3003', // landing dev
-    'http://localhost:3000', // app dev
-    'http://localhost:3002', // admin dev
-    'http://127.0.0.1:3003',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3002',
-  ];
-}
-export function getWebSocketCorsOrigins(): (string | RegExp)[] {
-  return getCorsOrigins();
-}
-export function getAppUrl(): string {
-  return process.env.APP_URL || 'http://localhost:3000';
-}
-export function getPaymentCallbackUrl(): string {
-  return `${getAppUrl()}/api/payment/callback`;
-}
-export function getFrontendAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
-export function getEnvironment(): 'development' | 'staging' | 'production' {
-  const env = process.env.NODE_ENV || 'development';
-  if (env === 'production') return 'production';
-  if (env === 'staging') return 'staging';
-  return 'development';
-}
-export function isProduction(): boolean {
-  return getEnvironment() === 'production';
-}
-export function isDevelopment(): boolean {
-  return getEnvironment() === 'development';
-}
-export const CONFIG = {
-  APP_URL: getAppUrl(),
-  FRONTEND_APP_URL: getFrontendAppUrl(),
-  ENVIRONMENT: getEnvironment(),
-
-  // CORS
-  CORS_ORIGINS: getCorsOrigins(),
-  CORS_CREDENTIALS: true,
-  CORS_METHODS: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  CORS_ALLOWED_HEADERS: [
-    'Content-Type',
-    'Authorization',
-    'Accept',
-    'Origin',
-    'X-Requested-With',
-    'Cache-Control',
-  ],
-
-  // Payment
-  PAYMENT_CALLBACK_URL: getPaymentCallbackUrl(),
-
-  // Timeouts
-  REQUEST_TIMEOUT: 30000, // 30 seconds
-
-  // Logging
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
-
-  // Rate limiting
-  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-  RATE_LIMIT_MAX_REQUESTS: 100,
-
-  // OCR Configuration
-  OCR_CONFIDENCE_THRESHOLD: parseFloat(
-    process.env.OCR_CONFIDENCE_THRESHOLD || '0.75',
-  ),
-  OCR_MEDICAL_FIELD_THRESHOLD: parseFloat(
-    process.env.OCR_MEDICAL_FIELD_THRESHOLD || '0.8',
-  ),
-  OCR_CONTACT_FIELD_THRESHOLD: parseFloat(
-    process.env.OCR_CONTACT_FIELD_THRESHOLD || '0.65',
-  ),
-
-  // Google Cloud Vision
-  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
-  GOOGLE_CLOUD_CREDENTIALS_JSON: process.env.GOOGLE_CLOUD_CREDENTIALS_JSON,
-} as const;
-
-export default {
-  getCorsOrigins,
-  getWebSocketCorsOrigins,
-  getAppUrl,
-  getPaymentCallbackUrl,
-  getFrontendAppUrl,
-  getEnvironment,
-  isProduction,
-  isDevelopment,
-  validateEnv,
-  getEnv,
-  CONFIG,
-};

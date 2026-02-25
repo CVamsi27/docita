@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LineItem, type Specialization } from "@workspace/types";
-import { apiFetch } from "@/lib/api-client";
-import { useAppConfig } from "@/lib/app-config-context";
+import { fetchAPI } from "@/lib/api-core";
 import { useQueryClient } from "@tanstack/react-query";
 
 const SPECIALTY_CONSULTATION_FEES: Record<Specialization, number> = {
@@ -39,7 +38,6 @@ interface UseInvoiceFormProps {
   appointmentId?: string;
   patientId: string;
   doctorSpecialization?: Specialization;
-  // Doctor context for audit trail (Phase 5)
   doctorName?: string;
   doctorEmail?: string;
   doctorPhone?: string;
@@ -62,16 +60,12 @@ export function useInvoiceForm({
   onInvoiceCreated,
 }: UseInvoiceFormProps) {
   const queryClient = useQueryClient();
-  const { config } = useAppConfig();
-  const defaultItems = config.defaults.invoiceItems;
 
-  // Generate specialty-based default consultation fee (Phase 4)
-  // Memoize to prevent creating new array on every render
   const initialItems = useMemo(() => {
     const basePrice =
       doctorSpecialization && SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
         ? SPECIALTY_CONSULTATION_FEES[doctorSpecialization]
-        : defaultItems[0]?.price || 800;
+        : 800;
 
     return [
       {
@@ -80,18 +74,16 @@ export function useInvoiceForm({
         price: basePrice,
       },
     ];
-  }, [doctorSpecialization, defaultItems]);
+  }, [doctorSpecialization]);
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("pending");
 
-  // Track which defaultItems version we've initialized with
   const lastDefaultItemsRef = useRef(initialItems);
   const [items, setItems] = useState<LineItem[]>(() =>
     initialItems.map((item) => ({ ...item })),
   );
 
-  // Sync items when defaultItems change using useEffect
   useEffect(() => {
     if (
       initialItems !== lastDefaultItemsRef.current &&
@@ -122,7 +114,7 @@ export function useInvoiceForm({
   ) => {
     const updated = [...items];
     if (updated[index]) {
-      updated[index][field] = value as never;
+      updated[index] = { ...updated[index], [field]: value } as LineItem;
       setItems(updated);
     }
   };
@@ -140,7 +132,7 @@ export function useInvoiceForm({
     setLoading(true);
 
     try {
-      await apiFetch(`/invoices`, {
+      await fetchAPI(`/invoices`, {
         method: "POST",
         body: JSON.stringify({
           appointmentId,
@@ -148,7 +140,6 @@ export function useInvoiceForm({
           total: calculateTotal(),
           status,
           items: items.filter((item) => item.description.trim() !== ""),
-          // Include doctor context for audit trail (Phase 5)
           doctorName,
           doctorEmail,
           doctorPhone,
@@ -159,14 +150,12 @@ export function useInvoiceForm({
         }),
       });
 
-      // Invalidate queries to refresh all appointment views
       if (appointmentId) {
         await queryClient.invalidateQueries({
           queryKey: ["appointments"],
           refetchType: "active",
         });
 
-        // Also invalidate patient queries
         await queryClient.invalidateQueries({
           queryKey: ["patients"],
           refetchType: "active",
@@ -182,7 +171,7 @@ export function useInvoiceForm({
         await onSuccess();
       }
       toast.success("Invoice created successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to create invoice:", error);
       toast.error("Failed to create invoice");
     } finally {

@@ -11,7 +11,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import {
   ClinicTier,
   SubscriptionStatus,

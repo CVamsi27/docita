@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RequestLogService } from './request-log.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../../../prisma/prisma.service';
 import { MonitoringFactory } from '../factories/monitoring.factory';
 import { ApiRequestInput } from '../schemas/monitoring.schema';
 

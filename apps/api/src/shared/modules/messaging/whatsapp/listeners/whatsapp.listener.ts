@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WhatsappService } from '../whatsapp.service';
-import { PrescriptionCreatedEvent } from '../../../../../domains/prescriptions/events/prescription-created.event';
-import { InvoiceGeneratedEvent } from '../../../../../domains/invoices/events/invoice-generated.event';
-import { AppointmentCreatedEvent } from '../../../../../domains/appointments/events/appointment-created.event';
-import { AppointmentUpdatedEvent } from '../../../../../domains/appointments/events/appointment-updated.event';
+import { PrescriptionCreatedEvent } from '../../../../../domains/prescriptions/core/events/prescription-created.event';
+import { InvoiceGeneratedEvent } from '../../../../../domains/billing/application/services/events/invoice-generated.event';
+import { AppointmentCreatedEvent } from '../../../../../domains/appointments/application/events/appointment-created.event';
+import { AppointmentUpdatedEvent } from '../../../../../domains/appointments/application/events/appointment-updated.event';
 
 @Injectable()
 export class WhatsappEventListener {
@@ -98,9 +98,9 @@ export class WhatsappEventListener {
     // Check for rescheduling (start time changed)
     if (
       event.oldStartTime &&
-      event.appointment.startTime &&
+      event.appointment.getStartTime() &&
       new Date(event.oldStartTime).getTime() !==
-        new Date(event.appointment.startTime).getTime()
+        new Date(event.appointment.getStartTime()).getTime()
     ) {
       this.logger.log(
         `Appointment rescheduled event received for ${event.appointmentId}`,

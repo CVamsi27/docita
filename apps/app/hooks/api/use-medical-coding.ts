@@ -56,12 +56,12 @@ export const useSearchIcdCodes = (search: string) =>
   useAPIQuery<IcdCode[]>(
     ["icd-codes", search],
     `/medical-coding/icd-codes?search=${encodeURIComponent(search || "")}`,
-    { enabled: true }, // Always enabled - backend returns common codes for short queries
+    { enabled: true },
   );
 
 export const useSearchCptCodes = (search: string) =>
   useAPIQuery<CptCode[]>(
     ["cpt-codes", search],
     `/medical-coding/cpt-codes?search=${encodeURIComponent(search || "")}`,
-    { enabled: true }, // Always enabled - backend returns common codes for short queries
+    { enabled: true },
   );

@@ -7,11 +7,8 @@ import {
   EMAIL_PROVIDER,
 } from './providers/email-provider.interface';
 import { escapeHtml } from '@workspace/utils';
+import { AppConfigService } from '../../config/app-configuration.service';
 
-/**
- * Email service that abstracts email delivery through configurable providers.
- * Supports templated emails for common use cases.
- */
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -19,11 +16,9 @@ export class EmailService {
   constructor(
     @Inject(EMAIL_PROVIDER)
     private readonly emailProvider: IEmailProvider,
+    private configService: AppConfigService,
   ) {}
 
-  /**
-   * Send a registration welcome email.
-   */
   async sendWelcomeEmail(
     email: string,
     name: string,
@@ -40,7 +35,7 @@ export class EmailService {
         <p>Your clinic <strong>${safeClinicName}</strong> has been successfully registered on Docita.</p>
         <p>You can now start managing your practice efficiently.</p>
         <p>
-          <a href="${process.env.APP_URL || 'https://app.docita.work'}" 
+          <a href="${this.configService.getAppUrl()}" 
              style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
             Get Started
           </a>
@@ -49,14 +44,11 @@ export class EmailService {
     });
   }
 
-  /**
-   * Send a password reset email.
-   */
   async sendPasswordResetEmail(
     email: string,
     resetToken: string,
   ): Promise<EmailSendResult> {
-    const resetUrl = `${process.env.APP_URL || 'https://app.docita.work'}/reset-password?token=${resetToken}`;
+    const resetUrl = `${this.configService.getAppUrl()}/reset-password?token=${resetToken}`;
 
     return this.emailProvider.send({
       to: email,
@@ -75,9 +67,6 @@ export class EmailService {
     });
   }
 
-  /**
-   * Send an appointment reminder email.
-   */
   async sendAppointmentReminder(
     email: string,
     patientName: string,
@@ -115,28 +104,22 @@ export class EmailService {
     });
   }
 
-  /**
-   * Send a generic email.
-   */
   async send(options: EmailOptions): Promise<EmailSendResult> {
     return this.emailProvider.send(options);
   }
 
-  /**
-   * Send a templated email.
-   */
   async sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
     return this.emailProvider.sendTemplate(options);
   }
 
-  /**
-   * Verify email provider is configured.
-   */
   async verifyProvider(): Promise<boolean> {
     try {
       return await this.emailProvider.verify();
     } catch (error) {
-      this.logger.error('Email provider verification failed', error);
+      this.logger.error(
+        'Email provider verification failed',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       return false;
     }
   }

@@ -5,15 +5,8 @@ import {
   TemplatedEmailOptions,
   EmailSendResult,
 } from './email-provider.interface';
+import { AppConfigService } from '../../../config/app-configuration.service';
 
-/**
- * Resend email provider for production use.
- * https://resend.com - Modern email API
- *
- * Required environment variable:
- * - RESEND_API_KEY: Your Resend API key
- * - EMAIL_FROM: Default sender address (e.g., "Docita <noreply@docita.work>")
- */
 @Injectable()
 export class ResendEmailProvider implements IEmailProvider {
   private readonly logger = new Logger(ResendEmailProvider.name);
@@ -21,9 +14,9 @@ export class ResendEmailProvider implements IEmailProvider {
   private readonly defaultFrom: string;
   private readonly apiUrl = 'https://api.resend.com/emails';
 
-  constructor() {
-    this.apiKey = process.env.RESEND_API_KEY || '';
-    this.defaultFrom = process.env.EMAIL_FROM || 'Docita <noreply@docita.work>';
+  constructor(private configService: AppConfigService) {
+    this.apiKey = this.configService.getResendApiKey();
+    this.defaultFrom = this.configService.getEmailFrom();
 
     if (!this.apiKey) {
       this.logger.warn('RESEND_API_KEY not configured - emails will fail');
@@ -85,8 +78,6 @@ export class ResendEmailProvider implements IEmailProvider {
   }
 
   sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
-    // Resend doesn't have built-in templates, so we'd need to render them
-    // For now, return an error - templates should be pre-rendered
     this.logger.warn(
       'Resend template sending not implemented - use pre-rendered HTML',
     );
@@ -103,7 +94,6 @@ export class ResendEmailProvider implements IEmailProvider {
     }
 
     try {
-      // Verify API key by checking domains
       const response = await fetch('https://api.resend.com/domains', {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
@@ -118,7 +108,10 @@ export class ResendEmailProvider implements IEmailProvider {
       this.logger.error('Resend API verification failed:', response.status);
       return false;
     } catch (error) {
-      this.logger.error('Resend verification error:', error);
+      this.logger.error(
+        'Resend verification error:',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       return false;
     }
   }

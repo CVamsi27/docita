@@ -1,108 +1,109 @@
-/**
- * Invoices Controller
- * Presentation layer - handles HTTP requests and responses
- * Delegates to use cases for business logic
- */
-
 import {
   Controller,
-  Post,
   Get,
-  Patch,
-  Delete,
+  Post,
   Body,
+  Patch,
   Param,
-  BadRequestException,
-  NotFoundException,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+  Res,
 } from '@nestjs/common';
-import { CreateInvoiceUseCase } from '../../application/use-cases/create-invoice.use-case';
-import { CalculateInvoiceTotalUseCase } from '../../application/use-cases/calculate-invoice-total.use-case';
-import { UpdateInvoiceStatusUseCase } from '../../application/use-cases/update-invoice-status.use-case';
+import { InvoicesService } from '../../application/services/invoices.service';
+import type { Response } from 'express';
+import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
 import {
-  CreateInvoiceDtoSchema,
-  InvoiceResponseDtoSchema,
-  type CreateInvoiceDto,
-} from '../../application/dto/invoice.dto';
-import { InvoiceStatusEnum } from '../../core/value-objects';
+  RequireFeature,
+  Feature,
+} from '../../../../shared/modules/auth/auth/tier.decorator';
+import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+import { Role, InvoiceStatus } from '@workspace/db';
+
+import {
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+  InvoiceResponseDto,
+  PaginatedInvoiceResponseDto,
+} from '../../application/dto/invoices.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
+
+interface AuthRequest {
+  user: {
+    clinicId: string;
+  };
+}
 
 @Controller('invoices')
+@UseGuards(TierGuard)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class InvoicesController {
-  constructor(
-    private createInvoiceUseCase: CreateInvoiceUseCase,
-    private calculateTotalUseCase: CalculateInvoiceTotalUseCase,
-    private updateStatusUseCase: UpdateInvoiceStatusUseCase,
-  ) {}
+  constructor(private readonly invoicesService: InvoicesService) {}
 
-  @Post()
-  async create(@Body() dto: CreateInvoiceDto) {
-    // Validate using Zod schema
-    const validated = CreateInvoiceDtoSchema.safeParse(dto);
-    if (!validated.success) {
-      throw new BadRequestException({
-        message: 'Invalid invoice data',
-        errors: validated.error.errors,
-      });
-    }
-
-    // Delegate to use case
-    const result = await this.createInvoiceUseCase.execute(validated.data);
-    return result;
+  @Get()
+  @ZodSerializerDto(PaginatedInvoiceResponseDto)
+  findAll(
+    @Request() req: AuthRequest,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('patientId') patientId?: string,
+    @Query('status') status?: InvoiceStatus,
+    @Query('date') date?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.invoicesService.findAll(req.user.clinicId, {
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      patientId,
+      status,
+      date,
+      search,
+    });
   }
 
   @Get(':id')
-  getInvoice(@Param('id') id: string) {
-    // This would use GetInvoiceUseCase in a real app
-    return {
-      message: 'Get invoice - not implemented in example',
-      invoiceId: id,
-    };
+  @ZodSerializerDto(InvoiceResponseDto)
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.findOne(id, req.user.clinicId);
   }
 
-  @Get(':id/total')
-  async getTotal(@Param('id') id: string) {
-    try {
-      const result = await this.calculateTotalUseCase.execute(id);
-      return result;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException((error as Error).message);
-    }
+  @Post()
+  @RequireFeature(Feature.INVOICING)
+  @ZodSerializerDto(InvoiceResponseDto)
+  create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
+    return this.invoicesService.create({
+      ...dto,
+      clinicId: req.user.clinicId,
+    });
   }
 
-  @Patch(':id/status')
-  async updateStatus(
+  @Patch(':id')
+  @RequireFeature(Feature.INVOICING)
+  @ZodSerializerDto(InvoiceResponseDto)
+  update(
+    @Request() req: AuthRequest,
     @Param('id') id: string,
-    @Body('status') status: InvoiceStatusEnum,
+    @Body() dto: UpdateInvoiceDto,
   ) {
-    if (!Object.values(InvoiceStatusEnum).includes(status)) {
-      throw new BadRequestException(`Invalid status: ${status}`);
-    }
-
-    try {
-      await this.updateStatusUseCase.execute({
-        invoiceId: id,
-        targetStatus: status,
-      });
-      return { message: `Invoice status updated to ${status}` };
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException((error as Error).message);
-    }
+    return this.invoicesService.update(id, dto, req.user.clinicId);
   }
 
-  @Delete(':id')
-  delete(@Param('id') id: string) {
-    // This would use a DeleteInvoiceUseCase in a real app
-    return {
-      message: 'Delete invoice - not implemented in example',
-      invoiceId: id,
-    };
+  @Get(':id/pdf')
+  async generatePDF(
+    @Request() req: AuthRequest,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.invoicesService.generatePDF(
+      id,
+      req.user.clinicId,
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=invoice-${id}.pdf`,
+    );
+    res.send(pdfBuffer);
   }
 }

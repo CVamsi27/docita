@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -41,7 +41,6 @@ interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
   patientId?: string;
   doctorId?: string;
-  // Make appointmentData optional but strongly recommended for functionality
   appointmentData?: ConsultationAppointmentData;
   defaultTab?: string;
   onSave?: (data: ConsultationSaveData) => Promise<void>;
@@ -50,19 +49,20 @@ interface ClinicalDocumentationDynamicProps {
   clinicType?: string;
 }
 
-// Extended interface for appointment data that might include legacy or specialty fields
 interface ConsultationAppointmentData extends Partial<Appointment> {
   chiefComplaintStructured?: ChiefComplaintItem[];
   growthData?: GrowthChartData;
   dentalChart?: DentalChartValue;
   ophthalmologyExam?: OphthalmologyExamData;
-  [key: string]: unknown;
+  generalExamination?: Record<string, unknown>;
+  systemicExamination?: Record<string, unknown>;
+  treatmentPlan?: string;
 }
 
 interface ConsultationSaveData {
   chiefComplaint: string;
   chiefComplaintStructured: ChiefComplaintItem[];
-  historyOfPresentIllness: unknown;
+  historyOfPresentIllness: string | null;
   generalExamination: ExaminationData;
   finalDiagnosis: string;
   treatmentPlan: string;
@@ -83,16 +83,15 @@ export const ClinicalDocumentationDynamic: FC<
   onToggleFocus,
   clinicType = "GENERAL",
 }) => {
-  const [activeTab, setActiveTab] = React.useState(defaultTab);
-  const [viewMode, setViewMode] = React.useState<"tabs" | "scroll">("tabs");
-  const [isSaving, setIsSaving] = React.useState(false);
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [viewMode, setViewMode] = useState<"tabs" | "scroll">("tabs");
+  const [isSaving, setIsSaving] = useState(false);
 
-  // General Fields (Structured)
-  const [chiefComplaint, setChiefComplaint] = React.useState<
-    ChiefComplaintItem[]
-  >([]);
-  const [history, setHistory] = React.useState<string | null>(null); // Managed via PatientMedicalHistoryContainer
-  const [examination, setExamination] = React.useState<ExaminationData>({
+  const [chiefComplaint, setChiefComplaint] = useState<ChiefComplaintItem[]>(
+    [],
+  );
+  const [history, setHistory] = useState<string | null>(null);
+  const [examination, setExamination] = useState<ExaminationData>({
     general: {
       pallor: false,
       icterus: false,
@@ -111,35 +110,30 @@ export const ClinicalDocumentationDynamic: FC<
       notes: "",
     },
   });
-  const [diagnosis, setDiagnosis] = React.useState<DiagnosisItem[]>([]);
-  const [treatment, setTreatment] = React.useState("");
-  const [prescriptions, setPrescriptions] = React.useState<Medication[]>([]);
-  const [sendToWhatsapp, setSendToWhatsapp] = React.useState(false);
+  const [diagnosis, setDiagnosis] = useState<DiagnosisItem[]>([]);
+  const [treatment, setTreatment] = useState("");
+  const [prescriptions, setPrescriptions] = useState<Medication[]>([]);
+  const [sendToWhatsapp, setSendToWhatsapp] = useState(false);
 
-  // Specialty Fields
-  const [dentalChart, setDentalChart] = React.useState<DentalChartValue>({});
-  const [eyeExam, setEyeExam] = React.useState<OphthalmologyExamData>({});
-  const [growthData, setGrowthData] = React.useState<GrowthChartData>({
-    patientGender: "MALE", // Default, will update from patient data if needed
+  const [dentalChart, setDentalChart] = useState<DentalChartValue>({});
+  const [eyeExam, setEyeExam] = useState<OphthalmologyExamData>({});
+  const [growthData, setGrowthData] = useState<GrowthChartData>({
+    patientGender: "MALE",
     measurements: [],
   });
 
-  // Fetch Patient Data for History
   const { data: fetchedPatient, isLoading: isPatientLoading } = usePatient(
     patientId || "",
   );
 
-  // Use fetched patient or fallback to appointment data patient
   const patient = fetchedPatient || (appointmentData?.patient as Patient);
   const createPrescription = useCreatePrescription();
 
-  // Initialize data
   useEffect(() => {
     if (appointmentData) {
       if (appointmentData.chiefComplaintStructured) {
         setChiefComplaint(appointmentData.chiefComplaintStructured);
       } else if (appointmentData.chiefComplaint) {
-        // Convert legacy string to single item
         setChiefComplaint([
           {
             id: "legacy",
@@ -151,9 +145,8 @@ export const ClinicalDocumentationDynamic: FC<
         ]);
       }
 
-      setHistory(appointmentData.historyOfPresentIllness || "");
+      setHistory((appointmentData.historyOfPresentIllness as string) || "");
 
-      // Handle Examination Data safely for both legacy wrapper and new schema
       if (
         appointmentData.generalExamination ||
         appointmentData.systemicExamination
@@ -164,7 +157,6 @@ export const ClinicalDocumentationDynamic: FC<
         const ensureString = (val: unknown): string => {
           if (typeof val === "string") return val;
           if (typeof val === "object" && val !== null) {
-            // Handle nested objects by extracting notes field if present
             const obj = val as Record<string, unknown>;
             if ("notes" in obj && typeof obj.notes === "string")
               return obj.notes;
@@ -174,7 +166,6 @@ export const ClinicalDocumentationDynamic: FC<
           return String(val);
         };
 
-        // Map examination data to standard structure
         setExamination((prev) => ({
           general: genExam ? { ...prev.general, ...genExam } : prev.general,
           systemic: sysExam
@@ -184,345 +175,277 @@ export const ClinicalDocumentationDynamic: FC<
                 pa: ensureString(sysExam.pa) || prev.systemic.pa,
                 cns: ensureString(sysExam.cns) || prev.systemic.cns,
                 musculoskeletal: prev.systemic.musculoskeletal,
-                notes: sysExam.additionalNotes || prev.systemic.notes,
+                notes: ensureString(sysExam.additionalNotes) || prev.systemic.notes,
               }
             : prev.systemic,
         }));
       }
 
-      if (appointmentData.finalDiagnosis) {
-        // Determine if it looks like JSON or just string
+      const rawDiagnosis = (appointmentData as Record<string, unknown>).finalDiagnosis;
+      if (typeof rawDiagnosis === "string") {
         try {
-          const parsed = JSON.parse(appointmentData.finalDiagnosis);
+          const parsed = JSON.parse(rawDiagnosis);
           if (Array.isArray(parsed)) {
-            setDiagnosis(parsed);
+            setDiagnosis(parsed as DiagnosisItem[]);
           } else {
             setDiagnosis([
               {
                 id: "legacy-dx",
-                condition: appointmentData.finalDiagnosis,
+                condition: rawDiagnosis,
                 type: "provisional",
                 status: "active",
               },
             ]);
           }
-        } catch (_e) {
+        } catch {
           setDiagnosis([
             {
               id: "legacy-dx",
-              condition: appointmentData.finalDiagnosis,
+              condition: rawDiagnosis,
               type: "provisional",
               status: "active",
             },
           ]);
         }
-      } else if (appointmentData.provisionalDiagnosis) {
-        // Fallback
-        setDiagnosis([
-          {
-            id: "legacy-prov",
-            condition: appointmentData.provisionalDiagnosis,
-            type: "provisional",
-            status: "active",
-          },
-        ]);
       }
 
-      setTreatment(appointmentData.treatmentPlan || "");
+      if (appointmentData.treatmentPlan) {
+        setTreatment(appointmentData.treatmentPlan);
+      }
 
-      // Initialize Specialty Data
-      if (appointmentData.dentalChart)
+      if (appointmentData.dentalChart) {
         setDentalChart(appointmentData.dentalChart);
-      if (appointmentData.ophthalmologyExam)
+      }
+      if (appointmentData.ophthalmologyExam) {
         setEyeExam(appointmentData.ophthalmologyExam);
-      if (appointmentData.growthData) setGrowthData(appointmentData.growthData);
+      }
+      if (appointmentData.growthData) {
+        setGrowthData(appointmentData.growthData);
+      }
     }
   }, [appointmentData]);
 
-  const handleSave = async () => {
+  const handleSaveData = async () => {
+    if (!onSave) return;
     setIsSaving(true);
     try {
-      // Serialize structured inputs
-      const chiefComplaintString = chiefComplaint
-        .map((c) => `${c.complaint} (${c.durationValue} ${c.durationUnit})`)
-        .join("; ");
-
-      const diagnosisString = JSON.stringify(diagnosis); // Save as JSON string for now to preserve structure
-
-      const dataToSave = {
-        chiefComplaint: chiefComplaintString,
-        // Also save structured version if backend supports it (or extended properties)
+      const saveData: ConsultationSaveData = {
+        chiefComplaint: chiefComplaint.map((c) => c.complaint).join(", "),
         chiefComplaintStructured: chiefComplaint,
-
-        historyOfPresentIllness: history, // Note: Medical history is saved via PatientMedicalHistoryContainer independently usually
-
-        generalExamination: examination, // Save the full object
-
-        finalDiagnosis: diagnosisString,
+        historyOfPresentIllness: history,
+        generalExamination: examination,
+        finalDiagnosis: JSON.stringify(diagnosis),
         treatmentPlan: treatment,
-
-        // Specialty Data
         dentalChart: clinicType === "DENTAL" ? dentalChart : undefined,
         ophthalmologyExam: clinicType === "OPHTHALMOLOGY" ? eyeExam : undefined,
-        growthData:
-          clinicType === "PEDIATRIC" || clinicType === "GENERAL"
-            ? growthData
-            : undefined,
+        growthData: clinicType === "PEDIATRIC" ? growthData : undefined,
       };
 
-      await onSave?.(dataToSave);
-      toast.success("Consultation saved");
+      await onSave(saveData);
 
-      // Handle Prescriptions
-      if (prescriptions.length > 0 && patientId && appointmentId) {
-        // Filter empty
-        const validRx = prescriptions.filter((p) => p.name.trim() !== "");
-        if (validRx.length > 0) {
-          const result = await createPrescription.mutateAsync({
-            patientId,
-            appointmentId,
-            medications: validRx.map((p) => ({
-              ...p,
-              dosageForm: "TABLET", // Default to TABLET if not specified
-              sigCode: "QD", // Default to QD if not specified
-              prnInstructions: p.instructions || "",
-            })),
-            notes: "Created from consultation",
-          });
-          toast.success("Prescription saved");
-
-          // Send WhatsApp logic
-          if (sendToWhatsapp && result.id) {
-            try {
-              toast.info("Sending WhatsApp...");
-              await fetchAPI(`/whatsapp/resend-prescription/${result.id}`, {
-                method: "POST",
-              });
-              toast.success("Sent via WhatsApp");
-            } catch (error) {
-              console.error("WhatsApp send failed", error);
-              toast.error("Failed to send WhatsApp");
-            }
-          }
-        }
+      if (prescriptions.length > 0) {
+        await createPrescription.mutateAsync({
+          patientId: patientId || "",
+          appointmentId,
+          medications: prescriptions.map((p) => ({
+            name: p.name,
+            dosage: p.dosage,
+            frequency: p.frequency,
+            duration: p.duration,
+            instructions: p.instructions,
+          })),
+        });
       }
-    } catch (error) {
-      console.error("Failed to save consultation", error);
+
+      if (sendToWhatsapp && appointmentId) {
+        await fetchAPI(`/appointments/${appointmentId}/whatsapp-summary`, {
+          method: "POST",
+        });
+      }
+
+      toast.success("Consultation saved successfully");
+    } catch (error: unknown) {
+      console.error("Save error:", error);
       toast.error("Failed to save consultation");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Determined tabs based on Clinic Type
-  const getTabs = () => {
-    const baseTabs = [
-      { id: "chief-complaint", label: "Chief Complaint", icon: FileText },
-      { id: "history", label: "History", icon: Clock },
-    ];
-
-    // Specialty or General Examination
-    if (clinicType === "DENTAL") {
-      baseTabs.push({ id: "dental-chart", label: "Dental Chart", icon: Smile });
-    } else if (clinicType === "OPHTHALMOLOGY") {
-      baseTabs.push({ id: "vision-exam", label: "Vision Exam", icon: Eye });
-    } else if (clinicType === "PEDIATRIC") {
-      baseTabs.push({
-        id: "growth-chart",
-        label: "Growth & Vitals",
-        icon: Baby,
-      });
-      baseTabs.push({
-        id: "examination",
-        label: "Examination",
-        icon: Stethoscope,
-      });
-    } else {
-      baseTabs.push({
-        id: "examination",
-        label: "Examination",
-        icon: Stethoscope,
-      });
-    }
-
-    baseTabs.push(
-      { id: "diagnosis", label: "Diagnosis", icon: Activity },
-      { id: "treatment", label: "Treatment", icon: Pill },
-    );
-
-    return baseTabs;
-  };
-
-  const tabs = getTabs();
-
-  // Create objects for renderer
-  const formData = {
-    chiefComplaint,
-    history,
-    examination,
-    diagnosis,
-    treatment,
-    prescriptions,
-    dentalChart,
-    eyeExam,
-    growthData,
-  };
-
-  const formHandlers = {
-    setChiefComplaint: (val: ChiefComplaintItem[]) => setChiefComplaint(val),
-    setHistory: (val: string | null) => setHistory(val),
-    setExamination: (val: ExaminationData) => setExamination(val),
-    setDiagnosis: (val: DiagnosisItem[]) => setDiagnosis(val),
-    setTreatment: (val: string) => setTreatment(val),
-    setPrescriptions: (val: Medication[]) => setPrescriptions(val),
-    setDentalChart: (val: DentalChartValue) => setDentalChart(val),
-    setEyeExam: (val: OphthalmologyExamData) => setEyeExam(val),
-    setGrowthData: (val: GrowthChartData) => setGrowthData(val),
-  };
+  const tabs = [
+    {
+      id: "chief-complaint",
+      label: "Chief Complaint",
+      icon: <Activity className="h-4 w-4" />,
+    },
+    {
+      id: "history",
+      label: "History",
+      icon: <Clock className="h-4 w-4" />,
+    },
+    {
+      id: "examination",
+      label: "Examination",
+      icon: <Stethoscope className="h-4 w-4" />,
+    },
+    ...(clinicType === "DENTAL"
+      ? [{ id: "dental-chart", label: "Dental Chart", icon: <Smile className="h-4 w-4" /> }]
+      : []),
+    ...(clinicType === "OPHTHALMOLOGY"
+      ? [{ id: "vision-exam", label: "Vision Exam", icon: <Eye className="h-4 w-4" /> }]
+      : []),
+    ...(clinicType === "PEDIATRIC"
+      ? [{ id: "growth-chart", label: "Growth Chart", icon: <Baby className="h-4 w-4" /> }]
+      : []),
+    {
+      id: "diagnosis",
+      label: "Diagnosis",
+      icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      id: "treatment",
+      label: "Treatment",
+      icon: <Pill className="h-4 w-4" />,
+    },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-muted/10">
-      {/* Tab/View Navigation */}
-      <div className="flex items-center gap-2 p-3 border-b bg-background/95 backdrop-blur sticky top-0 z-20">
-        <div className="flex bg-muted/50 p-1 rounded-lg overflow-x-auto max-w-[calc(100vw-300px)]">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.id}
-              variant={
-                activeTab === tab.id && viewMode === "tabs"
-                  ? "default"
-                  : "ghost"
-              }
-              size="sm"
-              onClick={() => {
-                setActiveTab(tab.id);
-                if (viewMode === "scroll") {
-                  document
-                    .getElementById(`section-${tab.id}`)
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-              }}
-              className={`gap-1.5 h-8 whitespace-nowrap ${viewMode === "scroll" ? "opacity-70 hover:opacity-100" : ""}`}
-            >
-              <tab.icon className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline text-xs">{tab.label}</span>
-            </Button>
-          ))}
-        </div>
-
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2 border-l pl-2 ml-2">
-          {/* WhatsApp Switch */}
-          <div className="flex items-center gap-2 mr-2 px-2 py-1.5 bg-muted/30 rounded-full border">
+    <div className={`space-y-4 ${isFocusMode ? "max-w-4xl mx-auto" : ""}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
             <Switch
-              id="wa-mode"
+              id="whatsapp-summary"
               checked={sendToWhatsapp}
               onCheckedChange={setSendToWhatsapp}
-              className="scale-75 data-[state=checked]:bg-green-600"
             />
-            <Label
-              htmlFor="wa-mode"
-              className="text-xs font-medium cursor-pointer flex items-center gap-1 text-muted-foreground"
-            >
-              Send to WhatsApp
+            <Label htmlFor="whatsapp-summary" className="text-sm">
+              Send Summary to WhatsApp
             </Label>
           </div>
-
-          <Button
-            variant={viewMode === "scroll" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode(viewMode === "tabs" ? "scroll" : "tabs")}
-            className="gap-2 h-8"
-            title="Toggle Unified Scroll View"
-          >
-            <FileText className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline text-xs">
-              {viewMode === "tabs" ? "Unified View" : "Tabbed View"}
-            </span>
-          </Button>
-
-          {onToggleFocus && (
+        </div>
+        <div className="flex items-center gap-2">
+          {viewMode === "tabs" && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={onToggleFocus}
-              className="h-8"
+              onClick={() => setViewMode("scroll")}
             >
-              {isFocusMode ? "Show Sidebar" : "Focus Mode"}
+              Scroll View
+            </Button>
+          )}
+          {viewMode === "scroll" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewMode("tabs")}
+            >
+              Tab View
             </Button>
           )}
           <Button
             size="sm"
-            onClick={handleSave}
+            onClick={handleSaveData}
             disabled={isSaving}
-            className="h-8 bg-primary hover:bg-primary/90"
           >
-            {isSaving ? "Saving..." : "Save Notes"}
+            {isSaving ? "Saving..." : "Save Consultation"}
           </Button>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto bg-muted/10">
-        {viewMode === "tabs" ? (
-          <div className="p-4 md:p-6 max-w-5xl mx-auto h-full">
-            <Card className="border-none shadow-sm h-full flex flex-col">
-              <CardHeader className="pb-2 border-b">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  {(() => {
-                    const t = tabs.find((t) => t.id === activeTab) || tabs[0];
-                    const Icon = t?.icon;
-                    return (
-                      <>
-                        {Icon && <Icon className="h-5 w-5 text-primary" />}
-                        {t?.label}
-                      </>
-                    );
-                  })()}
+      {viewMode === "tabs" ? (
+        <Card className="border-none shadow-sm">
+          <CardHeader className="p-0 border-b">
+            <div className="flex overflow-x-auto no-scrollbar">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary bg-primary/5"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <ConsultationFormRenderer
+              tabId={activeTab}
+              data={{
+                chiefComplaint,
+                history,
+                examination,
+                diagnosis,
+                treatment,
+                prescriptions,
+                dentalChart,
+                eyeExam,
+                growthData,
+              }}
+              handlers={{
+                setChiefComplaint,
+                setHistory,
+                setExamination,
+                setDiagnosis,
+                setTreatment,
+                setPrescriptions,
+                setDentalChart,
+                setEyeExam,
+                setGrowthData,
+              }}
+              patient={patient}
+              isLoading={isPatientLoading}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {tabs.map((tab) => (
+            <Card key={tab.id} id={tab.id} className="border-none shadow-sm">
+              <CardHeader className="bg-muted/30 py-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  {tab.icon}
+                  {tab.label}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 p-4 md:p-6 overflow-hidden flex flex-col">
-                <div className="flex-1 h-full overflow-y-auto">
-                  <ConsultationFormRenderer
-                    tabId={activeTab}
-                    data={formData}
-                    handlers={formHandlers}
-                    patient={patient}
-                    isLoading={isPatientLoading}
-                  />
-                </div>
+              <CardContent className="p-6">
+                <ConsultationFormRenderer
+                  tabId={tab.id}
+                  data={{
+                    chiefComplaint,
+                    history,
+                    examination,
+                    diagnosis,
+                    treatment,
+                    prescriptions,
+                    dentalChart,
+                    eyeExam,
+                    growthData,
+                  }}
+                  handlers={{
+                    setChiefComplaint,
+                    setHistory,
+                    setExamination,
+                    setDiagnosis,
+                    setTreatment,
+                    setPrescriptions,
+                    setDentalChart,
+                    setEyeExam,
+                    setGrowthData,
+                  }}
+                  patient={patient}
+                  isLoading={isPatientLoading}
+                />
               </CardContent>
             </Card>
-          </div>
-        ) : (
-          <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6 pb-20">
-            {tabs.map((tab) => (
-              <Card
-                key={tab.id}
-                id={`section-${tab.id}`}
-                className="npm border-none shadow-sm scroll-mt-20"
-              >
-                <CardHeader className="py-3 px-4 border-b bg-muted/5">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
-                    <tab.icon className="h-4 w-4 text-primary" />
-                    {tab.label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <ConsultationFormRenderer
-                    tabId={tab.id}
-                    data={formData}
-                    handlers={formHandlers}
-                    patient={patient}
-                    isLoading={isPatientLoading}
-                  />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
-// Type definitions for patient portal DTOs
 interface UpdatePatientProfileBodyDto {
   phoneNumber?: string;
   email?: string;
@@ -15,10 +14,6 @@ interface RequestAppointmentBodyDto {
   notes?: string;
 }
 
-// ============================================================================
-// Patient Dashboard
-// ============================================================================
-
 export const usePatientPortalDashboard = () =>
   useAPIQuery<{
     patient: Record<string, unknown>;
@@ -32,10 +27,6 @@ export const usePatientPortalDashboard = () =>
     activePrescriptions: Record<string, unknown>[];
     outstandingInvoices: Record<string, unknown>[];
   }>(["patient-portal", "dashboard"], "/patient-portal/dashboard");
-
-// ============================================================================
-// Appointments
-// ============================================================================
 
 export const usePatientPortalAppointments = (filters?: {
   status?: string;
@@ -72,10 +63,6 @@ export const useRequestAppointment = () =>
     "POST",
   );
 
-// ============================================================================
-// Prescriptions
-// ============================================================================
-
 export const usePatientPortalPrescriptions = (filters?: {
   limit?: number;
   offset?: number;
@@ -102,10 +89,6 @@ export const usePatientPortalPrescriptionById = (prescriptionId: string) =>
     },
   );
 
-// ============================================================================
-// Invoices
-// ============================================================================
-
 export const usePatientPortalInvoices = (filters?: {
   status?: string;
   limit?: number;
@@ -121,19 +104,11 @@ export const usePatientPortalInvoices = (filters?: {
     };
   }>(["patient-portal", "invoices", filters || {}], "/patient-portal/invoices");
 
-// ============================================================================
-// Profile
-// ============================================================================
-
 export const useUpdatePatientProfile = () =>
   useAPIMutation<Record<string, unknown>, UpdatePatientProfileBodyDto>(
     "/patient-portal/profile",
     "PATCH",
   );
-
-// ============================================================================
-// Consent Management
-// ============================================================================
 
 export const usePatientConsentSettings = () =>
   useAPIQuery<{
@@ -147,10 +122,6 @@ export const useUpdatePatientConsent = () =>
     Record<string, unknown>,
     { whatsappConsent?: boolean; dataStorageConsent?: boolean }
   >("/patient-portal/consent", "PATCH");
-
-// ============================================================================
-// Data Deletion (GDPR/DPDP)
-// ============================================================================
 
 export const useRequestDataDeletion = () =>
   useAPIMutation<

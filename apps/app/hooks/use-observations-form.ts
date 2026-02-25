@@ -7,14 +7,14 @@ interface UseObservationsFormProps {
   appointmentId: string;
   initialObservations?: string;
   onObservationsSaved?: () => void;
-  fieldName?: "observations" | "consultationNotes"; // Which field to save to
+  fieldName?: "observations" | "consultationNotes";
 }
 
 export function useObservationsForm({
   appointmentId,
   initialObservations = "",
   onObservationsSaved,
-  fieldName = "consultationNotes", // Default to consultationNotes for new implementation
+  fieldName = "consultationNotes",
 }: UseObservationsFormProps) {
   const queryClient = useQueryClient();
   const updateObservations = useUpdateAppointmentObservations(appointmentId);
@@ -24,7 +24,6 @@ export function useObservationsForm({
     e.preventDefault();
 
     try {
-      // Save to the appropriate field (consultationNotes or observations)
       const payload =
         fieldName === "consultationNotes"
           ? { consultationNotes: observations }
@@ -32,7 +31,6 @@ export function useObservationsForm({
 
       await updateObservations.mutateAsync(payload);
 
-      // Invalidate and refetch queries to refresh data immediately
       await queryClient.invalidateQueries({
         queryKey: ["appointments", appointmentId],
       });

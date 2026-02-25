@@ -1,14 +1,4 @@
-/**
- * Subscription DTOs
- * Data Transfer Objects for API boundaries
- * Validated with Zod schemas
- */
-
 import { z } from 'zod';
-
-// ============================================================================
-// CREATE SUBSCRIPTION DTO
-// ============================================================================
 
 export const CreateSubscriptionDtoSchema = z.object({
   clinicId: z.string().cuid('Invalid clinic ID'),
@@ -21,10 +11,6 @@ export const CreateSubscriptionDtoSchema = z.object({
 
 export type CreateSubscriptionDto = z.infer<typeof CreateSubscriptionDtoSchema>;
 
-// ============================================================================
-// SUBSCRIPTION RESPONSE DTO
-// ============================================================================
-
 export interface SubscriptionResponseDto {
   id: string;
   clinicId: string;
@@ -34,7 +20,7 @@ export interface SubscriptionResponseDto {
   basePriceCents: number;
   totalDiscountPercent: number;
   creditsCents: number;
-  currentPeriodStart: string; // ISO date
+  currentPeriodStart: string;
   currentPeriodEnd: string;
   trialEnd?: string;
   autoPayEnabled: boolean;
@@ -42,10 +28,6 @@ export interface SubscriptionResponseDto {
   createdAt: string;
   updatedAt: string;
 }
-
-// ============================================================================
-// PLAN UPGRADE DTO
-// ============================================================================
 
 export const UpgradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
@@ -66,12 +48,8 @@ export interface UpgradePreviewDto {
   chargeCents: number;
   netAmountCents: number;
   daysRemaining: number;
-  effectiveDate: string; // ISO date
+  effectiveDate: string;
 }
-
-// ============================================================================
-// PLAN DOWNGRADE DTO
-// ============================================================================
 
 export const DowngradeSubscriptionDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
@@ -83,10 +61,6 @@ export type DowngradeSubscriptionDto = z.infer<
   typeof DowngradeSubscriptionDtoSchema
 >;
 
-// ============================================================================
-// PAYMENT DTO
-// ============================================================================
-
 export const ProcessPaymentDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
   amountCents: z.number().positive(),
@@ -95,6 +69,14 @@ export const ProcessPaymentDtoSchema = z.object({
 });
 
 export type ProcessPaymentDto = z.infer<typeof ProcessPaymentDtoSchema>;
+
+export const CancelSubscriptionDtoSchema = z.object({
+  subscriptionId: z.string().cuid(),
+  reason: z.string().optional(),
+  immediate: z.boolean().default(false),
+});
+
+export type CancelSubscriptionDto = z.infer<typeof CancelSubscriptionDtoSchema>;
 
 export interface PaymentResponseDto {
   id: string;
@@ -116,18 +98,6 @@ export const ChangeBillingCycleDtoSchema = z.object({
 });
 
 export type ChangeBillingCycleDto = z.infer<typeof ChangeBillingCycleDtoSchema>;
-
-// ============================================================================
-// CANCEL SUBSCRIPTION DTO
-// ============================================================================
-
-export const CancelSubscriptionDtoSchema = z.object({
-  subscriptionId: z.string().cuid(),
-  reason: z.string().optional(),
-  cancelAtEnd: z.boolean().default(false),
-});
-
-export type CancelSubscriptionDto = z.infer<typeof CancelSubscriptionDtoSchema>;
 
 // ============================================================================
 // SUBSCRIPTION LISTING DTO

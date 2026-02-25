@@ -25,6 +25,12 @@ interface AddonCheckoutParams {
   currentTier: number;
 }
 
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
 export function useSubscriptionCheckout(
   onSuccess: (data: CheckoutSuccessData) => void,
 ) {
@@ -70,18 +76,13 @@ export function useSubscriptionCheckout(
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
 
         await openCheckout({
-          key: razorpayKeyId,
-          amount: amountCents,
-          currency,
+          key: razorpayKeyId as string,
+          amount: amountCents as number,
+          currency: currency as string,
           name: "Docita Subscription",
           description: `Upgrade to ${tier} Plan`,
-          order_id: orderId,
-          handler: async (response: unknown) => {
-            const data = response as {
-              razorpay_payment_id: string;
-              razorpay_order_id: string;
-              razorpay_signature: string;
-            };
+          order_id: orderId as string,
+          handler: async (response: RazorpayResponse) => {
             const activateRes = await fetch(
               `${API_URL}/subscription/billing/activate`,
               {
@@ -91,9 +92,9 @@ export function useSubscriptionCheckout(
                   Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                  razorpayPaymentId: data.razorpay_payment_id,
-                  razorpayOrderId: data.razorpay_order_id,
-                  razorpaySignature: data.razorpay_signature,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
                   tier,
                   billingCycle,
                   addOns: [],
@@ -110,7 +111,7 @@ export function useSubscriptionCheckout(
             onSuccess({
               planName: `${tier} Plan`,
               amount: amountCents ? amountCents / 100 : undefined,
-              transactionId: data.razorpay_payment_id,
+              transactionId: response.razorpay_payment_id,
               isAddon: false,
             });
           },
@@ -176,18 +177,13 @@ export function useSubscriptionCheckout(
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
 
         await openCheckout({
-          key: razorpayKeyId,
-          amount: amountCents,
-          currency,
+          key: razorpayKeyId as string,
+          amount: amountCents as number,
+          currency: currency as string,
           name: "Docita Subscription",
           description: `Add-on: ${addonId}`,
-          order_id: orderId,
-          handler: async (response: unknown) => {
-            const data = response as {
-              razorpay_payment_id: string;
-              razorpay_order_id: string;
-              razorpay_signature: string;
-            };
+          order_id: orderId as string,
+          handler: async (response: RazorpayResponse) => {
             const activateRes = await fetch(
               `${API_URL}/subscription/billing/activate`,
               {
@@ -197,9 +193,9 @@ export function useSubscriptionCheckout(
                   Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                  razorpayPaymentId: data.razorpay_payment_id,
-                  razorpayOrderId: data.razorpay_order_id,
-                  razorpaySignature: data.razorpay_signature,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
                   billingCycle,
                   addOns: [addonId],
                   tier: currentTier,
@@ -215,7 +211,7 @@ export function useSubscriptionCheckout(
             onSuccess({
               planName: addonId,
               amount: amountCents ? amountCents / 100 : undefined,
-              transactionId: data.razorpay_payment_id,
+              transactionId: response.razorpay_payment_id,
               isAddon: true,
             });
           },

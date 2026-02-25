@@ -19,6 +19,7 @@ import {
   TIER_PRICING_BY_CURRENCY,
   INTELLIGENCE_ADDON_PRICING_BY_CURRENCY,
   ANNUAL_DISCOUNT_PERCENT,
+  REFERRAL_DISCOUNT_PERCENT,
   SupportedCurrency,
   type TierName,
 } from '@workspace/types';
@@ -116,10 +117,10 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       }
     }
 
-    // Apply referral credits (max 25% of total)
+    // Apply referral credits (max configured percent of total)
     if (params.referralCredits && params.referralCredits > 0) {
       const maxReferralDiscount = Math.round(
-        ((basePriceCents + addOnsCents) * 25) / 100,
+        ((basePriceCents + addOnsCents) * REFERRAL_DISCOUNT_PERCENT) / 100,
       );
       const referralDiscount = Math.min(
         params.referralCredits * 100,

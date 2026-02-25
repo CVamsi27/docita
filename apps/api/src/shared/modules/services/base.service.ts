@@ -86,21 +86,21 @@ export abstract class BaseService<T> {
   /**
    * Abstract methods - must be implemented by subclasses
    */
-  protected abstract getListSelect(): Record<string, any>;
-  protected abstract getDetailSelect(): Record<string, any>;
+  protected abstract getListSelect(): Record<string, boolean | object>;
+  protected abstract getDetailSelect(): Record<string, boolean | object>;
 
   /**
    * Override to customize how clinicId is used in where clause
    * Default assumes direct clinicId field
    */
-  protected buildClinicWhereClause(clinicId: string): Record<string, any> {
+  protected buildClinicWhereClause(clinicId: string): Record<string, unknown> {
     return { clinicId };
   }
 
   /**
    * Override to add additional search conditions
    */
-  protected buildSearchConditions(_search: string): Record<string, any>[] {
+  protected buildSearchConditions(_search: string): Record<string, unknown>[] {
     return [];
   }
 

@@ -79,7 +79,7 @@ export class NotificationOrchestrator {
         successCount++;
       } catch (error) {
         this.logger.error(
-          `Failed to send notification via ${channelName}: ${error}`,
+          `Failed to send notification via ${channelName}: ${error instanceof Error ? error.message : String(error)}`,
         );
         failureCount++;
         results.push({

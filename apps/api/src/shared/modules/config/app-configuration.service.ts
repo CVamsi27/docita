@@ -1,117 +1,179 @@
-/**
- * Application Configuration Service
- *
- * Provides centralized access to all app configuration in a NestJS-injectable way.
- * Wraps app-config.ts to enable dependency injection across services.
- *
- * Usage in a service:
- * ```typescript
- * constructor(private configService: AppConfigService) {}
- *
- * myMethod() {
- *   const appUrl = this.configService.getAppUrl();
- *   const razorpayKey = this.configService.getRazorpayKeyId();
- * }
- * ```
- *
- * Benefits:
- * - Centralized configuration management
- * - Easy to mock in tests
- * - Type-safe access (no string-based process.env)
- * - Single source of truth for all app settings
- *
- * Migration: Replace all `process.env.VARIABLE_NAME` with
- * `this.configService.getVariableName()`
- */
-
 import { Injectable } from '@nestjs/common';
-import {
-  EnvConfig,
-  getEnv,
-  getCorsOrigins,
-  getAppUrl,
-  getFrontendAppUrl,
-  getEnvironment,
-  isProduction,
-  isDevelopment,
-  getPaymentCallbackUrl,
-} from './app-config';
+import { EnvConfig, getEnv } from './app-config';
 
 @Injectable()
 export class AppConfigService {
-  /**
-   * Get the full validated environment configuration
-   */
   getConfig(): EnvConfig {
     return getEnv();
   }
 
-  /**
-   * Core API Configuration
-   */
   getAppUrl(): string {
-    return getAppUrl();
+    return this.getConfig().APP_URL || 'http://localhost:3000';
   }
 
   getFrontendAppUrl(): string {
-    return getFrontendAppUrl();
+    return this.getConfig().NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  }
+
+  getApiUrl(): string {
+    return this.getConfig().NEXT_PUBLIC_API_URL || '';
   }
 
   getPaymentCallbackUrl(): string {
-    return getPaymentCallbackUrl();
+    return `${this.getAppUrl()}/api/payment/callback`;
   }
 
-  /**
-   * Environment & Features
-   */
-  getEnvironment(): 'development' | 'staging' | 'production' {
-    return getEnvironment();
+  getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
+    return this.getConfig().NODE_ENV || 'development';
   }
 
   isProduction(): boolean {
-    return isProduction();
+    return this.getEnvironment() === 'production';
   }
 
   isDevelopment(): boolean {
-    return isDevelopment();
+    return this.getEnvironment() === 'development';
   }
 
-  /**
-   * CORS Configuration
-   */
+  getDatabaseUrl(): string {
+    return this.getConfig().DATABASE_URL;
+  }
+
+  getDatabaseReadUrl(): string | undefined {
+    return this.getConfig().DATABASE_READ_URL;
+  }
+
+  getJwtSecret(): string {
+    return this.getConfig().JWT_SECRET;
+  }
+
+  getEncryptionKey(): string {
+    return this.getConfig().ENCRYPTION_KEY;
+  }
+
   getCorsOrigins(): (string | RegExp)[] {
-    return getCorsOrigins();
+    const envOrigins = this.getConfig().CORS_ORIGINS;
+    if (envOrigins) {
+      return envOrigins.split(',').map((origin) => origin.trim());
+    }
+
+    return [
+      'https://landing.docita.work',
+      'https://app.docita.work',
+      'https://admin.docita.work',
+      /^https:\/\/.*\.vercel\.app$/,
+      'http://localhost:3003',
+      'http://localhost:3000',
+      'http://localhost:3002',
+      'http://127.0.0.1:3003',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3002',
+    ];
   }
 
-  /**
-   * Razorpay Payment Gateway
-   */
+  getSentryConfig() {
+    return {
+      dsn: this.getConfig().SENTRY_DSN,
+      tracesSampleRate: this.getConfig().SENTRY_TRACES_SAMPLE_RATE,
+      profilesSampleRate: this.getConfig().SENTRY_PROFILES_SAMPLE_RATE,
+      logLevel: this.getConfig().LOG_LEVEL,
+      environment: this.getEnvironment(),
+      release: this.getConfig().APP_VERSION,
+    };
+  }
+
+  getRazorpayConfig() {
+    return {
+      keyId: this.getRazorpayKeyId(),
+      keySecret: this.getRazorpayKeySecret(),
+      webhookSecret: this.getRazorpayWebhookSecret(),
+    };
+  }
+
   getRazorpayKeyId(): string {
-    const config = getEnv();
-    return config.RAZORPAY_KEY_ID || '';
+    return this.getConfig().RAZORPAY_KEY_ID || '';
   }
 
   getRazorpayKeySecret(): string {
-    const config = getEnv();
-    return config.RAZORPAY_KEY_SECRET || '';
+    return this.getConfig().RAZORPAY_KEY_SECRET || '';
   }
 
-  /**
-   * Meta WhatsApp Configuration
-   */
-  getMetaAccessToken(): string {
-    const config = getEnv();
-    return config.META_ACCESS_TOKEN || '';
+  getRazorpayWebhookSecret(): string {
+    return this.getConfig().RAZORPAY_WEBHOOK_SECRET || '';
   }
 
-  getMetaPhoneNumberId(): string {
-    const config = getEnv();
-    return config.META_PHONE_NUMBER_ID || '';
+  getMetaConfig() {
+    return {
+      accessToken: this.getConfig().META_ACCESS_TOKEN || '',
+      phoneNumberId: this.getConfig().META_PHONE_NUMBER_ID || '',
+      appSecret: this.getConfig().META_APP_SECRET || '',
+      verifyToken: this.getConfig().META_VERIFY_TOKEN || '',
+      productionMode: this.getConfig().WHATSAPP_PRODUCTION_MODE,
+    };
   }
 
-  getMetaAppSecret(): string {
-    const config = getEnv();
-    return config.META_APP_SECRET || '';
+  getResendApiKey(): string {
+    return this.getConfig().RESEND_API_KEY || '';
+  }
+
+  getEmailFrom(): string {
+    return this.getConfig().EMAIL_FROM;
+  }
+
+  getAnalyticsCacheTtl(): number {
+    return this.getConfig().ANALYTICS_CACHE_TTL;
+  }
+
+  getClinicInfo() {
+    return {
+      name: this.getConfig().CLINIC_NAME,
+      address: this.getConfig().CLINIC_ADDRESS,
+      phone: this.getConfig().CLINIC_PHONE,
+      email: this.getConfig().CLINIC_EMAIL,
+      website: this.getConfig().CLINIC_WEBSITE,
+      gstin: this.getConfig().CLINIC_GSTIN,
+    };
+  }
+
+  getPaymentTtl(): number {
+    return this.getConfig().PAYMENT_TTL;
+  }
+
+  getPaymentRetryConfig() {
+    return {
+      maxAttempts: this.getConfig().PAYMENT_RETRY_MAX_ATTEMPTS,
+      backoffMultiplier: this.getConfig().PAYMENT_RETRY_BACKOFF_MULTIPLIER,
+    };
+  }
+
+  getRedisConfig() {
+    return {
+      host: this.getConfig().REDIS_HOST,
+      port: this.getConfig().REDIS_PORT,
+      password: this.getConfig().REDIS_PASSWORD,
+      username: this.getConfig().REDIS_USERNAME,
+      url: this.getConfig().REDIS_URL,
+    };
+  }
+
+  getQueueProvider(): 'bull' | 'memory' {
+    return this.getConfig().QUEUE_PROVIDER;
+  }
+
+  getCacheProvider(): 'redis' | 'memory' {
+    return this.getConfig().CACHE_PROVIDER;
+  }
+
+  getBulkImportConfig() {
+    return {
+      maxFileSize: this.getConfig().BULK_IMPORT_MAX_FILE_SIZE,
+      maxRows: this.getConfig().BULK_IMPORT_MAX_ROWS,
+      rateLimitInterval: this.getConfig().BULK_IMPORT_RATE_LIMIT_INTERVAL,
+    };
+  }
+
+  getSlowQueryThreshold(): number {
+    return this.getConfig().SLOW_QUERY_THRESHOLD_MS;
   }
 
   getMetaVerifyToken(): string {
@@ -119,9 +181,6 @@ export class AppConfigService {
     return config.META_VERIFY_TOKEN || '';
   }
 
-  /**
-   * Google Cloud Configuration
-   */
   getGoogleCloudProjectId(): string | undefined {
     const config = getEnv();
     return config.GOOGLE_CLOUD_PROJECT_ID;
@@ -132,9 +191,6 @@ export class AppConfigService {
     return config.GOOGLE_CLOUD_CREDENTIALS_JSON;
   }
 
-  /**
-   * OCR Configuration
-   */
   getOcrConfidenceThreshold(): number {
     const config = getEnv();
     return config.OCR_CONFIDENCE_THRESHOLD || 0.75;
@@ -150,43 +206,88 @@ export class AppConfigService {
     return config.OCR_CONTACT_FIELD_THRESHOLD || 0.65;
   }
 
-  /**
-   * Redis Configuration
-   */
   getRedisUrl(): string | undefined {
     const config = getEnv();
     return config.REDIS_URL;
   }
 
-  /**
-   * Logging
-   */
+  getRedisHost(): string {
+    const config = getEnv();
+    return config.REDIS_HOST;
+  }
+
+  getRedisPort(): number {
+    const config = getEnv();
+    return config.REDIS_PORT;
+  }
+
+  getRedisPassword(): string | undefined {
+    const config = getEnv();
+    return config.REDIS_PASSWORD;
+  }
+
+  getRedisUsername(): string | undefined {
+    const config = getEnv();
+    return config.REDIS_USERNAME;
+  }
+
   getLogLevel(): string {
     const config = getEnv();
     return config.LOG_LEVEL || 'info';
   }
 
-  /**
-   * Server Port
-   */
   getPort(): number {
     const config = getEnv();
     return config.PORT || 3001;
   }
 
-  /**
-   * JWT Secret (should only be accessed internally)
-   */
-  getJwtSecret(): string {
+  getSentryDsn(): string | undefined {
     const config = getEnv();
-    return config.JWT_SECRET;
+    return config.SENTRY_DSN;
   }
 
-  /**
-   * Encryption Key (should only be accessed internally)
-   */
-  getEncryptionKey(): string {
+  getSentryTracesSampleRate(): number {
     const config = getEnv();
-    return config.ENCRYPTION_KEY;
+    return config.SENTRY_TRACES_SAMPLE_RATE;
+  }
+
+  getSentryProfilesSampleRate(): number {
+    const config = getEnv();
+    return config.SENTRY_PROFILES_SAMPLE_RATE;
+  }
+
+  getAppVersion(): string {
+    const config = getEnv();
+    return config.APP_VERSION;
+  }
+
+  getClinicName(): string {
+    const config = getEnv();
+    return config.CLINIC_NAME;
+  }
+
+  getClinicAddress(): string | undefined {
+    const config = getEnv();
+    return config.CLINIC_ADDRESS;
+  }
+
+  getClinicPhone(): string | undefined {
+    const config = getEnv();
+    return config.CLINIC_PHONE;
+  }
+
+  getClinicEmail(): string | undefined {
+    const config = getEnv();
+    return config.CLINIC_EMAIL;
+  }
+
+  getClinicWebsite(): string | undefined {
+    const config = getEnv();
+    return config.CLINIC_WEBSITE;
+  }
+
+  getPaymentLinkTtlMinutes(): number {
+    const config = getEnv();
+    return config.PAYMENT_LINK_TTL_MINUTES;
   }
 }

@@ -16,6 +16,7 @@ import { Prisma, ErrorSeverity } from '@workspace/db';
 import { MonitoringService } from '../../../../shared/modules/monitoring/monitoring/monitoring.service';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodIssue } from 'zod';
+import { AppConfigService } from '../../config/app-configuration.service';
 
 interface RequestUser {
   id?: string;
@@ -40,6 +41,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     @Optional()
     @Inject(MonitoringService)
     private monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(AppConfigService)
+    private configService?: AppConfigService,
   ) {}
 
   catch(
@@ -267,7 +271,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const isDevelopment = this.configService
+      ? this.configService.isDevelopment()
+      : (process.env.NODE_ENV || 'development') !== 'production';
 
     // Build RFC 7807 Problem Details response
     // https://tools.ietf.org/html/rfc7807

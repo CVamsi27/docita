@@ -1,15 +1,10 @@
-/**
- * Redis Caching Service
- * Provides centralized caching layer for frequently-accessed data
- * Supports TTL management, cache invalidation, and circuit breaking
- */
-
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as redis from 'redis';
+import { AppConfigService } from '../config/app-configuration.service';
 
 export interface CacheOptions {
-  ttl?: number; // seconds
-  tags?: string[]; // for group invalidation
+  ttl?: number;
+  tags?: string[];
 }
 
 @Injectable()
@@ -18,12 +13,12 @@ export class RedisCachingService implements OnModuleInit {
   private client: redis.RedisClientType;
   private isConnected = false;
 
-  constructor() {
+  constructor(private configService: AppConfigService) {
     this.client = redis.createClient({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      password: process.env.REDIS_PASSWORD,
-      username: process.env.REDIS_USERNAME,
+      host: this.configService.getRedisHost(),
+      port: this.configService.getRedisPort(),
+      password: this.configService.getRedisPassword(),
+      username: this.configService.getRedisUsername(),
       socket: {
         reconnectStrategy: (retries: number) => {
           return Math.min(retries * 50, 500);
@@ -52,9 +47,6 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Get cached value by key
-   */
   async get<T>(key: string): Promise<T | null> {
     if (!this.isConnected) return null;
 
@@ -71,17 +63,13 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Set cached value with optional TTL
-   */
   async set<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
     if (!this.isConnected) return;
 
     try {
-      const ttl = options?.ttl || 300; // default 5 minutes
+      const ttl = options?.ttl || 300;
       await this.client.setEx(key, ttl, JSON.stringify(value));
 
-      // Add to tag sets for group invalidation
       if (options?.tags?.length) {
         for (const tag of options.tags) {
           await this.client.sAdd(`tag:${tag}`, key);
@@ -95,9 +83,6 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Delete cached value
-   */
   async delete(key: string): Promise<void> {
     if (!this.isConnected) return;
 
@@ -110,9 +95,6 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Invalidate all keys with a specific tag
-   */
   async invalidateTag(tag: string): Promise<void> {
     if (!this.isConnected) return;
 
@@ -130,9 +112,6 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Clear all cache
-   */
   async clear(): Promise<void> {
     if (!this.isConnected) return;
 
@@ -146,9 +125,6 @@ export class RedisCachingService implements OnModuleInit {
     }
   }
 
-  /**
-   * Get cache statistics
-   */
   async getStats(): Promise<{
     info: string;
     dbSize: number;

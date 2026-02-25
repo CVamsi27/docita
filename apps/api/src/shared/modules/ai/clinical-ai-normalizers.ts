@@ -119,10 +119,10 @@ export function normalizeDiagnosisSuggestions(
     })
     .map((suggestion) => ({
       icdCode: suggestion.icdCode || 'R69',
-      condition:
+      diagnosis:
         suggestion.condition || suggestion.diagnosis || 'Unknown Condition',
       confidence: Math.min(Math.max(suggestion.confidence || 0, 0), 100),
-      reasoning: suggestion.description || 'Clinical correlation required',
+      description: suggestion.description || 'Clinical correlation required',
     }));
 }
 

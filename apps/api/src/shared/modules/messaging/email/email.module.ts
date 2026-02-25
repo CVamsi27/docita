@@ -7,24 +7,20 @@ import {
   EMAIL_PROVIDER,
 } from './providers';
 import { PrismaModule } from '../../../../prisma/prisma.module';
+import { AppConfigService } from '../../config/app-configuration.service';
 
-/**
- * Email module providing email delivery capabilities.
- * Uses Resend in production, Console in development.
- */
 @Module({
   imports: [PrismaModule],
   providers: [
     {
       provide: EMAIL_PROVIDER,
-      useFactory: () => {
-        // Use Resend in production when API key is available
-        if (process.env.RESEND_API_KEY) {
-          return new ResendEmailProvider();
+      useFactory: (configService: AppConfigService) => {
+        if (configService.getResendApiKey()) {
+          return new ResendEmailProvider(configService);
         }
-        // Fall back to console provider for development
         return new ConsoleEmailProvider();
       },
+      inject: [AppConfigService],
     },
     EmailService,
     EmailEventsListener,

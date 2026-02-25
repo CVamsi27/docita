@@ -1,11 +1,11 @@
-export {
+export type {
   IQueueProvider,
   QueueJob,
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
 export { JobNames } from './queue.interface';
-export {
+export type {
   SendEmailJobData,
   SendSmsJobData,
   SendWhatsAppJobData,

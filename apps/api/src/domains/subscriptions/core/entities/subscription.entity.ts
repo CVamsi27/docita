@@ -1,14 +1,3 @@
-/**
- * Subscription Entity - Core aggregate
- * Represents a clinic's subscription with tier, billing cycle, and lifecycle
- *
- * Responsibilities:
- * - Track subscription status and lifecycle
- * - Manage pricing and discounts
- * - Validate state transitions
- * - Calculate prorated amounts
- */
-
 import {
   SubscriptionStatus,
   SubscriptionStatusEnum,
@@ -29,6 +18,8 @@ export interface SubscriptionProps {
   currentPeriodEnd: Date;
   trialEnd?: Date;
   cancelledAt?: Date;
+  cancelAtPeriodEnd?: boolean;
+  razorpaySubscriptionId?: string;
   autoPayEnabled: boolean;
   discounts?: DiscountAggregate;
   creditsCents?: number;
@@ -44,16 +35,18 @@ export class Subscription {
   private billingCycle: BillingCycle;
   private basePriceCents: number;
   private status: SubscriptionStatus;
-  readonly currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  readonly trialEnd?: Date;
-  readonly cancelledAt?: Date;
+  public currentPeriodStart: Date;
+  public currentPeriodEnd: Date;
+  public readonly trialEnd?: Date;
+  public cancelledAt?: Date;
+  public cancelAtPeriodEnd?: boolean;
+  public razorpaySubscriptionId?: string;
   private autoPayEnabled: boolean;
   private discounts: DiscountAggregate;
   private creditsCents: number;
   readonly createdAt: Date;
-  updatedAt: Date;
-  readonly version: number;
+  public updatedAt: Date;
+  public version: number;
 
   constructor(props: SubscriptionProps) {
     this.id = props.id;
@@ -66,6 +59,8 @@ export class Subscription {
     this.currentPeriodEnd = props.currentPeriodEnd;
     this.trialEnd = props.trialEnd;
     this.cancelledAt = props.cancelledAt;
+    this.cancelAtPeriodEnd = props.cancelAtPeriodEnd;
+    this.razorpaySubscriptionId = props.razorpaySubscriptionId;
     this.autoPayEnabled = props.autoPayEnabled;
     this.discounts = props.discounts || new DiscountAggregate();
     this.creditsCents = props.creditsCents || 0;
@@ -80,19 +75,10 @@ export class Subscription {
     if (this.currentPeriodStart >= this.currentPeriodEnd) {
       throw new Error('Current period start must be before end');
     }
-
     if (this.basePriceCents < 0) {
       throw new Error('Base price cannot be negative');
     }
-
-    if (this.creditsCents < 0) {
-      throw new Error('Credits cannot be negative');
-    }
   }
-
-  // ========================================================================
-  // Getters
-  // ========================================================================
 
   getPlan(): ClinicTier {
     return this.plan;
@@ -122,269 +108,80 @@ export class Subscription {
     return this.autoPayEnabled;
   }
 
-  // ========================================================================
-  // Pricing Calculations
-  // ========================================================================
-
-  /**
-   * Get effective price after discounts
-   */
-  getEffectivePrice(): SubscriptionPrice {
-    const totalDiscountPercent = this.discounts.getTotalPercent();
-    return this.getBasePrice().applyDiscount(totalDiscountPercent);
-  }
-
-  /**
-   * Get the discount amount
-   */
-  getDiscountAmount(): SubscriptionPrice {
-    const totalDiscountPercent = this.discounts.getTotalPercent();
-    return this.getBasePrice().getDiscountAmount(totalDiscountPercent);
-  }
-
-  /**
-   * Calculate days remaining in current period
-   */
   getDaysRemaining(): number {
-    const today = new Date();
-    if (today > this.currentPeriodEnd) {
-      return 0;
-    }
-    const diffTime = this.currentPeriodEnd.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    const now = new Date();
+    return Math.max(
+      0,
+      Math.ceil(
+        (this.currentPeriodEnd.getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+    );
   }
 
-  /**
-   * Get total cycle days (30 or 365)
-   */
-  getCycleDays(): number {
-    return this.billingCycle.getDays();
-  }
-
-  /**
-   * Calculate proration for plan change
-   */
-  calculateProrationCredit(
-    oldPriceCents: number,
-    newPriceCents: number,
-  ): SubscriptionPrice {
-    const daysRemaining = this.getDaysRemaining();
-    const cycleDays = this.getCycleDays();
-
-    const oldPrice = new SubscriptionPrice(oldPriceCents);
-    const creditPrice = oldPrice.prorate(daysRemaining, cycleDays);
-
-    const newPrice = new SubscriptionPrice(newPriceCents);
-    const chargePrice = newPrice.prorate(daysRemaining, cycleDays);
-
-    // Credit for unused portion
-    return creditPrice;
-  }
-
-  // ========================================================================
-  // State Transitions
-  // ========================================================================
-
-  /**
-   * Activate subscription
-   */
-  activate(): void {
-    if (!this.status.canTransitionTo(SubscriptionStatusEnum.ACTIVE)) {
-      throw new Error(
-        `Cannot activate subscription from ${this.status.toString()} status`,
-      );
-    }
-    this.status = this.status.transitionTo(SubscriptionStatusEnum.ACTIVE);
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Pause subscription
-   */
-  pause(): void {
-    if (!this.status.canTransitionTo(SubscriptionStatusEnum.PAUSED)) {
-      throw new Error(
-        `Cannot pause subscription from ${this.status.toString()} status`,
-      );
-    }
-    this.status = this.status.transitionTo(SubscriptionStatusEnum.PAUSED);
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Cancel subscription
-   */
-  cancel(reason?: string): void {
-    if (!this.status.canTransitionTo(SubscriptionStatusEnum.CANCELLED)) {
-      throw new Error(
-        `Cannot cancel subscription from ${this.status.toString()} status`,
-      );
-    }
-    this.status = this.status.transitionTo(SubscriptionStatusEnum.CANCELLED);
-    (this as any).cancelledAt = new Date();
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Mark as expired
-   */
-  expire(): void {
-    this.status = this.status.transitionTo(SubscriptionStatusEnum.EXPIRED);
-    this.updatedAt = new Date();
-  }
-
-  // ========================================================================
-  // Plan Changes
-  // ========================================================================
-
-  /**
-   * Upgrade to new plan
-   */
-  upgradePlan(
-    newPlan: ClinicTier,
-    newPriceCents: number,
-    immediate: boolean = true,
-  ): void {
-    if (!newPlan.isUpgradeTo(this.plan)) {
-      throw new Error(
-        `Cannot upgrade from ${this.plan.toString()} to ${newPlan.toString()}`,
-      );
-    }
-
-    if (immediate) {
-      this.plan = newPlan;
-      this.basePriceCents = newPriceCents;
-      this.updatedAt = new Date();
-    }
-  }
-
-  /**
-   * Downgrade to new plan
-   */
-  downgradePlan(
-    newPlan: ClinicTier,
-    newPriceCents: number,
-    effectiveAt?: Date,
-  ): void {
-    if (!newPlan.isDowngradeTo(this.plan)) {
-      throw new Error(
-        `Cannot downgrade from ${this.plan.toString()} to ${newPlan.toString()}`,
-      );
-    }
-
-    // Immediate downgrade (effective at next period is handled via scheduled change)
-    this.plan = newPlan;
-    this.basePriceCents = newPriceCents;
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Change billing cycle
-   */
-  changeBillingCycle(newCycle: BillingCycle): void {
-    this.billingCycle = newCycle;
-    this.updatedAt = new Date();
-  }
-
-  // ========================================================================
-  // Discount Management
-  // ========================================================================
-
-  /**
-   * Add discount to subscription
-   */
-  applyDiscount(discount: any): void {
-    // Expects Discount instance
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Remove discount by type
-   */
-  removeDiscount(type: any): void {
-    this.updatedAt = new Date();
-  }
-
-  // ========================================================================
-  // Credit Management
-  // ========================================================================
-
-  /**
-   * Add credits to subscription
-   */
-  addCredits(paise: number): void {
-    if (paise < 0) {
-      throw new Error('Credit amount cannot be negative');
-    }
-    this.creditsCents += paise;
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Deduct credits from subscription
-   */
-  deductCredits(paise: number): SubscriptionPrice {
-    if (paise < 0) {
-      throw new Error('Deduction amount cannot be negative');
-    }
-    const deducted = Math.min(paise, this.creditsCents);
-    this.creditsCents -= deducted;
-    this.updatedAt = new Date();
-    return new SubscriptionPrice(deducted);
-  }
-
-  /**
-   * Check if subscription can afford payment
-   */
-  canAfford(priceCents: number): boolean {
-    const price = new SubscriptionPrice(priceCents);
-    const credits = new SubscriptionPrice(this.creditsCents);
-    return credits.isGreaterThan(price) || credits.equals(price);
-  }
-
-  // ========================================================================
-  // Business Rules
-  // ========================================================================
-
-  /**
-   * Check if subscription is due for renewal
-   */
   isDueForRenewal(): boolean {
-    const today = new Date();
-    return today >= this.currentPeriodEnd;
+    const now = new Date();
+    return now >= this.currentPeriodEnd;
   }
 
-  /**
-   * Check if subscription is in trial period
-   */
-  isInTrial(): boolean {
-    if (!this.trialEnd) {
-      return false;
-    }
-    return new Date() < this.trialEnd;
-  }
-
-  /**
-   * Check if subscription is within grace period
-   */
-  isWithinGracePeriod(graceDays: number = 3): boolean {
-    const lastDayOfGrace = new Date(this.currentPeriodEnd);
-    lastDayOfGrace.setDate(lastDayOfGrace.getDate() + graceDays);
-    return new Date() <= lastDayOfGrace;
-  }
-
-  /**
-   * Can renew subscription (not in terminal state)
-   */
   canRenew(): boolean {
     return !this.status.isTerminal();
   }
 
-  /**
-   * Can be changed mid-cycle
-   */
   canBeMidCycleChanged(): boolean {
-    return this.status.isActive() && this.getDaysRemaining() > 0;
+    return this.status.isActive() || this.status.isTrialing();
+  }
+
+  upgradePlan(newTier: ClinicTier, newPricePaise: number, immediate: boolean) {
+    if (!newTier.isUpgradeTo(this.plan)) {
+      throw new Error('New tier must be an upgrade');
+    }
+    if (immediate) {
+      this.plan = newTier;
+      this.basePriceCents = newPricePaise;
+      this.updatedAt = new Date();
+    }
+  }
+
+  cancel(atPeriodEnd: boolean = true) {
+    this.cancelAtPeriodEnd = atPeriodEnd;
+    this.cancelledAt = new Date();
+    if (!atPeriodEnd) {
+      this.status = this.status.transitionTo(SubscriptionStatusEnum.CANCELLED);
+    }
+    this.updatedAt = new Date();
+  }
+
+  activate() {
+    this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
+    this.updatedAt = new Date();
+  }
+
+  expire() {
+    this.status = this.status.transitionTo(SubscriptionStatusEnum.EXPIRED);
+    this.updatedAt = new Date();
+  }
+
+  enterGracePeriod() {
+    this.status = this.status.transitionTo(SubscriptionStatusEnum.GRACE);
+    this.updatedAt = new Date();
+  }
+
+  applyPayment() {
+    const now = new Date();
+    this.currentPeriodStart = now;
+    const nextEnd = new Date(now);
+    if (this.billingCycle.isYearly()) {
+      nextEnd.setFullYear(nextEnd.getFullYear() + 1);
+    } else if (this.billingCycle.isSemiAnnual()) {
+      nextEnd.setMonth(nextEnd.getMonth() + 6);
+    } else if (this.billingCycle.isQuarterly()) {
+      nextEnd.setMonth(nextEnd.getMonth() + 3);
+    } else {
+      nextEnd.setMonth(nextEnd.getMonth() + 1);
+    }
+    this.currentPeriodEnd = nextEnd;
+    this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
+    this.updatedAt = new Date();
   }
 }

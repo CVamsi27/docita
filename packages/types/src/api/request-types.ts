@@ -1,4 +1,4 @@
-import type { UserRole } from "./users";
+import type { UserRole } from "../shared/users";
 
 /**
  * Authenticated Express Request
@@ -7,6 +7,9 @@ import type { UserRole } from "./users";
 export interface AuthenticatedRequest {
   user: {
     id: string;
+    userId: string;
+    sub: string;
+    name: string;
     clinicId: string;
     role: UserRole;
     email: string;

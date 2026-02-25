@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   ClinicalTemplate,
   CreatePrescriptionInput,
@@ -11,12 +11,10 @@ import {
 } from "@workspace/types";
 import {
   API_URL,
-  fetchAPI,
   useAPIMutation,
   useAPIQuery,
 } from "../../lib/api-core";
 
-// Vitals
 export const useVitalSigns = (patientId: string) =>
   useAPIQuery<VitalSign[]>(
     ["vitals", patientId],
@@ -33,7 +31,6 @@ export const useSaveVitals = (appointmentId: string) =>
     },
   );
 
-// Prescriptions
 export const usePrescriptions = (filters?: {
   search?: string;
   date?: string;
@@ -91,10 +88,6 @@ export const useDeletePrescription = (id: string) =>
     invalidateKeys: [["prescriptions"]],
   });
 
-/**
- * Download a prescription as a PDF blob and trigger a browser save.
- * Extracts the raw fetch from the page layer so pages stay thin (SRP).
- */
 export const useDownloadPrescriptionPDF = () => {
   return useMutation({
     mutationFn: async (prescriptionId: string) => {
@@ -123,7 +116,6 @@ export const useDownloadPrescriptionPDF = () => {
   });
 };
 
-// Lab Tests
 export const useLabTests = () =>
   useAPIQuery<{ id: string; status: string; createdAt: Date }[]>(
     ["lab-tests"],
@@ -184,7 +176,6 @@ export const useLabTestStats = () =>
 export const useLabTestCatalog = () =>
   useAPIQuery<LabTest[]>(["lab-test-catalog"], "/lab-tests/catalog");
 
-// Documents
 export const useDocuments = (filters?: {
   search?: string;
   type?: string;
@@ -198,44 +189,14 @@ export const useDocuments = (filters?: {
 export const useDocument = (id: string) =>
   useAPIQuery<Document>(["documents", id], `/documents/${id}`);
 
-// Templates
 export const useTemplates = (filters?: {
   search?: string;
   speciality?: string;
-  clinicId?: string;
 }) =>
   useAPIQuery<ClinicalTemplate[]>(
     ["templates", filters || {}],
-    `/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    `/clinical/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
-export const useCreateTemplate = () =>
-  useAPIMutation<ClinicalTemplate, Partial<ClinicalTemplate>>(
-    "/templates",
-    "POST",
-  );
-
-export const useUpdateTemplate = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, ...data }: ClinicalTemplate) =>
-      fetchAPI<ClinicalTemplate>(`/templates/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["templates"] });
-    },
-  });
-};
-
-export const useDeleteTemplate = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      fetchAPI<void>(`/templates/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["templates"] });
-    },
-  });
-};
+export const useTemplate = (id: string) =>
+  useAPIQuery<ClinicalTemplate>(["templates", id], `/clinical/templates/${id}`);

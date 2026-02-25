@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { AppConfigService } from '../../config/app-configuration.service';
 
 export interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -23,7 +24,10 @@ export interface HealthCheckResult {
 export class HealthService {
   private readonly startTime = Date.now();
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: AppConfigService,
+  ) {}
 
   async getHealth(): Promise<HealthCheckResult> {
     const checks = await this.performChecks();
@@ -33,7 +37,7 @@ export class HealthService {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: Math.floor((Date.now() - this.startTime) / 1000),
-      version: process.env.npm_package_version || '1.0.0',
+      version: this.configService.getAppVersion(),
       checks,
     };
   }

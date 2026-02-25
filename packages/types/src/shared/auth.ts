@@ -27,14 +27,3 @@ export const validateSessionResponseSchema = z.object({
 export const checkEmailResponseSchema = z.object({
   exists: z.boolean(),
 });
-
-export interface AuthenticatedRequest {
-  user: {
-    userId: string;
-    sub: string;
-    email: string;
-    name: string;
-    role: string;
-    clinicId?: string;
-  };
-}

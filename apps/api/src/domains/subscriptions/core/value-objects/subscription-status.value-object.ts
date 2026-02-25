@@ -1,16 +1,8 @@
-/**
- * Subscription Status Value Object
- * Implements state machine for subscription lifecycle
- *
- * Valid transitions:
- * ACTIVE → PAUSED, CANCELLED, EXPIRED
- * PAUSED → ACTIVE, CANCELLED
- * CANCELLED → (terminal state)
- * EXPIRED → (terminal state)
- */
-
 export enum SubscriptionStatusEnum {
   ACTIVE = 'ACTIVE',
+  TRIALING = 'TRIALING',
+  PAST_DUE = 'PAST_DUE',
+  GRACE = 'GRACE',
   PAUSED = 'PAUSED',
   CANCELLED = 'CANCELLED',
   EXPIRED = 'EXPIRED',
@@ -20,8 +12,26 @@ const VALID_TRANSITIONS: Record<
   SubscriptionStatusEnum,
   SubscriptionStatusEnum[]
 > = {
+  [SubscriptionStatusEnum.TRIALING]: [
+    SubscriptionStatusEnum.ACTIVE,
+    SubscriptionStatusEnum.CANCELLED,
+    SubscriptionStatusEnum.EXPIRED,
+  ],
   [SubscriptionStatusEnum.ACTIVE]: [
+    SubscriptionStatusEnum.PAST_DUE,
+    SubscriptionStatusEnum.GRACE,
     SubscriptionStatusEnum.PAUSED,
+    SubscriptionStatusEnum.CANCELLED,
+    SubscriptionStatusEnum.EXPIRED,
+  ],
+  [SubscriptionStatusEnum.PAST_DUE]: [
+    SubscriptionStatusEnum.ACTIVE,
+    SubscriptionStatusEnum.GRACE,
+    SubscriptionStatusEnum.CANCELLED,
+    SubscriptionStatusEnum.EXPIRED,
+  ],
+  [SubscriptionStatusEnum.GRACE]: [
+    SubscriptionStatusEnum.ACTIVE,
     SubscriptionStatusEnum.CANCELLED,
     SubscriptionStatusEnum.EXPIRED,
   ],
@@ -29,15 +39,35 @@ const VALID_TRANSITIONS: Record<
     SubscriptionStatusEnum.ACTIVE,
     SubscriptionStatusEnum.CANCELLED,
   ],
-  [SubscriptionStatusEnum.CANCELLED]: [],
-  [SubscriptionStatusEnum.EXPIRED]: [],
+  [SubscriptionStatusEnum.CANCELLED]: [SubscriptionStatusEnum.ACTIVE],
+  [SubscriptionStatusEnum.EXPIRED]: [SubscriptionStatusEnum.ACTIVE],
 };
 
 export class SubscriptionStatus {
   constructor(readonly value: SubscriptionStatusEnum) {}
 
+  static fromString(value: string): SubscriptionStatus {
+    const statusValue = value.toUpperCase() as SubscriptionStatusEnum;
+    if (!Object.values(SubscriptionStatusEnum).includes(statusValue)) {
+      throw new Error(`Invalid subscription status: ${value}`);
+    }
+    return new SubscriptionStatus(statusValue);
+  }
+
   isActive(): boolean {
     return this.value === SubscriptionStatusEnum.ACTIVE;
+  }
+
+  isTrialing(): boolean {
+    return this.value === SubscriptionStatusEnum.TRIALING;
+  }
+
+  isGrace(): boolean {
+    return this.value === SubscriptionStatusEnum.GRACE;
+  }
+
+  isPastDue(): boolean {
+    return this.value === SubscriptionStatusEnum.PAST_DUE;
   }
 
   isPaused(): boolean {

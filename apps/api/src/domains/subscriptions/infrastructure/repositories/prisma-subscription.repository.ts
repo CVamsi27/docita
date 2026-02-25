@@ -1,8 +1,3 @@
-/**
- * Prisma Subscription Repository
- * Production implementation of ISubscriptionRepository
- */
-
 import {
   Injectable,
   NotFoundException,
@@ -12,20 +7,28 @@ import { Subscription } from '../../core/entities';
 import { ISubscriptionRepository } from '../../application/ports/subscription.repository.port';
 import { SubscriptionMapper } from '../mappers/subscription.mapper';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { SubscriptionStatus, Prisma } from '@workspace/db';
+
+const SubscriptionPaymentStatus = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+} as const;
+
+type SubscriptionPaymentStatus =
+  (typeof SubscriptionPaymentStatus)[keyof typeof SubscriptionPaymentStatus];
 
 @Injectable()
 export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Save (create) a new subscription
-   */
   async save(subscription: Subscription): Promise<void> {
     try {
       const data = SubscriptionMapper.toPersistence(subscription);
 
       await this.prisma.subscription.create({
-        data: data as any,
+        data: data as Prisma.SubscriptionCreateInput,
       });
     } catch (error) {
       throw new BadRequestException(
@@ -34,9 +37,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Find subscription by ID
-   */
   async findById(id: string): Promise<Subscription | null> {
     try {
       const prismaSubscription = await this.prisma.subscription.findUnique({
@@ -55,9 +55,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Find subscription by clinic ID (one-to-one)
-   */
   async findByClinicId(clinicId: string): Promise<Subscription | null> {
     try {
       const prismaSubscription = await this.prisma.subscription.findUnique({
@@ -76,13 +73,10 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Find subscriptions by status
-   */
   async findByStatus(status: string): Promise<Subscription[]> {
     try {
       const prismaSubscriptions = await this.prisma.subscription.findMany({
-        where: { status: status as any },
+        where: { status: status as SubscriptionStatus },
       });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
@@ -93,9 +87,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Find subscriptions approaching renewal
-   */
   async findApproachingRenewal(daysThreshold: number): Promise<Subscription[]> {
     try {
       const renewalDate = new Date();
@@ -119,9 +110,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Update subscription
-   */
   async update(subscription: Subscription): Promise<void> {
     try {
       const existing = await this.prisma.subscription.findUnique({
@@ -134,7 +122,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
         );
       }
 
-      // Check version for optimistic concurrency control
       if (existing.version !== subscription.version) {
         throw new BadRequestException(
           'Subscription was modified by another user. Please refresh and try again.',
@@ -146,7 +133,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       await this.prisma.subscription.update({
         where: { id: subscription.id },
         data: {
-          ...data,
+          ...(data as Prisma.SubscriptionUpdateInput),
           version: { increment: 1 },
         },
       });
@@ -163,9 +150,6 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     }
   }
 
-  /**
-   * Delete subscription
-   */
   async delete(id: string): Promise<void> {
     try {
       const subscription = await this.prisma.subscription.findUnique({
@@ -187,5 +171,73 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
         `Failed to delete subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
+  }
+
+  async savePayment(payment: {
+    clinicId: string;
+    subscriptionId?: string;
+    amountCents: number;
+    currency: string;
+    status: string;
+    razorpayOrderId: string;
+    description: string;
+  }): Promise<void> {
+    try {
+      await this.prisma.subscriptionPayment.create({
+        data: {
+          clinicId: payment.clinicId,
+          subscriptionId: payment.subscriptionId,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          status: payment.status,
+          razorpayOrderId: payment.razorpayOrderId,
+          description: payment.description,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to save payment: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  async updatePaymentStatus(
+    orderId: string,
+    status: string,
+    details?: {
+      paymentId?: string;
+      signature?: string;
+      subscriptionId?: string;
+    },
+  ): Promise<void> {
+    try {
+      await this.prisma.subscriptionPayment.updateMany({
+        where: { razorpayOrderId: orderId },
+        data: {
+          status: status,
+          razorpayPaymentId: details?.paymentId,
+          razorpaySignature: details?.signature,
+          subscriptionId: details?.subscriptionId,
+          paidAt: status === 'paid' ? new Date() : undefined,
+        },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  async findPaymentsByClinicId(
+    clinicId: string,
+    limit: number,
+  ): Promise<
+    Prisma.SubscriptionPaymentGetPayload<Prisma.SubscriptionPaymentDefaultArgs>[]
+  > {
+    return this.prisma.subscriptionPayment.findMany({
+      where: { clinicId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 }

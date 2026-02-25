@@ -42,7 +42,7 @@ describe.skip('ObservabilityService', () => {
 
     it('should capture messages', () => {
       expect(() => {
-        service.captureMessage('Test message', 'info', 'test-context');
+        service.captureMessage('Test message', 'test-context', 'info');
       }).not.toThrow();
     });
 
@@ -57,9 +57,9 @@ describe.skip('ObservabilityService', () => {
   describe('structured logging', () => {
     it('should log structured data with correlation ID', () => {
       expect(() => {
-        service.logStructured('test-correlation-id', {
+        service.logStructured('info', 'Test message', {
+          correlationId: 'test-correlation-id',
           action: 'test-action',
-          severity: 'info',
           details: { message: 'Test message' },
         });
       }).not.toThrow();
@@ -67,21 +67,19 @@ describe.skip('ObservabilityService', () => {
 
     it('should handle missing correlation ID', () => {
       expect(() => {
-        service.logStructured(undefined, {
+        service.logStructured('info', 'Test message', {
           action: 'test-action',
-          severity: 'info',
           details: { message: 'Test message' },
         });
       }).not.toThrow();
     });
 
     it('should support different severity levels', () => {
-      const severities = ['debug', 'info', 'warn', 'error'];
+      const severities = ['debug', 'info', 'warn', 'error'] as const;
       severities.forEach((severity) => {
         expect(() => {
-          service.logStructured('test-id', {
+          service.logStructured(severity, 'Test message', {
             action: 'test',
-            severity: severity as any,
             details: {},
           });
         }).not.toThrow();
@@ -153,22 +151,22 @@ describe.skip('ObservabilityService', () => {
   });
 
   describe('health checks', () => {
-    it('should check system health', () => {
-      const health = service.getSystemHealth();
+    it('should check system health', async () => {
+      const health = await service.getSystemHealth();
 
       expect(health).toBeDefined();
-      expect(health).toHaveProperty('uptime');
-      expect(health).toHaveProperty('memory');
-      expect(health.uptime).toBeGreaterThanOrEqual(0);
+      expect(health.checks).toHaveProperty('uptime');
+      expect(health.checks).toHaveProperty('memory');
+      expect(health.checks.uptime).toBeGreaterThanOrEqual(0);
     });
 
-    it('should include memory usage', () => {
-      const health = service.getSystemHealth();
+    it('should include memory usage', async () => {
+      const health = await service.getSystemHealth();
 
-      expect(health.memory).toBeDefined();
-      expect(health.memory).toHaveProperty('heapUsed');
-      expect(health.memory).toHaveProperty('heapTotal');
-      expect(health.memory).toHaveProperty('rss');
+      expect(health.checks.memory).toBeDefined();
+      expect(health.checks.memory).toHaveProperty('heapUsed');
+      expect(health.checks.memory).toHaveProperty('heapTotal');
+      expect(health.checks.memory).toHaveProperty('rss');
     });
 
     it('should handle database health checks', async () => {
@@ -225,14 +223,14 @@ describe.skip('ObservabilityService', () => {
       service.recordMetric('auth_success', 1, 'user-123');
 
       // 3. Log structured data
-      service.logStructured('correlation-123', {
+      service.logStructured('info', 'User login action', {
+        correlationId: 'correlation-123',
         action: 'user_login',
-        severity: 'info',
         details: { userId: 'user-123', timestamp: new Date().toISOString() },
       });
 
       // 4. Check system health
-      const systemHealth = service.getSystemHealth();
+      const systemHealth = await service.getSystemHealth();
       expect(systemHealth).toBeDefined();
 
       // 5. Get metrics
@@ -242,8 +240,8 @@ describe.skip('ObservabilityService', () => {
       // 6. Capture an event
       service.captureMessage(
         'Request processed successfully',
-        'info',
         'workflow',
+        'info',
       );
 
       // 7. Flush
@@ -254,9 +252,9 @@ describe.skip('ObservabilityService', () => {
       const error = new Error('Database connection failed');
       const correlationId = 'corr-456';
 
-      service.logStructured(correlationId, {
+      service.logStructured('error', 'Database error', {
+        correlationId,
         action: 'db_error',
-        severity: 'error',
         details: {
           errorMessage: error.message,
           stack: error.stack,

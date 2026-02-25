@@ -4,7 +4,7 @@ import {
   bloodGroupSchema,
   appointmentTypeSchema,
   specializationSchema,
-} from "./index";
+} from "../shared/users";
 
 export const formOptionsSchema = z.object({
   genders: z.array(z.object({ value: genderSchema, label: z.string() })),

@@ -1,0 +1,133 @@
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
+import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
+import { format } from "date-fns";
+
+interface PatientProfileHeaderUIProps {
+  firstName: string;
+  lastName: string;
+  initials: string;
+  age: string | number;
+  gender: string;
+  dateOfBirth?: Date | string;
+  patientId: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+  onEdit?: () => void;
+}
+
+export function PatientProfileHeaderUI({
+  firstName,
+  lastName,
+  initials,
+  age,
+  gender,
+  dateOfBirth,
+  patientId,
+  email,
+  phoneNumber,
+  address,
+  onEdit,
+}: PatientProfileHeaderUIProps) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border bg-background/60 p-4 sm:p-6 md:p-8 backdrop-blur-xl shadow-sm transition-all hover:shadow-md">
+      <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+      <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
+
+      <div className="relative flex flex-col gap-4 md:gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col items-center md:items-start gap-4 md:gap-6 md:flex-row">
+          <Avatar className="h-20 w-20 md:h-32 md:w-32 border-4 border-background shadow-xl">
+            <AvatarFallback className="text-2xl md:text-4xl bg-primary/10 text-primary font-light">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="space-y-3 md:space-y-4 text-center md:text-left">
+            <div>
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                  {firstName} {lastName}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={gender === "MALE" ? "default" : "secondary"}
+                    className="rounded-full px-2 sm:px-3 text-xs"
+                  >
+                    {gender}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full px-2 sm:px-3 text-xs"
+                  >
+                    {age} years
+                  </Badge>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 opacity-70" />
+                  <span>
+                    DOB:{" "}
+                    {dateOfBirth
+                      ? format(new Date(dateOfBirth), "MMM d, yyyy")
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-4 w-4 opacity-70" />
+                  <span>ID: {patientId.slice(0, 8)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center md:justify-start gap-2">
+              {email && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 py-1 pl-1.5 pr-2 text-xs font-normal max-w-[200px] truncate"
+                >
+                  <Mail className="h-3 w-3 opacity-70 shrink-0" />
+                  <span className="truncate">{email}</span>
+                </Badge>
+              )}
+              {phoneNumber && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 py-1 pl-1.5 pr-2 text-xs font-normal"
+                >
+                  <Phone className="h-3 w-3 opacity-70 shrink-0" />
+                  {phoneNumber}
+                </Badge>
+              )}
+              {address && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 py-1 pl-1.5 pr-2 text-xs font-normal max-w-[200px] truncate"
+                >
+                  <MapPin className="h-3 w-3 opacity-70 shrink-0" />
+                  <span className="truncate">{address}</span>
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {onEdit && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2 rounded-full"
+              onClick={onEdit}
+            >
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

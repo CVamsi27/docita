@@ -3,7 +3,6 @@ import { format } from "date-fns";
 import Image from "next/image";
 import type { Medication, Patient } from "@workspace/types";
 
-// Define local interfaces if not available in types package yet
 interface DoctorInfo {
   name?: string;
   qualification?: string;
@@ -29,7 +28,7 @@ interface PrescriptionData {
 }
 
 interface PrescriptionDocumentProps {
-  prescription: PrescriptionData; // Strict typing instead of any
+  prescription: PrescriptionData;
   clinicInfo: ClinicInfo | undefined;
 }
 
@@ -52,8 +51,6 @@ export function PrescriptionDocument({
   return (
     <Card className="print:shadow-none print:border-2 print:border-gray-300">
       <CardHeader className="space-y-4 pb-4">
-        {/* Clinic Header */}
-        {/* Clinic Header */}
         <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-primary pb-6 gap-4">
           <div className="flex items-start gap-4 max-w-[70%]">
             {clinicInfo?.logo ? (

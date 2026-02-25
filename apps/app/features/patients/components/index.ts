@@ -1,74 +1,28 @@
-/**
- * Patient Components
- * Exports for all patient-related UI components
- */
+export * from "./profile/PatientProfileHeader";
+export * from "./profile/PatientFaceSheetHeader";
+export * from "./profile/PatientStatsCards";
+export * from "./profile/PatientBadge";
+export * from "./profile/PatientVitalsBanner";
 
-// Allergy Alert
-export { PatientAllergyAlertContainer } from "./PatientAllergyAlertContainer";
-export { PatientAllergyAlertUI } from "./PatientAllergyAlertUI";
+export * from "./list/PatientsPage";
+export * from "./list/InfinitePatientsList";
+export * from "./list/VirtualizedPatientsList";
+export * from "./list/table/PatientsDataTable";
 
-// Profile Header
-export { PatientProfileHeaderContainer } from "./PatientProfileHeaderContainer";
-export { PatientProfileHeaderUI } from "./PatientProfileHeaderUI";
+export * from "./forms/PatientDialogs";
 
-// Stats Cards
-export { PatientStatsCardsContainer } from "./PatientStatsCardsContainer";
-export { PatientStatsCardsUI } from "./PatientStatsCardsUI";
-
-// Vitals Banner
-export { PatientVitalsBannerContainer } from "./PatientVitalsBannerContainer";
-export { PatientVitalsBannerUI } from "./PatientVitalsBannerUI";
-
-// Face Sheet Header (IPD)
-export { PatientFaceSheetHeaderContainer } from "./PatientFaceSheetHeaderContainer";
-export { PatientFaceSheetHeaderUI } from "./PatientFaceSheetHeaderUI";
-
-// Tag Manager
-export { PatientTagManagerContainer } from "./PatientTagManagerContainer";
-export { PatientTagManagerUI } from "./PatientTagManagerUI";
-export type { PatientTag, PresetTag } from "./PatientTagManagerUI";
-
-// Infinite Patients List
-export { InfinitePatientsListContainer } from "./InfinitePatientsListContainer";
-export { InfinitePatientsListUI } from "./InfinitePatientsListUI";
-
-// Virtualized Patients List
-export { VirtualizedPatientsListContainer } from "./VirtualizedPatientsListContainer";
-export { VirtualizedPatientsListUI } from "./VirtualizedPatientsListUI";
-
-// PatientMedicalHistory
-export { PatientMedicalHistoryContainer } from "./PatientMedicalHistoryContainer";
-export { PatientMedicalHistoryUI } from "./PatientMedicalHistoryUI";
-
-// Total: 13 components migrated (100%)ge
-export { PatientBadgeContainer } from "./PatientBadgeContainer";
-export { PatientBadgeUI } from "./PatientBadgeUI";
-
-// All 13 patient components migrated ✅
-// Remaining complex components (medical history, forms, timelines)
-// are documented but kept in original location due to high complexity
-
-// Patient UI Components (Moved from misc-stubs)
-export {
-  PatientFaceSheetHeader,
-  PatientStatsCards,
-  PatientMedicalHistory,
-  PatientVitalsBanner,
-  PatientAllergyAlert,
-  AppointmentHistoryTimeline,
-  type PatientFaceSheetHeaderProps,
-  type PatientStatsCardsProps,
-  type PatientMedicalHistoryProps,
-  type PatientVitalsBannerProps,
-  type PatientAllergyAlertProps,
-  type AppointmentHistoryTimelineProps,
-} from "./PatientUIComponents";
-
-// Patient Dialogs
-export {
-  AddPatientDialog,
-  EditPatientDialog,
-  PatientFormDialog,
-  FhirExportDialog,
-} from "./PatientDialogs";
-export * from "./PatientTimelineCompact";
+export * from "./details/PatientMedicalHistoryContainer";
+export * from "./details/PatientMedicalHistoryUI";
+export * from "./details/PatientDocumentsTabUI";
+export * from "./details/PatientTimelineCompact";
+export * from "./details/PatientAllergyAlertContainer";
+export * from "./details/PatientAllergyAlertUI";
+export * from "./details/PatientTagManagerContainer";
+export * from "./details/PatientTagManagerUI";
+export * from "./details/PatientPageHeaderUI";
+export * from "./details/PatientUIComponents";
+export * from "./details/history/PatientConditions";
+export * from "./details/history/PatientAllergies";
+export * from "./details/history/PatientSurgeries";
+export * from "./details/history/PatientFamilyHistory";
+export * from "./details/history/PatientSocialHistory";

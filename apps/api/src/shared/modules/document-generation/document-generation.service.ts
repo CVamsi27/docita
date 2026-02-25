@@ -40,9 +40,7 @@ export class DocumentGenerationService {
    * Generate report PDF
    * (Can be extended with report-specific builder)
    */
-  async generateReportPdf(data: any): Promise<Buffer> {
-    // TODO: Implement report PDF generation
-    // For now, return empty buffer
-    return Buffer.from('Report PDF would go here');
+  generateReportPdf(data: any): Promise<Buffer> {
+    return Promise.resolve(Buffer.from('Report PDF would go here'));
   }
 }

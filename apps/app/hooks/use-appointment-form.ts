@@ -34,13 +34,11 @@ export function useAppointmentForm({
   const { data: searchedPatientsResponse, isLoading: patientsLoading } =
     usePatients({
       search: patientSearch || undefined,
-      limit: patientSearch ? 20 : 10, // Show more results when searching
+      limit: patientSearch ? 20 : 10,
     });
 
-  // Fetch preselected patient separately to ensure it's available
   const { data: preselectedPatient } = usePatient(preselectedPatientId || "");
 
-  // Combine preselected patient with search results, avoiding duplicates
   const patients = useMemo(() => {
     const searchedPatients: Patient[] =
       ((searchedPatientsResponse as { items?: Patient[] }) || {}).items || [];
@@ -55,11 +53,9 @@ export function useAppointmentForm({
     return searchedPatients;
   }, [searchedPatientsResponse, preselectedPatient, preselectedPatientId]);
 
-  // Track if we've auto-selected a single patient
   const lastSinglePatientIdRef = useRef<string | null>(null);
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctors();
 
-  // API now returns strictly doctors, so no need to filter manually
   const filteredDoctors = doctors;
 
   const { mutateAsync: createAppointment, isPending: loading } =
@@ -68,7 +64,6 @@ export function useAppointmentForm({
   const { config } = useAppConfig();
   const { user } = useAuth();
 
-  // Get default appointment duration from config
   const defaultDuration = config.defaults.appointmentDuration;
 
   const defaultValues = useMemo(() => {
@@ -77,21 +72,16 @@ export function useAppointmentForm({
     if (selectedDate) {
       defaultStart = selectedDate.toISOString().slice(0, 16);
     } else {
-      // Logic for next available slot
       const now = new Date();
 
-      // Check if we are before opening time (e.g. early morning)
       if (now.getHours() < startHour) {
         now.setHours(startHour, 0, 0, 0);
       } else if (now.getHours() >= endHour) {
-        // Move to tomorrow at opening time if past closing
         now.setDate(now.getDate() + 1);
         now.setHours(startHour, 0, 0, 0);
       } else {
-        // Round to next 30 minutes (half-hour intervals) for working hours
         const remainder = 30 - (now.getMinutes() % 30);
         if (remainder === 0) {
-          // Already on a 30-minute mark, add 30 minutes to be in future
           now.setMinutes(now.getMinutes() + 30);
         } else {
           now.setMinutes(now.getMinutes() + remainder);
@@ -99,27 +89,21 @@ export function useAppointmentForm({
         now.setSeconds(0);
         now.setMilliseconds(0);
 
-        // If rounding pushed us past closing time, move to tomorrow
         if (now.getHours() >= endHour) {
           now.setDate(now.getDate() + 1);
           now.setHours(startHour, 0, 0, 0);
         }
       }
 
-      // Convert to local ISO string (simple slice for now as we want local time input)
-      // Note: simplistic handling, ideally use date-fns and timezone handling
       const offsetMs = now.getTimezoneOffset() * 60 * 1000;
       const localDate = new Date(now.getTime() - offsetMs);
       defaultStart = localDate.toISOString().slice(0, 16);
     }
 
-    // Determine default doctor
     let defaultDoctorId = "";
     if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
-      // If current user is a doctor, use their ID
       defaultDoctorId = user.id || "";
     } else if (filteredDoctors.length > 0) {
-      // Otherwise, use the first available doctor
       defaultDoctorId = filteredDoctors[0]?.id || "";
     }
 
@@ -151,18 +135,14 @@ export function useAppointmentForm({
     defaultValues,
   });
 
-  // Track last values to detect changes without useEffect
   const lastSelectedDateRef = useRef<Date | undefined>(undefined);
   const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
 
-  // Update form when selectedDate changes (without useEffect)
   if (selectedDate !== lastSelectedDateRef.current) {
     lastSelectedDateRef.current = selectedDate;
     if (selectedDate) {
       const start = new Date(selectedDate);
-      // Set to opening time as the starting point
       start.setHours(startHour, 0, 0, 0);
-      // Use timezone-aware conversion
       const localISOTime = toLocalISOString(start, {
         timezone: DEFAULT_TIMEZONE,
       });
@@ -170,7 +150,6 @@ export function useAppointmentForm({
     }
   }
 
-  // Update form when preselectedPatientId changes (without useEffect)
   if (preselectedPatientId !== lastPreselectedPatientIdRef.current) {
     lastPreselectedPatientIdRef.current = preselectedPatientId;
     if (preselectedPatientId) {
@@ -178,7 +157,6 @@ export function useAppointmentForm({
     }
   }
 
-  // Auto-select patient if only 1 is available and no preselection
   const currentPatientId = form.watch("patientId");
   if (
     !preselectedPatientId &&
@@ -205,7 +183,6 @@ export function useAppointmentForm({
           ).toISOString(),
         });
 
-        // Invalidate and refetch queries to refresh data immediately
         await queryClient.invalidateQueries({
           queryKey: ["appointments"],
         });

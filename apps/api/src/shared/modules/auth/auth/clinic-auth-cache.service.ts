@@ -144,7 +144,6 @@ export class ClinicAuthCacheService {
       features: Record<string, boolean>;
     },
   ): void {
-    // Implement LRU eviction if cache is full
     if (this.cache.size >= MAX_CACHE_SIZE) {
       const oldestKey = this.findOldestCacheKey();
       if (oldestKey) {

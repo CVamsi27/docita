@@ -14,7 +14,7 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from '../interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from '../interceptors/emergency-access.interceptor';
-import { AuditService } from '../../modules/audit/audit.service';
+import { AuditService } from '../../shared/modules/audit/audit/audit.service';
 
 @Controller('pipeline')
 class PipelineController {

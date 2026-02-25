@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
 
-/**
- * Focus trap hook for modals and dialogs.
- * Traps keyboard focus within the element for accessibility.
- */
 export function useFocusTrap(isActive: boolean = true) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -18,20 +14,17 @@ export function useFocusTrap(isActive: boolean = true) {
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
 
-    // Focus first element when trap activates
     firstFocusable?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
 
       if (e.shiftKey) {
-        // Shift + Tab: go backwards
         if (document.activeElement === firstFocusable) {
           e.preventDefault();
           lastFocusable?.focus();
         }
       } else {
-        // Tab: go forwards
         if (document.activeElement === lastFocusable) {
           e.preventDefault();
           firstFocusable?.focus();
@@ -46,9 +39,6 @@ export function useFocusTrap(isActive: boolean = true) {
   return containerRef;
 }
 
-/**
- * Hook for announcing live regions to screen readers.
- */
 export function useAnnounce() {
   const announce = useCallback(
     (message: string, priority: "polite" | "assertive" = "polite") => {
@@ -61,7 +51,6 @@ export function useAnnounce() {
 
       document.body.appendChild(announcement);
 
-      // Remove after announcement is read
       setTimeout(() => {
         document.body.removeChild(announcement);
       }, 1000);
@@ -72,10 +61,6 @@ export function useAnnounce() {
   return announce;
 }
 
-/**
- * Hook for managing roving tabindex navigation.
- * Useful for toolbars, menus, and tab lists.
- */
 export function useRovingTabIndex<T extends HTMLElement>(
   itemCount: number,
   initialIndex: number = 0,
@@ -127,9 +112,6 @@ export function useRovingTabIndex<T extends HTMLElement>(
   return { setRef, handleKeyDown, currentIndex };
 }
 
-/**
- * Props helper for accessible buttons.
- */
 export function getButtonA11yProps(
   label: string,
   isLoading?: boolean,
@@ -144,9 +126,6 @@ export function getButtonA11yProps(
   };
 }
 
-/**
- * Props helper for accessible form inputs.
- */
 export function getInputA11yProps(
   id: string,
   label: string,

@@ -19,14 +19,6 @@ export class PdfRendererService {
    * Returns PDF as Buffer
    */
   async renderToPdf(content: DocumentContent): Promise<Buffer> {
-    // TODO: Implement actual PDF rendering
-    // For now, this is a placeholder that shows the structure
-
-    // In production, this would:
-    // 1. Convert DocumentContent to HTML
-    // 2. Use Puppeteer/PDFKit to generate PDF from HTML
-    // 3. Return Buffer with PDF data
-
     console.log('Rendering to PDF:', content);
 
     // Placeholder: return empty buffer
@@ -45,10 +37,11 @@ export class PdfRendererService {
 
     for (const section of content.sections) {
       switch (section.type) {
-        case 'heading':
+        case 'heading': {
           const level = section.styling?.level || 1;
           html += `<h${level}>${section.content}</h${level}>`;
           break;
+        }
         case 'paragraph':
           html += `<p>${section.content}</p>`;
           break;

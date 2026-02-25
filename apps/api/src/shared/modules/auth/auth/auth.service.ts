@@ -11,9 +11,9 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
-import { UserFactory } from '../../../../domains/users/factories/user.factory';
+import { UserFactory } from '../../../../domains/users/core/factories/user.factory';
 import { MonitoringService } from '../../monitoring/monitoring/monitoring.service';
-import { ObservabilityService } from '../../../../common/services/observability.service';
+import { ObservabilityService } from '../../services/observability.service';
 import { nanoid } from 'nanoid';
 
 interface UserWithoutPassword {

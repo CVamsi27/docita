@@ -10,9 +10,6 @@ import { ApiError } from "./errors";
 
 export { API_URL };
 
-/**
- * Global App Constants
- */
 export interface AppConstants {
   followUpTypes: Array<{ value: string; label: string }>;
   reminderDays: Array<{ value: number; label: string }>;
@@ -50,9 +47,6 @@ export interface PaginatedResponse<T> {
   nextCursor?: string | null;
 }
 
-/**
- * Medical History Timeline Item - represents a single appointment in the patient's medical history
- */
 export interface MedicalHistoryTimelineItem {
   id: string;
   startTime: string;
@@ -103,7 +97,6 @@ export interface MedicalHistoryTimelineItem {
       duration: string;
     }>;
   } | null;
-  // Computed fields from backend
   issueSummary: string;
   primaryDiagnosis: {
     id: string;
@@ -124,11 +117,9 @@ export function getAuthToken(): string | null {
 }
 
 export function handleAuthError() {
-  // Clear invalid token
   if (typeof window !== "undefined") {
     localStorage.removeItem("docita_token");
     localStorage.removeItem("docita_user");
-    // Redirect to login
     const currentPath = window.location.pathname;
     if (currentPath !== "/login") {
       sessionStorage.setItem("redirectAfterLogin", currentPath);
@@ -162,7 +153,6 @@ export async function fetchAPI<T>(
     });
 
     if (!response.ok) {
-      // Handle 401 Unauthorized - token is invalid or expired
       if (response.status === 401) {
         handleAuthError();
         throw new ApiError(
@@ -172,19 +162,20 @@ export async function fetchAPI<T>(
         );
       }
 
-      // Handle other errors
-      let errorData;
+      let errorData: unknown;
       try {
         errorData = await response.json();
-      } catch (_e) {
+      } catch {
         errorData = { message: `HTTP error! status: ${response.status}` };
       }
 
+      const errObj = errorData as Record<string, any>;
+
       throw new ApiError(
-        errorData.message || `HTTP error! status: ${response.status}`,
+        errObj.message || `HTTP error! status: ${response.status}`,
         response.status,
-        errorData.code || "API_ERROR",
-        errorData.details,
+        errObj.code || "API_ERROR",
+        errObj.details,
       );
     }
 
@@ -214,41 +205,34 @@ export function useAPIQuery<T>(
 }
 
 export function useAPIMutation<TData, TVariables>(
-  endpoint: string | ((variables: TVariables) => string),
-  method: "POST" | "PUT" | "DELETE" | "PATCH" = "POST",
-  options?: UseMutationOptions<TData, ApiError, TVariables> & {
-    invalidateKeys?: Array<(string | number | Record<string, unknown>)[]>;
+  endpointOrFn: string | ((vars: TVariables) => string),
+  method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
+  options?: Omit<UseMutationOptions<TData, ApiError, TVariables>, "mutationFn"> & {
+    invalidateKeys?: (string | number | Record<string, unknown>)[][];
   },
 ) {
   const queryClient = useQueryClient();
 
   return useMutation<TData, ApiError, TVariables>({
-    mutationFn: (variables) => {
-      const url =
-        typeof endpoint === "function" ? endpoint(variables) : endpoint;
-
-      // Handle FormData - don't stringify it
-      const body =
-        variables instanceof FormData ? variables : JSON.stringify(variables);
-
-      return fetchAPI<TData>(url, {
+    mutationFn: (variables: TVariables) => {
+      const endpoint =
+        typeof endpointOrFn === "function"
+          ? endpointOrFn(variables)
+          : endpointOrFn;
+      return fetchAPI<TData>(endpoint, {
         method,
-        body,
+        body: variables ? JSON.stringify(variables) : undefined,
       });
     },
     ...options,
-    onSuccess: async (data, variables, context, mutationContext) => {
+    onSuccess: (data, variables, context) => {
       if (options?.invalidateKeys) {
-        await Promise.all(
-          options.invalidateKeys.map((key) =>
-            queryClient.invalidateQueries({ queryKey: key }),
-          ),
-        );
+        options.invalidateKeys.forEach((key) => {
+          queryClient.invalidateQueries({ queryKey: key });
+        });
       }
-      // Blanket invalidation removed as per §9.2 for better performance
-
       if (options?.onSuccess) {
-        await options.onSuccess(data, variables, context, mutationContext);
+        options.onSuccess(data, variables, context);
       }
     },
   });

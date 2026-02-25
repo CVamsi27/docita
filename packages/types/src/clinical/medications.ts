@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { patientSchema } from "./patients";
-import { userSchema } from "./users";
+import { patientSchema } from "../patient/patients";
+import { userSchema } from "../shared/users";
 import {
   dosageFormSchema,
   sigCodeSchema,
   DosageForm,
   SigCode,
 } from "./medical";
-import { stripHtmlTags } from "./sanitization";
+import { stripHtmlTags } from "../api/sanitization";
 
 export const embeddedMedicationSchema = z.object({
   name: z.string().max(255),

@@ -1,6 +1,16 @@
-// Shared Components - App-level utilities
-export { CommandMenu } from "./command-menu";
-export { Providers } from "./providers";
-export { ToasterWrapper } from "./toaster-wrapper";
-export { WebVitalsReporter } from "./web-vitals-reporter";
-export { LoginLayout } from "./login-layout";
+export * from "./auth/auth-guard";
+export * from "./auth/feature-gate";
+export * from "./auth/feature-guard";
+export * from "./auth/role-guard";
+export * from "./navigation/sidebar";
+export * from "./navigation/command-menu";
+export * from "./navigation/command-palette";
+export * from "./navigation/mobile-nav";
+export * from "./consultation/floating-start-consultation";
+export * from "./whatsapp/whatsapp-button";
+export * from "./patient/PatientHistorySummaryCard";
+export * from "./feedback/offline-status-banner";
+export * from "./layout/login-layout";
+export * from "./layout/providers";
+export * from "./layout/toaster-wrapper";
+export * from "./layout/web-vitals-reporter";

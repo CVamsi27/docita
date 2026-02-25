@@ -1,4 +1,4 @@
-import { DEFAULT_TIMEZONE, TIMEZONE_OPTIONS } from "./date-utils.js";
+import { DEFAULT_TIMEZONE, TIMEZONE_OPTIONS } from "../date/index.js";
 
 export const GENDER_OPTIONS = [
   { value: "MALE", label: "Male" },

@@ -2,6 +2,8 @@
 
 import React, {
   createContext,
+  ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -53,7 +55,6 @@ function getCsrfToken(): string | null {
   return token ? decodeURIComponent(token) : null;
 }
 
-// Helper to read cached user from localStorage (token is in HttpOnly cookie)
 function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
@@ -67,21 +68,18 @@ function getStoredUser(): User | null {
   return null;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Start with null on both server and client to avoid hydration mismatch
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start loading until we check localStorage
+  const [isLoading, setIsLoading] = useState(true);
   const isAuthenticated = !!user;
   const router = useRouter();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
 
-  // On mount: restore user from localStorage cache, then validate via cookie
   useEffect(() => {
     const cachedUser = getStoredUser();
     if (cachedUser) {
-      // Optimistic restore from cache
       setUser(cachedUser);
       setUserRole(cachedUser.role);
       hasSetRoleRef.current = true;
@@ -90,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Validate session via HttpOnly cookie
     fetch(`${API_URL}/auth/validate`, { credentials: "include" })
       .then(async (res) => {
         if (res.ok) {
@@ -100,15 +97,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           hasSetRoleRef.current = true;
           localStorage.setItem("docita_user", JSON.stringify(data.user));
         } else {
-          // Cookie invalid/expired — clear state
           setUser(null);
           setToken(null);
           localStorage.removeItem("docita_user");
         }
       })
-      .catch(() => {
-        // Network error — keep cached user if available
-      })
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [setUserRole]);
 
@@ -130,35 +124,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json();
-      const { access_token, user } = data;
+      const { access_token, user: userData } = data;
 
-      if (!user) {
+      if (!userData) {
         throw new Error("Invalid login response: user data missing");
       }
 
-      if (user.role === "SUPER_ADMIN") {
+      if (userData.role === "SUPER_ADMIN") {
         throw new Error(
           "Super Admin accounts should use the Admin Console at /admin",
         );
       }
 
-      if (!user.clinicId) {
+      if (!userData.clinicId) {
         throw new Error(
           "Your account is not associated with any clinic. Please contact support.",
         );
       }
 
-      setToken(access_token); // Keep in state for WebSocket auth
-      setUser(user);
-      setUserRole(user.role);
-      localStorage.setItem("docita_user", JSON.stringify(user));
+      setToken(access_token);
+      setUser(userData);
+      setUserRole(userData.role);
+      localStorage.setItem("docita_user", JSON.stringify(userData));
 
       const redirectUrl =
         sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectUrl);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error(error);
       throw error;
     }
   };
@@ -185,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       return data.exists;
     } catch (error) {
-      console.error("Email check error:", error);
+      console.error(error);
       throw error;
     }
   };
@@ -220,27 +214,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json();
-      const { access_token, user } = data;
+      const { access_token, user: userData } = data;
 
-      if (!user) {
+      if (!userData) {
         throw new Error("Invalid registration response: user data missing");
       }
 
       setToken(access_token);
-      setUser(user);
-      setUserRole(user.role);
-      localStorage.setItem("docita_user", JSON.stringify(user));
+      setUser(userData);
+      setUserRole(userData.role);
+      localStorage.setItem("docita_user", JSON.stringify(userData));
 
       router.push("/dashboard");
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error(error);
       throw error;
     }
   };
 
-  const logout = React.useCallback(() => {
+  const logout = useCallback(() => {
     const csrfToken = getCsrfToken();
-    // Revoke refresh token on server & clear cookies
     fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
@@ -249,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
       },
       body: JSON.stringify({}),
-    }).catch(() => {}); // Fire and forget
+    }).catch(() => {});
 
     setUser(null);
     setToken(null);
@@ -257,7 +250,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/login");
   }, [router]);
 
-  // 15-minute idle timeout for session security (Healthcare Compliance)
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -267,14 +259,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(
         () => {
-          console.warn("Session timed out due to inactivity.");
           logout();
         },
         30 * 60 * 1000,
-      ); // 30 minutes
+      );
     };
 
-    // Events to track user activity
     const events = [
       "mousedown",
       "mousemove",
@@ -283,10 +273,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       "touchstart",
     ];
 
-    // Initialize timer
     resetTimer();
 
-    // Add listeners
     events.forEach((event) => {
       window.addEventListener(event, resetTimer);
     });

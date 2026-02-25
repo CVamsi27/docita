@@ -1,30 +1,12 @@
-/**
- * BullMQ Queue Service
- *
- * Production-grade queue using BullMQ + Redis.
- * Provides job persistence, retries, delays, priorities, etc.
- */
-
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import {
   IQueueProvider,
   QueueJob,
   QueueJobOptions,
   QueueStats,
-  JobNames,
 } from './queue.interface';
+import { AppConfigService } from '../config/app-configuration.service';
 
-/**
- * BullMQ service (requires 'bull' and 'ioredis' packages)
- *
- * Installation:
- * npm install bull ioredis
- *
- * Environment variables:
- * REDIS_HOST=localhost
- * REDIS_PORT=6379
- * REDIS_PASSWORD=optional
- */
 @Injectable()
 export class BullMQQueueService
   implements IQueueProvider, OnModuleInit, OnModuleDestroy
@@ -32,32 +14,35 @@ export class BullMQQueueService
   private queues = new Map<string, any>();
   private initialized = false;
 
-  async onModuleInit() {
-    // BullMQ initialization happens lazily when jobs are enqueued
+  constructor(private configService: AppConfigService) {}
+
+  onModuleInit() {
     this.initialized = true;
   }
 
   async onModuleDestroy() {
-    // Clean up all queues
     for (const queue of this.queues.values()) {
       try {
         await queue.close();
       } catch (error) {
-        console.error('Error closing queue:', error);
+        console.error(
+          'Error closing queue:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
       }
     }
   }
 
-  private async getQueue(name: string) {
+  private getQueue(name: string) {
     if (!this.queues.has(name)) {
       try {
-        // Dynamic import to avoid hard dependency
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const Queue = require('bull');
         const queue = new Queue(name, {
           redis: {
-            host: process.env.REDIS_HOST || 'localhost',
-            port: parseInt(process.env.REDIS_PORT || '6379'),
-            password: process.env.REDIS_PASSWORD,
+            host: this.configService.getRedisHost(),
+            port: this.configService.getRedisPort(),
+            password: this.configService.getRedisPassword(),
           },
         });
 
@@ -72,14 +57,14 @@ export class BullMQQueueService
     return this.queues.get(name);
   }
 
-  async enqueue<T>(
+  async enqueue<T extends Record<string, unknown>>(
     name: string,
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>> {
-    const queue = await this.getQueue(name);
+    const queue = (await this.getQueue(name)) as any;
 
-    const bullOptions: any = {
+    const bullOptions: Record<string, unknown> = {
       attempts: options?.attempts ?? 3,
       timeout: options?.timeout ?? 30000,
       removeOnComplete: options?.removeOnComplete ?? false,
@@ -112,36 +97,48 @@ export class BullMQQueueService
     };
   }
 
-  async process<T>(
+  async process<T extends Record<string, unknown>>(
     name: string,
     handler: (job: QueueJob<T>) => Promise<void>,
   ): Promise<void> {
-    const queue = await this.getQueue(name);
+    const queue = (await this.getQueue(name)) as any;
 
-    queue.process(async (bullJob: any) => {
-      const job: QueueJob<T> = {
-        id: bullJob.id.toString(),
-        name,
-        data: bullJob.data,
-        progress: bullJob.progress(),
-        attemptsMade: bullJob.attemptsMade,
-        timestamp: bullJob.timestamp,
-      };
+    queue.process(
+      async (bullJob: {
+        id: string | number;
+        data: T;
+        progress: () => number | Promise<number>;
+        attemptsMade: number;
+        timestamp: number;
+      }) => {
+        const job: QueueJob<T> = {
+          id: bullJob.id.toString(),
+          name,
+          data: bullJob.data,
+          progress:
+            typeof bullJob.progress === 'function'
+              ? (bullJob.progress() as any)
+              : 0,
+          attemptsMade: bullJob.attemptsMade,
+          timestamp: bullJob.timestamp,
+        };
 
-      return handler(job);
-    });
+        return handler(job);
+      },
+    );
   }
 
-  async getJob<T>(jobId: string): Promise<QueueJob<T> | null> {
-    // This would require iterating through all queues
-    // For now, return null as BullMQ requires queue name
+  async getJob<T extends Record<string, unknown>>(
+    jobId: string,
+  ): Promise<QueueJob<T> | null> {
     console.warn('getJob requires queue name in BullMQ implementation');
+    await Promise.resolve();
     return null;
   }
 
-  async removeJob(jobId: string): Promise<void> {
-    // This would require iterating through all queues
+  removeJob(jobId: string): Promise<void> {
     console.warn('removeJob requires queue name in BullMQ implementation');
+    return Promise.resolve();
   }
 
   async clear(name: string): Promise<void> {
@@ -169,9 +166,6 @@ export class BullMQQueueService
     };
   }
 
-  /**
-   * Get detailed queue info
-   */
   async getQueueInfo(name: string) {
     const queue = await this.getQueue(name);
     const stats = await this.getStats(name);
@@ -183,17 +177,11 @@ export class BullMQQueueService
     };
   }
 
-  /**
-   * Pause all processing for a queue
-   */
   async pauseQueue(name: string): Promise<void> {
     const queue = await this.getQueue(name);
     await queue.pause();
   }
 
-  /**
-   * Resume processing for a queue
-   */
   async resumeQueue(name: string): Promise<void> {
     const queue = await this.getQueue(name);
     await queue.resume();

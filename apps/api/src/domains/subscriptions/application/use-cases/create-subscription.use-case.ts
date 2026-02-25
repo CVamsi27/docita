@@ -1,14 +1,5 @@
-/**
- * Create Subscription Use Case
- * Handles new subscription creation with validation
- */
-
 import { Injectable, BadRequestException } from '@nestjs/common';
-import {
-  Subscription,
-  SubscriptionPayment,
-  PaymentStatusEnum,
-} from '../../core/entities';
+import { Subscription } from '../../core/entities';
 import {
   SubscriptionStatus,
   SubscriptionStatusEnum,
@@ -33,7 +24,6 @@ export class CreateSubscriptionUseCase {
   async execute(
     dto: CreateSubscriptionDto,
   ): Promise<{ subscriptionId: string }> {
-    // Validate plan doesn't already exist for clinic
     const existing = await this.subscriptionRepository.findByClinicId(
       dto.clinicId,
     );
@@ -43,14 +33,11 @@ export class CreateSubscriptionUseCase {
       );
     }
 
-    // Create tier and cycle value objects
-    const plan = new ClinicTier(dto.plan as any);
-    const cycle = new BillingCycle(dto.billingCycle as any);
+    const plan = ClinicTier.fromString(dto.plan);
+    const cycle = BillingCycle.fromString(dto.billingCycle);
 
-    // Get pricing
     const basePriceCents = this.pricingService.getPricePaise(plan, cycle);
 
-    // Create subscription entity
     const subscription = new Subscription({
       id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       clinicId: dto.clinicId,
@@ -61,13 +48,12 @@ export class CreateSubscriptionUseCase {
       currentPeriodStart: dto.currentPeriodStart,
       currentPeriodEnd: dto.currentPeriodEnd,
       trialEnd: dto.trialEnd,
-      autoPayEnabled: true, // New subscriptions have auto-pay
+      autoPayEnabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       version: 1,
     });
 
-    // Validate subscription
     const validation =
       this.validationService.validateSubscription(subscription);
     if (!validation.valid) {
@@ -77,7 +63,6 @@ export class CreateSubscriptionUseCase {
       });
     }
 
-    // Persist
     await this.subscriptionRepository.save(subscription);
 
     return { subscriptionId: subscription.id };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { stripHtmlTags } from "./sanitization";
+import { stripHtmlTags } from "../api/sanitization";
 import { vitalSignSchema } from "./vitals";
 export const generalExaminationSchema = z.object({
   // Consciousness

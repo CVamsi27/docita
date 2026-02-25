@@ -25,21 +25,21 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
 );
 Sidebar.displayName = "Sidebar";
 
-export interface SidebarNavProps extends React.HTMLAttributes<HTMLNavElement> {}
+export type SidebarNavProps = React.HTMLAttributes<HTMLElement>;
 
-const SidebarNav = React.forwardRef<HTMLNavElement, SidebarNavProps>(
+const SidebarNav = React.forwardRef<HTMLElement, SidebarNavProps>(
   ({ className, ...props }, ref) => (
     <nav ref={ref} className={cn("p-4 space-y-2", className)} {...props} />
   ),
 );
 SidebarNav.displayName = "SidebarNav";
 
-export interface SidebarNavItem extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarNavItemProps extends React.HTMLAttributes<HTMLDivElement> {
   active?: boolean;
   icon?: React.ReactNode;
 }
 
-const SidebarNavItem = React.forwardRef<HTMLDivElement, SidebarNavItem>(
+const SidebarNavItem = React.forwardRef<HTMLDivElement, SidebarNavItemProps>(
   ({ className, active = false, icon, children, ...props }, ref) => (
     <div
       ref={ref}
@@ -52,7 +52,7 @@ const SidebarNavItem = React.forwardRef<HTMLDivElement, SidebarNavItem>(
       )}
       {...props}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && <span className="shrink-0">{icon}</span>}
       <span className="flex-1">{children}</span>
     </div>
   ),

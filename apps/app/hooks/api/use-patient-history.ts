@@ -1,9 +1,3 @@
-/**
- * Patient History Hook - Shared service for patient medical history
- * Following Single Responsibility Principle - only handles history data
- * Used by both Patient Details and Consultation views
- */
-
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { usePatient, useUpdatePatient } from "./use-patients";
@@ -16,16 +10,12 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
-// Generate unique IDs for new entries
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// Types for history operations
 export interface HistoryOperations {
-  // Conditions
   addCondition: (conditionName: string) => void;
   removeCondition: (id: string) => void;
 
-  // Allergies
   addAllergy: (
     allergen: string,
     severity?: string,
@@ -34,21 +24,17 @@ export interface HistoryOperations {
   removeAllergy: (id: string) => void;
   updateAllergy: (allergy: PatientAllergy) => void;
 
-  // Surgeries
   addSurgery: (procedureName: string, procedureDate?: string) => void;
   removeSurgery: (id: string) => void;
 
-  // Family History
   addFamilyHistory: (condition: string, relationship: string) => void;
   removeFamilyHistory: (id: string) => void;
 
-  // Social History
   updateSocialHistory: (
     field: keyof PatientSocialHistory,
     value: string,
   ) => void;
 
-  // Custom Data (for specialty fields)
   updateCustomData: (
     key: string,
     value: string | number | boolean | Record<string, unknown>,
@@ -65,28 +51,20 @@ export interface PatientHistoryData {
 }
 
 export interface UsePatientHistoryResult {
-  // Data
   historyData: PatientHistoryData;
   patient: PatientWithMedicalHistory | undefined;
   isLoading: boolean;
   isError: boolean;
 
-  // Operations
   operations: HistoryOperations;
 }
 
-/**
- * Hook to manage patient medical history
- * Provides unified interface for CRUD operations on patient history
- */
 export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   const { data: patientData, isLoading, isError } = usePatient(patientId);
   const { mutate: updatePatient } = useUpdatePatient(patientId);
 
-  // Cast to PatientWithMedicalHistory for proper typing
   const patient = patientData as PatientWithMedicalHistory | undefined;
 
-  // Generic update handler
   const handleUpdate = useCallback(
     (updates: Partial<PatientWithMedicalHistory>, successMessage?: string) => {
       updatePatient(updates, {
@@ -103,7 +81,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [updatePatient],
   );
 
-  // Condition operations
   const addCondition = useCallback(
     (conditionName: string) => {
       if (!conditionName.trim() || !patient) return;
@@ -308,7 +285,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, handleUpdate],
   );
 
-  // Compose history data
   const historyData: PatientHistoryData = {
     medicalConditions: patient?.medicalConditions || [],
     patientAllergies: patient?.patientAllergies || [],
@@ -318,7 +294,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     customData: (patient?.customData as Record<string, unknown>) || {},
   };
 
-  // Compose operations
   const operations: HistoryOperations = {
     addCondition,
     removeCondition,
@@ -342,14 +317,9 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
   };
 }
 
-/**
- * Read-only hook for patient history data
- * Used by components that only need to display history (e.g., consultation sidebar)
- */
 export function usePatientHistoryReadOnly(patientId: string) {
   const { data: patientData, isLoading, isError } = usePatient(patientId);
 
-  // Cast to PatientWithMedicalHistory for proper typing
   const patient = patientData as PatientWithMedicalHistory | undefined;
 
   const historyData: PatientHistoryData = {

@@ -1,187 +1,95 @@
-/**
- * Subscriptions Controller
- * HTTP API endpoints for subscription management
- */
-
 import {
   Controller,
   Get,
   Post,
-  Patch,
-  Delete,
   Body,
-  Param,
-  HttpStatus,
-  BadRequestException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
-import {
-  CreateSubscriptionDto,
-  UpgradeSubscriptionDto,
-  CancelSubscriptionDto,
-  validateCreateSubscription,
-  validateUpgradeSubscription,
-  validateCancelSubscription,
-  SubscriptionResponseDto,
-} from '../../application/dto/subscription.dto';
+import { JwtAuthGuard } from '../../../../shared/modules/auth/auth/jwt-auth.guard';
 import {
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,
+  CreateCheckoutUseCase,
+  ProcessWebhookUseCase,
 } from '../../application/use-cases';
-import { ISubscriptionRepository } from '../../application/ports';
-import { SubscriptionMapper } from '../../infrastructure/mappers';
+import { SubscriptionsQueryService } from '../../application/services/subscriptions-query.service';
+import { ClinicTierEnum } from '../../core/value-objects/clinic-tier.value-object';
+import { BillingCycleEnum } from '../../core/value-objects/billing-cycle.value-object';
+import { RequestWithUser } from '../../../../common/types/common.types';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
   constructor(
-    private createSubscriptionUseCase: CreateSubscriptionUseCase,
-    private upgradeSubscriptionUseCase: UpgradeSubscriptionUseCase,
-    private cancelSubscriptionUseCase: CancelSubscriptionUseCase,
-    private subscriptionRepository: ISubscriptionRepository,
+    private readonly createSubscriptionUseCase: CreateSubscriptionUseCase,
+    private readonly upgradeSubscriptionUseCase: UpgradeSubscriptionUseCase,
+    private readonly cancelSubscriptionUseCase: CancelSubscriptionUseCase,
+    private readonly createCheckoutUseCase: CreateCheckoutUseCase,
+    private readonly processWebhookUseCase: ProcessWebhookUseCase,
+    private readonly queryService: SubscriptionsQueryService,
   ) {}
 
-  /**
-   * Create new subscription
-   * POST /subscriptions
-   */
-  @Post()
-  async create(@Body() body: any) {
-    try {
-      const dto = validateCreateSubscription(body);
-      const result = await this.createSubscriptionUseCase.execute(dto);
-      return {
-        statusCode: HttpStatus.CREATED,
-        data: result,
-      };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        error instanceof Error
-          ? error.message
-          : 'Failed to create subscription',
-      );
-    }
+  getConfig() {
+    return this.queryService.getTierConfig();
   }
 
-  /**
-   * Get subscription details
-   * GET /subscriptions/:id
-   */
-  @Get(':id')
-  async getSubscription(@Param('id') id: string) {
-    try {
-      const subscription = await this.subscriptionRepository.findById(id);
-
-      if (!subscription) {
-        throw new BadRequestException(`Subscription ${id} not found`);
-      }
-
-      return {
-        statusCode: HttpStatus.OK,
-        data: this.toResponseDto(subscription),
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to fetch subscription',
-      );
+  @UseGuards(JwtAuthGuard)
+  @Get('current')
+  async getCurrent(@Request() req: RequestWithUser) {
+    if (!req.user?.clinicId) {
+      throw new Error('Clinic ID not found');
     }
+    return this.queryService.getSubscriptionDetails(req.user.clinicId);
   }
 
-  /**
-   * Get clinic subscription
-   * GET /subscriptions/clinic/:clinicId
-   */
-  @Get('clinic/:clinicId')
-  async getClinicSubscription(@Param('clinicId') clinicId: string) {
-    try {
-      const subscription =
-        await this.subscriptionRepository.findByClinicId(clinicId);
-
-      if (!subscription) {
-        throw new BadRequestException(
-          `No subscription found for clinic ${clinicId}`,
-        );
-      }
-
-      return {
-        statusCode: HttpStatus.OK,
-        data: this.toResponseDto(subscription),
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to fetch subscription',
-      );
+  @UseGuards(JwtAuthGuard)
+  @Post('checkout')
+  async createCheckout(
+    @Request() req: RequestWithUser,
+    @Body() body: { tier: string; cycle: string; referrals?: string[] },
+  ) {
+    if (!req.user?.clinicId) {
+      throw new Error('Clinic ID not found');
     }
+    return this.createCheckoutUseCase.execute({
+      clinicId: req.user.clinicId,
+      tier: body.tier as ClinicTierEnum,
+      cycle: body.cycle as BillingCycleEnum,
+      referrals: body.referrals,
+    });
   }
 
-  /**
-   * Upgrade subscription
-   * PATCH /subscriptions/:id/upgrade
-   */
-  @Patch(':id/upgrade')
-  async upgrade(@Param('id') id: string, @Body() body: any) {
-    try {
-      const dto = validateUpgradeSubscription({ subscriptionId: id, ...body });
-      const result = await this.upgradeSubscriptionUseCase.execute(dto);
-
-      return {
-        statusCode: HttpStatus.OK,
-        data: result,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error
-          ? error.message
-          : 'Failed to upgrade subscription',
-      );
+  @UseGuards(JwtAuthGuard)
+  @Post('cancel')
+  async cancel(
+    @Request() req: RequestWithUser,
+    @Body() body: { reason?: string },
+  ) {
+    if (!req.user?.clinicId) {
+      throw new Error('Clinic ID not found');
     }
+    return this.cancelSubscriptionUseCase.execute({
+      clinicId: req.user.clinicId,
+      reason: body.reason,
+    });
   }
 
-  /**
-   * Cancel subscription
-   * DELETE /subscriptions/:id
-   */
-  @Delete(':id')
-  async cancel(@Param('id') id: string, @Body() body: any) {
-    try {
-      const dto = validateCancelSubscription({ subscriptionId: id, ...body });
-      const result = await this.cancelSubscriptionUseCase.execute(dto);
-
-      return {
-        statusCode: HttpStatus.OK,
-        data: result,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error
-          ? error.message
-          : 'Failed to cancel subscription',
-      );
+  @UseGuards(JwtAuthGuard)
+  @Post('activate-legacy')
+  async activateLegacy(
+    @Request() req: RequestWithUser,
+    @Body() body: { tier: string; cycle: string },
+  ) {
+    if (!req.user?.clinicId) {
+      throw new Error('Clinic ID not found');
     }
-  }
-
-  /**
-   * Convert domain entity to response DTO
-   */
-  private toResponseDto(subscription: any): SubscriptionResponseDto {
-    return {
-      id: subscription.id,
-      clinicId: subscription.clinicId,
-      plan: subscription.getPlan().toString(),
-      billingCycle: subscription.getBillingCycle().toString(),
-      status: subscription.getStatus().toString(),
-      basePriceCents: subscription.getBasePrice().paise,
-      totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),
-      creditsCents: subscription.getCredits().paise,
-      currentPeriodStart: subscription.currentPeriodStart.toISOString(),
-      currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
-      trialEnd: subscription.trialEnd?.toISOString(),
-      autoPayEnabled: subscription.isAutoPayEnabled(),
-      cancelledAt: (subscription as any).cancelledAt?.toISOString(),
-      createdAt: subscription.createdAt.toISOString(),
-      updatedAt: subscription.updatedAt.toISOString(),
-    };
+    return this.createSubscriptionUseCase.execute({
+      clinicId: req.user.clinicId,
+      plan: body.tier as any,
+      billingCycle: body.cycle as any,
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    });
   }
 }

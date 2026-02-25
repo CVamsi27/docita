@@ -1,26 +1,16 @@
-/**
- * Subscription Validation Service
- * Validates business rules and constraints
- */
-
 import { Subscription } from '../entities';
 
 export class SubscriptionValidationService {
-  /**
-   * Validate subscription state
-   */
   validateSubscription(subscription: Subscription): {
     valid: boolean;
     errors: string[];
   } {
     const errors: string[] = [];
 
-    // Check if subscription is in a valid state
     if (subscription.getDaysRemaining() < 0 && subscription.isDueForRenewal()) {
       errors.push('Subscription has expired and needs renewal');
     }
 
-    // Check if auto-pay is properly configured for active subscription
     if (
       subscription.getStatus().isActive() &&
       !subscription.isAutoPayEnabled()
@@ -34,9 +24,6 @@ export class SubscriptionValidationService {
     };
   }
 
-  /**
-   * Validate plan change is allowed
-   */
   canChangePlan(subscription: Subscription): {
     allowed: boolean;
     reason?: string;
@@ -52,9 +39,6 @@ export class SubscriptionValidationService {
     return { allowed: true };
   }
 
-  /**
-   * Validate subscription can be cancelled
-   */
   canCancelSubscription(subscription: Subscription): {
     allowed: boolean;
     reason?: string;
@@ -69,9 +53,6 @@ export class SubscriptionValidationService {
     return { allowed: true };
   }
 
-  /**
-   * Validate payment can be processed
-   */
   validatePaymentEligibility(subscription: Subscription): {
     eligible: boolean;
     reason?: string;
@@ -93,9 +74,6 @@ export class SubscriptionValidationService {
     };
   }
 
-  /**
-   * Validate credit application
-   */
   validateCreditApplication(
     subscription: Subscription,
     amountCents: number,
@@ -111,9 +89,6 @@ export class SubscriptionValidationService {
     return { valid: true };
   }
 
-  /**
-   * Validate discount application
-   */
   validateDiscountApplication(
     subscription: Subscription,
     discountPercent: number,
@@ -135,9 +110,6 @@ export class SubscriptionValidationService {
     return { valid: true };
   }
 
-  /**
-   * Validate billing cycle change
-   */
   validateBillingCycleChange(subscription: Subscription): {
     allowed: boolean;
     reason?: string;

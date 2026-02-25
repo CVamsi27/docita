@@ -1,12 +1,5 @@
-/**
- * Queue Service Interface
- *
- * Abstraction for job queue processing.
- * Allows scheduling async tasks with retries, delays, etc.
- */
-
 export interface QueueJobOptions {
-  delay?: number; // Milliseconds
+  delay?: number;
   attempts?: number;
   backoff?: {
     type: 'fixed' | 'exponential';
@@ -17,7 +10,9 @@ export interface QueueJobOptions {
   removeOnComplete?: boolean;
 }
 
-export interface QueueJob<T = any> {
+export interface QueueJob<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
   id: string;
   name: string;
   data: T;
@@ -28,16 +23,18 @@ export interface QueueJob<T = any> {
 }
 
 export interface IQueueProvider {
-  enqueue<T>(
+  enqueue<T extends Record<string, unknown>>(
     name: string,
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>>;
-  process<T>(
+  process<T extends Record<string, unknown>>(
     name: string,
     handler: (job: QueueJob<T>) => Promise<void>,
   ): Promise<void>;
-  getJob<T>(jobId: string): Promise<QueueJob<T> | null>;
+  getJob<T extends Record<string, unknown>>(
+    jobId: string,
+  ): Promise<QueueJob<T> | null>;
   removeJob(jobId: string): Promise<void>;
   clear(name: string): Promise<void>;
   getStats(name: string): Promise<QueueStats>;
@@ -51,72 +48,54 @@ export interface QueueStats {
   delayed: number;
 }
 
-/**
- * Job names for common tasks
- */
 export enum JobNames {
-  // Email jobs
   SEND_EMAIL = 'send-email',
   SEND_BULK_EMAIL = 'send-bulk-email',
-
-  // SMS jobs
   SEND_SMS = 'send-sms',
   SEND_BULK_SMS = 'send-bulk-sms',
-
-  // WhatsApp jobs
   SEND_WHATSAPP = 'send-whatsapp',
-
-  // Document jobs
   GENERATE_INVOICE_PDF = 'generate-invoice-pdf',
   GENERATE_PRESCRIPTION_PDF = 'generate-prescription-pdf',
-
-  // Notification jobs
   SEND_APPOINTMENT_REMINDER = 'send-appointment-reminder',
   SEND_PAYMENT_REMINDER = 'send-payment-reminder',
-
-  // Data export jobs
   EXPORT_PATIENTS = 'export-patients',
   EXPORT_APPOINTMENTS = 'export-appointments',
   EXPORT_INVOICES = 'export-invoices',
-
-  // Backup jobs
   DATABASE_BACKUP = 'database-backup',
   ARCHIVE_OLD_DATA = 'archive-old-data',
-
-  // Scheduled jobs
   PROCESS_SUBSCRIPTION_RENEWALS = 'process-subscription-renewals',
   GENERATE_MONTHLY_REPORTS = 'generate-monthly-reports',
   SEND_SCHEDULED_REMINDERS = 'send-scheduled-reminders',
 }
 
-/**
- * Job data types
- */
-export interface SendEmailJobData {
+export interface SendEmailJobData extends Record<string, unknown> {
   to: string | string[];
   subject: string;
   template: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
 }
 
-export interface SendSmsJobData {
+export interface SendSmsJobData extends Record<string, unknown> {
   phoneNumber: string;
   message: string;
 }
 
-export interface SendWhatsAppJobData {
+export interface SendWhatsAppJobData extends Record<string, unknown> {
   phoneNumber: string;
   message: string;
   mediaUrl?: string;
 }
 
-export interface GeneratePdfJobData {
+export interface GeneratePdfJobData extends Record<string, unknown> {
   documentId: string;
   documentType: 'invoice' | 'prescription';
   clinicId: string;
 }
 
-export interface SendAppointmentReminderJobData {
+export interface SendAppointmentReminderJobData extends Record<
+  string,
+  unknown
+> {
   appointmentId: string;
   clinicId: string;
   patientId: string;

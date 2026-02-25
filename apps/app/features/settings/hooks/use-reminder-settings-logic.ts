@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  ClinicAppSettings,
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
@@ -8,13 +9,6 @@ import { toast } from "sonner";
 export interface ReminderSettingsState {
   reminderBefore: string;
   reminderUnit: string;
-}
-
-// Define exact type for settings to avoid 'any'
-interface ClinicSettingsJson {
-  reminderBefore?: string;
-  reminderUnit?: string;
-  [key: string]: unknown;
 }
 
 export const useReminderSettingsLogic = () => {
@@ -27,11 +21,10 @@ export const useReminderSettingsLogic = () => {
     reminderUnit: "day",
   });
 
-  // Initialize state from fetched data
   useEffect(() => {
     if (clinic) {
       const clinicSettings =
-        clinic.settings as unknown as ClinicSettingsJson | null;
+        (clinic.settings as ClinicAppSettings) || null;
       setSettings({
         reminderBefore: clinicSettings?.reminderBefore || "1",
         reminderUnit: clinicSettings?.reminderUnit || "day",
@@ -44,7 +37,6 @@ export const useReminderSettingsLogic = () => {
   };
 
   const handleSave = () => {
-    // Send flat updates as per ClinicAppSettings interface
     updateSettingsMutation(
       {
         reminderBefore: settings.reminderBefore,

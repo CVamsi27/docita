@@ -1,0 +1,70 @@
+import { Prescription, Prisma } from '@workspace/db';
+
+export interface PrescriptionSearchParams {
+  clinicId: string;
+  search?: string;
+  date?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+  count: number;
+}
+
+export interface PrescriptionDetail extends Prescription {
+  medications: Array<{
+    id: string;
+    name: string;
+    dosage: string;
+    route: string | null;
+    frequency: string;
+    duration: string;
+  }>;
+  patient: {
+    id: string;
+    mrn: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    email: string | null;
+    gender: string;
+    dateOfBirth: Date;
+    clinic: {
+      id: string;
+      name: string;
+      email: string | null;
+      phoneNumber: string | null;
+      address: string | null;
+    };
+  };
+}
+
+export interface PatientWithAllergies {
+  id: string;
+  patientAllergies: Array<{
+    allergen: string;
+    allergyType: string;
+    severity: string;
+    reaction: string | null;
+  }>;
+}
+
+export interface IPrescriptionRepository {
+  findAll(
+    params: PrescriptionSearchParams,
+  ): Promise<Prescription[] | PaginatedResult<Prescription>>;
+  findById(id: string): Promise<PrescriptionDetail | null>;
+  create(data: Prisma.PrescriptionCreateInput): Promise<Prescription>;
+  update(
+    id: string,
+    data: Prisma.PrescriptionUpdateInput,
+  ): Promise<Prescription>;
+  delete(id: string): Promise<void>;
+  findPatientWithAllergies(
+    patientId: string,
+  ): Promise<PatientWithAllergies | null>;
+}

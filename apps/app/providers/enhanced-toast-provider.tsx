@@ -1,15 +1,3 @@
-/**
- * Enhanced Toast Notification System
- *
- * UI/UX IMPROVEMENTS:
- * - Typed toast helpers (success/error/warning/info)
- * - Action buttons for quick recovery
- * - Persistent notifications for critical errors
- * - Consistent API across the app
- *
- * Built on top of `sonner` (already used project-wide)
- */
-
 "use client";
 
 import React, { createContext, useCallback, useContext } from "react";
@@ -27,7 +15,7 @@ export interface ToastOptions {
   type: ToastType;
   title: string;
   description?: string;
-  duration?: number; // 0 = persistent (Infinity)
+  duration?: number;
   action?: ToastAction;
 }
 
@@ -136,31 +124,3 @@ export function EnhancedToastProvider({
     <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
   );
 }
-
-/**
- * Usage Examples:
- *
- * const toast = useToast();
- *
- * // Success notification
- * toast.success('Appointment created', 'The appointment has been successfully scheduled.');
- *
- * // Error with retry action
- * toast.error(
- *   'Failed to save',
- *   'Could not save your changes. Please try again.',
- *   { label: 'Retry', onClick: () => saveChanges() }
- * );
- *
- * // Warning
- * toast.warning('Unsaved changes', 'You have unsaved changes that will be lost.');
- *
- * // Persistent notification (duration: 0)
- * toast.showToast({
- *   type: 'error',
- *   title: 'Subscription expired',
- *   description: 'Please renew your subscription to continue.',
- *   duration: 0,
- *   action: { label: 'Upgrade Plan', onClick: () => router.push('/upgrade') }
- * });
- */

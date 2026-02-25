@@ -3,7 +3,7 @@ import {
   calculateBMI,
   calculateQTc,
   getBMICategory,
-} from "./medical-calculations";
+} from "./medical/medical-calculations.js";
 
 describe("Medical Calculations", () => {
   describe("calculateBMI", () => {

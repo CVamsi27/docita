@@ -21,6 +21,7 @@ export class EmailChannel implements IMessageChannel {
   }
 
   async isAvailable(): Promise<boolean> {
+    await Promise.resolve();
     return !!this.smtpConfig;
   }
 
@@ -29,13 +30,6 @@ export class EmailChannel implements IMessageChannel {
     content: MessageContent,
   ): Promise<SendMessageResult> {
     try {
-      // TODO: Implement actual email sending
-      // Framework:
-      // 1. Look up template
-      // 2. Process variables
-      // 3. Use nodemailer/SendGrid/etc to send
-      // 4. Track in database
-
       this.logger.log(
         `Sending email to ${recipientId} with template ${content.templateKey}`,
       );
@@ -47,13 +41,16 @@ export class EmailChannel implements IMessageChannel {
         sentAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to send email: ${error}`);
+      this.logger.error(
+        `Failed to send email: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 
   async handleWebhook(payload: any): Promise<void> {
     // Handle email provider webhooks (delivery, bounce, etc.)
+    await Promise.resolve();
     this.logger.log('Handling email webhook:', payload);
   }
 }

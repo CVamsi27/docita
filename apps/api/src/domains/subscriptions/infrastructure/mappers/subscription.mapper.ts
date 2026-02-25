@@ -1,9 +1,10 @@
-/**
- * Subscription Mapper
- * Converts between Prisma models and domain entities
- */
-
-import { Prisma, Subscription as PrismaSubscription } from '@workspace/db';
+import {
+  Prisma,
+  Subscription as PrismaSubscription,
+  ClinicTier as PrismaClinicTier,
+  BillingCycle as PrismaBillingCycle,
+  SubscriptionStatus as PrismaSubscriptionStatus,
+} from '@workspace/db';
 import { Subscription } from '../../core/entities';
 import {
   SubscriptionStatus,
@@ -16,22 +17,14 @@ import {
 } from '../../core/value-objects';
 
 export class SubscriptionMapper {
-  /**
-   * Convert Prisma model to domain entity
-   */
   static toDomain(raw: PrismaSubscription): Subscription {
-    // Parse status
-    const statusValue = raw.status as any as SubscriptionStatusEnum;
+    const statusValue = raw.status as SubscriptionStatusEnum;
     const status = new SubscriptionStatus(statusValue);
 
-    // Parse plan tier
-    const plan = new ClinicTier(raw.plan as any as any);
+    const plan = ClinicTier.fromString(raw.plan);
+    const cycle = BillingCycle.fromString(raw.billingCycle);
 
-    // Parse billing cycle
-    const cycle = new BillingCycle(raw.billingCycle as any as any);
-
-    // Parse discounts from JSON
-    const discountAggregate = this.parseDiscounts(raw.discountsApplied as any);
+    const discountAggregate = this.parseDiscounts(raw.discountsApplied);
 
     return new Subscription({
       id: raw.id,
@@ -44,6 +37,8 @@ export class SubscriptionMapper {
       currentPeriodEnd: raw.currentPeriodEnd,
       trialEnd: raw.trialEnd || undefined,
       cancelledAt: raw.cancelledAt || undefined,
+      cancelAtPeriodEnd: raw.cancelAtPeriodEnd || false,
+      razorpaySubscriptionId: raw.razorpaySubscriptionId || undefined,
       autoPayEnabled: raw.autoPayEnabled,
       discounts: discountAggregate,
       creditsCents: raw.creditsCents,
@@ -53,36 +48,37 @@ export class SubscriptionMapper {
     });
   }
 
-  /**
-   * Convert domain entity to Prisma format
-   */
   static toPersistence(subscription: Subscription): any {
     const discountsJson = this.serializeDiscounts(subscription.getDiscounts());
 
     return {
+      id: subscription.id,
       clinicId: subscription.clinicId,
-      plan: subscription.getPlan().toString(),
-      billingCycle: subscription.getBillingCycle().toString(),
+      plan: subscription.getPlan().toString() as any,
+      billingCycle: subscription.getBillingCycle().toString() as any,
       basePriceCents: subscription.getBasePrice().paise,
       currency: 'INR',
-      status: subscription.getStatus().toString(),
-      discountsApplied: discountsJson,
+      status: subscription.getStatus().toString() as any,
+      discountsApplied: discountsJson as any,
       totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),
       currentPeriodStart: subscription.currentPeriodStart,
       currentPeriodEnd: subscription.currentPeriodEnd,
-      // ... other fields
+      trialEnd: subscription.trialEnd || null,
+      cancelledAt: subscription.cancelledAt || null,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      razorpaySubscriptionId: subscription.razorpaySubscriptionId || null,
       autoPayEnabled: subscription.isAutoPayEnabled(),
       creditsCents: subscription.getCredits().paise,
       createdAt: subscription.createdAt,
       updatedAt: new Date(),
       version: subscription.version,
-    };
+      // Default values for fields required by Prisma but not in domain
+      scheduledChange: null,
+      billingMode: 'POSTPAID',
+    } as any as PrismaSubscription;
   }
 
-  /**
-   * Parse discounts from JSON
-   */
-  private static parseDiscounts(json: any): DiscountAggregate {
+  private static parseDiscounts(json: unknown): DiscountAggregate {
     const aggregate = new DiscountAggregate();
 
     if (!Array.isArray(json)) {
@@ -94,11 +90,11 @@ export class SubscriptionMapper {
         const discount = new Discount({
           type: item.type as DiscountType,
           percentOff: item.percentOff,
-          expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
-          description: item.description,
+          expiresAt: item.expiresAt ? new Date(item.expiresAt as string) : undefined,
+          description: item.description as string,
         });
         aggregate.addDiscount(discount);
-      } catch {
+      } catch (error) {
         // Silently skip invalid discounts
       }
     });
@@ -106,10 +102,7 @@ export class SubscriptionMapper {
     return aggregate;
   }
 
-  /**
-   * Serialize discounts to JSON
-   */
-  private static serializeDiscounts(aggregate: DiscountAggregate): any[] {
+  private static serializeDiscounts(aggregate: DiscountAggregate): Record<string, unknown>[] {
     return aggregate.getActiveDiscounts().map((d) => ({
       type: d.type,
       percentOff: d.percentOff,

@@ -2,9 +2,9 @@ import {
   Injectable,
   Logger,
   ServiceUnavailableException,
-  HttpStatus,
   HttpException,
 } from '@nestjs/common';
+import { AppConfigService } from '../../config/app-configuration.service';
 
 @Injectable()
 export class WhatsappClientService {
@@ -16,15 +16,16 @@ export class WhatsappClientService {
   private readonly appSecret: string;
   private readonly verifyToken: string;
 
-  constructor() {
-    this.phoneNumberId = process.env.META_PHONE_NUMBER_ID || '';
-    this.accessToken = process.env.META_ACCESS_TOKEN || '';
-    this.appSecret = process.env.META_APP_SECRET || '';
-    this.verifyToken = process.env.META_VERIFY_TOKEN || '';
+  constructor(private configService: AppConfigService) {
+    const config = this.configService.getMetaConfig();
+    this.phoneNumberId = config.phoneNumberId;
+    this.accessToken = config.accessToken;
+    this.appSecret = config.appSecret;
+    this.verifyToken = config.verifyToken;
 
     if (!this.phoneNumberId || !this.accessToken) {
       this.logger.warn(
-        'META_PHONE_NUMBER_ID or META_ACCESS_TOKEN not configured. WhatsApp messaging will fail.',
+        'WhatsApp credentials not configured. Messaging will fail.',
       );
     }
   }
@@ -37,9 +38,6 @@ export class WhatsappClientService {
     return this.verifyToken;
   }
 
-  /**
-   * Send a text message via WhatsApp Cloud API
-   */
   async sendMessage({ to, message }: { to: string; message: string }) {
     if (!this.phoneNumberId || !this.accessToken) {
       this.logger.warn('WhatsApp not configured, skipping send');
@@ -85,7 +83,10 @@ export class WhatsappClientService {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.error(`Failed to send WhatsApp message to ${to}`, error);
+      this.logger.error(
+        `Failed to send WhatsApp message to ${to}`,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       throw new ServiceUnavailableException('Failed to send WhatsApp message');
     }
   }
@@ -179,14 +180,14 @@ export class WhatsappClientService {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.error(`Failed to send WhatsApp template to ${to}`, error);
+      this.logger.error(
+        `Failed to send WhatsApp template to ${to}`,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       throw new ServiceUnavailableException('Failed to send WhatsApp template');
     }
   }
 
-  /**
-   * Send an interactive message with buttons
-   */
   async sendInteractiveButtons({
     to,
     bodyText,
@@ -206,8 +207,6 @@ export class WhatsappClientService {
     }
 
     const cleanPhone = this.normalizePhoneNumber(to);
-
-    // WhatsApp allows max 3 buttons
     const limitedButtons = buttons.slice(0, 3);
 
     try {
@@ -219,7 +218,7 @@ export class WhatsappClientService {
             type: 'reply',
             reply: {
               id: btn.id,
-              title: btn.title.slice(0, 20), // Max 20 chars
+              title: btn.title.slice(0, 20),
             },
           })),
         },
@@ -273,7 +272,7 @@ export class WhatsappClientService {
       }
       this.logger.error(
         `Failed to send WhatsApp interactive message to ${to}`,
-        error,
+        error instanceof Error ? error.message : 'Unknown error',
       );
       throw new ServiceUnavailableException(
         'Failed to send WhatsApp interactive message',
@@ -281,9 +280,6 @@ export class WhatsappClientService {
     }
   }
 
-  /**
-   * Normalize phone number to E.164 format without + prefix
-   */
   private normalizePhoneNumber(phone: string): string {
     let cleaned = phone.replace(/^whatsapp:/, '');
     cleaned = cleaned.replace(/[^\d+]/g, '');

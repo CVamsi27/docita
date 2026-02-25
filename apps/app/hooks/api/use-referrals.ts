@@ -5,7 +5,7 @@ export const useReferralCode = () =>
     code: string;
     referralLink: string;
   }>(["referral-code"], "/referrals/code", {
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60 * 60,
   });
 
 export const useReferralStats = () =>

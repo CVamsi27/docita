@@ -1,11 +1,7 @@
-/**
- * Razorpay Subscription Gateway Implementation
- * Handles SaaS subscription billing via Razorpay Subscriptions API
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
+import { AppConfigService } from '../shared/modules/config/app-configuration.service';
 import {
   IPaymentGateway,
   CreateCustomerParams,
@@ -26,19 +22,17 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   private razorpay: Razorpay | null = null;
   readonly provider = 'razorpay';
 
-  constructor() {
-    // Lazily initialize Razorpay client only if credentials are available
+  constructor(private configService: AppConfigService) {
     this.initializeRazorpay();
   }
 
   private initializeRazorpay(): void {
-    const keyId = process.env.RAZORPAY_KEY_ID?.trim();
-    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
+    const keyId = this.configService.getRazorpayKeyId();
+    const keySecret = this.configService.getRazorpayKeySecret();
 
     if (!keyId || !keySecret) {
       this.logger.warn(
-        'Razorpay credentials not configured. Payment operations will not work. ' +
-          'Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.',
+        'Razorpay credentials not configured. Payment operations will not work.',
       );
       return;
     }
@@ -49,23 +43,20 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         key_secret: keySecret,
       });
       this.logger.log('Razorpay gateway initialized successfully');
-    } catch (error) {
-      this.logger.error('Failed to initialize Razorpay gateway', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to initialize Razorpay gateway',
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
   private ensureRazorpayInitialized(): Razorpay {
     if (!this.razorpay) {
-      throw new Error(
-        'Razorpay gateway is not initialized. Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables are set.',
-      );
+      throw new Error('Razorpay gateway is not initialized.');
     }
     return this.razorpay;
   }
-
-  // =========================================================================
-  // Customer Management
-  // =========================================================================
 
   async createCustomer(
     params: CreateCustomerParams,
@@ -80,8 +71,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       });
 
       return { customerId: customer.id };
-    } catch (error) {
-      this.logger.error('Failed to create Razorpay customer', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to create Razorpay customer',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -93,7 +87,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const customer = await razorpay.customers.fetch(customerId);
       return customer as unknown as Record<string, unknown>;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`Customer ${customerId} not found`);
       return null;
     }
@@ -121,8 +115,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       });
 
       return { planId: plan.id };
-    } catch (error) {
-      this.logger.error('Failed to create Razorpay plan', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to create Razorpay plan',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -132,15 +129,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const plan = await razorpay.plans.fetch(planId);
       return plan as unknown as Record<string, unknown>;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`Plan ${planId} not found`);
       return null;
     }
   }
-
-  // =========================================================================
-  // Subscription Management
-  // =========================================================================
 
   async createSubscription(
     params: CreateSubscriptionParams,
@@ -151,7 +144,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         plan_id: params.planId,
         customer_id: params.customerId,
         quantity: params.quantity || 1,
-        total_count: params.totalCount || 12, // Default 12 billing cycles
+        total_count: params.totalCount || 12,
         customer_notify: 1 as const,
         notes: params.notes || {},
         ...(params.startAt && {
@@ -175,7 +168,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
 
       const currentEnd = subscription.current_end
         ? new Date(subscription.current_end * 1000)
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default 30 days
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       return {
         subscriptionId: subscription.id,
@@ -184,8 +177,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         currentPeriodEnd: currentEnd,
         shortUrl: subscription.short_url,
       };
-    } catch (error) {
-      this.logger.error('Failed to create Razorpay subscription', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to create Razorpay subscription',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -197,7 +193,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const subscription = await razorpay.subscriptions.fetch(subscriptionId);
       return subscription as unknown as Record<string, unknown>;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`Subscription ${subscriptionId} not found`);
       return null;
     }
@@ -206,13 +202,15 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   async cancelSubscription(params: CancelSubscriptionParams): Promise<void> {
     try {
       const razorpay = this.ensureRazorpayInitialized();
-      // Razorpay cancel takes subscriptionId and optional cancel_at_cycle_end boolean
       await razorpay.subscriptions.cancel(
         params.subscriptionId,
         params.cancelAtPeriodEnd || false,
       );
-    } catch (error) {
-      this.logger.error('Failed to cancel Razorpay subscription', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to cancel Razorpay subscription',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -223,8 +221,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       await razorpay.subscriptions.pause(subscriptionId, {
         pause_at: 'now',
       });
-    } catch (error) {
-      this.logger.error('Failed to pause Razorpay subscription', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to pause Razorpay subscription',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -235,22 +236,20 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       await razorpay.subscriptions.resume(subscriptionId, {
         resume_at: 'now',
       });
-    } catch (error) {
-      this.logger.error('Failed to resume Razorpay subscription', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to resume Razorpay subscription',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
-
-  // =========================================================================
-  // Token Management (for auto-pay with stored payment methods)
-  // =========================================================================
 
   async createTokenFromCheckout(
     paymentId: string,
   ): Promise<{ tokenId: string; customerId: string }> {
     try {
       const razorpay = this.ensureRazorpayInitialized();
-      // Fetch payment to get customer and card token
       const payment = (await razorpay.payments.fetch(paymentId)) as unknown as {
         customer_id?: string;
         vpa?: string;
@@ -261,16 +260,17 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         throw new Error('Payment does not have a customer ID');
       }
 
-      // For cards, token is in payment.card.id
-      // For UPI/bank transfers, we use the payment method reference
       const tokenId = payment.card?.id || paymentId;
 
       return {
         tokenId,
         customerId: payment.customer_id,
       };
-    } catch (error) {
-      this.logger.error('Failed to create token from checkout payment', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to create token from checkout payment',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -284,8 +284,6 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   ): Promise<{ paymentId: string; status: string }> {
     try {
       const razorpay = this.ensureRazorpayInitialized();
-      // For Razorpay, create a recurring payment mandate via tokens
-      // First create an order, then attach it to token for processing
       const order = await razorpay.orders.create({
         amount: amountCents,
         currency,
@@ -294,28 +292,24 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         notes: { description: description || 'Auto-pay subscription renewal' },
       });
 
-      // In production, this would trigger a mandate charge
-      // For now, return order details that will be processed via webhook
       return {
         paymentId: (order as unknown as { id: string }).id,
         status: 'created',
       };
-    } catch (error) {
-      this.logger.error('Failed to charge with token', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to charge with token',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
-
-  // =========================================================================
-  // One-time Checkout (for prorated payments, etc.)
-  // =========================================================================
 
   async createCheckout(
     params: CreateCheckoutParams,
   ): Promise<CreateCheckoutResult> {
     try {
       const razorpay = this.ensureRazorpayInitialized();
-      // Create an order for checkout
       const order = await razorpay.orders.create({
         amount: params.amountCents,
         currency: params.currency,
@@ -323,26 +317,23 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         notes: params.notes || {},
       });
 
-      // For Razorpay, we return the order ID
-      // Frontend uses Razorpay Checkout with this order_id
       return {
         sessionId: order.id,
         orderId: order.id,
-        checkoutUrl: '', // Razorpay uses client-side checkout, not redirect URL
+        checkoutUrl: '',
       };
-    } catch (error) {
-      this.logger.error('Failed to create Razorpay checkout', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to create Razorpay checkout',
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
 
-  // =========================================================================
-  // Webhook Handling
-  // =========================================================================
-
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean {
     try {
-      const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+      const webhookSecret = this.configService.getRazorpayWebhookSecret();
       const expectedSignature = crypto
         .createHmac('sha256', webhookSecret)
         .update(typeof payload === 'string' ? payload : payload.toString())
@@ -352,8 +343,11 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         Buffer.from(signature),
         Buffer.from(expectedSignature),
       );
-    } catch (error) {
-      this.logger.error('Failed to verify webhook signature', error);
+    } catch (error: unknown) {
+      this.logger.error(
+        'Failed to verify webhook signature',
+        error instanceof Error ? error.message : String(error),
+      );
       return false;
     }
   }

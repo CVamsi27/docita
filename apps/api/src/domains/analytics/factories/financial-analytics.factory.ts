@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
 import { Prisma } from '@workspace/db';
 import {
   getLastNDaysRange,
@@ -21,6 +22,7 @@ export class FinancialAnalyticsFactory {
 
   constructor(
     private prisma: PrismaService,
+    private configService: AppConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -124,14 +126,14 @@ export class FinancialAnalyticsFactory {
         const totalRevenue = cptCode ? Number(cptCode.price) * count : 0;
 
         return {
-          cptCode: cptCode as unknown as
-            | {
-                code: string;
-                description: string;
-                price: number;
-                category: string;
+          cptCode: cptCode
+            ? {
+                code: cptCode.code,
+                description: cptCode.description,
+                price: Number(cptCode.price),
+                category: cptCode.category,
               }
-            | undefined,
+            : undefined,
           procedureCount: count,
           totalRevenue,
           avgPrice: cptCode?.price ? Number(cptCode.price) : 0,
@@ -279,7 +281,7 @@ export class FinancialAnalyticsFactory {
     await this.cacheManager.set(
       cacheKey,
       result,
-      parseInt(process.env.ANALYTICS_CACHE_TTL || '300') * 1000,
+      this.configService.getAnalyticsCacheTtl() * 1000,
     );
     return result;
   }

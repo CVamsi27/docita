@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { genderSchema } from "./users";
-import { codeStatusSchema } from "./medical";
-import { stripHtmlTags } from "./sanitization";
+import { genderSchema } from "../shared/users";
+import { codeStatusSchema } from "../clinical/medical";
+import { stripHtmlTags } from "../api/sanitization";
 export const patientTagSchema = z.object({
   id: z.string(),
   tag: z.string(),

@@ -6,11 +6,39 @@ import {
   UpdateAppointmentInput,
 } from "@workspace/types";
 import {
-  API_URL,
+  fetchAPI,
   PaginatedResponse,
   useAPIMutation,
   useAPIQuery,
 } from "../../lib/api-core";
+
+export interface QueueItem {
+  id: string;
+  clinicId: string;
+  patientId: string;
+  appointmentId?: string;
+  doctorId?: string;
+  tokenNumber: number;
+  status: string;
+  priority: number;
+  notes?: string;
+  calledAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  tokenType: "scheduled" | "walk-in" | "late-arrival";
+  scheduledTime?: string;
+  estimatedDuration: number;
+  consultationStart?: string;
+  estimatedWaitTime?: number;
+  patient?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+  };
+  doctor?: { id: string; name: string };
+  appointment?: { id: string; doctor: { id: string; name: string } };
+}
 
 export const useAppointments = (
   options?: {
@@ -40,7 +68,7 @@ export const useAppointments = (
       options?.search ?? "",
     ],
     url,
-    { enabled: options !== null }, // Disable only if explicitly passed null
+    { enabled: options !== null },
   );
 };
 
@@ -97,39 +125,27 @@ export const useInfiniteAppointments = (options?: {
       options?.endDate,
       options?.search,
     ],
-    queryFn: async ({ pageParam }) => {
+    queryFn: ({ pageParam }) => {
       const params = new URLSearchParams({
         limit: (options?.limit || 50).toString(),
-        ...(pageParam && { cursor: pageParam }),
+        ...(pageParam && { cursor: pageParam as string }),
         ...(options?.date && { date: options.date }),
         ...(options?.startDate && { startDate: options.startDate }),
         ...(options?.endDate && { endDate: options.endDate }),
         ...(options?.search && { search: options.search }),
       });
-
-      const response = await fetch(`${API_URL}/appointments?${params}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch appointments");
-      return response.json() as Promise<{
-        items: Appointment[];
-        nextCursor: string | null;
-        hasMore: boolean;
-        count: number;
-      }>;
+      return fetchAPI<PaginatedResponse<Appointment & { patient?: Patient }>>(
+        `/appointments?${params}`,
+      );
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2,
   });
 };
 
-// Queue related
 export const useCheckInAppointment = () =>
-  useAPIMutation<Record<string, unknown>, string>(
+  useAPIMutation<{ success: boolean }, string>(
     (id) => `/queue/check-in/${id}`,
     "POST",
   );
@@ -138,35 +154,7 @@ export const useQueue = (options?: { search?: string }) => {
   const params = new URLSearchParams();
   if (options?.search) params.append("search", options.search);
   const queryString = params.toString();
-  return useAPIQuery<
-    {
-      id: string;
-      clinicId: string;
-      patientId: string;
-      appointmentId?: string;
-      doctorId?: string;
-      tokenNumber: number;
-      status: string;
-      priority: number;
-      notes?: string;
-      calledAt?: string;
-      completedAt?: string;
-      createdAt: string;
-      tokenType: "scheduled" | "walk-in" | "late-arrival";
-      scheduledTime?: string;
-      estimatedDuration: number;
-      consultationStart?: string;
-      estimatedWaitTime?: number;
-      patient?: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        phoneNumber: string;
-      };
-      doctor?: { id: string; name: string };
-      appointment?: { id: string; doctor: { id: string; name: string } };
-    }[]
-  >(
+  return useAPIQuery<QueueItem[]>(
     ["queue", options?.search ?? ""],
     queryString ? `/queue?${queryString}` : "/queue",
   );
@@ -177,142 +165,31 @@ export const useQueueByDoctor = (doctorId?: string, search?: string) => {
   if (doctorId) params.append("doctorId", doctorId);
   if (search) params.append("search", search);
   const queryString = params.toString();
-  return useAPIQuery<
-    {
-      id: string;
-      clinicId: string;
-      patientId: string;
-      appointmentId?: string;
-      doctorId?: string;
-      tokenNumber: number;
-      status: string;
-      priority: number;
-      notes?: string;
-      calledAt?: string;
-      completedAt?: string;
-      createdAt: string;
-      tokenType: "scheduled" | "walk-in" | "late-arrival";
-      scheduledTime?: string;
-      estimatedDuration: number;
-      consultationStart?: string;
-      estimatedWaitTime?: number;
-      patient?: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        phoneNumber: string;
-      };
-      doctor?: { id: string; name: string };
-      appointment?: { id: string; doctor: { id: string; name: string } };
-    }[]
-  >(
+  return useAPIQuery<QueueItem[]>(
     ["queue", doctorId ?? "all", search ?? ""],
-    `/queue${queryString ? `?${queryString}` : ""}`,
+    `/queue?${queryString}`,
   );
 };
 
-export const useQueueStats = (doctorId?: string, search?: string) => {
-  const params = new URLSearchParams();
-  if (doctorId) params.append("doctorId", doctorId);
-  if (search) params.append("search", search);
-  const queryString = params.toString();
-  return useAPIQuery<{
-    waiting: number;
-    inProgress: number;
-    completed: number;
-    noShow: number;
-    cancelled: number;
-    total: number;
-    scheduled: number;
-    walkIns: number;
-    lateArrivals: number;
-    avgWaitTime: number;
-  }>(
-    ["queue-stats", doctorId ?? "all", search ?? ""],
-    `/queue/stats${queryString ? `?${queryString}` : ""}`,
-  );
-};
-
-export const useQueueSettings = () =>
-  useAPIQuery<{
-    queueBufferMinutes: number;
-    useDoctorQueues: boolean;
-    lateArrivalGraceMinutes: number;
-    avgConsultationMinutes: number;
-  }>(["queue-settings"], "/queue/settings");
-
-export const useUpdateQueueSettings = () =>
-  useAPIMutation<
-    Record<string, unknown>,
-    {
-      queueBufferMinutes?: number;
-      useDoctorQueues?: boolean;
-      lateArrivalGraceMinutes?: number;
-      avgConsultationMinutes?: number;
-    }
-  >("/queue/settings", "PATCH");
-
-export const useCreateQueueToken = () =>
-  useAPIMutation<
-    Record<string, unknown>,
-    {
-      patientId: string;
-      appointmentId?: string;
-      doctorId?: string;
-      priority?: number;
-      notes?: string;
-    }
-  >("/queue", "POST");
-
-export const useUpdateQueue = (id: string) =>
-  useAPIMutation<
-    Record<string, unknown>,
-    { status?: string; priority?: number; notes?: string }
-  >(`/queue/${id}`, "PATCH");
-
-export const useCreateWalkIn = () =>
-  useAPIMutation<
-    Record<string, unknown>,
-    { patientName: string; phoneNumber: string; reason?: string }
-  >("/queue/walk-in", "POST");
-
-export const useCallNextInQueue = (doctorId?: string) =>
-  useAPIMutation<Record<string, unknown>, void>(
-    `/queue/call-next${doctorId ? `?doctorId=${doctorId}` : ""}`,
+export const useCallPatient = () =>
+  useAPIMutation<QueueItem, string>(
+    (queueId) => `/queue/call/${queueId}`,
     "POST",
-  );
-
-export const useGetEstimatedWaitTime = (tokenId: string) =>
-  useAPIQuery<{
-    estimatedMinutes: number;
-    position: number;
-    tokensAhead: number;
-  }>(["queue-wait-time", tokenId], `/queue/${tokenId}/wait-time`);
-
-export const useUpdateAppointmentObservations = (id: string) =>
-  useAPIMutation<Appointment, UpdateAppointmentInput>(
-    `/appointments/${id}`,
-    "PATCH",
-  );
-
-export const useUpdateVisitCoding = (appointmentId: string) =>
-  useAPIMutation<Appointment, UpdateAppointmentInput>(
-    `/appointments/${appointmentId}`,
-    "PATCH",
-  );
-
-export const useAvailableSlots = (date: string, doctorId?: string) =>
-  useAPIQuery<
     {
-      time: string;
-      endTime: string;
-      doctorId: string;
-      doctorName: string;
-      specialization?: string;
-      isAvailable: boolean;
-    }[]
-  >(
-    ["available-slots", date, doctorId || "all"],
-    `/doctor-availability/slots?date=${date}${doctorId ? `&doctorId=${doctorId}` : ""}`,
-    { enabled: !!date },
+      invalidateKeys: [["queue"]],
+    },
   );
+
+export const useCompletePatient = () =>
+  useAPIMutation<QueueItem, string>(
+    (queueId) => `/queue/complete/${queueId}`,
+    "POST",
+    {
+      invalidateKeys: [["queue"]],
+    },
+  );
+
+export const useResetQueue = () =>
+  useAPIMutation<{ success: boolean }, void>("/queue/reset", "POST", {
+    invalidateKeys: [["queue"]],
+  });

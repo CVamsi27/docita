@@ -1,33 +1,15 @@
-/**
- * Subscription Pricing Service
- * Calculates prices based on tier, cycle, and discounts
- */
-
 import {
   ClinicTier,
   BillingCycle,
   SubscriptionPrice,
   DiscountAggregate,
 } from '../value-objects';
-
-// This would typically come from configuration
-// For now, using constants
-const TIER_PRICING: Record<string, { monthly: number; yearly: number }> = {
-  CAPTURE: { monthly: 0, yearly: 0 },
-  CORE: { monthly: 999, yearly: 9990 },
-  GROWTH: { monthly: 4999, yearly: 49990 },
-  SCALE: { monthly: 9999, yearly: 99990 },
-  ENTERPRISE: { monthly: 19999, yearly: 199990 }, // Custom, should be requested
-};
-
-const ANNUAL_DISCOUNT_PERCENT = 17;
+import { ANNUAL_DISCOUNT_PERCENT, TIER_PRICING } from '@workspace/types';
 
 export class SubscriptionPricingService {
-  /**
-   * Get price in paise for a tier and cycle
-   */
   getPricePaise(tier: ClinicTier, cycle: BillingCycle): number {
-    const pricing = TIER_PRICING[tier.toString()];
+    const tierName = tier.toString() as keyof typeof TIER_PRICING;
+    const pricing = TIER_PRICING[tierName];
     if (!pricing) {
       throw new Error(`Pricing not found for tier: ${tier.toString()}`);
     }
@@ -35,18 +17,31 @@ export class SubscriptionPricingService {
     let paise = 0;
     if (cycle.isYearly()) {
       const yearlyPrice = pricing.yearly;
-      paise = yearlyPrice * 100;
+      paise = typeof yearlyPrice === 'number' ? yearlyPrice * 100 : 0;
     } else {
       const monthlyPrice = pricing.monthly;
-      paise = monthlyPrice * 100;
+      paise = typeof monthlyPrice === 'number' ? monthlyPrice * 100 : 0;
     }
 
     return paise;
   }
 
-  /**
-   * Get effective price after discounts
-   */
+  calculatePrice(
+    tier: ClinicTier,
+    cycle: BillingCycle,
+    addOns: string[] = [],
+  ): number {
+    let totalPricePaise = this.getPricePaise(tier, cycle);
+
+    // Add-on logic (minimal for now)
+    if (addOns.includes('INTELLIGENCE')) {
+      const intelligencePrice = cycle.isYearly() ? 120000 : 12000;
+      totalPricePaise += intelligencePrice;
+    }
+
+    return totalPricePaise;
+  }
+
   getEffectivePrice(
     tier: ClinicTier,
     cycle: BillingCycle,
@@ -58,16 +53,10 @@ export class SubscriptionPricingService {
     return basePrice.applyDiscount(discountPercent);
   }
 
-  /**
-   * Calculate discount for annual billing
-   */
   getAnnualDiscount(): number {
     return ANNUAL_DISCOUNT_PERCENT;
   }
 
-  /**
-   * Suggest plan upgrade/downgrade pricing
-   */
   suggestPlanChange(
     currentTier: ClinicTier,
     newTier: ClinicTier,

@@ -1,8 +1,3 @@
-/**
- * Subscription Payment Entity
- * Represents a payment transaction for a subscription
- */
-
 export enum PaymentStatusEnum {
   PENDING = 'PENDING',
   PAID = 'PAID',
@@ -109,9 +104,6 @@ export class SubscriptionPayment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Mark payment as failed
-   */
   markAsFailed(reason: string): void {
     if (this.isPaid() || this.isRefunded()) {
       throw new Error(
@@ -123,9 +115,6 @@ export class SubscriptionPayment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Refund payment
-   */
   refund(): void {
     if (!this.isPaid()) {
       throw new Error('Can only refund paid payments');
@@ -134,16 +123,10 @@ export class SubscriptionPayment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Get net amount (after credits applied)
-   */
   getNetAmount(): number {
     return Math.max(0, this.amountCents - this.creditsApplied);
   }
 
-  /**
-   * Get amount in rupees for display
-   */
   getDisplayAmount(): string {
     return `₹${(this.amountCents / 100).toFixed(2)}`;
   }

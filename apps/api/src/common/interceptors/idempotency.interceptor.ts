@@ -12,7 +12,7 @@ import {
   IDEMPOTENT_METADATA_KEY,
   IdempotentOptions,
 } from '../../shared/modules/auth/decorators/idempotent.decorator';
-import { IdempotencyService } from '../services/idempotency.service';
+import { IdempotencyService } from '../../shared/modules/services/idempotency.service';
 
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {

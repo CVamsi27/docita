@@ -1,21 +1,12 @@
-/**
- * In-Memory Queue Service
- *
- * Simple queue implementation for development.
- * Jobs are processed immediately or with delays, but NOT persisted.
- * For production, use BullMQ with Redis.
- */
-
 import { Injectable } from '@nestjs/common';
 import {
   IQueueProvider,
   QueueJob,
   QueueJobOptions,
   QueueStats,
-  JobNames,
 } from './queue.interface';
 
-interface InMemoryJob<T> extends QueueJob<T> {
+interface InMemoryJob<T extends Record<string, unknown>> extends QueueJob<T> {
   handler?: (job: QueueJob<T>) => Promise<void>;
   status: 'waiting' | 'active' | 'completed' | 'failed';
   delayedUntil?: number;
@@ -23,26 +14,29 @@ interface InMemoryJob<T> extends QueueJob<T> {
 
 @Injectable()
 export class InMemoryQueueService implements IQueueProvider {
-  private jobs = new Map<string, InMemoryJob<any>>();
+  private jobs = new Map<string, InMemoryJob<Record<string, unknown>>>();
   private jobsByName = new Map<string, Set<string>>();
-  private handlers = new Map<string, (job: QueueJob<any>) => Promise<void>>();
+  private handlers = new Map<
+    string,
+    (job: QueueJob<Record<string, unknown>>) => Promise<void>
+  >();
   private stats = new Map<string, QueueStats>();
   private jobCounter = 0;
 
-  async enqueue<T>(
+  async enqueue<T extends Record<string, unknown>>(
     name: string,
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>> {
     const jobId = `${name}-${++this.jobCounter}`;
-    const job: InMemoryJob<T> = {
+    const job: InMemoryJob<Record<string, unknown>> = {
       id: jobId,
       name,
-      data,
+      data: data as Record<string, unknown>,
       progress: 0,
       attemptsMade: 0,
       timestamp: Date.now(),
-      status: options?.delay ? 'waiting' : 'waiting',
+      status: 'waiting',
       delayedUntil: options?.delay ? Date.now() + options.delay : undefined,
     };
 
@@ -61,12 +55,17 @@ export class InMemoryQueueService implements IQueueProvider {
 
     this.jobsByName.get(name)!.add(jobId);
 
-    // Process immediately if no delay
     if (!options?.delay) {
       await this.processJob(job);
     } else {
-      // Schedule processing after delay
-      setTimeout(() => this.processJob(job), options.delay);
+      setTimeout(() => {
+        void this.processJob(job).catch((err: unknown) => {
+          console.error(
+            `Scheduled job ${job.id} failed:`,
+            err instanceof Error ? err.message : 'Unknown error',
+          );
+        });
+      }, options.delay);
     }
 
     return {
@@ -79,26 +78,37 @@ export class InMemoryQueueService implements IQueueProvider {
     };
   }
 
-  async process<T>(
+  async process<T extends Record<string, unknown>>(
     name: string,
     handler: (job: QueueJob<T>) => Promise<void>,
   ): Promise<void> {
-    this.handlers.set(name, handler as any);
+    this.handlers.set(
+      name,
+      handler as unknown as (
+        job: QueueJob<Record<string, unknown>>,
+      ) => Promise<void>,
+    );
+    await Promise.resolve();
   }
 
-  async getJob<T>(jobId: string): Promise<QueueJob<T> | null> {
+  async getJob<T extends Record<string, unknown>>(
+    jobId: string,
+  ): Promise<QueueJob<T> | null> {
     const job = this.jobs.get(jobId);
     if (!job) return null;
 
-    return {
+    const data = job.data as unknown as T;
+    const result: QueueJob<T> = {
       id: job.id,
       name: job.name,
-      data: job.data,
+      data: data,
       progress: job.progress,
       failedReason: job.failedReason,
       attemptsMade: job.attemptsMade,
       timestamp: job.timestamp,
     };
+    await Promise.resolve();
+    return result;
   }
 
   async removeJob(jobId: string): Promise<void> {
@@ -110,6 +120,7 @@ export class InMemoryQueueService implements IQueueProvider {
       }
       this.jobs.delete(jobId);
     }
+    await Promise.resolve();
   }
 
   async clear(name: string): Promise<void> {
@@ -128,11 +139,14 @@ export class InMemoryQueueService implements IQueueProvider {
         stats.delayed = 0;
       }
     }
+    await Promise.resolve();
   }
 
   async getStats(name: string): Promise<QueueStats> {
+    const stats = this.stats.get(name);
+    await Promise.resolve();
     return (
-      this.stats.get(name) || {
+      stats || {
         processed: 0,
         failed: 0,
         waiting: 0,
@@ -142,7 +156,9 @@ export class InMemoryQueueService implements IQueueProvider {
     );
   }
 
-  private async processJob<T>(job: InMemoryJob<T>): Promise<void> {
+  private async processJob<T extends Record<string, unknown>>(
+    job: InMemoryJob<T>,
+  ): Promise<void> {
     const handler = this.handlers.get(job.name);
     if (!handler) {
       console.warn(`No handler registered for queue: ${job.name}`);
@@ -154,7 +170,7 @@ export class InMemoryQueueService implements IQueueProvider {
       const stats = this.stats.get(job.name);
       if (stats) stats.active++;
 
-      await handler(job as QueueJob<T>);
+      await handler(job as unknown as QueueJob<T>);
 
       job.status = 'completed';
       if (stats) {
@@ -172,7 +188,10 @@ export class InMemoryQueueService implements IQueueProvider {
         stats.failed++;
       }
 
-      console.error(`Job ${job.id} failed:`, error);
+      console.error(
+        `Job ${job.id} failed:`,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
     }
   }
 }

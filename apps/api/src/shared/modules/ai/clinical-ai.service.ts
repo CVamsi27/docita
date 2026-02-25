@@ -191,10 +191,10 @@ export class ClinicalAiService {
           (s.icdCode || s.diagnosis) && (s.condition || s.diagnosis),
       )
       .map((s: RawDiagnosisSuggestion) => ({
-        icdCode: s.icdCode || 'R69', // Default to 'Illness, unspecified' if missing
-        condition: s.condition || s.diagnosis || 'Unknown Condition',
+        icdCode: s.icdCode || 'R69',
+        diagnosis: s.condition || s.diagnosis || 'Unknown Condition',
         confidence: Math.min(Math.max(s.confidence || 0, 0), 100),
-        reasoning: s.description || 'Clinical correlation required',
+        description: s.description || 'Clinical correlation required',
       }));
   }
 

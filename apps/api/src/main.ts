@@ -1,19 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ZodValidationPipe } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { MonitoringService } from './shared/modules/monitoring/monitoring/monitoring.service';
-import { ObservabilityService } from './common/services/observability.service';
+import { ObservabilityService } from './shared/modules/services/observability.service';
 import {
   getCorsOrigins,
   validateEnv,
   isDevelopment,
+  getEnv,
 } from './shared/modules/config/app-config';
+import { AppConfigService } from './shared/modules/config/app-configuration.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -22,17 +23,13 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
 
-// Load environment variables first
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
-// Validate environment configuration (fail fast if invalid)
-validateEnv();
+const config = validateEnv();
 
-// Suppress TimeoutNegativeWarning from third-party libraries
-// This occurs when a calculated timeout value is negative (Node corrects to 1ms)
 process.on('warning', (warning) => {
   if (warning.name === 'TimeoutNegativeWarning') {
-    return; // Suppress this specific warning
+    return;
   }
   console.warn(warning);
 });
@@ -40,13 +37,16 @@ process.on('warning', (warning) => {
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
-  // Initialize Sentry first (before creating NestJS app)
-  // Safely load profiling integration, fall back if native binaries unavailable
-
-  const integrations: any[] = [];
+  interface SentryIntegration {
+    name: string;
+    setupOnce: () => void;
+  }
+  const integrations: SentryIntegration[] = [];
   try {
     const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
-    integrations.push(nodeProfilingIntegration());
+    integrations.push(
+      nodeProfilingIntegration() as unknown as SentryIntegration,
+    );
   } catch (error) {
     console.warn(
       'Sentry CPU profiling not available for this Node version, continuing without profiling',
@@ -54,22 +54,20 @@ async function bootstrap() {
   }
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV || 'development',
+    dsn: config.SENTRY_DSN,
+    environment: config.NODE_ENV,
     integrations,
-    tracesSampleRate: parseFloat(
-      process.env.SENTRY_TRACES_SAMPLE_RATE || '0.1',
-    ),
+    tracesSampleRate: config.SENTRY_TRACES_SAMPLE_RATE,
     profilesSampleRate:
-      process.env.NODE_ENV === 'production'
-        ? parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE || '0.1')
+      config.NODE_ENV === 'production'
+        ? config.SENTRY_PROFILES_SAMPLE_RATE
         : 1.0,
     maxBreadcrumbs: 50,
     attachStacktrace: true,
     initialScope: {
       tags: {
         service: 'docita-api',
-        version: process.env.APP_VERSION || '1.0.0',
+        version: config.APP_VERSION,
       },
     },
   });
@@ -77,10 +75,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
 
-  // Run startup validations before initializing the app
   try {
     const { StartupValidationService } =
-      await import('./common/services/startup-validation.service');
+      await import('./shared/modules/services/startup-validation.service');
     const startupValidator = app.get(StartupValidationService);
     startupValidator.validate();
   } catch (error) {
@@ -91,13 +88,11 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  // Request body size limits
   app.use(json({ limit: '1mb' }));
   app.use(urlencoded({ limit: '1mb', extended: true }));
 
-  // Get ConfigService to read env values for middleware setup
-  const configService = app.get(ConfigService);
-  const apiUrl = configService.get<string>('NEXT_PUBLIC_API_URL') || '';
+  const configService = app.get(AppConfigService);
+  const apiUrl = configService.getApiUrl();
 
   // Security Headers
   app.use(
@@ -105,7 +100,7 @@ async function bootstrap() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"], // Tighten in production
+          scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:', 'https:'],
           fontSrc: ["'self'", 'data:'],
@@ -116,7 +111,7 @@ async function bootstrap() {
         },
       },
       hsts: {
-        maxAge: 31536000, // 1 year in seconds
+        maxAge: 31536000,
         includeSubDomains: true,
         preload: true,
       },
@@ -126,38 +121,29 @@ async function bootstrap() {
     }),
   );
 
-  // Cookie Parser
   app.use(cookieParser());
 
-  // Get monitoring service for filters and interceptors
   const monitoringService = app.get(MonitoringService);
+  const appConfigService = app.get(AppConfigService);
 
-  // Global exception filter for better error messages and error logging
-  app.useGlobalFilters(new AllExceptionsFilter(monitoringService));
+  app.useGlobalFilters(
+    new AllExceptionsFilter(monitoringService, appConfigService),
+  );
 
-  // Global Zod Validation Pipe
   app.useGlobalPipes(new ZodValidationPipe());
 
-  // Global interceptor for request logging and performance monitoring
   app.useGlobalInterceptors(new RequestLoggingInterceptor(monitoringService));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
-  // Global cache interceptor is now registered in AppModule to support DI
-
-  // Enable compression (gzip/brotli) for responses
   app.use(
     compression({
       filter: (req, res) => {
-        // Don't compress responses with this header
         if (req.headers['x-no-compression']) {
           return false;
         }
-        // Compress all other responses
         return compression.filter(req, res);
       },
-      // Compression level (0-9, higher = better compression but slower)
       level: 6,
-      // Minimum response size to compress (in bytes)
       threshold: 1024,
     }),
   );
@@ -175,7 +161,7 @@ async function bootstrap() {
       'Pragma',
     ],
     credentials: true,
-    maxAge: 86400, // Cache preflight response for 24 hours
+    maxAge: 86400,
   });
 
   app.setGlobalPrefix('api');
@@ -185,9 +171,8 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
-  // Swagger/OpenAPI Documentation (only in development)
   if (isDevelopment()) {
-    const config = new DocumentBuilder()
+    const swaggerConfig = new DocumentBuilder()
       .setTitle('Docita API')
       .setDescription(
         'Healthcare practice management API for appointments, patients, prescriptions, and billing.',
@@ -211,7 +196,7 @@ async function bootstrap() {
       .addTag('whatsapp', 'WhatsApp messaging')
       .build();
 
-    const document = SwaggerModule.createDocument(app, config);
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
@@ -220,30 +205,23 @@ async function bootstrap() {
     console.log('Swagger docs available at /api/docs');
   }
 
-  const port = configService.get<number>('PORT') || 3001;
+  const port = config.PORT;
   const server = await app.listen(port);
 
-  // Get observability service for metrics tracking
   const observabilityService = app.get(ObservabilityService);
 
-  // Graceful shutdown handler for zero-downtime deployments
-  // Allows active connections to drain before process exit
   const gracefulShutdown = (signal: string) => {
     console.log(`\nReceived ${signal}, initiating graceful shutdown...`);
 
-    // Stop accepting new connections
     server.close(async () => {
-      // Flush Sentry events before shutdown
       await observabilityService.flush(5000);
 
-      // Close NestJS app (closes database, caches, etc.)
       await app.close();
 
       console.log('✅ Graceful shutdown complete');
       process.exit(0);
     });
 
-    // Force exit after 15 seconds if connections don't drain
     setTimeout(() => {
       console.error('⚠️ Graceful shutdown timeout exceeded, forcing exit');
       process.exit(1);
@@ -257,7 +235,7 @@ async function bootstrap() {
     void gracefulShutdown('SIGINT');
   });
 }
-bootstrap().catch((error) => {
+bootstrap().catch((error: Error) => {
   console.error('Fatal error during bootstrap:', error);
   Sentry.captureException(error);
   process.exit(1);

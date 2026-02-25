@@ -1,7 +1,3 @@
-/**
- * Payment Entity - Represents a payment transaction
- */
-
 import { Money } from '../value-objects/money.value-object';
 
 export enum PaymentStatus {

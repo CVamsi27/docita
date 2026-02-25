@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 describe('PrescriptionTemplatesService', () => {
   let service: PrescriptionTemplatesService;

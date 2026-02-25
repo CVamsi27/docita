@@ -17,7 +17,7 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
       className={cn(
         "w-full bg-background border-b border-border px-4 py-3",
         sticky &&
-          "sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+          "sticky top-0 z-40 backdrop-blur supports-backdrop-filter:bg-background/60",
         className,
       )}
       {...props}
@@ -45,7 +45,7 @@ const NavbarBrand = React.forwardRef<HTMLDivElement, NavbarBrandProps>(
 );
 NavbarBrand.displayName = "NavbarBrand";
 
-export interface NavbarMenuProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type NavbarMenuProps = React.HTMLAttributes<HTMLDivElement>;
 
 const NavbarMenu = React.forwardRef<HTMLDivElement, NavbarMenuProps>(
   ({ className, ...props }, ref) => (

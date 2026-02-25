@@ -1,10 +1,3 @@
-/**
- * Fetch Wrapper
- * Centralized HTTP client with error handling, auth, etc.
- */
-
-import { API_ENDPOINTS } from "./endpoints";
-
 export interface FetchOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   headers?: Record<string, string>;
@@ -13,16 +6,17 @@ export interface FetchOptions {
   token?: string;
 }
 
-/**
- * Fetch wrapper with error handling and auth
- */
-export async function apiFetch<T = unknown>(
+export interface ApiError extends Error {
+  status?: number;
+  data?: unknown;
+}
+
+export async function apiFetch<T>(
   url: string,
   options: FetchOptions = {},
 ): Promise<T> {
   const { method = "GET", headers = {}, body, params, token } = options;
 
-  // Add query parameters
   const fullUrl = new URL(
     url,
     typeof window !== "undefined" ? window.location.origin : "http://localhost",
@@ -33,13 +27,11 @@ export async function apiFetch<T = unknown>(
     });
   }
 
-  // Prepare headers
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...headers,
   };
 
-  // Add authorization token
   if (token) {
     finalHeaders["Authorization"] = `Bearer ${token}`;
   }
@@ -51,53 +43,46 @@ export async function apiFetch<T = unknown>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    // Handle errors
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const error = new Error(
         errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-      );
-      (error as any).status = response.status;
-      (error as any).data = errorData;
+      ) as ApiError;
+      error.status = response.status;
+      error.data = errorData;
       throw error;
     }
 
-    // Parse response
-    const data = await response.json();
-    return data;
+    return (await response.json()) as T;
   } catch (error) {
-    console.error(`API Error (${method} ${url}):`, error);
     throw error;
   }
 }
 
-/**
- * Create API client instance
- */
 export function createApiClient(token?: string) {
   return {
-    get: <T = unknown>(url: string, options?: Omit<FetchOptions, "method">) =>
+    get: <T>(url: string, options?: Omit<FetchOptions, "method">) =>
       apiFetch<T>(url, { ...options, method: "GET", token }),
 
-    post: <T = unknown>(
+    post: <T>(
       url: string,
       body?: unknown,
       options?: Omit<FetchOptions, "method" | "body">,
     ) => apiFetch<T>(url, { ...options, method: "POST", body, token }),
 
-    put: <T = unknown>(
+    put: <T>(
       url: string,
       body?: unknown,
       options?: Omit<FetchOptions, "method" | "body">,
     ) => apiFetch<T>(url, { ...options, method: "PUT", body, token }),
 
-    patch: <T = unknown>(
+    patch: <T>(
       url: string,
       body?: unknown,
       options?: Omit<FetchOptions, "method" | "body">,
     ) => apiFetch<T>(url, { ...options, method: "PATCH", body, token }),
 
-    delete: <T = unknown>(
+    delete: <T>(
       url: string,
       options?: Omit<FetchOptions, "method">,
     ) => apiFetch<T>(url, { ...options, method: "DELETE", token }),

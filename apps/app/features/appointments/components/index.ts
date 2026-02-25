@@ -1,16 +1,10 @@
-/**
- * Appointment Components
- * Exports for all appointment-related UI components
- */
-
-// Time Slot Picker
-export { TimeSlotPickerContainer } from "./TimeSlotPickerContainer";
-export { TimeSlotPickerUI } from "./TimeSlotPickerUI";
-
-// AddAppointmentDialog
-export { AddAppointmentDialogContainer } from "./AddAppointmentDialogContainer";
-export { AddAppointmentDialogUI } from "./AddAppointmentDialogUI";
-
-// FollowUpScheduler
-export { FollowUpSchedulerContainer } from "./FollowUpSchedulerContainer";
-export { FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
+export * from "./calendar/AppointmentsCalendarUI";
+export * from "./dialogs/AddAppointmentDialogContainer";
+export * from "./dialogs/AddAppointmentDialogUI";
+export * from "./dialogs/FollowUpSchedulerContainer";
+export * from "./dialogs/FollowUpSchedulerUI";
+export * from "./forms/TimeSlotPickerContainer";
+export * from "./forms/TimeSlotPickerUI";
+export * from "./forms/TimeSlotRow";
+export * from "./header/AppointmentsPageHeaderUI";
+export * from "./list/AppointmentsListUI";

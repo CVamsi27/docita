@@ -3,9 +3,8 @@
  * Example feature-specific hook for patients API and state management
  */
 
-import { useState, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, API_ENDPOINTS } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { API_ENDPOINTS, apiFetch } from "@/lib/api";
 
 export interface Patient {
   id: string;
@@ -37,7 +36,7 @@ export function usePatients(filters?: PatientsFilter) {
       apiFetch<{ data: Patient[]; total: number }>(
         API_ENDPOINTS.patients.list,
         {
-          params: filters as any,
+          params: filters as Record<string, string | number | boolean>,
         },
       ),
     enabled: true,

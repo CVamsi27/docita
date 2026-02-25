@@ -1,1 +1,1 @@
-export * from "./severity-styles";
+export * from "./severity-styles.js";

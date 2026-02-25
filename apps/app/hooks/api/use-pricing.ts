@@ -95,14 +95,11 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-/**
- * Hook to fetch pricing configuration from backend
- */
 export function usePricingConfig(currency: string = "INR") {
   const { data, error, isLoading, refetch } = useQuery<PricingConfig>({
     queryKey: ["pricing-config", currency],
     queryFn: () => fetcher(`${API_URL}/pricing/config?currency=${currency}`),
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
     refetchOnWindowFocus: false,
   });
 
@@ -114,9 +111,6 @@ export function usePricingConfig(currency: string = "INR") {
   };
 }
 
-/**
- * Hook to calculate price estimate from backend
- */
 export function useEstimate(params: EstimateRequest | null) {
   const queryParams = params
     ? new URLSearchParams({

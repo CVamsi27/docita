@@ -18,6 +18,7 @@ export class InMemoryCacheService implements ICacheProvider {
   private cache = new Map<string, CacheEntry<any>>();
 
   async get<T>(key: string): Promise<T | null> {
+    await Promise.resolve();
     const entry = this.cache.get(key);
 
     if (!entry) {
@@ -36,17 +37,21 @@ export class InMemoryCacheService implements ICacheProvider {
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     const expiresAt = ttl ? Date.now() + ttl * 1000 : undefined;
     this.cache.set(key, { value, expiresAt });
+    await Promise.resolve();
   }
 
   async delete(key: string): Promise<void> {
     this.cache.delete(key);
+    await Promise.resolve();
   }
 
   async clear(): Promise<void> {
     this.cache.clear();
+    await Promise.resolve();
   }
 
   async exists(key: string): Promise<boolean> {
+    await Promise.resolve();
     const entry = this.cache.get(key);
 
     if (!entry) {

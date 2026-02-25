@@ -1,13 +1,3 @@
-/**
- * Loading State Management Hook
- *
- * UI/UX IMPROVEMENTS:
- * - Centralized loading state management
- * - Prevents layout shift with skeleton screens
- * - Provides loading feedback for better UX
- * - Handles timing for smooth transitions
- */
-
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -15,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export interface LoadingState {
   isLoading: boolean;
   loadingText?: string;
-  progress?: number; // 0-100 for progress bars
+  progress?: number;
 }
 
 interface UseLoadingOptions {
-  minDuration?: number; // Minimum loading time (prevents flash)
-  maxDuration?: number; // Maximum loading time (timeout)
+  minDuration?: number;
+  maxDuration?: number;
   onTimeout?: () => void;
 }
 
@@ -34,12 +24,9 @@ export function useLoading(options: UseLoadingOptions = {}) {
   const startTimeRef = useRef<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const minDuration = options.minDuration || 300; // Prevent flash
-  const maxDuration = options.maxDuration || 30000; // 30 second timeout
+  const minDuration = options.minDuration || 300;
+  const maxDuration = options.maxDuration || 30000;
 
-  /**
-   * Stop loading state (with minimum duration enforcement)
-   */
   const stopLoading = useCallback(async () => {
     if (!startTimeRef.current) {
       setState({
@@ -53,14 +40,12 @@ export function useLoading(options: UseLoadingOptions = {}) {
     const elapsed = Date.now() - startTimeRef.current;
     const remaining = minDuration - elapsed;
 
-    // Clear timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
 
     if (remaining > 0) {
-      // Wait for minimum duration to prevent flash
       await new Promise((resolve) => setTimeout(resolve, remaining));
     }
 
@@ -68,15 +53,11 @@ export function useLoading(options: UseLoadingOptions = {}) {
     startTimeRef.current = null;
   }, [minDuration]);
 
-  /**
-   * Start loading state
-   */
   const startLoading = useCallback(
     (text?: string) => {
       startTimeRef.current = Date.now();
       setState({ isLoading: true, loadingText: text, progress: undefined });
 
-      // Set timeout if maxDuration specified
       if (maxDuration && options.onTimeout) {
         timeoutRef.current = setTimeout(() => {
           options.onTimeout?.();
@@ -87,9 +68,6 @@ export function useLoading(options: UseLoadingOptions = {}) {
     [maxDuration, options, stopLoading],
   );
 
-  /**
-   * Set loading progress (for progress bars)
-   */
   const setProgress = useCallback((progress: number) => {
     setState((prev) => ({
       ...prev,
@@ -97,16 +75,10 @@ export function useLoading(options: UseLoadingOptions = {}) {
     }));
   }, []);
 
-  /**
-   * Update loading text
-   */
   const setLoadingText = useCallback((text: string) => {
     setState((prev) => ({ ...prev, loadingText: text }));
   }, []);
 
-  /**
-   * Cleanup on unmount
-   */
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -124,57 +96,21 @@ export function useLoading(options: UseLoadingOptions = {}) {
   };
 }
 
-/**
- * Higher-order function to wrap async operations with loading state
- */
-export function withLoading<T extends (...args: unknown[]) => Promise<unknown>>(
+export function withLoading<T extends (...args: never[]) => Promise<unknown>>(
   fn: T,
-  loadingHook: ReturnType<typeof useLoading>,
+  loadingHandlers: {
+    startLoading: (text?: string) => void;
+    stopLoading: () => Promise<void>;
+  },
   loadingText?: string,
-): T {
-  return (async (...args: Parameters<T>) => {
-    loadingHook.startLoading(loadingText);
+): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+    loadingHandlers.startLoading(loadingText);
     try {
       const result = await fn(...args);
-      return result;
+      return result as Awaited<ReturnType<T>>;
     } finally {
-      await loadingHook.stopLoading();
+      await loadingHandlers.stopLoading();
     }
-  }) as T;
-}
-
-/**
- * Hook for managing multiple concurrent loading states
- */
-export function useMultiLoading() {
-  const [loadingStates, setLoadingStates] = useState<Map<string, LoadingState>>(
-    new Map(),
-  );
-
-  const startLoading = useCallback((key: string, text?: string) => {
-    setLoadingStates((prev) => {
-      const next = new Map(prev);
-      next.set(key, { isLoading: true, loadingText: text });
-      return next;
-    });
-  }, []);
-
-  const stopLoading = useCallback((key: string) => {
-    setLoadingStates((prev) => {
-      const next = new Map(prev);
-      next.delete(key);
-      return next;
-    });
-  }, []);
-
-  const isAnyLoading = loadingStates.size > 0;
-  const getLoadingState = (key: string) => loadingStates.get(key);
-
-  return {
-    loadingStates,
-    startLoading,
-    stopLoading,
-    isAnyLoading,
-    getLoadingState,
   };
 }

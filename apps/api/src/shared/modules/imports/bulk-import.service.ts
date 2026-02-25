@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import * as Papa from 'papaparse';
+import { AppConfigService } from '../config/app-configuration.service';
 
 export type BulkImportEntityType =
   | 'PATIENT'
@@ -30,20 +31,11 @@ interface ImportError {
 @Injectable()
 export class BulkImportService {
   private readonly logger = new Logger(BulkImportService.name);
-  private readonly maxFileSize = parseInt(
-    process.env.BULK_IMPORT_MAX_FILE_SIZE || '52428800',
-  ); // 50MB
-  private readonly maxRows = parseInt(
-    process.env.BULK_IMPORT_MAX_ROWS || '100000',
-  );
-  private readonly rateLimitInterval = parseInt(
-    process.env.BULK_IMPORT_RATE_LIMIT_INTERVAL || '300',
-  ); // seconds
-
   private lastImportTimes: Map<string, number> = new Map();
 
   constructor(
     private prisma: PrismaService,
+    private configService: AppConfigService,
     @InjectQueue('bulk-import') private bulkImportQueue: Queue,
   ) {}
 
@@ -58,25 +50,25 @@ export class BulkImportService {
     fileBuffer: Buffer,
   ): Promise<{ jobId: string; status: string; totalRows: number }> {
     try {
-      // Rate limiting check
       const lastImportTime = this.lastImportTimes.get(clinicId);
+      const { maxFileSize, maxRows, rateLimitInterval } =
+        this.configService.getBulkImportConfig();
+
       if (
         lastImportTime &&
-        Date.now() - lastImportTime < this.rateLimitInterval * 1000
+        Date.now() - lastImportTime < rateLimitInterval * 1000
       ) {
         throw new BadRequestException(
-          `Please wait ${this.rateLimitInterval} seconds before starting another import`,
+          `Please wait ${rateLimitInterval} seconds before starting another import`,
         );
       }
 
-      // File size validation
-      if (fileBuffer.length > this.maxFileSize) {
+      if (fileBuffer.length > maxFileSize) {
         throw new BadRequestException(
-          `File size exceeds limit of ${this.maxFileSize / 1024 / 1024}MB`,
+          `File size exceeds limit of ${maxFileSize / 1024 / 1024}MB`,
         );
       }
 
-      // Parse CSV
       const csvData = fileBuffer.toString('utf-8');
       const { data: rows } = Papa.parse(csvData, {
         header: true,
@@ -87,9 +79,9 @@ export class BulkImportService {
         throw new BadRequestException('CSV file is empty');
       }
 
-      if (rows.length > this.maxRows) {
+      if (rows.length > maxRows) {
         throw new BadRequestException(
-          `Number of rows (${rows.length}) exceeds maximum limit of ${this.maxRows}`,
+          `Number of rows (${rows.length}) exceeds maximum limit of ${maxRows}`,
         );
       }
 
@@ -406,7 +398,6 @@ export class BulkImportService {
    * Import lab test row
    */
   private importLabTest(row: Record<string, any>, clinicId: string): void {
-    // Implementation depends on lab test schema
     this.logger.debug(`Importing lab test: ${row.testName}`);
   }
 
@@ -414,7 +405,6 @@ export class BulkImportService {
    * Import inventory row
    */
   private importInventory(row: Record<string, any>, clinicId: string): void {
-    // Implementation depends on inventory schema
     this.logger.debug(`Importing inventory item: ${row.itemName}`);
   }
 

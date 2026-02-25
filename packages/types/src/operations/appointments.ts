@@ -1,17 +1,20 @@
 import { z } from "zod";
-import { appointmentStatusSchema, appointmentTypeSchema } from "./users";
-import { Patient, patientSchema } from "./patients";
-import { vitalSignSchema } from "./vitals";
-import { invoiceSchema } from "./invoices";
-import { prescriptionSchema } from "./medications";
+import {
+  appointmentStatusSchema,
+  appointmentTypeSchema,
+} from "../shared/users";
+import { Patient, patientSchema } from "../patient/patients";
+import { vitalSignSchema } from "../clinical/vitals";
+import { invoiceSchema } from "../billing/invoices";
+import { prescriptionSchema } from "../clinical/medications";
 import {
   generalExaminationSchema,
   systemicExaminationSchema,
   clinicalInvestigationSchema,
   clinicalNoteSchema,
-} from "./clinical";
-import { icdCodeSchema, cptCodeSchema } from "./medical-coding";
-import { stripHtmlTags } from "./sanitization";
+} from "../clinical/clinical";
+import { icdCodeSchema, cptCodeSchema } from "../shared/medical-coding";
+import { stripHtmlTags } from "../api/sanitization";
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",
   "URGENT",

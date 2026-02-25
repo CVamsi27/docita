@@ -1,10 +1,3 @@
-/**
- * Discount Value Object
- * Represents a discount (percentage-based) applied to a subscription
- *
- * Discount types: REFERRAL, ANNUAL, LOYALTY, PROMOTIONAL, etc.
- */
-
 export enum DiscountType {
   REFERRAL = 'REFERRAL',
   ANNUAL = 'ANNUAL',
@@ -16,7 +9,7 @@ export enum DiscountType {
 
 export interface DiscountProps {
   type: DiscountType;
-  percentOff: number; // 0-100
+  percentOff: number;
   expiresAt?: Date;
   description?: string;
 }
@@ -37,9 +30,6 @@ export class Discount {
     this.description = props.description;
   }
 
-  /**
-   * Check if discount is still valid
-   */
   isValid(): boolean {
     if (!this.expiresAt) {
       return true;
@@ -47,9 +37,6 @@ export class Discount {
     return new Date() <= this.expiresAt;
   }
 
-  /**
-   * Check if discount has expired
-   */
   isExpired(): boolean {
     return !this.isValid();
   }
@@ -68,11 +55,6 @@ export class Discount {
   }
 }
 
-/**
- * Discount Aggregator
- * Combines multiple discounts into total discount percentage
- * Uses additive model: 10% + 5% = 15% off
- */
 export class DiscountAggregate {
   private discounts: Discount[] = [];
 
@@ -89,13 +71,13 @@ export class DiscountAggregate {
     return this;
   }
 
-  /**
-   * Get total discount percentage (capped at 100%)
-   * Simple additive model
-   */
   getTotalPercent(): number {
     const total = this.discounts.reduce((sum, d) => sum + d.percentOff, 0);
     return Math.min(total, 100);
+  }
+
+  getDiscounts(): Discount[] {
+    return [...this.discounts];
   }
 
   /**

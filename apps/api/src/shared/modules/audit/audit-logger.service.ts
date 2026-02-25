@@ -5,7 +5,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { IAuditLogger, AuditLogEntry, AuditAction } from './audit.interface';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -110,8 +110,8 @@ export class AuditLoggerService implements IAuditLogger {
     return result.count;
   }
 
-  private parseAuditLogs(logs: any[]): AuditLogEntry[] {
-    return logs.map((log) => ({
+  private parseAuditLogs(logs: unknown[]): AuditLogEntry[] {
+    return logs.map((log: any) => ({
       ...log,
       changes: log.changes ? JSON.parse(log.changes) : undefined,
       metadata: log.metadata ? JSON.parse(log.metadata) : undefined,

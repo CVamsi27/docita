@@ -5,7 +5,7 @@ import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
 import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
 import { SuperAdminBillingService } from './super-admin-billing.service';
-import { RolesGuard } from '../auth/roles.guard';
+import { RolesGuard } from '../auth/auth/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { Role } from '@workspace/db';

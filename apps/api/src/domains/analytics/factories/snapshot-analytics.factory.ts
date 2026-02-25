@@ -6,6 +6,27 @@ import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
 
+export interface SnapshotRecord {
+  [key: string]: any;
+  id: string;
+  clinicId: string;
+  snapshotDate: Date;
+  period: string;
+  totalRevenue: number;
+  invoiceCount: number;
+  avgInvoiceAmount: number;
+  totalAppointments: number;
+  completedAppts: number;
+  cancelledAppts: number;
+  appointmentFillRate: number;
+  newPatients: number;
+  activePatients: number;
+  appointmentRate: number;
+  topConditions: unknown[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Injectable()
 export class SnapshotAnalyticsFactory {
   private readonly logger = new Logger(SnapshotAnalyticsFactory.name);
@@ -22,7 +43,6 @@ export class SnapshotAnalyticsFactory {
     try {
       this.logger.log(`Creating analytics snapshot for clinic ${clinicId}`);
 
-      // Get current metrics using other factories (orchestration)
       const revenue = await this.financialFactory.getRevenueMetrics(
         clinicId,
         'daily',
@@ -38,18 +58,10 @@ export class SnapshotAnalyticsFactory {
         10,
       );
 
-      // Calculate aggregated values
       const totalRevenue = revenue.reduce((sum, r) => sum + r.totalRevenue, 0);
       const totalAppointments = appointments.total || 0;
       const completedAppointments = appointments.completed || 0;
-      const totalPatients = demographics.totalPatients || 0;
 
-      // Calculate compliance metrics
-      const compliance =
-        await this.clinicalFactory.getCodingComplianceMetrics(clinicId);
-      // const timely = await this.clinicalFactory.getCodingTimeliness(clinicId); // Not used in snapshot currently but good for future
-
-      // Create snapshot record
       const snapshot = await this.prisma.analyticsSnapshot.create({
         data: {
           clinicId,
@@ -69,9 +81,7 @@ export class SnapshotAnalyticsFactory {
           newPatients: demographics.newPatients || 0,
           activePatients: demographics.totalPatients || 0,
           appointmentRate: appointments.fillRate || 0,
-          // Store top conditions as JSON string if schema expects it, or relate if table structure
-          // Schema likely has String for JSON or similar.
-          topConditions: JSON.stringify(topConditions),
+          topConditions: (topConditions || []) as any,
         },
       });
 
@@ -79,23 +89,20 @@ export class SnapshotAnalyticsFactory {
         `Analytics snapshot created for clinic ${clinicId}: ID ${snapshot.id}`,
       );
 
-      // Update cache
       await this.cacheManager.set(
         `snapshot-${clinicId}-${new Date().toISOString().split('T')[0]}`,
         snapshot,
-        86400000, // 24 hours
+        86400000,
       );
     } catch (error) {
-      this.logger.error(
-        `Error creating analytics snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.logger.error('Error creating analytics snapshot', error);
     }
   }
 
   async getAnalyticsSnapshots(
     clinicId: string,
     days: number = 30,
-  ): Promise<any[]> {
+  ): Promise<SnapshotRecord[]> {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -111,19 +118,22 @@ export class SnapshotAnalyticsFactory {
 
       return snapshots.map((s) => ({
         ...s,
-        topConditions: s.topConditions
-          ? JSON.parse(s.topConditions as string)
-          : [],
-      }));
+        totalRevenue: Number(s.totalRevenue),
+        avgInvoiceAmount: Number(s.avgInvoiceAmount),
+        appointmentFillRate: Number(s.appointmentFillRate),
+        appointmentRate: Number(s.appointmentRate),
+        topConditions: Array.isArray(s.topConditions) ? s.topConditions : [],
+      })) as unknown as SnapshotRecord[];
     } catch (error) {
-      this.logger.error(
-        `Error retrieving analytics snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.logger.error('Error retrieving analytics snapshots', error);
       return [];
     }
   }
 
-  async getSnapshotTrends(clinicId: string, days: number = 30): Promise<any> {
+  async getSnapshotTrends(
+    clinicId: string,
+    days: number = 30,
+  ): Promise<Record<string, unknown> | null> {
     try {
       const snapshots = await this.getAnalyticsSnapshots(clinicId, days);
 
@@ -138,9 +148,9 @@ export class SnapshotAnalyticsFactory {
         currentMetrics: {
           totalRevenue: latestSnapshot.totalRevenue,
           totalAppointments: latestSnapshot.totalAppointments,
-          totalPatients: latestSnapshot.totalPatients,
-          codingCompletenessRate: latestSnapshot.codingCompletenessRate,
-          billingRate: latestSnapshot.billingRate,
+          totalPatients: latestSnapshot.activePatients,
+          codingCompletenessRate: latestSnapshot.appointmentRate,
+          billingRate: latestSnapshot.appointmentFillRate,
         },
         trendComparison: {
           revenueChange:
@@ -148,22 +158,19 @@ export class SnapshotAnalyticsFactory {
           appointmentChange:
             latestSnapshot.totalAppointments - oldestSnapshot.totalAppointments,
           patientChange:
-            latestSnapshot.totalPatients - oldestSnapshot.totalPatients,
+            latestSnapshot.activePatients - oldestSnapshot.activePatients,
           codingCompletenessTrend:
-            latestSnapshot.codingCompletenessRate -
-            oldestSnapshot.codingCompletenessRate,
+            latestSnapshot.appointmentRate - oldestSnapshot.appointmentRate,
         },
         snapshotCount: snapshots.length,
         dateRange: {
           start: oldestSnapshot.snapshotDate,
           end: latestSnapshot.snapshotDate,
         },
-        snapshots: snapshots.slice(0, 10), // Return last 10 snapshots
+        snapshots: snapshots.slice(0, 10),
       };
     } catch (error) {
-      this.logger.error(
-        `Error retrieving snapshot trends: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.logger.error('Error retrieving snapshot trends', error);
       return null;
     }
   }

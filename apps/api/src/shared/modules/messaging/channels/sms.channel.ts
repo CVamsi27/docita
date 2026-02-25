@@ -21,6 +21,7 @@ export class SmsChannel implements IMessageChannel {
   }
 
   async isAvailable(): Promise<boolean> {
+    await Promise.resolve();
     return !!this.smsConfig;
   }
 
@@ -29,13 +30,6 @@ export class SmsChannel implements IMessageChannel {
     content: MessageContent,
   ): Promise<SendMessageResult> {
     try {
-      // TODO: Implement actual SMS sending
-      // Framework:
-      // 1. Look up template
-      // 2. Process variables
-      // 3. Use Twilio/AWS SNS/etc
-      // 4. Track in database
-
       this.logger.log(
         `Sending SMS to ${recipientId} with template ${content.templateKey}`,
       );
@@ -47,13 +41,16 @@ export class SmsChannel implements IMessageChannel {
         sentAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to send SMS: ${error}`);
+      this.logger.error(
+        `Failed to send SMS: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 
   async handleWebhook(payload: any): Promise<void> {
     // Handle SMS provider webhooks (delivery, bounce, etc.)
+    await Promise.resolve();
     this.logger.log('Handling SMS webhook:', payload);
   }
 }

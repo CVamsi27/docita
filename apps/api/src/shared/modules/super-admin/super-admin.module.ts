@@ -11,10 +11,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentWebSocketGateway } from '../../../gateways/payment.websocket.gateway';
 import { ClinicsModule } from '../../../domains/clinics/clinics.module';
 import { UsersModule } from '../../../domains/users/users.module';
-import { PaymentsModule } from '../../../domains/payments/payments.module';
+import { BillingModule } from '../../../domains/billing/billing.module';
 
 @Module({
-  imports: [PrismaModule, ClinicsModule, UsersModule, PaymentsModule],
+  imports: [PrismaModule, ClinicsModule, UsersModule, BillingModule],
   controllers: [SuperAdminController, SuperAdminBillingController],
   providers: [
     SuperAdminBillingService,

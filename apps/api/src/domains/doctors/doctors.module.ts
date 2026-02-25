@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { DoctorsController } from './doctors.controller';
-import { DoctorsService } from './doctors.service';
-import { DoctorAvailabilityController } from './doctor-availability.controller';
-import { DoctorAvailabilityService } from './doctor-availability.service';
+import { DoctorsController } from './presentation/controllers/doctors.controller';
+import { DoctorsService } from './application/services/doctors.service';
+import { DoctorAvailabilityController } from './presentation/controllers/doctor-availability.controller';
+import { DoctorAvailabilityService } from './application/services/doctor-availability.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({

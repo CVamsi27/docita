@@ -1,2 +1,4 @@
-// Barrel export for controllers
-export { InvoicesController } from './invoices.controller';
+export * from './invoices.controller';
+export * from './payments.controller';
+export * from './webhooks.controller';
+export * from './pricing.controller';

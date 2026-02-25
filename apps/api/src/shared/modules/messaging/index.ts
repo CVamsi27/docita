@@ -1,15 +1,8 @@
-// Channels
 export * from './channels';
-
-// Templates
 export * from './templates';
-
-// Orchestrator
-export {
-  NotificationOrchestrator,
-  type NotificationRequest,
-  type NotificationResult,
+export type {
+  NotificationRequest,
+  NotificationResult,
 } from './notification-orchestrator.service';
-
-// Module
+export { NotificationOrchestrator } from './notification-orchestrator.service';
 export { MessagingModule } from './messaging.module';

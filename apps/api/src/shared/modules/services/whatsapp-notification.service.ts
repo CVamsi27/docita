@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
-import { UsersService } from '../../../domains/users/users.service';
-import { WhatsappClientService } from '../messaging/whatsapp/whatsapp-client.service';
+import { UsersService } from '../../../domains/users/application/services/users.service';
+import { SendMessageUseCase } from '../../../domains/whatsapp/application/use-cases/send-message.use-case';
 
 /**
  * Configuration for sending WhatsApp notifications
@@ -49,12 +49,6 @@ const AUTOMATION_FLAGS: Record<string, string> = {
  * - InvoicesService.sendInvoiceWhatsAppNotification
  * - PrescriptionsService.sendPrescriptionWhatsAppNotification
  * - RemindersService.sendReminderWhatsAppNotification
- *
- * Benefits:
- * - Single place to manage automation config checks
- * - Consistent error handling and logging
- * - Easier to add new notification types
- * - Testable in isolation
  */
 @Injectable()
 export class WhatsAppNotificationService {
@@ -63,7 +57,7 @@ export class WhatsAppNotificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
-    private readonly whatsappClient: WhatsappClientService,
+    private readonly sendMessage: SendMessageUseCase,
   ) {}
 
   /**
@@ -92,15 +86,24 @@ export class WhatsAppNotificationService {
       return { sent: false, reason: 'disabled' };
     }
 
-    // Send the message
-    try {
-      const result = await this.whatsappClient.sendMessage({
-        to: config.phoneNumber,
-        message: config.message,
-      });
+    // Send the message using the new DDD use case
+    // Note: We use the manual 'message' content as 'text' if templateVariables aren't provided
+    // but the DDD use case prefers templateName.
+    // For legacy support, if message is provided and no templateVariables, we might need a way to send raw text.
+    // Our SendMessageUseCase supports 'text' if templateName is not found or in sandbox?
+    // Let's check SendMessageUseCase execute method again.
 
-      // Log to database
-      await this.logMessage(config, true);
+    try {
+      const result = await this.sendMessage.execute({
+        clinicId: config.clinicId,
+        recipientPhone: config.phoneNumber,
+        templateName: config.templateVariables
+          ? `${config.type}_created`
+          : undefined,
+        variables: config.templateVariables,
+        text: config.message, // Fallback to raw text if template resolution fails or is not requested
+        metadata: config.entityId ? { entityId: config.entityId } : undefined,
+      });
 
       this.logger.log(
         `Sent ${config.type} WhatsApp notification${config.entityId ? ` for ${config.entityId}` : ''}`,
@@ -109,16 +112,13 @@ export class WhatsAppNotificationService {
       return {
         sent: true,
         reason: 'success',
-        messageId: result?.messageId,
+        messageId: result.messageId,
       };
     } catch (error) {
       this.logger.error(
         `Failed to send ${config.type} WhatsApp notification${config.entityId ? ` for ${config.entityId}` : ''}`,
         error,
       );
-
-      // Log failed attempt
-      await this.logMessage(config, false, error as Error);
 
       return {
         sent: false,

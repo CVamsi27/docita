@@ -269,6 +269,9 @@ export const TIER_PRICING: Record<TierName, TierPricing> = {
 
 export const ANNUAL_DISCOUNT_PERCENT = 10;
 export const SEMI_ANNUAL_DISCOUNT_PERCENT = 5;
+export const REFERRAL_DISCOUNT_PERCENT = 25;
+export const MAX_REFERRAL_CREDITS_PER_YEAR = 12;
+export const GRACE_PERIOD_DAYS = 3;
 
 // =====================================================
 // USAGE-BASED TIER LIMITS & OVERAGE RATES

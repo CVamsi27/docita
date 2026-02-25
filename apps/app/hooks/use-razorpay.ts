@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 interface RazorpayOptions {
   key: string;
   amount: number;
@@ -54,14 +60,13 @@ export function useRazorpay() {
       }
 
       await new Promise<void>((resolve, reject) => {
-        // @ts-expect-error Razorpay is added to window by the script
         const rzp = new window.Razorpay({
           ...options,
           handler: async (response: Record<string, unknown>) => {
             try {
               await options.handler(response);
               resolve();
-            } catch (error) {
+            } catch (error: unknown) {
               reject(error);
             }
           },

@@ -1,16 +1,22 @@
-/**
- * Billing Cycle Value Object
- * Represents billing frequency: MONTHLY or YEARLY
- * Includes calculation helpers for cycle-based operations
- */
-
 export enum BillingCycleEnum {
   MONTHLY = 'MONTHLY',
+  QUARTERLY = 'QUARTERLY',
+  SEMI_ANNUAL = 'SEMI_ANNUAL',
   YEARLY = 'YEARLY',
 }
 
 export class BillingCycle {
   constructor(readonly value: BillingCycleEnum) {}
+
+  static fromString(value: string): BillingCycle {
+    const cycle = Object.values(BillingCycleEnum).find(
+      (v) => (v as string) === value,
+    );
+    if (!cycle) {
+      throw new Error(`Invalid billing cycle: ${value}`);
+    }
+    return new BillingCycle(cycle as BillingCycleEnum);
+  }
 
   isMonthly(): boolean {
     return this.value === BillingCycleEnum.MONTHLY;
@@ -20,26 +26,51 @@ export class BillingCycle {
     return this.value === BillingCycleEnum.YEARLY;
   }
 
-  /**
-   * Get the duration in days for this cycle
-   */
+  isQuarterly(): boolean {
+    return this.value === BillingCycleEnum.QUARTERLY;
+  }
+
+  isSemiAnnual(): boolean {
+    return this.value === BillingCycleEnum.SEMI_ANNUAL;
+  }
+
   getDays(): number {
-    return this.isYearly() ? 365 : 30;
+    switch (this.value) {
+      case BillingCycleEnum.YEARLY:
+        return 365;
+      case BillingCycleEnum.SEMI_ANNUAL:
+        return 180;
+      case BillingCycleEnum.QUARTERLY:
+        return 90;
+      default:
+        return 30;
+    }
   }
 
-  /**
-   * Get the display name
-   */
   getDisplayName(): string {
-    return this.isYearly() ? 'Yearly' : 'Monthly';
+    switch (this.value) {
+      case BillingCycleEnum.YEARLY:
+        return 'Yearly';
+      case BillingCycleEnum.SEMI_ANNUAL:
+        return 'Semi-Annual';
+      case BillingCycleEnum.QUARTERLY:
+        return 'Quarterly';
+      default:
+        return 'Monthly';
+    }
   }
 
-  /**
-   * Calculate annual equivalent for pricing
-   * (e.g., if monthly is $100, yearly with discount might be $1,200 instead of $1,200)
-   */
-  getMonthlyEquivalent(yearlyPrice: number): number {
-    return this.isYearly() ? yearlyPrice / 12 : yearlyPrice;
+  getMonthlyEquivalent(price: number): number {
+    switch (this.value) {
+      case BillingCycleEnum.YEARLY:
+        return price / 12;
+      case BillingCycleEnum.SEMI_ANNUAL:
+        return price / 6;
+      case BillingCycleEnum.QUARTERLY:
+        return price / 3;
+      default:
+        return price;
+    }
   }
 
   equals(other: BillingCycle): boolean {

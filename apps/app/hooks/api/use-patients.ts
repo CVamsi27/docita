@@ -28,7 +28,7 @@ export const usePatients = (
   }>(
     ["patients", options?.limit?.toString() ?? "", options?.search ?? ""],
     url,
-    { enabled: options !== null }, // Disable only if explicitly passed null
+    { enabled: options !== null },
   );
 };
 

@@ -6,7 +6,7 @@ import { BasePdfService } from '../document-generation/pdf/base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
 import { ClinicScopedGuard } from '../auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '../../../prisma/prisma.module';
-import { WhatsappModule } from '../messaging/whatsapp/whatsapp.module';
+import { WhatsAppModule } from '../../../domains/whatsapp/whatsapp.module';
 import { EncryptionService } from '../../../common/encryption.service';
 import { DPDPComplianceService } from '../compliance/dpdp-compliance.service';
 import { AuditModule } from '../audit/audit/audit.module';
@@ -28,7 +28,7 @@ import { UsersModule } from '../../../domains/users/users.module';
 @Module({
   imports: [
     PrismaModule,
-    WhatsappModule,
+    WhatsAppModule,
     AuditModule,
     ComplianceModule,
     UsersModule,

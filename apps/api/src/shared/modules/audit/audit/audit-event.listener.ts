@@ -2,27 +2,21 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { DomainEvent } from '../../../../common/events/domain-events';
+import { AppConfigService } from '../../config/app-configuration.service';
 
-/**
- * Audit Event Listener
- *
- * Listens to all domain events and logs them for audit purposes.
- * This demonstrates how modules can react to events without direct coupling.
- */
 @Injectable()
 export class AuditEventListener {
   private readonly logger = new Logger(AuditEventListener.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: AppConfigService,
+  ) {}
 
-  /**
-   * Listen to all domain events for audit logging
-   */
   @OnEvent('domain.*')
   async handleDomainEvent(event: DomainEvent): Promise<void> {
     try {
-      // Log to console in development
-      if (process.env.NODE_ENV === 'development') {
+      if (this.configService.isDevelopment()) {
         this.logger.debug(
           `[AUDIT] ${event.type} [${event.metadata.correlationId}]`,
           JSON.stringify(event.payload),

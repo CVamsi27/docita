@@ -1,38 +1,40 @@
 /**
- * Settings Components - UI/Container Pattern
- * All settings components exported from here
+ * Settings Components - Organized by domain
  */
 
-// PrescriptionDefaultsSettings (Container pattern)
-export {
-  PrescriptionDefaultsSettingsUI,
-  type PrescriptionDefaultsSettingsUIProps,
-} from "./PrescriptionDefaultsSettingsUI";
-export { PrescriptionDefaultsSettingsContainer } from "./PrescriptionDefaultsSettingsContainer";
-export { PrescriptionDefaultsSettingsContainer as PrescriptionDefaultsSettings } from "./PrescriptionDefaultsSettingsContainer";
+// Clinic Management
+export * from "./management/MemberManagementSettings";
+export * from "./management/DoctorManagementSettings";
+export * from "./management/DoctorAvailabilitySettings";
 
-// Member Management (API-connected - uses useClinicMembers hook)
-export { MemberManagementSettings } from "./MemberManagementSettings";
+// Clinic Configuration
+export * from "./clinic/ClinicGeneralSettings";
+export * from "./clinic/WhatsAppAutomationSettings";
+export * from "./clinic/QueueSettings";
+export * from "./clinic/CustomFieldsSettings";
 
-// Settings Components (from SettingsComponents.tsx)
-export {
-  WhatsAppAutomationSettings,
-  NotificationSettings,
-  NotificationFeed,
-  DoctorAvailabilitySettings,
-  ReminderSettings,
-  CustomFieldsSettings,
-  ClinicGeneralSettings,
-  SecuritySettings,
-  ChangePasswordSettings,
-  SubscriptionSettings,
-  DoctorManagementSettings,
-  TemplatesSettings,
-  AppearanceSettings,
-  DoctorProfileModal,
-  PaymentModal,
-  QueueSettings,
-} from "./SettingsComponents";
+// Clinical
+export * from "./clinical/PrescriptionDefaultsSettings";
+export * from "./clinical/TemplatesSettings";
+
+// Security
+export * from "./security/SecuritySettings";
+export * from "./security/ChangePasswordSettings";
+
+// Billing
+export * from "./billing/SubscriptionSettings";
+
+// UI & Layout
+export * from "./ui/AppearanceSettings";
+export * from "./ui/SettingsModals";
+
+// Notifications
+export * from "./notifications/NotificationSettings";
+export * from "./notifications/NotificationFeed";
+export * from "./notifications/ReminderSettingsUI";
+
+// Re-export specific aliases if needed by existing code
+export { ReminderSettingsUI as ReminderSettings } from "./notifications/ReminderSettingsUI";
 
 // Dynamic Settings Stubs
 export {

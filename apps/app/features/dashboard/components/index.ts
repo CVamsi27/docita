@@ -1,43 +1,15 @@
-// Dashboard Components - Real Implementations
-
-// Headers and navigation
-export { DashboardHeaderContainer as DashboardHeader } from "./DashboardHeaderContainer";
-export { DashboardHeaderUI } from "./DashboardHeaderUI";
-
-// Quick actions
-export { DashboardQuickActionsContainer as DashboardQuickActions } from "./DashboardQuickActionsContainer";
-export { DashboardQuickActionsUI } from "./DashboardQuickActionsUI";
-
-// Stats grid
-export {
-  DashboardStatsGridUI,
-  DashboardStatsGrid,
-} from "./DashboardStatsGridUI";
-
-// Doctor dashboard cards
-export {
-  DoctorDashboardCardsUI,
-  DoctorDashboardCards,
-} from "./DoctorDashboardCardsUI";
-
-// Today's schedule
-export { TodayScheduleUI as TodaySchedule } from "./TodayScheduleUI";
-export type { TodayScheduleUIProps } from "./TodayScheduleUI";
-
-// Recent patients
-export { RecentPatientsUI as RecentPatients } from "./RecentPatientsUI";
-export type { RecentPatientsUIProps, RecentPatient } from "./RecentPatientsUI";
-
-// Daily progress
-export { DailyProgressContainer as DailyProgress } from "./DailyProgressContainer";
-export { DailyProgressUI } from "./DailyProgressUI";
-
-// Alerts
-export { DashboardAlertsContainer } from "./DashboardAlertsContainer";
-export { DashboardAlertsUI } from "./DashboardAlertsUI";
-
-// Skeleton
-export { DashboardSkeletonUI as DashboardSkeleton } from "./DashboardSkeletonUI";
-
-// Utilities
-export { ViewAllLinkUI } from "./ViewAllLinkUI";
+export * from "./stats/dashboard-stats-grid";
+export * from "./stats/doctor-dashboard-cards";
+export * from "./progress/daily-progress-container";
+export * from "./progress/daily-progress-ui";
+export * from "./alerts/dashboard-alerts-container";
+export * from "./alerts/dashboard-alerts-ui";
+export * from "./actions/dashboard-quick-actions-container";
+export * from "./actions/dashboard-quick-actions-ui";
+export * from "./schedule/today-schedule-ui";
+export * from "./patients/recent-patients-ui";
+export * from "./layout/dashboard-header-container";
+export * from "./layout/dashboard-header-ui";
+export * from "./layout/dashboard-skeleton-ui";
+export * from "./layout/dashboard-ui";
+export * from "./layout/view-all-link-ui";

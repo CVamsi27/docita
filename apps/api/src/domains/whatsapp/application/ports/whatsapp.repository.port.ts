@@ -1,0 +1,18 @@
+import { WhatsAppMessage, WhatsAppTemplate } from '../../core/entities';
+
+export interface IWhatsAppRepository {
+  saveMessage(message: WhatsAppMessage): Promise<void>;
+  findMessageById(id: string): Promise<WhatsAppMessage | null>;
+  findMessageByExternalId(externalId: string): Promise<WhatsAppMessage | null>;
+
+  saveTemplate(template: WhatsAppTemplate): Promise<void>;
+  findTemplateById(id: string): Promise<WhatsAppTemplate | null>;
+  findTemplateByName(
+    clinicId: string,
+    name: string,
+  ): Promise<WhatsAppTemplate | null>;
+  listTemplatesByClinic(clinicId: string): Promise<WhatsAppTemplate[]>;
+  isAutomationEnabled(clinicId: string): Promise<boolean>;
+}
+
+export const WHATSAPP_REPOSITORY_TOKEN = 'IWhatsAppRepository';

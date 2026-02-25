@@ -4,7 +4,6 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -13,6 +12,7 @@ import { createEncryptionExtension } from '../common/extensions/encryption.exten
 import { tenantStorage } from '../common/middleware/tenant.middleware';
 import { EncryptionService } from '../common/encryption.service';
 import { slowQueryExtension } from '../common/extensions/logging.extension';
+import { AppConfigService } from '../shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class PrismaService
@@ -24,15 +24,14 @@ export class PrismaService
 
   constructor(
     private encryptionService: EncryptionService,
-    private configService: ConfigService,
+    private configService: AppConfigService,
   ) {
-    const databaseUrl = configService.get<string>('DATABASE_URL');
-    const databaseReadUrl = configService.get<string>('DATABASE_READ_URL');
-    const nodeEnv = configService.get<string>('NODE_ENV');
+    const databaseUrl = configService.getDatabaseUrl();
+    const databaseReadUrl = configService.getDatabaseReadUrl();
+    const isProduction = configService.isProduction();
 
     let connectionString = databaseUrl;
 
-    // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
     try {
       if (connectionString) {
         const url = new URL(connectionString);
@@ -49,24 +48,18 @@ export class PrismaService
           connectionString = url.toString();
         }
       }
-    } catch (error) {
-      console.warn(
-        'Failed to parse DATABASE_URL for SSL mode adjustment',
-        error,
-      );
+    } catch {
+      console.warn('Failed to parse DATABASE_URL for SSL mode adjustment');
     }
 
-    // Verify connectionString is valid or fallback to env
     if (!connectionString) {
-      connectionString = databaseUrl!;
+      connectionString = databaseUrl;
     } else {
-      // Keep config value in sync for other services that might check it
       process.env.DATABASE_URL = connectionString;
     }
 
-    const isProduction = nodeEnv === 'production';
     const poolMax = isProduction ? 20 : 5;
-    const poolIdleTimeout = isProduction ? 300000 : 30000; // 5min prod, 30s dev
+    const poolIdleTimeout = isProduction ? 300000 : 30000;
 
     const pool = new Pool({
       connectionString,
@@ -78,14 +71,12 @@ export class PrismaService
 
     super({
       adapter,
-      log: nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
+      log: configService.isDevelopment() ? ['warn', 'error'] : ['error'],
     });
 
-    // Initialize read replica if URL is provided
     if (databaseReadUrl) {
       let readConnectionString = databaseReadUrl;
 
-      // Fix for "SECURITY WARNING" for read replica as well
       try {
         if (readConnectionString) {
           const url = new URL(readConnectionString);
@@ -102,10 +93,9 @@ export class PrismaService
             readConnectionString = url.toString();
           }
         }
-      } catch (error) {
+      } catch {
         console.warn(
           'Failed to parse DATABASE_READ_URL for SSL mode adjustment',
-          error,
         );
       }
 
@@ -114,10 +104,9 @@ export class PrismaService
 
       const rawReadClient = new PrismaClient({
         adapter: readAdapter,
-        log: nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
+        log: configService.isDevelopment() ? ['warn', 'error'] : ['error'],
       });
 
-      // Apply extensions to read replica
       this.readReplica = rawReadClient
         .$extends(createEncryptionExtension(this.encryptionService))
         .$extends(tenantExtension) as unknown as PrismaClient;
@@ -127,11 +116,6 @@ export class PrismaService
     }
   }
 
-  /**
-   * Get client for read operations
-   * Routes to read replica if available, otherwise uses primary
-   * Use this for analytics, reporting, and other read-heavy operations
-   */
   getReadClient(): PrismaClient {
     return this.readReplica || this;
   }
@@ -140,9 +124,6 @@ export class PrismaService
     try {
       await this.$connect();
 
-      // Apply extensions (DPDP Compliance & Tenant Isolation)
-      // Since we are using driver adapters, legacy middleware ($use) is not supported.
-      // We use $extends and mutate the singleton instance.
       const extended = this.$extends(
         createEncryptionExtension(this.encryptionService),
       )
@@ -156,7 +137,7 @@ export class PrismaService
         await this.readReplica.$connect();
         this.logger.log('Read replica connection established');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to connect to database', error);
       throw error;
     }
@@ -172,10 +153,6 @@ export class PrismaService
     }
   }
 
-  /**
-   * Run a function bypassing tenant restrictions.
-   * Useful for system tasks, schedulers, and admin operations.
-   */
   async runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
     return tenantStorage.run({ bypassed: true }, fn);
   }

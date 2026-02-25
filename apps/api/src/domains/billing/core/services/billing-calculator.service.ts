@@ -1,8 +1,3 @@
-/**
- * Billing Calculator Service - Core business logic for calculations
- * Responsible for tax, discounts, and amount calculations
- */
-
 import { Money } from '../value-objects/money.value-object';
 import { InvoiceItem } from '../entities/invoice-item.entity';
 

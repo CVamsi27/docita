@@ -10,14 +10,12 @@ import { PatientsModule } from './domains/patients/patients.module';
 import { AppointmentsModule } from './domains/appointments/appointments.module';
 import { AuthModule } from './shared/modules/auth/auth/auth.module';
 import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
-import { InvoicesModule } from './domains/invoices/invoices.module';
-// import { DocumentsModule } from './domains/documents/documents.module'; // TODO: Create documents module
+import { BillingModule } from './domains/billing/billing.module';
 import { ImportsModule } from './shared/modules/imports/imports.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 
 import { DashboardModule } from './domains/dashboards/dashboard/dashboard.module';
-import { UploadsModule } from './domains/documents/uploads/uploads.module';
-import { TemplatesModule } from './domains/documents/templates/templates.module';
+import { DocumentsModule } from './domains/documents/documents.module';
 import { CustomFieldsModule } from './domains/custom-fields/custom-fields.module';
 import { AnalyticsModule } from './domains/analytics/analytics.module';
 import { RemindersModule } from './domains/reminders/reminders.module';
@@ -28,17 +26,14 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { join } from 'path';
-import { PaymentsModule } from './domains/payments/payments.module';
-import { WhatsappModule } from './shared/modules/messaging/whatsapp/whatsapp.module';
+import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
 import { SuperAdminModule } from './shared/modules/super-admin/super-admin.module';
-import { SubscriptionModule } from './domains/subscription/subscription.module';
-import { BillingModule } from './domains/billing/billing.module';
+import { SubscriptionsModule } from './domains/subscriptions/subscriptions.module';
 import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
-import { MedicalCodingModule } from './domains/clinical/medical-coding.module';
+import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
+import { AppConfigService } from './shared/modules/config/app-configuration.service';
 import { PaymentWebSocketGateway } from './gateways/payment.websocket.gateway';
-import { LabTestsModule } from './domains/clinical/lab-tests.module';
-// import { InventoryModule } from './domains/inventory/inventory.module'; // TODO: Create inventory module
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
@@ -47,12 +42,8 @@ import { UsersModule } from './domains/users/users.module';
 import { ContactModule } from './shared/modules/contact/contact.module';
 import { AIModule } from './shared/modules/ai/ai.module';
 import { AuditModule } from './shared/modules/audit/audit/audit.module';
-import { OnboardingModule } from './domains/onboarding/onboarding.module';
-// import { IpdModule } from './domains/ipd/ipd.module'; // TODO: Create IPD module
-// import { QueueModule } from './domains/queue/queue.module'; // TODO: Create queue module
 import { PerformanceModule } from './shared/modules/performance/performance.module';
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
-import { PatientPortalModule } from './domains/patients/patient-portal/patient-portal.module';
 import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
 import { CacheInterceptor } from './shared/modules/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
@@ -63,10 +54,10 @@ import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './shared/modules/interceptors/rate-limit.interceptor';
+import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
 
-// Extensibility Infrastructure
 import { EventsModule } from './common/events/events.module';
-import { CommonServicesModule } from './shared/modules/services';
+import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { MockBullModule } from './common/mocks/mock-bull.module';
 
 const BullModule = MockBullModule;
@@ -77,31 +68,35 @@ const BullModule = MockBullModule;
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
-    LoggerModule.forRoot({
-      pinoHttp: {
-        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport:
-          process.env.NODE_ENV !== 'production'
+    AppConfigModule,
+    LoggerModule.forRootAsync({
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (configService: AppConfigService) => ({
+        pinoHttp: {
+          level: configService.isProduction() ? 'info' : 'debug',
+          transport: !configService.isProduction()
             ? { target: 'pino-pretty' }
             : undefined,
-        autoLogging: false, // We use our own interceptor or turn this on
-        serializers: {
-          req: (req) => ({
-            id: req.id,
-            method: req.method,
-            url: req.url,
-          }),
+          autoLogging: false,
+          serializers: {
+            req: (req: any) => ({
+              id: req.id,
+              method: req.method,
+              url: req.url,
+            }),
+          },
         },
-      },
+      }),
     }),
     PrometheusModule.register({
       path: '/metrics',
     }),
     // Rate limiting: 100 requests per minute per IP
     ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => ({
         throttlers: [
           {
             name: 'short',
@@ -119,7 +114,7 @@ const BullModule = MockBullModule;
             limit: 1000,
           },
         ],
-        skipIf: () => config.get('NODE_ENV') === 'test',
+        skipIf: () => config.getEnvironment() === 'test',
       }),
     }),
     // Extensibility Infrastructure (must be early in the import list)
@@ -138,40 +133,30 @@ const BullModule = MockBullModule;
     PatientsModule,
     AppointmentsModule,
     PrescriptionsModule,
-    InvoicesModule,
-    // DocumentsModule, // TODO: Create documents module
     ImportsModule,
     DashboardModule,
-    UploadsModule,
-    TemplatesModule,
+    DocumentsModule,
     CustomFieldsModule,
     AnalyticsModule,
     RemindersModule,
     ClinicsModule,
     DoctorClinicsModule,
     DoctorsModule,
-    PaymentsModule,
-    WhatsappModule,
+    WhatsAppModule,
     SuperAdminModule,
-    SubscriptionModule,
+    SubscriptionsModule,
     BillingModule,
     PrescriptionTemplatesModule,
-    MedicalCodingModule,
+    ClinicalModule,
     AppConfigModule,
-    LabTestsModule,
-    // InventoryModule, // TODO: Create inventory module
     FeedbackModule,
     FhirModule,
     UsersModule,
     ContactModule,
     AIModule,
     AuditModule,
-    OnboardingModule,
-    // IpdModule, // TODO: Create IPD module
-    // QueueModule, // TODO: Create queue module
     PerformanceModule,
     ComplianceModule,
-    PatientPortalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -213,6 +198,16 @@ const BullModule = MockBullModule;
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
+    },
+    // Global Rate Limit Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RateLimitInterceptor,
+    },
+    // Global Timeout Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor,
     },
     // Global Patient Audit Interceptor
     {

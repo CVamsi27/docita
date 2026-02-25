@@ -34,14 +34,12 @@ export interface StaffNotificationEntry {
   createdAt: string;
 }
 
-// WhatsApp Statistics
 export const useWhatsappStats = () =>
   useAPIQuery<{
     totalPatients: number;
     subscribers: number;
   }>(["whatsapp", "stats"], "/whatsapp/stats");
 
-// WhatsApp Settings
 export const useWhatsAppSettings = () =>
   useAPIQuery<{
     appointmentReminders: boolean;
@@ -65,7 +63,6 @@ export const useUpdateWhatsAppSettings = () =>
     }
   >("/whatsapp/settings", "PUT");
 
-// Messaging Operations
 export const useCreateMedicineReminder = () =>
   useAPIMutation<
     void,
@@ -90,7 +87,6 @@ export const useCreateWhatsAppBroadcast = () =>
     }
   >("/whatsapp/broadcast", "POST");
 
-// Dynamic mutations that accept ID as variable
 export const useSendPrescriptionWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
     ({ id }) => `/whatsapp/resend-prescription/${id}`,
@@ -144,7 +140,6 @@ export const useMarkAllNotificationsRead = () =>
     ],
   });
 
-// Existing static hooks (kept for backward compatibility if used)
 export const useResendPrescriptionWhatsApp = (id: string) =>
   useAPIMutation<void, void>(`/whatsapp/resend-prescription/${id}`, "POST");
 

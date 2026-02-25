@@ -1,79 +1,81 @@
-/**
- * Subscriptions Module
- * Wires all layers of the Subscriptions domain with dependency injection
- */
-
 import { Module } from '@nestjs/common';
-
-// Core layer
 import {
   SubscriptionPricingService,
   ProratingService,
   SubscriptionValidationService,
+  ReferralService,
 } from './core/services';
-
-// Application layer
 import {
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,
+  ActivateSubscriptionUseCase,
+  CreateCheckoutUseCase,
+  ExpireSubscriptionUseCase,
+  EnterGracePeriodUseCase,
+  ProcessWebhookUseCase,
+  NotifyExpiringSubscriptionsUseCase,
 } from './application/use-cases';
+import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   PAYMENT_GATEWAY_TOKEN,
+  CLINIC_OPERATIONS_TOKEN,
 } from './application/ports';
-
-// Infrastructure layer
 import { PrismaSubscriptionRepository } from './infrastructure/repositories';
-
-// Presentation layer
+import { RazorpayGateway } from './infrastructure/gateways/razorpay.gateway';
+import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
+import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
-
-// Dependencies
+import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [SubscriptionsController],
+  imports: [PrismaModule, BillingModule],
+  controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
-    // ============================================
-    // CORE LAYER (Pure domain logic)
-    // ============================================
     SubscriptionPricingService,
     ProratingService,
     SubscriptionValidationService,
-
-    // ============================================
-    // APPLICATION LAYER (Use cases & Orchestration)
-    // ============================================
+    ReferralService,
     CreateSubscriptionUseCase,
     UpgradeSubscriptionUseCase,
     CancelSubscriptionUseCase,
-
-    // ============================================
-    // INFRASTRUCTURE LAYER (Implementations)
-    // ============================================
-    // Repository implementation
+    ActivateSubscriptionUseCase,
+    CreateCheckoutUseCase,
+    ExpireSubscriptionUseCase,
+    EnterGracePeriodUseCase,
+    ProcessWebhookUseCase,
+    NotifyExpiringSubscriptionsUseCase,
+    SubscriptionsQueryService,
+    SubscriptionReminderScheduler,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
       useClass: PrismaSubscriptionRepository,
     },
-
-    // NOTE: PaymentGateway implementation would be injected here
-    // For now, it's a placeholder. Actual implementation would use Razorpay
-    // {
-    //   provide: PAYMENT_GATEWAY_TOKEN,
-    //   useClass: RazorpayPaymentGateway,
-    // },
+    {
+      provide: PAYMENT_GATEWAY_TOKEN,
+      useClass: RazorpayGateway,
+    },
+    {
+      provide: CLINIC_OPERATIONS_TOKEN,
+      useClass: ClinicOperationsAdapter,
+    },
   ],
   exports: [
-    // Export use cases for other modules
+    SubscriptionPricingService,
+    SubscriptionValidationService,
+    ReferralService,
     CreateSubscriptionUseCase,
     UpgradeSubscriptionUseCase,
     CancelSubscriptionUseCase,
-    // Export domain services
-    SubscriptionPricingService,
-    SubscriptionValidationService,
+    ActivateSubscriptionUseCase,
+    CreateCheckoutUseCase,
+    ExpireSubscriptionUseCase,
+    EnterGracePeriodUseCase,
+    ProcessWebhookUseCase,
+    SubscriptionsQueryService,
   ],
 })
 export class SubscriptionsModule {}

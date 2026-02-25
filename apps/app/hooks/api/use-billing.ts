@@ -2,7 +2,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { CreateInvoiceInput, Invoice, Patient } from "@workspace/types";
 import { API_URL, useAPIMutation, useAPIQuery } from "../../lib/api-core";
 
-// Invoices
 export const useInvoices = (filters?: {
   patientId?: string;
   status?: string;
@@ -123,7 +122,7 @@ export const useProrationPreview = (tier: string, billingCycle: string) =>
     `/subscription/billing/preview?tier=${tier}&cycle=${billingCycle}`,
     {
       enabled: !!tier && !!billingCycle,
-      staleTime: 1000 * 60, // 1 minute
+      staleTime: 1000 * 60,
     },
   );
 
@@ -207,6 +206,6 @@ export const useInfiniteInvoices = (options?: {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };

@@ -67,7 +67,6 @@ describe('FinancialAnalyticsFactory', () => {
 
       const result = await factory.getRevenueTrends('clinic-1');
 
-      // 100 + 50 = 150
       expect(result).toHaveLength(1);
       expect(result[0].revenue).toBe(150);
       expect(mockCacheManager.set).toHaveBeenCalled();

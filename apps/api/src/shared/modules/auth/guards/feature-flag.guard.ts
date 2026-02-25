@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { FeatureFlagService } from '../../../../common/services/feature-flag.service';
+import { FeatureFlagService } from '../../services/feature-flag.service';
 
 /**
  * Feature Flag Decorator Key

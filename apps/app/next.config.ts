@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true, // Temporarily allow for launch - fix post-deployment
   },
 
+  turbopack: {},
+
   // Compression
   compress: true,
 

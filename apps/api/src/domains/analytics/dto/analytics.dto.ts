@@ -28,7 +28,6 @@ export class DiseaseTrendListResponseDto extends createZodDto(
   z.array(DiseaseTrendSchema),
 ) {}
 
-// Additional DTOs for other endpoints can be added here or inferred as 'z.any()' if complex
-// For now, we prioritize the ones we defined schemas for.
-// Using z.any() wrapper for unmodelled responses until we can fully type them.
-export class AnyResponseDto extends createZodDto(z.any()) {}
+export class AnyResponseDto extends createZodDto(
+  z.record(z.string(), z.unknown()),
+) {}

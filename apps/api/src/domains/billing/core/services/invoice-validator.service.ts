@@ -73,7 +73,7 @@ export class InvoiceValidatorService {
 
     if (!invoice.canBeEdited()) {
       validation.errors.push(
-        `Invoice cannot be issued from status: ${invoice.getStatus()}`,
+        `Invoice cannot be issued from status: ${invoice.getStatus().value}`,
       );
     }
 
