@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderSettingsService } from './reminder-settings.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 
 describe('ReminderSettingsService', () => {
   let service: ReminderSettingsService;

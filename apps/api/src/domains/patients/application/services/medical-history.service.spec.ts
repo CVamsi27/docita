@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalHistoryService } from './medical-history.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { MedicalHistoryFactory } from './factories/medical-history.factory';
-import { AiService } from '../../shared/modules/ai-core/ai.service';
-import { AiFactory } from '../../shared/modules/ai-core/factories/ai.factory';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { MedicalHistoryFactory } from '../../core/factories/medical-history.factory';
+import { AiService } from '../../../../shared/modules/ai-core/ai.service';
+import { AiFactory } from '../../../../shared/modules/ai-core/factories/ai.factory';
 
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;

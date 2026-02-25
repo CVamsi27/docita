@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 
 describe('DoctorsService', () => {

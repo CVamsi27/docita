@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckController } from './health-check.controller';
-import { ObservabilityService } from '../services/observability.service';
+import { ObservabilityService } from '../../shared/modules/services/observability.service';
 
 describe.skip('HealthCheckController', () => {
   let controller: HealthCheckController;

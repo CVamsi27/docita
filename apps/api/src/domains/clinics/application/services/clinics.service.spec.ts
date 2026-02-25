@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicsService } from './clinics.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ClinicFactory } from './factories/clinic.factory';
-import { SettingsFactory } from './factories/settings.factory';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { ClinicFactory } from '../../core/factories/clinic.factory';
+import { SettingsFactory } from '../../core/factories/settings.factory';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
