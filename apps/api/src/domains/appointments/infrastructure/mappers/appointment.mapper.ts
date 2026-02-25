@@ -35,7 +35,9 @@ export class AppointmentMapper {
     });
   }
 
-  static toPersistence(domain: Appointment): any {
+  static toPersistence(
+    domain: Appointment,
+  ): Prisma.AppointmentUncheckedCreateInput {
     const plain = domain.toPlain();
 
     return {

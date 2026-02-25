@@ -18,7 +18,7 @@ export class PdfRendererService {
    * Render document content to PDF
    * Returns PDF as Buffer
    */
-  async renderToPdf(content: DocumentContent): Promise<Buffer> {
+  renderToPdf(content: DocumentContent): Buffer {
     console.log('Rendering to PDF:', content);
 
     // Placeholder: return empty buffer

@@ -25,7 +25,7 @@ import { FaqSection } from "@/features/subscription/components/FaqSection";
 import { ComparisonTable } from "@/features/subscription/components/ComparisonTable";
 import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
 import { InvoiceHistoryDialog } from "@/features/subscription/components/InvoiceHistoryDialog";
-import { DynamicPricingEstimator } from "@/features/subscription/components/DynamicPricingEstimator";
+import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,

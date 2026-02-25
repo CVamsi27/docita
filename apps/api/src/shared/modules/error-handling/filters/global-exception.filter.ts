@@ -27,7 +27,7 @@ interface ErrorResponse {
   statusCode: number;
   timestamp: string;
   path?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   errors?: Array<{ field: string; message: string }>;
 }
 
@@ -35,7 +35,7 @@ interface ErrorResponse {
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
@@ -43,8 +43,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let code = 'INTERNAL_SERVER_ERROR';
     let message = 'An unexpected error occurred';
-    let details: Record<string, any> | undefined;
+    let details: Record<string, unknown> | undefined;
     let validationErrors: Array<{ field: string; message: string }> | undefined;
+
+    // Type guard for objects with potential Prisma-like properties
+    const isObject = (val: unknown): val is Record<string, unknown> =>
+      typeof val === 'object' && val !== null;
+
+    // Handle NestJS error objects
+    const exceptionObj = isObject(exception)
+      ? (exception as Record<string, any>)
+      : undefined;
 
     // Handle NotFoundException
     if (exception instanceof NotFoundException) {
@@ -80,23 +89,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode = exception.statusCode;
       code = exception.code;
       message = exception.message;
-      details = exception.details;
+      details = exception.details as Record<string, unknown>;
     }
     // Handle NestJS HttpException
     else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
-      message = exception.getResponse() as string;
+      const httpResponse = exception.getResponse();
+      message =
+        typeof httpResponse === 'string'
+          ? httpResponse
+          : (httpResponse as any).message || JSON.stringify(httpResponse);
       code = 'HTTP_EXCEPTION';
     }
     // Handle Prisma errors
-    else if (exception.code === 'P2025') {
+    else if (exceptionObj?.code === 'P2025') {
       statusCode = HttpStatus.NOT_FOUND;
       code = 'NOT_FOUND';
       message = 'Resource not found';
-    } else if (exception.code === 'P2002') {
+    } else if (exceptionObj?.code === 'P2002') {
       statusCode = HttpStatus.CONFLICT;
       code = 'UNIQUE_CONSTRAINT_VIOLATION';
-      message = `Unique constraint violation on field(s): ${exception.meta?.target?.join(', ')}`;
+      const target =
+        isObject(exceptionObj.meta) && Array.isArray(exceptionObj.meta.target)
+          ? exceptionObj.meta.target
+          : [];
+      message = `Unique constraint violation on field(s): ${target.join(', ')}`;
     }
     // Unexpected errors
     else {

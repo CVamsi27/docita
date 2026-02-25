@@ -36,27 +36,24 @@ export async function apiFetch<T>(
     finalHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  try {
-    const response = await fetch(fullUrl.toString(), {
-      method,
-      headers: finalHeaders,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  const response = await fetch(fullUrl.toString(), {
+    method,
+    headers: finalHeaders,
+    body: body ? JSON.stringify(body) : undefined,
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const error = new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-      ) as ApiError;
-      error.status = response.status;
-      error.data = errorData;
-      throw error;
-    }
-
-    return (await response.json()) as T;
-  } catch (error) {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(
+      (errorData as Record<string, unknown>).message || `HTTP ${response.status}: ${response.statusText}`,
+    ) as ApiError;
+    error.status = response.status;
+    error.data = errorData;
     throw error;
   }
+
+  const data = await response.json();
+  return data as T;
 }
 
 export function createApiClient(token?: string) {

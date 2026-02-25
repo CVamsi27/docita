@@ -10,11 +10,18 @@ import {
   SendMessageResult,
 } from './message-channel.interface';
 
+interface SMTPConfig {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+}
+
 @Injectable()
 export class EmailChannel implements IMessageChannel {
   private readonly logger = new Logger(EmailChannel.name);
 
-  constructor(private smtpConfig: any) {}
+  constructor(private smtpConfig: SMTPConfig) {}
 
   getName(): string {
     return 'Email';
@@ -25,30 +32,20 @@ export class EmailChannel implements IMessageChannel {
     return !!this.smtpConfig;
   }
 
-  async send(
-    recipientId: string,
-    content: MessageContent,
-  ): Promise<SendMessageResult> {
-    try {
-      this.logger.log(
-        `Sending email to ${recipientId} with template ${content.templateKey}`,
-      );
+  send(recipientId: string, content: MessageContent): SendMessageResult {
+    this.logger.log(
+      `Sending email to ${recipientId} with template ${content.templateKey}`,
+    );
 
-      return {
-        messageId: `em_${Date.now()}`,
-        status: 'sent',
-        channel: 'Email',
-        sentAt: new Date(),
-      };
-    } catch (error) {
-      this.logger.error(
-        `Failed to send email: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
-    }
+    return {
+      messageId: `em_${Date.now()}`,
+      status: 'sent',
+      channel: 'Email',
+      sentAt: new Date(),
+    };
   }
 
-  async handleWebhook(payload: any): Promise<void> {
+  async handleWebhook(payload: unknown): Promise<void> {
     // Handle email provider webhooks (delivery, bounce, etc.)
     await Promise.resolve();
     this.logger.log('Handling email webhook:', payload);

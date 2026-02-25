@@ -169,7 +169,7 @@ export async function fetchAPI<T>(
         errorData = { message: `HTTP error! status: ${response.status}` };
       }
 
-      const errObj = errorData as Record<string, any>;
+      const errObj = errorData as Record<string, string | number | boolean | undefined>;
 
       throw new ApiError(
         errObj.message || `HTTP error! status: ${response.status}`,

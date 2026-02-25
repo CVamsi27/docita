@@ -5,7 +5,7 @@
 
 export interface MessageContent {
   templateKey: string;
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   attachments?: attachment[];
 }
 
@@ -45,5 +45,5 @@ export interface IMessageChannel {
   /**
    * Handle webhook/callback from provider
    */
-  handleWebhook(payload: any): Promise<void>;
+  handleWebhook(payload: unknown): Promise<void>;
 }

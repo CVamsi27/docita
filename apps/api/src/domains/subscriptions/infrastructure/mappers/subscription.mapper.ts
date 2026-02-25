@@ -48,18 +48,22 @@ export class SubscriptionMapper {
     });
   }
 
-  static toPersistence(subscription: Subscription): any {
+  static toPersistence(
+    subscription: Subscription,
+  ): Prisma.SubscriptionUncheckedCreateInput {
     const discountsJson = this.serializeDiscounts(subscription.getDiscounts());
 
     return {
       id: subscription.id,
       clinicId: subscription.clinicId,
-      plan: subscription.getPlan().toString() as any,
-      billingCycle: subscription.getBillingCycle().toString() as any,
+      plan: subscription.getPlan().toString() as PrismaClinicTier,
+      billingCycle: subscription
+        .getBillingCycle()
+        .toString() as PrismaBillingCycle,
       basePriceCents: subscription.getBasePrice().paise,
       currency: 'INR',
-      status: subscription.getStatus().toString() as any,
-      discountsApplied: discountsJson as any,
+      status: subscription.getStatus().toString() as PrismaSubscriptionStatus,
+      discountsApplied: discountsJson as unknown as Prisma.InputJsonValue,
       totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),
       currentPeriodStart: subscription.currentPeriodStart,
       currentPeriodEnd: subscription.currentPeriodEnd,
@@ -73,9 +77,8 @@ export class SubscriptionMapper {
       updatedAt: new Date(),
       version: subscription.version,
       // Default values for fields required by Prisma but not in domain
-      scheduledChange: null,
-      billingMode: 'POSTPAID',
-    } as any as PrismaSubscription;
+      scheduledChange: Prisma.JsonNull,
+    };
   }
 
   private static parseDiscounts(json: unknown): DiscountAggregate {
@@ -85,13 +88,21 @@ export class SubscriptionMapper {
       return aggregate;
     }
 
-    json.forEach((item: any) => {
+    interface DiscountItem {
+      type: string;
+      percentOff: number;
+      expiresAt?: string;
+      description?: string;
+    }
+
+    json.forEach((item: unknown) => {
       try {
+        const d = item as DiscountItem;
         const discount = new Discount({
-          type: item.type as DiscountType,
-          percentOff: item.percentOff,
-          expiresAt: item.expiresAt ? new Date(item.expiresAt as string) : undefined,
-          description: item.description as string,
+          type: d.type as DiscountType,
+          percentOff: d.percentOff,
+          expiresAt: d.expiresAt ? new Date(d.expiresAt) : undefined,
+          description: d.description || '',
         });
         aggregate.addDiscount(discount);
       } catch (error) {
@@ -102,7 +113,9 @@ export class SubscriptionMapper {
     return aggregate;
   }
 
-  private static serializeDiscounts(aggregate: DiscountAggregate): Record<string, unknown>[] {
+  private static serializeDiscounts(
+    aggregate: DiscountAggregate,
+  ): Record<string, unknown>[] {
     return aggregate.getActiveDiscounts().map((d) => ({
       type: d.type,
       percentOff: d.percentOff,

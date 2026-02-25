@@ -80,7 +80,7 @@ export const ClinicalDocumentationDynamic: FC<
   defaultTab = "chief-complaint",
   onSave,
   isFocusMode,
-  onToggleFocus,
+  _onToggleFocus,
   clinicType = "GENERAL",
 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);

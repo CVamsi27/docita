@@ -242,7 +242,7 @@ export class PaymentsService {
     return { success: true };
   }
 
-  handleRazorpayWebhook(payload: any, signature: string) {
+  handleRazorpayWebhook(payload: Record<string, unknown>, signature: string) {
     this.logger.log(`Received Razorpay webhook with signature: ${signature}`);
     // Basic verification and processing stub
     return { status: 'ok' };

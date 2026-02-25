@@ -1,8 +1,15 @@
 import { useCallback, useState } from "react";
 
+interface RazorpayInstance {
+  open(): void;
+  close(): void;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: {
+      new (options: RazorpayOptions): RazorpayInstance;
+    };
   }
 }
 

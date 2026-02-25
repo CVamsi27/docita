@@ -98,8 +98,8 @@ describe("Contraindication Checker", () => {
         patientData,
       );
       expect(results.length).toBeGreaterThan(0);
-      expect(results.some((r: any) => r.reason === "condition")).toBe(true);
-      expect(results.some((r: any) => r.reason === "pregnancy")).toBe(true);
+      expect(results.some((r: ContraindicationCheck) => r.reason === "condition")).toBe(true);
+      expect(results.some((r: ContraindicationCheck) => r.reason === "pregnancy")).toBe(true);
     });
   });
 });

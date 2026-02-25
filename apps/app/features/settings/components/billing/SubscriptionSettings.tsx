@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { useBillingStatus } from "@/hooks/api/use-billing";
-import { DynamicPricingEstimator } from "@/features/subscription/components/DynamicPricingEstimator";
+import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,

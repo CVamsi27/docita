@@ -19,7 +19,7 @@ export class DocumentGenerationService {
   /**
    * Generate invoice PDF
    */
-  async generateInvoicePdf(invoiceData: InvoiceData): Promise<Buffer> {
+  generateInvoicePdf(invoiceData: InvoiceData): Buffer {
     const builder = new InvoiceDocumentBuilder();
     const content = builder.buildFromData(invoiceData).build();
     return this.pdfRenderer.renderToPdf(content);
@@ -28,9 +28,7 @@ export class DocumentGenerationService {
   /**
    * Generate prescription PDF
    */
-  async generatePrescriptionPdf(
-    prescriptionData: PrescriptionData,
-  ): Promise<Buffer> {
+  generatePrescriptionPdf(prescriptionData: PrescriptionData): Buffer {
     const builder = new PrescriptionDocumentBuilder();
     const content = builder.buildFromData(prescriptionData).build();
     return this.pdfRenderer.renderToPdf(content);

@@ -119,7 +119,7 @@ export class Appointment {
     return this.type;
   }
 
-  getMetadata(): Record<string, any> {
+  getMetadata(): Record<string, unknown> {
     return { ...this.metadata };
   }
 

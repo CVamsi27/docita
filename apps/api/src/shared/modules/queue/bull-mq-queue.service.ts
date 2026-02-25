@@ -62,7 +62,7 @@ export class BullMQQueueService
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>> {
-    const queue = (await this.getQueue(name)) as any;
+    const queue = await this.getQueue(name);
 
     const bullOptions: Record<string, unknown> = {
       attempts: options?.attempts ?? 3,
@@ -101,7 +101,7 @@ export class BullMQQueueService
     name: string,
     handler: (job: QueueJob<T>) => Promise<void>,
   ): Promise<void> {
-    const queue = (await this.getQueue(name)) as any;
+    const queue = await this.getQueue(name);
 
     queue.process(
       async (bullJob: {

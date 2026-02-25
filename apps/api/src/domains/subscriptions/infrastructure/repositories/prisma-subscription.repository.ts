@@ -28,7 +28,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       const data = SubscriptionMapper.toPersistence(subscription);
 
       await this.prisma.subscription.create({
-        data: data as Prisma.SubscriptionCreateInput,
+        data: data,
       });
     } catch (error) {
       throw new BadRequestException(
@@ -133,7 +133,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       await this.prisma.subscription.update({
         where: { id: subscription.id },
         data: {
-          ...(data as Prisma.SubscriptionUpdateInput),
+          ...(data as Prisma.SubscriptionUncheckedUpdateInput),
           version: { increment: 1 },
         },
       });

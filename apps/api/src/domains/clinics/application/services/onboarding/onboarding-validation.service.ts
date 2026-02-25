@@ -139,14 +139,15 @@ export class OnboardingValidationService {
     }
   }
 
-  validateSLAAcceptance(slaData: Record<string, any>): void {
-    if (!slaData.acceptedSLA) {
+  validateSLAAcceptance(slaData: Record<string, unknown>): void {
+    const data = slaData as Record<string, boolean>;
+    if (!data.acceptedSLA) {
       throw new BadRequestException('SLA must be accepted to proceed');
     }
-    if (!slaData.acceptedDataProcessingTerms) {
+    if (!data.acceptedDataProcessingTerms) {
       throw new BadRequestException('Data processing terms must be accepted');
     }
-    if (!slaData.acceptedPrivacyPolicy) {
+    if (!data.acceptedPrivacyPolicy) {
       throw new BadRequestException('Privacy policy must be accepted');
     }
   }

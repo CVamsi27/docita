@@ -10,10 +10,10 @@ export interface AuditLogData {
   actionType: string;
   resourceType: string;
   resourceId: string;
-  changes?: Record<string, any>;
+  changes?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuditLogFilter {
@@ -70,7 +70,7 @@ export class AuditService {
   /**
    * Create audit log entry in database (Phase 2: Using AuditLog table)
    */
-  async createAuditLog(data: AuditLogData): Promise<any> {
+  async createAuditLog(data: AuditLogData): Promise<unknown> {
     return this.prisma.runUnrestricted(async () => {
       try {
         // Verify clinic and user exist
@@ -95,7 +95,12 @@ export class AuditService {
             action: data.actionType,
             entityType: data.resourceType,
             entityId: data.resourceId,
-            newValue: data.changes as any,
+            newValue:
+              (data.changes as Prisma.InputJsonValue) || Prisma.JsonNull,
+            metadata:
+              (data.metadata as Prisma.InputJsonValue) || Prisma.JsonNull,
+            ipAddress: data.ipAddress,
+            userAgent: data.userAgent,
           },
         });
 

@@ -116,21 +116,21 @@ this.configService.getLogLevel(); // 'debug' | 'info' | 'warn' | 'error'
 
 Priority 1 (High Impact):
 
-- [ ] subscription-billing.service.ts (5+ process.env accesses)
-- [ ] razorpay-subscription.gateway.ts (3+ accesses)
-- [ ] whatsapp-client.service.ts (4+ accesses)
-- [ ] email.service.ts (2+ accesses)
+- [x] subscription-billing.service.ts (Migrated to use-cases/services)
+- [x] razorpay-subscription.gateway.ts (Completed)
+- [x] whatsapp-client.service.ts (Completed)
+- [x] email.service.ts (Completed)
 
 Priority 2 (Medium Impact):
 
-- [ ] invoices.service.ts (5+ accesses)
-- [ ] prescriptions.service.ts (5+ accesses)
-- [ ] payments.service.ts (3+ accesses)
-- [ ] referrals.service.ts (1 access)
+- [x] invoices.service.ts (Completed)
+- [x] prescriptions.service.ts (Completed)
+- [x] payments.service.ts (Completed)
+- [x] referrals.service.ts (Completed)
 
 Priority 3 (Low Impact):
 
-- [ ] Remaining services with 1-2 accesses
+- [x] Remaining services with 1-2 accesses (API Core 100% Migrated)
 
 ## Testing with AppConfigService
 

@@ -39,7 +39,7 @@ export class WebhooksController {
 
     try {
       // Process webhook - already has internal error handling
-      await this.paymentsService.handleRazorpayWebhook(payload, signature);
+      this.paymentsService.handleRazorpayWebhook(payload, signature);
 
       // Track successful webhook processing
       await this.webhookErrorHandler.trackWebhookEvent(
