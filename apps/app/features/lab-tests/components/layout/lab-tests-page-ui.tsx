@@ -11,11 +11,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { useLabTestsLogic } from "../hooks/use-lab-tests-logic";
-import { LabTestsOverview } from "./tabs/LabTestsOverview";
-import { LabTestsOrders } from "./tabs/LabTestsOrders";
-import { LabTestsCatalog } from "./tabs/LabTestsCatalog";
-import { OrderLabTestDialog } from "./dialogs/OrderLabTestDialog";
+import { useLabTestsLogic } from "../../hooks/use-lab-tests-logic";
+import { LabTestsOverview } from "../tabs/LabTestsOverview";
+import { LabTestsOrders } from "../tabs/LabTestsOrders";
+import { LabTestsCatalog } from "../tabs/LabTestsCatalog";
+import { OrderLabTestDialog } from "../dialogs/OrderLabTestDialog";
 
 export const LabTestsPageUI: FC = () => {
   const {

@@ -1,12 +1,20 @@
-export * from "./profile/PatientProfileHeader";
-export * from "./profile/PatientFaceSheetHeader";
-export * from "./profile/PatientStatsCards";
-export * from "./profile/PatientBadge";
-export * from "./profile/PatientVitalsBanner";
+export * from "./profile/PatientProfileHeaderUI";
+export * from "./profile/PatientProfileHeaderContainer";
+export * from "./profile/PatientFaceSheetHeaderUI";
+export * from "./profile/PatientFaceSheetHeaderContainer";
+export * from "./profile/PatientStatsCardsUI";
+export * from "./profile/PatientStatsCardsContainer";
+export * from "./profile/PatientBadgeUI";
+export * from "./profile/PatientBadgeContainer";
+export * from "./profile/PatientVitalsBannerUI";
+export * from "./profile/PatientVitalsBannerContainer";
 
-export * from "./list/PatientsPage";
-export * from "./list/InfinitePatientsList";
-export * from "./list/VirtualizedPatientsList";
+export * from "./list/PatientsPageUI";
+export * from "./list/PatientsPageContainer";
+export * from "./list/InfinitePatientsListUI";
+export * from "./list/InfinitePatientsListContainer";
+export * from "./list/VirtualizedPatientsListUI";
+export * from "./list/VirtualizedPatientsListContainer";
 export * from "./list/table/PatientsDataTable";
 
 export * from "./forms/PatientDialogs";
@@ -26,3 +34,4 @@ export * from "./details/history/PatientAllergies";
 export * from "./details/history/PatientSurgeries";
 export * from "./details/history/PatientFamilyHistory";
 export * from "./details/history/PatientSocialHistory";
+export * from "./details/history/DetailedHistoryList";

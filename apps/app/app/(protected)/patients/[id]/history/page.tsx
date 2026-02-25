@@ -12,8 +12,7 @@ import { ArrowLeft, FileText, History } from "lucide-react";
 import Link from "next/link";
 import { usePatientAppointments } from "@/hooks/api/use-appointments";
 import { usePatient } from "@/hooks/api/use-patients";
-import { AppointmentHistoryTimeline } from "@/features/patients/components";
-import { DetailedHistoryList } from "@/features/patients/components/history/DetailedHistoryList";
+import { AppointmentHistoryTimeline, DetailedHistoryList } from "@/features/patients/components";
 
 interface PatientHistoryPageProps {
   params: Promise<{ id: string }>;

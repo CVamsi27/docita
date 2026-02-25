@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
+import { PaymentSuccessModal } from "@/features/subscription/components";
 import { useSettingsLogic } from "@/features/settings/hooks/use-settings-logic";
 import { SettingsPageUI } from "@/features/settings/components/SettingsPageUI";
 

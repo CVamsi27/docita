@@ -5,3 +5,4 @@ export {
   type InventoryMovement,
 } from "./details/InventoryItemDetailsUI";
 export { InventoryItemDetailsContainer } from "./details/InventoryItemDetailsContainer";
+export { InventoryPageUI } from "./InventoryPageUI";

@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp-button";
+import { WhatsAppButton } from "@/features/_shared/components";
 import type { Prescription } from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
 

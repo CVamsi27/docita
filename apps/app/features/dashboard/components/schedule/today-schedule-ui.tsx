@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
-import { ViewAllLinkUI } from "./ViewAllLinkUI";
+import { ViewAllLinkUI } from "../layout/view-all-link-ui";
 
 import { DashboardAppointment } from "@workspace/types";
 

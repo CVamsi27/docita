@@ -1,12 +1,12 @@
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { OCRHeader } from "./sections/OCRHeader";
-import { OCRPatientInfo } from "./sections/OCRPatientInfo";
-import { OCRClinicalFindings } from "./sections/OCRClinicalFindings";
-import { OCRVitals } from "./sections/OCRVitals";
-import { OCRMedications } from "./sections/OCRMedications";
-import { OCRLabValues } from "./sections/OCRLabValues";
+import { OCRHeader } from "../sections/OCRHeader";
+import { OCRPatientInfo } from "../sections/OCRPatientInfo";
+import { OCRClinicalFindings } from "../sections/OCRClinicalFindings";
+import { OCRVitals } from "../sections/OCRVitals";
+import { OCRMedications } from "../sections/OCRMedications";
+import { OCRLabValues } from "../sections/OCRLabValues";
 import { OCRFormData } from "../types";
 
 interface OCRResultsProps {

@@ -8,7 +8,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier, TierInfo } from "@/lib/tier-config";
-import { PlanFeature, PlanFeatures } from "./PlanFeatures";
+import { PlanFeature, PlanFeatures } from "./plan-features";
 import { Building2, Crown, Rocket, Sparkles, Zap } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 

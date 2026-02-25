@@ -7,7 +7,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { AddonCard, type AddonFeature } from "./AddonCard";
+import { AddonCard, type AddonFeature } from "../cards/addon-card";
 
 interface AddonsSectionProps {
   hasIntelligence: boolean;

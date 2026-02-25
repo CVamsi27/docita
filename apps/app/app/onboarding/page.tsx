@@ -1,4 +1,4 @@
-import { ClinicOnboardingWizard } from "@/features/onboarding/components/ClinicOnboardingWizard";
+import { ClinicOnboardingWizard } from "@/features/onboarding/components";
 
 export const metadata = {
   title: "Clinic Onboarding | Docita",

@@ -12,7 +12,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalAppointment } from "../types/patient-portal-types";
-import { getAppointmentStatusLabel } from "../rules/patient-portal-rules";
+import { getAppointmentStatusLabel } from "../../rules/patient-portal-rules";
 
 interface PatientPortalAppointmentsUIProps {
   appointments: PatientPortalAppointment[];

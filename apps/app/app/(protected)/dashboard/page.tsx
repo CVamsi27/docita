@@ -1,7 +1,7 @@
 "use client";
 
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
-import { DashboardUI } from "@/features/dashboard/components/DashboardUI";
+import { DashboardUI } from "@/features/dashboard/components";
 
 export default function DashboardPage() {
   const { state } = useDashboardLogic();

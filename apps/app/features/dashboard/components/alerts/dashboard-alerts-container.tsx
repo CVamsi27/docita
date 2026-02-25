@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useLocalStorage } from "@workspace/hooks";
 import { usePermissions } from "@/hooks/use-permissions";
-import { AlertItem, DashboardAlertsUI } from "./DashboardAlertsUI";
+import { AlertItem, DashboardAlertsUI } from "./dashboard-alerts-ui";
 
 interface DashboardAlertsContainerProps {
   todayAppointments: number;

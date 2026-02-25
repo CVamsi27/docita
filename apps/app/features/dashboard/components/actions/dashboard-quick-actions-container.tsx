@@ -9,7 +9,7 @@ import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
 import {
   DashboardQuickActionsUI,
   QuickAction,
-} from "./DashboardQuickActionsUI";
+} from "./dashboard-quick-actions-ui";
 
 interface DashboardQuickActionsContainerProps {
   pendingReports: number;

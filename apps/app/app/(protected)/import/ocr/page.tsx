@@ -2,9 +2,7 @@
 
 import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 import { useOCR } from "@/features/ocr/hooks/use-ocr";
-import { OCRMobileDialog } from "@/features/ocr/components/OCRMobileDialog";
-import { OCRResults } from "@/features/ocr/components/OCRResults";
-import { OCRUploadSection } from "@/features/ocr/components/OCRUploadSection";
+import { OCRMobileDialog, OCRResults, OCRUploadSection } from "@/features/ocr/components";
 import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";

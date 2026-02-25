@@ -10,7 +10,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import { ViewAllLinkUI } from "./ViewAllLinkUI";
+import { ViewAllLinkUI } from "../layout/view-all-link-ui";
 
 export interface RecentPatient {
   id: string;

@@ -25,8 +25,7 @@ import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/type
 
 // New imports
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
-import { PatientPageHeaderUI } from "@/features/patients/components/PatientPageHeaderUI";
-import { PatientDocumentsTabUI } from "@/features/patients/components/PatientDocumentsTabUI";
+import { PatientPageHeaderUI, PatientDocumentsTabUI } from "@/features/patients/components";
 
 export default function PatientDetailPage() {
   const params = useParams();

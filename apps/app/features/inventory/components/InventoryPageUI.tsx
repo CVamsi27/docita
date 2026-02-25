@@ -11,7 +11,7 @@ import {
   FeatureGate,
 } from "@/features/_shared/components/auth/feature-gate";
 import { InventoryAddItemDialog } from "@/features/dialogs/components/InventoryAddItemDialogContainer";
-import { InventoryItemDetails } from "@/features/inventory/components/InventoryItemDetailsContainer";
+import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components";
 import {
   AlertTriangle,
   BarChart3,

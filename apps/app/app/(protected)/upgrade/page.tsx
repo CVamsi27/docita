@@ -12,19 +12,19 @@ import {
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
-import { PricingDialog } from "@/features/subscription/components/PricingDialog";
-import { TierChangeDialog } from "@/features/subscription/components/TierChangeDialog";
-import { TierCard } from "@/features/subscription/components/TierCard";
+import { PricingDialog } from "@/features/subscription/components";
+import { TierChangeDialog } from "@/features/subscription/components";
+import { TierCard } from "@/features/subscription/components";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
 import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
-import { CurrentPlanCard } from "@/features/subscription/components/CurrentPlanCard";
-import { AddonsSection } from "@/features/subscription/components/AddonsSection";
-import { TrustSection } from "@/features/subscription/components/TrustSection";
-import { FaqSection } from "@/features/subscription/components/FaqSection";
-import { ComparisonTable } from "@/features/subscription/components/ComparisonTable";
-import { PaymentSuccessModal } from "@/features/subscription/components/PaymentSuccessModal";
-import { InvoiceHistoryDialog } from "@/features/subscription/components/InvoiceHistoryDialog";
+import { CurrentPlanCard } from "@/features/subscription/components";
+import { AddonsSection } from "@/features/subscription/components";
+import { TrustSection } from "@/features/subscription/components";
+import { FaqSection } from "@/features/subscription/components";
+import { ComparisonTable } from "@/features/subscription/components";
+import { PaymentSuccessModal } from "@/features/subscription/components";
+import { InvoiceHistoryDialog } from "@/features/subscription/components";
 import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 import {
   type CheckoutSuccessData,

@@ -9,7 +9,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { RoleGuard } from "@/features/_shared/components/role-guard";
+import { RoleGuard } from "@/features/_shared/components";
 import {
   AppearanceSettings,
   ClinicGeneralSettings,

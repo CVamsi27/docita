@@ -3,8 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import "react-phone-number-input/style.css";
-import { ConsentNoticeModal } from "../../legal/components/ConsentNoticeModal";
-import { useClinicRegistrationFlow } from "../hooks/use-clinic-registration-flow";
+import { ConsentNoticeModal } from "../../../legal/components/ConsentNoticeModal";
+import { useClinicRegistrationFlow } from "../../hooks/use-clinic-registration-flow";
 import {
   AdminAccountStep,
   ClinicDetailsStep,
@@ -22,7 +22,7 @@ import {
   type ComplianceSettings,
   defaultComplianceValues,
   type PlanSelection,
-} from "./types";
+} from "../types";
 
 export function ClinicRegistrationForm({
   onSuccess,

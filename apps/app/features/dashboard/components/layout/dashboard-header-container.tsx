@@ -1,5 +1,5 @@
 import { useAuth } from "@/lib/auth-context";
-import { DashboardHeaderUI } from "./DashboardHeaderUI";
+import { DashboardHeaderUI } from "./dashboard-header-ui";
 
 export function DashboardHeaderContainer() {
   const { user } = useAuth();

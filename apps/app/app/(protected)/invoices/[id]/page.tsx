@@ -1,4 +1,4 @@
-import { InvoiceDetailsUI } from "@/features/invoices/components/InvoiceDetailsUI";
+import { InvoiceDetailsUI } from "@/features/invoices/components";
 
 interface PageProps {
   params: Promise<{

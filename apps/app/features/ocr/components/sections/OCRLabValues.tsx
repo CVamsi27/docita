@@ -1,8 +1,8 @@
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { FileText } from "lucide-react";
-import { ConfidenceIndicator } from "../ConfidenceIndicator";
-import { SectionToggle } from "../SectionToggle";
+import { ConfidenceIndicator } from "../common/confidence-indicator";
+import { SectionToggle } from "../common/section-toggle";
 import { OCRFormData } from "../../types";
 
 interface OCRLabValuesProps {
