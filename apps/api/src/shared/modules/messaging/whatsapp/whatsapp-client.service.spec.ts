@@ -17,6 +17,13 @@ describe('WhatsappClientService', () => {
               WHATSAPP_PHONE_NUMBER_ID: 'test-phone-id',
               WHATSAPP_ACCESS_TOKEN: 'test-token',
             }),
+            getMetaConfig: jest.fn().mockReturnValue({
+              phoneNumberId: 'test-phone-id',
+              accessToken: 'test-token',
+              appSecret: 'test-secret',
+              verifyToken: 'test-verify-token',
+              productionMode: false,
+            }),
             getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
             getEnvironment: jest.fn().mockReturnValue('test'),
           },

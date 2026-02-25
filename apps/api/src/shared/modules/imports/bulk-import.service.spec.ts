@@ -41,6 +41,11 @@ describe('BulkImportService', () => {
             getConfig: jest.fn().mockReturnValue({}),
             getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
             getEnvironment: jest.fn().mockReturnValue('test'),
+            getBulkImportConfig: jest.fn().mockReturnValue({
+              maxFileSize: 5242880, // 5MB
+              maxRows: 10000,
+              rateLimitInterval: 300, // in seconds
+            }),
           },
         },
       ],
