@@ -7,7 +7,7 @@ export class ValidationException extends Error {
   constructor(
     public readonly field: string,
     public readonly message: string,
-    public readonly value?: any,
+    public readonly value?: unknown,
   ) {
     super(`Validation failed for ${field}: ${message}`);
     this.name = 'ValidationException';

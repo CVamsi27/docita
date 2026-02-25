@@ -80,7 +80,7 @@ const BullModule = MockBullModule;
             : undefined,
           autoLogging: false,
           serializers: {
-            req: (req: any) => ({
+            req: (req: Record<string, unknown>) => ({
               id: req.id,
               method: req.method,
               url: req.url,

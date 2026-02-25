@@ -44,7 +44,7 @@ export class AuditLoggerService implements IAuditLogger {
     resourceType: string,
     resourceId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as any).auditLog.findMany({
+    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
       where: {
         resourceType,
         resourceId,
@@ -59,7 +59,7 @@ export class AuditLoggerService implements IAuditLogger {
     userId: string,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as any).auditLog.findMany({
+    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
       where: {
         userId,
         clinicId,
@@ -72,7 +72,7 @@ export class AuditLoggerService implements IAuditLogger {
   }
 
   async getLogsForClinic(clinicId: string): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as any).auditLog.findMany({
+    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
       where: { clinicId },
       orderBy: { timestamp: 'desc' },
       take: 10000, // Large limit for clinic-wide audit
@@ -85,7 +85,7 @@ export class AuditLoggerService implements IAuditLogger {
     action: AuditAction,
     clinicId: string,
   ): Promise<AuditLogEntry[]> {
-    const logs = await (this.prisma as any).auditLog.findMany({
+    const logs = await (this.prisma as unknown as Record<string, unknown>).auditLog.findMany({
       where: {
         action,
         clinicId,
@@ -101,7 +101,7 @@ export class AuditLoggerService implements IAuditLogger {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
-    const result = await (this.prisma as any).auditLog.deleteMany({
+    const result = await (this.prisma as unknown as Record<string, unknown>).auditLog.deleteMany({
       where: {
         timestamp: {
           lt: cutoffDate,
@@ -109,14 +109,14 @@ export class AuditLoggerService implements IAuditLogger {
       },
     });
 
-    return result.count;
+    return (result as Record<string, number>).count;
   }
 
-  private parseAuditLogs(logs: any[]): AuditLogEntry[] {
-    return logs.map((log) => ({
+  private parseAuditLogs(logs: unknown[]): AuditLogEntry[] {
+    return (logs as Array<{changes?: string; metadata?: string} & Omit<AuditLogEntry, 'changes' | 'metadata'>>).map((log) => ({
       ...log,
-      changes: log.changes ? JSON.parse(log.changes as string) : undefined,
-      metadata: log.metadata ? JSON.parse(log.metadata as string) : undefined,
+      changes: log.changes ? JSON.parse(log.changes) : undefined,
+      metadata: log.metadata ? JSON.parse(log.metadata) : undefined,
     })) as AuditLogEntry[];
   }
 }

@@ -40,7 +40,7 @@ export interface IDocumentBuilder {
   /**
    * Add a table
    */
-  addTable(data: any[], columns: string[]): this;
+  addTable(data: Record<string, string | number>[], columns: string[]): this;
 
   /**
    * Add a list
