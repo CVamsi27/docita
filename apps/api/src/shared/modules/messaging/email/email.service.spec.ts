@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
+import { AppConfigService } from '../../config/app-configuration.service';
 import { EMAIL_PROVIDER } from './providers/email-provider.interface';
 
 describe('EmailService', () => {
@@ -21,6 +22,15 @@ describe('EmailService', () => {
         {
           provide: EMAIL_PROVIDER,
           useValue: emailProviderMock,
+        },
+        {
+          provide: AppConfigService,
+          useValue: {
+            getConfig: jest.fn().mockReturnValue({}),
+            getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEnvironment: jest.fn().mockReturnValue('test'),
+            getFrontendAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+          },
         },
       ],
     }).compile();

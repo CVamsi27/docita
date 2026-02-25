@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bull';
 import { BulkImportService } from './bulk-import.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AppConfigService } from '../config/app-configuration.service';
 
 describe('BulkImportService', () => {
   let service: BulkImportService;
@@ -33,6 +34,14 @@ describe('BulkImportService', () => {
         {
           provide: getQueueToken('bulk-import'),
           useValue: mockQueue,
+        },
+        {
+          provide: AppConfigService,
+          useValue: {
+            getConfig: jest.fn().mockReturnValue({}),
+            getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEnvironment: jest.fn().mockReturnValue('test'),
+          },
         },
       ],
     }).compile();

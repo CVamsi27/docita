@@ -6,6 +6,7 @@ import { SettingsFactory } from '../../core/factories/settings.factory';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
+import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
@@ -131,6 +132,15 @@ describe('ClinicsService', () => {
             createDefault: jest.fn().mockReturnValue({}),
             validate: jest.fn().mockImplementation((s) => s),
             partialValidate: jest.fn().mockImplementation((s) => s),
+          },
+        },
+        {
+          provide: AppConfigService,
+          useValue: {
+            getConfig: jest.fn().mockReturnValue({}),
+            getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEnvironment: jest.fn().mockReturnValue('test'),
+            isProduction: jest.fn().mockReturnValue(false),
           },
         },
       ],

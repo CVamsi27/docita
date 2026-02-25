@@ -15,6 +15,7 @@ import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from '../interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from '../interceptors/emergency-access.interceptor';
 import { AuditService } from '../../shared/modules/audit/audit/audit.service';
+import { AppConfigService } from '../../shared/modules/config/app-configuration.service';
 
 @Controller('pipeline')
 class PipelineController {
@@ -90,6 +91,15 @@ class PipelineController {
         get: jest.fn().mockReturnValue(false),
       },
     },
+    {
+      provide: AppConfigService,
+      useValue: {
+        getConfig: jest.fn().mockReturnValue({}),
+        getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+        getEnvironment: jest.fn().mockReturnValue('test'),
+        isProduction: jest.fn().mockReturnValue(false),
+      },
+    },
   ],
 })
 class InterceptorPipelineTestModule {}
@@ -108,7 +118,9 @@ describe('Interceptor Pipeline Integration', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   it('applies global interceptors on request lifecycle', async () => {

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('FinancialAnalyticsFactory', () => {
@@ -30,6 +31,14 @@ describe('FinancialAnalyticsFactory', () => {
         FinancialAnalyticsFactory,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        {
+          provide: AppConfigService,
+          useValue: {
+            getConfig: jest.fn().mockReturnValue({}),
+            getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEnvironment: jest.fn().mockReturnValue('test'),
+          },
+        },
       ],
     }).compile();
 

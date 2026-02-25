@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappClientService } from './whatsapp-client.service';
+import { AppConfigService } from '../../config/app-configuration.service';
 import { ServiceUnavailableException, Logger } from '@nestjs/common';
 
 describe('WhatsappClientService', () => {
@@ -7,7 +8,20 @@ describe('WhatsappClientService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [WhatsappClientService],
+      providers: [
+        WhatsappClientService,
+        {
+          provide: AppConfigService,
+          useValue: {
+            getConfig: jest.fn().mockReturnValue({
+              WHATSAPP_PHONE_NUMBER_ID: 'test-phone-id',
+              WHATSAPP_ACCESS_TOKEN: 'test-token',
+            }),
+            getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEnvironment: jest.fn().mockReturnValue('test'),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<WhatsappClientService>(WhatsappClientService);
