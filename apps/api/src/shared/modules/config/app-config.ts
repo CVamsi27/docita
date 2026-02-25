@@ -56,6 +56,7 @@ export const EnvSchema = z.object({
   BULK_IMPORT_MAX_ROWS: z.coerce.number().default(100000),
   BULK_IMPORT_RATE_LIMIT_INTERVAL: z.coerce.number().default(300),
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
+  REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

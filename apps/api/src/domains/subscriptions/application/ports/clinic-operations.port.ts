@@ -6,6 +6,13 @@ export interface ClinicDetails {
   razorpayCustomerId?: string;
 }
 
+export interface ClinicUpdateData {
+  clinicId: string;
+  tier?: string;
+  intelligenceAddon?: string;
+  subscriptionStatus?: string;
+}
+
 export interface IClinicOperations {
   getClinicDetails(clinicId: string): Promise<ClinicDetails>;
   updateRazorpayCustomerId(clinicId: string, customerId: string): Promise<void>;
@@ -15,5 +22,5 @@ export interface IClinicOperations {
     subscriptionStatus: string,
     features: Record<string, boolean>,
   ): Promise<void>;
-  emitUpdate(clinicId: string, data: any): Promise<void>;
+  emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void>;
 }

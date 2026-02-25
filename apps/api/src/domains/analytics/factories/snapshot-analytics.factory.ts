@@ -7,7 +7,7 @@ import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
 
 export interface SnapshotRecord {
-  [key: string]: any;
+  [key: string]: unknown;
   id: string;
   clinicId: string;
   snapshotDate: Date;

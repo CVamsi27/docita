@@ -290,4 +290,9 @@ export class AppConfigService {
     const config = getEnv();
     return config.PAYMENT_LINK_TTL_MINUTES;
   }
+
+  getRequestTimeoutMs(): number {
+    const config = getEnv();
+    return config.REQUEST_TIMEOUT_MS;
+  }
 }

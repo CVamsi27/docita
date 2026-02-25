@@ -16,14 +16,14 @@ import {
   PaymentSessionStatus,
 } from '@workspace/db';
 
-interface PaymentUpdateData {
+export interface PaymentUpdateData {
   sessionId: string;
   invoiceId: string | null;
   status: PaymentSessionStatus;
   paidAt?: Date;
 }
 
-interface ClinicUpdateData {
+export interface ClinicUpdateData {
   clinicId: string;
   tier?: ClinicTier;
   intelligenceAddon?: string;

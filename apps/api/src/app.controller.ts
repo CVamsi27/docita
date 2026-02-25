@@ -1,11 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { AppConfigService } from './shared/modules/config/app-configuration.service';
 
 import { Public } from './shared/modules/auth/auth/public.decorator';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   @Public()
   @Get()
@@ -19,7 +23,7 @@ export class AppController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0',
+      version: this.configService.getAppVersion(),
     };
   }
 }

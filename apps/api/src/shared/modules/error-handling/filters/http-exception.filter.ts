@@ -273,7 +273,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const isDevelopment = this.configService
       ? this.configService.isDevelopment()
-      : (process.env.NODE_ENV || 'development') !== 'production';
+      : true;
 
     // Build RFC 7807 Problem Details response
     // https://tools.ietf.org/html/rfc7807

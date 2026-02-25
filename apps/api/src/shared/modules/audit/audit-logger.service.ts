@@ -110,11 +110,11 @@ export class AuditLoggerService implements IAuditLogger {
     return result.count;
   }
 
-  private parseAuditLogs(logs: unknown[]): AuditLogEntry[] {
-    return logs.map((log: any) => ({
+  private parseAuditLogs(logs: any[]): AuditLogEntry[] {
+    return logs.map((log) => ({
       ...log,
-      changes: log.changes ? JSON.parse(log.changes) : undefined,
-      metadata: log.metadata ? JSON.parse(log.metadata) : undefined,
-    }));
+      changes: log.changes ? JSON.parse(log.changes as string) : undefined,
+      metadata: log.metadata ? JSON.parse(log.metadata as string) : undefined,
+    })) as AuditLogEntry[];
   }
 }

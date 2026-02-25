@@ -2,9 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   IClinicOperations,
   ClinicDetails,
+  ClinicUpdateData,
 } from '../../application/ports/clinic-operations.port';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { PaymentWebSocketGateway } from '../../../../gateways/payment.websocket.gateway';
+import {
+  PaymentWebSocketGateway,
+  ClinicUpdateData as WsClinicUpdateData,
+} from '../../../../gateways/payment.websocket.gateway';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 
 @Injectable()
@@ -69,8 +73,11 @@ export class ClinicOperationsAdapter implements IClinicOperations {
     });
   }
 
-  emitUpdate(clinicId: string, data: any): Promise<void> {
-    this.paymentGateway.emitClinicUpdate(clinicId, data);
+  emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void> {
+    this.paymentGateway.emitClinicUpdate(
+      clinicId,
+      data as unknown as WsClinicUpdateData,
+    );
     return Promise.resolve();
   }
 }
