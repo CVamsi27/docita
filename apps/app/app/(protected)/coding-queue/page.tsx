@@ -35,7 +35,7 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   Feature,
   FeatureGate,
-} from "@/features/_shared/components/feature-gate";
+} from "@/features/_shared/components/auth/feature-gate";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 
 export default function CodingQueuePage() {

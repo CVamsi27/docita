@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
 // Logic and Styles

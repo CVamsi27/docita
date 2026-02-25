@@ -1,7 +1,7 @@
 "use client";
 
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useAnalyticsLogic } from "@/features/analytics/hooks/use-analytics-logic";
 import { AnalyticsPageUI } from "@/features/analytics/components/AnalyticsPageUI";
 

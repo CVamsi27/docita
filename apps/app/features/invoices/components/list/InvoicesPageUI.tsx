@@ -19,7 +19,7 @@ import {
 import {
   Feature,
   FeatureGate,
-} from "@/features/_shared/components/feature-gate";
+} from "@/features/_shared/components/auth/feature-gate";
 import { Button } from "@workspace/ui/components/button";
 import {
   Select,

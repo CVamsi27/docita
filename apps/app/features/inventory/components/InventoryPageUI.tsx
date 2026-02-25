@@ -9,7 +9,7 @@ import { Button } from "@workspace/ui/components/button";
 import {
   Feature,
   FeatureGate,
-} from "@/features/_shared/components/feature-gate";
+} from "@/features/_shared/components/auth/feature-gate";
 import { InventoryAddItemDialog } from "@/features/dialogs/components/InventoryAddItemDialogContainer";
 import { InventoryItemDetails } from "@/features/inventory/components/InventoryItemDetailsContainer";
 import {

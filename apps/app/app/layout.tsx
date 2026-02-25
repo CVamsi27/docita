@@ -4,8 +4,8 @@ import { Providers } from "@/features/_shared/components/providers";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { ToasterWrapper } from "@/features/_shared/components/toaster-wrapper";
 import { LoginLayout } from "@/features/_shared/components/login-layout";
-import { SentryInitializer } from "@/components/sentry-initializer";
-import { ClientErrorReporter } from "@/components/client-error-reporter";
+import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
+import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
 
 // Disable static generation for this route
 export const dynamic = "force-dynamic";

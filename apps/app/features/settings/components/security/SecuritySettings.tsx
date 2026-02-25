@@ -16,7 +16,7 @@ import { Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { FeatureTierBadge } from "@/features/_shared/components/feature-gate";
+import { FeatureTierBadge } from "@/features/_shared/components/auth/feature-gate";
 import {
   ClinicAppSettings,
   useClinicSettings,

@@ -1,7 +1,7 @@
 "use client";
 
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useDocumentsLogic } from "@/features/documents/hooks/use-documents-logic";
 import { DocumentsPageUI } from "@/features/documents/components/DocumentsPageUI";
 

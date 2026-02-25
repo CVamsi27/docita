@@ -1,7 +1,7 @@
 "use client";
 
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useAIAssistantLogic } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
 import { AIAssistantUI } from "@/features/ai-assistant/components/AIAssistantUI";
 

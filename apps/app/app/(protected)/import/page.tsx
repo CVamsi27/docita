@@ -21,7 +21,7 @@ import {
   FeatureGate,
   FeatureTierBadge,
   TierBadge,
-} from "@/features/_shared/components/feature-gate";
+} from "@/features/_shared/components/auth/feature-gate";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 import { BulkImportDialog } from "@/features/dialogs/components/BulkImportDialogContainer";
 

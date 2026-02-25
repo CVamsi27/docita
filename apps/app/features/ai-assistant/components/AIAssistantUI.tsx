@@ -14,7 +14,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import { FeatureGuard } from "@/features/_shared/components/feature-guard";
+import { FeatureGuard } from "@/features/_shared/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";
 import { DiagnosisAssistantTab } from "./tabs/DiagnosisAssistantTab";

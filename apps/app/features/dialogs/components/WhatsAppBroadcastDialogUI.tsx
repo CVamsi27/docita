@@ -9,7 +9,7 @@ import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Label } from "@workspace/ui/components/label";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
-import { FeatureGuard } from "@/features/_shared/components/feature-guard";
+import { FeatureGuard } from "@/features/_shared/components/auth/feature-guard";
 import { Feature } from "@/lib/stores/permission-store";
 
 const whatsAppBroadcastSchema = z.object({

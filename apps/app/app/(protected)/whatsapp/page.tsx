@@ -1,6 +1,6 @@
 "use client";
 
-import { FeatureGuard } from "@/features/_shared/components/feature-guard";
+import { FeatureGuard } from "@/features/_shared/components/auth/feature-guard";
 import {
   Card,
   CardContent,

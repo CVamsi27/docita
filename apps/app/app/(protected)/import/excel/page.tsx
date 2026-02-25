@@ -1,6 +1,6 @@
 "use client";
 
-import { FeatureGate } from "@/features/_shared/components/feature-gate";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { cn } from "@workspace/ui/lib/utils";
 import { ArrowRight } from "lucide-react";
