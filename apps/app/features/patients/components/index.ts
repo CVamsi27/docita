@@ -15,7 +15,7 @@ export * from "./list/InfinitePatientsListUI";
 export * from "./list/InfinitePatientsListContainer";
 export * from "./list/VirtualizedPatientsListUI";
 export * from "./list/VirtualizedPatientsListContainer";
-export * from "./list/table/PatientsDataTable";
+export * from "./list/table/PatientsTable";
 
 export * from "./forms/PatientDialogs";
 

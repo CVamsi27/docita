@@ -50,11 +50,14 @@ export const useTemplatesSettingsLogic = () => {
   };
 
   const handleDeleteTemplate = (id: string) => {
-    deleteTemplate(id, {
+    deleteTemplate(
+      { id },
+      {
       onSuccess: () => toast.success("Template deleted"),
       onError: (err) =>
         toast.error(`Failed to delete template: ${err.message}`),
-    });
+      },
+    );
   };
 
   const handleSaveTemplate = (data: Partial<ClinicalTemplate>) => {

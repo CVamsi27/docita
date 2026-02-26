@@ -28,7 +28,7 @@ test.describe("Landing Page - Critical Flows", () => {
      */
 
     // Step 1: Navigate to home page
-    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
+    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     // Collect console errors
     const consoleErrors: string[] = [];
@@ -102,7 +102,7 @@ test.describe("Landing Page - Critical Flows", () => {
 
     for (const pageConfig of pages) {
       const response = await page.goto(`${LANDING_URL}${pageConfig.path}`, {
-        waitUntil: "networkidle2",
+        waitUntil: "networkidle",
       });
 
       expect(response?.status()).toBeLessThan(400);
@@ -131,7 +131,7 @@ test.describe("Landing Page - Critical Flows", () => {
      */
 
     // Step 1: Check for signup form on home
-    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
+    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     const signupForm = await page.locator("form, [role='form']").first();
     if (signupForm) {
@@ -185,7 +185,7 @@ test.describe("Landing Page - Critical Flows", () => {
       const startTime = Date.now();
 
       await page.goto(`${LANDING_URL}${pagePath}`, {
-        waitUntil: "networkidle2",
+        waitUntil: "networkidle",
       });
 
       const loadTime = Date.now() - startTime;
@@ -219,7 +219,7 @@ test.describe("Landing Page - Critical Flows", () => {
 
     for (const pageConfig of pageChecks) {
       await page.goto(`${LANDING_URL}${pageConfig.path}`, {
-        waitUntil: "networkidle2",
+        waitUntil: "networkidle",
       });
 
       // Check page title
@@ -259,7 +259,7 @@ test.describe("Landing Page - Critical Flows", () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     // Navigate to home
-    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
+    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     // Check for mobile menu
     const hamburger = await page
@@ -335,7 +335,7 @@ test.describe("Landing Page - Critical Flows", () => {
     });
 
     // Navigate to home
-    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
+    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     // Check page source for API keys
     const pageContent = await page.content();
@@ -363,7 +363,7 @@ test.describe("Landing Page - Critical Flows", () => {
      */
 
     // Step 1: Start at home
-    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle2" });
+    await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
     console.log(`[OK] Step 1: User lands on home page`);
 
     // Step 2: Navigate to features

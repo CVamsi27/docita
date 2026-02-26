@@ -5,7 +5,7 @@ import {
   checkDrugDrugContraindications,
   checkMedicationContraindications,
 } from "./medical/contraindication-checker.js";
-import type { Allergy, PatientCondition } from "@workspace/types";
+import type { Allergy, ContraindicationCheck, PatientCondition } from "@workspace/types";
 
 describe("Contraindication Checker", () => {
   describe("checkConditionContraindications", () => {

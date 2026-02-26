@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import {
   ClinicsController,
   ClinicSettingsController,
@@ -26,9 +26,9 @@ import { SettingsFactory } from './core/factories/settings.factory';
   imports: [
     PrismaModule,
     AuditModule,
-    AuthModule,
+    forwardRef(() => AuthModule),
     SubscriptionsModule,
-    BillingModule,
+    forwardRef(() => BillingModule),
     WhatsAppModule,
   ],
   controllers: [

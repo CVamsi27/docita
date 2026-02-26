@@ -22,7 +22,7 @@ interface RoomInfo {
   beds: BedInfo[];
 }
 
-interface WardInfo {
+export interface WardInfo {
   id: string;
   name: string;
   type: string;

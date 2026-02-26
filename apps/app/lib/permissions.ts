@@ -78,40 +78,6 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "viewPrescriptions",
     "createPrescription",
   ],
-  STAFF_ADMIN: [
-    "manageStaff",
-    "manageClinic",
-    "viewPatients",
-    "createPatient",
-    "editPatient",
-    "viewAppointments",
-    "createAppointment",
-    "manageBilling",
-    "viewInvoices",
-    "createInvoice",
-    "manageInventory",
-    "manageTemplates",
-  ],
-  STAFF: [
-    "viewPatients",
-    "createPatient",
-    "editPatient",
-    "viewAppointments",
-    "createAppointment",
-    "viewInvoices",
-    "createInvoice",
-  ],
-  NURSE: [
-    "viewPatients",
-    "editPatient",
-    "viewAppointments",
-    "viewPrescriptions",
-  ],
-  PHARMACIST: [
-    "viewPatients",
-    "viewPrescriptions",
-    "manageInventory",
-  ],
   RECEPTIONIST: [
     "viewPatients",
     "createPatient",
@@ -119,13 +85,6 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "viewAppointments",
     "createAppointment",
     "viewInvoices",
-    "createInvoice",
-  ],
-  BILLING: [
-    "viewPatients",
-    "viewInvoices",
-    "createInvoice",
-    "manageBilling",
   ],
 };
 
@@ -150,3 +109,47 @@ export function hasAllPermissions(
   if (!role) return false;
   return permissions.every((permission) => hasPermission(role, permission));
 }
+
+// Permission check helper functions
+export function isAdmin(role: UserRole): boolean {
+  return hasPermission(role, "manageClinic");
+}
+
+export function isDoctor(role: UserRole): boolean {
+  return ["DOCTOR", "ADMIN_DOCTOR"].includes(role);
+}
+
+export function canStartConsultation(role: UserRole): boolean {
+  return hasPermission(role, "startConsultation");
+}
+
+export function canManageStaff(role: UserRole): boolean {
+  return hasPermission(role, "manageStaff");
+}
+
+export function canManageClinic(role: UserRole): boolean {
+  return hasPermission(role, "manageClinic");
+}
+
+export function canManageBilling(role: UserRole): boolean {
+  return hasPermission(role, "manageBilling");
+}
+
+export function canViewReports(role: UserRole): boolean {
+  return hasPermission(role, "viewReports");
+}
+
+export function canManageInventory(role: UserRole): boolean {
+  return hasPermission(role, "manageInventory");
+}
+
+export function canExportData(role: UserRole): boolean {
+  return hasPermission(role, "exportData");
+}
+
+export function canCreatePrescription(role: UserRole): boolean {
+  return hasPermission(role, "createPrescription");
+}
+
+export const CLINIC_ADMIN_ROLES = new Set<UserRole>(["ADMIN", "ADMIN_DOCTOR"]);
+export const BILLING_ROLES = new Set<UserRole>(["ADMIN", "ADMIN_DOCTOR"]);

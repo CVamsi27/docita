@@ -59,16 +59,16 @@ test.describe("Accessibility Audit - Admin App", () => {
           violations: violations,
           summary: {
             critical: violations.filter(
-              (v: { impact: string }) => v.impact === "critical",
+              (v: { impact?: string | null }) => v.impact === "critical",
             ).length,
             serious: violations.filter(
-              (v: { impact: string }) => v.impact === "serious",
+              (v: { impact?: string | null }) => v.impact === "serious",
             ).length,
             moderate: violations.filter(
-              (v: { impact: string }) => v.impact === "moderate",
+              (v: { impact?: string | null }) => v.impact === "moderate",
             ).length,
             minor: violations.filter(
-              (v: { impact: string }) => v.impact === "minor",
+              (v: { impact?: string | null }) => v.impact === "minor",
             ).length,
           },
         };

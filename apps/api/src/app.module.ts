@@ -33,8 +33,7 @@ import { PrescriptionTemplatesModule } from './domains/prescriptions/prescriptio
 import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
-import { PaymentWebSocketGateway } from './gateways/payment.websocket.gateway';
-import { FeedbackModule } from './domains/feedback/feedback.module';
+import { GatewaysModule } from './gateways/gateways.module';
 import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
 import { CacheConfigModule } from './cache/cache.module';
 import { FhirModule } from './shared/modules/fhir/fhir.module';
@@ -59,6 +58,7 @@ import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interc
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { MockBullModule } from './common/mocks/mock-bull.module';
+import { FeedbackModule } from './domains/feedback/feedback.module';
 
 const BullModule = MockBullModule;
 
@@ -157,6 +157,7 @@ const BullModule = MockBullModule;
     AuditModule,
     PerformanceModule,
     ComplianceModule,
+    GatewaysModule,
   ],
   controllers: [AppController],
   providers: [
@@ -225,6 +226,6 @@ const BullModule = MockBullModule;
       useClass: RateLimitInterceptor,
     },
   ],
-  exports: [],
+  exports: [GatewaysModule],
 })
 export class AppModule {}

@@ -1,7 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ISubscriptionRepository } from '../ports/subscription.repository.port';
-import { IClinicOperations } from '../ports/clinic-operations.port';
-import { IPaymentGateway } from '../ports/payment-gateway.port';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+} from '../ports/subscription.repository.port';
+import {
+  IClinicOperations,
+  CLINIC_OPERATIONS_TOKEN,
+} from '../ports/clinic-operations.port';
+import {
+  IPaymentGateway,
+  PAYMENT_GATEWAY_TOKEN,
+} from '../ports/payment-gateway.port';
 import { SubscriptionPricingService } from '../../core/services/subscription-pricing.service';
 import { ClinicTier, BillingCycle } from '../../core/value-objects';
 import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
@@ -26,8 +35,11 @@ export class CreateCheckoutUseCase {
   private readonly logger = new Logger(CreateCheckoutUseCase.name);
 
   constructor(
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly configService: AppConfigService,

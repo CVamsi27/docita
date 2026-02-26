@@ -6,7 +6,11 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
-import { FollowUpType } from "../../FollowUpSchedulerUI";
+
+interface FollowUpType {
+  value: string;
+  label: string;
+}
 
 interface FollowUpSummaryProps {
   selectedDate: Date;

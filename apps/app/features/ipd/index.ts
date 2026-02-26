@@ -3,8 +3,5 @@
  * Hospital admission and ward management
  */
 
-// Rules
-export * from "./rules/ipdRules";
-
-// Components
+// Components (public IPD UI)
 export * from "./components";

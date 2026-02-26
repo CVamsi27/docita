@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import type { PatientPortalPrescription } from "../types/patient-portal-types";
+import type { PatientPortalPrescription } from "../../types/patient-portal-types";
 import { getPrescriptionStatusLabel } from "../../rules/patient-portal-rules";
 
 interface PatientPortalPrescriptionsUIProps {

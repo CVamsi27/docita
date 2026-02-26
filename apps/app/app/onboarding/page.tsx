@@ -1,4 +1,12 @@
-import { ClinicOnboardingWizard } from "@/features/onboarding/components";
+import dynamic from "next/dynamic";
+
+const ClinicOnboardingWizard = dynamic(
+  () =>
+    import("@/features/onboarding/components").then((mod) => ({
+      default: mod.ClinicOnboardingWizard,
+    })),
+  { ssr: true },
+);
 
 export const metadata = {
   title: "Clinic Onboarding | Docita",

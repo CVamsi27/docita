@@ -9,8 +9,8 @@ class ResizeObserverMock {
 }
 
 if (!globalThis.ResizeObserver) {
-  // @ts-expect-error jsdom test shim
-  globalThis.ResizeObserver = ResizeObserverMock;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).ResizeObserver = ResizeObserverMock;
 }
 
 describe("PaymentStep", () => {

@@ -31,7 +31,6 @@ import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { fetchAPI } from "@/lib/api-core";
 import {
-  Appointment,
   GrowthChartData,
   OphthalmologyExamData,
   Patient,
@@ -49,14 +48,22 @@ interface ClinicalDocumentationDynamicProps {
   clinicType?: string;
 }
 
-interface ConsultationAppointmentData extends Partial<Appointment> {
+interface ConsultationAppointmentData {
+  appointmentId?: string;
+  patientId?: string;
+  doctorId?: string;
+  patient?: Patient;
+  chiefComplaint?: string;
+  historyOfPresentIllness?: string | null;
   chiefComplaintStructured?: ChiefComplaintItem[];
   growthData?: GrowthChartData;
   dentalChart?: DentalChartValue;
   ophthalmologyExam?: OphthalmologyExamData;
-  generalExamination?: Record<string, unknown>;
-  systemicExamination?: Record<string, unknown>;
+  generalExamination?: Record<string, unknown> | null;
+  systemicExamination?: Record<string, unknown> | null;
   treatmentPlan?: string;
+  finalDiagnosis?: string;
+  [key: string]: unknown;
 }
 
 interface ConsultationSaveData {
@@ -80,7 +87,7 @@ export const ClinicalDocumentationDynamic: FC<
   defaultTab = "chief-complaint",
   onSave,
   isFocusMode,
-  _onToggleFocus,
+  onToggleFocus: _onToggleFocus,
   clinicType = "GENERAL",
 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -252,7 +259,9 @@ export const ClinicalDocumentationDynamic: FC<
             dosage: p.dosage,
             frequency: p.frequency,
             duration: p.duration,
-            instructions: p.instructions,
+            route: p.route || "PO",
+            prnInstructions: "",
+            instructions: p.instructions || undefined,
           })),
         });
       }

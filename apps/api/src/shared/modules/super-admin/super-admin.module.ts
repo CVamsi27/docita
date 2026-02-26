@@ -8,17 +8,24 @@ import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
 import { PrismaModule } from '../../../prisma/prisma.module';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentWebSocketGateway } from '../../../gateways/payment.websocket.gateway';
 import { ClinicsModule } from '../../../domains/clinics/clinics.module';
 import { UsersModule } from '../../../domains/users/users.module';
 import { BillingModule } from '../../../domains/billing/billing.module';
+import { AuthModule } from '../auth/auth/auth.module';
+import { GatewaysModule } from '../../../gateways/gateways.module';
 
 @Module({
-  imports: [PrismaModule, ClinicsModule, UsersModule, BillingModule],
+  imports: [
+    PrismaModule,
+    ClinicsModule,
+    UsersModule,
+    BillingModule,
+    AuthModule,
+    GatewaysModule,
+  ],
   controllers: [SuperAdminController, SuperAdminBillingController],
   providers: [
     SuperAdminBillingService,
-    PrismaService,
     PrismaService,
     ClinicManagementService,
     SuperAdminAnalyticsService,

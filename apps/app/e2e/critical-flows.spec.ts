@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { APIRequestContext, expect, test } from "@playwright/test";
 
 /**

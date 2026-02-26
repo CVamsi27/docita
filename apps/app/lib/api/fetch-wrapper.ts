@@ -44,9 +44,12 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const error = new Error(
-      (errorData as Record<string, unknown>).message || `HTTP ${response.status}: ${response.statusText}`,
-    ) as ApiError;
+    const errorObj = errorData as Record<string, unknown>;
+    const message =
+      typeof errorObj.message === "string"
+        ? errorObj.message
+        : `HTTP ${response.status}: ${response.statusText}`;
+    const error = new Error(message) as ApiError;
     error.status = response.status;
     error.data = errorData;
     throw error;

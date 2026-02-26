@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import { ClinicTier } from '../../core/value-objects';
 import {
@@ -10,11 +11,15 @@ import {
   ProratingService,
 } from '../../core/services';
 import { UpgradeSubscriptionDto } from '../dto/subscription.dto';
-import { ISubscriptionRepository } from '../ports/subscription.repository.port';
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+} from '../ports/subscription.repository.port';
 
 @Injectable()
 export class UpgradeSubscriptionUseCase {
   constructor(
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private subscriptionRepository: ISubscriptionRepository,
     private pricingService: SubscriptionPricingService,
     private validationService: SubscriptionValidationService,

@@ -1,5 +1,5 @@
 import { AuthProvider } from "@workspace/auth";
-import { PatientAuthGuard, PortalNav, ConsentBanner } from "@/features/patient-portal/components";
+import { ConsentBanner, PatientAuthGuard, PortalNav } from "@/features/patient-portal/components";
 
 export default function PortalLayout({
   children,

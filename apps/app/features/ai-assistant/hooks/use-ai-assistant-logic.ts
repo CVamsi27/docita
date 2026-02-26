@@ -1,12 +1,15 @@
 import { useState } from "react";
 
-import {
-  DiagnosisSuggestion,
-  DrugInteraction,
-  PrescriptionSuggestion,
-} from "@workspace/types";
+import { DrugInteraction, PrescriptionSuggestion } from "@workspace/types";
 
-export type { DrugInteraction, DiagnosisSuggestion, PrescriptionSuggestion };
+export interface DiagnosisSuggestion {
+  condition: string;
+  icdCode: string;
+  confidence: number;
+  reasoning: string;
+}
+
+export type { DrugInteraction, PrescriptionSuggestion };
 
 export const useAIAssistantLogic = () => {
   const [activeTab, setActiveTab] = useState("prescription");

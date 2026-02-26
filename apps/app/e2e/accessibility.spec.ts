@@ -14,7 +14,12 @@ const AUDIT_PAGES = [
 test.describe("Accessibility Audit - Main App", () => {
   const violationsByPage: Record<
     string,
-    { violations: unknown[]; impact: Record<string, number> }
+    {
+      pageName: string;
+      violationCount: number;
+      violations: unknown[];
+      summary: { critical: number; serious: number; moderate: number; minor: number };
+    }
   > = {};
 
   for (const pageConfig of AUDIT_PAGES) {
@@ -46,16 +51,16 @@ test.describe("Accessibility Audit - Main App", () => {
           violations: violations,
           summary: {
             critical: violations.filter(
-              (v: { impact: string }) => v.impact === "critical",
+              (v: { impact?: string | null }) => v.impact === "critical",
             ).length,
             serious: violations.filter(
-              (v: { impact: string }) => v.impact === "serious",
+              (v: { impact?: string | null }) => v.impact === "serious",
             ).length,
             moderate: violations.filter(
-              (v: { impact: string }) => v.impact === "moderate",
+              (v: { impact?: string | null }) => v.impact === "moderate",
             ).length,
             minor: violations.filter(
-              (v: { impact: string }) => v.impact === "minor",
+              (v: { impact?: string | null }) => v.impact === "minor",
             ).length,
           },
         };
@@ -91,7 +96,8 @@ test.describe("Accessibility Audit - Main App", () => {
     let totalSerious = 0;
 
     for (const violations of Object.values(violationsByPage) as Array<{
-      violations: unknown[];
+      violationCount: number;
+      summary: { critical: number; serious: number };
     }>) {
       totalViolations += violations.violationCount;
       totalCritical += violations.summary.critical;

@@ -170,12 +170,19 @@ export async function fetchAPI<T>(
       }
 
       const errObj = errorData as Record<string, string | number | boolean | undefined>;
+      const message = typeof errObj.message === "string" 
+        ? errObj.message 
+        : `HTTP error! status: ${response.status}`;
+      const code = typeof errObj.code === "string" ? errObj.code : undefined;
+      const details = typeof errObj.details === "object" && errObj.details !== null && typeof errObj.details !== 'string' && typeof errObj.details !== 'number' && typeof errObj.details !== 'boolean'
+        ? (errObj.details as Record<string, unknown>)
+        : undefined;
 
       throw new ApiError(
-        errObj.message || `HTTP error! status: ${response.status}`,
+        message,
         response.status,
-        errObj.code || "API_ERROR",
-        errObj.details,
+        code || "API_ERROR",
+        details,
       );
     }
 
@@ -232,7 +239,12 @@ export function useAPIMutation<TData, TVariables>(
         });
       }
       if (options?.onSuccess) {
-        options.onSuccess(data, variables, context);
+        const typedOnSuccess = options.onSuccess as unknown as (
+          data: TData,
+          variables: TVariables,
+          context?: unknown,
+        ) => Promise<void> | void;
+        typedOnSuccess(data, variables, context);
       }
     },
   });

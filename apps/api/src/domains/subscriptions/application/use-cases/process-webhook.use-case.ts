@@ -1,12 +1,17 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import {
   IPaymentGateway,
+  PAYMENT_GATEWAY_TOKEN,
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
   IClinicOperations,
 } from '../ports';
-import { Inject } from '@nestjs/common';
 import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 import type { RazorpayWebhookPayload } from '@workspace/types';
 import {
@@ -26,6 +31,7 @@ export class ProcessWebhookUseCase {
     private readonly subscriptionRepo: ISubscriptionRepository,
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
     private readonly activateSubscription: ActivateSubscriptionUseCase,
   ) {}

@@ -280,7 +280,7 @@ export function SubscriptionSettings() {
 
               <div>
                 <h4 className="text-sm font-semibold mb-4">Plan Estimator</h4>
-                <DynamicPricingEstimator compact />
+                <DynamicPricingEstimator />
               </div>
             </div>
           </div>

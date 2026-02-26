@@ -33,46 +33,24 @@ export const isAppointmentUpcoming = (appointment: Appointment): boolean => {
 /**
  * Get appointment status display
  */
-export const getAppointmentStatusDisplay = (
-  appointment: Appointment,
-): {
-  label: string;
-  color: string;
-  variant: "default" | "secondary" | "destructive" | "outline";
-} => {
-  const status = appointment.status?.toUpperCase();
+export const getAppointmentStatusDisplay = (status: string): string => {
+  const normalizedStatus = status?.replace(/-/g, "_").toUpperCase();
 
-  switch (status) {
+  switch (normalizedStatus) {
     case "SCHEDULED":
-      return { label: "Scheduled", color: "text-blue-600", variant: "default" };
+      return "Scheduled";
     case "CHECKED_IN":
-      return {
-        label: "Checked In",
-        color: "text-green-600",
-        variant: "secondary",
-      };
+      return "Checked In";
     case "IN_PROGRESS":
-      return {
-        label: "In Progress",
-        color: "text-purple-600",
-        variant: "default",
-      };
+      return "In Progress";
     case "COMPLETED":
-      return { label: "Completed", color: "text-gray-600", variant: "outline" };
+      return "Completed";
     case "CANCELLED":
-      return {
-        label: "Cancelled",
-        color: "text-red-600",
-        variant: "destructive",
-      };
+      return "Cancelled";
     case "NO_SHOW":
-      return {
-        label: "No Show",
-        color: "text-orange-600",
-        variant: "destructive",
-      };
+      return "No Show";
     default:
-      return { label: "Unknown", color: "text-gray-500", variant: "outline" };
+      return "Unknown";
   }
 };
 
@@ -147,7 +125,7 @@ export const validateAppointmentData = (
   if (data.startTime && data.endTime) {
     const start = new Date(data.startTime);
     const end = new Date(data.endTime);
-    if (!isBefore(start, end)) {
+    if (isAfter(start, end)) {
       errors.push("End time must be after start time");
     }
   }

@@ -20,6 +20,12 @@ interface AdminUser {
   role: string;
 }
 
+interface AdminRes {
+  user: { id: string };
+  access_token?: string;
+  accessToken?: string;
+}
+
 test.describe("Admin App - Critical Flows", () => {
   let adminUser: AdminUser;
   let request: APIRequestContext;
@@ -41,11 +47,11 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(adminRes.ok()).toBeTruthy();
-    const adminData = (await adminRes.json()) as Record<string, unknown>;
+    const adminData = (await adminRes.json()) as AdminRes;
     adminUser = {
-      id: adminData.user.id,
+      id: String(adminData.user?.id || ""),
       email: adminEmail,
-      accessToken: adminData.access_token || adminData.accessToken,
+      accessToken: String(adminData.access_token || adminData.accessToken || ""),
       role: "ADMIN",
     };
   });
@@ -122,7 +128,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(usersRes.ok()).toBeTruthy();
-    const users = (await usersRes.json()) as Record<string, unknown>;
+    const users = (await usersRes.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(users)).toBeTruthy();
     const initialUserCount = users.length;
 
@@ -143,7 +149,7 @@ test.describe("Admin App - Critical Flows", () => {
 
     expect(createUserRes.ok()).toBeTruthy();
     const newUser = (await createUserRes.json()) as Record<string, unknown>;
-    expect(newUser.email).toBe(newUserEmail);
+    expect(String(newUser.email)).toBe(newUserEmail);
 
     console.log(`✅ Step 2: New user created (${newUserEmail})`);
 
@@ -176,10 +182,10 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(updatedUsersRes.ok()).toBeTruthy();
-    const updatedUsers = (await updatedUsersRes.json()) as unknown[];
-    const userExists = updatedUsers.some(
-      (u: { id: string }) => u.id === newUser.id,
-    );
+    const updatedUsers = (await updatedUsersRes.json()) as Array<
+      Record<string, unknown>
+    >;
+    const userExists = updatedUsers.some((u) => String(u.id) === String(newUser.id));
     expect(userExists).toBeTruthy();
 
     console.log(`✅ Step 4: New user appears in users list`);
@@ -218,7 +224,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect(clinicsRes.ok()).toBeTruthy();
-    const clinics = (await clinicsRes.json()) as Record<string, unknown>;
+    const clinics = (await clinicsRes.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(clinics)).toBeTruthy();
 
     console.log(`✅ Step 1: Clinics list fetched (${clinics.length} clinics)`);

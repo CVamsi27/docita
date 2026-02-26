@@ -1,6 +1,6 @@
 import "@workspace/ui/globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-import { Providers, ToasterWrapper, LoginLayout } from "@/features/_shared/components";
+import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";

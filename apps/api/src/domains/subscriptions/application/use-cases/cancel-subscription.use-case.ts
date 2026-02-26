@@ -1,7 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ISubscriptionRepository } from '../ports/subscription.repository.port';
-import { IClinicOperations } from '../ports/clinic-operations.port';
-import { IPaymentGateway } from '../ports/payment-gateway.port';
+import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+} from '../ports/subscription.repository.port';
+import {
+  IClinicOperations,
+  CLINIC_OPERATIONS_TOKEN,
+} from '../ports/clinic-operations.port';
+import {
+  IPaymentGateway,
+  PAYMENT_GATEWAY_TOKEN,
+} from '../ports/payment-gateway.port';
 import { SubscriptionStatusEnum } from '../../core/value-objects';
 
 export interface CancelSubscriptionRequest {
@@ -15,8 +24,11 @@ export class CancelSubscriptionUseCase {
   private readonly logger = new Logger(CancelSubscriptionUseCase.name);
 
   constructor(
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
   ) {}
 

@@ -1,4 +1,3 @@
-export * from "./dialogs/EditInvoiceDialog";
 export * from "./dialogs/EditInvoiceDialogContainer";
 export * from "./dialogs/EditInvoiceDialogUI";
 

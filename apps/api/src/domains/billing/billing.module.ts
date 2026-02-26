@@ -35,6 +35,9 @@ import {
 import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
 import { MessagingModule } from '../../shared/modules/messaging/messaging.module';
+import { NotificationsModule } from '../../shared/modules/messaging/notifications/notifications.module';
+import { GatewaysModule } from '../../gateways/gateways.module';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -42,6 +45,9 @@ import { MessagingModule } from '../../shared/modules/messaging/messaging.module
     WhatsAppModule,
     AuditModule,
     MessagingModule,
+    NotificationsModule,
+    GatewaysModule,
+    WebhooksModule,
     BullModule.registerQueue({
       name: 'payment-retry',
     }),

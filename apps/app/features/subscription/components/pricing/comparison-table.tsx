@@ -2,7 +2,7 @@
 
 import { Check, Info, Lock } from "lucide-react";
 import { FEATURE_TIER_MAP, getTierInfo, Tier } from "@/lib/tier-config";
-import { getFeatureDetails } from "../config/feature-config";
+import { getFeatureDetails } from "../../config/feature-config";
 import {
   Table,
   TableBody,

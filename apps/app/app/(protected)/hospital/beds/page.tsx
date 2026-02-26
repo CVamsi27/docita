@@ -1,7 +1,7 @@
 "use client";
 
 import { useIpdLogic } from "@/features/ipd/hooks/use-ipd-logic";
-import { BedManagementUI } from "@/features/ipd/components";
+import { BedManagementUI, type WardInfo } from "@/features/ipd/components";
 
 export default function BedManagementPage() {
   const {
@@ -16,7 +16,7 @@ export default function BedManagementPage() {
 
   return (
     <BedManagementUI
-      wards={wards}
+      wards={wards as WardInfo[] | undefined}
       isLoading={isLoading}
       stats={stats}
       searchQuery={searchQuery}

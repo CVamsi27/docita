@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import {
   IClinicOperations,
   ClinicDetails,
@@ -15,7 +15,8 @@ import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 export class ClinicOperationsAdapter implements IClinicOperations {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly paymentGateway: PaymentWebSocketGateway,
+    @Optional()
+    private readonly paymentGateway?: PaymentWebSocketGateway,
   ) {}
 
   async getClinicDetails(clinicId: string): Promise<ClinicDetails> {
@@ -74,10 +75,12 @@ export class ClinicOperationsAdapter implements IClinicOperations {
   }
 
   emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void> {
-    this.paymentGateway.emitClinicUpdate(
-      clinicId,
-      data as unknown as WsClinicUpdateData,
-    );
+    if (this.paymentGateway) {
+      this.paymentGateway.emitClinicUpdate(
+        clinicId,
+        data as unknown as WsClinicUpdateData,
+      );
+    }
     return Promise.resolve();
   }
 }

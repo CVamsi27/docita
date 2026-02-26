@@ -4,7 +4,7 @@
  */
 
 import * as React from "react";
-import { Button } from "@/components/buttons";
+import { Button } from "../buttons";
 
 export interface ConfirmDialogProps {
   open: boolean;

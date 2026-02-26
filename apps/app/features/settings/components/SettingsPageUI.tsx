@@ -21,11 +21,11 @@ import {
   ReminderSettings,
   SecuritySettings,
   SubscriptionSettings,
-  TemplatesSettings,
+  TemplatesSettingsUI,
   WhatsAppAutomationSettings,
 } from ".";
 import {
-  PrescriptionDefaultsSettings,
+  PrescriptionDefaultsSettingsContainer,
   QueueSettings,
 } from "@/features/settings/components";
 
@@ -173,11 +173,11 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="prescriptions" className="mt-0 space-y-6">
-            <PrescriptionDefaultsSettings />
+            <PrescriptionDefaultsSettingsContainer />
           </TabsContent>
 
           <TabsContent value="templates" className="mt-0">
-            <TemplatesSettings />
+            <TemplatesSettingsUI />
           </TabsContent>
 
           <TabsContent value="custom-fields" className="mt-0">

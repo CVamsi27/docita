@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "node ../../scripts/e2e-runner.js",
     "test:e2e:api": "SKIP_SERVER=true playwright test e2e/health.spec.ts e2e/analytics.spec.ts e2e/prescriptions.spec.ts e2e/invoices.spec.ts e2e/documents.spec.ts e2e/clinics.spec.ts e2e/queue.spec.ts e2e/medical-coding.spec.ts e2e/lab-tests.spec.ts e2e/inventory.spec.ts",

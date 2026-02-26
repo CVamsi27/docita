@@ -28,3 +28,5 @@ export interface ISubscriptionRepository {
   ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<any[]>;
 }
+
+export const SUBSCRIPTION_REPOSITORY_TOKEN = 'ISubscriptionRepository';

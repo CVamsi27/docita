@@ -4,7 +4,7 @@ export * from "./common/inputs";
 export * from "./common/dialogs";
 export * from "./common/loaders";
 export * from "./common/empty-state";
-export * from "./common/tables";
+// tables module removed — not present in this project
 export * from "./common/form-field";
 export * from "./common/error-banner";
 export * from "./common/error-boundary";

@@ -7,7 +7,8 @@ import { OCRClinicalFindings } from "../sections/OCRClinicalFindings";
 import { OCRVitals } from "../sections/OCRVitals";
 import { OCRMedications } from "../sections/OCRMedications";
 import { OCRLabValues } from "../sections/OCRLabValues";
-import { OCRFormData } from "../types";
+import { type Dispatch, type SetStateAction } from "react";
+import { OCRFormData } from "../../types";
 
 interface OCRResultsProps {
   scanned: boolean;
@@ -15,7 +16,7 @@ interface OCRResultsProps {
   confidenceScores: Record<string, number>;
   suggestedCorrections: Record<string, string>;
   formData: OCRFormData;
-  setFormData: (data: OCRFormData) => void;
+  setFormData: Dispatch<SetStateAction<OCRFormData>>;
   expandedSections: Record<string, boolean>;
   onToggleSection: (section: string) => void;
   isSaving: boolean;

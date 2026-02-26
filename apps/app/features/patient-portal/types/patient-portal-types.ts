@@ -1,9 +1,3 @@
-export type PatientPortalSection =
-  | "overview"
-  | "appointments"
-  | "prescriptions"
-  | "billing";
-
 export type PatientAppointmentStatus = "CONFIRMED" | "PENDING" | "COMPLETED";
 
 export type PatientPrescriptionStatus = "ACTIVE" | "COMPLETED";
@@ -36,5 +30,16 @@ export interface PatientPortalInvoice {
 export interface PatientPortalSnapshot {
   upcomingAppointments: PatientPortalAppointment[];
   activePrescriptions: PatientPortalPrescription[];
-  outstandingInvoices: PatientPortalInvoice[];
+  outstandingInvoices: {
+    id: string;
+    amount: number;
+    dueAt: string;
+    status: PatientInvoiceStatus;
+  }[];
 }
+
+export type PatientPortalSection =
+  | "overview"
+  | "appointments"
+  | "prescriptions"
+  | "billing";

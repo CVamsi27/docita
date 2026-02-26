@@ -46,3 +46,5 @@ export interface IPaymentGateway {
   refundPayment(paymentId: string, amountCents?: number): Promise<void>;
   verifyWebhookSignature(payload: string, signature: string): boolean;
 }
+
+export const PAYMENT_GATEWAY_TOKEN = 'IPaymentGateway';

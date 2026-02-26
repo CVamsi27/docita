@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { IWhatsAppRepository } from '../../application/ports/whatsapp.repository.port';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  IWhatsAppRepository,
+  WHATSAPP_REPOSITORY_TOKEN,
+} from '../../application/ports/whatsapp.repository.port';
 import {
   DefaultTemplatesService,
   TemplateVariable,
@@ -19,6 +22,7 @@ export class TemplateResolverService {
   private readonly logger = new Logger(TemplateResolverService.name);
 
   constructor(
+    @Inject(WHATSAPP_REPOSITORY_TOKEN)
     private readonly repository: IWhatsAppRepository,
     private readonly defaultTemplates: DefaultTemplatesService,
   ) {}

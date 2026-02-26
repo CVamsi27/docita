@@ -200,3 +200,31 @@ export const useTemplates = (filters?: {
 
 export const useTemplate = (id: string) =>
   useAPIQuery<ClinicalTemplate>(["templates", id], `/clinical/templates/${id}`);
+
+export const useCreateTemplate = () =>
+  useAPIMutation<ClinicalTemplate, Partial<ClinicalTemplate>>(
+    "/clinical/templates",
+    "POST",
+    {
+      invalidateKeys: [["templates"]],
+    },
+  );
+
+export const useUpdateTemplate = () =>
+  useAPIMutation<ClinicalTemplate, Partial<ClinicalTemplate>>(
+    (template) => `/clinical/templates/${(template as ClinicalTemplate).id}`,
+    "PATCH",
+    {
+      invalidateKeys: [["templates"]],
+    },
+  );
+
+export const useDeleteTemplate = () =>
+  useAPIMutation<void, { id: string }>(
+    (variables) => `/clinical/templates/${variables.id}`,
+    "DELETE",
+    {
+      invalidateKeys: [["templates"]],
+    },
+  );
+

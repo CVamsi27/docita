@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { useUpdateAppointmentObservations } from "@/hooks/api/use-appointments";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAPIMutation } from "@/lib/api-core";
 
 interface UseObservationsFormProps {
   appointmentId: string;
@@ -17,7 +17,12 @@ export function useObservationsForm({
   fieldName = "consultationNotes",
 }: UseObservationsFormProps) {
   const queryClient = useQueryClient();
-  const updateObservations = useUpdateAppointmentObservations(appointmentId);
+  const updateObservations = useAPIMutation<
+    unknown,
+    { consultationNotes?: string; observations?: string }
+  >(`/appointments/${appointmentId}`, "PATCH", {
+    invalidateKeys: [["appointments"], ["appointments", appointmentId]],
+  });
   const [observations, setObservations] = useState(initialObservations);
 
   const handleSubmit = async (e: React.FormEvent, onSuccess?: () => void) => {

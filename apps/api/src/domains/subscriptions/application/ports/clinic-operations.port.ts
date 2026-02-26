@@ -24,3 +24,5 @@ export interface IClinicOperations {
   ): Promise<void>;
   emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void>;
 }
+
+export const CLINIC_OPERATIONS_TOKEN = 'IClinicOperations';

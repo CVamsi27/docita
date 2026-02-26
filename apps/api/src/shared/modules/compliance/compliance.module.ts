@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DPDPComplianceService } from './dpdp-compliance.service';
 import { ConsentController } from './consent.controller';
-import { AuditModule } from '../audit';
+import { AuditModule } from '../audit/audit/audit.module';
 import { PrismaModule } from '../../../prisma/prisma.module';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';

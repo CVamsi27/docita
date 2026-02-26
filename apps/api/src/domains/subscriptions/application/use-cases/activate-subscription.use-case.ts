@@ -1,6 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ISubscriptionRepository } from '../ports/subscription.repository.port';
-import { IClinicOperations } from '../ports/clinic-operations.port';
+import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY_TOKEN,
+} from '../ports/subscription.repository.port';
+import {
+  IClinicOperations,
+  CLINIC_OPERATIONS_TOKEN,
+} from '../ports/clinic-operations.port';
 import { SubscriptionPricingService } from '../../core/services/subscription-pricing.service';
 import {
   ClinicTier,
@@ -25,7 +31,9 @@ export class ActivateSubscriptionUseCase {
   private readonly logger = new Logger(ActivateSubscriptionUseCase.name);
 
   constructor(
+    @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
+    @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
   ) {}

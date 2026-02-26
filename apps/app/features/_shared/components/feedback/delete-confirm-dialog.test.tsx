@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { DeleteConfirmDialog } from "@/components/common/dialogs/DeleteConfirmDialog";
 import { describe, expect, it, vi } from "vitest";
 
 describe("DeleteConfirmDialog", () => {

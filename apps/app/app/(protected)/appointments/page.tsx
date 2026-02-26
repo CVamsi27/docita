@@ -10,7 +10,7 @@ import { Feature } from "@/lib/stores/permission-store";
 
 // Logic and Styles
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
-import { AppointmentsPageHeaderUI, AppointmentsCalendarUI, AppointmentsListUI } from "@/features/appointments/components";
+import { AppointmentsCalendarUI, AppointmentsListUI, AppointmentsPageHeaderUI } from "@/features/appointments/components";
 
 // Prevent static prerendering of this page
 export const dynamic = "force-dynamic";

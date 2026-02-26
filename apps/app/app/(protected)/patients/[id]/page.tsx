@@ -5,8 +5,10 @@ import { Card, CardContent } from "@workspace/ui/components/card";
 import {
   EditPatientDialog,
   PatientAllergyAlertContainer as PatientAllergyAlert,
+  PatientDocumentsTabUI,
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
   PatientMedicalHistoryContainer as PatientMedicalHistory,
+  PatientPageHeaderUI,
   PatientStatsCardsContainer as PatientStatsCards,
   PatientTagManagerContainer as PatientTagManager,
   PatientTimelineCompact,
@@ -25,7 +27,6 @@ import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/type
 
 // New imports
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
-import { PatientPageHeaderUI, PatientDocumentsTabUI } from "@/features/patients/components";
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -89,13 +90,7 @@ export default function PatientDetailPage() {
     <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full p-6">
       {/* Top Navigation & Header */}
       <PatientPageHeaderUI
-        patient={{
-          id: patient.id,
-          firstName: patient.firstName,
-          lastName: patient.lastName,
-        }}
-        onBack={handleBackToPatients}
-        onNavigateToPatients={handleBackToPatients}
+        patient={patient as PatientWithHistory}
         onEdit={() => setIsEditDialogOpen(true)}
       />
 

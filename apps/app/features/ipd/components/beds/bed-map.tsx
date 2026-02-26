@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 
-export type BedStatus = "available" | "occupied" | "maintenance" | "reserved";
+type BedStatus = "available" | "occupied" | "maintenance" | "reserved";
 
 export interface Bed {
   id: string;

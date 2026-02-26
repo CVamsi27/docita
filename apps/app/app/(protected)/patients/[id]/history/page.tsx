@@ -12,7 +12,7 @@ import { ArrowLeft, FileText, History } from "lucide-react";
 import Link from "next/link";
 import { usePatientAppointments } from "@/hooks/api/use-appointments";
 import { usePatient } from "@/hooks/api/use-patients";
-import { AppointmentHistoryTimeline, DetailedHistoryList } from "@/features/patients/components";
+import { DetailedHistoryList } from "@/features/patients/components";
 
 interface PatientHistoryPageProps {
   params: Promise<{ id: string }>;
@@ -77,12 +77,9 @@ export default function PatientHistoryPage({
           </TabsTrigger>
         </TabsList>
 
-        {/* Enhanced Timeline View */}
+        {/* Timeline View */}
         <TabsContent value="timeline">
-          <AppointmentHistoryTimeline
-            patientId={patientId}
-            showFilters={true}
-          />
+          <DetailedHistoryList appointments={sortedAppointments} />
         </TabsContent>
 
         {/* Detailed View */}

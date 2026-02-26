@@ -1,14 +1,14 @@
 import { cn } from "@workspace/ui/lib/utils";
 import { Feature } from "@/lib/stores/permission-store";
 import {
-  DailyProgress,
-  DashboardHeader,
-  DashboardQuickActions,
-  DashboardSkeleton,
+  DailyProgressUI,
+  DashboardHeaderContainer,
+  DashboardQuickActionsContainer,
+  DashboardSkeletonUI,
   DashboardStatsGrid,
   DoctorDashboardCards,
-  RecentPatients,
-  TodaySchedule,
+  RecentPatientsUI,
+  TodayScheduleUI,
 } from "@/features/dashboard/components";
 import { DashboardAppointment, DashboardPatient } from "@workspace/types";
 
@@ -44,13 +44,13 @@ export function DashboardUI({
   canAccess,
 }: DashboardUIProps) {
   if (isLoading) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeletonUI />;
   }
 
   return (
     <div className="min-h-screen bg-linear-to-b from-muted/30 to-background">
       <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        <DashboardHeader />
+        <DashboardHeaderContainer />
 
         {/* Doctor-Centric Dashboard Cards */}
         <DoctorDashboardCards
@@ -65,7 +65,7 @@ export function DashboardUI({
           estimatedWaitTime={waitingCount * 15} // Assume 15 min per patient
         />
 
-        <DashboardQuickActions pendingReports={stats.pendingReports} />
+        <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
 
         <DashboardStatsGrid
           stats={stats}
@@ -84,14 +84,14 @@ export function DashboardUI({
         >
           {/* Schedule Section */}
           {canAccess(Feature.CALENDAR_SLOTS) && (
-            <TodaySchedule appointments={todayAppointments} />
+            <TodayScheduleUI appointments={todayAppointments} />
           )}
 
           {/* Right Column */}
           <div className="space-y-4 sm:space-y-6">
-            <RecentPatients patients={recentPatients} />
+            <RecentPatientsUI patients={recentPatients} />
 
-            <DailyProgress
+            <DailyProgressUI
               completedToday={completedToday}
               totalAppointments={todayAppointments.length}
               pendingReports={stats.pendingReports}

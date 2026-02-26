@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api";

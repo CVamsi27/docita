@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 interface RazorpayInstance {
   open(): void;
   close(): void;
+  on?(event: string, handler: (...args: unknown[]) => void): void;
 }
 
 declare global {
@@ -21,7 +22,7 @@ interface RazorpayOptions {
   description?: string;
   image?: string;
   order_id: string;
-  handler: (response: Record<string, unknown>) => void | Promise<void>;
+  handler: (response: RazorpayResponse) => void | Promise<void>;
   prefill?: {
     name?: string;
     email?: string;
@@ -33,6 +34,14 @@ interface RazorpayOptions {
   modal?: {
     ondismiss?: () => void;
   };
+}
+
+export interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  // Include any additional fields Razorpay might send
+  [key: string]: unknown;
 }
 
 export function useRazorpay() {
@@ -69,7 +78,7 @@ export function useRazorpay() {
       await new Promise<void>((resolve, reject) => {
         const rzp = new window.Razorpay({
           ...options,
-          handler: async (response: Record<string, unknown>) => {
+          handler: async (response: RazorpayResponse) => {
             try {
               await options.handler(response);
               resolve();
@@ -86,13 +95,15 @@ export function useRazorpay() {
           },
         });
 
-        rzp.on(
+        rzp.on?.(
           "payment.failed",
-          function (response: { error: Record<string, unknown> }) {
+          (...args: unknown[]) => {
+            const response = (args[0] || {}) as {
+              error?: Record<string, unknown>;
+            };
+            const description = response.error?.description;
             const message =
-              typeof response.error?.description === "string"
-                ? response.error.description
-                : "Payment failed";
+              typeof description === "string" ? description : "Payment failed";
             reject(new Error(message));
           },
         );

@@ -1,3 +1,6 @@
+import { Clinic, User } from "@workspace/types";
+import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+
 export interface CustomField {
   name: string;
   type: string;
@@ -60,8 +63,29 @@ export interface PrescriptionDefaults {
   includeQRCode: boolean;
 }
 
-import { Clinic, User } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+export interface Subscription {
+  id: string;
+  clinicId: string;
+  plan: string;
+  status: string;
+  billingCycle: string;
+  basePriceCents: number;
+  currency: string;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  scheduledChange?: { [key: string]: unknown } | null;
+  clinic?: {
+    id: string;
+    name: string;
+    email: string;
+    tier: string;
+  };
+  // UI-friendly aliases (optional) to support older/varied payload shapes
+  tier?: string;
+  tierName?: string;
+  subscriptionStatus?: string;
+}
+
 
 export const useClinicSettings = () =>
   useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings");
@@ -206,3 +230,56 @@ export const useUpdateMedicalCodingSettings = () =>
       preferredSystem?: string;
     }
   >("/clinical/medical-coding/settings", "PUT");
+
+export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
+  const res = useAPIQuery<Subscription>(["clinic", "subscription"], "/clinic/subscription", queryOptions);
+
+  // Normalize common fields used by the UI to be tolerant of backend shape changes
+  const normalized = {
+    ...res,
+  } as typeof res & {
+    data?: Subscription & {
+      tier?: string;
+      tierName?: string;
+      subscriptionStatus?: string;
+    };
+  };
+
+  if (res.data) {
+    const d = res.data as Subscription & {
+      subscription_status?: unknown;
+      subscriptionState?: unknown;
+    };
+    const tierFromClinic = d.clinic?.tier;
+    const tier =
+      tierFromClinic || d.tier || d.plan || d.tierName;
+    const tierName = d.tierName || d.plan || tier;
+    const subscriptionStatus =
+      (typeof d.subscriptionStatus === "string"
+        ? d.subscriptionStatus
+        : undefined) ??
+      (typeof d.status === "string" ? d.status : undefined) ??
+      (typeof d.subscription_status === "string"
+        ? d.subscription_status
+        : undefined) ??
+      (typeof d.subscriptionState === "string"
+        ? d.subscriptionState
+        : undefined);
+
+    normalized.data = {
+      ...d,
+      tier,
+      tierName,
+      subscriptionStatus,
+    } as Subscription & { tier?: string; tierName?: string; subscriptionStatus?: string };
+  }
+
+  return normalized;
+};
+
+export const useUpdateProfile = () =>
+  useAPIMutation<
+    { id: string; name?: string; email?: string },
+    Partial<{ name: string; email: string }>
+  >("/users/profile", "PATCH");
+

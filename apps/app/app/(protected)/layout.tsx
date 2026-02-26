@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sidebar } from "@/features/_shared/components";
-import { MobileNav } from "@/features/_shared/components";
-import { FloatingStartConsultation } from "@/features/_shared/components";
+import {
+  FloatingStartConsultation,
+  MobileNav,
+  Sidebar,
+} from "@/features/_shared/components";
 import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
 import { ClinicProvider } from "@/lib/clinic-context";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";

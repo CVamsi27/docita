@@ -199,9 +199,9 @@ export const InvoicesPageUI: FC = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredInvoices.map((invoice: InvoiceWithPatient) => (
-                      <TableRow key={invoice.id}>
+                      <TableRow key={invoice.id ?? `invoice-${Math.random()}`}>
                         <TableCell className="font-medium">
-                          #{invoice.id.substring(0, 8)}
+                          #{(invoice.id ?? "").substring(0, 8)}
                         </TableCell>
                         <TableCell>
                           {invoice.patient
@@ -234,7 +234,9 @@ export const InvoicesPageUI: FC = () => {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleDownloadPdf(invoice)}
+                                onClick={() =>
+                                  invoice.id && handleDownloadPdf(invoice.id)
+                                }
                               >
                                 <Download className="mr-2 h-4 w-4" />
                                 Download PDF

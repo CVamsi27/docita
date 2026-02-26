@@ -12,7 +12,7 @@ import {
   PaymentStep,
   PlanSelectionStep,
   TeamInviteStep,
-} from "./steps";
+} from "../steps";
 import {
   type AdminAccount,
   adminAccountSchema,

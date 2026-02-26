@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useRazorpay } from "@/hooks/use-razorpay";
+import { type RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import type { TierName } from "@workspace/types";
@@ -23,12 +23,6 @@ interface AddonCheckoutParams {
   addonId: string;
   billingCycle: "MONTHLY" | "YEARLY";
   currentTier: number;
-}
-
-interface RazorpayResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
 }
 
 export function useSubscriptionCheckout(

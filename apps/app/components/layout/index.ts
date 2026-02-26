@@ -13,5 +13,5 @@ export {
   SidebarNavItem,
   type SidebarProps,
   type SidebarNavProps,
-  type SidebarNavItem,
+  type SidebarNavItemProps,
 } from "./sidebar";

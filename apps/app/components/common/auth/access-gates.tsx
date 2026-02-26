@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { usePermissions } from "../../hooks/use-permissions";
-import { useTierAccess } from "../../hooks/use-tier-access";
+import { usePermissions } from "../../../hooks/use-permissions";
+import { useTierAccess } from "../../../hooks/use-tier-access";
 import { useRouter } from "next/navigation";
-import type { Permission } from "../../lib/permissions";
+import type { Permission } from "../../../lib/permissions";
 import { Feature, Tier } from "@workspace/types";
 
 interface PermissionGateProps {
