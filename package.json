@@ -29,6 +29,7 @@
     "verify:structure": "node scripts/verify-turborepo-structure.mjs",
     "verify:contracts": "node scripts/verify-package-contracts.mjs",
     "verify:standard": "pnpm verify:structure && pnpm verify:contracts"
+    ,"check:prisma-boundary": "node scripts/check-prisma-boundary.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
