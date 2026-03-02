@@ -14,7 +14,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run Tests
-      if: false
+    if: false
 
     services:
       postgres:
@@ -65,7 +65,7 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: test
-        if: false
+    if: false
 
     outputs:
       image_uri: ${{ steps.set-output.outputs.image_uri }}
@@ -141,7 +141,7 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     needs: build
-        if: false
+    if: false
 
     steps:
       - uses: actions/checkout@v4
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [migrate, build]
     environment: production
-        if: false
+    if: false
 
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
