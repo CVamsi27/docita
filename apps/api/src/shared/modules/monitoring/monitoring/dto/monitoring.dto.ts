@@ -6,9 +6,9 @@ import {
   ErrorStatsSchema,
   PerformanceMetricsSchema,
   WebVitalSchema,
+  jsonValueSchema,
 } from '@workspace/types';
 
-// Re-export schemas for use in controllers
 export {
   SystemHealthSchema,
   RequestStatsSchema,
@@ -29,16 +29,14 @@ export class WebVitalListResponseDto extends createZodDto(
   z.array(WebVitalSchema),
 ) {}
 
-// For aggregated performance which might be custom:
 export const AggregatedPerformanceSchema = z.object({
   period: z.string(),
-  data: z.array(z.record(z.unknown())), // Generic data structure
+  data: z.array(z.record(z.unknown())),
 });
 export class AggregatedPerformanceResponseDto extends createZodDto(
   AggregatedPerformanceSchema,
 ) {}
 
-// For dashboard which returns a composite object
 export const MonitoringDashboardSchema = z.object({
   health: SystemHealthSchema,
   last24Hours: z.object({
@@ -53,4 +51,4 @@ export class MonitoringDashboardResponseDto extends createZodDto(
   MonitoringDashboardSchema,
 ) {}
 
-export class AnyResponseDto extends createZodDto(z.any()) {}
+export class AnyResponseDto extends createZodDto(jsonValueSchema) {}

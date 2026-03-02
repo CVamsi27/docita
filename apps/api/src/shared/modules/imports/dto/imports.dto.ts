@@ -31,7 +31,7 @@ export const ImportResultSchema = z.object({
   processed: z.number().int().optional(),
   successful: z.number().int().optional(),
   failed: z.number().int().optional(),
-  errors: z.array(z.any()).optional(),
+  errors: z.array(z.unknown()).optional(),
 });
 export class ImportResultResponseDto extends createZodDto(ImportResultSchema) {}
 

@@ -1,15 +1,14 @@
 import { z } from 'zod';
+import { jsonObjectSchema } from '@workspace/types';
 
-// Schema for structure of a prompt
 export const AiPromptSchema = z.object({
   system: z.string().optional(),
   user: z.string(),
-  context: z.record(z.any()).optional(), // Dynamic context to inject
+  context: jsonObjectSchema.optional(),
 });
 
 export type AiPromptInput = z.infer<typeof AiPromptSchema>;
 
-// Schema for tracking token usage
 export const AiUsageSchema = z.object({
   promptTokens: z.number().int().nonnegative(),
   completionTokens: z.number().int().nonnegative(),
@@ -19,7 +18,6 @@ export const AiUsageSchema = z.object({
 
 export type AiUsage = z.infer<typeof AiUsageSchema>;
 
-// Input schema for history summarization
 export const SummarizationInputSchema = z.object({
   patientId: z.string().cuid(),
   conditions: z.array(z.string()).optional(),

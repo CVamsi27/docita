@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { clinicTypeSchema, ClinicType } from "./users";
+import { jsonObjectSchema } from "./json-schema";
 
 export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
-// ClinicType removed, simplified to import
+
 export const IntelligenceAddonStatus = z.enum(["NONE", "ACTIVE"]);
 
 export const whatsAppAutomationSchema = z.object({
@@ -25,16 +26,16 @@ export const clinicSchema = z.object({
   active: z.boolean(),
   tier: z.string().or(ClinicTier),
   type: z.string().or(clinicTypeSchema),
-  settings: z.record(z.any()).nullable().optional(), // Json
+  settings: jsonObjectSchema.nullable().optional(),
   timezone: z.string(),
   locale: z.string(),
   currency: z.string(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
   subscriptionStatus: z.string(),
-  branding: z.record(z.any()).nullable().optional(), // Json
-  features: z.record(z.any()).nullable().optional(), // Json
-  whatsappAutomation: whatsAppAutomationSchema.nullable().optional(), // Json
+  branding: jsonObjectSchema.nullable().optional(),
+  features: jsonObjectSchema.nullable().optional(),
+  whatsappAutomation: whatsAppAutomationSchema.nullable().optional(),
   intelligenceAddon: z.string().or(IntelligenceAddonStatus),
   trialEndsAt: z.date().or(z.string()).nullable().optional(),
   avgConsultationMinutes: z.number(),

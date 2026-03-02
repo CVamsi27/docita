@@ -1,6 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { auditLogSchema, auditLogFilterSchema } from '@workspace/types';
+import {
+  auditLogSchema,
+  auditLogFilterSchema,
+  jsonValueSchema,
+} from '@workspace/types';
 
 export class AuditLogFilterDto extends createZodDto(auditLogFilterSchema) {}
 
@@ -9,7 +13,6 @@ export class AuditLogListResponseDto extends createZodDto(
   z.array(auditLogSchema),
 ) {}
 
-// If service returns pagination wrapper
 export const paginatedAuditLogSchema = z.object({
   data: z.array(auditLogSchema),
   total: z.number(),
@@ -20,5 +23,4 @@ export class PaginatedAuditLogResponseDto extends createZodDto(
   paginatedAuditLogSchema,
 ) {}
 
-// Generic fallback if unsure of service return
-export class AnyAuditResponseDto extends createZodDto(z.any()) {}
+export class AnyAuditResponseDto extends createZodDto(jsonValueSchema) {}

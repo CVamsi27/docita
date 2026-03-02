@@ -1,6 +1,6 @@
 export * from "./common";
+export * from "./json-schema";
 export * from "./common-types";
-export * from "./auth";
 export * from "./users";
 export * from "./clinics";
 export * from "./doctor-clinics";
