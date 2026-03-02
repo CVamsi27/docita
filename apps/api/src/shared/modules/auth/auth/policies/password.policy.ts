@@ -28,7 +28,6 @@ export class DefaultPasswordPolicy implements IPasswordPolicy {
       );
     }
 
-    // Check for common weak passwords
     const commonPasswords = [
       'password',
       'Password1!',

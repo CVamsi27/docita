@@ -1,10 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IWhatsAppRepository,
   WHATSAPP_REPOSITORY_TOKEN,
-} from '../ports/whatsapp.repository.port';
-import { SendMessageUseCase } from '../use-cases/send-message.use-case';
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 
 @Injectable()
 export class WhatsAppAutomationService {

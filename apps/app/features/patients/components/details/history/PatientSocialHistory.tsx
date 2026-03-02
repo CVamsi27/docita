@@ -41,7 +41,7 @@ export function PatientSocialHistoryComp({
     <Card className="mt-6">
       <CardHeader className="py-4">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Coffee className="h-5 w-5 text-amber-600" />
+          <Coffee className="h-5 w-5 text-warning" />
           Social History
         </CardTitle>
       </CardHeader>

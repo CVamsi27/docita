@@ -75,11 +75,11 @@ async function waitForServer(url: string, maxRetries = 30): Promise<void> {
     try {
       const response = await fetch(url);
       if (response.ok) {
-        console.log(`✅ Server ${url} is ready`);
+
         return;
       }
     } catch (e) {
-      // Server not ready yet
+
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
@@ -91,21 +91,18 @@ async function auditPage(
   url: string,
   fullUrl: string,
 ): Promise<AccessibilityViolation[]> {
-  console.log(`  📄 Scanning: ${url}`);
 
   try {
     await page.goto(fullUrl, { waitUntil: "networkidle" });
     await page.waitForLoadState("networkidle");
 
-    // Inject axe
     await injectAxe(page);
 
-    // Get violations
     const violations = await getViolations(page);
 
     return violations as AccessibilityViolation[];
   } catch (error) {
-    console.error(`    ⚠️  Error scanning ${url}:`, error);
+
     return [];
   }
 }
@@ -113,13 +110,10 @@ async function auditPage(
 async function auditApp(config: AuditConfig): Promise<AppAuditResult> {
   const baseUrl = config.serverUrl || `http://localhost:${config.port}`;
 
-  console.log(`\n🔍 Starting audit for: ${config.app} (${baseUrl})`);
-
-  // Wait for server to be ready
   try {
     await waitForServer(baseUrl);
   } catch (error) {
-    console.error(`❌ Could not connect to ${config.app}:`, error);
+
     throw error;
   }
 
@@ -162,9 +156,7 @@ async function auditApp(config: AuditConfig): Promise<AppAuditResult> {
       minorCount: minor,
     });
 
-    console.log(
-      `    Found ${violations.length} violations (${critical} critical, ${serious} serious, ${moderate} moderate, ${minor} minor)`,
-    );
+    
 
     await page.close();
   }
@@ -194,12 +186,9 @@ async function generateReport(results: AppAuditResult[]): Promise<void> {
     fs.mkdirSync(reportDir, { recursive: true });
   }
 
-  // JSON report
   const jsonReportPath = path.join(reportDir, `baseline-${timestamp}.json`);
   fs.writeFileSync(jsonReportPath, JSON.stringify(results, null, 2));
-  console.log(`\n📊 JSON Report: ${jsonReportPath}`);
 
-  // Markdown report
   let markdownReport = `# Accessibility Audit Report\n\n**Date:** ${new Date().toLocaleString()}\n\n`;
 
   let totalViolations = 0;
@@ -226,7 +215,6 @@ async function generateReport(results: AppAuditResult[]): Promise<void> {
         markdownReport += `#### ${page.url}\n`;
         markdownReport += `- Violations: ${page.violationCount} (${page.criticalCount}C, ${page.seriousCount}S, ${page.moderateCount}M, ${page.minorCount}m)\n\n`;
 
-        // Group violations by type
         const violationsByType = new Map<string, AccessibilityViolation[]>();
         for (const violation of page.violations) {
           if (!violationsByType.has(violation.id)) {
@@ -270,14 +258,13 @@ async function generateReport(results: AppAuditResult[]): Promise<void> {
 
   const mdReportPath = path.join(reportDir, `baseline-${timestamp}.md`);
   fs.writeFileSync(mdReportPath, markdownReport);
-  console.log(`📄 Markdown Report: ${mdReportPath}`);
+
 }
 
 async function main(): Promise<void> {
-  console.log("🚀 Starting Accessibility Audit...\n");
-  console.log("📋 Configuration:");
+
   configs.forEach((c) => {
-    console.log(`  - ${c.app}: port ${c.port}, ${c.pages.length} pages`);
+
   });
 
   const results: AppAuditResult[] = [];
@@ -287,23 +274,15 @@ async function main(): Promise<void> {
       const result = await auditApp(config);
       results.push(result);
     } catch (error) {
-      console.error(`\n❌ Failed to audit ${config.app}:`, error);
+
     }
   }
 
-  // Generate reports
   await generateReport(results);
 
-  // Print summary
-  console.log("\n✅ Audit Complete!\n");
-  console.log("📊 Summary by App:");
   for (const result of results) {
-    console.log(
-      `  ${result.app}: ${result.summary.totalViolations} violations`,
-    );
-    console.log(
-      `    Critical: ${result.summary.criticalViolations}, Serious: ${result.summary.seriousViolations}`,
-    );
+    
+    
   }
 }
 

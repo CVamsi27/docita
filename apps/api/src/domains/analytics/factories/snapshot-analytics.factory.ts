@@ -1,7 +1,8 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
@@ -30,6 +31,10 @@ export interface SnapshotRecord {
 @Injectable()
 export class SnapshotAnalyticsFactory {
   private readonly logger = new Logger(SnapshotAnalyticsFactory.name);
+
+  private toJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
 
   constructor(
     private prisma: PrismaService,
@@ -81,7 +86,7 @@ export class SnapshotAnalyticsFactory {
           newPatients: demographics.newPatients || 0,
           activePatients: demographics.totalPatients || 0,
           appointmentRate: appointments.fillRate || 0,
-          topConditions: (topConditions || []) as any,
+          topConditions: this.toJsonValue(topConditions || []),
         },
       });
 
@@ -116,14 +121,17 @@ export class SnapshotAnalyticsFactory {
         take: days,
       });
 
-      return snapshots.map((s) => ({
+      const normalizedSnapshots: SnapshotRecord[] = snapshots.map((s) => ({
         ...s,
         totalRevenue: Number(s.totalRevenue),
         avgInvoiceAmount: Number(s.avgInvoiceAmount),
         appointmentFillRate: Number(s.appointmentFillRate),
         appointmentRate: Number(s.appointmentRate),
         topConditions: Array.isArray(s.topConditions) ? s.topConditions : [],
-      })) as unknown as SnapshotRecord[];
+        updatedAt: s.createdAt,
+      }));
+
+      return normalizedSnapshots;
     } catch (error) {
       this.logger.error('Error retrieving analytics snapshots', error);
       return [];

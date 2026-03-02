@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { IWhatsAppRepository } from '../../application/ports/whatsapp.repository.port';
-import { WhatsAppMessage, WhatsAppTemplate } from '../../core/entities';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { WhatsAppMessageStatus as DomainMessageStatus } from '../../core/entities/whatsapp-message.entity';
+import { IWhatsAppRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import {
+  WhatsAppMessage,
+  WhatsAppTemplate,
+} from '@/domains/whatsapp/core/entities';
+import { PrismaService } from '@/prisma/prisma.service';
+import { WhatsAppMessageStatus as DomainMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import {
   WhatsAppTemplateStatus as DomainTemplateStatus,
   WhatsAppTemplateCategory as DomainTemplateCategory,
-} from '../../core/entities/whatsapp-template.entity';
+} from '@/domains/whatsapp/core/entities/whatsapp-template.entity';
 import {
   WhatsappTemplateStatus as PrismaTemplateStatus,
   WhatsappTemplateCategory as PrismaTemplateCategory,
@@ -17,6 +20,18 @@ import {
 @Injectable()
 export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
 
   async saveMessage(message: WhatsAppMessage): Promise<void> {
     const data = message.toSnapshot();
@@ -95,7 +110,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       update: {
         status: this.toPrismaStatus(data.status),
         content: data.content,
-        buttons: data.buttons as Prisma.InputJsonValue,
+        buttons: this.toInputJsonValue(data.buttons),
         category: this.toPrismaCategory(data.category),
         updatedAt: data.updatedAt,
       },
@@ -106,7 +121,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
         category: this.toPrismaCategory(data.category),
         content: data.content,
         status: this.toPrismaStatus(data.status),
-        buttons: data.buttons as Prisma.InputJsonValue,
+        buttons: this.toInputJsonValue(data.buttons),
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       },
@@ -125,7 +140,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       category: this.toDomainCategory(raw.category),
       content: raw.content || '',
       status: this.toDomainStatus(raw.status),
-      buttons: raw.buttons as Record<string, unknown>,
+      buttons: this.toRecord(raw.buttons),
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
@@ -146,7 +161,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       category: this.toDomainCategory(raw.category),
       content: raw.content || '',
       status: this.toDomainStatus(raw.status),
-      buttons: raw.buttons as Record<string, unknown>,
+      buttons: this.toRecord(raw.buttons),
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
@@ -165,7 +180,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
           category: this.toDomainCategory(raw.category),
           content: raw.content || '',
           status: this.toDomainStatus(raw.status),
-          buttons: raw.buttons as Record<string, unknown>,
+          buttons: this.toRecord(raw.buttons),
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
         }),
@@ -185,7 +200,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       return true;
     }
 
-    const automation = clinic.whatsappAutomation as { enabled?: boolean };
+    const automation = this.toRecord(clinic.whatsappAutomation);
     return automation.enabled !== false;
   }
 

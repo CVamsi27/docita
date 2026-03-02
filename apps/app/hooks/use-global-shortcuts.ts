@@ -5,10 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export interface GlobalShortcutContext {
-  // Consultation context
+
   isInConsultation: boolean;
   consultationId?: string;
-  // Callbacks for consultation actions
+
   onSaveConsultation?: () => void;
   onCompleteConsultation?: () => void;
   onNextTab?: () => void;
@@ -119,9 +119,6 @@ export function useGlobalShortcuts({
   };
 }
 
-/**
- * Keyboard shortcut hints component data
- */
 export const SHORTCUT_HINTS = {
   global: [
     { keys: ["⌘", "K"], description: "Command palette" },

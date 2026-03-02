@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('PatientService', () => {
@@ -78,7 +78,7 @@ describe('PatientService', () => {
     it('should validate required fields', async () => {
       const invalidDto = {
         firstName: 'John',
-        // Missing lastName
+
         email: 'john@example.com',
       };
 
@@ -193,7 +193,7 @@ describe('PatientService', () => {
     it('should update patient information', async () => {
       const updateDto = {
         firstName: 'John',
-        lastName: 'Smith', // Changed from Doe
+        lastName: 'Smith',
         phoneNumber: '+9876543210',
       };
 
@@ -354,7 +354,6 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      // Should not include patients from other clinics
       expect(
         result.data.every(
           (p: { clinicId: string }) => p.clinicId === 'clinic-1',
@@ -460,7 +459,6 @@ describe('PatientService', () => {
 
   describe('integration scenarios', () => {
     it('should handle complete patient lifecycle', async () => {
-      // Create
       const createDto = {
         firstName: 'John',
         lastName: 'Doe',
@@ -477,12 +475,10 @@ describe('PatientService', () => {
       const created = await service.createPatient(createDto);
       expect(created.id).toBe('patient-1');
 
-      // Retrieve
       service.getPatient.mockResolvedValueOnce(createdPatient);
       const retrieved = await service.getPatient('patient-1', 'clinic-1');
       expect(retrieved.firstName).toBe('John');
 
-      // Update
       const updatedPatient = {
         ...createdPatient,
         firstName: 'Jane',
@@ -494,7 +490,6 @@ describe('PatientService', () => {
       });
       expect(updated.firstName).toBe('Jane');
 
-      // Delete
       service.deletePatient.mockResolvedValueOnce({
         ...updatedPatient,
         deletedAt: new Date(),

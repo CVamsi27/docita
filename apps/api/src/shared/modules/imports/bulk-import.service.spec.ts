@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bull';
 import { BulkImportService } from './bulk-import.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('BulkImportService', () => {
   let service: BulkImportService;
@@ -42,9 +42,9 @@ describe('BulkImportService', () => {
             getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
             getEnvironment: jest.fn().mockReturnValue('test'),
             getBulkImportConfig: jest.fn().mockReturnValue({
-              maxFileSize: 5242880, // 5MB
+              maxFileSize: 5242880,
               maxRows: 10000,
-              rateLimitInterval: 300, // in seconds
+              rateLimitInterval: 300,
             }),
           },
         },
@@ -54,7 +54,6 @@ describe('BulkImportService', () => {
     service = module.get<BulkImportService>(BulkImportService);
     prismaService = module.get<PrismaService>(PrismaService);
 
-    // Silence error logs during tests
     jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
 
@@ -82,7 +81,6 @@ describe('BulkImportService', () => {
     });
 
     it('should reject if file is too large', async () => {
-      // Create a file larger than 50MB
       const largeBuffer = Buffer.alloc(52428801);
 
       await expect(
@@ -117,7 +115,7 @@ describe('BulkImportService', () => {
         service.startImport(
           'clinic-1',
           'user-1',
-          'INVALID_TYPE' as any,
+          'INVALID_TYPE' as never,
           'test.csv',
           csvContent,
         ),
@@ -202,7 +200,6 @@ describe('BulkImportService', () => {
         totalRows: 1,
       };
 
-      // Prescriptions are skipped in bulk import
       await expect(service.processImport(jobData)).resolves.not.toThrow();
     });
 
@@ -366,7 +363,7 @@ describe('BulkImportService', () => {
         service.startImport(
           'clinic-1',
           'user-1',
-          'UNKNOWN' as any,
+          'UNKNOWN' as never,
           'test.csv',
           csvContent,
         ),
@@ -376,9 +373,8 @@ describe('BulkImportService', () => {
     it('should handle null clinic ID', async () => {
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
-      // When clinicId is null, the service still processes the import
       const result = await service.startImport(
-        null as any,
+        null as never,
         'user-1',
         'PATIENT',
         'test.csv',
@@ -396,9 +392,7 @@ describe('BulkImportService', () => {
         userId: 'user-1',
         entityType: 'PATIENT' as const,
         fileName: 'patients.csv',
-        fileBuffer: Buffer.from(
-          `firstName,lastName\nJohn`, // Missing lastName column value
-        ),
+        fileBuffer: Buffer.from(`firstName,lastName\nJohn`),
         totalRows: 1,
       };
 
@@ -410,7 +404,6 @@ describe('BulkImportService', () => {
     it('should enforce rate limiting per clinic', async () => {
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
-      // First import should succeed
       await service.startImport(
         'clinic-1',
         'user-1',
@@ -419,7 +412,6 @@ describe('BulkImportService', () => {
         csvContent,
       );
 
-      // Immediate second import should be rate limited
       await expect(
         service.startImport(
           'clinic-1',
@@ -435,7 +427,6 @@ describe('BulkImportService', () => {
       jest.useFakeTimers();
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
-      // First import
       await service.startImport(
         'clinic-1',
         'user-1',
@@ -444,10 +435,8 @@ describe('BulkImportService', () => {
         csvContent,
       );
 
-      // Advance time beyond rate limit (default 300 seconds)
       jest.advanceTimersByTime(301000);
 
-      // Second import should succeed
       const result = await service.startImport(
         'clinic-1',
         'user-1',

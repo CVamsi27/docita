@@ -14,6 +14,23 @@ import {
   usePatientPrescriptions,
 } from "@/hooks/api/use-clinical";
 import { Pill, Plus, RotateCcw, X } from "lucide-react";
+import { ApiError } from "@/lib/errors";
+
+const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
+  if (!(error instanceof ApiError)) {
+    return null;
+  }
+
+  if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
+    return "Doctor signature is required before creating a prescription.";
+  }
+
+  if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
+    return "Doctor government verification is required before creating a prescription.";
+  }
+
+  return null;
+};
 
 export interface ModalProps {
   open?: boolean;
@@ -54,7 +71,6 @@ export function PrescriptionModal({
 
   const createPrescription = useCreatePrescription();
 
-  // For repeating last prescription
   const { data: lastRxData } = usePatientPrescriptions(
     patientId || "",
     { limit: 1 },
@@ -113,8 +129,9 @@ export function PrescriptionModal({
         },
       ]);
     } catch (err) {
-      toast.error("Failed to create prescription");
-      console.error(err);
+      const complianceMessage = getPrescriptionComplianceErrorMessage(err);
+      toast.error(complianceMessage || "Failed to create prescription");
+
     }
   };
 
@@ -144,7 +161,7 @@ export function PrescriptionModal({
 
   const removeMedication = (index: number) => {
     if (medications.length === 1) {
-      // Don't remove the last one, just clear it
+
       setMedications([
         {
           name: "",
@@ -166,7 +183,7 @@ export function PrescriptionModal({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5 text-indigo-600" />
+              <Pill className="h-5 w-5 text-primary" />
               Create Prescription
             </DialogTitle>
           </div>

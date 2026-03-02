@@ -27,10 +27,8 @@ import {
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
-// Re-export for convenience
 export { Feature, Tier };
 
-// Type definitions
 interface FeatureGateProps {
   feature: Feature;
   children: React.ReactNode;
@@ -62,10 +60,6 @@ interface LockedFeatureCardProps {
   description?: string;
 }
 
-/**
- * Locked Feature Card - displays when a feature is not available
- * Shows the required tier and upgrade prompt
- */
 export function LockedFeatureCard({
   feature,
   tier,
@@ -78,14 +72,14 @@ export function LockedFeatureCard({
   const tierInfo = tierName ? TIER_INFO[tierName] : undefined;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-amber-300/50 bg-linear-to-br from-amber-50 via-amber-50/50 to-background dark:from-amber-950/30 dark:via-amber-900/20 dark:to-slate-900/50 dark:border-amber-700/30">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 dark:bg-amber-500/10" />
+    <Card className="surface-warning relative overflow-hidden border-2">
+      <div className="absolute top-0 left-0 w-32 h-32 bg-warning/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+        <CardTitle className="flex items-center gap-2 text-warning">
           <Lock className="h-5 w-5" />
           {title || "Feature Locked"}
         </CardTitle>
-        <CardDescription className="text-amber-600/80 dark:text-amber-400/70">
+        <CardDescription className="text-warning/80">
           {description ||
             `This feature requires the ${tierInfo?.name || "higher"} plan or above.`}
         </CardDescription>
@@ -105,10 +99,6 @@ export function LockedFeatureCard({
   );
 }
 
-/**
- * Feature Gate - allows access based on feature availability
- * Uses permission store to check if user can access the feature
- */
 export function FeatureGate({
   feature,
   children,
@@ -122,7 +112,6 @@ export function FeatureGate({
     return <>{children}</>;
   }
 
-  // Show locked UI
   if (fallback) {
     return <>{fallback}</>;
   }
@@ -134,10 +123,6 @@ export function FeatureGate({
   return null;
 }
 
-/**
- * Feature Tier Badge - shows which tier a feature requires
- * Displays the actual tier name from FEATURE_TIER_MAP
- */
 export function FeatureTierBadge({
   feature,
   className,
@@ -147,12 +132,12 @@ export function FeatureTierBadge({
   const tierInfo = TIER_INFO[tierName];
 
   const tierColors: Record<Tier, string> = {
-    [Tier.CAPTURE]: "bg-gray-100 text-gray-700 border-gray-300",
-    [Tier.CORE]: "bg-blue-100 text-blue-700 border-blue-300",
-    [Tier.PLUS]: "bg-green-100 text-green-700 border-green-300",
-    [Tier.PRO]: "bg-purple-100 text-purple-700 border-purple-300",
-    [Tier.ENTERPRISE]: "bg-amber-100 text-amber-700 border-amber-300",
-    [Tier.INTELLIGENCE]: "bg-cyan-100 text-cyan-700 border-cyan-300",
+    [Tier.CAPTURE]: "tier-capture",
+    [Tier.CORE]: "tier-core",
+    [Tier.PLUS]: "tier-plus",
+    [Tier.PRO]: "tier-pro",
+    [Tier.ENTERPRISE]: "tier-enterprise",
+    [Tier.INTELLIGENCE]: "tier-intelligence",
   };
 
   return (
@@ -165,19 +150,16 @@ export function FeatureTierBadge({
   );
 }
 
-/**
- * Tier Badge - shows current subscription tier
- */
 export function TierBadge({ tier, className }: TierBadgeProps) {
   if (tier === undefined || tier === null) return null;
 
   const tierColors: Record<Tier, string> = {
-    [Tier.CAPTURE]: "bg-gray-100 text-gray-700",
-    [Tier.CORE]: "bg-blue-100 text-blue-700",
-    [Tier.PLUS]: "bg-green-100 text-green-700",
-    [Tier.PRO]: "bg-purple-100 text-purple-700",
-    [Tier.ENTERPRISE]: "bg-amber-100 text-amber-700",
-    [Tier.INTELLIGENCE]: "bg-cyan-100 text-cyan-700",
+    [Tier.CAPTURE]: "tier-capture",
+    [Tier.CORE]: "tier-core",
+    [Tier.PLUS]: "tier-plus",
+    [Tier.PRO]: "tier-pro",
+    [Tier.ENTERPRISE]: "tier-enterprise",
+    [Tier.INTELLIGENCE]: "tier-intelligence",
   };
 
   const tierName = Tier[tier] as TierName;
@@ -190,10 +172,6 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
   );
 }
 
-/**
- * Tier Gate - allows access based on subscription tier
- * Uses permission store to check if user has required tier
- */
 export function TierGate({
   tier,
   children,
@@ -218,10 +196,6 @@ export function TierGate({
   return null;
 }
 
-/**
- * Locked Feature Indicator - shows a lock icon with tooltip for locked items
- * Use in navigation/lists to indicate locked status
- */
 export function LockedFeatureIndicator({
   feature,
   className,
@@ -238,7 +212,7 @@ export function LockedFeatureIndicator({
       <Tooltip>
         <TooltipTrigger asChild>
           <Lock
-            className={`h-4 w-4 text-amber-500 dark:text-amber-400 ${className ?? ""}`}
+            className={`h-4 w-4 text-warning ${className ?? ""}`}
           />
         </TooltipTrigger>
         <TooltipContent>
@@ -249,41 +223,25 @@ export function LockedFeatureIndicator({
   );
 }
 
-/**
- * Hook to check if a feature is enabled
- * Uses permission store for real access check
- */
 export function useFeature(feature: Feature): boolean {
   const { canAccess } = usePermissionStore();
   return canAccess(feature);
 }
 
-/**
- * Hook to get current subscription tier
- * Returns actual tier from permission store
- */
 export function useTier(): Tier {
   const { currentTier } = usePermissionStore();
   return currentTier;
 }
 
-/**
- * Hook to check if a feature is locked
- * Returns true if user cannot access the feature
- */
 export function useIsFeatureLocked(feature: Feature): boolean {
   const { isFeatureLocked } = usePermissionStore();
   return isFeatureLocked(feature);
 }
 
-/**
- * Hook to get required tier for a feature
- */
 export function useRequiredTier(feature: Feature): Tier {
   return FEATURE_TIER_MAP[feature];
 }
 
-// Export types
 export type {
   FeatureGateProps,
   TierGateProps,

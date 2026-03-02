@@ -25,7 +25,8 @@ const getConsoleMessage = (args: unknown[]): string => {
 export function ClientErrorReporter() {
   useEffect(() => {
     const reportedKeys = new Map<string, number>();
-    const shouldReport = process.env.NODE_ENV === "production";
+    const shouldReport = true;
+    const shouldPrintToConsole = false;
 
     const dedupe = (key: string): boolean => {
       const now = Date.now();
@@ -48,6 +49,7 @@ export function ClientErrorReporter() {
       payload: {
         type: string;
         message: string;
+        severity?: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
         stack?: string;
         metadata?: Record<string, unknown>;
       },
@@ -69,6 +71,7 @@ export function ClientErrorReporter() {
       report(`window-error:${message}:${stack ?? ""}`, {
         type: "WindowError",
         message,
+        severity: "ERROR",
         stack,
         metadata: {
           filename: event.filename,
@@ -85,30 +88,69 @@ export function ClientErrorReporter() {
       report(`promise-rejection:${message}:${stack ?? ""}`, {
         type: "UnhandledPromiseRejection",
         message,
+        severity: "ERROR",
         stack,
       });
     };
 
+    const originalConsoleLog = console.log.bind(console);
+    const originalConsoleWarn = console.warn.bind(console);
     const originalConsoleError = console.error.bind(console);
+
+    const patchedConsoleLog = (...args: unknown[]) => {
+      if (shouldPrintToConsole) {
+        originalConsoleLog(...args);
+      }
+
+      const message = getConsoleMessage(args);
+      report(`console-log:${message}`, {
+        type: "ConsoleLog",
+        message,
+        severity: "INFO",
+      });
+    };
+
+    const patchedConsoleWarn = (...args: unknown[]) => {
+      if (shouldPrintToConsole) {
+        originalConsoleWarn(...args);
+      }
+
+      const message = getConsoleMessage(args);
+      const firstError = args.find((arg): arg is Error => arg instanceof Error);
+      report(`console-warn:${message}`, {
+        type: "ConsoleWarning",
+        message,
+        severity: "WARNING",
+        stack: firstError?.stack,
+      });
+    };
+
     const patchedConsoleError = (...args: unknown[]) => {
-      originalConsoleError(...args);
+      if (shouldPrintToConsole) {
+        originalConsoleError(...args);
+      }
 
       const message = getConsoleMessage(args);
       const firstError = args.find((arg): arg is Error => arg instanceof Error);
       report(`console-error:${message}`, {
         type: "ConsoleError",
         message,
+        severity: "ERROR",
         stack: firstError?.stack,
       });
     };
 
     window.addEventListener("error", handleError);
     window.addEventListener("unhandledrejection", handleRejection);
+    console.log = patchedConsoleLog;
+    console.warn = patchedConsoleWarn;
     console.error = patchedConsoleError;
 
     return () => {
       window.removeEventListener("error", handleError);
       window.removeEventListener("unhandledrejection", handleRejection);
+      console.log = originalConsoleLog;
+      console.warn = originalConsoleWarn;
       console.error = originalConsoleError;
     };
   }, []);

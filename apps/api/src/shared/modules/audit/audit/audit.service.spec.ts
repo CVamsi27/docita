@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bull';
 import { AuditService } from './audit.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('AuditService', () => {
   let service: AuditService;
@@ -51,7 +51,6 @@ describe('AuditService', () => {
     service = module.get<AuditService>(AuditService);
     prismaService = module.get<PrismaService>(PrismaService);
 
-    // Silence error logs during tests
     jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
 
@@ -108,7 +107,6 @@ describe('AuditService', () => {
 
       mockQueue.add = jest.fn().mockRejectedValue(new Error('Queue error'));
 
-      // Should not throw
       await expect(service.logAction(logData)).resolves.toBeUndefined();
     });
   });
@@ -216,7 +214,7 @@ describe('AuditService', () => {
     it('should filter logs by date range', async () => {
       const startDate = new Date('2025-01-01');
       const endDate = new Date('2025-01-31');
-      const mockLogs: any[] = [];
+      const mockLogs: unknown[] = [];
 
       jest
         .spyOn(prismaService.auditLog, 'findMany')
@@ -308,12 +306,15 @@ describe('AuditService', () => {
     it('should handle archive errors gracefully', async () => {
       const loggerErrorSpy = jest.spyOn(service['logger'], 'error');
 
-      // Simulate error by mocking failing operation
       jest
-        .spyOn(service as any, 'archiveOldLogs')
+        .spyOn(
+          service as {
+            archiveOldLogs: (days?: number) => Promise<void>;
+          },
+          'archiveOldLogs',
+        )
         .mockRejectedValue(new Error('Archive failed'));
 
-      // Call the original method
       await expect(service.archiveOldLogs(90)).rejects.toThrow();
     });
   });

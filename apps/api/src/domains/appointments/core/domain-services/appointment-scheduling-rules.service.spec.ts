@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppointmentSchedulingRulesService } from '../domain-services/appointment-scheduling-rules.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
 describe.skip('AppointmentSchedulingRulesService', () => {
@@ -36,8 +36,8 @@ describe.skip('AppointmentSchedulingRulesService', () => {
 
   describe('validateAppointmentTime', () => {
     it('should accept valid appointment time', () => {
-      const startTime = new Date(Date.now() + 86400000); // Tomorrow
-      const endTime = new Date(startTime.getTime() + 1800000); // 30 min later
+      const startTime = new Date(Date.now() + 86400000);
+      const endTime = new Date(startTime.getTime() + 1800000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
 
@@ -57,7 +57,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
 
     it('should reject appointment duration less than 15 minutes', () => {
       const startTime = new Date(Date.now() + 86400000);
-      const endTime = new Date(startTime.getTime() + 600000); // 10 minutes
+      const endTime = new Date(startTime.getTime() + 600000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
 
@@ -67,7 +67,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
 
     it('should reject appointment duration more than 8 hours', () => {
       const startTime = new Date(Date.now() + 86400000);
-      const endTime = new Date(startTime.getTime() + 36000000); // 10 hours
+      const endTime = new Date(startTime.getTime() + 36000000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
 
@@ -76,7 +76,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
     });
 
     it('should reject appointment in the past', () => {
-      const startTime = new Date(Date.now() - 3600000); // 1 hour ago
+      const startTime = new Date(Date.now() - 3600000);
       const endTime = new Date(startTime.getTime() + 1800000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
@@ -87,7 +87,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
 
     it('should warn about appointment outside business hours', () => {
       const startTime = new Date(Date.now() + 86400000);
-      startTime.setHours(7, 0, 0); // 7 AM (before 9 AM)
+      startTime.setHours(7, 0, 0);
       const endTime = new Date(startTime.getTime() + 1800000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
@@ -283,7 +283,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
     });
 
     it('should report unavailable when slot is full', async () => {
-      mockPrismaService.appointment.count.mockResolvedValueOnce(4); // Max slots
+      mockPrismaService.appointment.count.mockResolvedValueOnce(4);
 
       const date = new Date(Date.now() + 86400000);
 
@@ -327,12 +327,12 @@ describe.skip('AppointmentSchedulingRulesService', () => {
     it('should identify missing prerequisites', async () => {
       mockPrismaService.appointment.findUnique.mockResolvedValueOnce({
         id: 'appt-1',
-        status: AppointmentStatus.SCHEDULED, // Not confirmed
+        status: AppointmentStatus.SCHEDULED,
         patient: {
-          dateOfBirth: null, // Missing
-          contactInfo: null, // Missing
+          dateOfBirth: null,
+          contactInfo: null,
         },
-        vitalSign: [], // Missing
+        vitalSign: [],
       });
 
       const result = await service.validateConsultationPrerequisites('appt-1');

@@ -1,19 +1,14 @@
-/**
- * Message Template Service
- * Manages message templates and variable substitution
- */
-
 import { Injectable } from '@nestjs/common';
 
 export interface MessageTemplate {
   key: string;
   name: string;
   channels: {
-    whatsapp?: string; // Template ID on WhatsApp
-    email?: string; // HTML template
-    sms?: string; // Text template
+    whatsapp?: string;
+    email?: string;
+    sms?: string;
   };
-  variables: string[]; // List of variables to substitute
+  variables: string[];
   description?: string;
 }
 
@@ -25,34 +20,24 @@ export class MessageTemplateService {
     this.registerDefaultTemplates();
   }
 
-  /**
-   * Register a message template
-   */
   registerTemplate(template: MessageTemplate): void {
     this.templates.set(template.key, template);
   }
 
-  /**
-   * Get template by key
-   */
   getTemplate(templateKey: string): MessageTemplate | undefined {
     return this.templates.get(templateKey);
   }
 
-  /**
-   * Process template with variables
-   */
   processTemplate(
     templateKey: string,
     channel: string,
-    variables: Record<string, any>,
+    variables: Record<string, unknown>,
   ): string {
     const template = this.getTemplate(templateKey);
     if (!template) {
       throw new Error(`Template ${templateKey} not found`);
     }
 
-    // Get template content for channel
     let content: string;
     if (channel === 'whatsapp' && template.channels.whatsapp) {
       content = template.channels.whatsapp;
@@ -64,9 +49,12 @@ export class MessageTemplateService {
       throw new Error(`No template found for channel ${channel}`);
     }
 
-    // Substitute variables
     for (const variable of template.variables) {
-      const value = variables[variable] || `{{${variable}}}`;
+      const rawValue = variables[variable];
+      const value =
+        rawValue === undefined || rawValue === null
+          ? `{{${variable}}}`
+          : String(rawValue);
       content = content.replace(
         new RegExp(`\\{\\{${variable}\\}\\}`, 'g'),
         value,
@@ -77,7 +65,6 @@ export class MessageTemplateService {
   }
 
   private registerDefaultTemplates(): void {
-    // Appointment confirmation template
     this.registerTemplate({
       key: 'appointment_confirmation',
       name: 'Appointment Confirmation',
@@ -92,7 +79,6 @@ export class MessageTemplateService {
       description: 'Confirmation message for appointment scheduling',
     });
 
-    // Payment reminder template
     this.registerTemplate({
       key: 'payment_reminder',
       name: 'Payment Reminder',
@@ -107,7 +93,6 @@ export class MessageTemplateService {
       description: 'Reminder for pending payment',
     });
 
-    // Prescription ready template
     this.registerTemplate({
       key: 'prescription_ready',
       name: 'Prescription Ready',

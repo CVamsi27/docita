@@ -1,6 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Allergy } from "../PatientSummaryCardUI";
+import { Allergy } from "@/features/consultation/components/PatientSummaryCardUI";
 
 export function AllergyAlertUI({
   allergies,
@@ -19,8 +19,8 @@ export function AllergyAlertUI({
       className={cn(
         "flex items-center gap-2 px-3 py-2 rounded-lg",
         severeAllergies.length > 0
-          ? "bg-red-50 border border-red-200 text-red-800"
-          : "bg-yellow-50 border border-yellow-200 text-yellow-800",
+          ? "bg-destructive border border-destructive/30 text-destructive"
+          : "bg-warning border border-warning/30 text-warning",
         className,
       )}
     >
@@ -28,7 +28,7 @@ export function AllergyAlertUI({
       <div className="flex-1 text-sm">
         <span className="font-medium">Allergies: </span>
         {severeAllergies.length > 0 && (
-          <span className="text-red-700">
+          <span className="text-destructive">
             {severeAllergies.map((a) => a.allergen).join(", ")}
             {otherAllergies.length > 0 && ", "}
           </span>

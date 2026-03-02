@@ -25,7 +25,7 @@ describe("Lab Test Rules", () => {
     });
 
     it("should identify low results", () => {
-      // Range 5-15. Critical Low < 3 (5 - 2). Value 4 is Low.
+
       const result: LabTestResult = {
         testName: "Test",
         value: 4,
@@ -37,7 +37,7 @@ describe("Lab Test Rules", () => {
     });
 
     it("should identify high results", () => {
-      // Range 5-15. Critical High > 17 (15 + 2). Value 16 is High.
+
       const result: LabTestResult = {
         testName: "Test",
         value: 16,
@@ -49,7 +49,7 @@ describe("Lab Test Rules", () => {
     });
 
     it("should identify critical low results", () => {
-      // Range 5-15. Critical Low threshold: 5 - (10 * 0.2) = 3.
+
       const result: LabTestResult = {
         testName: "Test",
         value: 2,
@@ -61,7 +61,7 @@ describe("Lab Test Rules", () => {
     });
 
     it("should identify critical high results", () => {
-      // Range 5-15. Critical High threshold: 15 + (10 * 0.2) = 17.
+
       const result: LabTestResult = {
         testName: "Test",
         value: 18,

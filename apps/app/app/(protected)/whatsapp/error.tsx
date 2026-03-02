@@ -13,7 +13,7 @@ export default function WhatsAppError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("WhatsApp route error:", error);
+
   }, [error]);
 
   return (

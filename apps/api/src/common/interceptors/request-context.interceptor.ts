@@ -10,27 +10,38 @@ import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 
-/**
- * Request Context Interceptor
- * Adds correlation ID to all requests for distributed tracing
- * Integrates with Sentry for error correlation
- */
+function readHeaderValue(
+  headers: Request['headers'],
+  key: 'x-correlation-id' | 'x-request-id',
+): string | undefined {
+  const value = headers[key];
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value;
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const [first] = value;
+    return typeof first === 'string' && first.trim().length > 0
+      ? first
+      : undefined;
+  }
+
+  return undefined;
+}
+
 @Injectable()
 export class RequestContextInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
-    // Generate or extract correlation ID
     const correlationId =
-      (request.headers['x-correlation-id'] as string) ||
-      (request.headers['x-request-id'] as string) ||
+      readHeaderValue(request.headers, 'x-correlation-id') ||
+      readHeaderValue(request.headers, 'x-request-id') ||
       randomUUID();
 
-    // Set correlation ID in response header for client reference
     response.setHeader('x-correlation-id', correlationId);
 
-    // Add to Sentry scope for error tracking
     Sentry.setTag('correlationId', correlationId);
     Sentry.setContext('request', {
       id: correlationId,
@@ -40,18 +51,14 @@ export class RequestContextInterceptor implements NestInterceptor {
       userAgent: request.get('user-agent'),
     });
 
-    // Store in Express locals for access in controllers
     request.id = correlationId;
 
     return next.handle().pipe(
       tap(
         () => {
-          // Success case
           const duration = Date.now();
-          // Logging will be handled by RequestLoggingInterceptor
         },
         (error) => {
-          // Error case - already handled by AllExceptionsFilter
           Sentry.captureException(error, {
             tags: { correlationId },
           });

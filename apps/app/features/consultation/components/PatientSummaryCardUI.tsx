@@ -17,8 +17,7 @@ import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { format } from "date-fns";
 import {
-  // CODE_STATUS_COLORS,
-  // CODE_STATUS_LABELS,
+
   CodeStatus,
   CodeStatusAlertUI,
 } from "./summary/CodeStatusAlertUI";
@@ -79,9 +78,9 @@ export interface PatientSummaryCardUIProps {
 }
 
 const SEVERITY_COLORS = {
-  mild: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  moderate: "bg-orange-100 text-orange-800 border-orange-300",
-  severe: "bg-red-100 text-red-800 border-red-300",
+  mild: "badge-warning",
+  moderate: "badge-warning",
+  severe: "badge-danger",
 };
 
 export function PatientSummaryCardUI({
@@ -93,7 +92,7 @@ export function PatientSummaryCardUI({
   latestVitals,
   lastVisit,
   expanded,
-  // onToggleExpanded,
+
   className,
   codeStatus,
 }: PatientSummaryCardUIProps) {
@@ -134,7 +133,7 @@ export function PatientSummaryCardUI({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 text-red-600 animate-pulse">
+                  <div className="flex items-center gap-1 text-destructive animate-pulse">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-xs font-medium">ALERT</span>
                   </div>
@@ -149,7 +148,7 @@ export function PatientSummaryCardUI({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Top Allergies Badges (Optional - keeping if it was intended) */}
+        {}
         {hasAllergies && (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -187,27 +186,27 @@ export function PatientSummaryCardUI({
           </div>
         )}
 
-        {/* Main Grid Columns */}
+        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            {/* Detailed Alerts */}
+            {}
             <div className="space-y-2">
               <AllergyAlertUI allergies={allergies} />
             </div>
             {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
           </div>
 
-          {/* Conditions Column */}
+          {}
           <SummaryConditions conditions={activeConditions} />
 
-          {/* Medications Column */}
+          {}
           <SummaryMedications medications={currentMedications} />
 
-          {/* Vitals Column */}
+          {}
           <SummaryVitals vitals={latestVitals} />
         </div>
 
-        {/* Expanded Content */}
+        {}
         {expanded && (
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
             <div>
@@ -240,7 +239,6 @@ export function PatientSummaryCardUI({
   );
 }
 
-// Re-export for backward compatibility
 export { AllergyAlertUI, CodeStatusAlertUI };
 export type { CodeStatus } from "./summary/CodeStatusAlertUI";
 export {

@@ -29,7 +29,7 @@ export const invoiceSchema = z.object({
   updatedAt: z.string().or(z.date()).optional(),
   patient: patientSchema.optional(),
   appointment: z.object({ doctor: z.object({ name: z.string() }) }).optional(),
-  // Doctor context snapshot for audit trail (Phase 5)
+
   doctorName: z.string().optional(),
   doctorEmail: z.string().optional(),
   doctorPhone: z.string().optional(),

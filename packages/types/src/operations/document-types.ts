@@ -1,12 +1,7 @@
 import { z } from "zod";
 
-/**
- * Document Types for Patient Documents
- * Includes general documents and specific X-ray categories
- */
-
 export const documentTypeSchema = z.enum([
-  // General Documents
+
   "PRESCRIPTION",
   "LAB_REPORT",
   "INVOICE",
@@ -17,31 +12,27 @@ export const documentTypeSchema = z.enum([
   "REFERRAL_LETTER",
   "DISCHARGE_SUMMARY",
 
-  // X-ray - Dental (Intraoral)
   "XRAY_INTRAORAL_PERIAPICAL",
   "XRAY_INTRAORAL_BITEWING",
   "XRAY_INTRAORAL_OCCLUSAL",
 
-  // X-ray - Dental (Extraoral)
   "XRAY_PANORAMIC",
   "XRAY_CEPHALOMETRIC",
   "XRAY_CBCT",
 
-  // X-ray - Medical
   "XRAY_CHEST",
   "XRAY_SKELETAL",
   "XRAY_SPINE",
   "XRAY_ABDOMEN",
   "XRAY_OTHER",
 
-  // Other
   "OTHER",
 ]);
 
 export type DocumentType = z.infer<typeof documentTypeSchema>;
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
-  // General
+
   PRESCRIPTION: "Prescription",
   LAB_REPORT: "Lab Report",
   INVOICE: "Invoice",
@@ -52,30 +43,23 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   REFERRAL_LETTER: "Referral Letter",
   DISCHARGE_SUMMARY: "Discharge Summary",
 
-  // Dental X-rays (Intraoral)
   XRAY_INTRAORAL_PERIAPICAL: "X-ray - Periapical",
   XRAY_INTRAORAL_BITEWING: "X-ray - Bitewing",
   XRAY_INTRAORAL_OCCLUSAL: "X-ray - Occlusal",
 
-  // Dental X-rays (Extraoral)
   XRAY_PANORAMIC: "X-ray - Panoramic (OPG)",
   XRAY_CEPHALOMETRIC: "X-ray - Cephalometric (Ceph)",
   XRAY_CBCT: "X-ray - CBCT Scan",
 
-  // Medical X-rays
   XRAY_CHEST: "X-ray - Chest",
   XRAY_SKELETAL: "X-ray - Skeletal",
   XRAY_SPINE: "X-ray - Spine",
   XRAY_ABDOMEN: "X-ray - Abdomen",
   XRAY_OTHER: "X-ray - Other",
 
-  // Other
   OTHER: "Other Document",
 };
 
-/**
- * Document type categories for filtering/grouping
- */
 export const DOCUMENT_TYPE_CATEGORIES = {
   ALL_XRAYS: [
     "XRAY_INTRAORAL_PERIAPICAL",
@@ -134,9 +118,6 @@ export const DOCUMENT_TYPE_CATEGORIES = {
   ] as const,
 };
 
-/**
- * Document type descriptions for user guidance
- */
 export const DOCUMENT_TYPE_DESCRIPTIONS: Record<DocumentType, string> = {
   PRESCRIPTION: "Prescription documents and medication orders",
   LAB_REPORT: "Laboratory test results and reports",
@@ -168,36 +149,24 @@ export const DOCUMENT_TYPE_DESCRIPTIONS: Record<DocumentType, string> = {
   OTHER: "Other document types not categorized above",
 };
 
-/**
- * Check if a document type is an X-ray
- */
 export function isXRayDocument(type: DocumentType): boolean {
   return (DOCUMENT_TYPE_CATEGORIES.ALL_XRAYS as readonly string[]).includes(
     type,
   );
 }
 
-/**
- * Check if a document type is a dental X-ray
- */
 export function isDentalXRay(type: DocumentType): boolean {
   return (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(
     type,
   );
 }
 
-/**
- * Check if a document type is a medical X-ray
- */
 export function isMedicalXRay(type: DocumentType): boolean {
   return (DOCUMENT_TYPE_CATEGORIES.MEDICAL_XRAYS as readonly string[]).includes(
     type,
   );
 }
 
-/**
- * Get category for a document type
- */
 export function getDocumentCategory(type: DocumentType): string {
   if (
     (DOCUMENT_TYPE_CATEGORIES.DENTAL_XRAYS as readonly string[]).includes(type)
@@ -225,7 +194,7 @@ export const documentSchema = z.object({
   type: documentTypeSchema,
   name: z.string(),
   title: z.string().optional(),
-  url: z.string(), // Removed .url() validation as it might be a relative path often
+  url: z.string(), 
   filename: z.string().optional(),
   mimeType: z.string().optional(),
   size: z.number().optional(),

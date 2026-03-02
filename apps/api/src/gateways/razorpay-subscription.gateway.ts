@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
-import { AppConfigService } from '../shared/modules/config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentGateway,
   CreateCustomerParams,
@@ -86,16 +86,12 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
     try {
       const razorpay = this.ensureRazorpayInitialized();
       const customer = await razorpay.customers.fetch(customerId);
-      return customer as unknown as Record<string, unknown>;
+      return this.toRecord(customer);
     } catch (error: unknown) {
       this.logger.warn(`Customer ${customerId} not found`);
       return null;
     }
   }
-
-  // =========================================================================
-  // Plan Management
-  // =========================================================================
 
   async createPlan(params: CreatePlanParams): Promise<CreatePlanResult> {
     try {
@@ -128,7 +124,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
     try {
       const razorpay = this.ensureRazorpayInitialized();
       const plan = await razorpay.plans.fetch(planId);
-      return plan as unknown as Record<string, unknown>;
+      return this.toRecord(plan);
     } catch (error: unknown) {
       this.logger.warn(`Plan ${planId} not found`);
       return null;
@@ -152,30 +148,41 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         }),
       };
 
-      const subscription = (await razorpay.subscriptions.create(
-        subscriptionData,
-      )) as unknown as {
-        id: string;
-        status: string;
-        current_start?: number;
-        current_end?: number;
-        short_url?: string;
-      };
+      const subscription =
+        await razorpay.subscriptions.create(subscriptionData);
+      const subscriptionRecord = this.toRecord(subscription);
+      const subscriptionId = this.getStringField(subscriptionRecord, 'id');
+      const status = this.getStringField(subscriptionRecord, 'status');
+      const currentStartSeconds = this.getNumberField(
+        subscriptionRecord,
+        'current_start',
+      );
+      const currentEndSeconds = this.getNumberField(
+        subscriptionRecord,
+        'current_end',
+      );
+      const shortUrl = this.getStringField(subscriptionRecord, 'short_url');
 
-      const currentStart = subscription.current_start
-        ? new Date(subscription.current_start * 1000)
+      if (!subscriptionId || !status) {
+        throw new Error(
+          'Razorpay subscription response is missing required fields',
+        );
+      }
+
+      const currentStart = currentStartSeconds
+        ? new Date(currentStartSeconds * 1000)
         : new Date();
 
-      const currentEnd = subscription.current_end
-        ? new Date(subscription.current_end * 1000)
+      const currentEnd = currentEndSeconds
+        ? new Date(currentEndSeconds * 1000)
         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       return {
-        subscriptionId: subscription.id,
-        status: subscription.status,
+        subscriptionId,
+        status,
         currentPeriodStart: currentStart,
         currentPeriodEnd: currentEnd,
-        shortUrl: subscription.short_url,
+        shortUrl,
       };
     } catch (error: unknown) {
       this.logger.error(
@@ -192,7 +199,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
     try {
       const razorpay = this.ensureRazorpayInitialized();
       const subscription = await razorpay.subscriptions.fetch(subscriptionId);
-      return subscription as unknown as Record<string, unknown>;
+      return this.toRecord(subscription);
     } catch (error: unknown) {
       this.logger.warn(`Subscription ${subscriptionId} not found`);
       return null;
@@ -250,21 +257,21 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   ): Promise<{ tokenId: string; customerId: string }> {
     try {
       const razorpay = this.ensureRazorpayInitialized();
-      const payment = (await razorpay.payments.fetch(paymentId)) as unknown as {
-        customer_id?: string;
-        vpa?: string;
-        card?: { id?: string };
-      };
+      const payment = await razorpay.payments.fetch(paymentId);
+      const paymentRecord = this.toRecord(payment);
+      const customerId = this.getStringField(paymentRecord, 'customer_id');
+      const card = this.toRecord(paymentRecord?.card);
+      const cardId = this.getStringField(card, 'id');
 
-      if (!payment.customer_id) {
+      if (!customerId) {
         throw new Error('Payment does not have a customer ID');
       }
 
-      const tokenId = payment.card?.id || paymentId;
+      const tokenId = cardId || paymentId;
 
       return {
         tokenId,
-        customerId: payment.customer_id,
+        customerId,
       };
     } catch (error: unknown) {
       this.logger.error(
@@ -291,9 +298,15 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
         customer_id: customerId,
         notes: { description: description || 'Auto-pay subscription renewal' },
       });
+      const orderRecord = this.toRecord(order);
+      const orderId = this.getStringField(orderRecord, 'id');
+
+      if (!orderId) {
+        throw new Error('Razorpay order response is missing id');
+      }
 
       return {
-        paymentId: (order as unknown as { id: string }).id,
+        paymentId: orderId,
         status: 'created',
       };
     } catch (error: unknown) {
@@ -353,11 +366,35 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
   }
 
   parseWebhookEvent(payload: unknown): WebhookEvent {
-    const data = payload as Record<string, unknown>;
+    const data = this.toRecord(payload) ?? {};
     return {
-      type: data.event as string,
-      data: data.payload as Record<string, unknown>,
+      type: this.getStringField(data, 'event') ?? '',
+      data: this.toRecord(data.payload) ?? {},
       rawPayload: payload,
     };
+  }
+
+  private toRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private getStringField(
+    record: Record<string, unknown> | null,
+    key: string,
+  ): string | undefined {
+    const value = record?.[key];
+    return typeof value === 'string' ? value : undefined;
+  }
+
+  private getNumberField(
+    record: Record<string, unknown> | null,
+    key: string,
+  ): number | undefined {
+    const value = record?.[key];
+    return typeof value === 'number' ? value : undefined;
   }
 }

@@ -67,5 +67,4 @@ export function WhatsAppSettingsDialogContainer({
   );
 }
 
-// Alias for backward compatibility
 export { WhatsAppSettingsDialogContainer as WhatsAppSettingsDialog };

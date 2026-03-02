@@ -7,7 +7,7 @@ import { Stethoscope, ArrowLeft } from "lucide-react";
 export default function TermsOfServicePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Header */}
+      {}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -25,7 +25,7 @@ export default function TermsOfServicePage() {
         </div>
       </header>
 
-      {/* Content */}
+      {}
       <main className="flex-1 px-6 py-12">
         <div className="mx-auto max-w-4xl">
           <h1 className="text-4xl font-bold tracking-tight mb-2">
@@ -417,7 +417,7 @@ export default function TermsOfServicePage() {
         </div>
       </main>
 
-      {/* Footer */}
+      {}
       <footer className="border-t px-6 py-8 bg-muted/30">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">

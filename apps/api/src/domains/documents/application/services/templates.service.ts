@@ -1,18 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
-
-interface TemplateField {
-  id: string;
-  label: string;
-  type: string;
-  options?: string[];
-}
 
 interface CreateTemplateData {
   name: string;
   speciality: string;
-  fields: TemplateField[];
+  fields: Record<string, unknown>[];
   defaultObservations?: string;
   clinicId?: string;
 }
@@ -20,7 +13,7 @@ interface CreateTemplateData {
 interface UpdateTemplateData {
   name?: string;
   speciality?: string;
-  fields?: TemplateField[];
+  fields?: Record<string, unknown>[];
   defaultObservations?: string;
 }
 
@@ -28,12 +21,16 @@ interface UpdateTemplateData {
 export class TemplatesService {
   constructor(private prisma: PrismaService) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   create(data: CreateTemplateData) {
     return this.prisma.clinicalTemplate.create({
       data: {
         name: data.name,
         speciality: data.speciality,
-        fields: data.fields as unknown as Prisma.InputJsonValue,
+        fields: this.toInputJsonValue(data.fields),
         defaultObservations: data.defaultObservations,
         clinicId: data.clinicId,
       },
@@ -78,9 +75,7 @@ export class TemplatesService {
       data: {
         name: data.name,
         speciality: data.speciality,
-        fields: data.fields
-          ? (data.fields as unknown as Prisma.InputJsonValue)
-          : undefined,
+        fields: data.fields ? this.toInputJsonValue(data.fields) : undefined,
         defaultObservations: data.defaultObservations,
       },
     });

@@ -2,7 +2,7 @@
 
 import { Check, Info, Lock } from "lucide-react";
 import { FEATURE_TIER_MAP, getTierInfo, Tier } from "@/lib/tier-config";
-import { getFeatureDetails } from "../../config/feature-config";
+import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   Table,
   TableBody,
@@ -111,7 +111,7 @@ export function ComparisonTable({ currentTier }: ComparisonTableProps) {
                       )}
                     >
                       {hasAccess ? (
-                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                        <Check className="h-5 w-5 text-success mx-auto" />
                       ) : (
                         <Lock className="h-4 w-4 text-muted-foreground/30 mx-auto" />
                       )}

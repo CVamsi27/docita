@@ -27,9 +27,9 @@ describe("Consultation Business Rules", () => {
 
   describe("isVitalNormal", () => {
     it("should use correct age-based ranges", () => {
-      // Adult heart rate 80 is normal
+
       expect(isVitalNormal("heartRate", 80, 30)).toBe(true);
-      // Infant heart rate 80 is LOW (min 120)
+
       expect(isVitalNormal("heartRate", 80, 0.5)).toBe(false);
     });
 
@@ -74,7 +74,7 @@ describe("Consultation Business Rules", () => {
         chiefComplaint: "Pain",
         diagnoses: [{ code: "A00", description: "Test" }],
         vitalSign: {},
-      } as unknown as Appointment;
+      } as Appointment;
       expect(canCompleteConsultation(complete)).toBe(true);
     });
 
@@ -82,7 +82,7 @@ describe("Consultation Business Rules", () => {
       expect(
         canCompleteConsultation({
           chiefComplaint: "Pain",
-        } as unknown as Appointment),
+        } as Appointment),
       ).toBe(false);
     });
   });

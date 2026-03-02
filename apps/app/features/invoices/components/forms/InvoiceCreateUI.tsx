@@ -27,7 +27,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { ArrowLeft, Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
-import { type CreateInvoiceFormValues, useInvoiceCreateLogic } from "../../hooks/use-invoice-create-logic";
+import { type CreateInvoiceFormValues, useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";

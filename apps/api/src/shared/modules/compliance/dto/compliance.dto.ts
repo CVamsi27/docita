@@ -1,10 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-/**
- * DTO for patient data deletion request (DPDP Act compliance)
- * This is used for the erasure workflow in the Indian privacy law
- */
 export const DeletePatientDataSchema = z.object({
   reason: z
     .string()
@@ -20,10 +16,6 @@ export class DeletePatientDataDto extends createZodDto(
   DeletePatientDataSchema,
 ) {}
 
-/**
- * DTO for emergency access request with break-the-glass logging
- * Used for HIPAA/DPDP emergency access scenarios
- */
 export const EmergencyAccessSchema = z.object({
   reason: z
     .string()

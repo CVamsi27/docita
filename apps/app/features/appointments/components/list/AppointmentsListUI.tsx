@@ -8,7 +8,7 @@ import {
 } from "@workspace/ui/components/card";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { Appointment, Patient } from "@workspace/types";
-import { TimeSlotRow } from "../forms/TimeSlotRow";
+import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic";
 
 interface AppointmentsListUIProps {

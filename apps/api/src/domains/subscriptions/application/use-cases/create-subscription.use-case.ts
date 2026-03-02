@@ -1,20 +1,20 @@
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
-import { Subscription } from '../../core/entities';
+import { Subscription } from '@/domains/subscriptions/core/entities';
 import {
   SubscriptionStatus,
   SubscriptionStatusEnum,
   ClinicTier,
   BillingCycle,
-} from '../../core/value-objects';
+} from '@/domains/subscriptions/core/value-objects';
 import {
   SubscriptionPricingService,
   SubscriptionValidationService,
-} from '../../core/services';
-import { CreateSubscriptionDto } from '../dto/subscription.dto';
+} from '@/domains/subscriptions/core/services';
+import { CreateSubscriptionDto } from '@/domains/subscriptions/application/dto/subscription.dto';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
-} from '../ports/subscription.repository.port';
+} from '@/domains/subscriptions/application/ports/subscription.repository.port';
 
 @Injectable()
 export class CreateSubscriptionUseCase {

@@ -16,26 +16,22 @@ export const embeddedMedicationSchema = z.object({
   duration: z.string().max(100),
   route: z.string().max(50).default("PO"),
 
-  // Hospital-Grade Drug Identification
-  ndcCode: z.string().max(50).optional(), // National Drug Code
-  rxNormCui: z.string().max(50).optional(), // RxNorm Concept Unique Identifier
+  ndcCode: z.string().max(50).optional(), 
+  rxNormCui: z.string().max(50).optional(), 
   dosageForm: dosageFormSchema.optional(),
   strengthValue: z.number().optional(),
-  strengthUnit: z.string().max(20).optional(), // e.g., "mg", "mL"
+  strengthUnit: z.string().max(20).optional(), 
 
-  // Prescription details
   quantity: z.number().optional(),
-  refillsAllowed: z.number().min(0).max(11).optional(), // 0-11 refills
-  dispenseAsWritten: z.boolean().optional(), // DAW flag
-  sigCode: sigCodeSchema.optional(), // Standard sig code
+  refillsAllowed: z.number().min(0).max(11).optional(), 
+  dispenseAsWritten: z.boolean().optional(), 
+  sigCode: sigCodeSchema.optional(), 
 
-  // Date tracking
   startDate: z.string().or(z.date()).optional(),
   endDate: z.string().or(z.date()).optional(),
 
-  // PRN (as needed) medications
   isPRN: z.boolean().optional(),
-  prnInstructions: z.string().max(500).optional().transform(stripHtmlTags), // e.g., "Take for pain"
+  prnInstructions: z.string().max(500).optional().transform(stripHtmlTags), 
 });
 export type EmbeddedMedication = z.infer<typeof embeddedMedicationSchema>;
 
@@ -62,7 +58,6 @@ export const medicationSchema = z.object({
 
 export type Medication = z.infer<typeof medicationSchema>;
 
-// Validation Schemas for MedicationValidationController
 export const checkDrugInteractionsSchema = z.object({
   medications: z.array(
     z.object({
@@ -84,7 +79,7 @@ export const checkContraindicationsSchema = z.object({
     .array(
       z.object({
         name: z.string(),
-        severity: z.string(), // Assuming severity is string based on controller usage
+        severity: z.string(), 
       }),
     )
     .optional(),
@@ -141,7 +136,7 @@ export const prescriptionSchema = z.object({
   updatedAt: z.string().or(z.date()).optional(),
   patient: patientSchema.optional(),
   doctor: z.object({ name: z.string().max(100) }).optional(),
-  // Doctor context snapshot for audit trail (Phase 5)
+
   doctorName: z.string().max(100).optional(),
   doctorEmail: z.string().max(255).optional(),
   doctorPhone: z.string().max(20).optional(),
@@ -190,7 +185,6 @@ export const ROUTE_OPTIONS = [
 
 export type RouteOfAdministration = (typeof ROUTE_OPTIONS)[number]["value"];
 
-// Route labels for display
 export const ROUTE_LABELS: Record<RouteOfAdministration, string> = {
   PO: "Oral",
   IV: "Intravenous",

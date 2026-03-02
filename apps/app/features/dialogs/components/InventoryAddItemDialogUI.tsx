@@ -14,7 +14,6 @@ import { Input } from "@workspace/ui/components/input";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 
-// Define schema for inventory item
 const inventoryItemSchema = z.object({
   name: requiredStringSchema("Item Name"),
   category: requiredStringSchema("Category"),
@@ -70,7 +69,6 @@ export function InventoryAddItemDialogUI({
     },
   });
 
-  // Reset form when dialog opens/closes
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -196,7 +194,7 @@ export function InventoryAddItemDialogUI({
                   <Input
                     type="date"
                     {...field}
-                    // Handle empty string for date input
+
                     value={field.value || ""}
                   />
                 </FormControl>

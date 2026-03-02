@@ -70,8 +70,8 @@ export function DiagnosisInput({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-full">
-                  <Stethoscope className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="badge-info p-1.5 rounded-full">
+                  <Stethoscope className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">
                   Diagnosis #{index + 1}
@@ -79,7 +79,7 @@ export function DiagnosisInput({
                 {item.type === "final" && (
                   <Badge
                     variant="default"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-success hover:bg-success"
                   >
                     Final
                   </Badge>

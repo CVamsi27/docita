@@ -23,8 +23,8 @@ import { Public } from './public.decorator';
 import { Roles } from './roles.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { IpRateLimitGuard } from '../guards/ip-rate-limit.guard';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
+import { RequestWithUser } from '@/common/types/common.types';
 import { Role } from '@workspace/db';
 import {
   LoginDto,
@@ -44,10 +44,10 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 import { ConfigService } from '@nestjs/config';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
-const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 minutes
-const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 @ApiTags('auth')
 @Controller('auth')
@@ -81,7 +81,7 @@ export class AuthController {
     res.cookie('refresh_token', tokens.refresh_token, {
       ...cookieOptions,
       maxAge: REFRESH_TOKEN_MAX_AGE,
-      path: '/api/v1/auth', // Restrict refresh token to auth endpoints only
+      path: '/api/v1/auth',
     });
   }
 
@@ -250,7 +250,6 @@ export class AuthController {
     @Request() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // Try DTO first, then cookie
     const refreshToken = dto.refresh_token || req.cookies?.refresh_token;
     if (!refreshToken) {
       throw new BadRequestException('refresh_token is required');

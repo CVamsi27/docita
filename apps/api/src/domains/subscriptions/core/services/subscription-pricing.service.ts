@@ -3,7 +3,7 @@ import {
   BillingCycle,
   SubscriptionPrice,
   DiscountAggregate,
-} from '../value-objects';
+} from '@/domains/subscriptions/core/value-objects';
 import { ANNUAL_DISCOUNT_PERCENT, TIER_PRICING } from '@workspace/types';
 
 export class SubscriptionPricingService {
@@ -33,7 +33,6 @@ export class SubscriptionPricingService {
   ): number {
     let totalPricePaise = this.getPricePaise(tier, cycle);
 
-    // Add-on logic (minimal for now)
     if (addOns.includes('INTELLIGENCE')) {
       const intelligencePrice = cycle.isYearly() ? 120000 : 12000;
       totalPricePaise += intelligencePrice;

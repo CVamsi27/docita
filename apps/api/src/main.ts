@@ -31,7 +31,6 @@ process.on('warning', (warning) => {
   if (warning.name === 'TimeoutNegativeWarning') {
     return;
   }
-  console.warn(warning);
 });
 
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
@@ -41,17 +40,29 @@ async function bootstrap() {
     name: string;
     setupOnce: () => void;
   }
+  const isSentryIntegration = (value: unknown): value is SentryIntegration => {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as {
+      name?: unknown;
+      setupOnce?: unknown;
+    };
+    return (
+      typeof candidate.name === 'string' &&
+      typeof candidate.setupOnce === 'function'
+    );
+  };
+
   const integrations: SentryIntegration[] = [];
   try {
     const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
-    integrations.push(
-      nodeProfilingIntegration() as unknown as SentryIntegration,
-    );
-  } catch (error) {
-    console.warn(
-      'Sentry CPU profiling not available for this Node version, continuing without profiling',
-    );
-  }
+    const profilingIntegration = nodeProfilingIntegration();
+    if (isSentryIntegration(profilingIntegration)) {
+      integrations.push(profilingIntegration);
+    }
+  } catch (error) {}
 
   Sentry.init({
     dsn: config.SENTRY_DSN,
@@ -81,10 +92,6 @@ async function bootstrap() {
     const startupValidator = app.get(StartupValidationService);
     startupValidator.validate();
   } catch (error) {
-    console.error(
-      '❌ Startup validation failed. Cannot start application.',
-      error instanceof Error ? error.message : error,
-    );
     process.exit(1);
   }
 
@@ -94,7 +101,6 @@ async function bootstrap() {
   const configService = app.get(AppConfigService);
   const apiUrl = configService.getApiUrl();
 
-  // Security Headers
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -202,7 +208,6 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
-    console.log('Swagger docs available at /api/docs');
   }
 
   const port = config.PORT;
@@ -211,19 +216,15 @@ async function bootstrap() {
   const observabilityService = app.get(ObservabilityService);
 
   const gracefulShutdown = (signal: string) => {
-    console.log(`\nReceived ${signal}, initiating graceful shutdown...`);
-
     server.close(async () => {
       await observabilityService.flush(5000);
 
       await app.close();
 
-      console.log('✅ Graceful shutdown complete');
       process.exit(0);
     });
 
     setTimeout(() => {
-      console.error('⚠️ Graceful shutdown timeout exceeded, forcing exit');
       process.exit(1);
     }, 15000);
   };
@@ -236,7 +237,6 @@ async function bootstrap() {
   });
 }
 bootstrap().catch((error: Error) => {
-  console.error('Fatal error during bootstrap:', error);
   Sentry.captureException(error);
   process.exit(1);
 });

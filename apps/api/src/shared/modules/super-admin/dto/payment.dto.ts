@@ -1,8 +1,6 @@
-// Payment processing types for super admin
-
 import { ClinicTier } from '@workspace/db';
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { extendGracePeriodRequestSchema } from '@workspace/types';
 
 export interface ProcessPaymentDto {
   paymentId: string;
@@ -13,9 +11,7 @@ export interface ProcessPaymentDto {
   notes?: string;
 }
 
-export const ExtendGracePeriodSchema = z.object({
-  days: z.number().int().positive('Days must be a positive integer'),
-});
+export const ExtendGracePeriodSchema = extendGracePeriodRequestSchema;
 export class ExtendGracePeriodRequestDto extends createZodDto(
   ExtendGracePeriodSchema,
 ) {}

@@ -21,7 +21,6 @@ import {
   Upload,
 } from "lucide-react";
 
-// Document List Component
 export const DocumentList: FC<{
   documents?: Array<{
     id: string;
@@ -84,6 +83,7 @@ export const DocumentList: FC<{
                       variant="ghost"
                       size="icon"
                       onClick={() => onView?.(doc.id)}
+                      aria-label={`View document ${doc.name}`}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -91,6 +91,7 @@ export const DocumentList: FC<{
                       variant="ghost"
                       size="icon"
                       onClick={() => onDownload?.(doc.id)}
+                      aria-label={`Download document ${doc.name}`}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -98,6 +99,7 @@ export const DocumentList: FC<{
                       variant="ghost"
                       size="icon"
                       onClick={() => onDelete?.(doc.id)}
+                      aria-label={`Delete document ${doc.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -112,7 +114,6 @@ export const DocumentList: FC<{
   );
 };
 
-// Document Upload Component
 export const DocumentUpload: FC<{
   onUpload?: (files: FileList) => void;
 }> = ({ onUpload }) => {

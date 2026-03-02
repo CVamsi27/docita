@@ -1,5 +1,4 @@
 export const ICD_10_CODES_ENDOCRINE_MENTAL_NERVOUS = [
-  // Endocrine/Metabolic
   {
     code: 'E03',
     description: 'Other hypothyroidism',
@@ -56,7 +55,6 @@ export const ICD_10_CODES_ENDOCRINE_MENTAL_NERVOUS = [
     category: 'Endocrine, nutritional and metabolic diseases',
   },
 
-  // Mental disorders
   {
     code: 'F10',
     description: 'Alcohol related disorders',
@@ -113,7 +111,6 @@ export const ICD_10_CODES_ENDOCRINE_MENTAL_NERVOUS = [
     category: 'Mental and behavioural disorders',
   },
 
-  // Nervous system
   {
     code: 'G20',
     description: 'Parkinson disease',

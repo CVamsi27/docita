@@ -12,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Application error:", error);
+
   }, [error]);
 
   return (
@@ -20,8 +20,8 @@ export default function GlobalError({
       <body>
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
           <div className="mx-auto max-w-md text-center">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <AlertCircle className="h-8 w-8 text-destructive" />
+            <div className="surface-danger mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
+              <AlertCircle className="h-8 w-8" />
             </div>
             <h1 className="mb-2 text-2xl font-bold tracking-tight">
               Something went wrong

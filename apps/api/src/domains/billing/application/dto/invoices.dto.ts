@@ -1,26 +1,22 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
-  invoiceSchema,
-  invoiceItemSchema,
+  createInvoiceRequestSchema,
+  invoiceResponseSchema,
+  listInvoicesQuerySchema,
   stripHtmlTags,
+  updateInvoiceRequestSchema,
 } from '@workspace/types';
 import { InvoiceStatus } from '@workspace/db';
 
-export const CreateInvoiceSchema = invoiceSchema
+export const CreateInvoiceSchema = createInvoiceRequestSchema
   .omit({
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    patient: true,
-    appointment: true,
     clinicId: true,
     paymentMethod: true,
     paidAt: true,
     totalAmount: true,
   })
   .extend({
-    // Add explicit validation for doctor context with length limits and sanitization
     doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
     doctorEmail: z
       .string()
@@ -49,7 +45,7 @@ export const CreateInvoiceSchema = invoiceSchema
 
 export class CreateInvoiceDto extends createZodDto(CreateInvoiceSchema) {}
 
-export const UpdateInvoiceSchema = invoiceSchema.partial().extend({
+export const UpdateInvoiceSchema = updateInvoiceRequestSchema.extend({
   doctorName: z.string().max(100).transform(stripHtmlTags).optional(),
   doctorEmail: z.string().email().max(255).transform(stripHtmlTags).optional(),
   doctorPhone: z.string().max(20).transform(stripHtmlTags).optional(),
@@ -65,10 +61,15 @@ export const UpdateInvoiceSchema = invoiceSchema.partial().extend({
 
 export class UpdateInvoiceDto extends createZodDto(UpdateInvoiceSchema) {}
 
-export class InvoiceResponseDto extends createZodDto(invoiceSchema) {}
+export const ListInvoicesQuerySchema = listInvoicesQuerySchema;
+export class ListInvoicesQueryDto extends createZodDto(
+  ListInvoicesQuerySchema,
+) {}
+
+export class InvoiceResponseDto extends createZodDto(invoiceResponseSchema) {}
 
 const PaginatedInvoiceResponseSchema = z.object({
-  items: z.array(invoiceSchema),
+  items: z.array(invoiceResponseSchema),
   nextCursor: z.string().optional(),
   hasMore: z.boolean(),
   count: z.number().optional(),

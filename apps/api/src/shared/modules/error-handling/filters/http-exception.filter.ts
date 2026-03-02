@@ -13,10 +13,10 @@ import {
 import * as Sentry from '@sentry/nestjs';
 import { Request, Response } from 'express';
 import { Prisma, ErrorSeverity } from '@workspace/db';
-import { MonitoringService } from '../../../../shared/modules/monitoring/monitoring/monitoring.service';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodIssue } from 'zod';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 interface RequestUser {
   id?: string;
@@ -32,6 +32,27 @@ interface HttpExceptionResponse {
   error?: string;
   statusCode?: number;
 }
+
+const getErrorCause = (value: unknown): unknown => {
+  if (typeof value !== 'object' || value === null || !('cause' in value)) {
+    return undefined;
+  }
+  return (value as { cause?: unknown }).cause;
+};
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is string => typeof item === 'string');
+};
+
+const toStringOrUndefined = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -70,7 +91,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = 'ZodValidationException';
       const zodError = exception.getZodError() as ZodErrorDetails;
 
-      // Transform into a map of { field: message }
       const formattedErrors = zodError.errors.reduce(
         (acc, err) => {
           const field = err.path.join('.');
@@ -94,7 +114,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       message = exception.message;
       errorType = exception.name;
-      // Do not log stack trace for expected auth errors
+
       this.logger.warn(`Auth Error: ${message} (${request.path})`);
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -102,10 +122,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorStack = exception.stack;
       const exceptionResponse = exception.getResponse();
 
-      // Check if this HttpException wraps a ZodError (from custom ZodValidationPipe fallback)
-      const cause = (exception as any).cause;
-      if (cause && 'issues' in cause && Array.isArray(cause.issues)) {
-        // Extract field-level errors from the ZodError cause
+      const cause = getErrorCause(exception);
+      if (isObject(cause) && 'issues' in cause && Array.isArray(cause.issues)) {
         const formattedErrors = (cause.issues as ZodIssue[]).reduce(
           (acc: Record<string, string>, err: ZodIssue) => {
             const field = err.path.join('.');
@@ -129,12 +147,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
             : responseObj.message) ||
           responseObj.error ||
           message;
-        // Capture details if present (e.g. from class-validator)
+
         if (
           Array.isArray(responseObj.message) &&
           responseObj.message.length > 0
         ) {
-          // class-validator style: array of field error strings
           details = responseObj.message;
         }
       }
@@ -144,10 +161,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       switch (exception.code) {
         case 'P2002': {
           status = HttpStatus.CONFLICT;
-          const fields = (exception.meta?.target as string[]) || ['field'];
-          message = `A record with this ${fields.join(', ')} already exists`;
+          const fields = toStringArray(exception.meta?.target);
+          const conflictFields = fields.length > 0 ? fields : ['field'];
+          message = `A record with this ${conflictFields.join(', ')} already exists`;
           details = {
-            field: fields[0],
+            field: conflictFields[0],
             constraint: 'unique',
           };
           break;
@@ -178,7 +196,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           status = HttpStatus.BAD_REQUEST;
           message = 'Invalid reference: the related record does not exist';
           details = {
-            field: (exception.meta?.field_name as string) || 'unknown',
+            field: toStringOrUndefined(exception.meta?.field_name) || 'unknown',
             code: 'P2003',
           };
           break;
@@ -217,9 +235,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
         toString: exception.toString(),
       };
 
-      // Add cause if it exists (Node.js 16.9+)
-      if ('cause' in exception) {
-        errorDetails.cause = (exception as any).cause;
+      const cause = getErrorCause(exception);
+      if (cause !== undefined) {
+        errorDetails.cause = cause;
       }
 
       this.logger.error('Unhandled error details', errorDetails);
@@ -231,8 +249,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    // Capture critical errors in Sentry
-    if ((status as number) >= 500) {
+    if (status >= 500) {
       Sentry.captureException(exception, {
         user: {
           id: (request.user as RequestUser)?.id,
@@ -246,7 +263,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    // Log error to monitoring service
     if (this.monitoringService) {
       const user = request.user as RequestUser | undefined;
       this.monitoringService.logError({
@@ -265,9 +281,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           string | number | boolean | null | undefined | object
         >,
         severity:
-          (status as number) >= 500
-            ? ErrorSeverity.CRITICAL
-            : ErrorSeverity.WARNING,
+          status >= 500 ? ErrorSeverity.CRITICAL : ErrorSeverity.WARNING,
       });
     }
 
@@ -275,22 +289,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ? this.configService.isDevelopment()
       : true;
 
-    // Build RFC 7807 Problem Details response
-    // https://tools.ietf.org/html/rfc7807
     const problemDetails = {
-      type: `about:blank`, // URI identifying the error type
-      title: this.getErrorTitle(status), // HTTP status text
-      status, // HTTP status code
-      detail: message, // Human-readable explanation
-      instance: request.path, // URI identifying the problem occurrence
+      type: `about:blank`,
+      title: this.getErrorTitle(status),
+      status,
+      detail: message,
+      instance: request.path,
       timestamp: new Date().toISOString(),
 
-      // Additional fields (only if applicable)
       ...(details && typeof details === 'object'
         ? { validationErrors: details }
         : {}),
 
-      // Only include stack trace and internal details in development
       ...(isDevelopment && errorStack && { stack: errorStack }),
       ...(isDevelopment && { errorType }),
     };
@@ -298,9 +308,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(problemDetails);
   }
 
-  /**
-   * Get human-readable error title for HTTP status
-   */
   private getErrorTitle(status: number): string {
     const statusTexts: Record<number, string> = {
       400: 'Bad Request',

@@ -77,12 +77,12 @@ export default function PatientHistoryPage({
           </TabsTrigger>
         </TabsList>
 
-        {/* Timeline View */}
+        {}
         <TabsContent value="timeline">
           <DetailedHistoryList appointments={sortedAppointments} />
         </TabsContent>
 
-        {/* Detailed View */}
+        {}
         <TabsContent value="detailed">
           <DetailedHistoryList appointments={sortedAppointments} />
         </TabsContent>

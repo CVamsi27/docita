@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   Prisma,
   ClinicTier,
@@ -21,10 +21,6 @@ interface BillingTierInfo {
 @Injectable()
 export class SuperAdminBillingService {
   constructor(private prisma: PrismaService) {}
-
-  // ============================================================================
-  // Helper functions (Internal)
-  // ============================================================================
 
   private subDays(date: Date, days: number): Date {
     const result = new Date(date);
@@ -65,10 +61,6 @@ export class SuperAdminBillingService {
     }
     return date.toISOString();
   }
-
-  // ============================================================================
-  // Metrics & Reporting
-  // ============================================================================
 
   async getMetrics() {
     const subscriptions = await this.prisma.subscription.findMany({
@@ -229,10 +221,6 @@ export class SuperAdminBillingService {
       })),
     };
   }
-
-  // ============================================================================
-  // Subscription Management
-  // ============================================================================
 
   async getSubscriptions(filters: {
     tier?: string;
@@ -410,10 +398,6 @@ export class SuperAdminBillingService {
     return { success: true, message: `Grace period extended by ${days} days` };
   }
 
-  // ============================================================================
-  // Payment & Tier Management
-  // ============================================================================
-
   async processPaymentAndUpdateTier(
     clinicId: string,
     data: {
@@ -431,7 +415,6 @@ export class SuperAdminBillingService {
 
     if (!clinic) throw new BadRequestException('Clinic not found');
 
-    // Update clinic tier and status
     const updatedClinic = await this.prisma.clinic.update({
       where: { id: clinicId },
       data: {

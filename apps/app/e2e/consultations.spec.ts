@@ -17,7 +17,7 @@ test.describe("Consultation Flow", () => {
   } | null = null;
 
   test.beforeAll(async ({ request }) => {
-    // 1. Register/Login Doctor
+
     const uniqueEmail = `doctor${Date.now()}@test.com`;
     const password = "Test@123456";
 
@@ -34,7 +34,7 @@ test.describe("Consultation Flow", () => {
 
     let authData = await regRes.json();
     if (!authData.access_token) {
-      // Login if already exists (fallback)
+
       const loginRes = await request.post(`${API_URL}/auth/login`, {
         data: { email: uniqueEmail, password },
       });
@@ -49,7 +49,6 @@ test.describe("Consultation Flow", () => {
       role: authData.user.role,
     };
 
-    // 2. Create Patient
     const patientRes = await request.post(`${API_URL}/patients`, {
       headers: { Authorization: `Bearer ${cachedUser.accessToken}` },
       data: {
@@ -69,7 +68,6 @@ test.describe("Consultation Flow", () => {
     };
   });
 
-  // Helper to inject token
   async function injectAuth(page: Page) {
     if (!cachedUser) return;
     const userStore = JSON.stringify(cachedUser);
@@ -88,7 +86,7 @@ test.describe("Consultation Flow", () => {
     page,
     request,
   }) => {
-    // 1. Create Appointment via API
+
     const startTime = new Date();
     startTime.setMinutes(startTime.getMinutes() + 10);
     const endTime = new Date(startTime);
@@ -107,7 +105,6 @@ test.describe("Consultation Flow", () => {
       },
     });
 
-    // Strict: Appointment creation must succeed
     expect(
       aptRes.ok(),
       `Appointment creation failed: ${await aptRes.text()}`,
@@ -117,39 +114,31 @@ test.describe("Consultation Flow", () => {
 
     await injectAuth(page);
 
-    // Navigate to consultation page
     await page.goto(`/consultation/${appointment.id}`, {
       waitUntil: "networkidle",
     });
 
-    // Strict: Wait for loading to complete
     const loadingText = page.getByText("Loading consultation...");
     await expect(loadingText).not.toBeVisible({ timeout: 15000 });
 
-    // Strict: Verify consultation page loaded with patient name
     const patientName = `${cachedPatient!.firstName} ${cachedPatient!.lastName}`;
     try {
       await expect(
         page.getByRole("heading", { name: patientName, level: 1 }),
       ).toBeVisible({ timeout: 10000 });
     } catch (e) {
-      console.log(`Expected patient name: "${patientName}"`);
-      console.log(
-        `Actual H1 text: "${await page.locator("h1").textContent()}"`,
-      );
-      console.log(
-        `Page content snippet: ${(await page.content()).slice(0, 1000)}`,
-      );
+
+      
+      
       throw e;
     }
 
-    // Strict: Verify we're on the consultation page (not "Appointment not found")
     const notFoundText = page.getByText("Appointment not found");
     await expect(notFoundText).not.toBeVisible();
   });
 
   test("should show loading state initially", async ({ page, request }) => {
-    // Create appointment first
+
     const startTime = new Date();
     startTime.setMinutes(startTime.getMinutes() + 60);
     const endTime = new Date(startTime);
@@ -173,23 +162,18 @@ test.describe("Consultation Flow", () => {
 
     await injectAuth(page);
 
-    // Navigate to consultation page and check for loading state
     await page.goto(`/consultation/${appointment.id}`, { waitUntil: "load" });
 
-    // Could see loading state briefly, or content if fast
-    // This test confirms page structure loads correctly
     await expect(page.locator("body")).toBeVisible();
   });
 
   test("should handle invalid appointment ID gracefully", async ({ page }) => {
     await injectAuth(page);
 
-    // Navigate to a non-existent consultation
     await page.goto("/consultation/invalid-id-12345", {
       waitUntil: "networkidle",
     });
 
-    // Strict: Should show "Appointment not found" error
     await expect(page.getByText("Appointment not found")).toBeVisible({
       timeout: 15000,
     });

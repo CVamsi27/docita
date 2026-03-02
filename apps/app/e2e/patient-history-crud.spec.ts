@@ -251,7 +251,6 @@ test.describe("Patient Medical History - CRUD", () => {
     }
   });
 
-  // Adding other straightforward CRUD tests here...
   test("should handle empty medical history gracefully", async ({
     page,
     request,

@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
 import { Gender } from '@workspace/db';
@@ -13,7 +13,7 @@ interface OcrExtractionResult {
   documentType: string;
   confidence: number;
   fields: ParsedMedicalFields & { fieldConfidence: Record<string, number> };
-  suggestedCorrections: Record<string, any>;
+  suggestedCorrections: Record<string, unknown>;
   message: string;
 }
 import {
@@ -71,6 +71,25 @@ export class ImportsService {
     private ocrService: OCRService,
   ) {}
 
+  private toStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.map((item) => String(item ?? ''));
+  }
+
+  private getCell(row: unknown, index: number): string | number | undefined {
+    if (!Array.isArray(row)) {
+      return undefined;
+    }
+
+    const value = row[index];
+    return typeof value === 'string' || typeof value === 'number'
+      ? value
+      : undefined;
+  }
+
   previewImport(filePath: string): ImportPreview {
     try {
       const workbook = XLSX.readFile(filePath);
@@ -84,16 +103,14 @@ export class ImportsService {
         );
       }
 
-      const headers = (data[0] as string[]) || [];
+      const headers = this.toStringArray(data[0]);
       const dataRows = data.slice(1, 6);
 
       const columns: ColumnMapping[] = headers.map((header, index) => ({
         excelColumn: header,
         dbField: this.suggestFieldMapping(header),
         sampleValues: dataRows
-          .map((row) =>
-            String((row as (string | number | undefined)[])[index] || ''),
-          )
+          .map((row) => String(this.getCell(row, index) || ''))
           .filter((v) => v),
       }));
 
@@ -107,7 +124,7 @@ export class ImportsService {
       const sampleData = dataRows.map((row) => {
         const obj: Record<string, string | number> = {};
         headers.forEach((header, index) => {
-          obj[header] = (row as (string | number | undefined)[])[index] || '';
+          obj[header] = this.getCell(row, index) || '';
         });
         return obj;
       });
@@ -180,9 +197,7 @@ export class ImportsService {
     } finally {
       try {
         await unlink(filePath);
-      } catch {
-        // Ignore cleanup errors
-      }
+      } catch {}
     }
   }
 
@@ -431,36 +446,23 @@ export class ImportsService {
     return null;
   }
 
-  /**
-   * Extract text from medical document image using Tesseract.js
-   * Includes image preprocessing for better accuracy (75-85%)
-   */
-
-  /**
-   * Extract text from medical document image using Tesseract.js
-   * Includes image preprocessing for better accuracy (75-85%)
-   */
   async extractFromMedicalDocumentBasic(
     filePath: string,
   ): Promise<OcrExtractionResult> {
     this.logger.log(`[IMPORT] Starting OCR extraction for file: ${filePath}`);
     try {
-      // Use Tesseract.js with preprocessing
       const ocrResult = await this.ocrService.extractTextFromImage(filePath);
       this.logger.log(
         `[IMPORT] OCR extraction complete - confidence: ${ocrResult.confidence.toFixed(2)}, text length: ${ocrResult.text.length}`,
       );
 
-      // Parse extracted text into structured fields
       const fields = this.ocrService.parseExtractedText(ocrResult.text);
 
-      // Generate confidence scores for each field
       const fieldConfidence = this.ocrService.generateConfidenceScores(
         ocrResult.text,
         fields,
       );
 
-      // Clean up temp file
       await unlink(filePath).catch(() => {});
 
       const message =

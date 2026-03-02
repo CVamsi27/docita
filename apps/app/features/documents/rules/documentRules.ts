@@ -1,7 +1,4 @@
-/**
- * Document Business Rules
- * File validation, categorization, and metadata handling
- */
+
 
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "@workspace/utils";
 
@@ -33,24 +30,15 @@ export interface Document {
   extractedText?: string;
 }
 
-/**
- * Validate file extension
- */
 export function isValidFileExtension(filename: string): boolean {
   const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
   return ALLOWED_EXTENSIONS.includes(ext);
 }
 
-/**
- * Validate file size
- */
 export function isValidFileSize(size: number): boolean {
   return size <= MAX_FILE_SIZE;
 }
 
-/**
- * Get document type label
- */
 export function getDocumentTypeLabel(type: DocumentType): string {
   const labels: Record<DocumentType, string> = {
     lab_report: "Lab Report",
@@ -70,9 +58,6 @@ export function getDocumentTypeLabel(type: DocumentType): string {
   return labels[type] || "Document";
 }
 
-/**
- * Detect document type from filename
- */
 export function detectDocumentType(filename: string): DocumentType {
   const lower = filename.toLowerCase();
 
@@ -114,18 +99,12 @@ export function detectDocumentType(filename: string): DocumentType {
   return "other";
 }
 
-/**
- * Format file size for display
- */
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/**
- * Get file icon based on type
- */
 export function getFileIcon(
   mimeType: string,
 ): "image" | "pdf" | "document" | "file" {

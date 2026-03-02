@@ -36,9 +36,6 @@ export const TopDiagnosisSchema = z.object({
   percentage: z.number(),
 });
 
-// For complex return types, we can use z.any() initially or try to model them accurately if we know the shape.
-// Given the service returns "disease trends" etc, likely arrays of objects.
-
 export const DiseaseTrendSchema = z.object({
   name: z.string(),
   data: z.array(
@@ -52,12 +49,10 @@ export const DiseaseTrendSchema = z.object({
 export type AnalyticsPeriod = z.infer<typeof AnalyticsPeriod>;
 export type AnalyticsGroupBy = z.infer<typeof AnalyticsGroupBy>;
 
-// ... types
-
 export type DiseaseTrend = z.infer<typeof DiseaseTrendSchema> & {
-  disease?: string; // from local usage
-  count?: number; // from local usage
-  percentage?: number; // from local usage
+  disease?: string; 
+  count?: number; 
+  percentage?: number; 
 };
 
 export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {
@@ -66,16 +61,16 @@ export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {
   appointmentsThisMonth?: number;
   revenueThisMonth?: number;
   revenueGrowth?: number;
-  // Allow for keys used in UI not yet in schema
+
 };
 
 export interface ComplianceMetric {
   category: string;
   score: number;
   issues: number;
-  status: "compliant" | "warning" | "critical" | "good"; // include 'good' for transition
-  metric?: string; // from local usage
-  value?: number; // from local usage
+  status: "compliant" | "warning" | "critical" | "good"; 
+  metric?: string; 
+  value?: number; 
 }
 
 export interface RevenueByCPT {
@@ -83,7 +78,7 @@ export interface RevenueByCPT {
   description: string;
   revenue: number;
   count: number;
-  cptCode?: string; // from local usage
+  cptCode?: string; 
   [key: string]: string | number | undefined;
 }
 
@@ -128,7 +123,7 @@ export interface OverviewMetrics {
 export interface RevenueTrendPoint {
   date: string;
   revenue: number;
-  dateStr?: string; // Legacy support
+  dateStr?: string; 
 }
 
 export interface PatientGrowthPoint {

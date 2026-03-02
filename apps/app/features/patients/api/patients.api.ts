@@ -1,18 +1,75 @@
 import { api } from "@/lib/api-client";
 import type {
-  CreatePatientInput,
+  CreatePatientRequest,
   Patient,
-  UpdatePatientInput,
+  UpdatePatientRequest,
+} from "@workspace/types";
+import {
+  createPatientRequestSchema,
+  listPatientsResponseSchema,
+  patientResponseSchema,
+  updatePatientRequestSchema,
 } from "@workspace/types";
 
-/**
- * Patient API Client
- * Centralized API functions for patient-related operations
- */
+export interface PatientMetricCategoryInput {
+  key: string;
+  name: string;
+  description?: string;
+  order?: number;
+}
+
+export interface PatientMetricOptionInput {
+  value: string;
+  label: string;
+  order?: number;
+}
+
+export interface PatientMetricDefinitionInput {
+  categoryId: string;
+  key: string;
+  label: string;
+  valueType: string;
+  unit?: string;
+  cardinality?: string;
+  scope?: string;
+  isTrackedByDefault?: boolean;
+  isPatientScoped?: boolean;
+  order?: number;
+  options?: PatientMetricOptionInput[];
+}
+
+export interface UpsertPatientMetricSelectionsInput {
+  items: Array<{
+    definitionId: string;
+    isTracked: boolean;
+  }>;
+}
+
+export interface RecordPatientMetricValueInput {
+  definitionId: string;
+  appointmentId?: string;
+  recordedAt?: string;
+  source?: string;
+  notes?: string;
+  valueString?: string;
+  valueNumber?: number;
+  valueBoolean?: boolean;
+  valueDate?: string;
+  valueJson?: Record<string, unknown>;
+  optionId?: string;
+  optionIds?: string[];
+}
+
+export interface PatientMetricHistoryQuery {
+  categoryId?: string;
+  definitionId?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
 export const patientsApi = {
-  /**
-   * Get all patients with optional filtering
-   */
+  
   getAll: (params?: { limit?: number; search?: string; cursor?: string }) => {
     const searchParams = new URLSearchParams();
     if (params?.limit) searchParams.set("limit", String(params.limit));
@@ -20,38 +77,95 @@ export const patientsApi = {
     if (params?.search) searchParams.set("search", params.search);
     searchParams.set("_cb", String(Date.now()));
     const query = searchParams.toString();
-    return api.get<{
+    return api
+      .get<{
       items: Patient[];
       nextCursor?: string;
       hasMore: boolean;
       count: number;
-    }>(`/patients${query ? `?${query}` : ""}`);
+      }>(`/patients${query ? `?${query}` : ""}`)
+      .then((response) => {
+        const normalized = {
+          items: response.items,
+          total:
+            typeof response.count === "number"
+              ? response.count
+              : response.items.length,
+        };
+
+        const parsed = listPatientsResponseSchema.parse(normalized);
+
+        return {
+          ...response,
+          items: parsed.items,
+          count:
+            typeof response.count === "number" ? response.count : parsed.total,
+        };
+      });
   },
 
-  /**
-   * Get a single patient by ID
-   */
-  getById: (id: string) => api.get<Patient>(`/patients/${id}`),
+  
+  getById: (id: string) =>
+    api.get<Patient>(`/patients/${id}`).then((response) => {
+      return patientResponseSchema.parse(response);
+    }),
 
-  /**
-   * Get patient's medical history timeline
-   */
+  
   getMedicalHistory: (id: string) =>
     api.get(`/patients/${id}/medical-history-timeline`),
 
-  /**
-   * Create a new patient
-   */
-  create: (data: CreatePatientInput) => api.post<Patient>("/patients", data),
+  getMetricCategories: (id: string) =>
+    api.get(`/patients/${id}/metrics/categories`),
 
-  /**
-   * Update an existing patient
-   */
-  update: (id: string, data: UpdatePatientInput) =>
-    api.patch<Patient>(`/patients/${id}`, data),
+  createMetricCategory: (id: string, data: PatientMetricCategoryInput) =>
+    api.post(`/patients/${id}/metrics/categories`, data),
 
-  /**
-   * Delete a patient
-   */
+  createMetricDefinition: (id: string, data: PatientMetricDefinitionInput) =>
+    api.post(`/patients/${id}/metrics/definitions`, data),
+
+  getSelectedMetrics: (id: string) => api.get(`/patients/${id}/metrics/selected`),
+
+  updateSelectedMetrics: (
+    id: string,
+    data: UpsertPatientMetricSelectionsInput,
+  ) => api.put(`/patients/${id}/metrics/selected`, data),
+
+  recordMetricValue: (id: string, data: RecordPatientMetricValueInput) =>
+    api.post(`/patients/${id}/metrics/values`, data),
+
+  getMetricHistory: (id: string, query?: PatientMetricHistoryQuery) => {
+    const searchParams = new URLSearchParams();
+    if (query?.categoryId) searchParams.set("categoryId", query.categoryId);
+    if (query?.definitionId)
+      searchParams.set("definitionId", query.definitionId);
+    if (query?.from) searchParams.set("from", query.from);
+    if (query?.to) searchParams.set("to", query.to);
+    if (query?.limit) searchParams.set("limit", String(query.limit));
+    const queryString = searchParams.toString();
+    return api.get(
+      `/patients/${id}/metrics/history${queryString ? `?${queryString}` : ""}`,
+    );
+  },
+
+  
+  create: (data: CreatePatientRequest) =>
+    api
+      .post<Patient>(
+        "/patients",
+        createPatientRequestSchema.parse(data),
+      )
+      .then((response) => {
+        return patientResponseSchema.parse(response);
+      }),
+
+  
+  update: (id: string, data: UpdatePatientRequest) =>
+    api
+      .patch<Patient>(`/patients/${id}`, updatePatientRequestSchema.parse(data))
+      .then((response) => {
+        return patientResponseSchema.parse(response);
+      }),
+
+  
   delete: (id: string) => api.delete(`/patients/${id}`),
 };

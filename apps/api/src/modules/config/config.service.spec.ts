@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from './config.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('ConfigService', () => {
   let service: ConfigService;
@@ -249,14 +249,14 @@ describe('ConfigService', () => {
     it('should use default values for missing clinic settings', async () => {
       mockPrismaService.clinic.findUnique.mockResolvedValue({
         ...mockClinic,
-        settings: { consultationFee: 1000 }, // Only partial settings
+        settings: { consultationFee: 1000 },
       });
 
       const result = await service.getAppConfig('clinic-1');
 
       expect(result.clinicSettings.consultationFee).toBe(1000);
-      expect(result.clinicSettings.currency).toBeDefined(); // Should use default
-      expect(result.clinicSettings.timezone).toBeDefined(); // Should use default
+      expect(result.clinicSettings.currency).toBeDefined();
+      expect(result.clinicSettings.timezone).toBeDefined();
     });
 
     it('should return base config when clinic not found', async () => {

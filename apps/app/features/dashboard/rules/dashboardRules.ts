@@ -1,6 +1,4 @@
-/**
- * Dashboard Analytics Business Rules
- */
+
 
 export const calculateGrowthRate = (
   current: number,

@@ -19,7 +19,7 @@ export const useFeedbackLogic = (
     if (onSubmit) {
       onSubmit({ rating, message, type });
     }
-    // Reset form
+
     setRating(0);
     setMessage("");
     setType("general");

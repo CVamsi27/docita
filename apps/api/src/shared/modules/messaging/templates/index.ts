@@ -1,4 +1,3 @@
-// Template service exports
 export {
   MessageTemplateService,
   type MessageTemplate,

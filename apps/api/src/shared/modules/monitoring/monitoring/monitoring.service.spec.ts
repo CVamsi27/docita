@@ -72,13 +72,13 @@ describe('MonitoringService', () => {
 
   describe('Delegation Tests', () => {
     it('logRequest should delegate to RequestLogService', () => {
-      const data: any = { method: 'GET', path: '/test' };
+      const data: Record<string, unknown> = { method: 'GET', path: '/test' };
       service.logRequest(data);
       expect(requestLogService.logRequest).toHaveBeenCalledWith(data);
     });
 
     it('logError should delegate to ErrorTrackingService', () => {
-      const data: any = { message: 'Error' };
+      const data: Record<string, unknown> = { message: 'Error' };
       service.logError(data);
       expect(errorTrackingService.logError).toHaveBeenCalledWith(data);
     });
@@ -89,7 +89,7 @@ describe('MonitoringService', () => {
     });
 
     it('recordMetric should delegate to MetricsService', async () => {
-      await service.recordMetric('CPU_USAGE' as any, 100);
+      await service.recordMetric('CPU_USAGE' as never, 100);
       expect(metricsService.recordMetric).toHaveBeenCalledWith(
         'CPU_USAGE',
         100,

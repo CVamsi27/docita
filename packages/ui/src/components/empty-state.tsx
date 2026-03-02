@@ -4,53 +4,23 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { ChevronRight, Loader2, LucideIcon } from "lucide-react";
 
-// =============================================================================
-// EMPTY STATE
-// =============================================================================
-
 export interface EmptyStateProps {
-  /** Icon to display */
+  
   icon: LucideIcon;
-  /** Main title text */
+  
   title: string;
-  /** Optional description text */
+  
   description?: string;
-  /** Optional action button */
+  
   action?: {
     label: string;
     href?: string;
     onClick?: () => void;
   };
-  /** Additional CSS classes */
+  
   className?: string;
 }
 
-/**
- * Empty State Component
- *
- * Displays a centered message with an icon when content is empty.
- * Commonly used for empty lists, search results with no matches, etc.
- *
- * @example
- * ```tsx
- * import { EmptyState } from "@workspace/ui/components/empty-state";
- * import { Inbox } from "lucide-react";
- *
- * function PatientsList({ patients }) {
- *   if (patients.length === 0) {
- *     return (
- *       <EmptyState
- *         icon={Inbox}
- *         title="No patients yet"
- *         description="Add your first patient to get started"
- *         action={{ label: "Add Patient", onClick: openModal }}
- *       />
- *     );
- *   }
- *   // render patients...
- * }
- * ```
- */
 export function EmptyState({
   icon: Icon,
   title,
@@ -79,52 +49,23 @@ export function EmptyState({
   );
 }
 
-// =============================================================================
-// SECTION HEADER
-// =============================================================================
-
 export interface SectionHeaderProps {
-  /** Icon to display */
+  
   icon: LucideIcon;
-  /** Section title */
+  
   title: string;
-  /** Optional subtitle */
+  
   subtitle?: string;
-  /** Optional action button */
+  
   action?: {
     label: string;
     href?: string;
     onClick?: () => void;
   };
-  /** Additional CSS classes */
+  
   className?: string;
 }
 
-/**
- * Section Header Component
- *
- * A header for content sections with icon, title, and optional action.
- *
- * @example
- * ```tsx
- * import { SectionHeader } from "@workspace/ui/components/empty-state";
- * import { Calendar } from "lucide-react";
- *
- * function AppointmentsSection() {
- *   return (
- *     <div>
- *       <SectionHeader
- *         icon={Calendar}
- *         title="Upcoming Appointments"
- *         subtitle="Next 7 days"
- *         action={{ label: "View All", href: "/appointments" }}
- *       />
- *       // content...
- *     </div>
- *   );
- * }
- * ```
- */
 export function SectionHeader({
   icon: Icon,
   title,
@@ -178,16 +119,12 @@ export function SectionHeader({
   );
 }
 
-// =============================================================================
-// LOADING STATE
-// =============================================================================
-
 export interface LoadingStateProps {
-  /** Loading message to display */
+  
   message?: string;
-  /** Additional CSS classes */
+  
   className?: string;
-  /** Size variant */
+  
   size?: "sm" | "default" | "lg";
 }
 
@@ -197,23 +134,6 @@ const sizeClasses = {
   lg: { icon: "h-12 w-12", text: "text-lg" },
 };
 
-/**
- * Loading State Component
- *
- * Displays a loading spinner with optional message.
- *
- * @example
- * ```tsx
- * import { LoadingState } from "@workspace/ui/components/empty-state";
- *
- * function PatientsList({ isLoading }) {
- *   if (isLoading) {
- *     return <LoadingState message="Loading patients..." />;
- *   }
- *   // render content...
- * }
- * ```
- */
 export function LoadingState({
   message = "Loading...",
   className,

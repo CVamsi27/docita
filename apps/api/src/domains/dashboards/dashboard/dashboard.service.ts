@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
 @Injectable()
@@ -23,10 +23,8 @@ export class DashboardService {
       };
     }
 
-    // Cache key for this clinic's dashboard stats
     const cacheKey = `dashboard:stats:${clinicId}`;
 
-    // Try to get cached data (60 second TTL)
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
       return cached;
@@ -37,7 +35,6 @@ export class DashboardService {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Calculate 30 days ago for new patients this month
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -140,7 +137,6 @@ export class DashboardService {
       monthlyRevenue: 0,
     };
 
-    // Cache the result for 60 seconds
     await this.cacheManager.set(cacheKey, result, 60 * 1000);
 
     return result;

@@ -1,11 +1,17 @@
 import { Specialization, ClinicTier, BillingCycle } from '@workspace/db';
 
+const SPECIALIZATION_SET = new Set<Specialization>(
+  Object.values(Specialization),
+);
+const CLINIC_TIER_SET = new Set<ClinicTier>(Object.values(ClinicTier));
+const BILLING_CYCLE_SET = new Set<BillingCycle>(Object.values(BillingCycle));
+
 export function validateSpecializationForOnboarding(
   value: string | null | undefined,
 ): Specialization | null {
   if (!value) return null;
 
-  if (Object.values(Specialization).includes(value as Specialization)) {
+  if (SPECIALIZATION_SET.has(value as Specialization)) {
     return value as Specialization;
   }
 
@@ -13,30 +19,30 @@ export function validateSpecializationForOnboarding(
 }
 
 export function validateClinicTier(value: string | undefined): ClinicTier {
-  if (!value) return 'CORE' as ClinicTier;
+  if (!value) return ClinicTier.CORE;
 
-  if (Object.values(ClinicTier).includes(value as ClinicTier)) {
+  if (CLINIC_TIER_SET.has(value as ClinicTier)) {
     return value as ClinicTier;
   }
 
-  return 'CORE' as ClinicTier;
+  return ClinicTier.CORE;
 }
 
 export function validateBillingCycle(value: string | undefined): BillingCycle {
-  if (!value) return 'MONTHLY' as BillingCycle;
+  if (!value) return BillingCycle.MONTHLY;
 
-  if (Object.values(BillingCycle).includes(value as BillingCycle)) {
+  if (BILLING_CYCLE_SET.has(value as BillingCycle)) {
     return value as BillingCycle;
   }
 
-  return 'MONTHLY' as BillingCycle;
+  return BillingCycle.MONTHLY;
 }
 
 export type ClinicSettings = Record<string, unknown>;
 
 export function getClinicSettings(settings: unknown): ClinicSettings {
-  if (typeof settings === 'object' && settings !== null) {
-    return settings as Record<string, unknown>;
+  if (settings && typeof settings === 'object') {
+    return settings as ClinicSettings;
   }
   return {};
 }

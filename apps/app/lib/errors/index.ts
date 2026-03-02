@@ -1,8 +1,4 @@
-/**
- * Centralized Error Definitions
- */
 
-// Import error parser utilities
 export { parseError, getErrorMessage, handleError } from "./error-parser";
 
 export class AppError extends Error {
@@ -68,9 +64,6 @@ export class ApiError extends AppError {
   }
 }
 
-/**
- * Error Handler Utilities
- */
 export type LogContextValue =
   | string
   | number
@@ -98,11 +91,6 @@ export const errorHandler = {
     error: Error | unknown,
     context?: T,
   ) => {
-    console.error("Error occurred:", {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      context,
-      timestamp: new Date().toISOString(),
-    });
+    
   },
 };

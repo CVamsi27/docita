@@ -11,7 +11,6 @@ import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
 import { Appointment, UpdateAppointmentInput } from "@workspace/types";
 
-// Map old tab names to new ones
 const TAB_MAPPING: Record<string, string> = {
   observations: "chief-complaint",
   vitals: "vitals",
@@ -30,10 +29,8 @@ export const useConsultationLogic = (appointmentId: string) => {
   const { data: appointmentData, isLoading: loading } =
     useAppointment(appointmentId);
 
-  // Fetch clinic settings to get clinic type
   const { data: clinic } = useClinicSettings();
 
-  // Fetch past appointments for consultation history
   const { data: patientAppointmentsResponse } = usePatientAppointments(
     appointmentData?.patientId || "",
   );
@@ -42,7 +39,6 @@ export const useConsultationLogic = (appointmentId: string) => {
     [patientAppointmentsResponse?.items],
   );
 
-  // Filter past appointments (exclude current, only completed)
   const pastAppointments = useMemo(() => {
     return patientAppointments
       .filter(
@@ -63,7 +59,6 @@ export const useConsultationLogic = (appointmentId: string) => {
       .slice(0, 10);
   }, [patientAppointments, appointmentId]);
 
-  // Compute fallback route based on 'from' query parameter
   const fromPage = searchParams.get("from");
   const fallbackRoute = useMemo(() => {
     if (fromPage === "patient" && appointmentData?.patientId) {
@@ -72,13 +67,12 @@ export const useConsultationLogic = (appointmentId: string) => {
     if (fromPage === "patient") {
       return "/patients";
     }
-    // Default to consultation for 'from=queue' or when 'from' is not specified
+
     return "/consultation";
   }, [fromPage, appointmentData?.patientId]);
 
   const goBack = useSmartBack(fallbackRoute);
 
-  // Hybrid back navigation
   const handleBack = useCallback(() => {
     if (canGoBack()) {
       goBack();
@@ -87,7 +81,6 @@ export const useConsultationLogic = (appointmentId: string) => {
     }
   }, [canGoBack, goBack, router, fallbackRoute]);
 
-  // Mutation for updating appointment
   const updateAppointment = useUpdateAppointment(appointmentId);
 
   const handleSave = useCallback(
@@ -95,7 +88,6 @@ export const useConsultationLogic = (appointmentId: string) => {
       try {
         await updateAppointment.mutateAsync(data);
 
-        // Refetch appointment data after save
         await queryClient.invalidateQueries({
           queryKey: ["appointments", appointmentId],
         });
@@ -104,15 +96,13 @@ export const useConsultationLogic = (appointmentId: string) => {
           type: "active",
         });
       } catch (error) {
-        console.error("Failed to save consultation:", error);
-        // Ideally show a toast here - UI component does this via logic usually
+
         throw error;
       }
     },
     [queryClient, appointmentId, updateAppointment],
   );
 
-  // Get default tab from query params
   const rawTab = searchParams.get("tab") || "chief-complaint";
   const defaultTab = (TAB_MAPPING[rawTab] || rawTab) as
     | "chief-complaint"

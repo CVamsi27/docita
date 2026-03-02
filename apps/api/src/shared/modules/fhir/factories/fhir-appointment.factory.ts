@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Appointment } from '@workspace/db';
-import { FhirAppointment } from '../interfaces/fhir.interfaces';
+import { FhirAppointment } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
 @Injectable()
 export class FhirAppointmentFactory {
@@ -71,6 +71,6 @@ export class FhirAppointmentFactory {
     if (s === 'cancelled') return 'cancelled';
     if (s === 'no_show' || s === 'noshow') return 'noshow';
     if (s === 'checked_in' || s === 'arrived') return 'arrived';
-    return 'booked'; // Fallback
+    return 'booked';
   }
 }

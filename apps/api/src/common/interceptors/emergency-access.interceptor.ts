@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { AuditService } from '../../shared/modules/audit/audit/audit.service';
-import { tenantStorage } from '../middleware/tenant.middleware';
-import { EMERGENCY_ACCESS_KEY } from '../../shared/modules/auth/decorators/emergency-access.decorator';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { tenantStorage } from '@/common/middleware/tenant.middleware';
+import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
 
 @Injectable()
 export class BreakTheGlassInterceptor implements NestInterceptor {
@@ -24,7 +24,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<any>> {
+  ): Promise<Observable<unknown>> {
     const request = context.switchToHttp().getRequest();
     const isBTG = request.headers['x-break-the-glass'] === 'true';
     const reason = request.headers['x-btg-reason'] || 'No reason provided';
@@ -49,7 +49,6 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
 
     const { user, ip, method, url } = request;
 
-    // Log the emergency access attempt IMMEDIATELY
     await this.auditService.logAction(
       {
         userId: user?.id,
@@ -65,14 +64,13 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
           timestamp: new Date().toISOString(),
         },
       },
-      true, // immediate logging for security
+      true,
     );
 
     this.logger.error(
       `!!! EMERGENCY ACCESS (BTG) GRANTED !!! User: ${user?.id} | Reason: ${reason} | Endpoint: ${method} ${url}`,
     );
 
-    // Bypass tenant isolation for the duration of this request
     return tenantStorage.run({ ...user, bypassed: true }, () => next.handle());
   }
 }

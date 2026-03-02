@@ -1,9 +1,3 @@
-/**
- * Database Backup Service
- * Handles point-in-time recovery, backup automation, and verification
- * Supports PgDump for PostgreSQL and backup archival
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { exec } from 'child_process';
@@ -43,9 +37,6 @@ export class DatabaseBackupService {
     this.ensureBackupDirectory();
   }
 
-  /**
-   * Ensure backup directory exists with proper permissions
-   */
   private ensureBackupDirectory(): void {
     try {
       if (!fs.existsSync(this.backupDir)) {
@@ -71,15 +62,10 @@ export class DatabaseBackupService {
         this.logger.error(
           `Failed to create fallback backup directory: ${error.message}`,
         );
-        // Do not throw — allow application to start; operations will fail later with clearer errors
       }
     }
   }
 
-  /**
-   * Create a full database backup using pg_dump
-   * Stores as custom format for point-in-time recovery support
-   */
   async createFullBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
@@ -105,9 +91,6 @@ export class DatabaseBackupService {
     }
   }
 
-  /**
-   * Create a schema-only backup (useful for quick recovery of structure)
-   */
   async createSchemaBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
@@ -133,10 +116,6 @@ export class DatabaseBackupService {
     }
   }
 
-  /**
-   * Restore from a backup file (full database restore)
-   * WARNING: This will overwrite existing data. Use with caution.
-   */
   async restoreFromBackup(
     backupFilepath: string,
   ): Promise<{ success: boolean; message: string }> {
@@ -163,9 +142,6 @@ export class DatabaseBackupService {
     }
   }
 
-  /**
-   * Verify backup integrity
-   */
   async verifyBackup(
     backupFilepath: string,
   ): Promise<{ success: boolean; valid: boolean; message: string }> {
@@ -195,9 +171,6 @@ export class DatabaseBackupService {
     }
   }
 
-  /**
-   * Get list of available backups
-   */
   getAvailableBackups(): Array<{
     filename: string;
     size: number;
@@ -224,9 +197,6 @@ export class DatabaseBackupService {
     }
   }
 
-  /**
-   * Clean up old backups based on retention policy
-   */
   cleanupOldBackups(): { deleted: number; freedSpace: number } {
     const retentionMs = this.retentionDays * 24 * 60 * 60 * 1000;
     const now = Date.now();

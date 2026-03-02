@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-/**
- * IPD (In-Patient Department) Types
- * =====================================================
- * Types for hospital bed management and patient admissions
- */
-
 export const BedStatusEnum = z.enum([
   "AVAILABLE",
   "OCCUPIED",
@@ -68,12 +62,6 @@ export type Ward = z.infer<typeof wardSchema>;
 export type Room = z.infer<typeof roomSchema>;
 export type Bed = z.infer<typeof bedSchema>;
 export type Admission = z.infer<typeof admissionSchema>;
-
-/**
- * =====================================================
- * IPD DTO Types (Consolidated from ipd-types.ts)
- * =====================================================
- */
 
 export interface CreateWardDto {
   name: string;

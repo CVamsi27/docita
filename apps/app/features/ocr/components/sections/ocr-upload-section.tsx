@@ -57,40 +57,54 @@ export const OCRUploadSection = ({
             <input
               type="file"
               accept="image/*"
-              className="absolute inset-0 opacity-0 cursor-pointer"
               onChange={onFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
+              type="button"
               variant="outline"
               onClick={onStartMobileUpload}
-              disabled={isScanning || scanned}
+              className="w-full"
             >
-              <Smartphone className="mr-2 h-4 w-4" /> Scan with Phone
+              <Smartphone className="h-4 w-4 mr-2" />
+              Upload from Mobile
             </Button>
-            <Button onClick={onScan} disabled={!file || isScanning || scanned}>
+
+            <Button
+              type="button"
+              onClick={onScan}
+              disabled={!file || isScanning}
+              className="w-full"
+            >
               {isScanning ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scanning...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Scanning...
                 </>
               ) : (
                 <>
-                  <Scan className="mr-2 h-4 w-4" />{" "}
-                  {scanned ? "Rescan" : "Scan Image"}
+                  <Scan className="h-4 w-4 mr-2" />
+                  {scanned ? "Re-scan" : "Scan Document"}
                 </>
               )}
             </Button>
           </div>
+
+          {file && (
+            <p className="text-xs text-muted-foreground truncate">
+              Selected file: {file.name}
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Tips Card */}
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+      <Card className="surface-info">
         <CardContent className="p-4 flex gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800 dark:text-blue-300">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="text-sm">
             <p className="font-medium mb-1">Tips for best results:</p>
             <ul className="list-disc pl-4 space-y-1">
               <li>Ensure good lighting and clear handwriting.</li>

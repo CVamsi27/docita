@@ -3,7 +3,7 @@ import {
   BasePdfService,
   BasePDFConfig,
   PDFContext,
-} from '../../../../shared/modules/document-generation/pdf/base-pdf.service';
+} from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import {
   PDFClinicInfo,
   PDFPatientInfo,

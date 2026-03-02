@@ -10,6 +10,14 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export interface HistoryOperations {
@@ -119,7 +127,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, handleUpdate],
   );
 
-  // Allergy operations
   const addAllergy = useCallback(
     (allergen: string, severity = "MODERATE", allergyType = "DRUG") => {
       if (!allergen.trim() || !patient) return;
@@ -170,7 +177,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, handleUpdate],
   );
 
-  // Surgery operations
   const addSurgery = useCallback(
     (procedureName: string, procedureDate?: string) => {
       if (!procedureName.trim() || !patient) return;
@@ -207,7 +213,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, handleUpdate],
   );
 
-  // Family history operations
   const addFamilyHistory = useCallback(
     (condition: string, relationship: string) => {
       if (!condition.trim() || !relationship.trim() || !patient) return;
@@ -242,7 +247,6 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, handleUpdate],
   );
 
-  // Social history operations
   const updateSocialHistory = useCallback(
     (field: keyof PatientSocialHistory, value: string) => {
       if (!patient) return;
@@ -266,15 +270,13 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     [patient, patientId, handleUpdate],
   );
 
-  // Custom data operations (for specialty fields like dental chart, growth data, etc.)
   const updateCustomData = useCallback(
     (
       key: string,
       value: string | number | boolean | Record<string, unknown>,
     ) => {
       if (!patient) return;
-      const currentCustomData =
-        (patient.customData as Record<string, unknown>) || {};
+      const currentCustomData = toRecord(patient.customData);
       handleUpdate({
         customData: {
           ...currentCustomData,
@@ -291,7 +293,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
     surgicalHistory: patient?.surgicalHistory || [],
     familyHistory: patient?.familyHistory || [],
     socialHistory: patient?.socialHistory || null,
-    customData: (patient?.customData as Record<string, unknown>) || {},
+    customData: toRecord(patient?.customData),
   };
 
   const operations: HistoryOperations = {
@@ -328,7 +330,7 @@ export function usePatientHistoryReadOnly(patientId: string) {
     surgicalHistory: patient?.surgicalHistory || [],
     familyHistory: patient?.familyHistory || [],
     socialHistory: patient?.socialHistory || null,
-    customData: (patient?.customData as Record<string, unknown>) || {},
+    customData: toRecord(patient?.customData),
   };
 
   return {

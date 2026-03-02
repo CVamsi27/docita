@@ -3,7 +3,7 @@ import {
   BasePdfService,
   BasePDFConfig,
   PDFContext,
-} from '../../../../shared/modules/document-generation/pdf/base-pdf.service';
+} from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import {
   PDFClinicInfo,
   PDFDoctorInfo,
@@ -35,7 +35,7 @@ export class PrescriptionPdfService extends BasePdfService {
       patient: data.patient,
       doctor: data.doctor,
       date: data.date,
-      // margin: 50, // Default from base
+
       footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
     };
 
@@ -45,10 +45,8 @@ export class PrescriptionPdfService extends BasePdfService {
     doc.on('data', (buffer: Buffer) => buffers.push(buffer));
     doc.on('end', () => {});
 
-    // Header
     let currentY = this.renderHeader(doc, config, context);
 
-    // Title & Meta
     currentY = this.renderTitle(
       doc,
       config.title,
@@ -57,7 +55,6 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY,
     );
 
-    // Patient Details
     if (data.patient) {
       currentY = this.renderPatientDetails(
         doc,
@@ -67,7 +64,6 @@ export class PrescriptionPdfService extends BasePdfService {
       );
     }
 
-    // Diagnosis
     if (data.diagnosis) {
       currentY = this.renderSectionTitle(
         doc,
@@ -81,14 +77,12 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY = doc.y + 15;
     }
 
-    // Rx Symbol
     doc
       .font('Helvetica-Bold')
       .fontSize(20)
       .text('Rx', context.margin, currentY);
     currentY += 25;
 
-    // Medications Table
     currentY = this.renderMedicationsTable(
       doc,
       data.medications,
@@ -96,7 +90,6 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY,
     );
 
-    // Special Instructions
     if (data.instructions) {
       currentY += 15;
       currentY = this.checkPageCheck(doc, currentY, 50, context);
@@ -115,7 +108,6 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY = doc.y;
     }
 
-    // Allergies Warning
     if (data.patient.allergies?.length) {
       currentY += 20;
       currentY = this.checkPageCheck(doc, currentY, 40, context);
@@ -128,7 +120,6 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY = doc.y;
     }
 
-    // Next Visit
     if (data.nextVisit) {
       currentY += 20;
       currentY = this.checkPageCheck(doc, currentY, 30, context);
@@ -148,17 +139,16 @@ export class PrescriptionPdfService extends BasePdfService {
       currentY = doc.y;
     }
 
-    // Doctor Signature
     currentY += 40;
     currentY = this.checkPageCheck(doc, currentY, 80, context);
-    // Align to right for signature
+
     const signatureX = context.margin + context.contentWidth - 200;
 
     doc
       .fontSize(10)
       .font('Helvetica-Bold')
       .text("Doctor's Signature:", signatureX, currentY);
-    currentY += 40; // Space for signature
+    currentY += 40;
 
     doc.text(data.doctor.name, signatureX, currentY);
     if (data.doctor.registrationNumber) {
@@ -168,7 +158,6 @@ export class PrescriptionPdfService extends BasePdfService {
         .text(`Reg: ${data.doctor.registrationNumber}`, signatureX, doc.y);
     }
 
-    // Footer (Page numbers etc)
     this.renderFooter(doc, config.footerText, context);
 
     const bufferPromise = new Promise<Buffer>((resolve) => {
@@ -202,10 +191,9 @@ export class PrescriptionPdfService extends BasePdfService {
     startY: number,
   ): number {
     let currentY = startY;
-    const colWidths = [150, 60, 60, 60, 80]; // Name, Dosage, Freq, Duration, Instructions
+    const colWidths = [150, 60, 60, 60, 80];
     const startX = context.margin;
 
-    // Table Header
     doc.fontSize(9).font('Helvetica-Bold');
     doc.text('Medicine', startX, currentY, { width: colWidths[0] });
     doc.text('Dosage', startX + colWidths[0], currentY, {
@@ -260,7 +248,7 @@ export class PrescriptionPdfService extends BasePdfService {
       }
 
       currentY = doc.y + 10;
-      this.drawDivider(doc, currentY, context); // Row separator
+      this.drawDivider(doc, currentY, context);
       currentY += 5;
     }
 
@@ -282,10 +270,9 @@ export class PrescriptionPdfService extends BasePdfService {
       .font('Helvetica-Bold')
       .fontSize(10)
       .text(text, context.margin + 10, y + 10);
-    doc.fillColor('black'); // Reset
+    doc.fillColor('black');
   }
 
-  // Wrapper for protected method to match expected signature if needed, or just use protected directly
   private checkPageCheck(
     doc: typeof PDFDocument.prototype,
     currentY: number,

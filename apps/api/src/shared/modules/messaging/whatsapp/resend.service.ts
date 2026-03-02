@@ -4,7 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import {
@@ -13,10 +13,6 @@ import {
   PaymentSessionStatus,
 } from '@workspace/db';
 
-/**
- * Handles manual resend operations for prescriptions and invoices
- * Includes approval workflow, data fetching, and message dispatch
- */
 @Injectable()
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
@@ -27,9 +23,6 @@ export class ResendService {
     private readonly whatsappClient: WhatsappClientService,
   ) {}
 
-  /**
-   * Resend prescription via WhatsApp
-   */
   async resendPrescription(
     clinicId: string,
     userId: string,
@@ -61,7 +54,6 @@ export class ResendService {
       throw new BadRequestException('Patient does not have a phone number');
     }
 
-    // Check approval status
     const isAuthorized = ['DOCTOR', 'ADMIN', 'SUPER_ADMIN'].includes(role);
     if (
       !isAuthorized &&
@@ -70,7 +62,6 @@ export class ResendService {
       throw new BadRequestException('Prescription not approved for sharing');
     }
 
-    // Format medications list
     const medicationsList = prescription.medications
       .map((m) => `• ${m.name} - ${m.dosage} - ${m.frequency} (${m.duration})`)
       .join('\n');
@@ -100,7 +91,6 @@ export class ResendService {
       message,
     });
 
-    // Update prescription status
     await this.prisma.prescription.update({
       where: { id },
       data: {
@@ -115,7 +105,6 @@ export class ResendService {
       },
     });
 
-    // Log the message
     await this.prisma.whatsappLog.create({
       data: {
         clinicId,
@@ -132,9 +121,6 @@ export class ResendService {
     return { success: true, messageId: result.messageId };
   }
 
-  /**
-   * Resend invoice via WhatsApp
-   */
   async resendInvoice(
     clinicId: string,
     userId: string,
@@ -169,7 +155,6 @@ export class ResendService {
       throw new BadRequestException('Patient does not have a phone number');
     }
 
-    // Check approval
     const isAuthorized = ['DOCTOR', 'ADMIN', 'SUPER_ADMIN'].includes(role);
     if (!isAuthorized && invoice.approvalStatus !== ApprovalStatus.APPROVED) {
       throw new BadRequestException('Invoice not approved for sharing');
@@ -205,7 +190,6 @@ export class ResendService {
       message,
     });
 
-    // Update invoice status
     await this.prisma.invoice.update({
       where: { id },
       data: {
@@ -220,7 +204,6 @@ export class ResendService {
       },
     });
 
-    // Log message
     await this.prisma.whatsappLog.create({
       data: {
         clinicId,

@@ -18,10 +18,10 @@ describe('VitalsFactory', () => {
 
   it('should calculate BMI if height and weight are provided', () => {
     const data = {
-      height: 180, // cm
-      weight: 80, // kg
+      height: 180,
+      weight: 80,
     };
-    // BMI = 80 / (1.8 * 1.8) = 24.69... -> 24.7
+
     const result = factory.create(data);
     expect(result.bmi).toBe(24.7);
   });

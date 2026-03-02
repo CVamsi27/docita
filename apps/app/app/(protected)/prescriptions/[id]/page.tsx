@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2 } from "lucide-react";
 import { useSmartBack } from "@/hooks/use-smart-back";
@@ -33,11 +34,14 @@ interface ClinicInfo {
 export default function PrescriptionViewPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldAutoPrint = searchParams.get("print") === "true";
+  const hasAutoPrinted = useRef(false);
   const prescriptionId = params["id"] as string;
   const { canAccess } = useFeatureAccess();
   const { clinic: contextClinic } = useClinic();
   const { user } = useAuth();
-  const hasWhatsAppAccess = canAccess("WHATSAPP_MESSAGING"); // Add-on based
+  const hasWhatsAppAccess = canAccess("WHATSAPP_MESSAGING"); 
   const goBack = useSmartBack("/patients");
 
   const {
@@ -45,6 +49,13 @@ export default function PrescriptionViewPage() {
     isLoading,
     error,
   } = usePrescription(prescriptionId);
+
+  useEffect(() => {
+    if (shouldAutoPrint && prescription && !hasAutoPrinted.current) {
+      hasAutoPrinted.current = true;
+      window.print();
+    }
+  }, [shouldAutoPrint, prescription]);
 
   const handleEdit = () => {
     if (prescription?.appointmentId) {
@@ -123,7 +134,6 @@ export default function PrescriptionViewPage() {
     );
   }
 
-  // Get clinic info from prescription patient's clinic or from context
   const clinicInfo =
     (prescription.patient as { clinic?: ClinicInfo })?.clinic ||
     contextClinic ||
@@ -150,7 +160,7 @@ export default function PrescriptionViewPage() {
         clinicInfo={clinicInfo}
       />
 
-      {/* Print Styles */}
+      {}
       <style>{`
         @media print {
           body * {

@@ -38,12 +38,12 @@ export default function ImportPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Excel Import - Tier 0 */}
+        {}
         <Card className="relative overflow-hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
-                <FileSpreadsheet className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-info/15">
+                <FileSpreadsheet className="h-6 w-6 text-info" />
               </div>
               <TierBadge tier={Tier.CAPTURE} />
             </div>
@@ -56,19 +56,19 @@ export default function ImportPage() {
           <CardContent className="space-y-4">
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-success" />
                 Auto-detect column mappings
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-success" />
                 Clean phone numbers & names
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-success" />
                 Duplicate detection by phone & name
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-success" />
                 Preview before importing
               </li>
             </ul>
@@ -82,12 +82,12 @@ export default function ImportPage() {
           </CardContent>
         </Card>
 
-        {/* OCR Scanner - Uses feature tier from permission store */}
+        {}
         <Card className="relative overflow-hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                <ScanLine className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/15">
+                <ScanLine className="h-6 w-6 text-primary" />
               </div>
               <FeatureTierBadge feature={Feature.OCR_BASIC} />
             </div>
@@ -100,19 +100,19 @@ export default function ImportPage() {
           <CardContent className="space-y-4">
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                 AI handwriting recognition
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                 Extract medications & dosages
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                 Auto-enhance scanned images
               </li>
               <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                 Review & correct extracted data
               </li>
             </ul>
@@ -137,12 +137,12 @@ export default function ImportPage() {
         </Card>
       </div>
 
-      {/* Bulk Import Card */}
-      <Card className="relative overflow-hidden border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+      {}
+      <Card className="surface-info relative overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-200 dark:bg-blue-800">
-              <Database className="h-6 w-6 text-blue-700 dark:text-blue-200" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-info/20">
+              <Database className="h-6 w-6 text-info" />
             </div>
             <TierBadge tier={Tier.PRO} />
           </div>
@@ -155,20 +155,20 @@ export default function ImportPage() {
         <CardContent className="space-y-4">
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <div className="h-1.5 w-1.5 rounded-full bg-info" />
               Import 5 entity types (patient, prescription, doctor, lab-test,
               inventory)
             </li>
             <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <div className="h-1.5 w-1.5 rounded-full bg-info" />
               Batch processing with error collection
             </li>
             <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <div className="h-1.5 w-1.5 rounded-full bg-info" />
               Download CSV templates per entity type
             </li>
             <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <div className="h-1.5 w-1.5 rounded-full bg-info" />
               Real-time progress tracking
             </li>
           </ul>
@@ -180,7 +180,7 @@ export default function ImportPage() {
         </CardContent>
       </Card>
 
-      {/* Tips Section */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Import Tips</CardTitle>
@@ -203,7 +203,7 @@ export default function ImportPage() {
         </CardContent>
       </Card>
 
-      {/* Bulk Import Dialog */}
+      {}
       {showBulkImport && (
         <BulkImportDialog
           open={showBulkImport}

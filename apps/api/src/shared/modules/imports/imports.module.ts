@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-// import { BullModule } from '@nestjs/bull';
-import { MockBullModule as BullModule } from '../../../common/mocks/mock-bull.module';
+
+import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';
@@ -13,8 +13,8 @@ import { DocumentClassifierService } from './document-classifier.service';
 import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
 import { ImportSessionService } from './import-session.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
-import { AIModule } from '../ai/ai.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { AIModule } from '@/shared/modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -32,13 +32,13 @@ import { AIModule } from '../ai/ai.module';
   providers: [
     ImportsService,
     BulkImportService,
-    // OCR specialized services
+
     ImagePreprocessorService,
     TextExtractorService,
     DocumentClassifierService,
     TextParserService,
     ConfidenceScorerService,
-    // OCR facade (exported as OCRService for backward compatibility)
+
     OCRFacadeService,
     { provide: 'OCRService', useClass: OCRFacadeService },
     ImportSessionService,

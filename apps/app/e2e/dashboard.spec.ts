@@ -2,11 +2,24 @@ import { expect, test } from "@playwright/test";
 
 const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+function readString(source: Record<string, unknown>, key: string): string | undefined {
+  const value = source[key];
+  return typeof value === "string" ? value : undefined;
+}
+
 test.describe("Dashboard", () => {
   let user: Record<string, unknown>;
 
   test.beforeEach(async ({ page, context }) => {
-    // Setup: Create user via API
+
     const uniqueEmail = `doctor${Date.now()}@test.com`;
     const password = "Test@123456";
 
@@ -22,9 +35,8 @@ test.describe("Dashboard", () => {
     });
 
     expect(registerRes.ok()).toBeTruthy();
-    user = (await registerRes.json()) as Record<string, unknown>;
+    user = toRecord(await registerRes.json());
 
-    // Login: navigate and wait for inputs
     await page.goto("/login");
     try {
       await page.waitForSelector('input[type="email"]', { timeout: 30000 });
@@ -34,15 +46,14 @@ test.describe("Dashboard", () => {
       await page.waitForSelector('input[type="email"]', { timeout: 30000 });
     }
 
-    // Set the frontend's expected keys so the app recognizes the logged-in user
-    const token =
-      (user?.access_token as string) || (user?.accessToken as string);
-    const userObj = (user?.user as Record<string, unknown>) || user;
+    const token = readString(user, "access_token") || readString(user, "accessToken");
+    const nestedUser = toRecord(user?.user);
+    const userObj = Object.keys(nestedUser).length > 0 ? nestedUser : user;
     const userForStorage = JSON.stringify({
-      id: (userObj?.id as string) || (userObj?.userId as string) || null,
-      email: (userObj?.email as string) || null,
-      clinicId: (userObj?.clinicId as string) || null,
-      role: (userObj?.role as string) || "DOCTOR",
+      id: readString(userObj, "id") || readString(userObj, "userId") || null,
+      email: readString(userObj, "email") || null,
+      clinicId: readString(userObj, "clinicId") || null,
+      role: readString(userObj, "role") || "DOCTOR",
     });
 
     await page.addInitScript(
@@ -52,7 +63,7 @@ test.describe("Dashboard", () => {
           localStorage.setItem("docita_token", t);
           localStorage.setItem("docita_user", u);
         } catch {
-          // noop
+
         }
       },
       { t: token, u: userForStorage },
@@ -63,10 +74,9 @@ test.describe("Dashboard", () => {
   });
 
   test("should load dashboard with all sections", async ({ page }) => {
-    // Basic header check: ensure page rendered a header
+
     await expect(page.locator("h1")).toBeVisible();
 
-    // Check that at least one of the key stats/cards is visible
     const statsSelectors = [
       "Patients",
       "Today",
@@ -87,7 +97,6 @@ test.describe("Dashboard", () => {
     }
     expect(statsVisible).toBeGreaterThan(0);
 
-    // Check quick actions: ensure at least one quick action exists
     const quickActions = ["New Patient", "Schedule", "Queue", "Invoice"];
     let quickVisible = 0;
     for (const a of quickActions) {
@@ -102,7 +111,6 @@ test.describe("Dashboard", () => {
     }
     expect(quickVisible).toBeGreaterThan(0);
 
-    // Optional sections: verify schedule or recent patients exists
     const hasSchedule = await page
       .getByText("Today's Schedule")
       .isVisible({ timeout: 2000 })

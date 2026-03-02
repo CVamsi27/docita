@@ -50,15 +50,15 @@ describe("Contraindication Checker", () => {
     });
 
     it("should detect cross-reactivity (Penicillin group)", () => {
-      // Patient allergic to Penicillin V
+
       const allergies = [
         { name: "Penicillin V", severity: "mild" },
       ] as Allergy[];
-      // Prescribing Amoxicillin (same group)
+
       const result = checkAllergyContraindications("Amoxicillin", allergies);
 
       expect(result).not.toBeNull();
-      expect(result?.isContraindicated).toBe(true); // Cross-reactivity is usually treated as critical in this logic
+      expect(result?.isContraindicated).toBe(true); 
       expect(result?.message).toContain("penicillins");
     });
   });
@@ -87,11 +87,6 @@ describe("Contraindication Checker", () => {
         currentMedications: ["Warfarin"],
         isPregnant: true,
       };
-
-      // Ibuprofen checks:
-      // 1. Condition: Peptic ulcer (Absolute)
-      // 2. Allergy: NSAID group (Aspirin is NSAID/Salicylate, Ibuprofen is NSAID - logic might link them via group if defined)
-      // 3. Pregnancy: Contraindicated
 
       const results = checkMedicationContraindications(
         "ibuprofen",

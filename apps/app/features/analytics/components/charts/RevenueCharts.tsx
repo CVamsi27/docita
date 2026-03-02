@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { RevenueByCPT } from "../../hooks/use-analytics-logic";
+import type { RevenueByCPT } from "@/features/analytics/hooks/use-analytics-logic";
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface RevenueChartProps {

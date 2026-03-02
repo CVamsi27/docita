@@ -7,12 +7,10 @@ interface ClinicalSuggestionsContainerProps {
   className?: string;
 }
 
-// Smart suggestion engine based on chief complaint
 const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
   const complaint = chiefComplaint.toLowerCase();
   const suggestions: Suggestion[] = [];
 
-  // Fever patterns
   if (complaint.includes("fever")) {
     suggestions.push({
       type: "investigation",
@@ -31,7 +29,6 @@ const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
     }
   }
 
-  // Headache patterns
   if (complaint.includes("headache")) {
     suggestions.push({
       type: "investigation",
@@ -50,7 +47,6 @@ const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
     }
   }
 
-  // Chest pain patterns
   if (
     complaint.includes("chest pain") ||
     complaint.includes("chest discomfort")
@@ -69,7 +65,6 @@ const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
     });
   }
 
-  // Abdominal pain patterns
   if (
     complaint.includes("abdominal pain") ||
     complaint.includes("stomach pain")
@@ -91,7 +86,6 @@ const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
     }
   }
 
-  // Diabetes screening
   if (
     complaint.includes("frequent urination") ||
     complaint.includes("excessive thirst")
@@ -104,7 +98,6 @@ const generateSuggestions = (chiefComplaint: string): Suggestion[] => {
     });
   }
 
-  // Respiratory symptoms
   if (
     complaint.includes("shortness of breath") ||
     complaint.includes("breathing difficulty")

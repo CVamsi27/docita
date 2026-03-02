@@ -88,7 +88,7 @@ export function WhatsAppAutomationSettings() {
       <Card className="border-none shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <MessageSquare className="h-5 w-5 text-green-600" />
+            <MessageSquare className="h-5 w-5 text-success" />
             <div>
               <CardTitle>WhatsApp Automation</CardTitle>
               <CardDescription>

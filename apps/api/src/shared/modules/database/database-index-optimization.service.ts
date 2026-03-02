@@ -1,11 +1,5 @@
-/**
- * Database Index Optimization Service
- * Analyzes and reports on index usage, missing indexes, and unused indexes
- * Helps optimize query performance
- */
-
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 
 export interface IndexAnalysis {
@@ -34,9 +28,6 @@ export class DatabaseIndexOptimizationService {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Analyze all indexes in the database
-   */
   async analyzeAllIndexes(): Promise<IndexAnalysis[]> {
     try {
       const result = await this.prisma.$queryRaw<
@@ -93,9 +84,6 @@ export class DatabaseIndexOptimizationService {
     }
   }
 
-  /**
-   * Find unused indexes (candidates for deletion)
-   */
   async findUnusedIndexes(): Promise<IndexAnalysis[]> {
     const allIndexes = await this.analyzeAllIndexes();
     return allIndexes.filter(
@@ -106,9 +94,6 @@ export class DatabaseIndexOptimizationService {
     );
   }
 
-  /**
-   * Find missing indexes on heavily scanned tables
-   */
   async findMissingIndexes(): Promise<MissingIndexRecommendation[]> {
     try {
       const result = await this.prisma.$queryRaw<
@@ -149,9 +134,6 @@ export class DatabaseIndexOptimizationService {
     }
   }
 
-  /**
-   * Get index bloat statistics
-   */
   async getIndexBloat(): Promise<
     Array<{ tableName: string; indexName: string; bloatPercent: number }>
   > {
@@ -187,9 +169,6 @@ export class DatabaseIndexOptimizationService {
     }
   }
 
-  /**
-   * Get recommendation for index based on usage
-   */
   private getIndexRecommendation(
     scanCount: number,
     indexSize: string,
@@ -211,9 +190,6 @@ export class DatabaseIndexOptimizationService {
     return undefined;
   }
 
-  /**
-   * Parse size string like "10 MB" to numeric MB
-   */
   private parseSizeToMB(sizeStr: string): number {
     if (sizeStr.includes('MB')) return parseFloat(sizeStr) * 1;
     if (sizeStr.includes('GB')) return parseFloat(sizeStr) * 1024;
@@ -221,11 +197,7 @@ export class DatabaseIndexOptimizationService {
     return 0;
   }
 
-  /**
-   * Parse index columns from index name (basic parsing)
-   */
   private parseIndexColumns(indexName: string): string[] {
-    // Simple extraction: most naming conventions are idx_tablename_columns
     const parts = indexName.split('_');
     if (parts.length > 2) {
       return parts.slice(2).map((p) => p.replace(/(_idx|_index)$/, ''));
@@ -233,9 +205,6 @@ export class DatabaseIndexOptimizationService {
     return [indexName];
   }
 
-  /**
-   * Log index analysis for debugging
-   */
   async logIndexReport(): Promise<void> {
     const indexes = await this.analyzeAllIndexes();
     const unused = indexes.filter((idx) => !idx.isUsed);

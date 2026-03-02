@@ -26,10 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log to console for development
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
 
-    // Send structured error data to Sentry
     const eventId = Sentry.captureException(error, {
       contexts: {
         react: {
@@ -39,10 +36,8 @@ export class ErrorBoundary extends Component<Props, State> {
       level: "error",
     });
 
-    // Update state with event ID for later reference
     this.setState({ eventId });
 
-    // Also capture the component stack as a separate message
     Sentry.captureMessage(`React Component Error: ${error.message}`, "error");
   }
 
@@ -70,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
             has been notified and will investigate.
           </p>
 
-          {/* Display error details for debugging */}
+          {}
           {this.state.error?.message && (
             <div className="w-full mb-6 p-3 bg-muted rounded-lg border border-border">
               <p className="text-xs text-muted-foreground mb-2 font-semibold text-left">

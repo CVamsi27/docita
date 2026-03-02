@@ -1,19 +1,18 @@
-/**
- * AddonsSection
- *
- * SRP: Renders optional subscription add-ons.
- * All pricing and purchase state is passed via props — no API calls here.
- */
+
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { AddonCard, type AddonFeature } from "../cards/addon-card";
+import { AddonCard, type AddonFeature } from "@/features/subscription/components/cards/addon-card";
 
 interface AddonsSectionProps {
   hasIntelligence: boolean;
   intelligenceFeatures: AddonFeature[];
   purchasingId: string | null;
   currency: string;
+  intelligencePricing?: {
+    monthly: number;
+    yearly: number;
+  };
   onPurchaseIntelligence: (cycle: "MONTHLY" | "YEARLY") => void;
 }
 
@@ -22,6 +21,7 @@ export function AddonsSection({
   intelligenceFeatures,
   purchasingId,
   currency,
+  intelligencePricing,
   onPurchaseIntelligence,
 }: AddonsSectionProps) {
   return (
@@ -40,7 +40,7 @@ export function AddonsSection({
           colorScheme="pink"
           features={intelligenceFeatures}
           isPurchased={hasIntelligence}
-          pricing={{ monthly: 499, yearly: 4999 }}
+          pricing={intelligencePricing ?? { monthly: 499, yearly: 4999 }}
           onPurchase={onPurchaseIntelligence}
           isLoading={purchasingId === "INTELLIGENCE"}
           currency={currency}

@@ -1,4 +1,4 @@
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 export const useFeedbackCanSubmit = () =>
   useAPIQuery<{ canSubmit: boolean }>(
@@ -40,51 +40,6 @@ export const useFeedbackStats = (clinicId?: string) =>
     ["feedback-stats", clinicId ?? "all"],
     `/feedback/stats${clinicId ? `?clinicId=${clinicId}` : ""}`,
   );
-
-export const useAllFeedback = (filters?: {
-  status?: string;
-  category?: string;
-  clinicId?: string;
-  startDate?: string;
-  endDate?: string;
-  minRating?: number;
-  maxRating?: number;
-  search?: string;
-}) => {
-  const params = new URLSearchParams();
-  if (filters?.status) params.append("status", filters.status);
-  if (filters?.category) params.append("category", filters.category);
-  if (filters?.clinicId) params.append("clinicId", filters.clinicId);
-  if (filters?.startDate) params.append("startDate", filters.startDate);
-  if (filters?.endDate) params.append("endDate", filters.endDate);
-  if (filters?.minRating) params.append("minRating", String(filters.minRating));
-  if (filters?.maxRating) params.append("maxRating", String(filters.maxRating));
-  if (filters?.search) params.append("search", filters.search);
-  const queryString = params.toString();
-  return useAPIQuery<
-    {
-      id: string;
-      overallRating: number;
-      goodFeatures: string[];
-      goodFeaturesReason?: string;
-      badFeatures: string[];
-      badFeaturesReason?: string;
-      improvementAreas: string[];
-      improvementReason?: string;
-      featureRequests?: string;
-      generalComments?: string;
-      category: string;
-      status: string;
-      adminNotes?: string;
-      createdAt: string;
-      user: { id: string; name: string; email: string; role: string };
-      clinic: { id: string; name: string; tier: string };
-    }[]
-  >(
-    ["all-feedback", queryString],
-    `/feedback/all${queryString ? `?${queryString}` : ""}`,
-  );
-};
 
 export const useClinicFeedback = () =>
   useAPIQuery<

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { OnboardingData } from "../schemas/onboarding.schemas";
+import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
 
 interface UseOnboardingReturn {
   step: number;
@@ -82,7 +82,6 @@ export function useOnboarding(): UseOnboardingReturn {
         throw new Error(errorData.message || "Registration failed");
       }
 
-      // Success - redirect will happen after this
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
       throw err;

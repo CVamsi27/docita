@@ -34,6 +34,7 @@ import {
   Filter,
   MoreHorizontal,
   Plus,
+  Printer,
   RefreshCw,
   Search,
 } from "lucide-react";
@@ -46,7 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
-import { useInvoicesLogic } from "../../hooks/use-invoices-logic";
+import { useInvoicesLogic } from "@/features/invoices/hooks/use-invoices-logic";
 import Link from "next/link";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
@@ -240,6 +241,18 @@ export const InvoicesPageUI: FC = () => {
                               >
                                 <Download className="mr-2 h-4 w-4" />
                                 Download PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  if (!invoice.id) return;
+                                  window.open(
+                                    `/invoices/${invoice.id}?print=true`,
+                                    "_blank",
+                                  );
+                                }}
+                              >
+                                <Printer className="mr-2 h-4 w-4" />
+                                Print
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem asChild>

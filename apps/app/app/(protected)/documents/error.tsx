@@ -13,7 +13,7 @@ export default function DocumentsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Documents route error:", error);
+
   }, [error]);
 
   return (

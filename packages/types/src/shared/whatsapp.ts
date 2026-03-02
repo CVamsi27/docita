@@ -27,7 +27,7 @@ export const whatsappTemplateParameterSchema = z.object({
 export const whatsappTemplateComponentSchema = z.object({
   type: z.enum(["HEADER", "BODY", "FOOTER", "BUTTON"]),
   parameters: z.array(whatsappTemplateParameterSchema).optional(),
-  text: z.string().optional(), // For simple text components
+  text: z.string().optional(), 
 });
 
 export const whatsappTemplateSchema = z.object({

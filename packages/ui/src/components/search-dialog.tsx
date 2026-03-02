@@ -36,22 +36,6 @@ export interface SearchDialogProps {
   emptyText?: string;
 }
 
-/**
- * SearchDialog is a specialized dialog for searching and selecting items.
- * Use this for large lists where filtering is beneficial.
- *
- * @example
- * ```tsx
- * <SearchDialog
- *   open={open}
- *   onOpenChange={setOpen}
- *   title="Select Patient"
- *   placeholder="Search patients..."
- *   items={patients}
- *   onSelect={(patient) => setSelected(patient)}
- * />
- * ```
- */
 export function SearchDialog({
   open,
   onOpenChange,
@@ -70,7 +54,6 @@ export function SearchDialog({
     onOpenChange(false);
   };
 
-  // Group items by category if groups are specified
   const groupedItems = React.useMemo(() => {
     const groups: Record<string, SearchItem[]> = {};
 

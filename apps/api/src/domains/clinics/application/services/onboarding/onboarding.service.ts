@@ -1,13 +1,13 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { AuthService } from '../../../../../shared/modules/auth/auth/auth.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { SubscriptionStatus } from '@workspace/db';
 import type {
   CompleteOnboardingDto,
   OnboardingProgressDto,
   OnboardingStep,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
-import { ClinicTier } from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import { ClinicTier } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
@@ -86,79 +86,81 @@ export class OnboardingService {
         };
       }
 
-      const result = await this.prisma.$transaction(async (tx) => {
-        const clinic = await this.workflowService.createClinic(
-          tx,
-          completeData.clinicDetails,
-          ipAddress,
-        );
-        clinicId = clinic.id;
-
-        const adminUser = await this.workflowService.createAdminUser(
-          tx,
-          completeData.adminAccount,
-          clinic.id,
-          ipAddress,
-        );
-        userId = adminUser.id;
-
-        let subscriptionId: string;
-        if (completeData.planSelection.tier !== ClinicTier.CAPTURE) {
-          const subscription = await this.workflowService.createSubscription(
+      const result = await this.prisma.runUnrestricted(async () => {
+        return this.prisma.$transaction(async (tx) => {
+          const clinic = await this.workflowService.createClinic(
             tx,
-            clinic.id,
-            completeData.planSelection,
-            completeData.paymentDetails,
-          );
-          subscriptionId = subscription.id;
-        } else {
-          const subscription = await tx.subscription.create({
-            data: {
-              clinicId: clinic.id,
-              plan: 'CAPTURE',
-              billingCycle: 'MONTHLY',
-              basePriceCents: 0,
-              status: SubscriptionStatus.ACTIVE,
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(
-                Date.now() + 365 * 24 * 60 * 60 * 1000,
-              ), // 1 year
-            },
-          });
-          subscriptionId = subscription.id;
-        }
-
-        await this.complianceService.recordSLAAgreement(
-          tx,
-          clinic.id,
-          adminUser.id,
-          completeData.slaAgreement,
-          ipAddress,
-        );
-
-        await this.complianceService.configureConsentManagement(
-          tx,
-          clinic.id,
-          completeData.consentManagement,
-        );
-
-        if (completeData.staffSetup?.staffMembers?.length) {
-          const staffCount = await this.workflowService.createStaffMembers(
-            tx,
-            clinic.id,
-            completeData.staffSetup,
+            completeData.clinicDetails,
             ipAddress,
           );
-          this.logger.log(`Created ${staffCount} staff members`);
-        }
+          clinicId = clinic.id;
 
-        await this.workflowService.initializeClinicSettings(tx, clinic.id);
+          const adminUser = await this.workflowService.createAdminUser(
+            tx,
+            completeData.adminAccount,
+            clinic.id,
+            ipAddress,
+          );
+          userId = adminUser.id;
 
-        return {
-          clinic,
-          adminUser,
-          subscriptionId,
-        };
+          let subscriptionId: string;
+          if (completeData.planSelection.tier !== ClinicTier.CAPTURE) {
+            const subscription = await this.workflowService.createSubscription(
+              tx,
+              clinic.id,
+              completeData.planSelection,
+              completeData.paymentDetails,
+            );
+            subscriptionId = subscription.id;
+          } else {
+            const subscription = await tx.subscription.create({
+              data: {
+                clinicId: clinic.id,
+                plan: 'CAPTURE',
+                billingCycle: 'MONTHLY',
+                basePriceCents: 0,
+                status: SubscriptionStatus.ACTIVE,
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(
+                  Date.now() + 365 * 24 * 60 * 60 * 1000,
+                ),
+              },
+            });
+            subscriptionId = subscription.id;
+          }
+
+          await this.complianceService.recordSLAAgreement(
+            tx,
+            clinic.id,
+            adminUser.id,
+            completeData.slaAgreement,
+            ipAddress,
+          );
+
+          await this.complianceService.configureConsentManagement(
+            tx,
+            clinic.id,
+            completeData.consentManagement,
+          );
+
+          if (completeData.staffSetup?.staffMembers?.length) {
+            const staffCount = await this.workflowService.createStaffMembers(
+              tx,
+              clinic.id,
+              completeData.staffSetup,
+              ipAddress,
+            );
+            this.logger.log(`Created ${staffCount} staff members`);
+          }
+
+          await this.workflowService.initializeClinicSettings(tx, clinic.id);
+
+          return {
+            clinic,
+            adminUser,
+            subscriptionId,
+          };
+        });
       });
 
       this.dataService.clearSession(onboardingId);

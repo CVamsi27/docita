@@ -2,11 +2,24 @@ import { expect, test } from "@playwright/test";
 
 const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+function readString(source: Record<string, unknown>, key: string): string | undefined {
+  const value = source[key];
+  return typeof value === "string" ? value : undefined;
+}
+
 test.describe("Upgrade Page", () => {
   let token: string;
 
   test.beforeEach(async ({ context }) => {
-    // Create admin user with clinic
+
     const userEmail = `admin${Date.now()}@test.com`;
     const password = "Test@123456";
 
@@ -26,35 +39,30 @@ test.describe("Upgrade Page", () => {
       );
 
       if (registerRes.ok()) {
-        const userData = (await registerRes.json()) as Record<string, unknown>;
-        token =
-          (userData?.access_token as string) ||
-          (userData?.accessToken as string);
+        const userData = toRecord(await registerRes.json());
+        token = readString(userData, "access_token") || readString(userData, "accessToken") || "";
       }
     } catch {
-      // Registration failed, tests will skip
+
     }
   });
 
   test("should display upgrade page with current plan", async ({ page }) => {
-    // Skip if token not available
+
     if (!token) {
       test.skip();
       return;
     }
 
-    // Set auth token before navigating
     await page.goto("/login");
     await page.evaluate((tkn) => {
       localStorage.setItem("docita_token", tkn);
     }, token);
 
-    // Navigate to upgrade page
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
-    // Verify page has loaded (flexible check)
     const body = page.locator("body");
     await expect(body).toBeVisible({ timeout: 10000 });
   });
@@ -70,12 +78,10 @@ test.describe("Upgrade Page", () => {
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
 
-    // Click View All Plans button
     const viewPlansBtn = page.getByRole("button", { name: /View All Plans/i });
     if (await viewPlansBtn.isVisible()) {
       await viewPlansBtn.click();
 
-      // Verify pricing dialog appears
       await expect(page.getByRole("dialog")).toBeVisible();
       await expect(page.locator('[role="dialog"]')).toContainText(
         /Choose Your Plan|Plan/i,
@@ -93,7 +99,6 @@ test.describe("Upgrade Page", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
-    // Verify page loaded by checking for any text content
     const pageContent = page.locator("body");
     await expect(pageContent).toBeVisible({ timeout: 10000 });
   });
@@ -108,12 +113,11 @@ test.describe("Upgrade Page", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
-    // Verify page loaded
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 
   test("should show billing history button", async ({ page }) => {
-    // Skip if token not available
+
     if (!token) {
       test.skip();
       return;
@@ -128,7 +132,6 @@ test.describe("Upgrade Page", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
-    // Verify page loaded (flexible check)
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 
@@ -136,7 +139,7 @@ test.describe("Upgrade Page", () => {
     page,
     context,
   }) => {
-    // Create a doctor (non-admin) user
+
     const doctorEmail = `doctor${Date.now()}@test.com`;
     const password = "Test@123456";
 
@@ -152,19 +155,17 @@ test.describe("Upgrade Page", () => {
     });
 
     expect(registerRes.ok()).toBeTruthy();
-    const userData = (await registerRes.json()) as Record<string, unknown>;
+    const userData = toRecord(await registerRes.json());
     const doctorToken =
-      (userData?.access_token as string) || (userData?.accessToken as string);
+      readString(userData, "access_token") || readString(userData, "accessToken");
 
     await page.goto("/login");
     await page.evaluate((tkn) => {
       localStorage.setItem("docita_token", tkn);
     }, doctorToken);
 
-    // Try to access upgrade page
     await page.goto("/upgrade");
 
-    // Should redirect to dashboard
     await page.waitForTimeout(2000);
     await expect(page).toHaveURL(/\/(dashboard|upgrade)/);
   });
@@ -178,17 +179,15 @@ test.describe("Upgrade Page", () => {
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
 
-    // Open pricing dialog
     const changePlanBtn = page
       .getByRole("button", { name: /Change Plan|View All Plans/i })
       .first();
     if (await changePlanBtn.isVisible()) {
       await changePlanBtn.click();
 
-      // Look for billing toggle
       const yearlyLabel = page.locator('[role="dialog"]').getByText(/Yearly/i);
       if (await yearlyLabel.isVisible()) {
-        // Toggle should exist
+
         await expect(yearlyLabel).toBeVisible();
       }
     }

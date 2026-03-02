@@ -1,18 +1,7 @@
-/**
- * In-Memory Invoice Repository (Example Implementation)
- * Shows how to implement IInvoiceRepository port
- *
- * In production, replace with PrismaInvoiceRepository
- * This demonstrates the dependency inversion pattern:
- * - Application depends on IInvoiceRepository (interface)
- * - Infrastructure provides implementation
- * - Easy to swap implementations for testing or different databases
- */
-
 import { Injectable } from '@nestjs/common';
-import { Invoice } from '../../core/entities';
-import { IInvoiceRepository } from '../../application/ports/invoice.repository.port';
-import { InvoiceMapper } from '../mappers/invoice.mapper';
+import { Invoice } from '@/domains/billing/core/entities';
+import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
+import { InvoiceMapper } from '@/domains/billing/infrastructure/mappers/invoice.mapper';
 
 @Injectable()
 export class InMemoryInvoiceRepository implements IInvoiceRepository {

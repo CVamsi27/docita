@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MetricsService } from './metrics.service';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Logger } from '@nestjs/common';
 import { MetricType } from '@workspace/db';
 
 describe('MetricsService', () => {
@@ -26,6 +27,8 @@ describe('MetricsService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MetricsService,
@@ -39,6 +42,7 @@ describe('MetricsService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should be defined', () => {
@@ -63,7 +67,7 @@ describe('MetricsService', () => {
       jest
         .spyOn(prismaService.systemMetric, 'create')
         .mockRejectedValueOnce(new Error('DB Error'));
-      // Should not throw
+
       await expect(
         service.recordMetric(MetricType.CPU_USAGE, 50),
       ).resolves.not.toThrow();

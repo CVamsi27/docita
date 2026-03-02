@@ -1,15 +1,15 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, ErrorSeverity } from '@workspace/db';
-import { ErrorLogInput } from '../schemas/monitoring.schema';
-import { MonitoringFactory } from '../factories/monitoring.factory';
+import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
+import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 
 @Injectable()
 export class ErrorTrackingService implements OnModuleDestroy {
   private readonly logger = new Logger(ErrorTrackingService.name);
   private errorBuffer: ErrorLogInput[] = [];
   private readonly BATCH_SIZE = 100;
-  private readonly FLUSH_INTERVAL = 5000; // 5 seconds
+  private readonly FLUSH_INTERVAL = 5000;
   private flushTimer: NodeJS.Timeout | null = null;
   private persistenceDisabled = false;
 
@@ -161,7 +161,6 @@ export class ErrorTrackingService implements OnModuleDestroy {
       }),
     ]);
 
-    // Get error trend by day
     const errorsRaw = await this.prisma.errorLog.findMany({
       where,
       select: { createdAt: true },

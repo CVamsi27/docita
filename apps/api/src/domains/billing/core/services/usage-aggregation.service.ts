@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UsageType } from '@workspace/db';
 
@@ -61,7 +61,8 @@ export class UsageAggregationService {
       }),
     ]);
 
-    const plan = (subscription?.plan as string) || 'CORE';
+    const plan =
+      typeof subscription?.plan === 'string' ? subscription.plan : 'CORE';
 
     await Promise.all([
       this.aggregateUsageType(

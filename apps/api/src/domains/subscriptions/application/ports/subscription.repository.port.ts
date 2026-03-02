@@ -1,4 +1,4 @@
-import { Subscription } from '../../core/entities';
+import { Subscription } from '@/domains/subscriptions/core/entities';
 
 export interface ISubscriptionRepository {
   save(subscription: Subscription): Promise<void>;
@@ -26,7 +26,7 @@ export interface ISubscriptionRepository {
       subscriptionId?: string;
     },
   ): Promise<void>;
-  findPaymentsByClinicId(clinicId: string, limit: number): Promise<any[]>;
+  findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;
 }
 
 export const SUBSCRIPTION_REPOSITORY_TOKEN = 'ISubscriptionRepository';

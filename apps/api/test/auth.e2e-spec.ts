@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,9 +11,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Auth (e2e)', () => {
@@ -35,7 +35,7 @@ describe('Auth (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    // Disable logging in tests to suppress expected error messages
+
     app.useLogger(false);
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();

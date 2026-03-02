@@ -1,14 +1,18 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { CreateInvoiceInput, Invoice, Patient } from "@workspace/types";
-import { API_URL, useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import {
+  CreateInvoiceRequest,
+  Invoice,
+  ListInvoicesContractQuery,
+  Patient,
+  SubscriptionBillingActivateRequest,
+  SubscriptionBillingCancelRequest,
+  SubscriptionBillingCheckoutRequest,
+  SubscriptionBillingPreviewQuery,
+  UpdateInvoiceRequest,
+} from "@workspace/types";
+import { API_URL, useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
-export const useInvoices = (filters?: {
-  patientId?: string;
-  status?: string;
-  date?: string;
-  limit?: number;
-  search?: string;
-}) =>
+export const useInvoices = (filters?: ListInvoicesContractQuery) =>
   useAPIQuery<
     (Invoice & {
       patient: Patient;
@@ -38,12 +42,12 @@ export const useInvoice = (id: string) =>
   );
 
 export const useCreateInvoice = () =>
-  useAPIMutation<Invoice, CreateInvoiceInput>("/invoices", "POST", {
+  useAPIMutation<Invoice, CreateInvoiceRequest>("/invoices", "POST", {
     invalidateKeys: [["invoices"]],
   });
 
 export const useUpdateInvoice = (id: string) =>
-  useAPIMutation<Invoice, Partial<Invoice>>(`/invoices/${id}`, "PATCH", {
+  useAPIMutation<Invoice, UpdateInvoiceRequest>(`/invoices/${id}`, "PATCH", {
     invalidateKeys: [["invoices"], ["invoices", id]],
   });
 
@@ -101,7 +105,10 @@ export const usePaymentHistory = () =>
     staleTime: 1000 * 60 * 5,
   });
 
-export const useProrationPreview = (tier: string, billingCycle: string) =>
+export const useProrationPreview = (
+  tier: SubscriptionBillingPreviewQuery["tier"],
+  cycle: SubscriptionBillingPreviewQuery["cycle"],
+) =>
   useAPIQuery<{
     currentTier: string;
     newTier: string;
@@ -118,10 +125,10 @@ export const useProrationPreview = (tier: string, billingCycle: string) =>
       description: string;
     };
   }>(
-    ["proration-preview", tier, billingCycle],
-    `/subscription/billing/preview?tier=${tier}&cycle=${billingCycle}`,
+    ["proration-preview", tier, cycle],
+    `/subscription/billing/preview?tier=${tier}&cycle=${cycle}`,
     {
-      enabled: !!tier && !!billingCycle,
+      enabled: !!tier && !!cycle,
       staleTime: 1000 * 60,
     },
   );
@@ -139,11 +146,7 @@ export const useCreateCheckout = () =>
         contact?: string;
       };
     },
-    {
-      tier: string;
-      billingCycle: string;
-      referralCode?: string;
-    }
+    SubscriptionBillingCheckoutRequest
   >("/subscription/billing/checkout", "POST");
 
 export const useActivateSubscription = () =>
@@ -156,19 +159,13 @@ export const useActivateSubscription = () =>
         status: string;
       };
     },
-    {
-      razorpayPaymentId: string;
-      razorpayOrderId: string;
-      razorpaySignature: string;
-      tier: string;
-      billingCycle: string;
-    }
+    SubscriptionBillingActivateRequest
   >("/subscription/billing/activate", "POST");
 
 export const useCancelSubscription = () =>
   useAPIMutation<
     { success: boolean; message: string },
-    { immediate?: boolean }
+    SubscriptionBillingCancelRequest
   >("/subscription/billing/cancel", "POST");
 
 export const useInfiniteInvoices = (options?: {

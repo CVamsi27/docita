@@ -7,13 +7,13 @@ import {
 } from '@nestjs/common';
 import { Observable, TimeoutError, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
-import { AppConfigService } from '../../shared/modules/config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
   constructor(private configService: AppConfigService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const timeoutMs = this.configService.getRequestTimeoutMs();
 
     return next.handle().pipe(

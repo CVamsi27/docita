@@ -13,7 +13,7 @@ export default function AnalyticsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Analytics route error:", error);
+
   }, [error]);
 
   return (

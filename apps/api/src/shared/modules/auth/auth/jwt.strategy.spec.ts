@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let prisma: any;
+  let prisma: typeof mockPrisma;
 
   const mockPrisma = {
     user: {

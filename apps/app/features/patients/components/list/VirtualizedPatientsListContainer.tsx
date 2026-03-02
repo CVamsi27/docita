@@ -1,9 +1,11 @@
 import { useRouter } from "next/navigation";
-import { usePatients } from "../../hooks/usePatients";
+import { usePatients } from "@/features/patients/hooks/usePatients";
 import { getInitials } from "@/features/_shared/utils";
-import { getPatientAgeDisplay } from "../../rules/patientRules";
-import { VirtualizedPatientsListUI } from "./VirtualizedPatientsListUI";
-import type { Patient } from "@workspace/types";
+import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
+import {
+  VirtualizedPatientsListUI,
+  type PatientListItem,
+} from "./VirtualizedPatientsListUI";
 
 interface VirtualizedPatientsListContainerProps {
   searchQuery?: string;
@@ -23,15 +25,16 @@ export function VirtualizedPatientsListContainer({
 
   const patients = data?.items || [];
 
-  const handlePatientClick = (patient: Patient) => {
+  const handlePatientClick = (patient: PatientListItem) => {
+    if (!patient.id) return;
     router.push(`/patients/${patient.id}`);
   };
 
-  const getPatientInitials = (patient: Patient) => {
+  const getPatientInitials = (patient: PatientListItem) => {
     return getInitials(patient.firstName, patient.lastName);
   };
 
-  const getPatientAge = (patient: Patient) => {
+  const getPatientAge = (patient: PatientListItem) => {
     return getPatientAgeDisplay(patient);
   };
 

@@ -99,22 +99,22 @@ export default function PaymentProcessingPage() {
       });
 
       if (res.status === 401) {
-        console.error("Unauthorized access to clinics");
+
         toast.error("Session expired. Please login again.");
         return;
       }
 
       if (res.ok) {
         const data = await res.json();
-        // Ensure data is an array
+
         const clinicsArray = Array.isArray(data) ? data : [];
         setClinics(clinicsArray);
       } else {
-        console.error("Failed to load clinics:", res.status);
+
         toast.error("Failed to load clinics");
       }
     } catch (error) {
-      console.error("Failed to load clinics", error);
+
       toast.error("Failed to load clinics");
     } finally {
       setLoading(false);
@@ -124,7 +124,6 @@ export default function PaymentProcessingPage() {
   const loadTierPricing = useCallback(async () => {
     if (!token) return;
 
-    // Default tier pricing as fallback
     const defaultTiers: TierPricing[] = [
       {
         tier: "CAPTURE",
@@ -177,15 +176,14 @@ export default function PaymentProcessingPage() {
         const data = await res.json();
         setTierPricing(Array.isArray(data.tiers) ? data.tiers : defaultTiers);
       } else if (res.status === 404) {
-        // Endpoint doesn't exist, use default
+
         setTierPricing(defaultTiers);
       } else {
-        console.error("Failed to load tier pricing:", res.status);
+
         setTierPricing(defaultTiers);
       }
     } catch (error) {
-      console.error("Failed to load tier pricing", error);
-      // Use default tier pricing on error
+
       setTierPricing(defaultTiers);
     }
   }, [token]);
@@ -213,7 +211,7 @@ export default function PaymentProcessingPage() {
         setTierInfo(data);
         setSelectedClinic(clinic);
         setShowPaymentDialog(true);
-        // Set default values
+
         form.reset({
           paymentMethod: "razorpay",
           newTier: clinic.tier,
@@ -221,7 +219,7 @@ export default function PaymentProcessingPage() {
         });
       }
     } catch (error) {
-      console.error("Failed to load tier info", error);
+
       toast.error("Failed to load tier information");
     }
   };
@@ -260,7 +258,7 @@ export default function PaymentProcessingPage() {
         toast.error(error.message || "Failed to process payment");
       }
     } catch (error) {
-      console.error("Failed to process payment", error);
+
       toast.error("Failed to process payment");
     } finally {
       setProcessingPayment(false);
@@ -269,13 +267,13 @@ export default function PaymentProcessingPage() {
 
   const getTierBadgeColor = (tier: string) => {
     const colors: Record<string, string> = {
-      CAPTURE: "bg-gray-100 text-gray-800",
-      CORE: "bg-blue-100 text-blue-800",
-      PLUS: "bg-purple-100 text-purple-800",
-      PRO: "bg-orange-100 text-orange-800",
-      ENTERPRISE: "bg-red-100 text-red-800",
+      CAPTURE: "tier-capture",
+      CORE: "tier-core",
+      PLUS: "tier-plus",
+      PRO: "tier-pro",
+      ENTERPRISE: "tier-enterprise",
     };
-    return colors[tier] || "bg-gray-100 text-gray-800";
+    return colors[tier] || "tier-capture";
   };
 
   if (!isSuperAdmin) {
@@ -303,7 +301,7 @@ export default function PaymentProcessingPage() {
         </div>
       ) : (
         <>
-          {/* Tier Pricing Summary */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {tierPricing && tierPricing.length > 0 ? (
               tierPricing.map((tier) => (
@@ -343,7 +341,7 @@ export default function PaymentProcessingPage() {
             )}
           </div>
 
-          {/* Clinics List */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -414,7 +412,7 @@ export default function PaymentProcessingPage() {
         </>
       )}
 
-      {/* Payment Dialog */}
+      {}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

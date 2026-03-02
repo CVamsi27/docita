@@ -1,4 +1,4 @@
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 export const useProcessOCR = () =>
   useAPIMutation<

@@ -1,23 +1,10 @@
-/**
- * Clinic Type-Based Access Rule
- *
- * Enforces clinic type restrictions on specialty features.
- * Priority: 25 (after role-based at 15, before subscription status at 20)
- *
- * Examples:
- * - DENTAL clinics can access dentalChart
- * - PEDIATRIC clinics can access growthChart
- * - GENERAL clinics have all core features but no specialty features
- *
- * This rule implements HARD BLOCKS for specialty features that don't match
- * the clinic type, ensuring proper feature segregation.
- */
+
 
 import type {
   IAccessContext,
   IAccessDecision,
   IAccessRule,
-} from "../interfaces";
+} from "@/lib/access-control/interfaces";
 import { CLINIC_TYPE_FEATURES, CLINIC_TYPE_LABELS } from "@workspace/types";
 
 export class ClinicTypeBasedAccessRule implements IAccessRule {
@@ -26,22 +13,20 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
   }
 
   getPriority(): number {
-    return 25; // After role-based (15), before subscription status (20)
+    return 25; 
   }
 
   canAccess(context: IAccessContext): boolean {
-    // If no clinic type specified, allow (backward compatibility)
+
     if (!context.clinicType) {
       return true;
     }
 
-    // Get feature matrix for this clinic type
     const typeFeatures = CLINIC_TYPE_FEATURES[context.clinicType];
     if (!typeFeatures) {
-      return true; // Unknown clinic type, allow
+      return true; 
     }
 
-    // List of specialty features that are clinic-type specific
     const specialtyFeatures = [
       "dentalChart",
       "growthChart",
@@ -58,14 +43,12 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
       "prenatalCare",
     ];
 
-    // Check if this is a specialty feature
     if (specialtyFeatures.includes(context.feature)) {
-      // Hard block: Feature must be explicitly enabled for this clinic type
+
       const featureKey = context.feature as keyof typeof typeFeatures;
       return typeFeatures[featureKey] === true;
     }
 
-    // For core features (not in specialty list), always allow
     return true;
   }
 

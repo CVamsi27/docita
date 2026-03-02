@@ -1,4 +1,3 @@
-// Barrel export for use cases
 export {
   CreateInvoiceUseCase,
   type CreateInvoiceCommand,

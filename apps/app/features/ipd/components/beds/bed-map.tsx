@@ -31,13 +31,13 @@ export const BedMap: FC<BedMapProps> = ({ ward, beds = [] }) => {
   const getStatusColor = (status: BedStatus) => {
     switch (status) {
       case "available":
-        return "bg-green-100 text-green-700";
+        return "bg-success text-success";
       case "occupied":
-        return "bg-red-100 text-red-700";
+        return "bg-destructive text-destructive";
       case "maintenance":
-        return "bg-amber-100 text-amber-700";
+        return "bg-warning text-warning";
       case "reserved":
-        return "bg-blue-100 text-blue-700";
+        return "bg-info text-info";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -63,7 +63,7 @@ export const BedMap: FC<BedMapProps> = ({ ward, beds = [] }) => {
             : [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <div
                   key={i}
-                  className="h-16 rounded-lg bg-green-100 flex items-center justify-center text-green-700 font-medium"
+                  className="h-16 rounded-lg bg-success flex items-center justify-center text-success font-medium"
                 >
                   Bed {i}
                 </div>

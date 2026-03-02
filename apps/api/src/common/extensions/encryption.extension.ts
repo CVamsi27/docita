@@ -1,5 +1,11 @@
 import { Prisma } from '@workspace/db';
-import { EncryptionService } from '../encryption.service';
+import { EncryptionService } from '@/common/encryption.service';
+
+type PatientExtensionArgs = {
+  data?: Record<string, unknown> | Record<string, unknown>[];
+  create?: Record<string, unknown>;
+  update?: Record<string, unknown>;
+};
 
 export const createEncryptionExtension = (
   encryptionService: EncryptionService,
@@ -9,11 +15,10 @@ export const createEncryptionExtension = (
     query: {
       patient: {
         async $allOperations({ operation, args, query }) {
-          // Encrypt on Request (Write)
           if (
             ['create', 'update', 'upsert', 'createMany'].includes(operation)
           ) {
-            const typedArgs = args as any;
+            const typedArgs = args as PatientExtensionArgs;
             if (typedArgs.data) {
               if (Array.isArray(typedArgs.data)) {
                 typedArgs.data = typedArgs.data.map(
@@ -38,7 +43,6 @@ export const createEncryptionExtension = (
             }
           }
 
-          // Execute query
           const result = await query(args);
 
           return result;

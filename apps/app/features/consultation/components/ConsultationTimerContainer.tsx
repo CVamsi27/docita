@@ -36,7 +36,7 @@ function storeTimer(timer: TimerState) {
       JSON.stringify(timer),
     );
   } catch {
-    // Ignore storage errors
+
   }
 }
 
@@ -52,7 +52,6 @@ export function ConsultationTimerContainer({
   const timerRef = React.useRef<TimerState | null>(null);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize timer from storage or start new
   React.useEffect(() => {
     const stored = getStoredTimer(appointmentId);
 
@@ -79,7 +78,6 @@ export function ConsultationTimerContainer({
     }
   }, [appointmentId, autoStart]);
 
-  // Timer tick
   React.useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {

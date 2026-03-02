@@ -7,24 +7,20 @@ import {
   useContext,
   useState,
 } from "react";
-import { ConfirmDialog } from "../features/dialogs/components/ConfirmDialog";
-import { PromptDialog } from "../features/dialogs/components/PromptDialog";
-import { AlertDialog } from "../features/dialogs/components/AlertDialog";
+import { ConfirmDialog } from "@/features/dialogs/components/ConfirmDialog";
+import { PromptDialog } from "@/features/dialogs/components/PromptDialog";
+import { AlertDialog } from "@/features/dialogs/components/AlertDialog";
 import {
   AlertOptions,
   ConfirmOptions,
   PromptOptions,
-} from "../features/dialogs/types";
-
-// =============================================================================
-// Types
-// =============================================================================
+} from "@/features/dialogs/types";
 
 export type {
   ConfirmOptions,
   PromptOptions,
   AlertOptions,
-} from "../features/dialogs/types";
+} from "@/features/dialogs/types";
 
 interface ConfirmState {
   isOpen: boolean;
@@ -59,15 +55,7 @@ interface ConfirmContextValue {
   ) => Promise<boolean>;
 }
 
-// =============================================================================
-// Context
-// =============================================================================
-
 const ConfirmContext = createContext<ConfirmContextValue | null>(null);
-
-// =============================================================================
-// Provider Component
-// =============================================================================
 
 interface ConfirmProviderProps {
   children: ReactNode;
@@ -96,7 +84,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
   const [promptError, setPromptError] = useState<string | null>(null);
   const [typedConfirmation, setTypedConfirmation] = useState("");
 
-  // Confirm dialog
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
       setConfirmState({
@@ -116,7 +103,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     setTypedConfirmation("");
   }, []);
 
-  // Prompt dialog
   const prompt = useCallback(
     (options: PromptOptions): Promise<string | null> => {
       return new Promise((resolve) => {
@@ -157,7 +143,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     });
   }, []);
 
-  // Alert dialog
   const alert = useCallback((options: AlertOptions): Promise<void> => {
     return new Promise((resolve) => {
       setAlertState({
@@ -175,7 +160,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     });
   }, []);
 
-  // Preset helpers
   const confirmDelete = useCallback(
     (itemName: string, options?: Partial<ConfirmOptions>): Promise<boolean> => {
       return confirm({
@@ -264,10 +248,6 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
   );
 }
 
-// =============================================================================
-// Hook
-// =============================================================================
-
 export function useConfirm(): ConfirmContextValue {
   const context = useContext(ConfirmContext);
   if (!context) {
@@ -275,10 +255,6 @@ export function useConfirm(): ConfirmContextValue {
   }
   return context;
 }
-
-// =============================================================================
-// Standalone Hook (without provider)
-// =============================================================================
 
 interface UseConfirmDialogOptions {
   defaultOpen?: boolean;

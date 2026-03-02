@@ -1,8 +1,4 @@
-/**
- * Patient History Summary Card
- * Shared component for displaying patient history consistently
- * Used in both Patient Details and Consultation views
- */
+
 
 "use client";
 
@@ -49,15 +45,11 @@ interface PatientHistorySummaryCardProps {
   className?: string;
 }
 
-// Severity color mapping
 const SEVERITY_COLORS: Record<string, string> = {
-  MILD: "bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300",
-  MODERATE:
-    "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300",
-  SEVERE:
-    "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300",
-  LIFE_THREATENING:
-    "bg-red-200 text-red-900 border-red-500 dark:bg-red-950/50 dark:text-red-200",
+  MILD: "badge-warning border",
+  MODERATE: "tier-enterprise border",
+  SEVERE: "badge-danger border",
+  LIFE_THREATENING: "bg-destructive/25 text-destructive border-destructive/50",
 };
 
 export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
@@ -98,14 +90,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Allergies - Always shown prominently */}
+      {}
       <Card
-        className={`overflow-hidden ${hasAllergies ? "border-red-200 dark:border-red-900" : "border-green-200 dark:border-green-900"}`}
+        className={`overflow-hidden ${hasAllergies ? "border-destructive/30" : "border-success/30"}`}
       >
         <CardHeader className="py-2.5 px-3 bg-muted/30">
           <CardTitle className="text-sm flex items-center gap-2 font-semibold">
             <AlertTriangle
-              className={`h-4 w-4 ${hasAllergies ? "text-red-500" : "text-green-500"}`}
+              className={`h-4 w-4 ${hasAllergies ? "text-destructive" : "text-success"}`}
             />
             Allergies
             {hasAllergies && (
@@ -137,21 +129,21 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
               ))}
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+            <div className="flex items-center gap-2 text-sm text-success">
               <span className="font-medium">NKA (No Known Allergies)</span>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Medical Conditions */}
+      {}
       {hasConditions && (
         <Collapsible defaultOpen={!compact}>
           <Card>
             <CollapsibleTrigger className="w-full hover:bg-muted/50 transition-colors">
               <CardHeader className="py-2.5 px-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2 text-foreground font-medium">
-                  <Heart className="h-4 w-4 text-rose-500" />
+                  <Heart className="h-4 w-4 text-destructive" />
                   Conditions
                   <Badge
                     variant="secondary"
@@ -182,14 +174,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {/* Surgical History */}
+      {}
       {hasSurgeries && (
         <Collapsible defaultOpen={!compact}>
           <Card>
             <CollapsibleTrigger className="w-full hover:bg-muted/50 transition-colors">
               <CardHeader className="py-2.5 px-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2 text-foreground font-medium">
-                  <Stethoscope className="h-4 w-4 text-blue-500" />
+                  <Stethoscope className="h-4 w-4 text-info" />
                   Surgeries
                   <Badge
                     variant="secondary"
@@ -233,14 +225,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {/* Family History */}
+      {}
       {hasFamilyHistory && (
         <Collapsible defaultOpen={!compact}>
           <Card>
             <CollapsibleTrigger className="w-full hover:bg-muted/50 transition-colors">
               <CardHeader className="py-2.5 px-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2 text-foreground font-medium">
-                  <Users className="h-4 w-4 text-violet-500" />
+                  <Users className="h-4 w-4 text-primary" />
                   Family History
                   <Badge
                     variant="secondary"
@@ -275,14 +267,14 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {/* Social History */}
+      {}
       {hasSocialHistory && (
         <Collapsible defaultOpen={!compact}>
           <Card>
             <CollapsibleTrigger className="w-full hover:bg-muted/50 transition-colors">
               <CardHeader className="py-2.5 px-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2 text-foreground font-medium">
-                  <Coffee className="h-4 w-4 text-amber-600" />
+                  <Coffee className="h-4 w-4 text-warning" />
                   Social History
                 </CardTitle>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />

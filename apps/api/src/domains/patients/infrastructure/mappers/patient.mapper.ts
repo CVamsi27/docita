@@ -1,29 +1,42 @@
 import { Patient as PrismaPatient } from '@workspace/db';
-import { Patient } from '../../core/entities/patient.entity';
+import {
+  patientPersistenceRecordSchema,
+  patientPersistenceWriteSchema,
+  type PatientPersistenceWrite,
+} from '@workspace/types';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
 export class PatientMapper {
   static toDomain(raw: PrismaPatient): Patient {
+    const parsed = patientPersistenceRecordSchema.parse(raw);
+    const metadata =
+      parsed.customData &&
+      typeof parsed.customData === 'object' &&
+      !Array.isArray(parsed.customData)
+        ? Object.fromEntries(Object.entries(parsed.customData))
+        : {};
+
     return new Patient({
-      id: raw.id,
-      clinicId: raw.clinicId,
-      mrn: raw.mrn || undefined,
-      firstName: raw.firstName,
-      lastName: raw.lastName,
-      email: raw.email || undefined,
-      phoneNumber: raw.phoneNumber || undefined,
-      gender: raw.gender,
-      dateOfBirth: raw.dateOfBirth || undefined,
-      address: raw.address || undefined,
-      metadata: (raw.customData as Record<string, unknown>) || {},
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-      version: raw.version,
+      id: parsed.id,
+      clinicId: parsed.clinicId,
+      mrn: parsed.mrn || undefined,
+      firstName: parsed.firstName,
+      lastName: parsed.lastName,
+      email: parsed.email || undefined,
+      phoneNumber: parsed.phoneNumber || undefined,
+      gender: parsed.gender,
+      dateOfBirth: parsed.dateOfBirth || undefined,
+      address: parsed.address || undefined,
+      metadata,
+      createdAt: parsed.createdAt,
+      updatedAt: parsed.updatedAt,
+      version: parsed.version,
     });
   }
 
-  static toPersistence(domain: Patient): Record<string, unknown> {
+  static toPersistence(domain: Patient): PatientPersistenceWrite {
     const plain = domain.toPlain();
-    return {
+    return patientPersistenceWriteSchema.parse({
       id: plain.id,
       clinicId: plain.clinicId,
       mrn: plain.mrn,
@@ -36,6 +49,6 @@ export class PatientMapper {
       address: plain.address,
       customData: plain.metadata,
       version: plain.version,
-    };
+    });
   }
 }

@@ -3,7 +3,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 export default function Loading() {
   return (
     <div className="space-y-6">
-      {/* Header skeleton */}
+      {}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-8 w-48" />
@@ -12,7 +12,7 @@ export default function Loading() {
         <Skeleton className="h-10 w-32" />
       </div>
 
-      {/* Content skeleton */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="rounded-xl border bg-card p-6">
@@ -27,7 +27,7 @@ export default function Loading() {
         ))}
       </div>
 
-      {/* Table skeleton */}
+      {}
       <div className="rounded-xl border bg-card">
         <div className="border-b p-4">
           <Skeleton className="h-6 w-32" />

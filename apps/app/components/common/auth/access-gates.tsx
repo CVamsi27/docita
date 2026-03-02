@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { usePermissions } from "../../../hooks/use-permissions";
-import { useTierAccess } from "../../../hooks/use-tier-access";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useTierAccess } from "@/hooks/use-tier-access";
 import { useRouter } from "next/navigation";
-import type { Permission } from "../../../lib/permissions";
+import type { Permission } from "@/lib/permissions";
 import { Feature, Tier } from "@workspace/types";
 
 interface PermissionGateProps {
@@ -113,11 +113,11 @@ function UpgradePrompt({
   return (
     <div
       role="alert"
-      className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-800 dark:bg-amber-950"
+      className="surface-warning rounded-lg p-6 text-center"
     >
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900">
+      <div className="icon-warning mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
         <svg
-          className="h-6 w-6 text-amber-600 dark:text-amber-400"
+          className="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -131,10 +131,10 @@ function UpgradePrompt({
           />
         </svg>
       </div>
-      <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+      <h3 className="text-lg font-semibold">
         Upgrade Required
       </h3>
-      <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+      <p className="mt-1 text-sm opacity-90">
         {featureName
           ? `The ${formatFeatureName(featureName)} feature requires `
           : "This feature requires "}
@@ -148,7 +148,7 @@ function UpgradePrompt({
       </p>
       <button
         onClick={() => router.push("/settings/billing")}
-        className="mt-4 inline-flex items-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+        className="btn-warning mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
       >
         View Plans & Upgrade
       </button>
@@ -162,17 +162,17 @@ function SubscriptionExpiredBanner() {
   return (
     <div
       role="alert"
-      className="rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950"
+      className="surface-danger rounded-lg p-6 text-center"
     >
-      <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
+      <h3 className="text-lg font-semibold">
         Subscription Inactive
       </h3>
-      <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+      <p className="mt-1 text-sm opacity-90">
         Your subscription has expired. Please renew to continue using Docita.
       </p>
       <button
         onClick={() => router.push("/settings/billing")}
-        className="mt-4 inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+        className="btn-danger mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
       >
         Renew Subscription
       </button>

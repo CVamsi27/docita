@@ -1,10 +1,14 @@
 import { client } from "./api-client";
-import { Patient, Appointment } from "@workspace/types";
+import {
+  Patient,
+  Appointment,
+  SuperAdminBillingPaymentsQuery,
+  SuperAdminBillingSubscriptionsQuery,
+} from "@workspace/types";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001/api/v1";
 
-// Health Check Types
 export interface HealthCheckResult {
   status: "healthy" | "unhealthy" | "degraded";
   timestamp: string;
@@ -174,8 +178,6 @@ export const appointmentsAPI = {
   delete: (id: string): Promise<void> => client.delete(`/appointments/${id}`),
 };
 
-// ... other APIs (feedbackAPI, billingAPI) omitted for brevity in this step but should follow same pattern
-// I'll add them to be complete
 export interface Feedback {
   id: string;
   clinicId: string;
@@ -222,18 +224,20 @@ export interface FeedbackStats {
 export const feedbackAPI = {
   getAll: (
     filters?: Record<string, string | number | boolean | undefined>,
-  ): Promise<Feedback[]> => client.get("/feedback/all", { params: filters }),
+  ): Promise<Feedback[]> =>
+    client.get("/super-admin/feedback/all", { params: filters }),
   getStats: (clinicId?: string): Promise<FeedbackStats> =>
-    client.get("/feedback/stats", { params: { clinicId } }),
-  getOne: (id: string): Promise<Feedback> => client.get(`/feedback/${id}`),
+    client.get("/super-admin/feedback/stats", { params: { clinicId } }),
+  getOne: (id: string): Promise<Feedback> =>
+    client.get(`/super-admin/feedback/${id}`),
   updateStatus: (
     id: string,
     data: Record<string, unknown>,
-  ): Promise<Feedback> => client.patch(`/feedback/${id}/status`, data),
-  delete: (id: string): Promise<void> => client.delete(`/feedback/${id}`),
+  ): Promise<Feedback> => client.patch(`/super-admin/feedback/${id}/status`, data),
+  delete: (id: string): Promise<void> =>
+    client.delete(`/super-admin/feedback/${id}`),
 };
 
-// Billing Types
 export interface SubscriptionOverview {
   id: string;
   clinic: {
@@ -280,13 +284,13 @@ export const billingAPI = {
   getMetrics: (): Promise<BillingMetrics> =>
     client.get("/super-admin/billing/metrics"),
   getSubscriptions: (
-    filters?: Record<string, string | number | boolean | undefined>,
+    filters?: SuperAdminBillingSubscriptionsQuery,
   ): Promise<SubscriptionOverview[]> =>
     client.get("/super-admin/billing/subscriptions", { params: filters }),
   getExpiringSubscriptions: (days?: number): Promise<SubscriptionOverview[]> =>
     client.get("/super-admin/billing/expiring", { params: { days } }),
   getPayments: (
-    filters?: Record<string, string | number | boolean | undefined>,
+    filters?: SuperAdminBillingPaymentsQuery,
   ): Promise<PaymentRecord[]> =>
     client.get("/super-admin/billing/payments", { params: filters }),
   sendReminder: (subscriptionId: string): Promise<void> =>

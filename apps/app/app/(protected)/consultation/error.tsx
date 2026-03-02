@@ -13,7 +13,7 @@ export default function ConsultationError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Consultation route error:", error);
+
   }, [error]);
 
   return (

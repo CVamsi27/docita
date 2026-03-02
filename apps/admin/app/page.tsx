@@ -28,14 +28,12 @@ export default function SuperAdminLogin() {
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       router.replace("/dashboard");
     }
   }, [isAuthenticated, router]);
 
-  // Show nothing while redirecting
   if (isAuthenticated) {
     return null;
   }
@@ -74,12 +72,10 @@ export default function SuperAdminLogin() {
         throw new Error(data?.message || "Invalid credentials");
       }
 
-      // Check if user data exists
       if (!data?.user || !data?.access_token) {
         throw new Error("Invalid response from server");
       }
 
-      // Check role - only SUPER_ADMIN can access admin app
       if (data.user.role !== "SUPER_ADMIN") {
         throw new Error(
           "Unauthorized access - Super Admin only. Clinic admins should use the main app.",
@@ -97,7 +93,7 @@ export default function SuperAdminLogin() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-50 dark:bg-neutral-950 px-4 py-8">
+    <div className="flex items-center justify-center min-h-screen bg-muted/30 px-4 py-8">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-3 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

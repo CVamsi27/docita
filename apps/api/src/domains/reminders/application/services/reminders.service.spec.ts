@@ -45,7 +45,7 @@ describe('RemindersService (Facade)', () => {
         enableSMS: true,
         enableEmail: true,
         enableWhatsApp: true,
-        reminderTiming: [1440, 60, 0], // 24h, 1h, 0h before appointment
+        reminderTiming: [1440, 60, 0],
       };
 
       settingsService.getSettings.mockResolvedValue(mockSettings);
@@ -106,7 +106,7 @@ describe('RemindersService (Facade)', () => {
 
       historyService.sendManualReminder.mockResolvedValue(undefined);
 
-      await service.sendManualReminder(appointmentId, reminderType as any);
+      await service.sendManualReminder(appointmentId, reminderType as never);
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         appointmentId,
@@ -120,14 +120,14 @@ describe('RemindersService (Facade)', () => {
       );
 
       await expect(
-        service.sendManualReminder('invalid-id', 'email' as any),
+        service.sendManualReminder('invalid-id', 'email' as never),
       ).rejects.toThrow('Appointment not found');
     });
 
     it('should support email reminder type', async () => {
       historyService.sendManualReminder.mockResolvedValue(undefined);
 
-      await service.sendManualReminder('appt-1', 'email' as any);
+      await service.sendManualReminder('appt-1', 'email' as never);
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
@@ -138,7 +138,7 @@ describe('RemindersService (Facade)', () => {
     it('should support SMS reminder type', async () => {
       historyService.sendManualReminder.mockResolvedValue(undefined);
 
-      await service.sendManualReminder('appt-1', 'sms' as any);
+      await service.sendManualReminder('appt-1', 'sms' as never);
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
@@ -149,7 +149,7 @@ describe('RemindersService (Facade)', () => {
     it('should support WhatsApp reminder type', async () => {
       historyService.sendManualReminder.mockResolvedValue(undefined);
 
-      await service.sendManualReminder('appt-1', 'whatsapp' as any);
+      await service.sendManualReminder('appt-1', 'whatsapp' as never);
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
@@ -216,7 +216,7 @@ describe('RemindersService (Facade)', () => {
       ).filter((m) => m !== 'constructor');
 
       expect(serviceMethods.length).toBeGreaterThan(0);
-      expect(serviceMethods.length).toBeLessThan(10); // Facade should have few methods
+      expect(serviceMethods.length).toBeLessThan(10);
     });
 
     it('should be injectable with all required dependencies', () => {

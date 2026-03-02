@@ -1,5 +1,5 @@
-import { usePatient } from "../../hooks/usePatients";
-import { getPatientDisplayName } from "../../rules/patientRules";
+import { usePatient } from "@/features/patients/hooks/usePatients";
+import { getPatientDisplayName } from "@/features/patients/rules/patientRules";
 import { PatientAllergyAlertUI } from "./PatientAllergyAlertUI";
 
 interface PatientAllergyAlertContainerProps {
@@ -15,8 +15,16 @@ export function PatientAllergyAlertContainer({
     return null;
   }
 
-  const allergies = patient.allergies
-    ? patient.allergies.split(",").map((a) => a.trim())
+  const allergiesValue =
+    "allergies" in patient && typeof patient.allergies === "string"
+      ? patient.allergies
+      : "";
+
+  const allergies = allergiesValue
+    ? allergiesValue
+        .split(",")
+        .map((allergy) => allergy.trim())
+        .filter(Boolean)
     : [];
   const patientName = getPatientDisplayName(patient);
 

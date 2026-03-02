@@ -10,8 +10,8 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
 import { Brain, Loader2, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import type { DiagnosisSuggestion } from "../../hooks/use-ai-assistant-logic";
-import { EmptyState } from "../AIAssistantUI";
+import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
+import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
 import type { DiagnosisAssistantTabProps } from "@workspace/types";
 
 export const DiagnosisAssistantTab = ({
@@ -22,7 +22,7 @@ export const DiagnosisAssistantTab = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-purple-500" />
+          <Brain className="h-5 w-5 text-primary" />
           Diagnosis Assistant
         </CardTitle>
         <CardDescription>
@@ -77,9 +77,9 @@ export const DiagnosisAssistantTab = ({
             </>
           )}
         </Button>
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-          <Shield className="h-4 w-4 text-amber-600 mt-0.5" />
-          <p className="text-xs text-amber-700 dark:text-amber-400">
+        <div className="flex items-start gap-2 p-3 rounded-lg surface-warning">
+          <Shield className="h-4 w-4 text-warning mt-0.5" />
+          <p className="text-xs text-warning">
             <strong>Clinical Decision Support:</strong> These suggestions are
             for reference only and do not replace clinical judgment.
           </p>
@@ -107,7 +107,7 @@ export const DiagnosisAssistantTab = ({
                   className={cn(
                     "p-4 rounded-lg border transition-colors",
                     idx === 0
-                      ? "bg-green-50 dark:bg-green-950/20 border-green-200"
+                      ? "bg-success/10 border-success/30"
                       : "bg-muted/30",
                   )}
                 >
@@ -126,10 +126,10 @@ export const DiagnosisAssistantTab = ({
                           className={cn(
                             "h-full rounded-full",
                             suggestion.confidence >= 70
-                              ? "bg-green-500"
+                              ? "bg-success"
                               : suggestion.confidence >= 50
-                                ? "bg-yellow-500"
-                                : "bg-orange-500",
+                                ? "bg-warning"
+                                : "bg-destructive",
                           )}
                           style={{ width: `${suggestion.confidence}%` }}
                         />

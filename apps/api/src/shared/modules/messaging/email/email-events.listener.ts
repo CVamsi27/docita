@@ -1,18 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmailService } from './email.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   DomainEvents,
   AppointmentScheduledPayload,
   PatientCreatedPayload,
   EventMetadata,
-} from '../../../../common/events/domain-events';
+} from '@/common/events/domain-events';
 
-/**
- * Email event listener that responds to domain events.
- * Decouples email sending from WhatsApp and other modules.
- */
 @Injectable()
 export class EmailEventsListener {
   private readonly logger = new Logger(EmailEventsListener.name);
@@ -22,9 +18,6 @@ export class EmailEventsListener {
     private readonly prisma: PrismaService,
   ) {}
 
-  /**
-   * Send welcome email when a new user is created.
-   */
   @OnEvent(DomainEvents.USER_CREATED)
   async handleUserCreated(payload: {
     userId: string;
@@ -53,15 +46,11 @@ export class EmailEventsListener {
     }
   }
 
-  /**
-   * Send appointment reminder emails.
-   */
   @OnEvent(DomainEvents.APPOINTMENT_SCHEDULED)
   async handleAppointmentScheduled(
     payload: AppointmentScheduledPayload & { metadata?: EventMetadata },
   ) {
     try {
-      // Fetch patient and doctor details for the email
       const [patient, doctor, clinic] = await Promise.all([
         this.prisma.patient.findUnique({
           where: { id: payload.patientId },
@@ -95,9 +84,6 @@ export class EmailEventsListener {
     }
   }
 
-  /**
-   * Optional: Handle patient creation for welcome/onboarding emails.
-   */
   @OnEvent(DomainEvents.PATIENT_CREATED)
   async handlePatientCreated(
     payload: PatientCreatedPayload & {
@@ -106,7 +92,7 @@ export class EmailEventsListener {
     },
   ) {
     if (!payload.email) {
-      return; // No email to send to
+      return;
     }
 
     try {
@@ -117,7 +103,6 @@ export class EmailEventsListener {
           })
         : null;
 
-      // Could send patient portal invitation here
       this.logger.debug(
         `Patient ${payload.firstName} created at ${clinic?.name || 'clinic'} - email available`,
       );

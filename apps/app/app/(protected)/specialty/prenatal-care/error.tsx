@@ -13,7 +13,7 @@ export default function PrenatalCareError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Prenatal Care route error:", error);
+
   }, [error]);
 
   return (

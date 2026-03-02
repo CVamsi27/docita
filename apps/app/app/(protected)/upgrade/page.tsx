@@ -32,6 +32,7 @@ import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
+import { usePricingConfig } from "@/hooks/api/use-pricing";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { BILLING_ROLES } from "@/lib/permissions";
@@ -41,7 +42,6 @@ export default function UpgradePage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  // Dialog / modal state
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
@@ -64,6 +64,7 @@ export default function UpgradePage() {
   );
 
   const canAccessPage = !!user && BILLING_ROLES.has(user.role);
+  const { pricingConfig } = usePricingConfig("INR");
 
   useEffect(() => {
     if (user && !canAccessPage) {
@@ -86,7 +87,6 @@ export default function UpgradePage() {
     await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
   }, [selectedTier, selectedCycle, checkoutTier]);
 
-  // Derived data
   const currentTierInfo = getTierInfo(currentTier);
 
   const featuresByTier = Object.values(Tier)
@@ -118,7 +118,21 @@ export default function UpgradePage() {
       .find((t) => t.tier === Tier.INTELLIGENCE)
       ?.features.map((f) => ({ feature: f.feature, details: f.details })) ?? [];
 
-  // Don't render page for non-admins (while redirecting)
+  const currentTierName = Tier[currentTier] as TierName;
+  const intelligenceAddOn = pricingConfig?.addOns.find(
+    (addOn) => addOn.id === "INTELLIGENCE",
+  );
+  const pricingByTier = intelligenceAddOn?.pricingByTier?.[currentTierName];
+  const dynamicIntelligencePricing =
+    pricingByTier &&
+    typeof pricingByTier.monthly === "number" &&
+    typeof pricingByTier.yearly === "number"
+      ? {
+          monthly: pricingByTier.monthly,
+          yearly: pricingByTier.yearly,
+        }
+      : undefined;
+
   if (!user || !canAccessPage) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -130,7 +144,7 @@ export default function UpgradePage() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        {/* Header */}
+        {}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">
@@ -142,7 +156,7 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* Current Plan — SRP: display only */}
+        {}
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={currentTier}
@@ -152,13 +166,13 @@ export default function UpgradePage() {
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
         />
 
-        {/* Trust signals */}
+        {}
         <TrustSection />
 
-        {/* Locked features summary */}
+        {}
         <LockedFeatures lockedFeatures={lockedFeatures} />
 
-        {/* Next tier promotion */}
+        {}
         {nextTier !== null && (
           <NextTierPromotion
             nextTier={nextTier}
@@ -167,12 +181,13 @@ export default function UpgradePage() {
           />
         )}
 
-        {/* Add-ons — SRP: addon UI only */}
+        {}
         <AddonsSection
           hasIntelligence={hasIntelligence}
           intelligenceFeatures={intelligenceFeatures}
           purchasingId={processingId}
           currency="INR"
+          intelligencePricing={dynamicIntelligencePricing}
           onPurchaseIntelligence={(cycle) =>
             checkoutAddon({
               addonId: "INTELLIGENCE",
@@ -182,9 +197,12 @@ export default function UpgradePage() {
           }
         />
 
-        <DynamicPricingEstimator />
+        <DynamicPricingEstimator
+          defaultTier={currentTierName}
+          currency="INR"
+        />
 
-        {/* All Tiers Comparison */}
+        {}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -210,10 +228,10 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* Detailed comparison table */}
+        {}
         <ComparisonTable currentTier={currentTier} />
 
-        {/* Contact CTA */}
+        {}
         <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
             <div>
@@ -236,7 +254,7 @@ export default function UpgradePage() {
           </CardContent>
         </Card>
 
-        {/* Dialogs */}
+        {}
         <ContactSalesModal
           open={showContactSalesModal}
           onOpenChange={setShowContactSalesModal}
@@ -264,7 +282,7 @@ export default function UpgradePage() {
           onOpenChange={setShowInvoiceHistory}
         />
 
-        {/* Legal */}
+        {}
         <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
           <p>
             By upgrading, you agree to our{" "}
@@ -280,7 +298,7 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        {/* FAQ */}
+        {}
         <div className="pb-10">
           <FaqSection />
         </div>

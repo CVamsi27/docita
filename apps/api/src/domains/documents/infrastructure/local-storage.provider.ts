@@ -28,15 +28,13 @@ export class LocalStorageProvider extends StorageProvider {
     const filePath = path.join(destDir, filename);
 
     try {
-      // Security: Validate image and strip metadata using sharp
       if (file.mimetype.startsWith('image/')) {
         const buffer = file.buffer || fs.readFileSync(file.path!);
         await sharp(buffer)
-          .rotate() // Auto-orient based on EXIF
+          .rotate()
           .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
           .toFile(filePath);
       } else {
-        // Fallback for non-images (if ever allowed)
         if (file.path) {
           fs.renameSync(file.path, filePath);
         } else if (file.buffer) {
@@ -44,8 +42,6 @@ export class LocalStorageProvider extends StorageProvider {
         }
       }
 
-      // Return a relative URL or path
-      // In a real app, this would be served by static middleware
       return `/uploads/${folder}/${filename}`;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -55,7 +51,6 @@ export class LocalStorageProvider extends StorageProvider {
   }
 
   async delete(url: string): Promise<void> {
-    // Convert URL back to path
     const relativePath = url.replace(/^\/uploads\//, '');
     const filePath = path.join(this.uploadDir, relativePath);
 

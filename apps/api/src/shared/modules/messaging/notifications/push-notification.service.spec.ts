@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PushNotificationService } from './push-notification.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PushNotificationService', () => {
   let service: PushNotificationService;
@@ -50,7 +50,6 @@ describe('PushNotificationService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      // The service logs but doesn't throw
       const result = await service.sendToPatient(
         'patient-1',
         {

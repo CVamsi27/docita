@@ -1,7 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, MetricType } from '@workspace/db';
-import { WebVitalDto } from '../dto/monitoring.dto';
+import { WebVitalDto } from '@/shared/modules/monitoring/monitoring/dto/monitoring.dto';
+
+function getMetadataPage(
+  metadata: Prisma.JsonValue | null,
+): string | undefined {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return undefined;
+  }
+
+  const page = Reflect.get(metadata, 'page');
+  return typeof page === 'string' ? page : undefined;
+}
 
 @Injectable()
 export class MetricsService {
@@ -156,7 +167,7 @@ export class MetricsService {
     startDate: Date,
     endDate: Date,
     metricType?: MetricType,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     try {
       const where: Prisma.SystemMetricWhereInput = {
         recordedAt: { gte: startDate, lte: endDate },
@@ -328,7 +339,7 @@ export class MetricsService {
     period: 'hourly' | 'daily',
     startDate: Date,
     endDate: Date,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     return this.prisma.performanceAggregate.findMany({
       where: {
         period,
@@ -378,12 +389,7 @@ export class MetricsService {
     });
 
     const filtered = vitals.filter(
-      (v) =>
-        !page ||
-        (v.metadata &&
-          typeof v.metadata === 'object' &&
-          'page' in v.metadata &&
-          (v.metadata as any).page === page),
+      (v) => !page || getMetadataPage(v.metadata) === page,
     );
 
     const grouped = filtered.reduce(

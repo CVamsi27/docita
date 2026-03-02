@@ -5,7 +5,7 @@ const config: Config = {
   darkMode: ["class", '[data-theme="dark"]'],
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
-    "../../apps/*/src/**/*.{js,ts,jsx,tsx}",
+    "../../apps/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -53,11 +53,8 @@ const config: Config = {
     },
   },
   plugins: [
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require("@tailwindcss/forms"),
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require("@tailwindcss/typography"),
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require("@tailwindcss/container-queries"),
   ],
 };

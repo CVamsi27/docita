@@ -1,19 +1,30 @@
-/**
- * Prisma Appointment Repository
- * Implementation of IAppointmentRepository using Prisma
- */
-
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IAppointmentRepository,
   AppointmentSearchParams,
   PaginatedResult,
-} from '../../core/repositories/appointment.repository.interface';
-import { Appointment } from '../../core/entities/appointment.entity';
-import { AppointmentMapper } from '../mappers/appointment.mapper';
-import { AppointmentStatusEnum } from '../../core/value-objects/appointment-status.value-object';
-import { Prisma, Appointment as PrismaAppointment } from '@workspace/db';
+} from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
+import { AppointmentMapper } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
+import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import {
+  Prisma,
+  AppointmentStatus as PrismaAppointmentStatus,
+} from '@workspace/db';
+
+const APPOINTMENT_STATUS_TO_PRISMA: Record<
+  AppointmentStatusEnum,
+  PrismaAppointmentStatus
+> = {
+  [AppointmentStatusEnum.SCHEDULED]: PrismaAppointmentStatus.SCHEDULED,
+  [AppointmentStatusEnum.CONFIRMED]: PrismaAppointmentStatus.CONFIRMED,
+  [AppointmentStatusEnum.ARRIVED]: PrismaAppointmentStatus.CONFIRMED,
+  [AppointmentStatusEnum.IN_PROGRESS]: PrismaAppointmentStatus.IN_PROGRESS,
+  [AppointmentStatusEnum.COMPLETED]: PrismaAppointmentStatus.COMPLETED,
+  [AppointmentStatusEnum.CANCELLED]: PrismaAppointmentStatus.CANCELLED,
+  [AppointmentStatusEnum.NOSHOW]: PrismaAppointmentStatus.NO_SHOW,
+};
 
 @Injectable()
 export class PrismaAppointmentRepository implements IAppointmentRepository {
@@ -41,7 +52,9 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     if (patientId) where.patientId = patientId;
     if (doctorId) where.doctorId = doctorId;
     if (status && status.length > 0) {
-      where.status = { in: status as any };
+      where.status = {
+        in: status.map((value) => APPOINTMENT_STATUS_TO_PRISMA[value]),
+      };
     }
 
     if (startDate || endDate) {

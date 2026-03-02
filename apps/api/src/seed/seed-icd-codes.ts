@@ -24,8 +24,6 @@ const ICD_10_CODES: SeedIcdCodeInput[] = [
 ];
 
 export async function seedIcdCodes(prisma: PrismaClient): Promise<number> {
-  console.log('Seeding ICD-10 codes...');
-
   for (const icd of ICD_10_CODES) {
     await prisma.icdCode.upsert({
       where: { code: icd.code },
@@ -33,8 +31,6 @@ export async function seedIcdCodes(prisma: PrismaClient): Promise<number> {
       create: { ...icd, version: 'ICD-10' },
     });
   }
-
-  console.log(`${ICD_10_CODES.length} ICD-10 codes seeded`);
 
   return ICD_10_CODES.length;
 }

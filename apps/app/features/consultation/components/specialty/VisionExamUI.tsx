@@ -26,16 +26,14 @@ interface VisionExamProps {
 export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
   const handleChange = (
     eye: "OD" | "OS",
-    field: string, // Simplified key for mapping
+    field: string, 
     val: string,
   ) => {
     if (readOnly) return;
     const eyeKey = eye === "OD" ? "od" : "os";
 
-    // Deep clone or spread
     const newData = { ...value };
 
-    // Refraction
     if (["sph", "cyl", "axis", "add"].includes(field)) {
       newData.refraction = { ...newData.refraction };
       newData.refraction[eyeKey] = { ...newData.refraction?.[eyeKey] };
@@ -48,7 +46,6 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
       if (field === "add") refParams.add = val ? parseFloat(val) : undefined;
     }
 
-    // Visual Acuity
     if (["va", "vaNear"].includes(field)) {
       newData.visualAcuity = { ...newData.visualAcuity };
       newData.visualAcuity[eyeKey] = { ...newData.visualAcuity?.[eyeKey] };
@@ -62,8 +59,8 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
   };
 
   const eyes = [
-    { key: "OD", label: "OD (Right Eye)", color: "text-blue-600" },
-    { key: "OS", label: "OS (Left Eye)", color: "text-green-600" },
+    { key: "OD", label: "OD (Right Eye)", color: "text-info" },
+    { key: "OS", label: "OS (Left Eye)", color: "text-success" },
   ] as const;
 
   const fields: Array<{
@@ -187,7 +184,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
             <Label>IOP (Intraocular Pressure)</Label>
             <div className="flex gap-2">
               <div className="relative w-full">
-                <span className="absolute left-3 top-2 text-xs font-bold text-blue-600">
+                <span className="absolute left-3 top-2 text-xs font-bold text-info">
                   OD
                 </span>
                 <Input
@@ -209,7 +206,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
                 />
               </div>
               <div className="relative w-full">
-                <span className="absolute left-3 top-2 text-xs font-bold text-green-600">
+                <span className="absolute left-3 top-2 text-xs font-bold text-success">
                   OS
                 </span>
                 <Input

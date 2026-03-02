@@ -155,9 +155,9 @@ export function InventoryItemDetailsUI({
                             <TableRow key={movement.id}>
                               <TableCell className="font-medium capitalize flex items-center gap-1.5">
                                 {isInbound ? (
-                                  <ArrowDownLeft className="h-3 w-3 text-green-500" />
+                                  <ArrowDownLeft className="h-3 w-3 text-success" />
                                 ) : (
-                                  <ArrowUpRight className="h-3 w-3 text-orange-500" />
+                                  <ArrowUpRight className="h-3 w-3 text-warning" />
                                 )}
                                 {movement.type}
                               </TableCell>
@@ -165,8 +165,8 @@ export function InventoryItemDetailsUI({
                                 <span
                                   className={
                                     isInbound
-                                      ? "text-green-600 font-medium"
-                                      : "text-orange-600 font-medium"
+                                      ? "text-success font-medium"
+                                      : "text-warning font-medium"
                                   }
                                 >
                                   {isInbound ? "+" : "-"}

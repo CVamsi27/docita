@@ -3,9 +3,20 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppointmentStatus, ErrorSeverity, InvoiceStatus } from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
+import {
+  AppointmentStatus,
+  ErrorSeverity,
+  InvoiceStatus,
+  Prisma,
+} from '@workspace/db';
 import type { SystemLogEntry } from '@workspace/types';
+
+interface LogFilters {
+  level?: SystemLogEntry['level'];
+  module?: string;
+  q?: string;
+}
 
 @Injectable()
 export class SuperAdminLogService {
@@ -13,12 +24,26 @@ export class SuperAdminLogService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getLogs(limit: number = 50, offset: number = 0) {
+  async getLogs(
+    limit: number = 50,
+    offset: number = 0,
+    filters: LogFilters = {},
+  ) {
     try {
+      const safeLimit = Number.isFinite(limit)
+        ? Math.min(Math.max(limit, 1), 100)
+        : 50;
+      const safeOffset = Number.isFinite(offset) ? Math.max(offset, 0) : 0;
+      const fetchSize = safeLimit + safeOffset;
+
+      const auditWhere = this.buildAuditWhere(filters);
+      const errorWhere = this.buildErrorWhere(filters);
+
       const [auditLogs, auditTotal, errorLogs, errorTotal] = await Promise.all([
         this.prisma.auditLog.findMany({
-          take: limit,
-          skip: offset,
+          take: fetchSize,
+          skip: 0,
+          where: auditWhere,
           orderBy: { createdAt: 'desc' },
           include: {
             clinic: {
@@ -26,10 +51,11 @@ export class SuperAdminLogService {
             },
           },
         }),
-        this.prisma.auditLog.count(),
+        this.prisma.auditLog.count({ where: auditWhere }),
         this.prisma.errorLog.findMany({
-          take: limit,
-          skip: offset,
+          take: fetchSize,
+          skip: 0,
+          where: errorWhere,
           orderBy: { createdAt: 'desc' },
           select: {
             id: true,
@@ -38,14 +64,15 @@ export class SuperAdminLogService {
             type: true,
             message: true,
             path: true,
+            method: true,
             statusCode: true,
             clinicId: true,
+            metadata: true,
           },
         }),
-        this.prisma.errorLog.count(),
+        this.prisma.errorLog.count({ where: errorWhere }),
       ]);
 
-      // Transform audit logs to the expected format
       const auditEntries: SystemLogEntry[] = auditLogs.map((log) => ({
         id: log.id,
         timestamp: log.createdAt.toISOString(),
@@ -59,9 +86,10 @@ export class SuperAdminLogService {
         id: `error-${log.id}`,
         timestamp: log.createdAt.toISOString(),
         level: this.getErrorSeverityLevel(log.severity),
-        module: 'Frontend/Monitoring',
+        module: this.getErrorModule(log.type, log.method, log.metadata),
         message: `${log.type}: ${log.message}`,
         details: [
+          this.getErrorSource(log.metadata),
           log.path ? `Path: ${log.path}` : null,
           log.statusCode ? `Status: ${log.statusCode}` : null,
           log.clinicId ? `Clinic ID: ${log.clinicId}` : null,
@@ -75,7 +103,7 @@ export class SuperAdminLogService {
           (a, b) =>
             new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
         )
-        .slice(0, limit);
+        .slice(safeOffset, safeOffset + safeLimit);
 
       const total = auditTotal + errorTotal;
 
@@ -86,12 +114,138 @@ export class SuperAdminLogService {
         };
       }
 
-      // Fallback: Generate logs from recent database activity if no audit logs exist
-      return this.getRecentActivityLogs(limit, offset);
+      return this.getRecentActivityLogs(safeLimit, safeOffset, filters);
     } catch (error) {
       this.logger.error('Failed to fetch logs', error);
       throw new InternalServerErrorException('Failed to fetch logs');
     }
+  }
+
+  private buildAuditWhere(filters: LogFilters): Prisma.AuditLogWhereInput {
+    const conditions: Prisma.AuditLogWhereInput[] = [];
+
+    if (filters.level) {
+      if (filters.level === 'WARNING') {
+        conditions.push({ action: 'DELETE' });
+      } else if (filters.level === 'ERROR') {
+        conditions.push({
+          OR: [
+            { action: 'ERROR' },
+            { action: { contains: 'FAIL', mode: 'insensitive' } },
+          ],
+        });
+      } else if (filters.level === 'INFO') {
+        conditions.push({
+          NOT: [
+            { action: 'DELETE' },
+            { action: 'ERROR' },
+            { action: { contains: 'FAIL', mode: 'insensitive' } },
+          ],
+        });
+      } else if (filters.level === 'DEBUG') {
+        conditions.push({ id: '__no_debug_audit_logs__' });
+      }
+    }
+
+    if (filters.module?.trim()) {
+      conditions.push({
+        entityType: { contains: filters.module.trim(), mode: 'insensitive' },
+      });
+    }
+
+    if (filters.q?.trim()) {
+      const search = filters.q.trim();
+      conditions.push({
+        OR: [
+          { action: { contains: search, mode: 'insensitive' } },
+          { entityType: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    return conditions.length > 0 ? { AND: conditions } : {};
+  }
+
+  private buildErrorWhere(filters: LogFilters): Prisma.ErrorLogWhereInput {
+    const conditions: Prisma.ErrorLogWhereInput[] = [];
+
+    if (filters.level) {
+      if (filters.level === 'ERROR') {
+        conditions.push({
+          severity: { in: [ErrorSeverity.ERROR, ErrorSeverity.CRITICAL] },
+        });
+      } else if (filters.level === 'WARNING') {
+        conditions.push({ severity: ErrorSeverity.WARNING });
+      } else if (filters.level === 'INFO') {
+        conditions.push({ severity: ErrorSeverity.INFO });
+      } else if (filters.level === 'DEBUG') {
+        conditions.push({ severity: ErrorSeverity.DEBUG });
+      }
+    }
+
+    if (filters.module?.trim()) {
+      conditions.push(this.buildErrorModuleWhere(filters.module.trim()));
+    }
+
+    if (filters.q?.trim()) {
+      const search = filters.q.trim();
+      conditions.push({
+        OR: [
+          { type: { contains: search, mode: 'insensitive' } },
+          { message: { contains: search, mode: 'insensitive' } },
+          { path: { contains: search, mode: 'insensitive' } },
+          { method: { contains: search, mode: 'insensitive' } },
+          { clinicId: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    return conditions.length > 0 ? { AND: conditions } : {};
+  }
+
+  private buildErrorModuleWhere(module: string): Prisma.ErrorLogWhereInput {
+    const normalizedModule = module.toLowerCase();
+
+    if (normalizedModule === 'api/observability') {
+      return { type: { startsWith: 'Observability:' } };
+    }
+
+    if (normalizedModule === 'frontend/client') {
+      return { method: 'CLIENT' };
+    }
+
+    if (normalizedModule === 'frontend/monitoring') {
+      return {
+        metadata: {
+          path: ['source'],
+          equals: 'frontend',
+        },
+      };
+    }
+
+    if (normalizedModule === 'system/monitoring') {
+      return {
+        AND: [
+          {
+            NOT: {
+              type: { startsWith: 'Observability:' },
+            },
+          },
+          {
+            NOT: {
+              method: 'CLIENT',
+            },
+          },
+        ],
+      };
+    }
+
+    return {
+      OR: [
+        { type: { contains: module, mode: 'insensitive' } },
+        { path: { contains: module, mode: 'insensitive' } },
+      ],
+    };
   }
 
   private getLogLevel(action: string): 'INFO' | 'WARNING' | 'ERROR' {
@@ -102,7 +256,7 @@ export class SuperAdminLogService {
 
   private getErrorSeverityLevel(
     severity: ErrorSeverity,
-  ): 'INFO' | 'WARNING' | 'ERROR' {
+  ): 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG' {
     if (
       severity === ErrorSeverity.CRITICAL ||
       severity === ErrorSeverity.ERROR
@@ -114,10 +268,44 @@ export class SuperAdminLogService {
       return 'WARNING';
     }
 
+    if (severity === ErrorSeverity.DEBUG) {
+      return 'DEBUG';
+    }
+
     return 'INFO';
   }
 
-  private async getRecentActivityLogs(limit: number, offset: number) {
+  private getErrorSource(metadata: unknown): string | null {
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+      return null;
+    }
+
+    const source = (metadata as Record<string, unknown>)['source'];
+    return typeof source === 'string' ? `Source: ${source}` : null;
+  }
+
+  private getErrorModule(
+    type: string,
+    method: string | null,
+    metadata: unknown,
+  ): string {
+    if (type.startsWith('Observability:')) return 'API/Observability';
+    if (method === 'CLIENT') return 'Frontend/Client';
+
+    if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+      const source = (metadata as Record<string, unknown>)['source'];
+      if (source === 'frontend') return 'Frontend/Monitoring';
+      if (typeof source === 'string') return source;
+    }
+
+    return 'System/Monitoring';
+  }
+
+  private async getRecentActivityLogs(
+    limit: number,
+    offset: number,
+    filters: LogFilters,
+  ) {
     const [appointments, patients, invoices] = await Promise.all([
       this.prisma.appointment.findMany({
         take: Math.ceil(limit / 3),
@@ -194,9 +382,40 @@ export class SuperAdminLogService {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
+    const filteredLogs = this.applyInMemoryFallbackFilters(logs, filters);
+
     return {
-      data: logs.slice(0, limit),
-      total: logs.length,
+      data: filteredLogs.slice(offset, offset + limit),
+      total: filteredLogs.length,
     };
+  }
+
+  private applyInMemoryFallbackFilters(
+    logs: SystemLogEntry[],
+    filters: LogFilters,
+  ) {
+    const level = filters.level;
+    const module = filters.module?.trim().toLowerCase();
+    const search = filters.q?.trim().toLowerCase();
+
+    return logs.filter((log) => {
+      if (level && log.level !== level) {
+        return false;
+      }
+
+      if (module && !log.module.toLowerCase().includes(module)) {
+        return false;
+      }
+
+      if (search) {
+        const messageMatch = log.message.toLowerCase().includes(search);
+        const detailsMatch = (log.details || '').toLowerCase().includes(search);
+        if (!messageMatch && !detailsMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 }

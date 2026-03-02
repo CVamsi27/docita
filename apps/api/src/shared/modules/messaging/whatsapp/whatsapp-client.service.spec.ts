@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappClientService } from './whatsapp-client.service';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ServiceUnavailableException, Logger } from '@nestjs/common';
 
 describe('WhatsappClientService', () => {
@@ -32,7 +32,7 @@ describe('WhatsappClientService', () => {
     }).compile();
 
     service = module.get<WhatsappClientService>(WhatsappClientService);
-    // Mock logger to avoid clutter
+
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
@@ -46,7 +46,6 @@ describe('WhatsappClientService', () => {
     it('should throw ServiceUnavailableException when fetch fails', async () => {
       global.fetch = jest.fn().mockRejectedValue(new Error('Network Error'));
 
-      // Initialize with config to bypass "skipped-no-config" check
       Object.defineProperty(service, 'phoneNumberId', { value: 'test' });
       Object.defineProperty(service, 'accessToken', { value: 'test' });
 

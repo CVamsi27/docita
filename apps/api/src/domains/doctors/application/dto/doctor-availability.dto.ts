@@ -1,4 +1,10 @@
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import {
+  listDoctorSchedulesQuerySchema,
+  listDoctorTimeOffQuerySchema,
+  doctorAvailableSlotsQuerySchema,
+} from '@workspace/types';
 
 export const dayOfWeekSchema = z.enum([
   'SUNDAY',
@@ -87,3 +93,18 @@ export const createTimeOffSchema = z.object({
 });
 
 export type CreateTimeOffDto = z.infer<typeof createTimeOffSchema>;
+
+export const ListDoctorSchedulesQuerySchema = listDoctorSchedulesQuerySchema;
+export class ListDoctorSchedulesQueryDto extends createZodDto(
+  ListDoctorSchedulesQuerySchema,
+) {}
+
+export const ListDoctorTimeOffQuerySchema = listDoctorTimeOffQuerySchema;
+export class ListDoctorTimeOffQueryDto extends createZodDto(
+  ListDoctorTimeOffQuerySchema,
+) {}
+
+export const DoctorAvailableSlotsQuerySchema = doctorAvailableSlotsQuerySchema;
+export class DoctorAvailableSlotsQueryDto extends createZodDto(
+  DoctorAvailableSlotsQuerySchema,
+) {}

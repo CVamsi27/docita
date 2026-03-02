@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useInvoices } from "@/hooks/api/use-billing";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
-import { Invoice } from "@workspace/types";
+import { Invoice, ListInvoicesContractQuery } from "@workspace/types";
 
 export const useInvoicesLogic = () => {
   const [filter, setFilter] = useState("all");
@@ -17,7 +17,10 @@ export const useInvoicesLogic = () => {
     isLoading: loading,
     refetch,
   } = useInvoices({
-    status: filter !== "all" ? filter : undefined,
+    status:
+      filter !== "all"
+        ? (filter as ListInvoicesContractQuery["status"])
+        : undefined,
     search: debouncedSearch || undefined,
   });
 
@@ -28,8 +31,6 @@ export const useInvoicesLogic = () => {
 
   const filteredInvoices = useMemo(() => {
     const result = [...invoices];
-
-    // Backend-driven status filtering, frontend handles sorting for now
 
     result.sort((a, b) => {
       switch (sortBy) {
@@ -55,15 +56,14 @@ export const useInvoicesLogic = () => {
 
   const handleDownloadPdf = async (invoiceId: string) => {
     try {
-      // In a real app, this would call an API endpoint to generate PDF
+
       toast.success("Downloading PDF...");
 
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
     } catch (error) {
       toast.error("Failed to download PDF");
-      console.error(error);
+
     }
   };
 

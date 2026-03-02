@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface ResolvedTemplate {
   content: string;

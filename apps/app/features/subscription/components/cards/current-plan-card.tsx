@@ -1,9 +1,4 @@
-/**
- * CurrentPlanCard
- *
- * SRP: Displays the active plan details and quick action buttons.
- * Receives all data via props — no API calls or business logic inside.
- */
+
 "use client";
 
 import { Crown, Receipt, Sparkles, TrendingUp } from "lucide-react";
@@ -30,27 +25,24 @@ interface CurrentPlanCardProps {
 
 const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
   gray: {
-    gradient: "from-slate-500 to-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    gradient: "tier-capture",
+    badge: "tier-capture",
   },
   blue: {
-    gradient: "from-blue-500 to-blue-600",
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
+    gradient: "tier-core",
+    badge: "tier-core",
   },
   green: {
-    gradient: "from-emerald-500 to-emerald-600",
-    badge:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
+    gradient: "tier-plus",
+    badge: "tier-plus",
   },
   purple: {
-    gradient: "from-violet-500 to-purple-600",
-    badge:
-      "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
+    gradient: "tier-pro",
+    badge: "tier-pro",
   },
   orange: {
-    gradient: "from-amber-500 to-orange-600",
-    badge:
-      "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
+    gradient: "tier-enterprise",
+    badge: "tier-enterprise",
   },
 };
 
@@ -65,18 +57,18 @@ export function CurrentPlanCard({
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background dark:from-primary/10 dark:via-slate-900 dark:to-slate-800/50">
+    <Card className="relative overflow-hidden border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br shadow-lg",
+                "flex h-12 w-12 items-center justify-center rounded-xl shadow-lg",
                 colors.gradient,
               )}
             >
-              <Crown className="h-6 w-6 text-white" />
+              <Crown className="h-6 w-6" />
             </div>
             <div>
               <CardTitle className="text-xl">{tierInfo.name} Plan</CardTitle>
@@ -93,7 +85,7 @@ export function CurrentPlanCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {hasIntelligence && (
-          <div className="flex items-center gap-2 text-pink-600 dark:text-pink-400">
+          <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
             <span className="text-sm font-medium">
               Intelligence Add-on Active

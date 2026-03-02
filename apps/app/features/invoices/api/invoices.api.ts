@@ -1,25 +1,79 @@
 import { api } from "@/lib/api-client";
-import type { Invoice } from "@workspace/types";
+import {
+  createInvoiceRequestSchema,
+  invoiceResponseSchema,
+  listInvoicesQuerySchema,
+  markInvoicePaidRequestSchema,
+  updateInvoiceRequestSchema,
+  type CreateInvoiceRequest,
+  type Invoice,
+  type ListInvoicesContractQuery,
+  type MarkInvoicePaidRequest,
+  type UpdateInvoiceRequest,
+} from "@workspace/types";
+import { z } from "zod";
 
-/**
- * Invoices API Client
- */
+const invoicesListResponseSchema = z.union([
+  z.array(invoiceResponseSchema),
+  z.object({
+    items: z.array(invoiceResponseSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean().optional(),
+    count: z.number().optional(),
+  }),
+]);
+
+const normalizeInvoices = (
+  response: z.infer<typeof invoicesListResponseSchema>,
+): Invoice[] => {
+  return Array.isArray(response) ? response : response.items;
+};
+
 export const invoicesApi = {
-  getAll: (params?: { patientId?: string; status?: string }) => {
+  getAll: (params?: ListInvoicesContractQuery) => {
+    const parsedParams = params ? listInvoicesQuerySchema.parse(params) : undefined;
     const searchParams = new URLSearchParams();
-    if (params?.patientId) searchParams.set("patientId", params.patientId);
-    if (params?.status) searchParams.set("status", params.status);
-    return api.get<Invoice[]>(`/invoices?${searchParams}`);
+    if (parsedParams?.patientId)
+      searchParams.set("patientId", parsedParams.patientId);
+    if (parsedParams?.status) searchParams.set("status", parsedParams.status);
+    if (parsedParams?.date) searchParams.set("date", parsedParams.date);
+    if (parsedParams?.search) searchParams.set("search", parsedParams.search);
+    if (parsedParams?.cursor) searchParams.set("cursor", parsedParams.cursor);
+    if (parsedParams?.limit)
+      searchParams.set("limit", String(parsedParams.limit));
+
+    const query = searchParams.toString();
+
+    return api.get<unknown>(`/invoices${query ? `?${query}` : ""}`).then((response) => {
+      const parsed = invoicesListResponseSchema.parse(response);
+      return normalizeInvoices(parsed);
+    });
   },
 
-  getById: (id: string) => api.get<Invoice>(`/invoices/${id}`),
+  getById: (id: string) =>
+    api.get<unknown>(`/invoices/${id}`).then((response) => {
+      return invoiceResponseSchema.parse(response);
+    }),
 
-  create: (data: Partial<Invoice>) => api.post<Invoice>("/invoices", data),
+  create: (data: CreateInvoiceRequest) =>
+    api
+      .post<unknown>("/invoices", createInvoiceRequestSchema.parse(data))
+      .then((response) => {
+        return invoiceResponseSchema.parse(response);
+      }),
 
-  update: (id: string, data: Partial<Invoice>) =>
-    api.patch<Invoice>(`/invoices/${id}`, data),
+  update: (id: string, data: UpdateInvoiceRequest) =>
+    api
+      .patch<unknown>(`/invoices/${id}`, updateInvoiceRequestSchema.parse(data))
+      .then((response) => {
+        return invoiceResponseSchema.parse(response);
+      }),
 
-  markPaid: (id: string) => api.post(`/invoices/${id}/pay`, {}),
+  markPaid: (id: string, data?: MarkInvoicePaidRequest) =>
+    api.post(
+      `/invoices/${id}/pay`,
+      markInvoicePaidRequestSchema.parse(data ?? {}),
+    ),
 
   print: (id: string) => api.get(`/invoices/${id}/print`),
 };

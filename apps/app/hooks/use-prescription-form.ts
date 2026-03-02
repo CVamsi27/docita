@@ -140,7 +140,7 @@ export function usePrescriptionForm({
       resetForm();
       if (onSuccess) onSuccess();
     } catch (error: unknown) {
-      console.error("Prescription error:", error);
+
       toast.error("Failed to create prescription");
     } finally {
       setLoading(false);

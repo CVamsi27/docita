@@ -1,7 +1,3 @@
-/**
- * Mock for WhatsApp Cloud API (Meta) service
- * Used in tests to simulate WhatsApp message sending
- */
 export const mockWhatsAppService = {
   sendMessage: jest.fn().mockResolvedValue({
     success: true,
@@ -38,6 +34,5 @@ export const createMockWhatsAppService = () => {
   };
 };
 
-// Legacy export names for backward compatibility
 export const mockTwilio = mockWhatsAppService;
 export const createMockTwilio = createMockWhatsAppService;

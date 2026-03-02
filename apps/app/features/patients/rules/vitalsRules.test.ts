@@ -10,7 +10,7 @@ import {
 describe("Vitals Business Rules", () => {
   describe("calculateBMI", () => {
     it("should calculate BMI correctly", () => {
-      // 70kg, 175cm -> 70 / (1.75 * 1.75) = 22.857... -> 22.9
+
       expect(calculateBMI(70, 175)).toBe(22.9);
     });
 
@@ -24,19 +24,19 @@ describe("Vitals Business Rules", () => {
     it("should return correct status", () => {
       expect(getBMIStatus(18)).toEqual({
         label: "Underweight",
-        color: "text-blue-500",
+        color: "text-info",
       });
       expect(getBMIStatus(22)).toEqual({
         label: "Normal",
-        color: "text-green-500",
+        color: "text-success",
       });
       expect(getBMIStatus(27)).toEqual({
         label: "Overweight",
-        color: "text-orange-500",
+        color: "text-warning",
       });
       expect(getBMIStatus(32)).toEqual({
         label: "Obese",
-        color: "text-red-500",
+        color: "text-destructive",
       });
     });
 
@@ -52,8 +52,8 @@ describe("Vitals Business Rules", () => {
     });
 
     it("should return false for abnormal BP", () => {
-      expect(isBloodPressureNormal("140/90")).toBe(false); // High
-      expect(isBloodPressureNormal("80/50")).toBe(false); // Low
+      expect(isBloodPressureNormal("140/90")).toBe(false); 
+      expect(isBloodPressureNormal("80/50")).toBe(false); 
     });
 
     it("should handle invalid format", () => {

@@ -13,7 +13,7 @@ export default function MentalHealthError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Mental Health route error:", error);
+
   }, [error]);
 
   return (

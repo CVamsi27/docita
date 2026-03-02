@@ -1,13 +1,4 @@
-/**
- * Medical and Dental Procedure Codes
- *
- * CDT Codes: Current Dental Terminology (ADA)
- * CPT Codes: Current Procedural Terminology (AMA)
- */
 
-// ============================================================================
-// CDT CODES (DENTAL PROCEDURES)
-// ============================================================================
 
 export interface ProcedureCode {
   code: string;
@@ -17,7 +8,7 @@ export interface ProcedureCode {
 }
 
 export const CDT_CODES: Record<string, ProcedureCode> = {
-  // ===== DIAGNOSTIC =====
+
   D0120: {
     code: "D0120",
     description: "Periodic oral evaluation - established patient",
@@ -44,7 +35,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // Radiographs
   D0210: {
     code: "D0210",
     description: "Intraoral - complete series of radiographic images",
@@ -94,7 +84,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== PREVENTIVE =====
   D1110: {
     code: "D1110",
     description: "Prophylaxis - adult",
@@ -126,7 +115,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== RESTORATIVE - AMALGAM =====
   D2140: {
     code: "D2140",
     description: "Amalgam - one surface, primary or permanent",
@@ -152,7 +140,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== RESTORATIVE - COMPOSITE =====
   D2330: {
     code: "D2330",
     description: "Resin-based composite - one surface, anterior",
@@ -203,7 +190,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== ENDODONTICS =====
   D3310: {
     code: "D3310",
     description:
@@ -226,7 +212,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== PERIODONTICS =====
   D4210: {
     code: "D4210",
     description:
@@ -249,7 +234,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== PROSTHODONTICS - CROWNS =====
   D2740: {
     code: "D2740",
     description: "Crown - porcelain/ceramic substrate",
@@ -299,7 +283,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ===== PROSTHODONTICS - IMPLANTS =====
   D6010: {
     code: "D6010",
     description: "Surgical placement of implant body: endosteal implant",
@@ -331,7 +314,6 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
     specialty: "DENTAL",
   },
 
-  // ====== ORAL SURGERY =====
   D7111: {
     code: "D7111",
     description: "Extraction, coronal remnants - primary tooth",
@@ -384,12 +366,8 @@ export const CDT_CODES: Record<string, ProcedureCode> = {
   },
 };
 
-// ============================================================================
-// CPT CODES (MEDICAL PROCEDURES)
-// ============================================================================
-
 export const CPT_CODES: Record<string, ProcedureCode> = {
-  // ===== EVALUATION & MANAGEMENT - NEW PATIENT =====
+
   99201: {
     code: "99201",
     description: "Office/Outpatient Visit - New Patient, 10 min",
@@ -416,7 +394,6 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
     category: "Evaluation & Management",
   },
 
-  // ===== EVALUATION & MANAGEMENT - ESTABLISHED PATIENT =====
   99211: {
     code: "99211",
     description: "Office/Outpatient Visit - Established Patient, 5 min",
@@ -443,7 +420,6 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
     category: "Evaluation & Management",
   },
 
-  // ===== HOSPITAL CARE =====
   99221: {
     code: "99221",
     description: "Initial Hospital Care - Low Complexity",
@@ -475,7 +451,6 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
     category: "Hospital Care",
   },
 
-  // ===== EMERGENCY DEPARTMENT =====
   99281: {
     code: "99281",
     description: "Emergency Department Visit - Self-limited/minor",
@@ -503,7 +478,6 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
     category: "Emergency Department",
   },
 
-  // ===== PREVENTIVE MEDICINE =====
   99381: {
     code: "99381",
     description:
@@ -589,7 +563,6 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
     category: "Preventive Medicine",
   },
 
-  // ===== COMMON PROCEDURES =====
   29580: {
     code: "29580",
     description: "Strapping; Unna boot",
@@ -633,48 +606,26 @@ export const CPT_CODES: Record<string, ProcedureCode> = {
   },
 };
 
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Get all CDT codes
- */
 export function getAllCDTCodes(): ProcedureCode[] {
   return Object.values(CDT_CODES);
 }
 
-/**
- * Get all CPT codes
- */
 export function getAllCPTCodes(): ProcedureCode[] {
   return Object.values(CPT_CODES);
 }
 
-/**
- * Get all procedure codes (CDT + CPT)
- */
 export function getAllProcedureCodes(): ProcedureCode[] {
   return [...getAllCDTCodes(), ...getAllCPTCodes()];
 }
 
-/**
- * Get CDT codes by category
- */
 export function getCDTCodesByCategory(category: string): ProcedureCode[] {
   return getAllCDTCodes().filter((code) => code.category === category);
 }
 
-/**
- * Get CPT codes by category
- */
 export function getCPTCodesByCategory(category: string): ProcedureCode[] {
   return getAllCPTCodes().filter((code) => code.category === category);
 }
 
-/**
- * Search procedure codes by description
- */
 export function searchProcedureCodes(query: string): ProcedureCode[] {
   const lowerQuery = query.toLowerCase();
   return getAllProcedureCodes().filter(
@@ -684,17 +635,11 @@ export function searchProcedureCodes(query: string): ProcedureCode[] {
   );
 }
 
-/**
- * Get unique categories from CDT codes
- */
 export function getCDTCategories(): string[] {
   const categories = new Set(getAllCDTCodes().map((code) => code.category));
   return Array.from(categories).sort();
 }
 
-/**
- * Get unique categories from CPT codes
- */
 export function getCPTCategories(): string[] {
   const categories = new Set(getAllCPTCodes().map((code) => code.category));
   return Array.from(categories).sort();

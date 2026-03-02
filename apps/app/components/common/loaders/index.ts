@@ -1,4 +1,4 @@
-// Loader component exports
+
 export {
   Spinner,
   LoadingOverlay,

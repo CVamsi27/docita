@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
-/**
- * Handles WhatsApp messaging and analytics queries
- */
 @Injectable()
 export class MessagingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get WhatsApp message logs for a clinic
-   */
   async getLogs(
     clinicId: string,
     options: { limit?: number; patientId?: string; type?: string },
@@ -29,9 +23,6 @@ export class MessagingService {
     });
   }
 
-  /**
-   * Get WhatsApp statistics for the clinic
-   */
   async getWhatsappStats(clinicId: string) {
     const totalPatients = await this.prisma.patient.count({
       where: { clinicId },
@@ -47,8 +38,8 @@ export class MessagingService {
     return {
       totalPatients,
       subscribers,
-      deliveryRate: 98.5, // Mock data for now
-      responseRate: 12.4, // Mock data for now
+      deliveryRate: 98.5,
+      responseRate: 12.4,
     };
   }
 }

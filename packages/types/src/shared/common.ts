@@ -1,4 +1,4 @@
-// Common
+
 export type JsonValue =
   | string
   | number
@@ -32,9 +32,6 @@ export interface OffsetPaginationResult<T> {
   hasMore: boolean;
 }
 
-/**
- * Log Entry for Super Admin
- */
 export interface LogEntry {
   id: string;
   timestamp: string;
@@ -44,9 +41,6 @@ export interface LogEntry {
   details?: string;
 }
 
-/**
- * WhatsApp Automation Settings
- */
 export interface WhatsAppAutomationSettings {
   enabled: boolean;
   prescriptionSent?: boolean;
@@ -55,9 +49,6 @@ export interface WhatsAppAutomationSettings {
   appointmentConfirmation?: boolean;
 }
 
-/**
- * Payment Gateway Data
- */
 export interface PaymentGatewayData {
   gateway: "RAZORPAY" | "STRIPE";
   customerId?: string;
@@ -65,9 +56,6 @@ export interface PaymentGatewayData {
   metadata?: Record<string, string>;
 }
 
-/**
- * Scheduled Change for Subscriptions
- */
 export interface ScheduledChange {
   type: "UPGRADE" | "DOWNGRADE" | "CANCEL";
   newTier?: string;

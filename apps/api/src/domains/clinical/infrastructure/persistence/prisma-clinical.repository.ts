@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { LabTest } from '../../core/entities/lab-test.entity';
-import { LabOrder } from '../../core/entities/lab-order.entity';
+import { PrismaService } from '@/prisma/prisma.service';
+import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
+import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import {
   ILabRepository,
   IMedicalCodingRepository,
-} from '../../core/repositories/clinical.repository.interface';
+} from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
   LabTestOrderStatus,
   Prisma,
@@ -293,7 +293,7 @@ export class PrismaClinicalRepository
   async getUncodedVisits(
     clinicId: string,
     search?: string,
-  ): Promise<Record<string, unknown>[]> {
+  ): Promise<Appointment[]> {
     const visits = await this.prisma.appointment.findMany({
       where: {
         clinicId,
@@ -335,6 +335,13 @@ export class PrismaClinicalRepository
     prismaOrder: PrismaLabTestOrder,
     patient?: PatientSubset | null,
   ): LabOrder {
+    const normalizedResult =
+      prismaOrder.result &&
+      typeof prismaOrder.result === 'object' &&
+      !Array.isArray(prismaOrder.result)
+        ? Object.fromEntries(Object.entries(prismaOrder.result))
+        : undefined;
+
     return new LabOrder(
       prismaOrder.id,
       prismaOrder.patientId,
@@ -342,7 +349,7 @@ export class PrismaClinicalRepository
       prismaOrder.status,
       prismaOrder.clinicId,
       prismaOrder.appointmentId || undefined,
-      prismaOrder.result as Record<string, unknown> | undefined,
+      normalizedResult,
       prismaOrder.resultUrl || undefined,
       prismaOrder.notes || undefined,
       prismaOrder.createdAt,

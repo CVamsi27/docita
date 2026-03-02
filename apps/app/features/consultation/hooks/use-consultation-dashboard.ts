@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation";
 export const useConsultationDashboard = () => {
   const router = useRouter();
 
-  // Fetch today's appointments
   const { data: appointmentsData, isLoading: isLoadingAppointments } =
     useTodayAppointments();
 
-  // Fetch active queue
   const { data: queueData, isLoading: isLoadingQueue } = useQueue();
 
   const stats = useMemo(() => {

@@ -34,8 +34,6 @@ export async function seedClinicConfigTemplates(
     },
   });
 
-  console.log('Reminder settings created');
-
   await prisma.mrnSequence.upsert({
     where: { clinicId },
     update: {},
@@ -54,8 +52,6 @@ export async function seedClinicConfigTemplates(
       }),
     ),
   );
-
-  console.log('MRN sequence and patient MRNs created');
 
   await prisma.whatsappTemplate.deleteMany({
     where: { clinicId },
@@ -126,8 +122,6 @@ export async function seedClinicConfigTemplates(
       },
     ],
   });
-
-  console.log('WhatsApp templates created');
 
   await prisma.prescriptionTemplate.deleteMany({
     where: { userId: { in: [doctor1Id, doctor2Id, doctor3Id] } },
@@ -229,6 +223,4 @@ export async function seedClinicConfigTemplates(
       },
     ],
   });
-
-  console.log('Prescription templates created');
 }

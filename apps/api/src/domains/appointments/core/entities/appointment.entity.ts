@@ -1,4 +1,4 @@
-import { AppointmentStatus } from '../value-objects/appointment-status.value-object';
+import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 
 export interface AppointmentProps {
   id: string;
@@ -95,10 +95,6 @@ export class Appointment {
     }
   }
 
-  // ========================================================================
-  // Getters
-  // ========================================================================
-
   getStartTime(): Date {
     return this.startTime;
   }
@@ -123,13 +119,6 @@ export class Appointment {
     return { ...this.metadata };
   }
 
-  // ========================================================================
-  // Domain Logic
-  // ========================================================================
-
-  /**
-   * Reschedule appointment
-   */
   reschedule(startTime: Date, endTime: Date): void {
     if (this.status.isCompleted() || this.status.isCancelled()) {
       throw new Error('Cannot reschedule a completed or cancelled appointment');
@@ -144,16 +133,13 @@ export class Appointment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Cancel appointment
-   */
   cancel(reason: string): void {
     if (this.status.isCompleted()) {
       throw new Error('Cannot cancel a completed appointment');
     }
 
     if (this.status.isCancelled()) {
-      return; // Already cancelled
+      return;
     }
 
     this.status = AppointmentStatus.cancelled();
@@ -162,9 +148,6 @@ export class Appointment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Complete appointment
-   */
   complete(): void {
     if (this.status.isCancelled()) {
       throw new Error('Cannot complete a cancelled appointment');
@@ -174,9 +157,6 @@ export class Appointment {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Convert to plain object for persistence/transfer
-   */
   toPlain() {
     return {
       id: this.id,

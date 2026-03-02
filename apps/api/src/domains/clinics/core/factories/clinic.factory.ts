@@ -6,6 +6,10 @@ import { SettingsFactory } from './settings.factory';
 export class ClinicFactory {
   constructor(private readonly settingsFactory: SettingsFactory) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   create(data: {
     name: string;
     email: string;
@@ -14,10 +18,8 @@ export class ClinicFactory {
     tier?: ClinicTier;
     settings?: Record<string, unknown>;
   }): Prisma.ClinicCreateInput {
-    // Get default settings from factory
     const defaultSettings = this.settingsFactory.createDefault();
 
-    // Merge defaults with provided settings
     const finalSettings = {
       ...defaultSettings,
       ...(data.settings || {}),
@@ -26,11 +28,11 @@ export class ClinicFactory {
     return {
       name: data.name,
       email: data.email,
-      phone: data.phone || '', // Provide default if undefined
-      address: data.address || '', // Provide default if undefined
-      tier: data.tier || 'CORE', // Default to CORE tier
-      active: true, // Default to active
-      settings: finalSettings as unknown as Prisma.InputJsonValue,
+      phone: data.phone || '',
+      address: data.address || '',
+      tier: data.tier || 'CORE',
+      active: true,
+      settings: this.toInputJsonValue(finalSettings),
     };
   }
 }

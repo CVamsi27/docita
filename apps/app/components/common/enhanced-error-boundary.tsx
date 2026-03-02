@@ -51,10 +51,9 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
 
     if (typeof window !== "undefined") {
-      const windowObj = window as unknown as Window & { Sentry?: SentryGlobal };
+      const windowObj = window as Window & { Sentry?: SentryGlobal };
       if (windowObj.Sentry) {
         windowObj.Sentry.captureException(error, {
           contexts: {

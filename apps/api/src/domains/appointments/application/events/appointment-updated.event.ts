@@ -1,4 +1,4 @@
-import { Appointment } from '../../core/entities/appointment.entity';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 
 export class AppointmentUpdatedEvent {
   constructor(

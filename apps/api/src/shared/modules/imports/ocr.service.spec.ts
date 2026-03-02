@@ -7,7 +7,6 @@ import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
 import { Logger } from '@nestjs/common';
 
-// Mock Tesseract
 const mockWorker = {
   recognize: jest.fn(),
   terminate: jest.fn(),
@@ -39,7 +38,11 @@ jest.mock('fs', () => ({
 
 describe('OCRService', () => {
   let service: OCRService;
-  let textExtractorService: { extractText: jest.Mock };
+  let textExtractorService: {
+    initialize: jest.Mock;
+    cleanup: jest.Mock;
+    extractText: jest.Mock;
+  };
 
   beforeEach(async () => {
     const mockImagePreprocessor = {
@@ -59,8 +62,6 @@ describe('OCRService', () => {
     const mockTextParser = {
       parseText: jest.fn().mockResolvedValue({ parsed: 'data' }),
       parseExtractedText: jest.fn().mockImplementation((text) => {
-        // Return a structure that matches ParsedMedicalFields
-        // Extract medications if text contains them
         const medications = text?.includes('Medications')
           ? [
               {
@@ -182,7 +183,11 @@ describe('OCRService', () => {
     }).compile();
 
     service = module.get<OCRService>(OCRService);
-    textExtractorService = module.get<any>(TextExtractorService);
+    textExtractorService = module.get(TextExtractorService) as {
+      initialize: jest.Mock;
+      cleanup: jest.Mock;
+      extractText: jest.Mock;
+    };
   });
 
   afterEach(() => {
@@ -196,7 +201,6 @@ describe('OCRService', () => {
     });
 
     it('should terminate worker on module destroy', async () => {
-      // Manually set worker to mock state via init
       await service.onModuleInit();
       await service.onModuleDestroy();
       expect(textExtractorService.cleanup).toHaveBeenCalled();

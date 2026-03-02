@@ -33,12 +33,10 @@ describe.skip('MedicalHistoryFactory', () => {
 
     it('should throw error for invalid data', () => {
       const data = {
-        conditionName: '', // Invalid
+        conditionName: '',
       };
 
-      expect(() => factory.createCondition(data as any)).toThrow(ZodError);
+      expect(() => factory.createCondition(data as never)).toThrow(ZodError);
     });
   });
-
-  // Add tests for other methods (Allergy, Family, Social, Surgical)
 });

@@ -40,7 +40,7 @@ export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
           )}
         >
           {hasAccess ? (
-            <Check className="h-4 w-4 text-green-500 shrink-0" />
+            <Check className="h-4 w-4 text-success shrink-0" />
           ) : (
             <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           )}
@@ -54,7 +54,7 @@ export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
           size="sm"
           className="w-full h-8 text-xs font-normal text-muted-foreground hover:text-foreground mt-2"
           onClick={(e) => {
-            e.stopPropagation(); // Prevent card click
+            e.stopPropagation(); 
             setShowAll(!showAll);
           }}
         >

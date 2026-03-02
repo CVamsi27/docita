@@ -38,6 +38,12 @@
   --chart-3: oklch(0.5 0.15 150);
   --chart-4: oklch(0.8 0.15 80);
   --chart-5: oklch(0.7 0.15 30);
+  --info: oklch(0.58 0.19 256);
+  --info-foreground: oklch(0.985 0 0);
+  --success: oklch(0.64 0.17 150);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.78 0.14 85);
+  --warning-foreground: oklch(0.25 0.03 85);
   --radius: 0.75rem;
   /* Slightly more rounded */
   --sidebar: oklch(0.985 0.002 247.839);
@@ -78,6 +84,12 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+  --info: oklch(0.68 0.16 256);
+  --info-foreground: oklch(0.1 0.02 261.692);
+  --success: oklch(0.7 0.14 150);
+  --success-foreground: oklch(0.1 0.02 261.692);
+  --warning: oklch(0.82 0.12 85);
+  --warning-foreground: oklch(0.14 0.02 85);
   --sidebar: oklch(0.1 0.02 261.692);
   --sidebar-foreground: oklch(0.98 0.01 261.692);
   --sidebar-primary: oklch(0.6 0.22 264.376);
@@ -113,6 +125,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -125,6 +143,80 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer components {
+  .surface-info {
+    @apply border border-info/30 bg-info/10 text-info;
+  }
+
+  .surface-success {
+    @apply border border-success/30 bg-success/10 text-success;
+  }
+
+  .surface-warning {
+    @apply border border-warning/30 bg-warning/10 text-warning-foreground;
+  }
+
+  .surface-danger {
+    @apply border border-destructive/30 bg-destructive/10 text-destructive;
+  }
+
+  .icon-warning {
+    @apply bg-warning/20 text-warning;
+  }
+
+  .btn-warning {
+    @apply bg-warning text-warning-foreground hover:bg-warning/90 focus:ring-warning;
+  }
+
+  .btn-danger {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive;
+  }
+
+  .badge-info {
+    @apply bg-info/15 text-info border-info/30;
+  }
+
+  .badge-success {
+    @apply bg-success/15 text-success border-success/30;
+  }
+
+  .badge-warning {
+    @apply bg-warning/15 text-warning border-warning/30;
+  }
+
+  .badge-danger {
+    @apply bg-destructive/15 text-destructive border-destructive/30;
+  }
+
+  .badge-muted {
+    @apply bg-muted text-muted-foreground border-border;
+  }
+
+  .tier-capture {
+    @apply bg-muted text-muted-foreground border-border;
+  }
+
+  .tier-core {
+    @apply bg-info/15 text-info border-info/30;
+  }
+
+  .tier-plus {
+    @apply bg-success/15 text-success border-success/30;
+  }
+
+  .tier-pro {
+    @apply bg-primary/15 text-primary border-primary/30;
+  }
+
+  .tier-enterprise {
+    @apply bg-warning/15 text-warning border-warning/30;
+  }
+
+  .tier-intelligence {
+    @apply bg-accent text-accent-foreground border-border;
+  }
 }
 
 @layer base {

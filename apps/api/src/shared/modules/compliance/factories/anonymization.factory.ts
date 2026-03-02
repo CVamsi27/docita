@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class AnonymizationFactory {
@@ -7,11 +7,7 @@ export class AnonymizationFactory {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Anonymize patient data
-   * Replaces PII with anonymous placeholders
-   */
-  async anonymizePatient(patientId: string): Promise<any> {
+  async anonymizePatient(patientId: string): Promise<unknown> {
     const randomId = `ANON-${Date.now()}`;
 
     this.logger.log(`Anonymizing patient ${patientId}`);

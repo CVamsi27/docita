@@ -8,11 +8,9 @@ import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
-// Logic and Styles
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
 import { AppointmentsCalendarUI, AppointmentsListUI, AppointmentsPageHeaderUI } from "@/features/appointments/components";
 
-// Prevent static prerendering of this page
 export const dynamic = "force-dynamic";
 
 function AppointmentsContent() {
@@ -119,7 +117,7 @@ function AppointmentsContent() {
         </div>
       </div>
 
-      {/* Confirmation Dialogs */}
+      {}
       <ConfirmationDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}

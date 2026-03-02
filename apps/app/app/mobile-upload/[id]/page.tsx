@@ -46,7 +46,7 @@ export default function MobileUploadPage() {
           if (data.status === "uploaded" && data.fileUrl) {
             setSuccess(true);
           } else {
-            console.error("Unexpected response:", data);
+
             alert(
               "Upload completed but session update may have failed. Please try again.",
             );
@@ -75,7 +75,7 @@ export default function MobileUploadPage() {
         alert(errorMessage);
       }
     } catch (error) {
-      console.error("Upload error:", error);
+
       if (error instanceof TypeError && error.message.includes("fetch")) {
         alert("Connection failed. Please check your internet and try again.");
       } else {
@@ -86,18 +86,17 @@ export default function MobileUploadPage() {
     }
   };
 
-  // Success State
   if (success) {
     return <MobileSuccessScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white dark:from-slate-950 dark:to-background">
+    <div className="min-h-screen bg-linear-to-b from-background to-card dark:from-background dark:to-card">
       <MobileHeader />
 
-      {/* Main Content */}
+      {}
       <div className="max-w-sm mx-auto px-4 py-6 space-y-6">
-        {/* Instructions */}
+        {}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-semibold text-foreground">
             Scan Document
@@ -107,28 +106,20 @@ export default function MobileUploadPage() {
           </p>
         </div>
 
-        {/* Upload Area */}
+        {}
         <MobileFileUploader
           onFileSelect={handleFileSelect}
           previewUrl={previewUrl}
         />
 
-        {/* File Info */}
-        {/* Note: File info is currently not part of MobileFileUploader but could be moving forward if desired. 
-            For now, keeping it here or should I have moved it into MobileFileUploader?
-            The original design had it separate. I'll keep it or move it? 
-            It relates to 'file' state. MobileFileUploader handles preview, but maybe not the file info card below it. 
-            Actually, MobileFileUploader only does the dropzone. 
-            I'll keep the file info block here or move it to a small component `FileInfo`. 
-            Given the instruction "Extract components", I'll keep it simple and just leave it here or inline it if it's small. 
-            It's small.
-        */}
+        {}
+        {}
 
-        {/* Upload Button */}
+        {}
         <Button
           className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${
             file && !uploading
-              ? "bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/25"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
               : ""
           }`}
           onClick={handleUpload}
@@ -148,7 +139,7 @@ export default function MobileUploadPage() {
           )}
         </Button>
 
-        {/* Help Text */}
+        {}
         <p className="text-center text-xs text-muted-foreground px-4">
           The document will appear on your desktop instantly
         </p>

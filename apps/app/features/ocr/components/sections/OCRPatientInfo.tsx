@@ -1,9 +1,9 @@
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { User } from "lucide-react";
-import { ConfidenceIndicator } from "../common/confidence-indicator";
-import { SectionToggle } from "../common/section-toggle";
-import { OCRFormData } from "../../types";
+import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
+import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
+import { OCRFormData } from "@/features/ocr/types";
 
 interface OCRPatientInfoProps {
   formData: OCRFormData;
@@ -46,11 +46,11 @@ export const OCRPatientInfo = ({
                 />
               </div>
               {getCorrection("firstName") && (
-                <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
-                  <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                <div className="text-xs surface-warning p-2 rounded">
+                  <p className="font-medium">
                     Suggestion:
                   </p>
-                  <p className="text-yellow-700 dark:text-yellow-300">
+                  <p>
                     {getCorrection("firstName")}
                   </p>
                 </div>
@@ -75,11 +75,11 @@ export const OCRPatientInfo = ({
                 />
               </div>
               {getCorrection("lastName") && (
-                <div className="text-xs bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
-                  <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                <div className="text-xs surface-warning p-2 rounded">
+                  <p className="font-medium">
                     Suggestion:
                   </p>
-                  <p className="text-yellow-700 dark:text-yellow-300">
+                  <p>
                     {getCorrection("lastName")}
                   </p>
                 </div>

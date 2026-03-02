@@ -1,7 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { PricingService } from '../../core/services/pricing.service';
-import { Public } from '../../../../shared/modules/auth/auth/public.decorator';
+import { PricingService } from '@/domains/billing/core/services/pricing.service';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import {
+  PricingConfigQueryDto,
+  PricingEstimateQueryDto,
+} from '@/domains/billing/application/dto/pricing.dto';
 
 @ApiTags('pricing')
 @Controller('pricing')
@@ -17,8 +21,8 @@ export class PricingController {
     required: false,
     enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD'],
   })
-  async getPricingConfig(@Query('currency') currency?: string) {
-    return await this.pricingService.getPricingConfig(currency);
+  async getPricingConfig(@Query() query?: PricingConfigQueryDto) {
+    return await this.pricingService.getPricingConfig(query?.currency);
   }
 
   @Get('estimate')
@@ -71,30 +75,17 @@ export class PricingController {
     description: 'Expected AI credits per month',
   })
   @ApiResponse({ status: 200, description: 'Price estimate' })
-  calculateEstimate(
-    @Query('tier') tier: string,
-    @Query('currency') currency?: string,
-    @Query('billingCycle') billingCycle: string = 'monthly',
-    @Query('patients') patients?: string,
-    @Query('appointments') appointments?: string,
-    @Query('users') users?: string,
-    @Query('whatsapp') whatsapp?: string,
-    @Query('whatsappMessages') whatsappMessages?: string,
-    @Query('intelligence') intelligence?: string,
-    @Query('aiCredits') aiCredits?: string,
-  ) {
+  calculateEstimate(@Query() query: PricingEstimateQueryDto) {
     return this.pricingService.calculateEstimate({
-      tier,
-      currency,
-      billingCycle,
-      patients: patients ? parseInt(patients, 10) : undefined,
-      appointments: appointments ? parseInt(appointments, 10) : undefined,
-      users: users ? parseInt(users, 10) : undefined,
-      whatsappMessages: whatsappMessages
-        ? parseInt(whatsappMessages, 10)
-        : undefined,
-      intelligence: intelligence === 'true',
-      aiCredits: aiCredits ? parseInt(aiCredits, 10) : undefined,
+      tier: query.tier,
+      currency: query.currency,
+      billingCycle: query.billingCycle || 'monthly',
+      patients: query.patients,
+      appointments: query.appointments,
+      users: query.users,
+      whatsappMessages: query.whatsappMessages,
+      intelligence: query.intelligence === 'true',
+      aiCredits: query.aiCredits,
     });
   }
 }

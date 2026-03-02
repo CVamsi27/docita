@@ -1,5 +1,3 @@
-// FHIR R4 Resource Types
-
 export interface FhirResource {
   resourceType: string;
   id: string;

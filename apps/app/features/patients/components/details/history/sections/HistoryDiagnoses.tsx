@@ -19,7 +19,7 @@ export function HistoryDiagnoses({ diagnoses }: { diagnoses: Diagnosis[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Stethoscope className="h-4 w-4 text-purple-600" />
+        <Stethoscope className="h-4 w-4 text-primary" />
         Diagnoses (ICD-10)
       </div>
       <div className="flex flex-wrap gap-2">

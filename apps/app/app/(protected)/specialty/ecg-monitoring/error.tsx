@@ -13,7 +13,7 @@ export default function ECGMonitoringError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("ECG Monitoring route error:", error);
+
   }, [error]);
 
   return (

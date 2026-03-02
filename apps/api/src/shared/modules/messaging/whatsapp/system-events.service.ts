@@ -1,12 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 
-/**
- * Handles automatic/system event-triggered WhatsApp messages
- * Sends messages in response to system events (prescription created, appointment confirmed, etc.)
- */
 @Injectable()
 export class SystemEventsService {
   private readonly logger = new Logger(SystemEventsService.name);
@@ -34,9 +30,6 @@ export class SystemEventsService {
     return automation.enabled !== false;
   }
 
-  /**
-   * Send prescription created notification (system event)
-   */
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
     if (!(await this.isWhatsappEnabled(clinicId))) {
       this.logger.log(
@@ -80,9 +73,6 @@ export class SystemEventsService {
     }
   }
 
-  /**
-   * Send invoice created notification (system event)
-   */
   async sendInvoiceSystem(invoiceId: string, clinicId: string) {
     if (!(await this.isWhatsappEnabled(clinicId))) {
       this.logger.log(
@@ -125,9 +115,6 @@ export class SystemEventsService {
     }
   }
 
-  /**
-   * Send appointment confirmation (system event)
-   */
   async sendAppointmentConfirmation(appointmentId: string, clinicId: string) {
     if (!(await this.isWhatsappEnabled(clinicId))) {
       this.logger.log(
@@ -172,9 +159,6 @@ export class SystemEventsService {
     }
   }
 
-  /**
-   * Send appointment update (cancelled or rescheduled)
-   */
   async sendAppointmentUpdate(
     appointmentId: string,
     clinicId: string,

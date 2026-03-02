@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-/**
- * =====================================================
- * PAYMENT ENUMS (for NestJS compatibility)
- * =====================================================
- */
-
 export enum PaymentMode {
   ONLINE = "ONLINE",
   CASH = "CASH",
@@ -20,15 +14,8 @@ export enum PaymentMethod {
   WALLET = "wallet",
 }
 
-// Zod schemas for validation
 export const paymentModeSchema = z.nativeEnum(PaymentMode);
 export const paymentMethodSchema = z.nativeEnum(PaymentMethod);
-
-/**
- * =====================================================
- * LEGACY PAYMENT TYPES (Consolidated from payment-types.ts)
- * =====================================================
- */
 
 export interface PaymentRetryInvoice {
   id: string;
@@ -38,13 +25,9 @@ export interface PaymentRetryInvoice {
   createdAt: Date | string;
 }
 
-// =====================================================
-// PAYMENT LINK DTO
-// =====================================================
-
 export const createPaymentLinkSchema = z.object({
   invoiceId: z.string(),
-  amount: z.number().positive(), // in rupees (will convert to paise)
+  amount: z.number().positive(), 
   currency: z.string().default("INR"),
   paymentMode: paymentModeSchema.default(PaymentMode.ONLINE),
   patientId: z.string(),
@@ -53,10 +36,6 @@ export const createPaymentLinkSchema = z.object({
   description: z.string().optional(),
 });
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;
-
-// =====================================================
-// PAYMENT SESSION
-// =====================================================
 
 export const paymentSessionSchema = z.object({
   id: z.string(),
@@ -84,10 +63,6 @@ export const paymentSessionSchema = z.object({
 });
 export type PaymentSession = z.infer<typeof paymentSessionSchema>;
 
-// =====================================================
-// PAYMENT LINK RESPONSE
-// =====================================================
-
 export const paymentLinkResponseSchema = z.object({
   success: z.boolean(),
   paymentLink: z.string().optional(),
@@ -95,10 +70,6 @@ export const paymentLinkResponseSchema = z.object({
   error: z.string().optional(),
 });
 export type PaymentLinkResponse = z.infer<typeof paymentLinkResponseSchema>;
-
-// =====================================================
-// RAZORPAY SUBSCRIPTION & PAYMENT ENTITIES
-// =====================================================
 
 export interface RazorpaySubscriptionEntity {
   id: string;
@@ -119,10 +90,6 @@ export interface RazorpayPaymentEntity {
   notes?: Record<string, string>;
 }
 
-// =====================================================
-// RAZORPAY WEBHOOK PAYLOAD
-// =====================================================
-
 export interface RazorpayWebhookPayload {
   event: string;
   payload: {
@@ -134,10 +101,6 @@ export interface RazorpayWebhookPayload {
     };
   };
 }
-
-// =====================================================
-// PAYMENT WEBHOOK (Generic)
-// =====================================================
 
 export const paymentWebhookPayloadSchema = z.object({
   event: z.string(),

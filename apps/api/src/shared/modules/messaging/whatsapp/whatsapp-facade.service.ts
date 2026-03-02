@@ -8,11 +8,6 @@ import { TemplateMessageService } from './template-message.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { SendTemplateDto } from './dto/send-template.dto';
 
-/**
- * WhatsApp Service Facade
- * Orchestrates all WhatsApp messaging services (client, webhooks, templates, events, etc.)
- * Maintains identical public API to original WhatsappService for backward compatibility
- */
 @Injectable()
 export class WhatsappService {
   constructor(
@@ -24,10 +19,6 @@ export class WhatsappService {
     private readonly templateMessageService: TemplateMessageService,
     private readonly staffNotificationService: StaffNotificationService,
   ) {}
-
-  // ==========================================================================
-  // Template Management (delegated to TemplatesService)
-  // ==========================================================================
 
   async listTemplates(clinicId: string) {
     return this.templatesService.listTemplates(clinicId);
@@ -41,10 +32,6 @@ export class WhatsappService {
     return this.templatesService.seedDefaultTemplates(clinicId);
   }
 
-  // ==========================================================================
-  // Template Message Sending
-  // ==========================================================================
-
   async handleSendTemplate(
     clinicId: string,
     userId: string,
@@ -56,10 +43,6 @@ export class WhatsappService {
       dto,
     );
   }
-
-  // ==========================================================================
-  // Manual Resend Operations
-  // ==========================================================================
 
   async resendPrescription(
     clinicId: string,
@@ -78,10 +61,6 @@ export class WhatsappService {
   ) {
     return this.resendService.resendInvoice(clinicId, userId, role, id);
   }
-
-  // ==========================================================================
-  // System Event Methods (called by listeners/triggers)
-  // ==========================================================================
 
   async sendPrescriptionSystem(prescriptionId: string, clinicId: string) {
     return this.systemEventsService.sendPrescriptionSystem(
@@ -113,10 +92,6 @@ export class WhatsappService {
     );
   }
 
-  // ==========================================================================
-  // Message Logs and Analytics
-  // ==========================================================================
-
   async getLogs(
     clinicId: string,
     options: { limit?: number; patientId?: string; type?: string },
@@ -128,10 +103,6 @@ export class WhatsappService {
     return this.messagingService.getWhatsappStats(clinicId);
   }
 
-  // ==========================================================================
-  // In-App Staff Notifications
-  // ==========================================================================
-
   async getUnreadNotificationCount(userId: string) {
     return this.staffNotificationService.getUnreadCount(userId);
   }
@@ -140,17 +111,16 @@ export class WhatsappService {
     return this.staffNotificationService.getUnreadNotifications(userId, limit);
   }
 
-  async markNotificationsAsRead(notificationIds: string[], userId: string) {
-    return this.staffNotificationService.markAsRead(notificationIds, userId);
+  async deleteNotification(notificationId: string, userId: string) {
+    return this.staffNotificationService.deleteNotification(
+      notificationId,
+      userId,
+    );
   }
 
-  async markAllNotificationsAsRead(userId: string) {
-    return this.staffNotificationService.markAllAsRead(userId);
+  async deleteAllNotifications(userId: string) {
+    return this.staffNotificationService.deleteAllNotifications(userId);
   }
-
-  // ==========================================================================
-  // Approval Workflow
-  // ==========================================================================
 
   async approvePrescription(id: string, userId: string, clinicId: string) {
     return this.approvalService.approvePrescription(id, userId, clinicId);

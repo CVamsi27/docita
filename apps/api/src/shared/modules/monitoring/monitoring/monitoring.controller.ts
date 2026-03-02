@@ -9,11 +9,14 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { MonitoringService } from './monitoring.service';
-import { JwtAuthGuard } from '../../auth/auth/jwt-auth.guard';
-import { TierGuard } from '../../auth/auth/tier.guard';
+import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
-import { RequireFeature, Feature } from '../../auth/auth/tier.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '@/shared/modules/auth/auth/tier.decorator';
 import {
   WebVitalDto,
   RequestStatsResponseDto,
@@ -33,9 +36,9 @@ import {
   ArchiveErrorsDto,
 } from './dto/monitoring-admin.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
-import { ArchivalService } from '../../compliance/archival.service';
+import { ArchivalService } from '@/shared/modules/compliance/archival.service';
 
 @Controller('monitoring')
 @Roles(Role.SUPER_ADMIN)
@@ -125,7 +128,7 @@ export class MonitoringController {
   }
 
   @Post('errors/:id/resolve')
-  @ZodSerializerDto(AnyResponseDto) // Placeholder
+  @ZodSerializerDto(AnyResponseDto)
   async resolveError(
     @Param('id') errorId: string,
     @Body('resolvedBy') resolvedBy: string,
@@ -134,7 +137,7 @@ export class MonitoringController {
   }
 
   @Post('errors/resolve-multiple')
-  @ZodSerializerDto(AnyResponseDto) // Placeholder
+  @ZodSerializerDto(AnyResponseDto)
   @UsePipes(new ZodValidationPipe(ResolveMultipleErrorsSchema))
   async resolveMultipleErrors(@Body() dto: ResolveMultipleErrorsDto) {
     return this.monitoringService.resolveMultipleErrors(
@@ -144,7 +147,7 @@ export class MonitoringController {
   }
 
   @Post('cleanup')
-  @ZodSerializerDto(AnyResponseDto) // Placeholder
+  @ZodSerializerDto(AnyResponseDto)
   async cleanupOldData(@Body('daysToKeep') daysToKeep?: number) {
     return this.monitoringService.cleanupOldData(daysToKeep);
   }
@@ -176,20 +179,8 @@ export class MonitoringController {
     };
   }
 
-  /**
-   * Web Vitals endpoint for Core Web Vitals tracking
-   * ✅ OPTIMIZATION: Track real user performance metrics from frontend
-   *
-   * Metrics tracked:
-   * - LCP (Largest Contentful Paint): < 2.5s good
-   * - FID (First Input Delay): < 100ms good
-   * - CLS (Cumulative Layout Shift): < 0.1 good
-   * - FCP (First Contentful Paint): < 1.8s good
-   * - TTFB (Time to First Byte): < 800ms good
-   * - INP (Interaction to Next Paint): < 200ms good
-   */
   @Post('web-vitals')
-  @ZodSerializerDto(AnyResponseDto) // Returns void/status
+  @ZodSerializerDto(AnyResponseDto)
   @UsePipes(new ZodValidationPipe(WebVitalSchema))
   async reportWebVital(@Body() vital: WebVitalDto) {
     return this.monitoringService.recordWebVital(vital);

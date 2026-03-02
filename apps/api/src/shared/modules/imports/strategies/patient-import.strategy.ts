@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IImportStrategy,
   ImportValidationResult,
 } from './import-strategy.interface';
 
-/**
- * Strategy for importing patient data from CSV.
- */
 @Injectable()
 export class PatientImportStrategy implements IImportStrategy {
   readonly entityType = 'PATIENT';
 
   constructor(private prisma: PrismaService) {}
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' ? value : undefined;
+  }
 
   validate(row: Record<string, unknown>): ImportValidationResult {
     if (!row.firstName || !row.lastName) {
@@ -25,8 +30,23 @@ export class PatientImportStrategy implements IImportStrategy {
   }
 
   async import(row: Record<string, unknown>, clinicId: string): Promise<void> {
-    const email = row.email as string | undefined;
-    // Validate email uniqueness if provided
+    const firstName = this.readString(row, 'firstName');
+    const lastName = this.readString(row, 'lastName');
+    const phoneNumber = this.readString(row, 'phoneNumber');
+    if (!firstName || !lastName || !phoneNumber) {
+      throw new Error(
+        'Missing required patient fields: firstName, lastName, or phoneNumber',
+      );
+    }
+
+    const email = this.readString(row, 'email');
+    const dateOfBirthRaw = this.readString(row, 'dateOfBirth');
+    const genderRaw = this.readString(row, 'gender');
+    const gender =
+      genderRaw === 'MALE' || genderRaw === 'FEMALE' || genderRaw === 'OTHER'
+        ? genderRaw
+        : 'OTHER';
+
     if (email) {
       const existing = await this.prisma.patient.findFirst({
         where: { email },
@@ -38,16 +58,14 @@ export class PatientImportStrategy implements IImportStrategy {
 
     await this.prisma.patient.create({
       data: {
-        firstName: row.firstName as string,
-        lastName: row.lastName as string,
-        phoneNumber: row.phoneNumber as string,
-        email: (row.email as string) || undefined,
-        dateOfBirth: row.dateOfBirth
-          ? new Date(row.dateOfBirth as string)
-          : new Date(),
-        bloodGroup: (row.bloodGroup as string) || undefined,
-        address: (row.address as string) || undefined,
-        gender: (row.gender as 'MALE' | 'FEMALE' | 'OTHER') || 'OTHER',
+        firstName,
+        lastName,
+        phoneNumber,
+        email: email || undefined,
+        dateOfBirth: dateOfBirthRaw ? new Date(dateOfBirthRaw) : new Date(),
+        bloodGroup: this.readString(row, 'bloodGroup') || undefined,
+        address: this.readString(row, 'address') || undefined,
+        gender,
         clinicId,
       },
     });

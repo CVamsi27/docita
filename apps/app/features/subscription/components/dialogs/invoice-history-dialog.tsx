@@ -116,8 +116,8 @@ export function InvoiceHistoryDialog({
                         className={cn(
                           "capitalize",
                           invoice.status === "paid"
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-                            : "bg-yellow-100 text-yellow-700 border-yellow-200",
+                            ? "badge-success"
+                            : "badge-warning",
                         )}
                       >
                         {invoice.status}

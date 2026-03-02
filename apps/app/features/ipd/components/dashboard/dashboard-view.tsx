@@ -40,7 +40,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-none shadow-lg">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+            <div className="h-10 w-10 rounded-xl bg-info flex items-center justify-center text-info">
               <BedDouble className="h-5 w-5" />
             </div>
             <div>
@@ -51,7 +51,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
         </Card>
         <Card className="border-none shadow-lg">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+            <div className="h-10 w-10 rounded-xl bg-success flex items-center justify-center text-success">
               <Users className="h-5 w-5" />
             </div>
             <div>
@@ -62,7 +62,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
         </Card>
         <Card className="border-none shadow-lg">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+            <div className="h-10 w-10 rounded-xl bg-warning flex items-center justify-center text-warning">
               <Activity className="h-5 w-5" />
             </div>
             <div>
@@ -73,7 +73,7 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
         </Card>
         <Card className="border-none shadow-lg">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary">
               <Calendar className="h-5 w-5" />
             </div>
             <div>

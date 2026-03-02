@@ -1,8 +1,4 @@
-/**
- * Contraindication Checking Engine
- * Hospital-grade medication contraindication validation
- * Checks patient conditions, allergies, and medication interactions
- */
+
 
 export interface Allergy {
   name: string;

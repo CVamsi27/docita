@@ -27,7 +27,7 @@ export function ConsentBanner() {
   const updateConsent = useUpdatePatientConsent();
 
   useEffect(() => {
-    // Auto-dismiss if not first login
+
     if (consentSettings && !consentSettings.isFirstLogin) {
       setDismissed(true);
     }

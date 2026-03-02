@@ -2,13 +2,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Comprehensive CPT codes organized by category
 const cptCodes = [
-  // ============================================================================
-  // EVALUATION AND MANAGEMENT (99xxx)
-  // ============================================================================
 
-  // Office Visits - New Patient
   {
     code: "99201",
     description: "Office/outpatient visit new patient (problem focused)",
@@ -40,7 +35,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // Office Visits - Established Patient
   {
     code: "99211",
     description: "Office/outpatient visit established (minimal)",
@@ -72,7 +66,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // Emergency Department Visits
   {
     code: "99281",
     description: "Emergency department visit (straightforward)",
@@ -104,7 +97,6 @@ const cptCodes = [
     isCommon: false,
   },
 
-  // Initial Hospital Care
   {
     code: "99221",
     description: "Initial hospital care (low severity)",
@@ -124,7 +116,6 @@ const cptCodes = [
     isCommon: false,
   },
 
-  // Subsequent Hospital Care
   {
     code: "99231",
     description: "Subsequent hospital care (stable)",
@@ -144,7 +135,6 @@ const cptCodes = [
     isCommon: false,
   },
 
-  // Consultation Services
   {
     code: "99241",
     description: "Office consultation (straightforward)",
@@ -176,11 +166,6 @@ const cptCodes = [
     isCommon: false,
   },
 
-  // ============================================================================
-  // PREVENTIVE MEDICINE (99xxx)
-  // ============================================================================
-
-  // Preventive - New Patient
   {
     code: "99381",
     description: "Preventive visit new patient (infant, under 1 year)",
@@ -224,7 +209,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // Preventive - Established Patient
   {
     code: "99391",
     description: "Preventive visit established (infant, under 1 year)",
@@ -268,10 +252,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // ============================================================================
-  // CARDIOVASCULAR (93xxx)
-  // ============================================================================
-
   {
     code: "93000",
     description: "Electrocardiogram (ECG/EKG), routine with interpretation",
@@ -308,10 +288,6 @@ const cptCodes = [
     category: "Cardiovascular",
     isCommon: false,
   },
-
-  // ============================================================================
-  // IMMUNIZATIONS (90xxx)
-  // ============================================================================
 
   {
     code: "90471",
@@ -385,10 +361,6 @@ const cptCodes = [
     category: "Immunizations",
     isCommon: true,
   },
-
-  // ============================================================================
-  // LABORATORY (8xxxx)
-  // ============================================================================
 
   {
     code: "80053",
@@ -487,10 +459,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // ============================================================================
-  // RADIOLOGY (7xxxx)
-  // ============================================================================
-
   {
     code: "71045",
     description: "Radiologic examination, chest, single view",
@@ -564,10 +532,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // ============================================================================
-  // SURGERY - MINOR PROCEDURES (1xxxx)
-  // ============================================================================
-
   {
     code: "10060",
     description: "Incision and drainage of abscess, simple",
@@ -617,10 +581,6 @@ const cptCodes = [
     isCommon: true,
   },
 
-  // ============================================================================
-  // VENIPUNCTURE AND INJECTIONS (36xxx)
-  // ============================================================================
-
   {
     code: "36415",
     description: "Collection of venous blood by venipuncture",
@@ -648,10 +608,6 @@ const cptCodes = [
     isCommon: false,
   },
 
-  // ============================================================================
-  // NEBULIZER TREATMENTS (94xxx)
-  // ============================================================================
-
   {
     code: "94640",
     description:
@@ -666,10 +622,6 @@ const cptCodes = [
     category: "Medicine",
     isCommon: false,
   },
-
-  // ============================================================================
-  // PHYSICAL THERAPY (97xxx)
-  // ============================================================================
 
   {
     code: "97110",
@@ -686,8 +638,6 @@ const cptCodes = [
 ];
 
 async function main() {
-  console.log("Start seeding comprehensive CPT codes...");
-  console.log(`Total codes to seed: ${cptCodes.length}`);
 
   let created = 0;
   let updated = 0;
@@ -719,18 +669,12 @@ async function main() {
     }
   }
 
-  console.log(`✅ Seeding finished!`);
-  console.log(`   • Created: ${created} codes`);
-  console.log(`   • Updated: ${updated} codes`);
-  console.log(`   • Total: ${cptCodes.length} codes`);
-  console.log(
-    `   • Common codes: ${cptCodes.filter((c) => c.isCommon).length}`,
-  );
+  
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error seeding CPT codes:", e);
+
     process.exit(1);
   })
   .finally(async () => {

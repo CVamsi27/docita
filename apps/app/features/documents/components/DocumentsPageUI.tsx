@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import type { Document } from "@workspace/types";
 import { format } from "date-fns";
-import { SortConfig, SortKey } from "../hooks/use-documents-logic";
+import { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";
 
 interface DocumentsPageUIProps {
   documents: Document[];

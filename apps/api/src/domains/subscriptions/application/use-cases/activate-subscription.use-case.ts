@@ -2,19 +2,19 @@ import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
-} from '../ports/subscription.repository.port';
+} from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import {
   IClinicOperations,
   CLINIC_OPERATIONS_TOKEN,
-} from '../ports/clinic-operations.port';
-import { SubscriptionPricingService } from '../../core/services/subscription-pricing.service';
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
+import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
   SubscriptionStatus,
   SubscriptionStatusEnum,
-} from '../../core/value-objects';
-import { Subscription } from '../../core/entities/subscription.entity';
+} from '@/domains/subscriptions/core/value-objects';
+import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;

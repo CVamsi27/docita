@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { AuditService } from '../audit/audit/audit.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Request } from 'express';
 
 interface AuthUser {
@@ -21,11 +21,10 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
 
   constructor(private readonly auditService: AuditService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
     const { user, method, url, params, query, body, ip } = request;
 
-    // Only proceed if authenticated user
     if (!user) {
       return next.handle();
     }
@@ -33,25 +32,18 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          // Fire and forget audit logging
-          // We wrap in IIFE or just call async function without returning it to satisfy lint
           (async () => {
             try {
-              // Identify if this is a patient-related operation
-              // We look for patientId in params, query, or body
               const patientId =
                 params.patientId ||
-                params.id || // Common for /patients/:id
+                params.id ||
                 query.patientId ||
                 body?.patientId;
 
-              // If no patient context found, skip detailed audit
-              // (RequestLoggingInterceptor handles general logging)
               if (!patientId || typeof patientId !== 'string') {
                 return;
               }
 
-              // Check if the URL actually relates to patient data
               if (
                 url.includes('/patients') ||
                 url.includes('/appointments') ||
@@ -63,7 +55,6 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                 const userId = (user as AuthUser).id;
                 const clinicId = (user as AuthUser).clinicId;
 
-                // Determine action type based on method
                 let actionType = 'VIEW_RECORD';
                 if (method === 'POST') actionType = 'CREATE_RECORD';
                 if (method === 'PUT' || method === 'PATCH')
@@ -85,7 +76,6 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
                 });
               }
             } catch (error) {
-              // Don't fail the request if logging fails, but log the error
               this.logger.error('Failed to log patient audit event', error);
             }
           })();

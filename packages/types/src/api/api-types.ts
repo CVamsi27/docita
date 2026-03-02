@@ -1,8 +1,4 @@
-// API Types for comprehensive type safety
 
-// ============================================================================
-// FHIR Extended Types - For accessing optional Prisma fields
-// ============================================================================
 
 export interface FHIRExtendedPatient {
   id: string;
@@ -17,7 +13,7 @@ export interface FHIRExtendedPatient {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
-  // Extended FHIR fields (may not exist in base schema)
+
   mrn?: string;
   race?: string;
   ethnicity?: string;
@@ -39,7 +35,7 @@ export interface FHIRExtendedVitalSign {
   oxygenSaturation?: number | null;
   weight?: number | null;
   height?: number | null;
-  // Extended fields
+
   systolicBP?: number;
   diastolicBP?: number;
   bloodPressure?: string | null;
@@ -56,15 +52,11 @@ export interface FHIRExtendedMedication {
   instructions: string | null;
   quantity: number;
   route?: string | null;
-  // Extended fields
+
   ndcCode?: string;
   rxNormCui?: string;
   refillsAllowed?: number;
 }
-
-// ============================================================================
-// AI Service Types
-// ============================================================================
 
 export interface AIRawResponse {
   drugInteractions?: Array<Record<string, unknown>>;
@@ -90,10 +82,6 @@ export interface NormalizedAIData {
   conditions?: Array<{ description: string; severity?: string }>;
   [key: string]: unknown;
 }
-
-// ============================================================================
-// Subscription Types
-// ============================================================================
 
 export interface SubscriptionWithRelations {
   id: string;
@@ -121,10 +109,6 @@ export interface ScheduledChangeData {
   action?: "upgrade" | "downgrade" | "cancel";
 }
 
-// ============================================================================
-// Controller Types
-// ============================================================================
-
 export interface WebhookPayload {
   event: string;
   payload: Record<string, unknown>;
@@ -135,10 +119,6 @@ export interface GenericRequestBody {
   [key: string]: unknown;
 }
 
-// ============================================================================
-// Decorator & Guard Types
-// ============================================================================
-
 export type DecoratorTarget = new (...args: unknown[]) => unknown;
 
 export type MethodDecorator = (
@@ -146,10 +126,6 @@ export type MethodDecorator = (
   propertyKey: string | symbol,
   descriptor: PropertyDescriptor,
 ) => PropertyDescriptor | void;
-
-// ============================================================================
-// Invoice Types
-// ============================================================================
 
 export interface InvoiceLineItem {
   description: string;
@@ -159,10 +135,6 @@ export interface InvoiceLineItem {
   type?: string;
 }
 
-// ============================================================================
-// Log Entry Types
-// ============================================================================
-
 export interface SystemLogEntry {
   id: string;
   timestamp: string;
@@ -171,10 +143,6 @@ export interface SystemLogEntry {
   message: string;
   details?: string;
 }
-
-// ============================================================================
-// WhatsApp Types
-// ============================================================================
 
 export interface WhatsAppAutomationConfig {
   enabled?: boolean;

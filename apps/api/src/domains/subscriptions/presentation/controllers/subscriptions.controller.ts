@@ -6,18 +6,23 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../../../shared/modules/auth/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import {
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,
   CreateCheckoutUseCase,
   ProcessWebhookUseCase,
-} from '../../application/use-cases';
-import { SubscriptionsQueryService } from '../../application/services/subscriptions-query.service';
-import { ClinicTierEnum } from '../../core/value-objects/clinic-tier.value-object';
-import { BillingCycleEnum } from '../../core/value-objects/billing-cycle.value-object';
-import { RequestWithUser } from '../../../../common/types/common.types';
+} from '@/domains/subscriptions/application/use-cases';
+import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
+import { ClinicTierEnum } from '@/domains/subscriptions/core/value-objects/clinic-tier.value-object';
+import { BillingCycleEnum } from '@/domains/subscriptions/core/value-objects/billing-cycle.value-object';
+import { RequestWithUser } from '@/common/types/common.types';
+import {
+  SubscriptionActivateLegacyRequestDto,
+  SubscriptionCancelRequestDto,
+  SubscriptionCheckoutRequestDto,
+} from '@/domains/subscriptions/application/dto/subscriptions-controller.dto';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
@@ -47,7 +52,7 @@ export class SubscriptionsController {
   @Post('checkout')
   async createCheckout(
     @Request() req: RequestWithUser,
-    @Body() body: { tier: string; cycle: string; referrals?: string[] },
+    @Body() body: SubscriptionCheckoutRequestDto,
   ) {
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
@@ -64,7 +69,7 @@ export class SubscriptionsController {
   @Post('cancel')
   async cancel(
     @Request() req: RequestWithUser,
-    @Body() body: { reason?: string },
+    @Body() body: SubscriptionCancelRequestDto,
   ) {
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
@@ -79,15 +84,18 @@ export class SubscriptionsController {
   @Post('activate-legacy')
   async activateLegacy(
     @Request() req: RequestWithUser,
-    @Body() body: { tier: string; cycle: string },
+    @Body() body: SubscriptionActivateLegacyRequestDto,
   ) {
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
     }
+    const normalizedBillingCycle: 'MONTHLY' | 'YEARLY' =
+      body.cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
+
     return this.createSubscriptionUseCase.execute({
       clinicId: req.user.clinicId,
       plan: body.tier as ClinicTierEnum,
-      billingCycle: body.cycle as unknown as 'MONTHLY' | 'YEARLY',
+      billingCycle: normalizedBillingCycle,
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });

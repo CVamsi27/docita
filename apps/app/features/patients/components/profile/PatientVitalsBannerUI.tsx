@@ -3,7 +3,7 @@ import { Card, CardContent } from "@workspace/ui/components/card";
 import { smartTemperatureToFahrenheit } from "@workspace/utils";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
-import type { VitalsData } from "../../rules/vitalsRules";
+import type { VitalsData } from "@/features/patients/rules/vitalsRules";
 
 interface PatientVitalsBannerUIProps {
   vitals: VitalsData;

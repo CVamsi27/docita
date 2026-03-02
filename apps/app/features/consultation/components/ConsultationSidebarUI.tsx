@@ -22,7 +22,6 @@ import {
   PatientSurgicalHistory,
 } from "@workspace/types";
 
-// Extended types
 interface Patient extends BasePatient {
   age?: string;
   medicalConditions?: Array<{ id: string; conditionName: string }>;
@@ -33,10 +32,8 @@ interface AppointmentWrapper {
   patient: Patient;
 }
 
-// Allow passing either the wrapper or the raw appointment
 type AppointmentInput = AppointmentWrapper | Appointment;
 
-// Flexible type for past appointments
 interface PastAppointmentItem {
   id?: string;
   startTime?: string | Date;
@@ -48,9 +45,9 @@ interface PastAppointmentItem {
 
 interface ConsultationSidebarProps {
   appointmentData?: AppointmentInput;
-  appointment?: AppointmentInput; // Alias for backward compatibility
+  appointment?: AppointmentInput; 
   pastAppointments?: PastAppointmentItem[];
-  // Additional history data from shared hook for enhanced display
+
   patientAllergies?: PatientAllergy[];
   surgicalHistory?: PatientSurgicalHistory[];
   familyHistory?: PatientFamilyHistory[];
@@ -69,8 +66,6 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 }) => {
   const rawData = appointmentData ?? appointment;
 
-  // Normalize data
-  // Check if it's a wrapper with 'appointment' property, otherwise treat as Appointment
   const patient =
     rawData && "patient" in rawData
       ? (rawData as AppointmentWrapper).patient
@@ -91,7 +86,6 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
   const initials = `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
 
-  // Timeline Item Component
   const TimelineItem = ({
     date,
     status,
@@ -108,11 +102,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     onCopy?: (e: React.MouseEvent) => void;
   }) => (
     <div className="relative pl-6 pb-6 last:pb-0 group">
-      {/* Timeline Line */}
+      {}
       {!isLast && (
         <div className="absolute left-[5px] top-2 bottom-0 w-px bg-border group-hover:bg-primary/20 transition-colors" />
       )}
-      {/* Timeline Dot */}
+      {}
       <div className="absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background group-hover:bg-primary transition-colors" />
 
       <div className="flex flex-col gap-1 cursor-pointer" onClick={onClick}>
@@ -155,7 +149,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
-      {/* Header with Close Button */}
+      {}
       <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 relative group">
         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
           {initials}
@@ -185,7 +179,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         )}
       </div>
 
-      {/* Allergy Alert - Clean */}
+      {}
       {(patientAllergies.length > 0 || patient.allergies) && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
@@ -200,15 +194,15 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
                   variant="outline"
                   className={`text-xs py-0.5 font-normal ${
                     allergy.severity === "SEVERE"
-                      ? "border-red-200 bg-red-50 text-red-700"
-                      : "border-orange-200 bg-orange-50 text-orange-700"
+                      ? "badge-danger"
+                      : "badge-warning"
                   }`}
                 >
                   {allergy.allergen}
                 </Badge>
               ))
             ) : (
-              <span className="text-sm text-red-600 font-medium">
+              <span className="text-sm text-destructive font-medium">
                 {patient.allergies}
               </span>
             )}
@@ -216,7 +210,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
-      {/* Medical Conditions - Tag Cloud */}
+      {}
       {patient.medicalConditions && patient.medicalConditions.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
@@ -237,7 +231,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
-      {/* Past Visits Timeline */}
+      {}
       {pastAppointments.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
@@ -266,7 +260,7 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
-      {/* Surgical & Family History - Compact List */}
+      {}
       {(surgicalHistory.length > 0 || familyHistory.length > 0) && (
         <div className="space-y-4 pt-2 border-t">
           {surgicalHistory.length > 0 && (

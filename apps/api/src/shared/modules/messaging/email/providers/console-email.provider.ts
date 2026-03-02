@@ -6,10 +6,6 @@ import {
   EmailSendResult,
 } from './email-provider.interface';
 
-/**
- * Console-based email provider for development/testing.
- * Logs emails instead of sending them.
- */
 @Injectable()
 export class ConsoleEmailProvider implements IEmailProvider {
   private readonly logger = new Logger(ConsoleEmailProvider.name);

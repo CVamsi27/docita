@@ -19,7 +19,6 @@ export const useDocumentsLogic = () => {
     direction: "desc",
   });
 
-  // Fetch documents with backend filtering
   const { data: documents = [], isLoading: loading } = useDocuments({
     search: debouncedSearch,
   });
@@ -52,14 +51,11 @@ export const useDocumentsLogic = () => {
         window.URL.revokeObjectURL(url);
         window.document.body.removeChild(a);
       } catch (error) {
-        console.error("Failed to download:", error);
+
       }
     }
   };
 
-  // Client-side sorting (still needed as API only filters)
-  // Note: Ideally sorting should also be backend, but for now we keep it consistent with the previous logic
-  // or we can just sort the returned filtered list.
   const sortedDocuments = [...documents].sort((a, b) => {
     let aValue: string | number = "";
     let bValue: string | number = "";

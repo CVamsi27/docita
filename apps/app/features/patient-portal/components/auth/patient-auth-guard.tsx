@@ -13,7 +13,7 @@ export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
       redirect("/login?returnTo=/portal");
     }
     if (!isLoading && user && user.role !== "PATIENT") {
-      redirect("/dashboard"); // Redirect non-patients to clinic dashboard
+      redirect("/dashboard"); 
     }
   }, [user, isLoading]);
 

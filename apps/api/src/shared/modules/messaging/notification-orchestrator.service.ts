@@ -1,8 +1,3 @@
-/**
- * Notification Orchestrator
- * Coordinates sending notifications through multiple channels
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import { IMessageChannel, MessageContent, SendMessageResult } from './channels';
 import { MessageTemplateService } from './templates';
@@ -10,8 +5,8 @@ import { MessageTemplateService } from './templates';
 export interface NotificationRequest {
   templateKey: string;
   recipientId: string;
-  channels: string[]; // 'whatsapp', 'email', 'sms'
-  variables?: Record<string, any>;
+  channels: string[];
+  variables?: Record<string, unknown>;
 }
 
 export interface NotificationResult {
@@ -29,16 +24,10 @@ export class NotificationOrchestrator {
 
   constructor(private templateService: MessageTemplateService) {}
 
-  /**
-   * Register a message channel
-   */
   registerChannel(channel: IMessageChannel): void {
     this.channels.set(channel.getName(), channel);
   }
 
-  /**
-   * Send notification through specified channels
-   */
   async sendNotification(
     request: NotificationRequest,
   ): Promise<NotificationResult> {
@@ -62,14 +51,12 @@ export class NotificationOrchestrator {
           continue;
         }
 
-        // Process template for this channel
         const message = this.templateService.processTemplate(
           request.templateKey,
           channelName.toLowerCase(),
           request.variables || {},
         );
 
-        // Send through channel
         const result = await channel.send(request.recipientId, {
           templateKey: request.templateKey,
           variables: request.variables,
@@ -101,9 +88,6 @@ export class NotificationOrchestrator {
     };
   }
 
-  /**
-   * Send to primary channel, with fallback
-   */
   async sendWithFallback(
     request: NotificationRequest,
     primary: string,

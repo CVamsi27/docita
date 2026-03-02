@@ -1,29 +1,12 @@
-import { z } from "zod";
-import { userSchema } from "./users";
-
-export const loginResponseSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string().optional(),
-  user: userSchema,
-});
-
-export const registerResponseSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string().optional(),
-  user: userSchema,
-});
-
-export const validateSessionResponseSchema = z.object({
-  valid: z.boolean(),
-  user: userSchema.pick({
-    id: true,
-    email: true,
-    name: true,
-    role: true,
-    clinicId: true,
-  }),
-});
-
-export const checkEmailResponseSchema = z.object({
-  exists: z.boolean(),
-});
+export {
+  loginSchema,
+  registerSchema,
+  checkEmailSchema,
+  refreshTokenSchema,
+  logoutSchema,
+  changePasswordSchema,
+  loginResponseSchema,
+  registerResponseSchema,
+  validateSessionResponseSchema,
+  checkEmailResponseSchema,
+} from "../contracts/auth";

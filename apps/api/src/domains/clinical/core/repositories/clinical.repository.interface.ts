@@ -1,14 +1,17 @@
-import { LabTest } from '../entities/lab-test.entity';
-import { LabOrder } from '../entities/lab-order.entity';
-import { IcdCode, CptCode, DoctorFavoriteCode } from '@workspace/db';
+import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
+import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
+import {
+  IcdCode,
+  CptCode,
+  DoctorFavoriteCode,
+  Appointment,
+} from '@workspace/db';
 
 export interface ILabRepository {
-  // Lab Test Methods
   findAllTests(clinicId: string): Promise<LabTest[]>;
   findTestById(id: string): Promise<LabTest | null>;
   saveTest(labTest: LabTest): Promise<LabTest>;
 
-  // Lab Order Methods
   findAllOrders(
     clinicId: string,
     params?: {
@@ -43,5 +46,5 @@ export interface IMedicalCodingRepository {
     cptCodeId: string,
   ): Promise<DoctorFavoriteCode>;
   removeCptFavorite(userId: string, cptCodeId: string): Promise<void>;
-  getUncodedVisits(clinicId: string, search?: string): Promise<any[]>;
+  getUncodedVisits(clinicId: string, search?: string): Promise<Appointment[]>;
 }

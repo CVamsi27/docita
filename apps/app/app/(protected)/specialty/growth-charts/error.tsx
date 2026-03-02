@@ -13,7 +13,7 @@ export default function GrowthChartsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Growth Charts route error:", error);
+
   }, [error]);
 
   return (

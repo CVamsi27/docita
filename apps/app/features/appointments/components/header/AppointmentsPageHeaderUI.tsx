@@ -1,4 +1,4 @@
-import { AddAppointmentDialogContainer as AddAppointmentDialog } from "../dialogs/AddAppointmentDialogContainer";
+import { AddAppointmentDialogContainer as AddAppointmentDialog } from "@/features/appointments/components/dialogs/AddAppointmentDialogContainer";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { Plus, Search } from "lucide-react";

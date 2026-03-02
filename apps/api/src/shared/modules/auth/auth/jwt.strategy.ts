@@ -2,7 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 
 import { ConfigService } from '@nestjs/config';
@@ -15,16 +15,11 @@ interface JwtPayload {
   clinicId: string | null;
 }
 
-/**
- * Extract JWT from HttpOnly cookie first, then fall back to Bearer header.
- * This enables secure cookie-based auth while maintaining backward compatibility.
- */
 function cookieThenBearerExtractor(req: Request): string | null {
-  // 1. Try HttpOnly cookie
   if (req?.cookies?.access_token) {
     return req.cookies.access_token;
   }
-  // 2. Fall back to Authorization header
+
   return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
 }
 
@@ -51,9 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     this.logger.debug('Validating payload:', JSON.stringify(payload));
-    // Check if user still exists in database
-    // Must use runUnrestricted because User is a tenant-scoped model
-    // and no tenant context exists yet during JWT validation (chicken-and-egg)
+
     const user = await this.prisma.runUnrestricted(async () => {
       return this.prisma.user.findUnique({
         where: { id: payload.sub },

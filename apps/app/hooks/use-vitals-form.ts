@@ -96,7 +96,7 @@ export function useVitalsForm({
         legacyBP = `${systolic}/${diastolic}`;
       }
 
-      await saveVitals.mutateAsync({
+      const vitalsPayload = {
         height: formData.height ? parseFloat(formData.height) : undefined,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         systolicBP: systolic,
@@ -117,7 +117,9 @@ export function useVitalsForm({
           ? parseFloat(formData.bloodGlucose)
           : undefined,
         notes: formData.notes || undefined,
-      });
+      };
+
+      await saveVitals.mutateAsync(vitalsPayload);
 
       await queryClient.invalidateQueries({
         queryKey: ["appointments"],
@@ -137,7 +139,7 @@ export function useVitalsForm({
       }
       toast.success("Vitals saved successfully");
     } catch (error) {
-      console.error("Failed to save vitals:", error);
+
       toast.error("Failed to save vitals");
     }
   };

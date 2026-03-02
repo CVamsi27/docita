@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
-import type { AdminAccount } from "../types";
+import type { AdminAccount } from "@/features/onboarding/components/types";
 
 interface AdminAccountStepProps {
   adminForm: UseFormReturn<AdminAccount>;

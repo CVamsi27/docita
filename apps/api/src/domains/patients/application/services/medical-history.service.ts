@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { MedicalHistoryFactory } from '../../core/factories/medical-history.factory';
+import { PrismaService } from '@/prisma/prisma.service';
+import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import {
   MedicalConditionInput,
   AllergyInput,
   FamilyHistoryInput,
   SocialHistoryInput,
   SurgicalHistoryInput,
-} from '../../presentation/api-schemas/medical-history.schema';
-import { AiService } from '../../../../shared/modules/ai-core/ai.service';
-import { AiFactory } from '../../../../shared/modules/ai-core/factories/ai.factory';
+} from '@/domains/patients/presentation/api-schemas/medical-history.schema';
+import { AiService } from '@/shared/modules/ai-core/ai.service';
+import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 import {
   MedicalConditionType,
   ConditionStatus,

@@ -47,7 +47,6 @@ export function SearchableSelect({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Filter options based on search
   const filteredOptions = search
     ? options.filter(
         (opt) =>

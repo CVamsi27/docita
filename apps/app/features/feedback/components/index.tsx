@@ -23,8 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
-// Feedback Form Component
-import { FeedbackType, useFeedbackLogic } from "../hooks/use-feedback-logic";
+import { FeedbackType, useFeedbackLogic } from "@/features/feedback/hooks/use-feedback-logic";
 
 export const FeedbackForm: FC<{
   onSubmit?: (feedback: {
@@ -68,7 +67,7 @@ export const FeedbackForm: FC<{
                   className={cn(
                     "h-8 w-8 transition-colors",
                     star <= rating
-                      ? "fill-yellow-400 text-yellow-400"
+                      ? "fill-yellow-400 text-warning"
                       : "text-muted-foreground",
                   )}
                 />
@@ -123,7 +122,6 @@ export const FeedbackForm: FC<{
   );
 };
 
-// Quick Feedback Widget
 export const QuickFeedback: FC<{
   onFeedback?: (positive: boolean) => void;
 }> = ({ onFeedback }) => {
@@ -135,7 +133,7 @@ export const QuickFeedback: FC<{
           variant="ghost"
           size="sm"
           onClick={() => onFeedback?.(true)}
-          className="gap-1 hover:text-green-600 hover:bg-green-50"
+          className="gap-1 hover:text-success hover:bg-success"
         >
           <ThumbsUp className="h-4 w-4" />
           Yes
@@ -144,7 +142,7 @@ export const QuickFeedback: FC<{
           variant="ghost"
           size="sm"
           onClick={() => onFeedback?.(false)}
-          className="gap-1 hover:text-red-600 hover:bg-red-50"
+          className="gap-1 hover:text-destructive hover:bg-destructive"
         >
           <ThumbsDown className="h-4 w-4" />
           No
@@ -154,5 +152,4 @@ export const QuickFeedback: FC<{
   );
 };
 
-// Export for index
 export default { FeedbackForm, QuickFeedback };

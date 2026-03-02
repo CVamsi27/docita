@@ -1,9 +1,3 @@
-/**
- * N+1 Query Prevention Service
- * Detects and helps eliminate N+1 query patterns
- * Tracks query execution and provides recommendations
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 
 export interface QueryTrace {
@@ -20,9 +14,6 @@ export class N1QueryDetectionService {
   private queryTraces: QueryTrace[] = [];
   private readonly maxTraces = 200;
 
-  /**
-   * Record a query for analysis
-   */
   recordQuery(query: string, duration: number, parentQuery?: string): void {
     const trace: QueryTrace = {
       query,
@@ -39,9 +30,6 @@ export class N1QueryDetectionService {
     }
   }
 
-  /**
-   * Analyze for N+1 query patterns
-   */
   analyzeForN1Patterns(): Array<{
     pattern: string;
     count: number;
@@ -50,7 +38,6 @@ export class N1QueryDetectionService {
   }> {
     const patterns = new Map<string, QueryTrace[]>();
 
-    // Group similar queries
     this.queryTraces.forEach((trace) => {
       const normalized = this.normalizeQuery(trace.query);
       if (!patterns.has(normalized)) {
@@ -59,9 +46,8 @@ export class N1QueryDetectionService {
       patterns.get(normalized)!.push(trace);
     });
 
-    // Detect N+1 patterns (multiple similar queries)
     const potentialN1 = Array.from(patterns.entries())
-      .filter(([_, traces]) => traces.length > 5) // More than 5 similar queries
+      .filter(([_, traces]) => traces.length > 5)
       .map(([pattern, traces]) => ({
         pattern,
         count: traces.length,
@@ -79,9 +65,6 @@ export class N1QueryDetectionService {
     return potentialN1;
   }
 
-  /**
-   * Get optimization recommendations for a query pattern
-   */
   private getN1Recommendation(pattern: string, count: number): string {
     if (pattern.includes('SELECT') && pattern.includes('WHERE')) {
       if (pattern.includes('JOIN')) {
@@ -97,19 +80,10 @@ export class N1QueryDetectionService {
     return `Optimize this repeated pattern (${count} executions). Consider eager loading or batch processing.`;
   }
 
-  /**
-   * Normalize query for pattern matching
-   */
   private normalizeQuery(query: string): string {
-    return query
-      .replace(/\d+/g, '?') // Replace numbers with ?
-      .replace(/'.+?'/g, '?') // Replace strings with ?
-      .trim();
+    return query.replace(/\d+/g, '?').replace(/'.+?'/g, '?').trim();
   }
 
-  /**
-   * Get query statistics
-   */
   getStatistics(): {
     totalQueries: number;
     averageDuration: number;
@@ -141,9 +115,6 @@ export class N1QueryDetectionService {
     };
   }
 
-  /**
-   * Clear query history
-   */
   clear(): void {
     this.queryTraces = [];
   }

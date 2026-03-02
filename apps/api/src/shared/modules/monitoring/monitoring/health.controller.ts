@@ -6,7 +6,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { PrismaHealthIndicator } from './health/prisma.health';
-import { Public } from '../../auth/auth/public.decorator';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 
 @Controller('health')
 @Public()
@@ -23,7 +23,7 @@ export class HealthController {
   check() {
     return this.health.check([
       () => this.db.isHealthy('database'),
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024), // 150MB
+      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
     ]);
   }
 }

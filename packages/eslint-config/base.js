@@ -4,11 +4,6 @@ import onlyWarn from "eslint-plugin-only-warn";
 import turboPlugin from "eslint-plugin-turbo";
 import tseslint from "typescript-eslint";
 
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config}
- * */
 export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
@@ -19,12 +14,12 @@ export const config = [
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
-      // Import order rules
+
       "sort-imports": [
         "warn",
         {
           ignoreCase: true,
-          ignoreDeclarationSort: true, // Let IDE handle declaration order
+          ignoreDeclarationSort: true, 
           ignoreMemberSort: false,
           memberSyntaxSortOrder: ["none", "all", "multiple", "single"],
           allowSeparatedGroups: true,
@@ -47,10 +42,7 @@ export const config = [
     },
   },
   {
-    ignores: ["dist/**", "**/.next/**", "**/.next", "**/node_modules/**"],
-  },
-  {
-    files: ["**/*.spec.ts", "**/*.spec.tsx", "**/*.test.ts", "**/*.test.tsx"],
+    ignores: ["dist.next.next", "**/node_modules*.spec.ts", "***.test.ts", "**/*.test.tsx"],
     rules: {
       "@typescript-eslint/unbound-method": "off",
     },

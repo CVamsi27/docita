@@ -66,7 +66,6 @@ export function MedicineReminderDialogUI({
     },
   });
 
-  // Reset form when dialog opens
   useEffect(() => {
     if (isOpen) {
       form.reset({

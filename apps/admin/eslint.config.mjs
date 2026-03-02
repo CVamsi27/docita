@@ -5,14 +5,39 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
   ]),
+
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-restricted-imports": [
+        "warn",
+        {
+          paths: [
+            {
+              name: "@workspace/types",
+              importNames: [
+                "CreatePatientInput",
+                "UpdatePatientInput",
+                "CreateAppointmentInput",
+                "UpdateAppointmentInput",
+                "CreateInvoiceInput",
+                "CreatePrescriptionInput",
+              ],
+              message:
+                "Prefer contract request types from @workspace/types (e.g., Create*Request / Update*Request from contracts) for API calls.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

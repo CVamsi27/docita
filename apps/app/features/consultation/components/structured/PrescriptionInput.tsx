@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Pill, Plus, Trash2 } from "lucide-react";
-import { useClinicSettings } from "../../../../hooks/api/use-settings";
+import { useClinicSettings } from "@/hooks/api/use-settings";
 import ClinicFeatureService, {
   MEDICATION_ROUTES,
 } from "@/lib/services/clinic-feature.service";
@@ -41,22 +41,18 @@ export function PrescriptionInput({
   const { data: clinic } = useClinicSettings();
   const medications = value.length > 0 ? value : [];
 
-  // ... inside component ...
-
-  // Get grouped routes based on clinic type
   const groupedRoutes = useMemo(() => {
     return ClinicFeatureService.getMedicationRoutesGrouped(
       clinic?.type as ClinicType,
     );
   }, [clinic?.type]);
 
-  // Flattened prioritized routes for read-only display or fallback
   const prioritizedRoutes = useMemo(() => {
     return ClinicFeatureService.getMedicationRoutes(clinic?.type as ClinicType);
   }, [clinic?.type]);
 
   const addMedication = () => {
-    // Default route based on clinic type preference
+
     const defaultRoute = prioritizedRoutes[0]?.value || "ORAL";
 
     onChange([

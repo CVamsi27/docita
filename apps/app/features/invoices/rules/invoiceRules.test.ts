@@ -22,12 +22,12 @@ describe("Invoice Business Rules", () => {
 
   describe("calculateTotal", () => {
     it("should calculate total with tax and discount", () => {
-      // Subtotal: 100, Tax: 10 (10%), Discount: 5 -> Total: 105
+
       expect(calculateTotal(100, 10, 5)).toBe(105);
     });
 
     it("should calculate total without discount", () => {
-      // Subtotal: 100, Tax: 10 (10%) -> Total: 110
+
       expect(calculateTotal(100, 10)).toBe(110);
     });
 

@@ -3,7 +3,7 @@ import { LabTestsController } from './presentation/controllers/lab-tests.control
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
 import { PrismaClinicalRepository } from './infrastructure/persistence/prisma-clinical.repository';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ClinicalFactory } from './application/factories/clinical.factory';
 
 @Module({

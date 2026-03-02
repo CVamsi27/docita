@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 export interface PrescriptionValidationRulesInterface {
   validateDosage(
@@ -90,16 +90,12 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Validate medication dosage against safe limits
-   */
   async validateDosage(
     medicationId: string,
     dosage: number,
     unit: string,
     ageYears?: number,
   ): Promise<{ valid: boolean; error?: string; warning?: string }> {
-    // Fetch medication from database
     const medication = await this.prisma.medication.findUnique({
       where: { id: medicationId },
       select: {
@@ -116,8 +112,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       };
     }
 
-    // Medication dosages are flexible and stored as strings
-    // Just validate that a dosage was provided
     if (!dosage || dosage <= 0) {
       return {
         valid: false,
@@ -125,8 +119,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       };
     }
 
-    // Maximum dosage is medication-specific; for now, just validate against reasonable limits
-    // Most medications have a max dose of 500-1000 units per dose
     const maxDose = 1000;
     if (dosage > maxDose) {
       return {
@@ -135,7 +127,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       };
     }
 
-    // Pediatric dosage warning
     if (
       ageYears &&
       ageYears < 12 &&
@@ -151,15 +142,11 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     return { valid: true };
   }
 
-  /**
-   * Check for drug-drug interactions
-   */
   async validateDrugInteraction(
     medicationIds: string[],
   ): Promise<{ hasConflict: boolean; interactions: string[] }> {
     const interactions: string[] = [];
 
-    // Get medication names
     const medications = await this.prisma.medication.findMany({
       where: { id: { in: medicationIds } },
       select: { id: true, name: true },
@@ -167,7 +154,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
 
     const medMap = new Map(medications.map((m) => [m.id, m.name]));
 
-    // Check pairwise interactions
     for (let i = 0; i < medicationIds.length; i++) {
       for (let j = i + 1; j < medicationIds.length; j++) {
         const med1Id = medicationIds[i];
@@ -175,7 +161,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
         const med1Name = medMap.get(med1Id)?.toLowerCase() || '';
         const med2Name = medMap.get(med2Id)?.toLowerCase() || '';
 
-        // Check interaction both ways
         const interactingDrugs = this.DRUG_INTERACTIONS[med1Name] || [];
         if (
           interactingDrugs.some(
@@ -193,9 +178,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     };
   }
 
-  /**
-   * Check for contraindications with patient conditions
-   */
   async validatePatientContraindications(
     patientId: string,
     medicationIds: string[],
@@ -246,15 +228,11 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     };
   }
 
-  /**
-   * Validate prescription start and end dates
-   */
   validatePrescriptionDuration(
     startDate: Date,
     endDate: Date,
     medicationId: string,
   ): { valid: boolean; error?: string } {
-    // End date must be after start date
     if (endDate <= startDate) {
       return {
         valid: false,
@@ -262,12 +240,10 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       };
     }
 
-    // Calculate duration in days
     const durationDays = Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
-    // Most prescriptions shouldn't exceed 12 months
     if (durationDays > 365) {
       return {
         valid: false,
@@ -275,7 +251,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
       };
     }
 
-    // Antibiotic prescriptions typically max out at 28 days
     if (medicationId.includes('antibiotic') && durationDays > 28) {
       return {
         valid: false,
@@ -286,9 +261,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     return { valid: true };
   }
 
-  /**
-   * Validate medication frequency
-   */
   validateFrequency(frequency: string): { valid: boolean; error?: string } {
     const validFrequencies = [
       'OD',
@@ -313,9 +285,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     return { valid: true };
   }
 
-  /**
-   * Validate refill count
-   */
   validateRefills(
     medicationType: string,
     refillCount: number,
@@ -346,9 +315,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     return { valid: true };
   }
 
-  /**
-   * Check for known allergies
-   */
   async validateAllergies(
     patientId: string,
     medicationIds: string[],
@@ -368,19 +334,11 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     });
 
     const allergies: string[] = [];
-    const patientAllergies =
-      (
-        (
-          patient as unknown as {
-            patientAllergies?: Array<{ allergen?: string }>;
-          }
-        ).patientAllergies || []
-      ).map((a: { allergen?: string }) => a.allergen ?? '') || [];
+    const patientAllergies = this.normalizeAllergyList(patient.allergies);
 
     for (const med of medications) {
       const medName = med.name.toLowerCase();
 
-      // Check medication name against allergies
       if (
         patientAllergies.some(
           (allergen: string) =>
@@ -398,21 +356,25 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     };
   }
 
-  /**
-   * Calculate next refill date based on prescription frequency and quantity
-   */
+  private normalizeAllergyList(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string');
+  }
+
   calculateNextRefillDate(
     prescriptionDate: Date,
     frequency: string,
     quantity: number,
   ): Date {
-    // Map frequency to daily dose
     const frequencyDailyDose: Record<string, number> = {
       OD: 1,
       BD: 2,
       TDS: 3,
       QID: 4,
-      SOS: 0.5, // As needed
+      SOS: 0.5,
       ONCE_DAILY: 1,
       TWICE_DAILY: 2,
       THREE_TIMES_DAILY: 3,
@@ -423,7 +385,6 @@ export class PrescriptionValidationRulesService implements PrescriptionValidatio
     const dailyDose = frequencyDailyDose[frequency.toUpperCase()] || 1;
     const daysSupply = Math.floor(quantity / dailyDose);
 
-    // Calculate refill date (typically 80% through supply)
     const refillDate = new Date(prescriptionDate);
     refillDate.setDate(refillDate.getDate() + Math.floor(daysSupply * 0.8));
 

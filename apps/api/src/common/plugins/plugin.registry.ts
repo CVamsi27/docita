@@ -1,45 +1,30 @@
 import { Type, DynamicModule, Logger } from '@nestjs/common';
 
-/**
- * Plugin Metadata
- */
 export interface PluginMetadata {
-  /** Unique plugin identifier */
   name: string;
-  /** Semantic version */
+
   version: string;
-  /** Human-readable description */
+
   description: string;
-  /** Plugin author */
+
   author?: string;
-  /** Required plugins (by name) */
+
   dependencies?: string[];
-  /** Required feature flags */
+
   requiredFeatureFlags?: string[];
 }
 
-/**
- * Plugin Interface
- *
- * Implement this interface to create a plugin for Docita.
- */
 export interface Plugin {
-  /** Plugin metadata */
   metadata: PluginMetadata;
-  /** NestJS module */
-  module: Type<any> | DynamicModule;
-  /** Lifecycle hooks */
+
+  module: Type<unknown> | DynamicModule;
+
   onInit?(): Promise<void>;
   onDestroy?(): Promise<void>;
-  /** Health check */
+
   healthCheck?(): Promise<{ healthy: boolean; message?: string }>;
 }
 
-/**
- * Plugin Registry
- *
- * Manages plugin registration and lifecycle.
- */
 export class PluginRegistry {
   private static instance: PluginRegistry;
   private readonly logger = new Logger(PluginRegistry.name);
@@ -55,9 +40,6 @@ export class PluginRegistry {
     return PluginRegistry.instance;
   }
 
-  /**
-   * Register a plugin
-   */
   register(plugin: Plugin): void {
     const { name, version, dependencies = [] } = plugin.metadata;
 
@@ -65,7 +47,6 @@ export class PluginRegistry {
       throw new Error(`Plugin '${name}' is already registered`);
     }
 
-    // Validate dependencies
     for (const dep of dependencies) {
       if (!this.plugins.has(dep)) {
         throw new Error(
@@ -79,11 +60,7 @@ export class PluginRegistry {
     this.logger.log(`Registered plugin: ${name} v${version}`);
   }
 
-  /**
-   * Unregister a plugin
-   */
   unregister(name: string): void {
-    // Check for dependents
     for (const [pluginName, plugin] of this.plugins) {
       if (plugin.metadata.dependencies?.includes(name)) {
         throw new Error(
@@ -97,30 +74,18 @@ export class PluginRegistry {
     this.logger.log(`Unregistered plugin: ${name}`);
   }
 
-  /**
-   * Get a registered plugin
-   */
   get(name: string): Plugin | undefined {
     return this.plugins.get(name);
   }
 
-  /**
-   * Get all registered plugins
-   */
   getAll(): Plugin[] {
     return Array.from(this.plugins.values());
   }
 
-  /**
-   * Get all plugin modules for import
-   */
-  getModules(): (Type<any> | DynamicModule)[] {
+  getModules(): (Type<unknown> | DynamicModule)[] {
     return this.getAll().map((p) => p.module);
   }
 
-  /**
-   * Initialize all plugins (in dependency order)
-   */
   async initializeAll(): Promise<void> {
     for (const name of this.initOrder) {
       const plugin = this.plugins.get(name);
@@ -131,9 +96,6 @@ export class PluginRegistry {
     }
   }
 
-  /**
-   * Destroy all plugins (in reverse order)
-   */
   async destroyAll(): Promise<void> {
     const reverseOrder = [...this.initOrder].reverse();
     for (const name of reverseOrder) {
@@ -145,9 +107,6 @@ export class PluginRegistry {
     }
   }
 
-  /**
-   * Health check all plugins
-   */
   async healthCheckAll(): Promise<
     Record<string, { healthy: boolean; message?: string }>
   > {
@@ -172,26 +131,17 @@ export class PluginRegistry {
   }
 }
 
-/**
- * Get the global plugin registry
- */
 export function getPluginRegistry(): PluginRegistry {
   return PluginRegistry.getInstance();
 }
 
-/**
- * Register a plugin
- */
 export function registerPlugin(plugin: Plugin): void {
   getPluginRegistry().register(plugin);
 }
 
-/**
- * Create a plugin from a module
- */
 export function createPlugin(
   metadata: PluginMetadata,
-  module: Type<any> | DynamicModule,
+  module: Type<unknown> | DynamicModule,
   hooks?: {
     onInit?: () => Promise<void>;
     onDestroy?: () => Promise<void>;

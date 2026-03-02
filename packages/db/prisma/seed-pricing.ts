@@ -7,25 +7,17 @@ import {
 
 const prisma = new PrismaClient();
 
-/**
- * Seed the usage-based pricing configuration
- * All prices are in paise (1 INR = 100 paise)
- */
 async function seedPricing() {
-  console.log("Seeding pricing configuration...");
 
-  // ============================================================================
-  // Tier Pricing Configuration
-  // ============================================================================
   const tierPricing = [
     {
       tier: ClinicTier.CAPTURE,
-      monthlyBasePriceCents: 0, // Free
+      monthlyBasePriceCents: 0, 
       includedPatients: 50,
       includedAppointments: 100,
       includedStorageGB: 1,
       includedUsers: 1,
-      overagePatientCents: 0, // Upgrade required
+      overagePatientCents: 0, 
       overageAppointmentCents: 0,
       overageStorageCents: 0,
       overageUserCents: 0,
@@ -46,15 +38,15 @@ async function seedPricing() {
     },
     {
       tier: ClinicTier.CORE,
-      monthlyBasePriceCents: 79900, // ₹799
+      monthlyBasePriceCents: 79900, 
       includedPatients: 300,
       includedAppointments: 500,
       includedStorageGB: 5,
-      includedUsers: 1,
-      overagePatientCents: 200, // ₹2 per patient
-      overageAppointmentCents: 100, // ₹1 per appointment
-      overageStorageCents: 5000, // ₹50 per GB
-      overageUserCents: 29900, // ₹299 per user
+      includedUsers: 2,
+      overagePatientCents: 200, 
+      overageAppointmentCents: 100, 
+      overageStorageCents: 5000, 
+      overageUserCents: 29900, 
       name: "Core",
       description: "Full-function EHR for individual practitioners",
       tagline: "Solo Clinic Essentials",
@@ -66,21 +58,23 @@ async function seedPricing() {
         "Calendar & scheduling",
         "Digital prescriptions",
         "ICD-10 medical coding",
+        "Team member management (roles & permissions)",
+        "2 users included",
         "Basic analytics dashboard",
         "Email support",
       ]),
     },
     {
       tier: ClinicTier.PLUS,
-      monthlyBasePriceCents: 199900, // ₹1,999
+      monthlyBasePriceCents: 199900, 
       includedPatients: 1000,
       includedAppointments: 2000,
       includedStorageGB: 20,
       includedUsers: 2,
-      overagePatientCents: 150, // ₹1.50 per patient
-      overageAppointmentCents: 75, // ₹0.75 per appointment
-      overageStorageCents: 4000, // ₹40 per GB
-      overageUserCents: 29900, // ₹299 per user
+      overagePatientCents: 150, 
+      overageAppointmentCents: 75, 
+      overageStorageCents: 4000, 
+      overageUserCents: 29900, 
       name: "Plus",
       description: "Scale & customize for growing practices",
       tagline: "Growth Ready",
@@ -99,15 +93,15 @@ async function seedPricing() {
     },
     {
       tier: ClinicTier.PRO,
-      monthlyBasePriceCents: 399900, // ₹3,999
+      monthlyBasePriceCents: 399900, 
       includedPatients: 5000,
       includedAppointments: 8000,
       includedStorageGB: 100,
       includedUsers: 5,
-      overagePatientCents: 100, // ₹1 per patient
-      overageAppointmentCents: 50, // ₹0.50 per appointment
-      overageStorageCents: 3000, // ₹30 per GB
-      overageUserCents: 49900, // ₹499 per doctor, ₹99 for staff
+      overagePatientCents: 100, 
+      overageAppointmentCents: 50, 
+      overageStorageCents: 3000, 
+      overageUserCents: 49900, 
       name: "Pro",
       description: "Multi-doctor clinics with advanced needs",
       tagline: "Multi-Doctor Clinics",
@@ -129,7 +123,7 @@ async function seedPricing() {
     },
     {
       tier: ClinicTier.ENTERPRISE,
-      monthlyBasePriceCents: 0, // Custom pricing
+      monthlyBasePriceCents: 0, 
       includedPatients: 999999,
       includedAppointments: 999999,
       includedStorageGB: 500,
@@ -165,12 +159,9 @@ async function seedPricing() {
       update: tier,
       create: tier,
     });
-    console.log(`  ✓ ${tier.name} tier pricing`);
+
   }
 
-  // ============================================================================
-  // Add-On Products
-  // ============================================================================
   const addOns = [
     {
       type: AddOnType.WHATSAPP,
@@ -178,22 +169,22 @@ async function seedPricing() {
       description: "Automated patient communication via WhatsApp",
       icon: "MessageSquare",
       pricingByTier: JSON.stringify({
-        CORE: 49900, // ₹499
-        PLUS: 79900, // ₹799
-        PRO: 149900, // ₹1,499
-        ENTERPRISE: 0, // Custom
+        CORE: 49900, 
+        PLUS: 79900, 
+        PRO: 149900, 
+        ENTERPRISE: 0, 
       }),
       includedQuotaByTier: JSON.stringify({
-        CORE: 500, // messages/month
+        CORE: 500, 
         PLUS: 1500,
         PRO: 5000,
         ENTERPRISE: 15000,
       }),
       overageRateByTier: JSON.stringify({
-        CORE: 50, // ₹0.50 per message
-        PLUS: 40, // ₹0.40
-        PRO: 30, // ₹0.30
-        ENTERPRISE: 20, // ₹0.20
+        CORE: 50, 
+        PLUS: 40, 
+        PRO: 30, 
+        ENTERPRISE: 20, 
       }),
       features: JSON.stringify([
         "Appointment reminders",
@@ -212,22 +203,22 @@ async function seedPricing() {
       description: "AI-powered clinical assistant",
       icon: "Sparkles",
       pricingByTier: JSON.stringify({
-        CORE: 199900, // ₹1,999
-        PLUS: 249900, // ₹2,499
-        PRO: 349900, // ₹3,499
-        ENTERPRISE: 0, // Custom
+        CORE: 199900, 
+        PLUS: 249900, 
+        PRO: 349900, 
+        ENTERPRISE: 0, 
       }),
       includedQuotaByTier: JSON.stringify({
-        CORE: 500, // AI credits/month
+        CORE: 500, 
         PLUS: 1500,
         PRO: 5000,
         ENTERPRISE: 15000,
       }),
       overageRateByTier: JSON.stringify({
-        CORE: 300, // ₹3 per credit
-        PLUS: 250, // ₹2.50
-        PRO: 200, // ₹2
-        ENTERPRISE: 150, // ₹1.50
+        CORE: 300, 
+        PLUS: 250, 
+        PRO: 200, 
+        ENTERPRISE: 150, 
       }),
       features: JSON.stringify([
         "AI-assisted clinical notes (5 credits/note)",
@@ -248,12 +239,9 @@ async function seedPricing() {
       update: addOn,
       create: addOn,
     });
-    console.log(`  ✓ ${addOn.name} add-on`);
+
   }
 
-  // ============================================================================
-  // Discount Configuration
-  // ============================================================================
   const discounts = [
     {
       type: DiscountType.ANNUAL_COMMITMENT,
@@ -317,7 +305,7 @@ async function seedPricing() {
     },
     {
       type: DiscountType.REFERRAL_NEW_CUSTOMER,
-      percentOff: 100, // 1 month free (100% of first month)
+      percentOff: 100, 
       maxCombinedPercent: null,
       appliesToBase: true,
       appliesToAddOns: true,
@@ -389,16 +377,14 @@ async function seedPricing() {
       update: discount,
       create: discount,
     });
-    console.log(`  ✓ ${discount.name} discount`);
+
   }
 
-  console.log("\n✅ Pricing configuration seeded successfully!");
 }
 
-// Main execution
 seedPricing()
   .catch((e) => {
-    console.error("❌ Error seeding pricing:", e);
+
     process.exit(1);
   })
   .finally(async () => {

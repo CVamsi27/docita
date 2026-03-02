@@ -5,23 +5,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { FeatureFlagService } from '../../services/feature-flag.service';
+import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
-/**
- * Feature Flag Decorator Key
- */
 export const FEATURE_FLAG_KEY = 'featureFlag';
 
-/**
- * Decorator to require a feature flag for a controller or method
- *
- * Usage:
- * ```typescript
- * @RequireFeatureFlag('enable_ai_features')
- * @Get('ai-suggestions')
- * getAiSuggestions() { ... }
- * ```
- */
 export const RequireFeatureFlag =
   (flagKey: string) =>
   (target: object, propertyKey?: string, descriptor?: PropertyDescriptor) => {
@@ -33,9 +20,6 @@ export const RequireFeatureFlag =
     return descriptor ?? target;
   };
 
-/**
- * Guard that checks if a feature flag is enabled
- */
 @Injectable()
 export class FeatureFlagGuard implements CanActivate {
   constructor(

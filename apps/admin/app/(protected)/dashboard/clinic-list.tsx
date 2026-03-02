@@ -13,7 +13,6 @@ import { EditClinicDialog } from "./edit-clinic-dialog";
 import { Building2 } from "lucide-react";
 import { TIER_INFO, type TierName } from "@workspace/types";
 
-// Helper to normalize legacy tier names to new tier names
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
     FREE: "CAPTURE",
@@ -23,35 +22,43 @@ function normalizeTierName(tier: string): TierName {
   return (legacyMapping[tier] || tier) as TierName;
 }
 
-// Helper to get tier info with fallback for unknown tiers
-function getTierDisplay(tier: string): { name: string; color: string } {
+function getTierDisplay(tier: string): { name: string; className: string } {
   const normalizedTier = normalizeTierName(tier);
   const tierInfo = TIER_INFO[normalizedTier];
   if (tierInfo) {
+    const tierClassMap: Record<string, string> = {
+      gray: "tier-capture",
+      blue: "tier-core",
+      green: "tier-plus",
+      purple: "tier-pro",
+      orange: "tier-enterprise",
+      pink: "tier-intelligence",
+    };
+
     return {
       name: tierInfo.name.replace("Docita ", ""),
-      color: tierInfo.color,
+      className: tierClassMap[tierInfo.color] || "tier-capture",
     };
   }
-  return { name: tier, color: "gray" };
+  return { name: tier, className: "tier-capture" };
 }
 
 function getClinicTypeDisplay(type?: string) {
   const normalizedType = (type || "GENERAL").toUpperCase();
-  const typeLabels: Record<string, { name: string; color: string }> = {
-    GENERAL: { name: "General", color: "slate" },
-    DENTAL: { name: "Dental", color: "cyan" },
-    PEDIATRIC: { name: "Pediatric", color: "pink" },
-    ORTHOPEDIC: { name: "Orthopedic", color: "blue" },
-    CARDIOLOGY: { name: "Cardiology", color: "red" },
-    DERMATOLOGY: { name: "Dermatology", color: "amber" },
-    ENT: { name: "ENT", color: "teal" },
-    GYNECOLOGY: { name: "Gynecology", color: "purple" },
-    OPHTHALMOLOGY: { name: "Ophthalmology", color: "indigo" },
-    PSYCHIATRY: { name: "Psychiatry", color: "violet" },
-    SPECIALTY: { name: "Specialty", color: "emerald" },
+  const typeLabels: Record<string, { name: string; className: string }> = {
+    GENERAL: { name: "General", className: "badge-muted" },
+    DENTAL: { name: "Dental", className: "badge-info" },
+    PEDIATRIC: { name: "Pediatric", className: "tier-intelligence" },
+    ORTHOPEDIC: { name: "Orthopedic", className: "tier-core" },
+    CARDIOLOGY: { name: "Cardiology", className: "badge-danger" },
+    DERMATOLOGY: { name: "Dermatology", className: "badge-warning" },
+    ENT: { name: "ENT", className: "tier-plus" },
+    GYNECOLOGY: { name: "Gynecology", className: "tier-pro" },
+    OPHTHALMOLOGY: { name: "Ophthalmology", className: "tier-core" },
+    PSYCHIATRY: { name: "Psychiatry", className: "tier-pro" },
+    SPECIALTY: { name: "Specialty", className: "tier-plus" },
   };
-  return typeLabels[normalizedType] || { name: "General", color: "slate" };
+  return typeLabels[normalizedType] || { name: "General", className: "badge-muted" };
 }
 
 interface Clinic {
@@ -135,14 +142,7 @@ export function ClinicList({
                 <TableCell>
                   <Badge
                     variant="outline"
-                    className={`
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "gray" ? "border-gray-400 text-gray-600" : ""}
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "blue" ? "border-blue-400 text-blue-600" : ""}
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "green" ? "border-green-400 text-green-600" : ""}
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "purple" ? "border-purple-400 text-purple-600" : ""}
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "orange" ? "border-orange-400 text-orange-600" : ""}
-                    ${getTierDisplay(clinic.tier || "GENERAL").color === "pink" ? "border-pink-400 text-pink-600" : ""}
-                  `}
+                    className={getTierDisplay(clinic.tier || "GENERAL").className}
                   >
                     {getTierDisplay(clinic.tier || "GENERAL").name}
                   </Badge>
@@ -150,19 +150,7 @@ export function ClinicList({
                 <TableCell>
                   <Badge
                     variant="outline"
-                    className={`
-                    ${getClinicTypeDisplay(clinic.type).color === "slate" ? "border-slate-400 text-slate-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "cyan" ? "border-cyan-400 text-cyan-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "pink" ? "border-pink-400 text-pink-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "blue" ? "border-blue-400 text-blue-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "red" ? "border-red-400 text-red-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "amber" ? "border-amber-400 text-amber-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "teal" ? "border-teal-400 text-teal-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "purple" ? "border-purple-400 text-purple-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "indigo" ? "border-indigo-400 text-indigo-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "violet" ? "border-violet-400 text-violet-600" : ""}
-                    ${getClinicTypeDisplay(clinic.type).color === "emerald" ? "border-emerald-400 text-emerald-600" : ""}
-                  `}
+                    className={getClinicTypeDisplay(clinic.type).className}
                   >
                     {getClinicTypeDisplay(clinic.type).name}
                   </Badge>

@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class PerformanceService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get database connection pool stats
-   */
   async getDatabaseStats() {
     const startTime = Date.now();
     await this.prisma.$queryRaw`SELECT 1`;
@@ -20,9 +17,6 @@ export class PerformanceService {
     };
   }
 
-  /**
-   * Get application health metrics
-   */
   getMetrics() {
     const memoryUsage = process.memoryUsage();
     const uptime = process.uptime();

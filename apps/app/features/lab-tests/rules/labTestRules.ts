@@ -1,7 +1,4 @@
-/**
- * Lab Test Business Rules
- * Test result interpretation and validation
- */
+
 
 export interface LabTestResult {
   testName: string;
@@ -23,9 +20,6 @@ export interface LabPanel {
     | "other";
 }
 
-/**
- * Determine test result status based on reference range
- */
 export function getTestResultStatus(
   result: LabTestResult,
 ): LabTestResult["status"] {
@@ -35,7 +29,6 @@ export function getTestResultStatus(
 
   const { value, referenceMin, referenceMax } = result;
 
-  // Critical thresholds (20% beyond normal range)
   const criticalLow = referenceMin - (referenceMax - referenceMin) * 0.2;
   const criticalHigh = referenceMax + (referenceMax - referenceMin) * 0.2;
 
@@ -51,9 +44,6 @@ export function getTestResultStatus(
   return "normal";
 }
 
-/**
- * Format lab value with unit
- */
 export function formatLabValue(value: number, unit: string): string {
   const formatted = Number.isInteger(value)
     ? value.toString()
@@ -61,43 +51,31 @@ export function formatLabValue(value: number, unit: string): string {
   return `${formatted} ${unit}`;
 }
 
-/**
- * Get status color for display
- */
 export function getStatusColor(status: LabTestResult["status"]): string {
   switch (status) {
     case "critical":
-      return "text-red-600";
+      return "text-destructive";
     case "high":
-      return "text-amber-600";
+      return "text-warning";
     case "low":
-      return "text-blue-600";
+      return "text-info";
     case "normal":
-      return "text-green-600";
+      return "text-success";
     default:
       return "text-muted-foreground";
   }
 }
 
-/**
- * Check if any results are abnormal
- */
 export function hasAbnormalResults(results: LabTestResult[]): boolean {
   return results.some(
     (r) => r.status === "high" || r.status === "low" || r.status === "critical",
   );
 }
 
-/**
- * Check if any results are critical
- */
 export function hasCriticalResults(results: LabTestResult[]): boolean {
   return results.some((r) => r.status === "critical");
 }
 
-/**
- * Common lab panels
- */
 export const COMMON_LAB_PANELS: LabPanel[] = [
   {
     name: "Complete Blood Count (CBC)",

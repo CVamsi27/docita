@@ -2,8 +2,8 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
-} from '../ports';
-import { PrismaService } from '../../../../prisma/prisma.service';
+} from '@/domains/subscriptions/application/ports';
+import { PrismaService } from '@/prisma/prisma.service';
 
 export interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;

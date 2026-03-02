@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPrescriptionRepository,
   PrescriptionSearchParams,
   PrescriptionDetail,
   PatientWithAllergies,
-} from '../../core/repositories/prescription.repository.interface';
-import { Prescription, Prisma } from '@workspace/db';
+  DoctorComplianceProfile,
+} from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import { Prescription, Prisma, Role } from '@workspace/db';
 
 @Injectable()
 export class PrismaPrescriptionRepository implements IPrescriptionRepository {
@@ -169,5 +170,48 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
         reaction: string | null;
       }>,
     };
+  }
+
+  async findDoctorCompliance(
+    doctorId: string,
+    clinicId?: string,
+  ): Promise<DoctorComplianceProfile | null> {
+    const doctor = await this.prisma.user.findFirst({
+      where: {
+        id: doctorId,
+        role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
+        ...(clinicId
+          ? {
+              OR: [
+                { clinicId },
+                {
+                  doctorClinics: {
+                    some: {
+                      clinicId,
+                      active: true,
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        registrationNumber: true,
+        licenseNumber: true,
+        signatureUrl: true,
+        verificationStatus: true,
+      },
+    });
+
+    if (!doctor) {
+      return null;
+    }
+
+    return doctor;
   }
 }

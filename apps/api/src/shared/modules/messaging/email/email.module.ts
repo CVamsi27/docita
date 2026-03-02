@@ -6,8 +6,8 @@ import {
   ResendEmailProvider,
   EMAIL_PROVIDER,
 } from './providers';
-import { PrismaModule } from '../../../../prisma/prisma.module';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Module({
   imports: [PrismaModule],

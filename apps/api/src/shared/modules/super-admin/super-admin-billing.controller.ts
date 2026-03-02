@@ -9,7 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -17,9 +17,13 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-// Helper functions moved to SuperAdminBillingService or utils
 import { SuperAdminBillingService } from './super-admin-billing.service';
-import { ExtendGracePeriodRequestDto } from './dto/payment.dto';
+import {
+  ExtendGracePeriodRequestDto,
+  SuperAdminBillingExpiringQueryDto,
+  SuperAdminBillingPaymentsQueryDto,
+  SuperAdminBillingSubscriptionsQueryDto,
+} from './dto/super-admin-billing.dto';
 
 @Controller('super-admin/billing')
 @ApiTags('Super Admin - Billing')
@@ -40,18 +44,22 @@ export class SuperAdminBillingController {
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'billingCycle', required: false })
   async getSubscriptions(
-    @Query('tier') tier?: string,
-    @Query('status') status?: string,
-    @Query('billingCycle') billingCycle?: string,
+    @Query() query?: SuperAdminBillingSubscriptionsQueryDto,
   ) {
-    return this.billingService.getSubscriptions({ tier, status, billingCycle });
+    return this.billingService.getSubscriptions({
+      tier: query?.tier,
+      status: query?.status,
+      billingCycle: query?.billingCycle,
+    });
   }
 
   @Get('expiring')
   @ApiOperation({ summary: 'Get subscriptions expiring soon' })
   @ApiQuery({ name: 'days', required: false, type: Number })
-  async getExpiringSubscriptions(@Query('days') days?: number) {
-    return this.billingService.getExpiringSubscriptions(days);
+  async getExpiringSubscriptions(
+    @Query() query?: SuperAdminBillingExpiringQueryDto,
+  ) {
+    return this.billingService.getExpiringSubscriptions(query?.days);
   }
 
   @Get('payments')
@@ -59,12 +67,12 @@ export class SuperAdminBillingController {
   @ApiQuery({ name: 'clinicId', required: false })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
-  async getPayments(
-    @Query('clinicId') clinicId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    return this.billingService.getPayments({ clinicId, startDate, endDate });
+  async getPayments(@Query() query?: SuperAdminBillingPaymentsQueryDto) {
+    return this.billingService.getPayments({
+      clinicId: query?.clinicId,
+      startDate: query?.startDate,
+      endDate: query?.endDate,
+    });
   }
 
   @Post('subscriptions/:subscriptionId/remind')

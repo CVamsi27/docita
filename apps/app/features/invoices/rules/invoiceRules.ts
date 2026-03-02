@@ -1,6 +1,4 @@
-/**
- * Invoice Business Rules
- */
+
 
 export const calculateTax = (subtotal: number, taxRate: number = 0): number => {
   return subtotal * (taxRate / 100);

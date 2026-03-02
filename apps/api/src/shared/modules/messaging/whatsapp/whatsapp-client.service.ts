@@ -4,7 +4,7 @@ import {
   ServiceUnavailableException,
   HttpException,
 } from '@nestjs/common';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class WhatsappClientService {
@@ -78,7 +78,10 @@ export class WhatsappClientService {
       const messageId = data.messages?.[0]?.id;
       this.logger.log(`WhatsApp message sent to ${cleanPhone}: ${messageId}`);
 
-      return { success: true, messageId: messageId as string };
+      return {
+        success: true,
+        messageId: typeof messageId === 'string' ? messageId : '',
+      };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -91,9 +94,6 @@ export class WhatsappClientService {
     }
   }
 
-  /**
-   * Send a template message via WhatsApp Cloud API
-   */
   async sendTemplate({
     to,
     templateName,
@@ -133,19 +133,45 @@ export class WhatsappClientService {
     const cleanPhone = this.normalizePhoneNumber(to);
 
     try {
+      const templatePayload: {
+        name: string;
+        language: { code: string };
+        components?: Array<{
+          type: 'header' | 'body' | 'button';
+          parameters?: Array<{
+            type:
+              | 'text'
+              | 'currency'
+              | 'date_time'
+              | 'image'
+              | 'document'
+              | 'video';
+            text?: string;
+            currency?: {
+              fallback_value: string;
+              code: string;
+              amount_1000: number;
+            };
+            date_time?: { fallback_value: string };
+          }>;
+          sub_type?: 'quick_reply' | 'url';
+          index?: number;
+        }>;
+      } = {
+        name: templateName,
+        language: { code: languageCode },
+      };
+
       const payload: Record<string, unknown> = {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
         to: cleanPhone,
         type: 'template',
-        template: {
-          name: templateName,
-          language: { code: languageCode },
-        },
+        template: templatePayload,
       };
 
       if (components && components.length > 0) {
-        (payload.template as Record<string, unknown>).components = components;
+        templatePayload.components = components;
       }
 
       const response = await fetch(

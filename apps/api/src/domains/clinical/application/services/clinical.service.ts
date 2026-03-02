@@ -2,9 +2,9 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   ILabRepository,
   IMedicalCodingRepository,
-} from '../../core/repositories/clinical.repository.interface';
-import { LabTest } from '../../core/entities/lab-test.entity';
-import { LabOrder } from '../../core/entities/lab-order.entity';
+} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
+import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import {
   LabTestOrderStatus,
   IcdCode,
@@ -15,12 +15,35 @@ import {
 
 @Injectable()
 export class ClinicalService {
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' ? value : undefined;
+  }
   constructor(
     @Inject('ILabRepository')
     private readonly labRepository: ILabRepository,
     @Inject('IMedicalCodingRepository')
     private readonly codingRepository: IMedicalCodingRepository,
   ) {}
+
+  private toLabTestInput(
+    data: Record<string, unknown>,
+  ): Parameters<typeof LabTest.create>[0] {
+    return {
+      id: typeof data.id === 'string' ? data.id : undefined,
+      name: typeof data.name === 'string' ? data.name : '',
+      category: typeof data.category === 'string' ? data.category : '',
+      clinicId: typeof data.clinicId === 'string' ? data.clinicId : '',
+      active: typeof data.active === 'boolean' ? data.active : undefined,
+      code: typeof data.code === 'string' ? data.code : undefined,
+      price: typeof data.price === 'number' ? data.price : undefined,
+      description:
+        typeof data.description === 'string' ? data.description : undefined,
+    };
+  }
 
   async getAllTests(clinicId: string): Promise<LabTest[]> {
     return await this.labRepository.findAllTests(clinicId);
@@ -33,7 +56,7 @@ export class ClinicalService {
   }
 
   async createTest(data: Record<string, unknown>): Promise<LabTest> {
-    const test = LabTest.create(data as any);
+    const test = LabTest.create(this.toLabTestInput(data));
     return await this.labRepository.saveTest(test);
   }
 
@@ -52,11 +75,17 @@ export class ClinicalService {
   }
 
   async createOrder(data: Record<string, unknown>): Promise<LabOrder> {
+    const patientId = this.readString(data, 'patientId');
+    const labTestId = this.readString(data, 'labTestId');
+    const clinicId = this.readString(data, 'clinicId');
+    if (!patientId || !labTestId || !clinicId) {
+      throw new NotFoundException('Missing required fields for lab order');
+    }
     const order = LabOrder.create({
-      patientId: data.patientId as string,
-      labTestId: data.labTestId as string,
-      clinicId: data.clinicId as string,
-      appointmentId: data.appointmentId as string,
+      patientId,
+      labTestId,
+      clinicId,
+      appointmentId: this.readString(data, 'appointmentId'),
       status: LabTestOrderStatus.ORDERED,
     });
     return await this.labRepository.saveOrder(order);
@@ -115,7 +144,10 @@ export class ClinicalService {
     return await this.codingRepository.removeCptFavorite(userId, cptCodeId);
   }
 
-  async getUncodedVisits(clinicId: string, search?: string): Promise<any[]> {
+  async getUncodedVisits(
+    clinicId: string,
+    search?: string,
+  ): Promise<Appointment[]> {
     return await this.codingRepository.getUncodedVisits(clinicId, search);
   }
 }

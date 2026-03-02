@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
-import { AppConfigService } from '../../config/app-configuration.service';
-import { EMAIL_PROVIDER } from './providers/email-provider.interface';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  EMAIL_PROVIDER,
+  IEmailProvider,
+} from './providers/email-provider.interface';
 
 describe('EmailService', () => {
   let service: EmailService;
-  let emailProvider: jest.Mocked<any>;
+  let emailProvider: jest.Mocked<IEmailProvider>;
 
   beforeEach(async () => {
     const emailProviderMock = {
@@ -343,7 +346,6 @@ describe('EmailService', () => {
       const result = await service.verifyProvider();
 
       expect(result).toBe(false);
-      // Should not throw
     });
 
     it('should return provider verification status', async () => {
@@ -391,11 +393,10 @@ describe('EmailService', () => {
     it('should escape HTML in password reset email name', async () => {
       const xssPayload = '"><img src=x onerror=alert(1)>';
 
-      // Note: password reset doesn't have names, but verifying escaping through other methods
       await service.sendWelcomeEmail('user@example.com', xssPayload, 'Clinic');
 
       const call = emailProvider.send.mock.calls[0][0];
-      // Verify escaping happened (content should be escaped, not include dangerous tags)
+
       expect(call.html).toBeDefined();
       expect(call.html).not.toContain('<script>');
     });
@@ -411,10 +412,9 @@ describe('EmailService', () => {
       );
 
       const call = emailProvider.send.mock.calls[0][0];
-      // Verify the actual content doesn't contain raw dangerous tags
+
       expect(call.html).toContain('Appointment Reminder');
       expect(call.html).toContain('Dear');
-      // The escapeHtml should prevent script execution
     });
 
     it('should sanitize user inputs to prevent XSS', async () => {
@@ -428,7 +428,6 @@ describe('EmailService', () => {
         await service.sendWelcomeEmail('user@example.com', payload, 'Clinic');
       }
 
-      // Verify all calls were made (service should handle them)
       expect(emailProvider.send).toHaveBeenCalled();
     });
   });

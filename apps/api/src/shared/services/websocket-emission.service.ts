@@ -1,12 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PaymentWebSocketGateway } from '../../gateways/payment.websocket.gateway';
-
-export interface ClinicUpdateData {
-  clinicId: string;
-  tier?: string;
-  intelligenceAddon?: string;
-  subscriptionStatus?: string;
-}
+import {
+  PaymentWebSocketGateway,
+  ClinicUpdateData,
+} from '@/gateways/payment.websocket.gateway';
 
 @Injectable()
 export class WebSocketEmissionService {
@@ -16,7 +12,7 @@ export class WebSocketEmissionService {
 
   emitClinicUpdate(clinicId: string, data: ClinicUpdateData): void {
     try {
-      this.paymentGateway.emitClinicUpdate(clinicId, data as any);
+      this.paymentGateway.emitClinicUpdate(clinicId, data);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

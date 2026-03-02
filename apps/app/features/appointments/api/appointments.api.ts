@@ -1,18 +1,32 @@
 import { api } from "@/lib/api-client";
-import type {
-  Appointment,
-  CreateAppointmentInput,
-  UpdateAppointmentInput,
+import {
+  appointmentResponseSchema,
+  createAppointmentRequestSchema,
+  updateAppointmentRequestSchema,
+  type Appointment,
+  type CreateAppointmentRequest,
+  type UpdateAppointmentRequest,
 } from "@workspace/types";
+import { z } from "zod";
 
-/**
- * Appointments API Client
- * Centralized API functions for appointment operations
- */
+const appointmentsListResponseSchema = z.union([
+  z.array(appointmentResponseSchema),
+  z.object({
+    items: z.array(appointmentResponseSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean().optional(),
+    count: z.number().optional(),
+  }),
+]);
+
+const normalizeAppointments = (
+  response: z.infer<typeof appointmentsListResponseSchema>,
+): Appointment[] => {
+  return Array.isArray(response) ? response : response.items;
+};
+
 export const appointmentsApi = {
-  /**
-   * Get all appointments with optional filtering
-   */
+  
   getAll: (params?: {
     date?: string;
     startDate?: string;
@@ -25,33 +39,42 @@ export const appointmentsApi = {
     if (params?.endDate) searchParams.set("endDate", params.endDate);
     if (params?.doctorId) searchParams.set("doctorId", params.doctorId);
     const query = searchParams.toString();
-    return api.get<Appointment[]>(`/appointments${query ? `?${query}` : ""}`);
+    return api
+      .get<unknown>(`/appointments${query ? `?${query}` : ""}`)
+      .then((response) => {
+        const parsed = appointmentsListResponseSchema.parse(response);
+        return normalizeAppointments(parsed);
+      });
   },
 
-  /**
-   * Get a single appointment by ID
-   */
-  getById: (id: string) => api.get<Appointment>(`/appointments/${id}`),
+  
+  getById: (id: string) =>
+    api.get<unknown>(`/appointments/${id}`).then((response) => {
+      return appointmentResponseSchema.parse(response);
+    }),
 
-  /**
-   * Create a new appointment
-   */
-  create: (data: CreateAppointmentInput) =>
-    api.post<Appointment>("/appointments", data),
+  
+  create: (data: CreateAppointmentRequest) =>
+    api
+      .post<unknown>("/appointments", createAppointmentRequestSchema.parse(data))
+      .then((response) => {
+        return appointmentResponseSchema.parse(response);
+      }),
 
-  /**
-   * Update an existing appointment
-   */
-  update: (id: string, data: UpdateAppointmentInput) =>
-    api.patch<Appointment>(`/appointments/${id}`, data),
+  
+  update: (id: string, data: UpdateAppointmentRequest) =>
+    api
+      .patch<unknown>(
+        `/appointments/${id}`,
+        updateAppointmentRequestSchema.parse(data),
+      )
+      .then((response) => {
+        return appointmentResponseSchema.parse(response);
+      }),
 
-  /**
-   * Delete an appointment
-   */
+  
   delete: (id: string) => api.delete(`/appointments/${id}`),
 
-  /**
-   * Check-in an appointment
-   */
+  
   checkIn: (id: string) => api.post(`/appointments/${id}/check-in`, {}),
 };

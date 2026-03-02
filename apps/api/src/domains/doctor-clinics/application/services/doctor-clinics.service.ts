@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class DoctorClinicsService {
@@ -29,9 +29,7 @@ export class DoctorClinicsService {
           where: { id: doctorId },
           data: { clinicId },
         });
-      } catch (e) {
-        /* empty */
-      }
+      } catch (e) {}
       return updated;
     }
 
@@ -64,9 +62,7 @@ export class DoctorClinicsService {
         where: { id: doctorId },
         data: { clinicId },
       });
-    } catch (e) {
-      /* empty */
-    }
+    } catch (e) {}
 
     return created;
   }

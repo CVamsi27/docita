@@ -98,23 +98,20 @@ export function AppearanceSettings() {
         <div className="space-y-3">
           <Label>Accent Color</Label>
           <div className="flex gap-2">
-            {["blue", "green", "purple", "orange"].map((color) => (
+            {[
+              { value: "blue", className: "bg-info" },
+              { value: "green", className: "bg-success" },
+              { value: "purple", className: "bg-primary" },
+              { value: "orange", className: "bg-warning" },
+            ].map((color) => (
               <button
-                key={color}
-                className={`h-8 w-8 rounded-full ring-2 ring-offset-2 ring-transparent hover:ring-primary ${settings.primaryColor === color ? "ring-primary" : ""}`}
+                key={color.value}
+                type="button"
+                aria-label={`Select ${color.value} accent color`}
+                className={`h-8 w-8 rounded-full ring-2 ring-offset-2 ring-transparent hover:ring-primary ${color.className} ${settings.primaryColor === color.value ? "ring-primary" : ""}`}
                 onClick={() =>
-                  setSettings((s) => ({ ...s, primaryColor: color }))
+                  setSettings((s) => ({ ...s, primaryColor: color.value }))
                 }
-                style={{
-                  backgroundColor:
-                    color === "blue"
-                      ? "#3b82f6"
-                      : color === "green"
-                        ? "#22c55e"
-                        : color === "purple"
-                          ? "#a855f7"
-                          : "#f97316",
-                }}
               />
             ))}
           </div>

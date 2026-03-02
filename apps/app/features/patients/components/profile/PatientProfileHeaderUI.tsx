@@ -34,7 +34,7 @@ export function PatientProfileHeaderUI({
   return (
     <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border bg-background/60 p-4 sm:p-6 md:p-8 backdrop-blur-xl shadow-sm transition-all hover:shadow-md">
       <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-      <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
+      <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-info blur-3xl" />
 
       <div className="relative flex flex-col gap-4 md:gap-6 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col items-center md:items-start gap-4 md:gap-6 md:flex-row">

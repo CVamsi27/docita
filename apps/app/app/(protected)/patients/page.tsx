@@ -46,8 +46,7 @@ function PatientsContent() {
     error: queryError,
     refetch,
   } = usePatients();
-  // Note: Doctors should see all patients, not filtered by appointments
-  // Appointments API call removed to improve performance
+
   const error = queryError ? (queryError as Error).message : null;
   const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearchParams();
@@ -59,7 +58,6 @@ function PatientsContent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
-  // Open dialog from URL params
   const currentAction = searchParams.get("action");
   useEffect(() => {
     if (currentAction === "new") {
@@ -71,7 +69,7 @@ function PatientsContent() {
     (open: boolean) => {
       setIsAddDialogOpen(open);
       if (!open) {
-        // Remove the query param when dialog closes
+
         const newParams = new URLSearchParams(searchParams.toString());
         newParams.delete("action");
         router.replace(`/patients?${newParams.toString()}`);
@@ -92,13 +90,11 @@ function PatientsContent() {
     setSortConfig({ key, direction });
   };
 
-  // Filter and sort patients
   const filteredPatients = useMemo(() => {
-    // Extract items from paginated responses
+
     const patients = patientsResponse?.items || [];
     let result = [...patients];
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((patient) => {
@@ -109,7 +105,6 @@ function PatientsContent() {
       });
     }
 
-    // Sort
     if (sortConfig) {
       result.sort((a, b) => {
         let aValue: string | number | Date | undefined;

@@ -1,8 +1,3 @@
-/**
- * SMS Channel Implementation
- * Sends messages via SMS
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import {
   IMessageChannel,
@@ -47,7 +42,6 @@ export class SmsChannel implements IMessageChannel {
   }
 
   async handleWebhook(payload: unknown): Promise<void> {
-    // Handle SMS provider webhooks (delivery, bounce, etc.)
     await Promise.resolve();
     this.logger.log('Handling SMS webhook:', payload);
   }

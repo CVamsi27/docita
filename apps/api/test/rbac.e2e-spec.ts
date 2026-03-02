@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -43,7 +43,6 @@ describe('RBAC Enforcement (e2e)', () => {
     const clinic = await factories.clinic();
     clinicId = clinic.id;
 
-    // Get CSRF token for login and other mutating requests
     const getRes = await request(app.getHttpServer()).get('/');
     const cookies = getRes.get('Set-Cookie');
     const cookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
@@ -105,9 +104,6 @@ describe('RBAC Enforcement (e2e)', () => {
 
   describe('Deny by Default Verification', () => {
     it('should block access if an endpoint exists but has no role decorator', async () => {
-      // Assuming /audit-logs exists but is not decorated with @Public() or @Roles()
-      // If it doesn't exist, this might return 404, but we want to verify 403.
-      // Let's use an endpoint we know is NOT public.
       const doctorToken = await getAuthToken(Role.DOCTOR);
       await request(app.getHttpServer())
         .get('/audit-logs')

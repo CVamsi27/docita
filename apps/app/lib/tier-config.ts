@@ -1,17 +1,4 @@
-/**
- * Tier Configuration - Frontend
- *
- * This file provides tier configuration data with fallback values.
- * The actual source of truth is the backend API (/subscription/config).
- *
- * Use the useTierConfig() hook from tier-config-context.tsx for dynamic values
- * that refresh from the backend.
- *
- * The static exports below are fallback values used during loading or if
- * the API is unavailable.
- */
 
-// Re-export everything from @workspace/types for convenience
 export {
   Tier,
   Feature,
@@ -41,8 +28,6 @@ export {
   type IntelligenceAddon,
 } from "@workspace/types";
 
-// Additional frontend-specific types and utilities
-
 import {
   Feature,
   FEATURE_DISPLAY,
@@ -54,9 +39,6 @@ import {
   TIER_PRICING,
 } from "@workspace/types";
 
-/**
- * Plan pricing configuration (alias for frontend compatibility)
- */
 export interface PlanPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -65,9 +47,6 @@ export interface PlanPricing {
 
 export const PLAN_PRICING = TIER_PRICING;
 
-/**
- * Plan limits configuration (alias for frontend compatibility)
- */
 export interface PlanLimits {
   patients: number;
   doctors: number;
@@ -77,9 +56,6 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS = TIER_LIMITS;
 
-/**
- * Plan descriptions (fallback values)
- */
 export const PLAN_DESCRIPTIONS: Record<
   Tier,
   { tagline: string; description: string }
@@ -110,23 +86,17 @@ export const PLAN_DESCRIPTIONS: Record<
   },
 };
 
-/**
- * Feature comparison row for subscription table
- */
 export interface FeatureComparisonRow {
   name: string;
   category: "limit" | "feature";
   values: Record<Tier, string | boolean | number>;
 }
 
-/**
- * Generate feature comparison data from single source of truth
- */
 export function getFeatureComparisonData(): FeatureComparisonRow[] {
   const tiers = [Tier.CAPTURE, Tier.CORE, Tier.PLUS, Tier.PRO, Tier.ENTERPRISE];
 
   const rows: FeatureComparisonRow[] = [
-    // Limits
+
     {
       name: "Patient Limit",
       category: "limit",
@@ -175,7 +145,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
         ]),
       ) as Record<Tier, string | number>,
     },
-    // Core Features
+
     {
       name: "Prescriptions",
       category: "feature",
@@ -193,7 +163,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
         tiers.map((t) => [t, t >= FEATURE_TIER_MAP[Feature.CALENDAR_SLOTS]]),
       ) as Record<Tier, boolean>,
     },
-    // WhatsApp removed - now available as add-on for all tiers
+
     {
       name: "OCR Scanning",
       category: "feature",
@@ -259,9 +229,6 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
   return rows;
 }
 
-/**
- * Get highlighted features for each plan (for plan cards)
- */
 export function getPlanHighlights(
   tier: Tier,
 ): { name: string; included: boolean; highlight?: boolean }[] {
@@ -270,7 +237,6 @@ export function getPlanHighlights(
   const features: { name: string; included: boolean; highlight?: boolean }[] =
     [];
 
-  // Add limits
   features.push({
     name:
       limits.patients === 999999
@@ -289,7 +255,6 @@ export function getPlanHighlights(
     included: true,
   });
 
-  // Add tier-specific highlights
   const tierFeatures = getFeaturesForTier(tierName);
   const highlightFeatures = tierFeatures.slice(0, 3);
 
@@ -301,7 +266,6 @@ export function getPlanHighlights(
     });
   });
 
-  // Add some features from previous tiers as included
   if (tier > Tier.CAPTURE) {
     const prevTierName = Tier[tier - 1] as keyof typeof PLAN_LIMITS;
     const previousFeatures = getAllFeaturesUpToTier(prevTierName);
@@ -313,7 +277,6 @@ export function getPlanHighlights(
     });
   }
 
-  // Add upcoming tier features as not included
   if (tier < Tier.ENTERPRISE) {
     const nextTierName = Tier[tier + 1] as keyof typeof PLAN_LIMITS;
     const nextTierFeatures = getFeaturesForTier(nextTierName);
@@ -325,5 +288,5 @@ export function getPlanHighlights(
     });
   }
 
-  return features.slice(0, 8); // Limit to 8 features for display
+  return features.slice(0, 8); 
 }

@@ -23,7 +23,7 @@ interface HistoryItemProps {
 export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
   return (
     <Card className="relative overflow-hidden">
-      {/* Timeline connector */}
+      {}
       {!isLast && (
         <div className="absolute left-8 top-24 bottom-0 w-0.5 bg-border -mb-6" />
       )}
@@ -31,7 +31,7 @@ export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
-            {/* Timeline dot */}
+            {}
             <div className="relative shrink-0">
               <div className="h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
             </div>
@@ -82,11 +82,11 @@ export function HistoryItem({ appointment, isLast }: HistoryItemProps) {
           <HistoryInvoice invoice={appointment.invoice} />
         )}
 
-        {/* Notes */}
+        {}
         {appointment.notes && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
-              {/* Re-using FileText icon implicity or import if needed, but context is clear */}
+              {}
               Clinical Notes
             </div>
             <p className="text-sm text-muted-foreground">{appointment.notes}</p>

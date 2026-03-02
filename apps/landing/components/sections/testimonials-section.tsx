@@ -3,7 +3,6 @@
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
-// Testimonials data
 const testimonials = [
   {
     quote:
@@ -46,7 +45,6 @@ const testimonials = [
 export function TestimonialsSection() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  // Auto-rotate testimonials
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -58,9 +56,9 @@ export function TestimonialsSection() {
     <section className="px-6 py-24 bg-muted/30" id="testimonials">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-2 text-sm mb-4">
-            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-            <span className="font-medium text-amber-700 dark:text-amber-300">
+          <div className="inline-flex items-center gap-2 rounded-full bg-warning px-4 py-2 text-sm mb-4">
+            <Star className="h-4 w-4 text-warning fill-amber-500" />
+            <span className="font-medium text-warning dark:text-warning">
               Trusted by 500+ Clinics
             </span>
           </div>
@@ -74,7 +72,7 @@ export function TestimonialsSection() {
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Testimonial Card */}
+          {}
           <div className="relative overflow-hidden rounded-2xl bg-background border shadow-lg p-8 md:p-12">
             <Quote className="absolute top-6 left-6 h-12 w-12 text-primary/10" />
 
@@ -104,7 +102,7 @@ export function TestimonialsSection() {
                     (_, i) => (
                       <Star
                         key={i}
-                        className="h-5 w-5 text-amber-500 fill-amber-500"
+                        className="h-5 w-5 text-warning fill-amber-500"
                       />
                     ),
                   )}
@@ -113,7 +111,7 @@ export function TestimonialsSection() {
             </div>
           </div>
 
-          {/* Navigation Buttons */}
+          {}
           <div className="flex items-center justify-center gap-4 mt-8">
             <button
               onClick={() =>

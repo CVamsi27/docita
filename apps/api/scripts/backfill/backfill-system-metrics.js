@@ -80,7 +80,6 @@ function generateMetrics(days) {
 }
 
 async function backfillSystemMetrics() {
-  console.log('Starting system metrics backfill...');
 
   try {
     const metricsToInsert = generateMetrics(30);
@@ -90,9 +89,8 @@ async function backfillSystemMetrics() {
       skipDuplicates: true,
     });
 
-    console.log(`Backfill Complete: ${result.count} total system metrics`);
   } catch (error) {
-    console.error('Backfill failed:', error);
+
     throw error;
   } finally {
     await prisma.$disconnect();

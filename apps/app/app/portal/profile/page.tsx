@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -11,7 +12,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Label } from "@workspace/ui/components/label";
-import { AlertCircle, Bell, Shield, Trash2 } from "lucide-react";
+import { AlertCircle, Bell, Printer, Shield, Trash2 } from "lucide-react";
 import {
   Alert,
   AlertDescription,
@@ -81,12 +82,20 @@ export default function PatientProfilePage() {
         </p>
       </div>
 
-      {/* Privacy & Consent Settings */}
+      {}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <CardTitle>Privacy & Consent</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <CardTitle>Privacy & Consent</CardTitle>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/portal/profile/consent-form" target="_blank">
+                <Printer className="mr-2 h-4 w-4" />
+                Print Consent Form
+              </Link>
+            </Button>
           </div>
           <CardDescription>
             Manage how we communicate with you and use your data
@@ -141,7 +150,7 @@ export default function PatientProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Data Deletion */}
+      {}
       <Card className="border-destructive/50">
         <CardHeader>
           <div className="flex items-center gap-2">

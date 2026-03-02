@@ -27,8 +27,6 @@ export async function seedClinicUsers(
     },
   });
 
-  console.log('Default clinic created');
-
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   await prisma.user.upsert({
@@ -358,9 +356,6 @@ export async function seedClinicUsers(
     ],
   });
 
-  console.log('Doctor profiles with education and certifications created');
-  console.log('DoctorClinic associations created');
-
   await prisma.user.upsert({
     where: { email: 'reception@docita.work' },
     update: {},
@@ -372,8 +367,6 @@ export async function seedClinicUsers(
       clinicId: defaultClinic.id,
     },
   });
-
-  console.log('Users created (including Super Admin)');
 
   return {
     defaultClinic: { id: defaultClinic.id },

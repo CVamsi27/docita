@@ -76,7 +76,7 @@ export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
               <ul className="space-y-2 text-sm">
                 {plan.features.map((f, i) => (
                   <li key={i} className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span> {f}
+                    <span className="text-success"></span> {f}
                   </li>
                 ))}
               </ul>
@@ -241,10 +241,6 @@ export const TemplatesSettingsDynamic: FC<{ clinicId?: string }> = () => {
     </Card>
   );
 };
-
-// ============================================
-// STUBS - To be implemented
-// ============================================
 
 type FlexibleModalProps = Record<string, unknown>;
 

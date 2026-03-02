@@ -9,13 +9,13 @@ import {
 
 export function WhatsappSection() {
   return (
-    <section className="px-6 py-24 bg-green-50 dark:bg-green-950/10 relative overflow-hidden">
+    <section className="px-6 py-24 bg-success/10 relative overflow-hidden">
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-green-500/10 px-4 py-2 text-sm mb-4">
-              <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <span className="font-medium text-green-700 dark:text-green-300">
+            <div className="inline-flex items-center gap-2 rounded-full badge-success px-4 py-2 text-sm mb-4">
+              <MessageSquare className="h-4 w-4 text-success" />
+              <span className="font-medium text-success">
                 WhatsApp Integration
               </span>
             </div>
@@ -36,17 +36,17 @@ export function WhatsappSection() {
                 "Two-way patient communication",
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
                   <span className="text-muted-foreground">{item}</span>
                 </li>
               ))}
             </ul>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-[280px] h-[560px] bg-slate-900 rounded-[3rem] border-8 border-slate-900 shadow-2xl overflow-hidden">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-xl z-20" />
-              <div className="w-full h-full bg-[#e5ddd5] overflow-hidden flex flex-col">
-                <div className="bg-[#075e54] p-4 pt-12 text-white flex items-center gap-3 shadow-md z-10">
+            <div className="relative w-[280px] h-[560px] bg-card rounded-[3rem] border-8 border-card shadow-2xl overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
+              <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
+                <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                     <Stethoscope className="h-5 w-5 text-white" />
                   </div>
@@ -65,22 +65,22 @@ export function WhatsappSection() {
                       Hello Sarah, your appointment is confirmed for tomorrow at
                       10:00 AM.
                     </p>
-                    <div className="text-[10px] text-gray-400 text-right mt-1">
+                    <div className="text-[10px] text-muted-foreground text-right mt-1">
                       09:30 AM
                     </div>
                   </div>
-                  <div className="bg-[#dcf8c6] p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
+                  <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
                     <p>Thank you doctor! I&apos;ll be there.</p>
-                    <div className="text-[10px] text-gray-500 text-right mt-1">
+                    <div className="text-[10px] text-muted-foreground text-right mt-1">
                       09:32 AM
                     </div>
                   </div>
                   <div className="bg-white p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
-                    <div className="flex items-center gap-3 bg-gray-100 p-2 rounded mb-2">
-                      <FileText className="h-8 w-8 text-red-500" />
+                    <div className="flex items-center gap-3 bg-muted p-2 rounded mb-2">
+                      <FileText className="h-8 w-8 text-destructive" />
                       <div>
                         <div className="font-medium">Prescription.pdf</div>
-                        <div className="text-[10px] text-gray-500">
+                        <div className="text-[10px] text-muted-foreground">
                           1 page • 120 KB
                         </div>
                       </div>
@@ -88,7 +88,7 @@ export function WhatsappSection() {
                     <p>
                       Here is your digital prescription from today&apos;s visit.
                     </p>
-                    <div className="text-[10px] text-gray-400 text-right mt-1">
+                    <div className="text-[10px] text-muted-foreground text-right mt-1">
                       10:45 AM
                     </div>
                   </div>

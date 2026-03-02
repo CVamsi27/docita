@@ -16,9 +16,9 @@ describe("Medical Coding Rules", () => {
     });
 
     it("should reject invalid ICD-10 codes", () => {
-      expect(isValidICD10Code("123")).toBe(false); // No letter start
-      expect(isValidICD10Code("A1")).toBe(false); // Too short
-      expect(isValidICD10Code("A00.")).toBe(false); // Trailing dot
+      expect(isValidICD10Code("123")).toBe(false); 
+      expect(isValidICD10Code("A1")).toBe(false); 
+      expect(isValidICD10Code("A00.")).toBe(false); 
     });
   });
 
@@ -29,8 +29,8 @@ describe("Medical Coding Rules", () => {
     });
 
     it("should reject invalid CPT codes", () => {
-      expect(isValidCPTCode("9921")).toBe(false); // Too short
-      expect(isValidCPTCode("ABCDE")).toBe(false); // Not digits
+      expect(isValidCPTCode("9921")).toBe(false); 
+      expect(isValidCPTCode("ABCDE")).toBe(false); 
     });
   });
 
@@ -70,7 +70,7 @@ describe("Medical Coding Rules", () => {
     });
 
     it("should return false for specific codes", () => {
-      expect(requiresMoreSpecificity("M54.10")).toBe(false); // 2 chars after dot
+      expect(requiresMoreSpecificity("M54.10")).toBe(false); 
       expect(requiresMoreSpecificity("M54.100")).toBe(false);
     });
   });

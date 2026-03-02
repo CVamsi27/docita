@@ -1,91 +1,32 @@
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import type {
+  CreateMedicineReminderRequest,
+  CreateWhatsAppBroadcastRequest,
+  StaffNotificationEntry,
+  UpdateWhatsAppSettingsRequest,
+  WhatsAppLogListResponse,
+  WhatsAppSettingsResponse,
+  WhatsAppStatsDetailedResponse,
+  WhatsAppUnreadCountResponse,
+} from "@workspace/types";
 
-export interface WhatsappLogEntry {
-  id: string;
-  clinicId: string;
-  patientId?: string | null;
-  paymentSessionId?: string | null;
-  invoiceId?: string | null;
-  prescriptionId?: string | null;
-  type: string;
-  provider?: string;
-  phoneNumber: string;
-  message: string;
-  status: string;
-  errorMessage?: string | null;
-  createdAt: string;
-  patient?: {
-    firstName?: string;
-    lastName?: string;
-  } | null;
-}
-
-export interface NotificationUnreadCountResponse {
-  count: number;
-}
-
-export interface StaffNotificationEntry {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  data?: unknown;
-  priority: string;
-  createdAt: string;
-}
+export type WhatsappLogEntry = WhatsAppLogListResponse[number];
+export type NotificationUnreadCountResponse = WhatsAppUnreadCountResponse;
 
 export const useWhatsappStats = () =>
-  useAPIQuery<{
-    totalPatients: number;
-    subscribers: number;
-  }>(["whatsapp", "stats"], "/whatsapp/stats");
+  useAPIQuery<WhatsAppStatsDetailedResponse>(["whatsapp", "stats"], "/whatsapp/stats");
 
 export const useWhatsAppSettings = () =>
-  useAPIQuery<{
-    appointmentReminders: boolean;
-    followUpMessages: boolean;
-    birthdayWishes: boolean;
-    medicineReminders: boolean;
-    labReportNotifications: boolean;
-    emergencyAlerts: boolean;
-  }>(["whatsapp", "settings"], "/whatsapp/settings");
+  useAPIQuery<WhatsAppSettingsResponse>(["whatsapp", "settings"], "/whatsapp/settings");
 
 export const useUpdateWhatsAppSettings = () =>
-  useAPIMutation<
-    void,
-    {
-      appointmentReminders?: boolean;
-      followUpMessages?: boolean;
-      birthdayWishes?: boolean;
-      medicineReminders?: boolean;
-      labReportNotifications?: boolean;
-      emergencyAlerts?: boolean;
-    }
-  >("/whatsapp/settings", "PUT");
+  useAPIMutation<void, UpdateWhatsAppSettingsRequest>("/whatsapp/settings", "PUT");
 
 export const useCreateMedicineReminder = () =>
-  useAPIMutation<
-    void,
-    {
-      medicineName: string;
-      dosage: string;
-      frequency: string;
-      reminderTime: string;
-      patientPhone: string;
-    }
-  >("/whatsapp/medicine-reminder", "POST");
+  useAPIMutation<void, CreateMedicineReminderRequest>("/whatsapp/medicine-reminder", "POST");
 
 export const useCreateWhatsAppBroadcast = () =>
-  useAPIMutation<
-    void,
-    {
-      campaignName: string;
-      message: string;
-      sendToAllPatients: boolean;
-      sendToSpecificPatients: boolean;
-      scheduleTime?: string;
-    }
-  >("/whatsapp/broadcast", "POST");
+  useAPIMutation<void, CreateWhatsAppBroadcastRequest>("/whatsapp/broadcast", "POST");
 
 export const useSendPrescriptionWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
@@ -120,10 +61,10 @@ export const useUnreadNotifications = (limit: number = 50) =>
     `/whatsapp/notifications/unread?limit=${limit}`,
   );
 
-export const useMarkNotificationsRead = () =>
-  useAPIMutation<void, { notificationIds: string[] }>(
-    "/whatsapp/notifications/mark-read",
-    "POST",
+export const useDeleteNotification = () =>
+  useAPIMutation<void, { notificationId: string }>(
+    ({ notificationId }) => `/whatsapp/notifications/${notificationId}`,
+    "DELETE",
     {
       invalidateKeys: [
         ["whatsapp", "notifications", "unread-count"],
@@ -132,8 +73,8 @@ export const useMarkNotificationsRead = () =>
     },
   );
 
-export const useMarkAllNotificationsRead = () =>
-  useAPIMutation<void, void>("/whatsapp/notifications/mark-all-read", "POST", {
+export const useDeleteAllNotifications = () =>
+  useAPIMutation<void, void>("/whatsapp/notifications", "DELETE", {
     invalidateKeys: [
       ["whatsapp", "notifications", "unread-count"],
       ["whatsapp", "notifications", "unread"],

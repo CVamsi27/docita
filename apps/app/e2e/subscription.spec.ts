@@ -2,6 +2,19 @@ import { expect, Page, test } from "@playwright/test";
 
 const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+function readString(source: Record<string, unknown>, key: string): string | undefined {
+  const value = source[key];
+  return typeof value === "string" ? value : undefined;
+}
+
 let authToken: string;
 let clinicId: string;
 
@@ -10,7 +23,6 @@ test.describe("Subscription & Billing", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    // Setup: Create admin user with clinic
     const userEmail = `admin${Date.now()}@test.com`;
     const userPassword = "Test@123456";
 
@@ -26,12 +38,13 @@ test.describe("Subscription & Billing", () => {
     });
 
     if (registerRes.ok()) {
-      const userData = (await registerRes.json()) as Record<string, unknown>;
+      const userData = toRecord(await registerRes.json());
       authToken =
-        (userData?.access_token as string) || (userData?.accessToken as string);
+        readString(userData, "access_token") || readString(userData, "accessToken") || "";
 
-      const user = (userData?.user as Record<string, unknown>) || userData;
-      clinicId = (user?.clinicId as string) || "";
+      const nestedUser = toRecord(userData?.user);
+      const user = Object.keys(nestedUser).length > 0 ? nestedUser : userData;
+      clinicId = readString(user, "clinicId") || "";
     }
 
     await context.close();
@@ -43,10 +56,8 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Verify page loads
     await expect(page.locator("h1")).toContainText(/Upgrade|Plan/i);
 
-    // Should show current plan
     await expect(page.getByText(/Current Plan|Plan/i).first()).toBeVisible();
   });
 
@@ -55,7 +66,6 @@ test.describe("Subscription & Billing", () => {
     await page.goto("/upgrade", { waitUntil: "networkidle" });
     await page.waitForTimeout(2000);
 
-    // Verify page loaded
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 
@@ -63,7 +73,6 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Check for add-on section
     await expect(
       page.getByText(/Add-ons|Intelligence|WhatsApp/i).first(),
     ).toBeVisible();
@@ -73,12 +82,10 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Click billing history button
     const billingBtn = page.getByRole("button", { name: /Billing History/i });
     if (await billingBtn.isVisible()) {
       await billingBtn.click();
 
-      // Should show dialog or section
       await page.waitForTimeout(500);
       const dialogVisible = await page.locator('[role="dialog"]').isVisible();
       expect(dialogVisible).toBeTruthy();
@@ -89,14 +96,12 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Click change plan button
     const changePlanBtn = page
       .getByRole("button", { name: /Change Plan|View All Plans/i })
       .first();
     if (await changePlanBtn.isVisible()) {
       await changePlanBtn.click();
 
-      // Pricing dialog should appear
       await page.waitForTimeout(500);
       const dialogVisible = await page.locator('[role="dialog"]').isVisible();
       expect(dialogVisible).toBeTruthy();
@@ -107,7 +112,6 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Scroll to FAQ section
     const faqSection = page.getByText(/FAQ|Frequently Asked/i);
     if (await faqSection.isVisible()) {
       await expect(faqSection).toBeVisible();
@@ -118,7 +122,6 @@ test.describe("Subscription & Billing", () => {
     await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    // Look for contact sales
     const contactBtn = page.getByRole("button", { name: /Contact Sales/i });
     await expect(contactBtn).toBeVisible();
   });
@@ -138,7 +141,7 @@ async function loginAsAdmin(page: Page) {
             }),
           );
         } catch {
-          // Ignore localStorage errors
+
         }
       },
       { t: authToken, cid: clinicId },

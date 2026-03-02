@@ -19,8 +19,9 @@ import {
 } from "@workspace/ui/components/dropdown-menu";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
-import { useInvoiceDetailsLogic } from "../../hooks/use-invoice-details-logic";
+import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
@@ -31,6 +32,9 @@ interface InvoiceDetailsUIProps {
 }
 
 export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
+  const searchParams = useSearchParams();
+  const shouldAutoPrint = searchParams.get("print") === "true";
+
   const {
     invoice,
     isLoading,
@@ -45,7 +49,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     numberToWords,
     router,
     clinic,
-  } = useInvoiceDetailsLogic(invoiceId);
+  } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
 
   if (isLoading) {
     return <LoadingState message="Loading invoice details..." />;
@@ -114,7 +118,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
         </div>
       </div>
 
-      <div ref={printRef} className="print:p-0">
+      <div ref={printRef} className="invoice-print-root print:p-0">
         <Card className="border-none shadow-sm print:shadow-none print:border">
           <InvoiceHeader
             invoice={invoice}
@@ -146,6 +150,27 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           </CardFooter>
         </Card>
       </div>
+
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .invoice-print-root,
+          .invoice-print-root * {
+            visibility: visible;
+          }
+          .invoice-print-root {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

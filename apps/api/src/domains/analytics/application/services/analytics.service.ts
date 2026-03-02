@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { FinancialAnalyticsFactory } from '../../factories/financial-analytics.factory';
-import { ClinicalAnalyticsFactory } from '../../factories/clinical-analytics.factory';
-import { OperationalAnalyticsFactory } from '../../factories/operational-analytics.factory';
+import { FinancialAnalyticsFactory } from '@/domains/analytics/factories/financial-analytics.factory';
+import { ClinicalAnalyticsFactory } from '@/domains/analytics/factories/clinical-analytics.factory';
+import { OperationalAnalyticsFactory } from '@/domains/analytics/factories/operational-analytics.factory';
 import {
   SnapshotAnalyticsFactory,
   SnapshotRecord,
-} from '../../factories/snapshot-analytics.factory';
+} from '@/domains/analytics/factories/snapshot-analytics.factory';
 import { DEFAULT_TIMEZONE } from '@workspace/utils';
 
 @Injectable()

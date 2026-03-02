@@ -1,8 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { invoicesApi } from "../api/invoices.api";
+import { invoicesApi } from "@/features/invoices/api/invoices.api";
 import { toast } from "sonner";
+import type { ListInvoicesContractQuery } from "@workspace/types";
 
-export function useInvoices(params?: { patientId?: string; status?: string }) {
+export function useInvoices(
+  params?: Pick<ListInvoicesContractQuery, "patientId" | "status">,
+) {
   return useQuery({
     queryKey: ["invoices", params],
     queryFn: () => invoicesApi.getAll(params),

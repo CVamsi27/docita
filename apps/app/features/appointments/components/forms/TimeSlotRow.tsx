@@ -64,7 +64,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     onStartConsultation,
     onCancelClick,
     onNoShowClick,
-    // userRole is now handled internally via usePermissions
+
     userRole: _userRole,
   }) => {
     const slotAppointments = useMemo(
@@ -113,11 +113,11 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                     key={apt.id}
                     className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:shadow-md ${
                       apt.status === "checked-in"
-                        ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 shadow-sm"
+                        ? "surface-success shadow-sm"
                         : apt.status === "confirmed"
-                          ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 shadow-sm"
+                          ? "surface-info shadow-sm"
                           : apt.status === "completed"
-                            ? "bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-700"
+                            ? "bg-muted/30 border-border"
                             : "bg-card border-border shadow-sm"
                     }`}
                   >
@@ -167,7 +167,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                       {apt.status === "checked-in" && (
                         <Badge
                           variant="secondary"
-                          className="gap-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-xs"
+                          className="gap-1 badge-success text-xs"
                         >
                           <Check className="h-3 w-3" />
                           In Queue

@@ -3,8 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import "react-phone-number-input/style.css";
-import { ConsentNoticeModal } from "../../../legal/components/ConsentNoticeModal";
-import { useClinicRegistrationFlow } from "../../hooks/use-clinic-registration-flow";
+import { ConsentNoticeModal } from "@/features/legal/components/ConsentNoticeModal";
+import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import {
   AdminAccountStep,
   ClinicDetailsStep,
@@ -12,7 +12,7 @@ import {
   PaymentStep,
   PlanSelectionStep,
   TeamInviteStep,
-} from "../steps";
+} from "@/features/onboarding/components/steps";
 import {
   type AdminAccount,
   adminAccountSchema,
@@ -22,7 +22,7 @@ import {
   type ComplianceSettings,
   defaultComplianceValues,
   type PlanSelection,
-} from "../types";
+} from "@/features/onboarding/components/types";
 
 export function ClinicRegistrationForm({
   onSuccess,
@@ -44,7 +44,6 @@ export function ClinicRegistrationForm({
     submitRegistration,
   } = useClinicRegistrationFlow();
 
-  // Step 1 Form
   const clinicForm = useForm<ClinicDetails>({
     resolver: zodResolver(clinicDetailsSchema),
     mode: "onSubmit",
@@ -54,7 +53,6 @@ export function ClinicRegistrationForm({
     defaultValues: formData.clinicDetails as ClinicDetails,
   });
 
-  // Step 2 Form
   const adminForm = useForm<AdminAccount>({
     resolver: zodResolver(adminAccountSchema),
     mode: "onSubmit",
@@ -64,7 +62,6 @@ export function ClinicRegistrationForm({
     defaultValues: formData.adminAccount as AdminAccount,
   });
 
-  // Step 6 Form (Compliance)
   const complianceForm = useForm<ComplianceSettings>({
     resolver: zodResolver(complianceSchema),
     mode: "onSubmit",
@@ -79,7 +76,7 @@ export function ClinicRegistrationForm({
 
   return (
     <div className="space-y-6">
-      {/* Step Indicator can be added here */}
+      {}
 
       {step === 1 && (
         <ClinicDetailsStep
@@ -140,13 +137,13 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {/* DPDP Consent Modal */}
+      {}
       <ConsentNoticeModal
         open={showConsentModal}
         onOpenChange={(open) => {
           setShowConsentModal(open);
           if (!open && !complianceForm.getValues("acceptedPrivacyPolicy")) {
-            // If closed without acceptance
+
           }
         }}
         userType="clinic"

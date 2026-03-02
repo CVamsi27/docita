@@ -52,7 +52,6 @@ export const useLabTestsLogic = () => {
 
   const { data: stats, refetch: refetchStats } = useLabTestStats();
 
-  // Search logic for patients for sorting/dropdown
   const { data: patientsResponse, isLoading: patientsLoading } = usePatients({
     ...(patientSearch && { search: patientSearch }),
     limit: patientSearch ? 20 : 5,
@@ -79,7 +78,6 @@ export const useLabTestsLogic = () => {
     },
   });
 
-  // Get selected patient and test for display
   const selectedPatient = patients.find(
     (p) => p.id === form.watch("patientId"),
   );
@@ -87,7 +85,6 @@ export const useLabTestsLogic = () => {
     (t: { id: string }) => t.id === form.watch("labTestId"),
   );
 
-  // Backend-driven filtering
   const filteredTests = labTests;
 
   const onSubmitOrder = useCallback(
@@ -99,7 +96,7 @@ export const useLabTestsLogic = () => {
         refetch();
         toast.success("Lab test order created successfully");
       } catch (error) {
-        console.error("Failed to create lab test order:", error);
+
         const errorMessage =
           error instanceof Error
             ? error.message

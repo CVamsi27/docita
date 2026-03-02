@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SearchService } from './search.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { RedisCachingService } from '../services/redis-caching.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
 
 describe.skip('SearchService', () => {
   let service: SearchService;
@@ -92,9 +92,7 @@ describe.skip('SearchService', () => {
 
     it('should search across all entity types when type is "all"', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockPrismaQueryRaw
-        .mockResolvedValueOnce([]) // patient search
-        .mockResolvedValueOnce([]); // appointment search
+      mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       await service.search({
@@ -104,7 +102,7 @@ describe.skip('SearchService', () => {
         limit: 20,
       });
 
-      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(2); // patients + appointments (full-text)
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(2);
       expect(prisma.prescription.findMany).toHaveBeenCalledTimes(1);
     });
 
@@ -119,7 +117,7 @@ describe.skip('SearchService', () => {
         limit: 20,
       });
 
-      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(1); // only patients
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(1);
       expect(prisma.prescription.findMany).not.toHaveBeenCalled();
     });
 
@@ -144,7 +142,7 @@ describe.skip('SearchService', () => {
             rank: 0.9,
           },
         ])
-        .mockResolvedValueOnce([]); // appointments
+        .mockResolvedValueOnce([]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({
@@ -154,7 +152,6 @@ describe.skip('SearchService', () => {
         limit: 20,
       });
 
-      // Higher rank should come first
       expect(result[0].id).toBe('patient-2');
       expect(result[0].relevanceScore).toBe(0.9);
       expect(result[1].id).toBe('patient-1');
@@ -173,7 +170,7 @@ describe.skip('SearchService', () => {
       }));
       mockPrismaQueryRaw
         .mockResolvedValueOnce(mockPatients)
-        .mockResolvedValueOnce([]); // appointments
+        .mockResolvedValueOnce([]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({
@@ -208,8 +205,8 @@ describe.skip('SearchService', () => {
     it('should fallback to ILIKE search when full-text search fails', async () => {
       cacheService.get.mockResolvedValue(null);
       mockPrismaQueryRaw
-        .mockRejectedValueOnce(new Error('tsvector column not found')) // patient full-text fails
-        .mockRejectedValueOnce(new Error('tsvector column not found')); // appointment full-text fails
+        .mockRejectedValueOnce(new Error('tsvector column not found'))
+        .mockRejectedValueOnce(new Error('tsvector column not found'));
       prisma.patient.findMany.mockResolvedValue([
         {
           id: 'patient-1',
@@ -272,7 +269,7 @@ describe.skip('SearchService', () => {
             lastName: 'Doe',
             phoneNumber: '2222222222',
             mrn: 'MRN002',
-            rank: 0.7, // Same rank score
+            rank: 0.7,
           },
         ])
         .mockResolvedValueOnce([]);
@@ -285,7 +282,6 @@ describe.skip('SearchService', () => {
         limit: 20,
       });
 
-      // With same relevance score, exact match on title should come first
       const exactMatchIndex = result.findIndex((r) =>
         r.title.toLowerCase().includes(query),
       );
@@ -295,7 +291,6 @@ describe.skip('SearchService', () => {
           r.title.toLowerCase() !== 'john doe',
       );
 
-      // At least one result should match
       expect(result.length).toBeGreaterThan(0);
     });
   });
@@ -336,7 +331,7 @@ describe.skip('SearchService', () => {
 
     it('should handle patients without phone numbers', async () => {
       cacheService.get.mockResolvedValue(null);
-      // Only mock patient search since types=['patient']
+
       mockPrismaQueryRaw.mockResolvedValueOnce([
         {
           id: 'patient-1',
@@ -362,25 +357,22 @@ describe.skip('SearchService', () => {
 
   describe('searchAppointments', () => {
     beforeEach(() => {
-      // Reset mocks before each appointment test
       jest.resetAllMocks();
     });
 
     it('should format appointment results with patient name and chief complaint', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockPrismaQueryRaw
-        .mockResolvedValueOnce([]) // patients
-        .mockResolvedValueOnce([
-          {
-            id: 'appt-1',
-            notes: 'Follow-up visit',
-            chiefComplaint: 'Headache',
-            startTime: new Date('2026-02-15T10:00:00Z'),
-            patientFirstName: 'Jane',
-            patientLastName: 'Smith',
-            rank: 0.6,
-          },
-        ]);
+      mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+        {
+          id: 'appt-1',
+          notes: 'Follow-up visit',
+          chiefComplaint: 'Headache',
+          startTime: new Date('2026-02-15T10:00:00Z'),
+          patientFirstName: 'Jane',
+          patientLastName: 'Smith',
+          rank: 0.6,
+        },
+      ]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({
@@ -404,19 +396,17 @@ describe.skip('SearchService', () => {
 
     it('should fallback to notes if chief complaint is missing', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockPrismaQueryRaw
-        .mockResolvedValueOnce([]) // patients
-        .mockResolvedValueOnce([
-          {
-            id: 'appt-2',
-            notes: 'Annual checkup',
-            chiefComplaint: null,
-            startTime: new Date('2026-02-15T10:00:00Z'),
-            patientFirstName: 'Jane',
-            patientLastName: 'Smith',
-            rank: 0.6,
-          },
-        ]);
+      mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+        {
+          id: 'appt-2',
+          notes: 'Annual checkup',
+          chiefComplaint: null,
+          startTime: new Date('2026-02-15T10:00:00Z'),
+          patientFirstName: 'Jane',
+          patientLastName: 'Smith',
+          rank: 0.6,
+        },
+      ]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({
@@ -433,19 +423,17 @@ describe.skip('SearchService', () => {
 
     it('should use fallback text when both chief complaint and notes are missing', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockPrismaQueryRaw
-        .mockResolvedValueOnce([]) // patients
-        .mockResolvedValueOnce([
-          {
-            id: 'appt-3',
-            notes: null,
-            chiefComplaint: null,
-            startTime: new Date('2026-02-15T10:00:00Z'),
-            patientFirstName: 'Jane',
-            patientLastName: 'Smith',
-            rank: 0.6,
-          },
-        ]);
+      mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+        {
+          id: 'appt-3',
+          notes: null,
+          chiefComplaint: null,
+          startTime: new Date('2026-02-15T10:00:00Z'),
+          patientFirstName: 'Jane',
+          patientLastName: 'Smith',
+          rank: 0.6,
+        },
+      ]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
       const result = await service.search({

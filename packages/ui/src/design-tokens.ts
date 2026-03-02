@@ -1,11 +1,7 @@
-/**
- * Design Tokens
- * Centralized design system values for consistent styling across the application
- * Used by: Tailwind CSS, Component styling, Dark mode implementation
- */
+
 
 export const designTokens = {
-  // Color Palette
+
   colors: {
     primary: {
       50: "#f0f9ff",
@@ -65,7 +61,6 @@ export const designTokens = {
     },
   },
 
-  // Typography
   typography: {
     fontFamily: {
       sans: [
@@ -111,7 +106,6 @@ export const designTokens = {
     },
   },
 
-  // Spacing Scale
   spacing: {
     0: "0px",
     1: "4px",
@@ -128,7 +122,6 @@ export const designTokens = {
     24: "96px",
   },
 
-  // Border Radius
   borderRadius: {
     none: "0px",
     sm: "2px",
@@ -141,7 +134,6 @@ export const designTokens = {
     full: "9999px",
   },
 
-  // Shadows
   shadows: {
     none: "none",
     xs: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
@@ -153,7 +145,6 @@ export const designTokens = {
     "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
   },
 
-  // Z-Index Scale
   zIndex: {
     hide: -1,
     auto: "auto",
@@ -172,7 +163,6 @@ export const designTokens = {
     tooltip: 1600,
   },
 
-  // Transitions
   transitions: {
     duration: {
       fast: "150ms",
@@ -188,7 +178,6 @@ export const designTokens = {
     },
   },
 
-  // Breakpoints
   breakpoints: {
     xs: "320px",
     sm: "640px",
@@ -198,7 +187,6 @@ export const designTokens = {
     "2xl": "1536px",
   },
 
-  // Component-specific tokens
   components: {
     button: {
       height: {
@@ -228,7 +216,6 @@ export const designTokens = {
   },
 };
 
-// Dark mode color overrides
 export const darkModeTokens = {
   colors: {
     gray: {

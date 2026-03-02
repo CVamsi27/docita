@@ -45,7 +45,7 @@ export default function ClinicDashboard() {
 
         if (res.ok) {
           const data = await res.json();
-          // Count team members
+
           const doctorsRes = await fetch(
             `${API_URL}/clinics/${user.clinicId}/doctors`,
             {
@@ -70,7 +70,7 @@ export default function ClinicDashboard() {
           });
         }
       } catch (error) {
-        console.error("Error loading clinic:", error);
+
         toast.error("Failed to load clinic details");
       } finally {
         setLoading(false);
@@ -99,7 +99,7 @@ export default function ClinicDashboard() {
 
       {clinic ? (
         <>
-          {/* Clinic Info Card */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function ClinicDashboard() {
             </CardContent>
           </Card>
 
-          {/* Stats Cards */}
+          {}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

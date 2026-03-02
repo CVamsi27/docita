@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import type { AuthenticatedRequest } from '@workspace/types';
-import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import {
   BulkImportRequestSchema,
   BulkImportRequestDto,
-} from '../../../common/dto/common.dto';
+} from '@/common/dto/common.dto';
 
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
@@ -46,7 +46,6 @@ export class BulkImportController {
     }
     const userId = req.user.userId;
 
-    // Validate entityType
     const validEntityTypes: BulkImportEntityType[] = [
       'PATIENT',
       'PRESCRIPTION',

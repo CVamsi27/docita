@@ -1,10 +1,5 @@
 import type { Appointment } from "@workspace/types";
 
-/**
- * Vitals Business Rules
- * Business logic for processing and calculating patient vitals
- */
-
 export interface VitalsData {
   bloodPressure?: string;
   pulse?: number;
@@ -20,9 +15,6 @@ export interface VitalsWithDate {
   date: string;
 }
 
-/**
- * Find the most recent appointment with vitals
- */
 export const getLatestVitals = (
   appointments: Appointment[],
 ): VitalsWithDate | null => {
@@ -43,9 +35,6 @@ export const getLatestVitals = (
   };
 };
 
-/**
- * Calculate BMI from weight and height
- */
 export const calculateBMI = (weight: number, height: number): number | null => {
   if (!weight || !height || height === 0) return null;
 
@@ -55,23 +44,17 @@ export const calculateBMI = (weight: number, height: number): number | null => {
   return parseFloat(bmi.toFixed(1));
 };
 
-/**
- * Get BMI status classification
- */
 export const getBMIStatus = (
   bmi: number | null,
 ): { label: string; color: string } | null => {
   if (bmi === null) return null;
 
-  if (bmi < 18.5) return { label: "Underweight", color: "text-blue-500" };
-  if (bmi < 25) return { label: "Normal", color: "text-green-500" };
-  if (bmi < 30) return { label: "Overweight", color: "text-orange-500" };
-  return { label: "Obese", color: "text-red-500" };
+  if (bmi < 18.5) return { label: "Underweight", color: "text-info" };
+  if (bmi < 25) return { label: "Normal", color: "text-success" };
+  if (bmi < 30) return { label: "Overweight", color: "text-warning" };
+  return { label: "Obese", color: "text-destructive" };
 };
 
-/**
- * Check if blood pressure is in normal range
- */
 export const isBloodPressureNormal = (bp: string): boolean => {
   const match = bp.match(/(\d+)\/(\d+)/);
   if (!match) return false;
@@ -84,16 +67,10 @@ export const isBloodPressureNormal = (bp: string): boolean => {
   );
 };
 
-/**
- * Check if heart rate is in normal range
- */
 export const isPulseNormal = (pulse: number): boolean => {
   return pulse >= 60 && pulse <= 100;
 };
 
-/**
- * Check if temperature is in normal range (Fahrenheit)
- */
 export const isTemperatureNormal = (tempF: number): boolean => {
   return tempF >= 97.8 && tempF <= 99.1;
 };

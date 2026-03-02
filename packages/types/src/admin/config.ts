@@ -20,7 +20,7 @@ export const formOptionsSchema = z.object({
 });
 
 export const appConstantsSchema = z.object({
-  // Define global constants schema here, e.g.
+
   CURRENCY: z.string(),
   TIMEZONE: z.string(),
   SUPPORT_EMAIL: z.string(),
@@ -40,5 +40,5 @@ export const appConfigSchema = z.object({
   formOptions: formOptionsSchema,
   constants: appConstantsSchema,
   importFields: patientImportFieldsSchema,
-  clinicConfig: z.record(z.unknown()).optional(), // Clinic specific overrides
+  clinicConfig: z.record(z.unknown()).optional(), 
 });

@@ -1,25 +1,3 @@
-/**
- * Reusable Prisma select fragments for optimizing API responses
- *
- * Purpose: Eliminate data bloat by defining minimal field selections for different use cases
- *
- * Patterns:
- * - LIST: Minimal fields for table/list views (~500 bytes per record)
- * - DETAIL: Full object for edit/view pages (~2-5KB per record)
- * - CARD: Medium fields for dashboard cards (~1KB per record)
- * - EXPORT: All fields for CSV/PDF exports
- */
-
-// ============================================================================
-// PATIENT SELECT FRAGMENTS
-// ============================================================================
-
-/**
- * Patient list view - minimal fields for tables
- * @fields 7
- * @size ~500 bytes per record
- * @usage Patient lists, search results, quick lookups
- */
 export const PATIENT_LIST_SELECT = {
   id: true,
   mrn: true,
@@ -31,12 +9,6 @@ export const PATIENT_LIST_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Patient card view - for dashboard cards and summaries
- * @fields 11
- * @size ~1KB per record
- * @usage Dashboard recent patients, appointment patient preview
- */
 export const PATIENT_CARD_SELECT = {
   id: true,
   mrn: true,
@@ -51,12 +23,6 @@ export const PATIENT_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Patient detail view - full object for edit/view pages
- * @fields 20+ (includes nested relations)
- * @size ~5-10KB per record
- * @usage Patient profile page, edit forms, medical history view
- */
 export const PATIENT_DETAIL_SELECT = {
   id: true,
   mrn: true,
@@ -149,16 +115,6 @@ export const PATIENT_DETAIL_SELECT = {
   },
 } as const;
 
-// ============================================================================
-// APPOINTMENT SELECT FRAGMENTS
-// ============================================================================
-
-/**
- * Appointment list view - minimal fields for tables
- * @fields 8
- * @size ~700 bytes per record
- * @usage Appointment lists, calendar views, schedules
- */
 export const APPOINTMENT_LIST_SELECT = {
   id: true,
   startTime: true,
@@ -169,12 +125,6 @@ export const APPOINTMENT_LIST_SELECT = {
   updatedAt: true,
 } as const;
 
-/**
- * Appointment card view - for dashboard and queue
- * @fields 12+ (includes minimal patient/doctor info)
- * @size ~1.5KB per record
- * @usage Dashboard appointments, queue management, today's schedule
- */
 export const APPOINTMENT_CARD_SELECT = {
   id: true,
   startTime: true,
@@ -202,12 +152,6 @@ export const APPOINTMENT_CARD_SELECT = {
   },
 } as const;
 
-/**
- * Appointment detail view - full object for consultation page
- * @fields 25+ (includes full patient, doctor, vitals, prescription, diagnoses)
- * @size ~8-15KB per record
- * @usage Appointment detail page, consultation workflow
- */
 export const APPOINTMENT_DETAIL_SELECT = {
   id: true,
   startTime: true,
@@ -316,16 +260,6 @@ export const APPOINTMENT_DETAIL_SELECT = {
   },
 } as const;
 
-// ============================================================================
-// DOCTOR SELECT FRAGMENTS
-// ============================================================================
-
-/**
- * Doctor list view - minimal fields for tables
- * @fields 8
- * @size ~600 bytes per record
- * @usage Doctor lists, staff directory, quick lookups
- */
 export const DOCTOR_LIST_SELECT = {
   id: true,
   role: true,
@@ -338,12 +272,6 @@ export const DOCTOR_LIST_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Doctor card view - for appointment selection and dashboard
- * @fields 12
- * @size ~1KB per record
- * @usage Appointment creation, doctor selection dropdowns
- */
 export const DOCTOR_CARD_SELECT = {
   id: true,
   role: true,
@@ -353,6 +281,10 @@ export const DOCTOR_CARD_SELECT = {
   hospitalRole: true,
   qualification: true,
   registrationNumber: true,
+  verificationStatus: true,
+  verificationReason: true,
+  verificationCheckedAt: true,
+  signatureUrl: true,
   phoneNumber: true,
   profilePhotoUrl: true,
   yearsOfExperience: true,
@@ -360,12 +292,6 @@ export const DOCTOR_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Doctor detail view - full profile
- * @fields 20+
- * @size ~3-5KB per record
- * @usage Doctor profile page, edit forms, detailed views
- */
 export const DOCTOR_DETAIL_SELECT = {
   id: true,
   name: true,
@@ -387,16 +313,6 @@ export const DOCTOR_DETAIL_SELECT = {
   updatedAt: true,
 } as const;
 
-// ============================================================================
-// INVOICE SELECT FRAGMENTS
-// ============================================================================
-
-/**
- * Invoice list view - minimal fields for tables
- * @fields 6
- * @size ~400 bytes per record
- * @usage Invoice lists, payment history
- */
 export const INVOICE_LIST_SELECT = {
   id: true,
   total: true,
@@ -406,12 +322,6 @@ export const INVOICE_LIST_SELECT = {
   updatedAt: true,
 } as const;
 
-/**
- * Invoice card view - for dashboard and summaries
- * @fields 10+ (includes minimal patient info)
- * @size ~1KB per record
- * @usage Dashboard recent invoices, payment summaries
- */
 export const INVOICE_CARD_SELECT = {
   id: true,
   total: true,
@@ -428,13 +338,6 @@ export const INVOICE_CARD_SELECT = {
   },
 } as const;
 
-/**
- * Invoice detail view - full invoice for printing/PDF
- * @fields 20+ (includes full patient, doctor, clinic info - NO binary data)
- * @size ~5KB per record
- * @usage Invoice detail page, print preview, PDF generation
- * @note Excludes clinic.logo and doctor.signatureUrl - fetch separately when needed
- */
 export const INVOICE_DETAIL_SELECT = {
   id: true,
   patientId: true,
@@ -463,7 +366,6 @@ export const INVOICE_DETAIL_SELECT = {
           address: true,
           phone: true,
           email: true,
-          // logo: excluded - fetch separately when needed for PDF
         },
       },
     },
@@ -479,23 +381,12 @@ export const INVOICE_DETAIL_SELECT = {
           email: true,
           qualification: true,
           registrationNumber: true,
-          // signatureUrl: excluded - fetch separately when needed for PDF
         },
       },
     },
   },
 } as const;
 
-// ============================================================================
-// CLINIC SELECT FRAGMENTS
-// ============================================================================
-
-/**
- * Clinic list view - minimal fields for super-admin
- * @fields 8
- * @size ~800 bytes per record
- * @usage Super-admin clinic list, management dashboard
- */
 export const CLINIC_LIST_SELECT = {
   id: true,
   name: true,
@@ -507,12 +398,6 @@ export const CLINIC_LIST_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Clinic card view - includes counts
- * @fields 12+ (includes _count)
- * @size ~1KB per record
- * @usage Super-admin dashboard with statistics
- */
 export const CLINIC_CARD_SELECT = {
   id: true,
   name: true,
@@ -532,12 +417,6 @@ export const CLINIC_CARD_SELECT = {
   },
 } as const;
 
-/**
- * Clinic detail view - full clinic info
- * @fields 15+
- * @size ~3KB per record
- * @usage Clinic settings page, profile
- */
 export const CLINIC_DETAIL_SELECT = {
   id: true,
   name: true,
@@ -555,37 +434,15 @@ export const CLINIC_DETAIL_SELECT = {
   updatedAt: true,
 } as const;
 
-// ============================================================================
-// ANALYTICS SELECT FRAGMENTS (Minimal for aggregations)
-// ============================================================================
-
-/**
- * Invoice analytics - only fields needed for calculations
- * @fields 2
- * @size ~50 bytes per record
- * @usage Revenue calculations, analytics aggregations
- */
 export const INVOICE_ANALYTICS_SELECT = {
   total: true,
   createdAt: true,
 } as const;
 
-/**
- * Patient analytics - only timestamp
- * @fields 1
- * @size ~20 bytes per record
- * @usage Growth calculations, patient count over time
- */
 export const PATIENT_ANALYTICS_SELECT = {
   createdAt: true,
 } as const;
 
-/**
- * Appointment analytics - minimal fields
- * @fields 3
- * @size ~80 bytes per record
- * @usage Appointment statistics, status distribution
- */
 export const APPOINTMENT_ANALYTICS_SELECT = {
   status: true,
   type: true,

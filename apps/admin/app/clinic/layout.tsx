@@ -30,7 +30,6 @@ export default function ClinicLayout({
   const router = useRouter();
   const { logout, user, isClinicAdmin } = useAuth();
 
-  // Redirect if not clinic admin
   if (!isClinicAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -47,8 +46,8 @@ export default function ClinicLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-muted/30">
+      {}
       <aside className="hidden w-64 flex-col border-r bg-background md:flex">
         <div className="flex h-14 items-center border-b px-6">
           <Link
@@ -105,7 +104,7 @@ export default function ClinicLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
           <span className="font-bold text-lg">Docita</span>

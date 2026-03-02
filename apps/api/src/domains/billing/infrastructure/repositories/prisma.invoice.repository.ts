@@ -1,17 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IInvoiceRepository,
   InvoiceDetail,
+  InvoiceListItem,
   InvoiceSearchParams,
   PaginatedResult,
-} from '../../core/repositories/invoice.repository';
-import { Invoice, Prisma, InvoiceStatus } from '@workspace/db';
-import { paginateWithCursor } from '../../../../common/pagination.helper';
+} from '@/domains/billing/core/repositories/invoice.repository';
+import { Prisma, InvoiceStatus } from '@workspace/db';
+import { paginateWithCursor } from '@/common/pagination.helper';
 import {
   INVOICE_CARD_SELECT,
   INVOICE_DETAIL_SELECT,
-} from '../../../../common/select-fragments';
+} from '@/common/select-fragments';
+
+type CursorModel<T> = {
+  findMany: (args?: Record<string, unknown>) => Promise<T[]>;
+  count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+};
 
 @Injectable()
 export class PrismaInvoiceRepository implements IInvoiceRepository {
@@ -19,7 +25,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
 
   async findAll(
     params: InvoiceSearchParams,
-  ): Promise<PaginatedResult<Invoice>> {
+  ): Promise<PaginatedResult<InvoiceListItem>> {
     const { clinicId, patientId, status, date, search, cursor, limit } = params;
 
     if (!clinicId) {
@@ -64,14 +70,24 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       };
     }
 
+    const model: CursorModel<InvoiceListItem> = {
+      findMany: (args?: Record<string, unknown>) =>
+        this.prisma.invoice.findMany({
+          ...(args as Prisma.InvoiceFindManyArgs),
+          select: INVOICE_CARD_SELECT,
+        }),
+      count: (args?: { where?: Record<string, unknown> }) =>
+        this.prisma.invoice.count(args as Prisma.InvoiceCountArgs),
+    };
+
     return paginateWithCursor({
-      model: this.prisma.invoice as any,
+      model,
       cursor,
       limit: limit || 20,
       where,
       orderBy: { createdAt: 'desc' },
-      select: INVOICE_CARD_SELECT,
-    }) as Promise<PaginatedResult<Invoice>>;
+      select: undefined,
+    });
   }
 
   async findById(id: string): Promise<InvoiceDetail | null> {
@@ -79,7 +95,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       where: { id },
       select: INVOICE_DETAIL_SELECT,
     });
-    return invoice as unknown as InvoiceDetail | null;
+    return invoice as InvoiceDetail | null;
   }
 
   async create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail> {
@@ -87,7 +103,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       data,
       select: INVOICE_DETAIL_SELECT,
     });
-    return invoice as unknown as InvoiceDetail;
+    return invoice as InvoiceDetail;
   }
 
   async update(
@@ -99,7 +115,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       data,
       select: INVOICE_DETAIL_SELECT,
     });
-    return invoice as unknown as InvoiceDetail;
+    return invoice as InvoiceDetail;
   }
 
   async delete(id: string): Promise<void> {

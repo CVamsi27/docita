@@ -49,7 +49,6 @@ export function VitalsModal({
     try {
       if (!appointmentId) return;
 
-      // Filter empty strings and convert to numbers
       const payload: Record<string, unknown> = { appointmentId };
       Object.entries(vitals).forEach(([key, value]) => {
         if (value.trim() !== "") {
@@ -79,7 +78,7 @@ export function VitalsModal({
       });
     } catch (err) {
       toast.error("Failed to record vitals");
-      console.error(err);
+
     }
   };
 
@@ -92,7 +91,7 @@ export function VitalsModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <HeartPulse className="h-5 w-5 text-red-500" />
+            <HeartPulse className="h-5 w-5 text-destructive" />
             Record Vitals for {patientName}
           </DialogTitle>
         </DialogHeader>

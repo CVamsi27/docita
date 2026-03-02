@@ -1,8 +1,4 @@
-/**
- * Access Control Service
- * Chain of Responsibility pattern for rule evaluation
- * Open/Closed Principle: Add new rules without modifying this class
- */
+
 
 import {
   Feature,
@@ -28,7 +24,7 @@ export class AccessControlService implements IAccessControlService {
 
   constructor(repository: ISubscriptionRepository, rules: IAccessRule[]) {
     this.repository = repository;
-    // Sort rules by priority (highest first)
+
     this.rules = [...rules].sort((a, b) => {
       const priorityA = a.getPriority?.() ?? 0;
       const priorityB = b.getPriority?.() ?? 0;
@@ -37,7 +33,7 @@ export class AccessControlService implements IAccessControlService {
   }
 
   async canAccess(context: IAccessContext): Promise<IAccessDecision> {
-    // Refresh subscription data from API
+
     const freshContext = await this.repository.getContext(
       context.userId,
       context.clinicId,
@@ -60,12 +56,9 @@ export class AccessControlService implements IAccessControlService {
     return decision.upgradeOptions || [];
   }
 
-  /**
-   * Evaluate rules using Chain of Responsibility pattern
-   * Rules are evaluated in priority order until one grants access
-   */
+  
   private evaluateRules(context: IAccessContext): IAccessDecision {
-    // Evaluate each rule in priority order
+
     for (const rule of this.rules) {
       if (rule.canAccess(context)) {
         return {
@@ -76,13 +69,10 @@ export class AccessControlService implements IAccessControlService {
       }
     }
 
-    // Access denied - determine reason and upgrade options
     return this.buildDenialDecision(context);
   }
 
-  /**
-   * Build a detailed denial decision with upgrade options
-   */
+  
   private buildDenialDecision(context: IAccessContext): IAccessDecision {
     const { reason, metadata } = this.getDenialReason(context);
     const upgradeOptions = this.calculateUpgradeOptions(context, metadata);
@@ -96,16 +86,13 @@ export class AccessControlService implements IAccessControlService {
     };
   }
 
-  /**
-   * Determine why access was denied
-   */
+  
   private getDenialReason(context: IAccessContext): {
     reason: string;
     metadata: IAccessDecision["metadata"];
   } {
     const feature = context.feature;
 
-    // Check subscription status first
     if (
       context.subscription.status !== "active" &&
       context.subscription.status !== "trialing"
@@ -116,7 +103,6 @@ export class AccessControlService implements IAccessControlService {
       };
     }
 
-    // Check if it's an add-on feature
     const featureStr = String(feature);
     if (featureStr in FEATURE_ADDON_MAP) {
       const requiredAddOn = FEATURE_ADDON_MAP[featureStr];
@@ -131,7 +117,6 @@ export class AccessControlService implements IAccessControlService {
       };
     }
 
-    // Check if it's a tier-based feature
     if (typeof feature !== "string" && feature in FEATURE_TIER_MAP) {
       const requiredTier = FEATURE_TIER_MAP[feature as Feature];
       const tierInfo = getTierInfo(requiredTier);
@@ -142,23 +127,19 @@ export class AccessControlService implements IAccessControlService {
       };
     }
 
-    // Unknown feature
     return {
       reason: "This feature is not available on your current plan",
       metadata: {},
     };
   }
 
-  /**
-   * Calculate upgrade options based on denial reason
-   */
+  
   private calculateUpgradeOptions(
     context: IAccessContext,
     metadata: IAccessDecision["metadata"],
   ): IUpgradeOption[] {
     const options: IUpgradeOption[] = [];
 
-    // Tier upgrade option
     if (metadata?.requiredTier !== undefined) {
       const currentTier = context.subscription.tier;
       const requiredTier = metadata.requiredTier;
@@ -186,7 +167,6 @@ export class AccessControlService implements IAccessControlService {
       }
     }
 
-    // Add-on purchase option
     if (metadata?.requiredAddOn) {
       const addOnType = metadata.requiredAddOn;
       const addOnName =
@@ -194,10 +174,8 @@ export class AccessControlService implements IAccessControlService {
           ? "WhatsApp Integration"
           : "Intelligence";
 
-      // Get base pricing for current tier
       const currentTier = context.subscription.tier;
 
-      // Simplified pricing - would come from ADDON_PRICING in production
       const addOnPrice =
         addOnType === AddOnType.WHATSAPP
           ? currentTier >= Tier.PRO
@@ -220,9 +198,7 @@ export class AccessControlService implements IAccessControlService {
     return options;
   }
 
-  /**
-   * Get user-friendly subscription status message
-   */
+  
   private getSubscriptionStatusMessage(
     status: "active" | "past_due" | "canceled" | "trialing",
   ): string {

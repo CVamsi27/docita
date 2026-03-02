@@ -30,11 +30,36 @@ import { toast } from "sonner";
 import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { fetchAPI } from "@/lib/api-core";
+import { ApiError } from "@/lib/errors";
 import {
   GrowthChartData,
   OphthalmologyExamData,
   Patient,
 } from "@workspace/types";
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+function getPrescriptionComplianceErrorMessage(error: unknown): string | null {
+  if (!(error instanceof ApiError)) {
+    return null;
+  }
+
+  if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
+    return "Doctor signature is required before creating a prescription.";
+  }
+
+  if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
+    return "Doctor government verification is required before creating a prescription.";
+  }
+
+  return null;
+}
 
 interface ClinicalDocumentationDynamicProps {
   appointmentId?: string;
@@ -164,7 +189,7 @@ export const ClinicalDocumentationDynamic: FC<
         const ensureString = (val: unknown): string => {
           if (typeof val === "string") return val;
           if (typeof val === "object" && val !== null) {
-            const obj = val as Record<string, unknown>;
+            const obj = toRecord(val);
             if ("notes" in obj && typeof obj.notes === "string")
               return obj.notes;
             return JSON.stringify(val);
@@ -188,7 +213,7 @@ export const ClinicalDocumentationDynamic: FC<
         }));
       }
 
-      const rawDiagnosis = (appointmentData as Record<string, unknown>).finalDiagnosis;
+      const rawDiagnosis = toRecord(appointmentData).finalDiagnosis;
       if (typeof rawDiagnosis === "string") {
         try {
           const parsed = JSON.parse(rawDiagnosis);
@@ -274,8 +299,9 @@ export const ClinicalDocumentationDynamic: FC<
 
       toast.success("Consultation saved successfully");
     } catch (error: unknown) {
-      console.error("Save error:", error);
-      toast.error("Failed to save consultation");
+
+      const complianceMessage = getPrescriptionComplianceErrorMessage(error);
+      toast.error(complianceMessage || "Failed to save consultation");
     } finally {
       setIsSaving(false);
     }

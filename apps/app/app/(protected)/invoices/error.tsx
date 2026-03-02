@@ -13,7 +13,7 @@ export default function InvoicesError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Invoices route error:", error);
+
   }, [error]);
 
   return (

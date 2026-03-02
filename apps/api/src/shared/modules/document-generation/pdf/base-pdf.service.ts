@@ -56,20 +56,17 @@ export class BasePdfService {
   ): number {
     let currentY = context.margin;
 
-    // Clinic Logo
     if (config.clinic.logo) {
       try {
         const logoWidth = 80;
         doc.image(config.clinic.logo, context.margin, currentY, {
           width: logoWidth,
         });
-        // Don't advance Y yet, let text flow next to it
       } catch (e) {
         this.logger.warn('Failed to load clinic logo', e);
       }
     }
 
-    // Clinic Details (Right Aligned or Centered if no logo)
     const textX = config.clinic.logo ? context.margin + 100 : context.margin;
     const textWidth = config.clinic.logo
       ? context.contentWidth - 100
@@ -101,7 +98,6 @@ export class BasePdfService {
       currentY += 15;
     });
 
-    // Move below logo if text was shorter
     if (currentY < context.margin + 80) {
       currentY = context.margin + 80;
     }
@@ -172,7 +168,6 @@ export class BasePdfService {
     doc.font('Helvetica');
     const startY = currentY;
 
-    // Left Column
     doc.text(`Name: ${patient.name}`, context.margin, currentY);
     currentY += 15;
     if (patient.age || patient.gender) {
@@ -190,7 +185,6 @@ export class BasePdfService {
       currentY += 15;
     }
 
-    // Right Column
     let rightY = startY;
     const rightX = context.margin + halfWidth;
 
@@ -267,7 +261,6 @@ export class BasePdfService {
         });
       }
 
-      // Page numbers
       doc.text(
         `Page ${i + 1} of ${range.count}`,
         context.margin,

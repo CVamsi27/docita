@@ -1,6 +1,4 @@
-/**
- * Form validation and error handling types
- */
+
 
 export interface FieldError {
   message: string;

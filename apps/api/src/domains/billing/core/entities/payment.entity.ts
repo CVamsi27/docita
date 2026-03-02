@@ -1,4 +1,4 @@
-import { Money } from '../value-objects/money.value-object';
+import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 
 export enum PaymentStatus {
   PENDING = 'PENDING',

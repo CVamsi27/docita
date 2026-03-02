@@ -22,17 +22,9 @@ export class ContactService {
       throw new BadRequestException('Invalid email format');
     }
 
-    // Log the inquiry (can be extended to send email or save to database)
     this.logger.log(
       `New contact inquiry from ${data.name} (${data.email}): ${data.message}`,
     );
-
-    // Optional: Integrate with email service
-    // await this.emailService.send({
-    //   to: 'sales@docita.work',
-    //   subject: `New Contact Inquiry from ${data.name}`,
-    //   text: `Email: ${data.email}\nClinic: ${data.clinic || 'N/A'}\n\nMessage:\n${data.message}`,
-    // });
 
     return {
       success: true,

@@ -9,12 +9,12 @@ import {
   Request,
   NotFoundException,
 } from '@nestjs/common';
-import { MedicalHistoryService } from '../../application/services/medical-history.service';
+import { MedicalHistoryService } from '@/domains/patients/application/services/medical-history.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { AuditService } from '../../../../shared/modules/audit/audit/audit.service';
-import { RequestWithUser } from '../../../../common/types/common.types';
-import { PatientService } from '../../application/services/patient.service';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { RequestWithUser } from '@/common/types/common.types';
+import { PatientService } from '@/domains/patients/application/services/patient.service';
 
 import {
   CreateMedicalConditionDto,
@@ -22,10 +22,10 @@ import {
   CreateFamilyHistoryDto,
   CreateSocialHistoryDto,
   CreateSurgicalHistoryDto,
-} from '../../application/dto/medical-history.dto';
+} from '@/domains/patients/application/dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
 export class MedicalHistoryController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,
@@ -120,7 +120,6 @@ export class MedicalHistoryController {
     return this.medicalHistoryService.deleteAllergy(id);
   }
 
-  // ========== Family History ==========
   @Get('family')
   async getFamilyHistory(
     @Param('patientId') patientId: string,
@@ -161,7 +160,6 @@ export class MedicalHistoryController {
     return this.medicalHistoryService.deleteFamilyHistory(id);
   }
 
-  // ========== Social History ==========
   @Get('social')
   async getSocialHistory(
     @Param('patientId') patientId: string,
@@ -193,7 +191,6 @@ export class MedicalHistoryController {
     return this.medicalHistoryService.deleteSocialHistory(patientId);
   }
 
-  // ========== Surgical History ==========
   @Get('surgical')
   async getSurgicalHistory(
     @Param('patientId') patientId: string,
@@ -234,7 +231,6 @@ export class MedicalHistoryController {
     return this.medicalHistoryService.deleteSurgicalHistory(id);
   }
 
-  // ========== Complete Medical History ==========
   @Get()
   async getFullMedicalHistory(
     @Param('patientId') patientId: string,
@@ -245,7 +241,6 @@ export class MedicalHistoryController {
     const ipAddress = req.ip;
     const userAgent = req.headers?.['user-agent'];
 
-    // Log access for audit trail (DPDP Compliance)
     if (userId && clinicId) {
       await this.auditService.logPatientAccess(
         userId,

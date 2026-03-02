@@ -11,15 +11,15 @@ import {
   UsePipes,
   ForbiddenException,
 } from '@nestjs/common';
-import { TierGuard } from '../../../shared/modules/auth/auth/tier.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../shared/modules/auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   RequireFeature,
   Feature,
-} from '../../../shared/modules/auth/auth/tier.decorator';
+} from '@/shared/modules/auth/auth/tier.decorator';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
-import { RequestWithUser } from '../../../common/types/common.types';
+import { RequestWithUser } from '@/common/types/common.types';
 
 import {
   CreatePrescriptionTemplateDto,
@@ -30,7 +30,7 @@ import {
   UpdatePrescriptionTemplateSchema,
 } from './dto/prescription-templates.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -39,7 +39,7 @@ interface AuthRequest {
 }
 
 @Controller('prescription-templates')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
 @UseGuards(TierGuard)
 @RequireFeature(Feature.PRESCRIPTION_TEMPLATES)
 export class PrescriptionTemplatesController {

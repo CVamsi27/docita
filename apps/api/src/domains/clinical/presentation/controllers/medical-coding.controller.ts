@@ -7,7 +7,7 @@ import {
   Query,
   Delete,
 } from '@nestjs/common';
-import { ClinicalService } from '../../application/services/clinical.service';
+import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import {
   IcdCode,
   CptCode,

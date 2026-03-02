@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,9 +11,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Invoices (e2e)', () => {
@@ -49,7 +49,6 @@ describe('Invoices (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    // Setup clinic, doctor, patient
     const clinic = await factories.clinic({ tier: 'PRO' });
     clinicId = clinic.id;
 
@@ -122,7 +121,6 @@ describe('Invoices (e2e)', () => {
 
   describe('GET /invoices/:id', () => {
     it('should get invoice details', async () => {
-      // First create an invoice
       const createRes = await request(app.getHttpServer())
         .post('/invoices')
         .set('Authorization', `Bearer ${token}`)

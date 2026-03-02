@@ -11,7 +11,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { Appointment } from "@workspace/types";
 
-// Generate 30-minute time slots for the entire day
 export const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 0; hour < 24; hour++) {
@@ -25,7 +24,6 @@ export const generateTimeSlots = () => {
 
 export const TIME_SLOTS = generateTimeSlots();
 
-// Helper to get current time slot
 const getCurrentTimeSlot = () => {
   const now = new Date();
   const hours = now.getHours();
@@ -38,7 +36,6 @@ export const useAppointmentsLogic = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
 
-  // Dialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancellingAptId, setCancellingAptId] = useState<string | null>(null);
   const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
@@ -57,7 +54,6 @@ export const useAppointmentsLogic = () => {
 
   const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
 
-  // Check if user can view all doctors' calendars
   const canViewAllDoctors = useMemo(
     () =>
       user?.role &&
@@ -65,10 +61,8 @@ export const useAppointmentsLogic = () => {
     [user?.role],
   );
 
-  // Fetch doctors list
   const { data: doctors = [] } = useDoctors();
 
-  // API now returns strictly doctors
   const doctorsList = doctors;
 
   const {
@@ -93,7 +87,6 @@ export const useAppointmentsLogic = () => {
     cancellingAptId || noShowAptId || "",
   );
 
-  // Dialog handling from URL
   const currentAction = searchParams.get("action");
   useEffect(() => {
     if (currentAction === "new") {

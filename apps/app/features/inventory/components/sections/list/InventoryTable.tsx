@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import type { InventoryItem } from "@workspace/types";
-import type { StockStatus } from "../../../hooks/use-inventory-logic";
+import type { StockStatus } from "@/features/inventory/hooks/use-inventory-logic";
 
 interface InventoryTableProps {
   items: InventoryItem[];

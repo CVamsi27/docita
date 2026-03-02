@@ -3,7 +3,11 @@ import { toast } from "sonner";
 import { Resolver, useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreatePatient } from "@/hooks/api/use-patients";
-import { CreatePatientInput, createPatientSchema } from "@workspace/types";
+import {
+  CreatePatientInput,
+  createPatientRequestSchema,
+  createPatientSchema,
+} from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
 
 interface UsePatientFormProps {
@@ -42,10 +46,12 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   const onSubmit = useCallback(
     async (data: CreatePatientInput, onSuccess?: () => void) => {
       try {
-        await createPatient({
+        const payload = createPatientRequestSchema.parse({
           ...data,
           clinicId: clinicId || "default-clinic-id",
-        } as CreatePatientInput & { clinicId: string });
+        });
+
+        await createPatient(payload);
         form.reset();
         await onPatientAdded();
         if (onSuccess) {
@@ -53,7 +59,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
         }
         toast.success("Patient added successfully");
       } catch (error: unknown) {
-        console.error("Failed to create patient:", error);
+
         const err = error as { message?: string };
         const errorMessage = err.message || "Failed to create patient";
 

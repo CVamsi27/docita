@@ -9,10 +9,10 @@ import type { SelectOption } from "@/lib/app-config-context";
 import { Button } from "@workspace/ui/components/button";
 import { Form } from "@workspace/ui/components/form";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
-import { AppointmentFormFields } from "../sections/add-dialog/AppointmentFormFields";
-import { PatientSelector } from "../sections/add-dialog/PatientSelector";
-import { DoctorSelector } from "../sections/add-dialog/DoctorSelector";
-import { TimeSlotPicker } from "../sections/add-dialog/TimeSlotPicker";
+import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";
+import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
+import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
+import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;

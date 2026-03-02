@@ -1,15 +1,15 @@
-/** @vitest-environment jsdom */
+
 
 import React from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthProvider, useAuth, usePermission } from "../src/auth-context.js";
+import { AuthProvider, useAuth, usePermission } from "@/auth-context.js";
 import {
   canPerformActions,
   getPermissionsForRole,
   hasPermission,
-} from "../src/permissions-map.js";
-import { tokenStorage } from "../src/token-storage.js";
+} from "@/permissions-map.js";
+import { tokenStorage } from "@/token-storage.js";
 
 function createMockResponse(status: number, payload?: unknown) {
   return {

@@ -1,15 +1,5 @@
-/**
- * Default Pricing Calculator Strategy
- * Implements standard tier-based pricing logic
- *
- * SOLID Principles:
- * - Single Responsibility: Only handles pricing calculations
- * - Open/Closed: Can be extended for custom pricing
- * - Liskov Substitution: Fully implements PricingCalculatorStrategy
- */
-
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   PricingCalculatorStrategy,
   PricingCalculationResult,
@@ -28,6 +18,10 @@ import {
 export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrategy {
   constructor(private prisma: PrismaService) {}
 
+  private isTierName(value: string): value is TierName {
+    return value in TIER_PRICING_BY_CURRENCY.INR;
+  }
+
   async calculatePrice(params: {
     tier: ClinicTier;
     cycle: BillingCycle;
@@ -42,8 +36,7 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency];
 
-    // Calculate base price
-    const tierName = params.tier as string as TierName;
+    const tierName = this.isTierName(params.tier) ? params.tier : 'CORE';
     const tierConfig = tierPricing[tierName];
     let basePriceCents = 0;
 
@@ -60,13 +53,9 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       basePriceCents = Math.round(monthlyPrice * 3 * 100);
     }
 
-    // Calculate add-ons (only available for CORE, PLUS, PRO, ENTERPRISE)
     let addOnsCents = 0;
     const addOnBreakdown: Array<{ name: string; priceCents: number }> = [];
-    const addOnTierKey = params.tier as string as Exclude<
-      TierName,
-      'CAPTURE' | 'INTELLIGENCE'
-    >;
+    const addOnTierKey = tierName === 'CAPTURE' ? 'CORE' : tierName;
     const isAddOnEligible = !['CAPTURE'].includes(params.tier);
 
     if (isAddOnEligible && params.addOns?.includes('INTELLIGENCE')) {
@@ -93,7 +82,6 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       }
     }
 
-    // Calculate discounts from Discount model (by type, not promo code)
     let discountCents = 0;
     const discountBreakdown: Array<{ name: string; amountCents: number }> = [];
 
@@ -117,7 +105,6 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       }
     }
 
-    // Apply referral credits (max configured percent of total)
     if (params.referralCredits && params.referralCredits > 0) {
       const maxReferralDiscount = Math.round(
         ((basePriceCents + addOnsCents) * REFERRAL_DISCOUNT_PERCENT) / 100,
@@ -133,11 +120,9 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
       });
     }
 
-    // GST is inclusive in the listed prices; no separate tax component
     const subtotal = basePriceCents + addOnsCents - discountCents;
     const taxCents = 0;
 
-    // Total
     const totalCents = subtotal + taxCents;
 
     return {
@@ -169,29 +154,24 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
   }> {
     const billingCycleDays = params.currentCycle === 'YEARLY' ? 365 : 30;
 
-    // Calculate current plan value
     const currentPrice = await this.calculatePrice({
       tier: params.currentTier,
       cycle: params.currentCycle,
       addOns: params.currentAddOns,
     });
 
-    // Calculate new plan value
     const newPrice = await this.calculatePrice({
       tier: params.newTier,
       cycle: params.currentCycle,
       addOns: params.newAddOns,
     });
 
-    // Credit for unused portion of current plan
     const creditCents = Math.round(
       (params.daysRemaining / billingCycleDays) * currentPrice.totalCents,
     );
 
-    // Charge for new plan
     const chargeCents = newPrice.totalCents;
 
-    // Net charge (may be negative if downgrading)
     const netChargeCents = chargeCents - creditCents;
 
     return {
@@ -202,7 +182,6 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
   }
 
   isValid(): boolean {
-    // Validate that pricing configuration is loaded and valid
     return true;
   }
 }

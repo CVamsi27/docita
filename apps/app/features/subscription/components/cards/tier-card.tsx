@@ -8,7 +8,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier, TierInfo } from "@/lib/tier-config";
-import { PlanFeature, PlanFeatures } from "../sections/plan-features";
+import { PlanFeature, PlanFeatures } from "@/features/subscription/components/sections/plan-features";
 import { Building2, Crown, Rocket, Sparkles, Zap } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
@@ -35,37 +35,34 @@ const TIER_GRADIENTS: Record<
   { card: string; icon: string; badge: string }
 > = {
   CAPTURE: {
-    card: "from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-800/30",
-    icon: "from-slate-500 to-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    card: "from-background to-muted/40",
+    icon: "tier-capture",
+    badge: "tier-capture",
   },
   CORE: {
-    card: "from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20",
-    icon: "from-blue-500 to-blue-600",
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
+    card: "from-background to-info/10",
+    icon: "tier-core",
+    badge: "tier-core",
   },
   PLUS: {
-    card: "from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20",
-    icon: "from-emerald-500 to-emerald-600",
-    badge:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
+    card: "from-background to-success/10",
+    icon: "tier-plus",
+    badge: "tier-plus",
   },
   PRO: {
-    card: "from-violet-50 to-purple-100/50 dark:from-violet-950/30 dark:to-purple-900/20",
-    icon: "from-violet-500 to-purple-600",
-    badge:
-      "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
+    card: "from-background to-primary/10",
+    icon: "tier-pro",
+    badge: "tier-pro",
   },
   ENTERPRISE: {
-    card: "from-amber-50 to-orange-100/50 dark:from-amber-950/30 dark:to-orange-900/20",
-    icon: "from-amber-500 to-orange-600",
-    badge:
-      "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
+    card: "from-background to-warning/10",
+    icon: "tier-enterprise",
+    badge: "tier-enterprise",
   },
   INTELLIGENCE: {
-    card: "from-pink-50 to-rose-100/50 dark:from-pink-950/30 dark:to-rose-900/20",
-    icon: "from-pink-500 to-rose-600",
-    badge: "bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300",
+    card: "from-background to-accent",
+    icon: "bg-accent text-accent-foreground",
+    badge: "tier-intelligence",
   },
 };
 
@@ -108,11 +105,11 @@ export function TierCard({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br shadow-md",
+              "flex h-10 w-10 items-center justify-center rounded-xl shadow-md",
               gradient.icon,
             )}
           >
-            <Icon className="h-5 w-5 text-white" />
+            <Icon className="h-5 w-5" />
           </div>
           <div>
             <CardTitle className="text-base">{info.name}</CardTitle>

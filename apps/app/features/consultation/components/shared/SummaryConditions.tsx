@@ -3,9 +3,9 @@ import { AlertTriangle } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 
 interface Condition {
-  id: string; // or name if only name is available
+  id: string; 
   name: string;
-  status?: string; // active, managed, resolved
+  status?: string; 
 }
 
 interface SummaryConditionsProps {
@@ -24,9 +24,9 @@ export function SummaryConditions({ conditions }: SummaryConditionsProps) {
       <div className="flex flex-wrap gap-2">
         {conditions.map((condition, i) => (
           <Badge
-            key={i} // Using index as fallback key if id is not unique or present in all contexts
+            key={i} 
             variant="outline"
-            className="border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-50"
+            className="border-warning/30 bg-warning text-warning hover:bg-warning"
           >
             {condition.name}
           </Badge>

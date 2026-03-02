@@ -11,11 +11,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { useLabTestsLogic } from "../../hooks/use-lab-tests-logic";
-import { LabTestsOverview } from "../tabs/LabTestsOverview";
-import { LabTestsOrders } from "../tabs/LabTestsOrders";
-import { LabTestsCatalog } from "../tabs/LabTestsCatalog";
-import { OrderLabTestDialog } from "../dialogs/OrderLabTestDialog";
+import { useLabTestsLogic } from "@/features/lab-tests/hooks/use-lab-tests-logic";
+import { LabTestsOverview } from "@/features/lab-tests/components/tabs/LabTestsOverview";
+import { LabTestsOrders } from "@/features/lab-tests/components/tabs/LabTestsOrders";
+import { LabTestsCatalog } from "@/features/lab-tests/components/tabs/LabTestsCatalog";
+import { OrderLabTestDialog } from "@/features/lab-tests/components/dialogs/OrderLabTestDialog";
 
 export const LabTestsPageUI: FC = () => {
   const {
@@ -60,7 +60,7 @@ export const LabTestsPageUI: FC = () => {
       }
     >
       <div className="flex flex-col gap-6 p-4 md:p-6">
-        {/* Header */}
+        {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Lab Tests</h1>
@@ -85,14 +85,14 @@ export const LabTestsPageUI: FC = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
+        {}
         <LabTestsOverview
           stats={
             stats || { pending: 0, inProgress: 0, completed: 0, urgent: 0 }
           }
         />
 
-        {/* Tabs */}
+        {}
         <Tabs defaultValue="orders" className="w-full">
           <TabsList>
             <TabsTrigger value="orders">Orders</TabsTrigger>
@@ -116,7 +116,7 @@ export const LabTestsPageUI: FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Order Lab Test Dialog */}
+        {}
         <OrderLabTestDialog
           open={isOrderDialogOpen}
           onOpenChange={setIsOrderDialogOpen}

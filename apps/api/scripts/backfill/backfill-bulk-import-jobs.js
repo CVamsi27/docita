@@ -40,7 +40,6 @@ function generateImportJobs(clinicId, userId, count) {
 }
 
 async function backfillBulkImportJobs() {
-  console.log('Starting bulk import jobs backfill...');
 
   try {
     const clinics = await prisma.clinic.findMany({
@@ -48,7 +47,7 @@ async function backfillBulkImportJobs() {
     });
 
     if (clinics.length === 0) {
-      console.log('No clinics found. Skipping backfill.');
+
       return;
     }
 
@@ -66,12 +65,11 @@ async function backfillBulkImportJobs() {
       });
 
       totalInserted += result.count;
-      console.log(`Clinic ${clinic.id}: Inserted ${result.count} import jobs`);
+
     }
 
-    console.log(`Backfill Complete: ${totalInserted} total bulk import jobs`);
   } catch (error) {
-    console.error('Backfill failed:', error);
+
     throw error;
   } finally {
     await prisma.$disconnect();

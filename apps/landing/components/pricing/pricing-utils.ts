@@ -1,11 +1,5 @@
-/**
- * Pricing utilities and helpers
- * Shared functions for currency detection, price formatting, and conversion
- */
 
-/**
- * Currency information with conversion rates and symbols
- */
+
 export const CURRENCY_RATES: Record<
   string,
   { symbol: string; rate: number; country: string }
@@ -17,10 +11,6 @@ export const CURRENCY_RATES: Record<
   AUD: { symbol: "A$", rate: 0.018, country: "Australia" },
 };
 
-/**
- * Detect currency from timezone synchronously
- * Returns a currency code (INR, USD, EUR, AUD, GBP)
- */
 export function detectCurrencyFromTimezone(): string {
   if (typeof window === "undefined") return "USD";
 
@@ -42,28 +32,19 @@ export function detectCurrencyFromTimezone(): string {
       return "USD";
     }
   } catch {
-    // Fallback to USD
+
   }
   return "USD";
 }
 
-/**
- * Get currency symbol from currency code
- */
 export function getCurrencySymbol(currency: string): string {
   return CURRENCY_RATES[currency]?.symbol || "$";
 }
 
-/**
- * Get currency information including country
- */
 export function getCurrencyInfo(currency: string) {
   return CURRENCY_RATES[currency] || CURRENCY_RATES.USD;
 }
 
-/**
- * Format price with currency symbol and locale
- */
 export function formatPriceWithCurrency(
   amount: number,
   currency: string,
@@ -72,9 +53,6 @@ export function formatPriceWithCurrency(
   return `${symbol}${amount.toLocaleString()}`;
 }
 
-/**
- * Calculate monthly equivalent from annual price
- */
 export function calculateMonthlyEquivalent(annualPrice: number): number {
   return Math.round(annualPrice / 12);
 }

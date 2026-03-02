@@ -9,8 +9,8 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { cn } from "@workspace/ui/lib/utils";
-import { PromptOptions } from "../types";
-import { getVariantStyles } from "../utils";
+import { PromptOptions } from "@/features/dialogs/types";
+import { getVariantStyles } from "@/features/dialogs/utils";
 
 interface PromptDialogProps {
   open: boolean;

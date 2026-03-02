@@ -198,7 +198,7 @@ export function useAppointmentForm({
         }
         toast.success("Appointment scheduled successfully");
       } catch (error) {
-        console.error("Failed to create appointment:", error);
+
         const errorMessage =
           error instanceof Error
             ? error.message

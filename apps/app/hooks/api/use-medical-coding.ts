@@ -5,7 +5,7 @@ import {
   IcdCode,
   IcdFavorite,
 } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 export const useICDCodes = (search: string) =>
   useAPIQuery<IcdCode[]>(

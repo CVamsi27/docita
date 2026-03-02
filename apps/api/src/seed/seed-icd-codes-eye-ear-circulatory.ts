@@ -1,5 +1,4 @@
 export const ICD_10_CODES_EYE_EAR_CIRCULATORY = [
-  // Eye disorders
   {
     code: 'H00',
     description: 'Hordeolum and chalazion',
@@ -47,7 +46,6 @@ export const ICD_10_CODES_EYE_EAR_CIRCULATORY = [
     category: 'Diseases of the eye',
   },
 
-  // Ear disorders
   {
     code: 'H60',
     description: 'Otitis externa',
@@ -84,7 +82,6 @@ export const ICD_10_CODES_EYE_EAR_CIRCULATORY = [
     category: 'Diseases of the ear',
   },
 
-  // Circulatory system
   {
     code: 'I10',
     description: 'Essential (primary) hypertension',

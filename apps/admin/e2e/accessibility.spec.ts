@@ -3,7 +3,6 @@ import { injectAxe, getViolations } from "axe-playwright";
 import * as fs from "fs";
 import * as path from "path";
 
-// Configuration for pages to audit
 const AUDIT_PAGES = [
   { path: "/", name: "Home" },
   { path: "/dashboard", name: "Dashboard" },
@@ -32,25 +31,21 @@ test.describe("Accessibility Audit - Admin App", () => {
       page,
     }) => {
       try {
-        // Navigate to page
+
         await page.goto(pageConfig.path, {
           waitUntil: "networkidle",
           timeout: 30000,
         });
 
-        // Wait for full page load and hydration
         await page.waitForLoadState("networkidle");
         await page.waitForLoadState("domcontentloaded");
 
-        // Wait for page to be fully interactive
         await page.evaluate(
           () => new Promise((resolve) => setTimeout(resolve, 500)),
         );
 
-        // Inject axe
         await injectAxe(page);
 
-        // Get violations
         const violations = await getViolations(page);
 
         violationsByPage[pageConfig.path] = {
@@ -73,20 +68,15 @@ test.describe("Accessibility Audit - Admin App", () => {
           },
         };
 
-        // Log violations for this page
-        console.log(`\n📄 ${pageConfig.name} (${pageConfig.path})`);
-        console.log(`   Total violations: ${violations.length}`);
-        console.log(
-          `   Critical: ${violationsByPage[pageConfig.path].summary.critical}, Serious: ${violationsByPage[pageConfig.path].summary.serious}`,
-        );
+        
       } catch (error) {
-        console.error(`Error auditing ${pageConfig.name}:`, error);
+
       }
     });
   }
 
   test.afterAll(async () => {
-    // Generate report after all tests
+
     const reportDir = path.join(process.cwd(), "accessibility-reports");
     if (!fs.existsSync(reportDir)) {
       fs.mkdirSync(reportDir, { recursive: true });
@@ -95,7 +85,6 @@ test.describe("Accessibility Audit - Admin App", () => {
     const timestamp = new Date().toISOString().split("T")[0];
     const reportPath = path.join(reportDir, `baseline-admin-${timestamp}.json`);
 
-    // Calculate totals
     let totalViolations = 0;
     let totalCritical = 0;
     let totalSerious = 0;
@@ -119,8 +108,6 @@ test.describe("Accessibility Audit - Admin App", () => {
     };
 
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    console.log(
-      `\n✅ Admin accessibility audit complete. Report saved to: ${reportPath}`,
-    );
+    
   });
 });

@@ -1,5 +1,5 @@
 import { InventoryItem } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 export const useInventory = (filters?: {
   search?: string;

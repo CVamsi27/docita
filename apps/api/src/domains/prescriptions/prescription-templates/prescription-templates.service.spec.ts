@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrescriptionTemplatesService } from './prescription-templates.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PrescriptionTemplatesService', () => {
   let service: PrescriptionTemplatesService;
@@ -56,7 +56,7 @@ describe('PrescriptionTemplatesService', () => {
     it('should return templates for a user', async () => {
       jest
         .spyOn(prismaService.prescriptionTemplate, 'findMany')
-        .mockResolvedValue([mockTemplate] as any);
+        .mockResolvedValue([mockTemplate] as never);
 
       const result = await service.findAll('user-123');
       expect(result).toEqual([mockTemplate]);
@@ -71,7 +71,7 @@ describe('PrescriptionTemplatesService', () => {
     it('should create a template', async () => {
       jest
         .spyOn(prismaService.prescriptionTemplate, 'create')
-        .mockResolvedValue(mockTemplate as any);
+        .mockResolvedValue(mockTemplate as never);
 
       const createData = {
         name: 'Standard Fever',

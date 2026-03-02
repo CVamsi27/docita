@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrescriptionCreatedEvent } from '../../core/events/prescription-created.event';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { SendMessageUseCase } from '../../../whatsapp/application/use-cases/send-message.use-case';
+import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { Prescription, Medication, Patient } from '@workspace/db';
 
 type PrescriptionWithMedications = Prescription & {

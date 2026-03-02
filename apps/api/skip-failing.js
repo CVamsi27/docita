@@ -14,13 +14,12 @@ const filesToSkip = [
 filesToSkip.forEach((file) => {
   if (fs.existsSync(file)) {
     let content = fs.readFileSync(file, 'utf8');
-    // Replace the first 'describe(' or 'describe("' with 'describe.skip('
-    // This effectively skips the entire test suite file
+
     content = content.replace(
       /describe\s*\(\s*['"]/,
       (match) => "describe.skip('",
     );
     fs.writeFileSync(file, content);
-    console.log('Skipped', file);
+
   }
 });

@@ -88,20 +88,12 @@ export interface PaymentResponseDto {
   createdAt: string;
 }
 
-// ============================================================================
-// BILLING CYCLE CHANGE DTO
-// ============================================================================
-
 export const ChangeBillingCycleDtoSchema = z.object({
   subscriptionId: z.string().cuid(),
   newCycle: z.enum(['MONTHLY', 'YEARLY']),
 });
 
 export type ChangeBillingCycleDto = z.infer<typeof ChangeBillingCycleDtoSchema>;
-
-// ============================================================================
-// SUBSCRIPTION LISTING DTO
-// ============================================================================
 
 export interface SubscriptionListResponseDto {
   id: string;
@@ -112,10 +104,6 @@ export interface SubscriptionListResponseDto {
   currentPeriodEnd: string;
   autoPayEnabled: boolean;
 }
-
-// ============================================================================
-// VALIDATION HELPERS
-// ============================================================================
 
 export function validateCreateSubscription(
   data: unknown,

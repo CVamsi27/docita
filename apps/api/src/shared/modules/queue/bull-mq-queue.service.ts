@@ -5,13 +5,44 @@ import {
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+
+type BullQueue = {
+  close: () => Promise<void>;
+  add: (
+    data: Record<string, unknown>,
+    options: Record<string, unknown>,
+  ) => Promise<{
+    id: string | number;
+    progress: () => number | Promise<number>;
+    attemptsMade: number;
+    timestamp: number;
+  }>;
+  process: (
+    handler: (job: {
+      id: string | number;
+      data: Record<string, unknown>;
+      progress: () => number | Promise<number>;
+      attemptsMade: number;
+      timestamp: number;
+    }) => Promise<void>,
+  ) => void;
+  empty: () => Promise<void>;
+  getWaitingCount: () => Promise<number>;
+  getActiveCount: () => Promise<number>;
+  getDelayedCount: () => Promise<number>;
+  getCompletedCount: () => Promise<number>;
+  getFailedCount: () => Promise<number>;
+  isPaused: boolean;
+  pause: () => Promise<void>;
+  resume: () => Promise<void>;
+};
 
 @Injectable()
 export class BullMQQueueService
   implements IQueueProvider, OnModuleInit, OnModuleDestroy
 {
-  private queues = new Map<string, any>();
+  private queues = new Map<string, BullQueue>();
   private initialized = false;
 
   constructor(private configService: AppConfigService) {}
@@ -24,19 +55,13 @@ export class BullMQQueueService
     for (const queue of this.queues.values()) {
       try {
         await queue.close();
-      } catch (error) {
-        console.error(
-          'Error closing queue:',
-          error instanceof Error ? error.message : 'Unknown error',
-        );
-      }
+      } catch (error) {}
     }
   }
 
-  private getQueue(name: string) {
+  private getQueue(name: string): BullQueue {
     if (!this.queues.has(name)) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const Queue = require('bull');
         const queue = new Queue(name, {
           redis: {
@@ -46,7 +71,7 @@ export class BullMQQueueService
           },
         });
 
-        this.queues.set(name, queue);
+        this.queues.set(name, queue as BullQueue);
       } catch (error) {
         throw new Error(
           `BullMQ not installed. Run: npm install bull\nError: ${error instanceof Error ? error.message : String(error)}`,
@@ -54,7 +79,14 @@ export class BullMQQueueService
       }
     }
 
-    return this.queues.get(name);
+    return this.queues.get(name)!;
+  }
+
+  private async resolveProgress(
+    progress: number | Promise<number>,
+  ): Promise<number> {
+    const value = await progress;
+    return Number.isFinite(value) ? value : 0;
   }
 
   async enqueue<T extends Record<string, unknown>>(
@@ -86,12 +118,13 @@ export class BullMQQueueService
     }
 
     const job = await queue.add(data, bullOptions);
+    const progress = await this.resolveProgress(job.progress());
 
     return {
       id: job.id.toString(),
       name,
       data,
-      progress: job.progress(),
+      progress,
       attemptsMade: job.attemptsMade,
       timestamp: job.timestamp,
     };
@@ -106,19 +139,21 @@ export class BullMQQueueService
     queue.process(
       async (bullJob: {
         id: string | number;
-        data: T;
+        data: Record<string, unknown>;
         progress: () => number | Promise<number>;
         attemptsMade: number;
         timestamp: number;
       }) => {
+        const progress =
+          typeof bullJob.progress === 'function'
+            ? await this.resolveProgress(bullJob.progress())
+            : 0;
+
         const job: QueueJob<T> = {
           id: bullJob.id.toString(),
           name,
-          data: bullJob.data,
-          progress:
-            typeof bullJob.progress === 'function'
-              ? (bullJob.progress() as any)
-              : 0,
+          data: bullJob.data as T,
+          progress,
           attemptsMade: bullJob.attemptsMade,
           timestamp: bullJob.timestamp,
         };
@@ -131,13 +166,11 @@ export class BullMQQueueService
   async getJob<T extends Record<string, unknown>>(
     jobId: string,
   ): Promise<QueueJob<T> | null> {
-    console.warn('getJob requires queue name in BullMQ implementation');
     await Promise.resolve();
     return null;
   }
 
   removeJob(jobId: string): Promise<void> {
-    console.warn('removeJob requires queue name in BullMQ implementation');
     return Promise.resolve();
   }
 

@@ -104,7 +104,7 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {/* Patient Info */}
+        {}
         <div className="grid grid-cols-2 gap-4 pt-2">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -134,7 +134,7 @@ export function PrescriptionDocument({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Rx Symbol and Medications */}
+        {}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-4xl font-serif font-bold text-primary italic">
@@ -179,19 +179,19 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {/* Instructions */}
+        {}
         {prescription.instructions && (
           <div>
             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
               Instructions
             </h3>
-            <p className="text-sm bg-yellow-50 dark:bg-yellow-950/30 p-4 rounded-lg whitespace-pre-wrap border border-yellow-200 dark:border-yellow-800 print:bg-yellow-50 print:border-yellow-300">
+            <p className="text-sm surface-warning p-4 rounded-lg whitespace-pre-wrap print:bg-warning print:border-warning/30">
               {prescription.instructions}
             </p>
           </div>
         )}
 
-        {/* Signature Section */}
+        {}
         <div className="pt-8 mt-8 border-t">
           <div className="flex justify-end">
             <div className="text-center min-w-[200px]">
@@ -223,7 +223,7 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="pt-4 border-t text-center text-xs text-muted-foreground space-y-1">
           <p className="font-medium">
             This is a digitally generated prescription

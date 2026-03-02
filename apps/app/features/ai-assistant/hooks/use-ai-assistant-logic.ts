@@ -15,7 +15,6 @@ export const useAIAssistantLogic = () => {
   const [activeTab, setActiveTab] = useState("prescription");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Prescription Assistant State
   const [symptoms, setSymptoms] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [currentMedications, setCurrentMedications] = useState("");
@@ -27,7 +26,6 @@ export const useAIAssistantLogic = () => {
     [],
   );
 
-  // Diagnosis Assistant State
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [vitalSigns, setVitalSigns] = useState("");
   const [examFindings, setExamFindings] = useState("");
@@ -35,12 +33,11 @@ export const useAIAssistantLogic = () => {
     DiagnosisSuggestion[]
   >([]);
 
-  // Smart Task State
   const [taskType, setTaskType] = useState("");
 
   const handlePrescriptionAnalysis = async () => {
     setIsLoading(true);
-    // Simulate AI API analysis
+
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setPrescriptionSuggestions([
@@ -77,7 +74,7 @@ export const useAIAssistantLogic = () => {
 
   const handleDiagnosisAnalysis = async () => {
     setIsLoading(true);
-    // Simulate AI API analysis
+
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setDiagnosisSuggestions([

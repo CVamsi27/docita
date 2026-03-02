@@ -4,24 +4,62 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   UseGuards,
   Request,
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { AppointmentService } from '../../application/services/appointment.service';
-import { AppointmentStatusEnum } from '../../core/value-objects/appointment-status.value-object';
+import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
+import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   Feature,
   RequireFeature,
-} from '../../../../shared/modules/auth/auth/tier.decorator';
-import { RequestWithUser } from '../../../../common/types/common.types';
-import { CreateAppointmentDto } from '../../application/dto/appointments.dto';
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
+import {
+  CreateAppointmentDto,
+  CancelAppointmentDto,
+  ListAppointmentsQueryDto,
+  RescheduleAppointmentDto,
+  UpdateAppointmentDto,
+  VitalsDto,
+} from '@/domains/appointments/application/dto/appointments.dto';
+import {
+  appointmentDomainCreateSchema,
+  appointmentRescheduleRequestSchema,
+} from '@workspace/types';
+
+const parseAppointmentStatus = (
+  status: string,
+): AppointmentStatusEnum | undefined => {
+  switch (status.trim().toLowerCase()) {
+    case 'scheduled':
+      return AppointmentStatusEnum.SCHEDULED;
+    case 'confirmed':
+      return AppointmentStatusEnum.CONFIRMED;
+    case 'arrived':
+    case 'checked-in':
+      return AppointmentStatusEnum.ARRIVED;
+    case 'in_progress':
+    case 'in-progress':
+      return AppointmentStatusEnum.IN_PROGRESS;
+    case 'completed':
+      return AppointmentStatusEnum.COMPLETED;
+    case 'cancelled':
+      return AppointmentStatusEnum.CANCELLED;
+    case 'noshow':
+    case 'no-show':
+      return AppointmentStatusEnum.NOSHOW;
+    default:
+      return undefined;
+  }
+};
 
 @ApiTags('appointments')
 @Controller('appointments')
@@ -37,12 +75,12 @@ export class AppointmentsController {
     @Request() req: RequestWithUser,
     @Body() body: CreateAppointmentDto,
   ) {
-    return this.appointmentService.createAppointment({
+    const payload = appointmentDomainCreateSchema.parse({
       ...body,
       clinicId: req.user!.clinicId!,
-      startTime: new Date(body.startTime),
-      endTime: new Date(body.endTime),
     });
+
+    return this.appointmentService.createAppointment(payload);
   }
 
   @Get()
@@ -55,29 +93,38 @@ export class AppointmentsController {
   @ApiQuery({ name: 'status', required: false })
   async findAll(
     @Request() req: RequestWithUser,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('patientId') patientId?: string,
-    @Query('doctorId') doctorId?: string,
-    @Query('search') search?: string,
-    @Query('status') status?: string,
-    @Query('cursor') cursor?: string,
-    @Query('limit') limit?: string,
+    @Query() query: ListAppointmentsQueryDto,
   ) {
+    const {
+      date,
+      startDate,
+      endDate,
+      patientId,
+      doctorId,
+      search,
+      status,
+      cursor,
+      limit,
+    } = query;
+
+    const effectiveStartDate = startDate ?? date;
+    const effectiveEndDate = endDate ?? date;
+
     const statuses = status
-      ? (status.split(',') as AppointmentStatusEnum[])
-      : undefined;
+      ?.split(',')
+      .map(parseAppointmentStatus)
+      .filter((value): value is AppointmentStatusEnum => value !== undefined);
 
     return this.appointmentService.listAppointments({
       clinicId: req.user!.clinicId!,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
+      endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
       patientId,
       doctorId,
       search,
       status: statuses,
       cursor,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      limit,
     });
   }
 
@@ -87,9 +134,66 @@ export class AppointmentsController {
     return this.appointmentService.getAppointment(id);
   }
 
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update appointment details' })
+  async update(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: UpdateAppointmentDto,
+  ) {
+    return this.appointmentService.updateAppointmentDetails(
+      id,
+      req.user!.clinicId!,
+      body as never,
+    );
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update appointment details (PUT compatibility)' })
+  async updateViaPut(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: UpdateAppointmentDto,
+  ) {
+    return this.appointmentService.updateAppointmentDetails(
+      id,
+      req.user!.clinicId!,
+      body as never,
+    );
+  }
+
+  @Post(':id/vitals')
+  @ApiOperation({ summary: 'Create or update appointment vitals' })
+  async createVitals(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: VitalsDto,
+  ) {
+    return this.appointmentService.createVitals(
+      id,
+      req.user!.clinicId!,
+      body as never,
+    );
+  }
+
+  @Patch(':id/vitals')
+  @ApiOperation({ summary: 'Patch appointment vitals' })
+  async updateVitals(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: VitalsDto,
+  ) {
+    return this.appointmentService.updateVitals(
+      id,
+      req.user!.clinicId!,
+      body as never,
+    );
+  }
+
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel appointment' })
-  async cancel(@Param('id') id: string, @Body('reason') reason: string) {
+  async cancel(@Param('id') id: string, @Body() body: CancelAppointmentDto) {
+    const reason = body.reason;
     if (!reason) {
       throw new BadRequestException('Cancellation reason is required');
     }
@@ -100,12 +204,13 @@ export class AppointmentsController {
   @ApiOperation({ summary: 'Reschedule appointment' })
   async reschedule(
     @Param('id') id: string,
-    @Body() body: { startTime: string; endTime: string },
+    @Body() body: RescheduleAppointmentDto,
   ) {
+    const payload = appointmentRescheduleRequestSchema.parse(body);
     return this.appointmentService.rescheduleAppointment(
       id,
-      new Date(body.startTime),
-      new Date(body.endTime),
+      payload.startTime,
+      payload.endTime,
     );
   }
 }

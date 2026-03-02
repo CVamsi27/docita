@@ -46,9 +46,9 @@ export function ConsultationTimerUI({
   };
 
   const getTimeColor = () => {
-    if (seconds < 600) return "text-green-600 dark:text-green-400";
-    if (seconds < 1200) return "text-yellow-600 dark:text-yellow-400";
-    return "text-orange-600 dark:text-orange-400";
+    if (seconds < 600) return "text-success";
+    if (seconds < 1200) return "text-warning";
+    return "text-warning";
   };
 
   return (

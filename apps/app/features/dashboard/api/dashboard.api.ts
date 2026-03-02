@@ -1,8 +1,5 @@
 import { api } from "@/lib/api-client";
 
-/**
- * Dashboard & Analytics API Client
- */
 export const dashboardApi = {
   getOverview: () => api.get("/analytics/overview"),
 

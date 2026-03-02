@@ -191,11 +191,9 @@ const caseStudies: CaseStudy[] = [
 ];
 
 const typeColors = {
-  "multi-specialty":
-    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  chain:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  solo: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  "multi-specialty": "tier-core",
+  chain: "tier-pro",
+  solo: "tier-plus",
 };
 
 function CaseStudyCard({ study }: { study: CaseStudy }) {
@@ -226,13 +224,13 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
       </CardHeader>
 
       <CardContent className="flex-1">
-        {/* Hero Stat */}
+        {}
         <div className="mb-6 p-4 rounded-lg bg-linear-to-br from-primary/10 to-primary/5 border">
           <div className="flex items-center gap-2">
             {study.heroStat.trend === "up" ? (
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-success" />
             ) : (
-              <TrendingDown className="h-8 w-8 text-green-600" />
+              <TrendingDown className="h-8 w-8 text-success" />
             )}
             <div>
               <p className="text-3xl font-bold text-primary">
@@ -245,7 +243,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
           </div>
         </div>
 
-        {/* Results Grid */}
+        {}
         <div className="grid grid-cols-2 gap-3 mb-6">
           {study.results.slice(0, 4).map((result, idx) => (
             <div key={idx} className="p-3 rounded-lg bg-muted/50">
@@ -255,7 +253,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
           ))}
         </div>
 
-        {/* Quote */}
+        {}
         <div className="p-4 rounded-lg bg-muted/30 border-l-4 border-primary">
           <Quote className="h-5 w-5 text-primary/50 mb-2" />
           <p className="text-sm italic text-muted-foreground line-clamp-3">
@@ -293,7 +291,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
             </DialogHeader>
 
             <div className="space-y-6 mt-4">
-              {/* Tags */}
+              {}
               <div className="flex flex-wrap gap-2">
                 {study.tags.map((tag) => (
                   <Badge key={tag} variant="outline">
@@ -302,7 +300,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
                 ))}
               </div>
 
-              {/* Challenge */}
+              {}
               <div>
                 <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">
                   The Challenge
@@ -310,7 +308,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
                 <p className="text-sm">{study.challenge}</p>
               </div>
 
-              {/* Solution */}
+              {}
               <div>
                 <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">
                   Our Solution
@@ -318,7 +316,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
                 <p className="text-sm">{study.solution}</p>
               </div>
 
-              {/* Implementation */}
+              {}
               <div className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
                 <Clock className="h-5 w-5 text-primary" />
                 <div>
@@ -329,7 +327,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
                 </div>
               </div>
 
-              {/* Full Results */}
+              {}
               <div>
                 <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
                   Results
@@ -354,7 +352,7 @@ function CaseStudyCard({ study }: { study: CaseStudy }) {
                 </div>
               </div>
 
-              {/* Quote */}
+              {}
               <div className="p-6 rounded-lg bg-linear-to-br from-primary/10 to-primary/5 border">
                 <Quote className="h-8 w-8 text-primary/30 mb-3" />
                 <p className="text-lg italic mb-4">
@@ -383,7 +381,7 @@ export function CaseStudiesSection({ className }: CaseStudiesSectionProps) {
   return (
     <section className={cn("py-20 bg-muted/30", className)}>
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             Success Stories
@@ -397,14 +395,14 @@ export function CaseStudiesSection({ className }: CaseStudiesSectionProps) {
           </p>
         </div>
 
-        {/* Case Study Cards */}
+        {}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {caseStudies.map((study) => (
             <CaseStudyCard key={study.id} study={study} />
           ))}
         </div>
 
-        {/* Bottom Stats */}
+        {}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 rounded-xl bg-background border">
           <div className="text-center">
             <p className="text-3xl md:text-4xl font-bold text-primary">25+</p>

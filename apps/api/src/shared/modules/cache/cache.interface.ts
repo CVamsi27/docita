@@ -1,10 +1,3 @@
-/**
- * Cache Service Interface
- *
- * Abstraction for caching layer (Redis, in-memory, etc.)
- * Allows switching implementations without changing application code.
- */
-
 export interface ICacheProvider {
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, value: T, ttl?: number): Promise<void>;
@@ -15,22 +8,15 @@ export interface ICacheProvider {
   decrement(key: string, by?: number): Promise<number>;
 }
 
-/**
- * Cache Configuration
- */
 export interface CacheConfig {
   provider: 'redis' | 'memory';
-  ttl: number; // Default TTL in seconds
+  ttl: number;
   host?: string;
   port?: number;
   password?: string;
 }
 
-/**
- * Cache key constants and builders
- */
 export class CacheKeys {
-  // User cache keys
   static userById(userId: string) {
     return `user:${userId}`;
   }
@@ -39,7 +25,6 @@ export class CacheKeys {
     return `user:email:${email}`;
   }
 
-  // Clinic cache keys
   static clinicById(clinicId: string) {
     return `clinic:${clinicId}`;
   }
@@ -52,7 +37,6 @@ export class CacheKeys {
     return `clinic:${clinicId}:subscription`;
   }
 
-  // Patient cache keys
   static patientById(patientId: string) {
     return `patient:${patientId}`;
   }
@@ -61,7 +45,6 @@ export class CacheKeys {
     return `patients:${clinicId}${page ? `:page:${page}` : ''}`;
   }
 
-  // Appointment cache keys
   static appointmentById(appointmentId: string) {
     return `appointment:${appointmentId}`;
   }
@@ -70,7 +53,6 @@ export class CacheKeys {
     return `appointments:${clinicId}${date ? `:${date}` : ''}`;
   }
 
-  // Invoice cache keys
   static invoiceById(invoiceId: string) {
     return `invoice:${invoiceId}`;
   }
@@ -79,22 +61,18 @@ export class CacheKeys {
     return `invoices:${clinicId}${status ? `:${status}` : ''}`;
   }
 
-  // Feature flag cache keys
   static featureFlag(flag: string) {
     return `feature:${flag}`;
   }
 
-  // Rate limit cache keys
   static rateLimit(identifier: string, action: string) {
     return `ratelimit:${identifier}:${action}`;
   }
 
-  // Session cache keys
   static session(sessionId: string) {
     return `session:${sessionId}`;
   }
 
-  // Invalidate all keys matching prefix
   static patientsByClinic(clinicId: string) {
     return `patients:${clinicId}:*`;
   }

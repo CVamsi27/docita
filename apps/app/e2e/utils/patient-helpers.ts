@@ -20,12 +20,12 @@ export async function fetchPatientByApi(
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok()) {
-      console.log("fetchPatientByApi failed:", res.status(), await res.text());
+
       return null;
     }
     return await res.json();
   } catch (err) {
-    console.log("fetchPatientByApi error:", err);
+
     return null;
   }
 }
@@ -36,7 +36,6 @@ export async function setupTestUser(
   const uniqueEmail = `doctor${Date.now()}@test.com`;
   const password = TEST_PASSWORD;
 
-  // Register user
   const registerRes = await request.post(`${API_URL}/auth/register`, {
     data: {
       email: uniqueEmail,
@@ -62,7 +61,6 @@ export async function setupTestUser(
     accessToken: token,
   };
 
-  // Create clinic and assign
   try {
     const clinicRes = await request.post(`${API_URL}/clinics`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -96,13 +94,13 @@ export async function setupTestUser(
             loginData.access_token || loginData.accessToken;
           userData.clinicId = loginData.user?.clinicId || userData.clinicId;
         } else {
-          console.log("Login failed in setupTestUser:", await loginRes.text());
+
           throw new Error("Login failed during test user setup");
         }
       }
     }
   } catch (err) {
-    console.log("Clinic setup error:", err);
+
     throw err;
   }
 
@@ -116,23 +114,20 @@ export async function setupTestUser(
 export async function loginUser(page: Page, user: UserData) {
   await page.goto("/login");
 
-  // Step 1: Email
   const emailInput = page.locator('input[type="email"]');
   await emailInput.waitFor({ state: "visible" });
   await emailInput.fill(user.email);
   await page.click('button:has-text("Continue")');
 
-  // Step 2: Password
   const passwordInput = page.locator('input[type="password"]');
   await passwordInput.waitFor({ state: "visible" });
   await passwordInput.fill(TEST_PASSWORD);
 
-  // Submit Login
   await page.click('button:has-text("Sign In")');
 
   try {
     await page.waitForURL("/dashboard", { timeout: 10000 });
   } catch {
-    console.log("Redirected to a different page after login");
+
   }
 }

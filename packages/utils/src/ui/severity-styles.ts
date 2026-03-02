@@ -1,9 +1,4 @@
-/**
- * Severity Styling Utilities
- *
- * Centralized severity configurations and styling utilities
- * for consistent severity-based UI across the application.
- */
+
 
 export type InteractionSeverity = "minor" | "moderate" | "major";
 export type ConditionSeverity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
@@ -13,19 +8,12 @@ export type AllergySeverity =
   | "SEVERE"
   | "LIFE_THREATENING";
 
-/**
- * Icon names for severity levels
- * These correspond to lucide-react icon names
- */
 export type SeverityIconName =
   | "AlertCircle"
   | "AlertTriangle"
   | "Info"
   | "ShieldAlert";
 
-/**
- * Severity styles configuration
- */
 export interface SeverityStyles {
   border: string;
   bg: string;
@@ -34,12 +22,6 @@ export interface SeverityStyles {
   textColor?: string;
 }
 
-/**
- * Get severity styles for drug interactions
- *
- * @param severity - Interaction severity level
- * @returns Style configuration object
- */
 export function getInteractionSeverityStyles(
   severity: InteractionSeverity,
 ): SeverityStyles {
@@ -72,12 +54,6 @@ export function getInteractionSeverityStyles(
   }
 }
 
-/**
- * Get severity styles for medical conditions
- *
- * @param severity - Condition severity level
- * @returns Tailwind CSS class string
- */
 export function getConditionSeverityStyles(
   severity: ConditionSeverity,
 ): string {
@@ -95,10 +71,6 @@ export function getConditionSeverityStyles(
   }
 }
 
-/**
- * Allergy severity configuration
- * Used for consistent allergy alert styling
- */
 export const ALLERGY_SEVERITY_CONFIG: Record<
   AllergySeverity,
   { color: string; iconName: SeverityIconName; priority: number }
@@ -125,22 +97,10 @@ export const ALLERGY_SEVERITY_CONFIG: Record<
   },
 };
 
-/**
- * Get allergy severity configuration
- *
- * @param severity - Allergy severity level
- * @returns Configuration object with colors, icon, and priority
- */
 export function getAllergySeverityConfig(severity: AllergySeverity) {
   return ALLERGY_SEVERITY_CONFIG[severity];
 }
 
-/**
- * Sort allergies by severity (most severe first)
- *
- * @param allergies - Array of allergies with severity field
- * @returns Sorted array of allergies
- */
 export function sortAllergiesBySeverity<
   T extends { severity: AllergySeverity },
 >(allergies: T[]): T[] {
@@ -151,12 +111,6 @@ export function sortAllergiesBySeverity<
   );
 }
 
-/**
- * Check if allergy is critical (life-threatening or severe)
- *
- * @param severity - Allergy severity level
- * @returns True if critical
- */
 export function isCriticalAllergy(severity: AllergySeverity): boolean {
   return severity === "LIFE_THREATENING" || severity === "SEVERE";
 }

@@ -1,4 +1,3 @@
-// Custom application exceptions for domain errors
 export { ApplicationException } from './application.exception';
 export {
   ValidationException,

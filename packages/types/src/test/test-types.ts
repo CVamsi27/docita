@@ -1,8 +1,4 @@
-// Test Mock Types for comprehensive type safety in unit tests
 
-// ============================================================================
-// Bull Queue Mock Types
-// ============================================================================
 
 export interface MockBullJob<T = unknown> {
   id: string | number;
@@ -54,10 +50,6 @@ export interface MockBullQueue<T = unknown> {
   >;
 }
 
-// ============================================================================
-// Prisma Mock Types
-// ============================================================================
-
 export interface MockPrismaDelegate<T = unknown> {
   findMany: jest.Mock<Promise<T[]>, [unknown]>;
   findFirst: jest.Mock<Promise<T | null>, [unknown]>;
@@ -82,10 +74,6 @@ export interface MockPrismaClient {
   $use: jest.Mock<void, [unknown]>;
   [model: string]: MockPrismaDelegate | jest.Mock<unknown, unknown[]>;
 }
-
-// ============================================================================
-// Request/Response Mock Types
-// ============================================================================
 
 export interface MockRequest {
   user?: {
@@ -113,19 +101,11 @@ export interface MockResponse {
   clearCookie: jest.Mock<MockResponse, [string]>;
 }
 
-// ============================================================================
-// Service Mock Factory Types
-// ============================================================================
-
 export type MockedService<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
     ? jest.Mock<R, A>
     : T[K];
 };
-
-// ============================================================================
-// Test Data Factory Types
-// ============================================================================
 
 export interface TestPatientData {
   id?: string;
@@ -160,10 +140,6 @@ export interface TestAppointmentData {
   type?: string;
   duration?: number;
 }
-
-// ============================================================================
-// Jest Type Extensions
-// ============================================================================
 
 declare global {
   namespace jest {

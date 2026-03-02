@@ -1,8 +1,8 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   DiseaseTrendPoint,
@@ -95,16 +95,19 @@ export class ClinicalAnalyticsFactory {
       take: 50,
     });
 
-    const icdCodeIds = diagnoses.map((d) => d.icdCodeId).filter(Boolean);
+    const icdCodeIds = diagnoses
+      .map((d) => d.icdCodeId)
+      .filter((id): id is string => typeof id === 'string');
 
     const icdCodes = await readClient.icdCode.findMany({
-      where: { id: { in: icdCodeIds as string[] } },
+      where: { id: { in: icdCodeIds } },
     });
 
     const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
 
     const result: DiseaseTrendPoint[] = diagnoses.map((d) => {
-      const core = icdCodeMap.get(d.icdCodeId as string);
+      const icdCodeId = typeof d.icdCodeId === 'string' ? d.icdCodeId : '';
+      const core = icdCodeMap.get(icdCodeId);
       return {
         icdCode: core
           ? {

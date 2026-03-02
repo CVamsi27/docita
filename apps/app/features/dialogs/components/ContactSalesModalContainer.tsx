@@ -60,5 +60,4 @@ export function ContactSalesModalContainer({
   );
 }
 
-// Alias for backward compatibility
 export { ContactSalesModalContainer as ContactSalesModal };

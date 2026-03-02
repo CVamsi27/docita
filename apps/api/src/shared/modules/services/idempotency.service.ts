@@ -6,20 +6,13 @@ import { Cache } from 'cache-manager';
 export class IdempotencyService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-  /**
-   * Get a cached response for an idempotency key
-   */
-  async getResponse(key: string): Promise<any> {
+  async getResponse(key: string): Promise<unknown> {
     return this.cacheManager.get(`idempotency:${key}`);
   }
 
-  /**
-   * Save a response for an idempotency key.
-   * Default TTL is 24 hours.
-   */
   async saveResponse(
     key: string,
-    response: Record<string, unknown>,
+    response: unknown,
     ttlInSeconds: number = 24 * 60 * 60,
   ): Promise<void> {
     await this.cacheManager.set(
@@ -29,10 +22,6 @@ export class IdempotencyService {
     );
   }
 
-  /**
-   * Check if an operation is currently being processed
-   * (can be used for distributed locking if needed, but simple for now)
-   */
   async isProcessing(key: string): Promise<boolean> {
     const value = await this.cacheManager.get(`idempotency:processing:${key}`);
     return !!value;

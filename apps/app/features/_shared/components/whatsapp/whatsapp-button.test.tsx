@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { WhatsAppButton } from "./whatsapp-button";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock window.open
 const openMock = vi.fn();
 Object.defineProperty(window, "open", { value: openMock });
 

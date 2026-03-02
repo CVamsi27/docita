@@ -27,7 +27,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { ArrowLeft, FileText, Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
-import { type InvoiceFormValues, useInvoiceEditLogic } from "../../hooks/use-invoice-edit-logic";
+import { type InvoiceFormValues, useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";

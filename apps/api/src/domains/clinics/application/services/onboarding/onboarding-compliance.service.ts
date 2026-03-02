@@ -1,11 +1,11 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { AuditService } from '../../../../../shared/modules/audit/audit/audit.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type { PrismaTransaction } from '@workspace/types';
 import {
   SLAAgreementDto,
   ConsentManagementDto,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { getClinicSettings } from './type-helpers';
 
 @Injectable()

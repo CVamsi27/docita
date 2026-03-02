@@ -1,15 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { patientsApi } from "../api/patients.api";
+import { patientsApi } from "@/features/patients/api/patients.api";
 import type { CreatePatientInput, UpdatePatientInput } from "@workspace/types";
 import { toast } from "sonner";
+import type {
+  PatientMetricCategoryInput,
+  PatientMetricDefinitionInput,
+  PatientMetricHistoryQuery,
+  RecordPatientMetricValueInput,
+  UpsertPatientMetricSelectionsInput,
+} from "@/features/patients/api/patients.api";
 
-/**
- * React Query hooks for patient operations
- */
-
-/**
- * Fetch all patients with optional filters
- */
 export function usePatients(params?: { limit?: number; search?: string }) {
   return useQuery({
     queryKey: ["patients", params],
@@ -17,9 +17,6 @@ export function usePatients(params?: { limit?: number; search?: string }) {
   });
 }
 
-/**
- * Fetch a single patient by ID
- */
 export function usePatient(id: string) {
   return useQuery({
     queryKey: ["patients", id],
@@ -28,9 +25,6 @@ export function usePatient(id: string) {
   });
 }
 
-/**
- * Fetch patient's medical history
- */
 export function usePatientMedicalHistory(id: string) {
   return useQuery({
     queryKey: ["patients", id, "medical-history"],
@@ -39,16 +33,115 @@ export function usePatientMedicalHistory(id: string) {
   });
 }
 
-/**
- * Create a new patient
- */
+export function usePatientMetricCategories(id: string) {
+  return useQuery({
+    queryKey: ["patients", id, "metrics", "categories"],
+    queryFn: () => patientsApi.getMetricCategories(id),
+    enabled: !!id,
+  });
+}
+
+export function usePatientMetricHistory(
+  id: string,
+  query?: PatientMetricHistoryQuery,
+) {
+  return useQuery({
+    queryKey: ["patients", id, "metrics", "history", query],
+    queryFn: () => patientsApi.getMetricHistory(id, query),
+    enabled: !!id,
+  });
+}
+
+export function usePatientSelectedMetrics(id: string) {
+  return useQuery({
+    queryKey: ["patients", id, "metrics", "selected"],
+    queryFn: () => patientsApi.getSelectedMetrics(id),
+    enabled: !!id,
+  });
+}
+
+export function useCreatePatientMetricCategory(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: PatientMetricCategoryInput) =>
+      patientsApi.createMetricCategory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["patients", id, "metrics", "categories"],
+      });
+      toast.success("Metric category added");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create metric category");
+    },
+  });
+}
+
+export function useCreatePatientMetricDefinition(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: PatientMetricDefinitionInput) =>
+      patientsApi.createMetricDefinition(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["patients", id, "metrics", "categories"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["patients", id, "metrics", "selected"],
+      });
+      toast.success("Metric definition added");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create metric definition");
+    },
+  });
+}
+
+export function useUpdatePatientSelectedMetrics(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpsertPatientMetricSelectionsInput) =>
+      patientsApi.updateSelectedMetrics(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["patients", id, "metrics", "selected"],
+      });
+      toast.success("Tracked metrics updated");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update tracked metrics");
+    },
+  });
+}
+
+export function useRecordPatientMetricValue(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: RecordPatientMetricValueInput) =>
+      patientsApi.recordMetricValue(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["patients", id, "metrics", "history"],
+      });
+      toast.success("Metric value recorded");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to record metric value");
+    },
+  });
+}
+
 export function useCreatePatient() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreatePatientInput) => patientsApi.create(data),
     onSuccess: () => {
-      // Invalidate patients list to refetch
+
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       toast.success("Patient created successfully");
     },
@@ -58,16 +151,13 @@ export function useCreatePatient() {
   });
 }
 
-/**
- * Update an existing patient
- */
 export function useUpdatePatient(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: UpdatePatientInput) => patientsApi.update(id, data),
     onSuccess: () => {
-      // Invalidate both the list and the specific patient
+
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["patients", id] });
       toast.success("Patient updated successfully");
@@ -78,9 +168,6 @@ export function useUpdatePatient(id: string) {
   });
 }
 
-/**
- * Delete a patient
- */
 export function useDeletePatient(id: string) {
   const queryClient = useQueryClient();
 

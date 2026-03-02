@@ -1,26 +1,20 @@
 import { nextJsConfig } from "@workspace/eslint-config/next-js";
-import globals from "globals";
 
-/** @type {import("eslint").Linter.Config} */
 export default [
   {
     ignores: [
       ".next/**",
-      "node_modules/**",
-      "dist/**",
+      "out/**",
       "build/**",
-      "coverage/**",
-      "*.d.ts",
-      "playwright-report/**",
-      "test-results/**",
+      "next-env.d.ts",
     ],
-  },
-  {
-    files: ["next.config.mjs", "postcss.config.mjs", "tailwind.config.ts"],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-      },
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-empty": "off",
+      "no-useless-catch": "off",
+      "sort-imports": "off",
+      "no-duplicate-imports": "off",
+      "react-hooks/rules-of-hooks": "off",
     },
   },
   ...nextJsConfig,

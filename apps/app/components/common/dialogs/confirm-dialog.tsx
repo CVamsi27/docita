@@ -1,10 +1,7 @@
-/**
- * Confirm Dialog
- * Used for confirmations before destructive actions
- */
+
 
 import * as React from "react";
-import { Button } from "../buttons";
+import { Button } from "@/components/common/buttons";
 
 export interface ConfirmDialogProps {
   open: boolean;

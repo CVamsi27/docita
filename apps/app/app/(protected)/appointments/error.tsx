@@ -13,7 +13,7 @@ export default function AppointmentsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Appointments route error:", error);
+
   }, [error]);
 
   return (

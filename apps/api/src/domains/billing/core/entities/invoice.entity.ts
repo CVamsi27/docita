@@ -1,16 +1,16 @@
-import { Money } from '../value-objects/money.value-object';
+import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 import {
   InvoiceStatus,
   InvoiceStatusEnum,
-} from '../value-objects/invoice-status.value-object';
-import { BillingPeriod } from '../value-objects/billing-period.value-object';
+} from '@/domains/billing/core/value-objects/invoice-status.value-object';
+import { BillingPeriod } from '@/domains/billing/core/value-objects/billing-period.value-object';
 import { InvoiceItem } from './invoice-item.entity';
 
 export interface InvoiceProps {
   id: string;
   patientId: string;
   appointmentId?: string;
-  clinicId?: string; // Optional - can be derived from appointment context
+  clinicId?: string;
   status: InvoiceStatus;
   billingPeriod: BillingPeriod;
   items: InvoiceItem[];
@@ -80,7 +80,6 @@ export class Invoice {
     }
   }
 
-  // Derived properties from billingPeriod
   get issueDate(): Date {
     return this.billingPeriod.startDate;
   }

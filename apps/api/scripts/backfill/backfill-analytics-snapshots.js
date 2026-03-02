@@ -35,13 +35,12 @@ function generateSnapshots(clinicId, days) {
 }
 
 async function backfillAnalyticsSnapshots() {
-  console.log('Starting analytics snapshots backfill...');
 
   try {
     const clinics = await prisma.clinic.findMany();
 
     if (clinics.length === 0) {
-      console.log('No clinics found. Skipping backfill.');
+
       return;
     }
 
@@ -56,14 +55,12 @@ async function backfillAnalyticsSnapshots() {
       });
 
       totalInserted += result.count;
-      console.log(`Clinic ${clinic.id}: Inserted ${result.count} snapshots`);
+
     }
 
-    console.log(
-      `Backfill Complete: ${totalInserted} total analytics snapshots`,
-    );
+    
   } catch (error) {
-    console.error('Backfill failed:', error);
+
     throw error;
   } finally {
     await prisma.$disconnect();

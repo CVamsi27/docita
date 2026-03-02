@@ -13,7 +13,7 @@ export default function DentalChartsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Dental Charts route error:", error);
+
   }, [error]);
 
   return (

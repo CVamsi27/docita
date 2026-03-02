@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Prisma } from '@workspace/db';
 
 @Injectable()
@@ -7,6 +7,35 @@ export class UsageTrackingService {
   private readonly logger = new Logger(UsageTrackingService.name);
 
   constructor(private prisma: PrismaService) {}
+
+  private parseTierRates(value: unknown): Record<string, number> {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return Object.fromEntries(
+            Object.entries(parsed).map(([key, entry]) => [
+              key,
+              typeof entry === 'number' ? entry : 0,
+            ]),
+          );
+        }
+      } catch {
+        return {};
+      }
+    }
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [
+          key,
+          typeof entry === 'number' ? entry : 0,
+        ]),
+      );
+    }
+
+    return {};
+  }
 
   async recordUsageEvent(params: {
     clinicId: string;
@@ -255,8 +284,10 @@ export class UsageTrackingService {
 
     const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
     if (whatsappAddOn && usage.usage.whatsappMessages.overage > 0) {
-      const overageRate =
-        JSON.parse(whatsappAddOn.addOn.overageRateByTier as string)[tier] / 100;
+      const whatsappRates = this.parseTierRates(
+        whatsappAddOn.addOn.overageRateByTier,
+      );
+      const overageRate = (whatsappRates[tier] || 0) / 100;
       const charge = usage.usage.whatsappMessages.overage * overageRate;
       breakdown.whatsappMessages = {
         quantity: usage.usage.whatsappMessages.overage,
@@ -270,9 +301,10 @@ export class UsageTrackingService {
       (a) => a.addOnType === 'INTELLIGENCE',
     );
     if (intelligenceAddOn && usage.usage.aiCredits.overage > 0) {
-      const overageRate =
-        JSON.parse(intelligenceAddOn.addOn.overageRateByTier as string)[tier] /
-        100;
+      const intelligenceRates = this.parseTierRates(
+        intelligenceAddOn.addOn.overageRateByTier,
+      );
+      const overageRate = (intelligenceRates[tier] || 0) / 100;
       const charge = usage.usage.aiCredits.overage * overageRate;
       breakdown.aiCredits = {
         quantity: usage.usage.aiCredits.overage,

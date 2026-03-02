@@ -65,7 +65,6 @@ export function ContactSalesModal({
       errors.message = "Message is required";
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email.trim() && !emailRegex.test(formData.email)) {
       errors.email = "Please enter a valid email address";
@@ -78,7 +77,7 @@ export function ContactSalesModal({
 
     setIsSubmitting(true);
     try {
-      // Call contact endpoint or send email
+
       const contactUrl = process.env.NEXT_PUBLIC_API_URL
         ? `${process.env.NEXT_PUBLIC_API_URL}/contact/inquiry`
         : "http://localhost:3001/api/contact/inquiry";
@@ -98,7 +97,6 @@ export function ContactSalesModal({
       setSubmitted(true);
       toast.success("Thank you! Our sales team will contact you soon.");
 
-      // Auto-close after 3 seconds
       setTimeout(() => {
         handleClose();
       }, 3000);
@@ -141,8 +139,8 @@ export function ContactSalesModal({
         <div className="space-y-4">
           {submitted ? (
             <div className="text-center space-y-3 py-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success dark:bg-success mx-auto">
+                <CheckCircle className="h-6 w-6 text-success dark:text-success" />
               </div>
               <h3 className="font-semibold">Message Sent!</h3>
               <p className="text-sm text-muted-foreground">
@@ -153,9 +151,9 @@ export function ContactSalesModal({
           ) : (
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               {error && (
-                <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-600">
+                <Alert className="border-destructive/30 bg-destructive dark:bg-destructive">
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <AlertDescription className="text-destructive">
                     {error}
                   </AlertDescription>
                 </Alert>

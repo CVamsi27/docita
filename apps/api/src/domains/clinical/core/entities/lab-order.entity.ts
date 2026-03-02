@@ -36,7 +36,7 @@ export class LabOrder {
       props.id || '',
       props.patientId,
       props.labTestId,
-      props.status || ('ORDERED' as LabTestOrderStatus), // Default from factory
+      props.status || ('ORDERED' as LabTestOrderStatus),
       props.clinicId,
       props.appointmentId,
       props.result,

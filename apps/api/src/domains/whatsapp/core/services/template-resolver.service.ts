@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   IWhatsAppRepository,
   WHATSAPP_REPOSITORY_TOKEN,
-} from '../../application/ports/whatsapp.repository.port';
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import {
   DefaultTemplatesService,
   TemplateVariable,
@@ -15,6 +15,59 @@ export interface ResolvedTemplate {
   buttonType: 'QUICK_REPLY' | 'CALL_TO_ACTION';
   textFallback: string;
   metaTemplateId?: string;
+}
+
+function normalizeButtonType(
+  value: unknown,
+): 'NONE' | 'QUICK_REPLY' | 'CALL_TO_ACTION' {
+  if (
+    value === 'NONE' ||
+    value === 'QUICK_REPLY' ||
+    value === 'CALL_TO_ACTION'
+  ) {
+    return value;
+  }
+
+  return 'QUICK_REPLY';
+}
+
+function toTemplateVariables(value: unknown): TemplateVariable[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object',
+    )
+    .map((item) => ({
+      name: typeof item.name === 'string' ? item.name : '',
+      required: typeof item.required === 'boolean' ? item.required : false,
+      defaultValue:
+        typeof item.defaultValue === 'string' ? item.defaultValue : undefined,
+    }))
+    .filter((item) => item.name.length > 0);
+}
+
+function toTemplateButtons(value: unknown): TemplateButton[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const buttons = value
+    .filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object',
+    )
+    .map((item) => ({
+      id: typeof item.id === 'string' ? item.id : '',
+      text: typeof item.text === 'string' ? item.text : '',
+      action: typeof item.action === 'string' ? item.action : undefined,
+    }))
+    .filter((item) => item.id.length > 0 && item.text.length > 0);
+
+  return buttons.length > 0 ? buttons : undefined;
 }
 
 @Injectable()
@@ -103,12 +156,9 @@ export class TemplateResolverService {
           name: customTemplate.name,
           category: customTemplate.category,
           content: customTemplate.content,
-          variables:
-            (customTemplate.variables as unknown as TemplateVariable[]) || [],
-          buttonType: (customTemplate.buttonType as any) || 'QUICK_REPLY',
-          buttons: customTemplate.buttons as unknown as
-            | TemplateButton[]
-            | undefined,
+          variables: toTemplateVariables(customTemplate.variables),
+          buttonType: normalizeButtonType(customTemplate.buttonType),
+          buttons: toTemplateButtons(customTemplate.buttons),
           textFallback: customTemplate.content,
           metaTemplateId: customTemplate.metaTemplateId || undefined,
         };

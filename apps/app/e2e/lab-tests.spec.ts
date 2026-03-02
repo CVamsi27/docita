@@ -10,7 +10,7 @@ test.describe("Lab Tests", () => {
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-      // Register doctor
+
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -30,7 +30,6 @@ test.describe("Lab Tests", () => {
       const userData = await registerRes.json();
       authToken = userData.access_token;
 
-      // Create clinic
       const clinicRes = await request.post(`${API_URL}/clinics`, {
         headers: { Authorization: `Bearer ${authToken}` },
         data: {
@@ -48,7 +47,6 @@ test.describe("Lab Tests", () => {
       const clinic = await clinicRes.json();
       clinicId = clinic.id;
 
-      // Create patient
       const patientRes = await request.post(`${API_URL}/patients`, {
         headers: { Authorization: `Bearer ${authToken}` },
         data: {

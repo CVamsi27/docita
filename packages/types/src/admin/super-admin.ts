@@ -1,15 +1,6 @@
 import { z } from "zod";
 import { clinicSchema } from "../shared/clinics";
 
-/**
- * Super Admin Types
- * =====================================================
- * Types for super admin dashboard and management
- */
-
-/**
- * ClinicTier matches the Prisma enum
- */
 export type ClinicTierType =
   | "CAPTURE"
   | "CORE"
@@ -17,12 +8,6 @@ export type ClinicTierType =
   | "PRO"
   | "ENTERPRISE"
   | "INTELLIGENCE";
-
-/**
- * =====================================================
- * Super Admin DTO Types (Consolidated from super-admin-types.ts)
- * =====================================================
- */
 
 export interface CreateClinicDto {
   name: string;
@@ -75,12 +60,6 @@ export interface SuperAdminPaymentData {
   razorpayOrderId?: string;
   razorpaySignature?: string;
 }
-
-/**
- * =====================================================
- * Super Admin Analytics Schemas (Keep existing)
- * =====================================================
- */
 
 export const superAdminGlobalStatsSchema = z.object({
   totalClinics: z.number(),

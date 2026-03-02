@@ -1,8 +1,3 @@
-/**
- * Invoice Status Value Object
- * Ensures only valid state transitions
- */
-
 export enum InvoiceStatusEnum {
   DRAFT = 'DRAFT',
   ISSUED = 'ISSUED',

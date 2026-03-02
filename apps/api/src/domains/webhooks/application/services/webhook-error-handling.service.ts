@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ErrorSeverity } from '@workspace/db';
 
 export interface WebhookErrorContext {
   clinicId?: string;
   userId?: string;
-  eventType: string; // 'payment.webhook', 'subscription.webhook', etc.
-  providerId?: string; // Payment provider ID, subscription ID, etc.
-  payload?: Record<string, unknown>; // Webhook-specific payload (RazorpayWebhookPayload, etc.)
+  eventType: string;
+  providerId?: string;
+  payload?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -18,10 +18,6 @@ export class WebhookErrorHandlingService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Log webhook errors for audit trail and debugging
-   * Critical errors are logged with CRITICAL severity for alerting
-   */
   async logWebhookError(
     error: Error,
     context: WebhookErrorContext,
@@ -58,7 +54,6 @@ export class WebhookErrorHandlingService {
         },
       );
 
-      // For critical errors, log to monitoring system
       if (isCritical) {
         this.logger.error(`CRITICAL WEBHOOK ERROR: ${context.eventType}`, {
           error: error.message,
@@ -66,7 +61,6 @@ export class WebhookErrorHandlingService {
         });
       }
     } catch (logError) {
-      // Fallback: if we can't log to DB, at least log to logger
       this.logger.error('Failed to log webhook error to database', {
         originalError: error.message,
         logError: (logError as Error).message,
@@ -75,10 +69,6 @@ export class WebhookErrorHandlingService {
     }
   }
 
-  /**
-   * Track webhook event processing for audit trail
-   * Status: PENDING → SUCCESS or FAILED
-   */
   async trackWebhookEvent(
     eventType: string,
     providerId: string,
@@ -86,8 +76,6 @@ export class WebhookErrorHandlingService {
     error?: Error,
   ): Promise<void> {
     try {
-      // Only try to log if we have clinic context (can be null for some webhooks)
-      // For production: ensure all webhook events can identify their clinic
       await this.prisma.auditLog.create({
         data: {
           clinicId: 'system',
@@ -104,7 +92,6 @@ export class WebhookErrorHandlingService {
         },
       });
     } catch (auditError) {
-      // Don't let audit logging failures affect webhook processing
       this.logger.warn('Failed to track webhook event', {
         eventType,
         providerId,
@@ -114,12 +101,7 @@ export class WebhookErrorHandlingService {
     }
   }
 
-  /**
-   * Determine if an error is critical enough to alert
-   * Critical: Payment failures, subscription failures, data consistency issues
-   */
   isCriticalError(error: Error, eventType: string): boolean {
-    // Critical keywords that indicate payment/subscription issues
     const criticalKeywords = [
       'payment',
       'transaction',

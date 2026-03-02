@@ -1,6 +1,4 @@
-/**
- * Inventory Business Rules
- */
+
 
 export const isLowStock = (quantity: number, minQuantity: number): boolean => {
   return quantity <= minQuantity;

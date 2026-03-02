@@ -9,9 +9,9 @@ export function MedicalCodingSection() {
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-4 py-2 text-sm mb-4">
-              <Code2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              <span className="font-medium text-teal-700 dark:text-teal-300">
+            <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+              <Code2 className="h-4 w-4 text-info" />
+              <span className="font-medium text-info">
                 ICD-10 Compliant
               </span>
             </div>
@@ -43,8 +43,8 @@ export function MedicalCodingSection() {
                 },
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <div className="rounded-full bg-teal-500/10 p-1.5 mt-0.5">
-                    <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  <div className="rounded-full badge-info p-1.5 mt-0.5">
+                    <CheckCircle2 className="h-4 w-4 text-info" />
                   </div>
                   <div>
                     <span className="font-medium">{item.title}</span>
@@ -53,7 +53,7 @@ export function MedicalCodingSection() {
                 </li>
               ))}
             </ul>
-            <p className="text-sm text-muted-foreground border-l-2 border-teal-500/50 pl-4">
+            <p className="text-sm text-muted-foreground border-l-2 border-info/50 pl-4">
               Available from{" "}
               <span className="font-semibold text-foreground">Core tier</span>{" "}
               and above. AI-assisted coding suggestions available with{" "}
@@ -64,10 +64,10 @@ export function MedicalCodingSection() {
             </p>
           </div>
           <div className="relative">
-            <div className="rounded-2xl bg-linear-to-br from-teal-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-teal-500/20">
+            <div className="rounded-2xl bg-linear-to-br from-info/20 to-info/10 p-8 backdrop-blur-sm border border-info/20">
               <div className="bg-background rounded-xl p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
-                  <Activity className="h-5 w-5 text-teal-600" />
+                  <Activity className="h-5 w-5 text-info" />
                   <span className="font-semibold">Medical Coding</span>
                 </div>
                 <div className="space-y-3">
@@ -99,7 +99,7 @@ export function MedicalCodingSection() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-teal-500/10 rounded-lg border border-teal-500/20">
+                  <div className="flex items-center justify-between p-3 surface-info rounded-lg">
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Procedure
@@ -110,7 +110,7 @@ export function MedicalCodingSection() {
                       <div className="font-medium">
                         Office visit - Established
                       </div>
-                      <div className="text-xs text-teal-600 dark:text-teal-400">
+                      <div className="text-xs text-info">
                         Level 3
                       </div>
                     </div>
@@ -118,7 +118,7 @@ export function MedicalCodingSection() {
                 </div>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 bg-teal-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+            <div className="absolute -top-4 -right-4 bg-info text-info-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
               ICD-10 & CPT
             </div>
           </div>

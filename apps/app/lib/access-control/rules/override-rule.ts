@@ -1,9 +1,6 @@
-/**
- * Override-based access control rule
- * Single Responsibility: Evaluate feature overrides (admin grants, trials, etc.)
- */
 
-import type { IAccessContext, IAccessRule } from "../interfaces";
+
+import type { IAccessContext, IAccessRule } from "@/lib/access-control/interfaces";
 
 export class OverrideAccessRule implements IAccessRule {
   canAccess(context: IAccessContext): boolean {
@@ -26,12 +23,10 @@ export class OverrideAccessRule implements IAccessRule {
   }
 
   getPriority(): number {
-    return 100; // Highest priority - overrides take precedence
+    return 100; 
   }
 
-  /**
-   * Check if there's an override for a feature (regardless of grant status)
-   */
+  
   hasOverride(context: IAccessContext): boolean {
     if (!context.overrides) {
       return false;
@@ -40,9 +35,7 @@ export class OverrideAccessRule implements IAccessRule {
     return context.overrides.some((o) => o.feature === context.feature);
   }
 
-  /**
-   * Get the override for a feature if it exists
-   */
+  
   getOverride(context: IAccessContext) {
     return context.overrides?.find((o) => o.feature === context.feature);
   }

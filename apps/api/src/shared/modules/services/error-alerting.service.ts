@@ -1,24 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-/**
- * Error Alerting Service (CQ-2 Component)
- *
- * Handles critical error notifications and escalations
- */
 @Injectable()
 export class ErrorAlertingService {
   private readonly logger = new Logger(ErrorAlertingService.name);
   private alertThresholds = {
-    criticalErrorRate: 0.05, // 5% error rate threshold
-    consecutiveFailures: 3, // 3 failed attempts trigger alert
-    responseTimeThreshold: 5000, // 5 seconds
+    criticalErrorRate: 0.05,
+    consecutiveFailures: 3,
+    responseTimeThreshold: 5000,
   };
 
   constructor() {}
 
-  /**
-   * Register critical error occurrence
-   */
   trackCriticalError(context: {
     errorType: string;
     service: string;
@@ -35,21 +27,12 @@ export class ErrorAlertingService {
       timestamp: new Date().toISOString(),
     });
 
-    // In production, this would:
-    // 1. Send Slack/PagerDuty alert
-    // 2. Log to external monitoring (DataDog, Sentry, etc.)
-    // 3. Create incident ticket if severity high
-    // 4. Notify on-call engineer
-
     const shouldEscalate = this.evaluateSeverity(context);
     if (shouldEscalate) {
       this.sendEscalationAlert(context);
     }
   }
 
-  /**
-   * Track error rate for a service
-   */
   trackErrorRate(
     service: string,
     totalRequests: number,
@@ -66,14 +49,10 @@ export class ErrorAlertingService {
         failedRequests,
       });
 
-      // Trigger alert if exceeds threshold
       this.sendErrorRateAlert(service, errorRate);
     }
   }
 
-  /**
-   * Track consecutive operation failures
-   */
   trackConsecutiveFailures(operation: string, failureCount: number): void {
     if (failureCount >= this.alertThresholds.consecutiveFailures) {
       this.logger.error(`Consecutive failures detected: ${operation}`, {
@@ -86,9 +65,6 @@ export class ErrorAlertingService {
     }
   }
 
-  /**
-   * Track slow operations
-   */
   trackSlowOperation(context: {
     operation: string;
     duration: number;
@@ -108,14 +84,10 @@ export class ErrorAlertingService {
     }
   }
 
-  /**
-   * Evaluate error severity for escalation
-   */
   private evaluateSeverity(context: {
     errorType: string;
     service: string;
   }): boolean {
-    // Critical services that require immediate attention
     const criticalServices = ['payments', 'auth', 'database', 'api-gateway'];
     const criticalErrorTypes = [
       'PaymentGatewayError',
@@ -130,37 +102,19 @@ export class ErrorAlertingService {
     return isCriticalService || isCriticalError;
   }
 
-  /**
-   * Send escalation alert (Slack, PagerDuty, etc.)
-   */
   private sendEscalationAlert(context: Record<string, unknown>): void {
-    // In production, implement actual alerting:
-    // - Slack webhook
-    // - PagerDuty incident creation
-    // - Email notification
-    // - SMS for critical severity
-
     this.logger.error('ESCALATION ALERT', {
       context,
       timestamp: new Date().toISOString(),
-      // In production: await this.slackService.sendAlert(...)
-      // In production: await this.pagerDutyService.createIncident(...)
     });
   }
 
-  /**
-   * Send error rate alert
-   */
   private sendErrorRateAlert(service: string, errorRate: number): void {
     this.logger.warn(`ERROR RATE ALERT: ${service}`, {
       errorRate: `${(errorRate * 100).toFixed(2)}%`,
     });
-    // In production: await this.monitoringService.sendAlert(...)
   }
 
-  /**
-   * Send operation failure alert
-   */
   private sendOperationFailureAlert(
     operation: string,
     failureCount: number,
@@ -168,29 +122,18 @@ export class ErrorAlertingService {
     this.logger.error(`OPERATION FAILURE ALERT: ${operation}`, {
       failureCount,
     });
-    // In production: await this.monitoringService.sendAlert(...)
   }
 
-  /**
-   * Send performance alert
-   */
   private sendPerformanceAlert(operation: string, duration: number): void {
     this.logger.warn(`PERFORMANCE ALERT: ${operation}`, {
       duration: `${duration}ms`,
     });
-    // In production: await this.monitoringService.sendAlert(...)
   }
 
-  /**
-   * Get alert configuration
-   */
   getAlertThresholds() {
     return { ...this.alertThresholds };
   }
 
-  /**
-   * Update alert thresholds
-   */
   updateAlertThresholds(newThresholds: Partial<typeof this.alertThresholds>) {
     this.alertThresholds = { ...this.alertThresholds, ...newThresholds };
     this.logger.log('Alert thresholds updated', {

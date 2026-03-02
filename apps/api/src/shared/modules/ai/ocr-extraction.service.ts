@@ -65,22 +65,26 @@ export class OcrExtractionService {
 
     const imageData = fs.readFileSync(imagePath);
     const base64Image = imageData.toString('base64');
+    const content: Array<
+      | { type: 'image_url'; image_url: { url: string } }
+      | { type: 'text'; text: string }
+    > = [
+      {
+        type: 'image_url',
+        image_url: { url: `data:image/jpeg;base64,${base64Image}` },
+      },
+      {
+        type: 'text',
+        text: `Extract ALL text from this medical document. Demographics, Vitals, Lab values, Medications, Diagnosis, Symptoms, Dates, Doctor info, Billing details. Return ONLY the text.`,
+      },
+    ];
 
     const response = await this.openaiService.client.chat.completions.create({
       model: 'gpt-4-vision-preview',
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: `data:image/jpeg;base64,${base64Image}` },
-            },
-            {
-              type: 'text',
-              text: `Extract ALL text from this medical document. Demographics, Vitals, Lab values, Medications, Diagnosis, Symptoms, Dates, Doctor info, Billing details. Return ONLY the text.`,
-            },
-          ] as any,
+          content,
         },
       ],
       max_tokens: 4000,
@@ -319,7 +323,7 @@ export class OcrExtractionService {
       return match ? match[1]?.trim() || '' : '';
     };
 
-    const res = {
+    const res: OcrRawData = {
       firstName: extract(patterns.firstName),
       lastName: extract(patterns.lastName),
       age: extract(patterns.age),
@@ -341,6 +345,6 @@ export class OcrExtractionService {
       },
     };
 
-    return this.normalizeOcrFields(res as any, config);
+    return this.normalizeOcrFields(res, config);
   }
 }

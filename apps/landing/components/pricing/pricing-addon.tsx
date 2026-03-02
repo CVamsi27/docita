@@ -1,7 +1,4 @@
-/**
- * Pricing add-on card component
- * Used to display optional add-ons like WhatsApp and Intelligence
- */
+
 
 import { ReactNode } from "react";
 import {
@@ -26,18 +23,18 @@ export interface PricingAddonProps {
 }
 
 const bgColorMap = {
-  green: "from-green-500/5 via-background to-emerald-500/5",
-  primary: "from-primary/5 via-background to-purple-500/5",
+  green: "from-success/5 via-background to-success/10",
+  primary: "from-primary/5 via-background to-info/5",
 };
 
 const borderColorMap = {
-  green: "border-green-500/30",
+  green: "border-success/30",
   primary: "border-primary/30",
 };
 
 const accentColorMap = {
-  green: "from-green-500 to-emerald-600",
-  primary: "from-primary to-purple-600",
+  green: "from-success to-success/80",
+  primary: "from-primary to-primary/80",
 };
 
 export function PricingAddon({
@@ -55,7 +52,7 @@ export function PricingAddon({
     >
       <div
         className={`absolute top-0 right-0 w-24 h-24 bg-linear-to-bl ${
-          iconBgColor === "green" ? "from-green-500/10" : "from-primary/10"
+          iconBgColor === "green" ? "from-success/10" : "from-primary/10"
         } to-transparent`}
       />
 
@@ -64,7 +61,7 @@ export function PricingAddon({
           <div
             className={`rounded-xl bg-linear-to-br ${accentColorMap[iconBgColor]} p-3`}
           >
-            <div className="h-6 w-6 text-white">{icon}</div>
+            <div className="h-6 w-6 text-primary-foreground">{icon}</div>
           </div>
           <div>
             <CardTitle className="text-lg">{title}</CardTitle>
@@ -89,7 +86,7 @@ export function PricingAddon({
             <div key={i} className="flex items-center gap-2 text-sm">
               <div
                 className={`${
-                  iconBgColor === "green" ? "text-green-500" : "text-primary"
+                  iconBgColor === "green" ? "text-success" : "text-primary"
                 } shrink-0`}
               >
                 {feature.icon}

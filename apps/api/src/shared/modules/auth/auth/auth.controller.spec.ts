@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
-import { UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { IpRateLimitGuard } from '../guards/ip-rate-limit.guard';
+import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -26,6 +26,8 @@ describe('AuthController', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
@@ -68,7 +70,7 @@ describe('AuthController', () => {
     it('should return token on successful login', async () => {
       const user = { id: '1', email: 'test@example.com' };
       const token = { access_token: 'token', refresh_token: 'refresh', user };
-      const response = { cookie: jest.fn() } as any;
+      const response = { cookie: jest.fn() } as never;
       mockAuthService.validateUser.mockResolvedValue(user);
       mockAuthService.login.mockReturnValue(token);
 
@@ -83,7 +85,7 @@ describe('AuthController', () => {
     });
 
     it('should throw UnauthorizedException on invalid credentials', async () => {
-      const response = { cookie: jest.fn() } as any;
+      const response = { cookie: jest.fn() } as never;
       mockAuthService.validateUser.mockResolvedValue(null);
       await expect(
         controller.login(
@@ -111,7 +113,7 @@ describe('AuthController', () => {
         clinicName: dto.clinicName,
       };
 
-      const response = { cookie: jest.fn() } as any;
+      const response = { cookie: jest.fn() } as never;
       mockAuthService.register.mockResolvedValue({
         id: '1',
         ...expectedCall,

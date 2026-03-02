@@ -1,9 +1,10 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import * as Papa from 'papaparse';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Gender, Specialization } from '@workspace/db';
 
 export type BulkImportEntityType =
   | 'PATIENT'
@@ -22,10 +23,15 @@ interface BulkImportJobData {
   totalRows: number;
 }
 
+type BulkImportValue = string | number | boolean | null | undefined;
+type BulkImportRow = Record<string, BulkImportValue>;
+
+const SPECIALIZATIONS = new Set<string>(Object.values(Specialization));
+
 interface ImportError {
   rowNumber: number;
   error: string;
-  value: Record<string, any>;
+  value: BulkImportRow;
 }
 
 @Injectable()
@@ -39,9 +45,6 @@ export class BulkImportService {
     @InjectQueue('bulk-import') private bulkImportQueue: Queue,
   ) {}
 
-  /**
-   * Start a bulk import job
-   */
   async startImport(
     clinicId: string,
     userId: string,
@@ -85,7 +88,6 @@ export class BulkImportService {
         );
       }
 
-      // Validate entity type
       if (!this.isValidEntityType(entityType)) {
         throw new BadRequestException(
           `Invalid entity type: ${String(entityType)}`,
@@ -111,10 +113,9 @@ export class BulkImportService {
 
       await this.bulkImportQueue.add('process-import', jobData, {
         attempts: 1,
-        timeout: 60000 * 10, // 10 minutes timeout
+        timeout: 60000 * 10,
       });
 
-      // Update rate limit tracking
       this.lastImportTimes.set(clinicId, Date.now());
 
       return {
@@ -131,8 +132,6 @@ export class BulkImportService {
     }
   }
 
-  /**
-   */
   async processImport(jobData: BulkImportJobData): Promise<void> {
     try {
       const { jobId, clinicId, userId, entityType, fileBuffer, totalRows } =
@@ -153,7 +152,7 @@ export class BulkImportService {
 
       const batchSize = 1000;
       for (let i = 0; i < rows.length; i += batchSize) {
-        const batch = rows.slice(i, i + batchSize) as Record<string, any>[];
+        const batch = rows.slice(i, i + batchSize) as BulkImportRow[];
         const batchResults = await this.processBatch(
           entityType,
           batch,
@@ -195,12 +194,9 @@ export class BulkImportService {
     }
   }
 
-  /**
-   * Process a batch of rows
-   */
   private async processBatch(
     entityType: BulkImportEntityType,
-    rows: Record<string, any>[],
+    rows: BulkImportRow[],
     clinicId: string,
     startRowNumber: number,
   ): Promise<{ successCount: number; errors: ImportError[] }> {
@@ -209,16 +205,14 @@ export class BulkImportService {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const rowNumber = startRowNumber + i + 2; // +2 for header row and 1-indexing
+      const rowNumber = startRowNumber + i + 2;
 
       try {
-        // Validate row
         const validation = this.validateRow(entityType, row);
         if (!validation.valid) {
           throw new Error(validation.error);
         }
 
-        // Process based on entity type
         switch (entityType) {
           case 'PATIENT':
             await this.importPatient(row, clinicId);
@@ -250,16 +244,49 @@ export class BulkImportService {
     return { successCount, errors };
   }
 
-  /**
-   * Validate row data
-   */
-  private validateRow(
-    entityType: BulkImportEntityType,
-    row: Record<string, any>,
-  ) {
+  private getString(row: BulkImportRow, key: string): string {
+    const value = row[key];
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+    throw new Error(`Missing ${key}`);
+  }
+
+  private getOptionalString(
+    row: BulkImportRow,
+    key: string,
+  ): string | undefined {
+    const value = row[key];
+    if (value === null || value === undefined) {
+      return undefined;
+    }
+    return String(value);
+  }
+
+  private getGender(row: BulkImportRow): Gender {
+    const value = this.getOptionalString(row, 'gender');
+    if (
+      value === Gender.MALE ||
+      value === Gender.FEMALE ||
+      value === Gender.OTHER
+    ) {
+      return value;
+    }
+    return Gender.OTHER;
+  }
+
+  private getSpecialization(row: BulkImportRow): Specialization | undefined {
+    const value = this.getOptionalString(row, 'specialization');
+    if (!value || !SPECIALIZATIONS.has(value)) {
+      return undefined;
+    }
+    return value as Specialization;
+  }
+
+  private validateRow(entityType: BulkImportEntityType, row: BulkImportRow) {
     const validators: Record<
       BulkImportEntityType,
-      (row: Record<string, any>) => { valid: boolean; error?: string }
+      (row: BulkImportRow) => { valid: boolean; error?: string }
     > = {
       PATIENT: (row) => {
         if (!row.firstName || !row.lastName) {
@@ -299,118 +326,106 @@ export class BulkImportService {
     return validators[entityType](row);
   }
 
-  /**
-   * Import patient row
-   */
   private async importPatient(
-    row: Record<string, any>,
+    row: BulkImportRow,
     clinicId: string,
   ): Promise<void> {
-    // Validate email uniqueness if provided
-    if (row.email) {
+    const firstName = this.getString(row, 'firstName');
+    const lastName = this.getString(row, 'lastName');
+    const phoneNumber = this.getString(row, 'phoneNumber');
+    const email = this.getOptionalString(row, 'email');
+    const dateOfBirthRaw = row.dateOfBirth;
+    const dateOfBirth =
+      typeof dateOfBirthRaw === 'string' || typeof dateOfBirthRaw === 'number'
+        ? new Date(dateOfBirthRaw)
+        : new Date();
+
+    if (email) {
       const existing = await this.prisma.patient.findFirst({
-        where: { email: row.email },
+        where: { email },
       });
       if (existing) {
-        throw new Error(`Email already exists: ${row.email}`);
+        throw new Error(`Email already exists: ${email}`);
       }
     }
 
     await this.prisma.patient.create({
       data: {
-        firstName: row.firstName,
-        lastName: row.lastName,
-        phoneNumber: row.phoneNumber,
-        email: row.email,
-        dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : new Date(),
-        bloodGroup: row.bloodGroup,
-        address: row.address,
-        gender: row.gender || 'OTHER',
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+        dateOfBirth,
+        bloodGroup: this.getOptionalString(row, 'bloodGroup'),
+        address: this.getOptionalString(row, 'address'),
+        gender: this.getGender(row),
         clinicId,
       },
     });
   }
 
-  /**
-   * Import prescription row
-   * Note: Prescriptions require an associated appointment (appointmentId is unique constraint)
-   * For bulk import, we skip prescriptions as they must be linked to appointments
-   */
   private async importPrescription(
-    row: Record<string, any>,
+    row: BulkImportRow,
     clinicId: string,
   ): Promise<void> {
-    // Verify patient exists
+    const patientId = this.getString(row, 'patientId');
+    const doctorId = this.getString(row, 'doctorId');
+
     const patient = await this.prisma.patient.findUnique({
-      where: { id: row.patientId },
+      where: { id: patientId },
     });
     if (!patient) {
-      throw new Error(`Patient not found: ${row.patientId}`);
+      throw new Error(`Patient not found: ${patientId}`);
     }
 
-    // Verify doctor exists
     const doctor = await this.prisma.user.findUnique({
-      where: { id: row.doctorId },
+      where: { id: doctorId },
     });
     if (!doctor) {
-      throw new Error(`Doctor not found: ${row.doctorId}`);
+      throw new Error(`Doctor not found: ${doctorId}`);
     }
 
-    // For bulk import without appointments, we skip prescription creation
-    // Prescriptions must be linked to appointments (appointmentId is unique constraint)
-    // Users should create appointments first, then prescriptions through normal workflow
     this.logger.warn(
-      `Skipping prescription import for patient ${row.patientId}: bulk import requires existing appointments`,
+      `Skipping prescription import for patient ${patientId}: bulk import requires existing appointments`,
     );
   }
 
-  /**
-   * Import doctor row
-   */
   private async importDoctor(
-    row: Record<string, any>,
+    row: BulkImportRow,
     clinicId: string,
   ): Promise<void> {
-    // Verify email uniqueness
+    const email = this.getString(row, 'email');
+    const name = this.getString(row, 'name');
+
     const existing = await this.prisma.user.findUnique({
-      where: { email: row.email },
+      where: { email },
     });
     if (existing) {
-      throw new Error(`Email already exists: ${row.email}`);
+      throw new Error(`Email already exists: ${email}`);
     }
 
-    // Create doctor user
     await this.prisma.user.create({
       data: {
-        email: row.email,
-        name: row.name,
-        password: 'temp_password', // Should be sent via separate notification
+        email,
+        name,
+        password: 'temp_password',
         role: 'DOCTOR',
         clinicId,
-        specialization: row.specialization,
-        registrationNumber: row.registrationNumber,
-        phoneNumber: row.phoneNumber,
+        specialization: this.getSpecialization(row),
+        registrationNumber: this.getOptionalString(row, 'registrationNumber'),
+        phoneNumber: this.getOptionalString(row, 'phoneNumber'),
       },
     });
   }
 
-  /**
-   * Import lab test row
-   */
-  private importLabTest(row: Record<string, any>, clinicId: string): void {
+  private importLabTest(row: BulkImportRow, clinicId: string): void {
     this.logger.debug(`Importing lab test: ${row.testName}`);
   }
 
-  /**
-   * Import inventory row
-   */
-  private importInventory(row: Record<string, any>, clinicId: string): void {
+  private importInventory(row: BulkImportRow, clinicId: string): void {
     this.logger.debug(`Importing inventory item: ${row.itemName}`);
   }
 
-  /**
-   * Check if entity type is valid
-   */
   private isValidEntityType(
     entityType: string,
   ): entityType is BulkImportEntityType {
@@ -423,10 +438,6 @@ export class BulkImportService {
     ].includes(entityType);
   }
 
-  /**
-   * Get import template headers for entity type
-   * Returns field names required for the given entity type
-   */
   getImportTemplate(entityType: BulkImportEntityType): Record<string, string> {
     const templates: Record<BulkImportEntityType, Record<string, string>> = {
       PATIENT: {
@@ -470,10 +481,6 @@ export class BulkImportService {
     return templates[entityType];
   }
 
-  /**
-   * Generate CSV template headers for entity type
-   * Returns only the header row with field names, no example data
-   */
   generateCSVTemplate(entityType: BulkImportEntityType): string {
     const template = this.getImportTemplate(entityType);
     const headers = Object.keys(template);

@@ -33,5 +33,3 @@ export class IntelligenceInfoResponseDto extends createZodDto(
 export class AnyResponseDto extends createZodDto(
   z.record(z.string(), z.unknown()),
 ) {}
-
-// Tier change DTOs

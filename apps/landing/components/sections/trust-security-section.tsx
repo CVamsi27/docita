@@ -21,9 +21,9 @@ export function TrustSecuritySection() {
     <section className="px-6 py-24 bg-background" id="security">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-green-500/10 px-4 py-2 text-sm mb-4">
-            <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <span className="font-medium text-green-700 dark:text-green-300">
+          <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-4 py-2 text-sm mb-4">
+            <Shield className="h-4 w-4 text-success" />
+            <span className="font-medium text-success">
               Enterprise-Grade Security
             </span>
           </div>
@@ -36,7 +36,7 @@ export function TrustSecuritySection() {
           </p>
         </div>
 
-        {/* Trust Badges */}
+        {}
         <div className="flex flex-wrap items-center justify-center gap-8 mb-16">
           {[
             { label: "HIPAA", sublabel: "Compliant" },
@@ -49,7 +49,7 @@ export function TrustSecuritySection() {
               key={i}
               className="flex flex-col items-center justify-center w-28 h-28 rounded-xl border-2 border-muted bg-muted/30 hover:border-primary/50 hover:bg-primary/5 transition-all"
             >
-              <ShieldCheck className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
+              <ShieldCheck className="h-8 w-8 text-success mb-2" />
               <span className="font-bold text-sm">{badge.label}</span>
               <span className="text-xs text-muted-foreground">
                 {badge.sublabel}
@@ -58,7 +58,7 @@ export function TrustSecuritySection() {
           ))}
         </div>
 
-        {/* Security Features Grid */}
+        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
@@ -100,8 +100,8 @@ export function TrustSecuritySection() {
           ].map((feature, i) => (
             <Card key={i} className="border-none shadow-sm bg-muted/30">
               <CardHeader>
-                <div className="mb-2 inline-block rounded-lg bg-green-500/10 p-2 w-fit">
-                  <feature.icon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div className="mb-2 inline-block rounded-lg bg-success/10 p-2 w-fit">
+                  <feature.icon className="h-5 w-5 text-success" />
                 </div>
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
                 <CardDescription className="text-sm">

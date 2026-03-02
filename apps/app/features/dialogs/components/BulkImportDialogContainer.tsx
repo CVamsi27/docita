@@ -76,7 +76,7 @@ export function BulkImportDialogContainer({
         setStep("result");
       }, 3000);
     } catch (error) {
-      console.error("Import failed:", error);
+
       alert(error instanceof Error ? error.message : "Import failed");
       setStep("upload");
     }

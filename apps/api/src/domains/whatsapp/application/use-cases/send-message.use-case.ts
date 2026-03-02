@@ -3,16 +3,16 @@ import { ConfigService } from '@nestjs/config';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
-} from '../ports/whatsapp.repository.port';
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import {
   WHATSAPP_CLIENT_TOKEN,
   IWhatsAppClient,
-} from '../ports/whatsapp-client.port';
-import { WhatsAppMessage } from '../../core/entities/whatsapp-message.entity';
+} from '@/domains/whatsapp/application/ports/whatsapp-client.port';
+import { WhatsAppMessage } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import {
   TemplateResolverService,
   ResolvedTemplate,
-} from '../../core/services/template-resolver.service';
+} from '@/domains/whatsapp/core/services/template-resolver.service';
 
 export interface SendMessageRequest {
   clinicId: string;

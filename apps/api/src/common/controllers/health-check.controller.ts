@@ -1,19 +1,11 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { Public } from '../../shared/modules/auth/auth/public.decorator';
-import { ObservabilityService } from '../../shared/modules/services/observability.service';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { ObservabilityService } from '@/shared/modules/services/observability.service';
 
-/**
- * Health Check Controller
- * Provides public health check endpoints for monitoring and orchestration
- */
 @Controller('health')
 export class HealthCheckController {
   constructor(private observability: ObservabilityService) {}
 
-  /**
-   * Basic liveness probe (always returns 200 if API is responsive)
-   * Used by load balancers and orchestration systems
-   */
   @Public()
   @Get()
   ping(): { status: 'ok'; timestamp: string } {
@@ -23,10 +15,6 @@ export class HealthCheckController {
     };
   }
 
-  /**
-   * Comprehensive health check including dependency status
-   * Returns current state of database, Redis, and other critical services
-   */
   @Public()
   @Get('/live')
   async liveness(): Promise<{
@@ -50,15 +38,11 @@ export class HealthCheckController {
     };
   }
 
-  /**
-   * Readiness probe - returns 200 only if all dependencies are healthy
-   * Used to determine if the service is ready to accept traffic
-   */
   @Public()
   @Get('/ready')
   async readiness(): Promise<{
     ready: boolean;
-    checks: Record<string, any>;
+    checks: Record<string, unknown>;
     timestamp: string;
   }> {
     const health = await this.observability.getSystemHealth();
@@ -71,29 +55,18 @@ export class HealthCheckController {
     };
   }
 
-  /**
-   * Database health specifically
-   * Useful for monitoring database-specific issues
-   */
   @Public()
   @Get('/db')
-  async databaseHealth(): Promise<Record<string, any>> {
+  async databaseHealth(): Promise<Record<string, unknown>> {
     return this.observability.getDatabaseHealth();
   }
 
-  /**
-   * Metrics endpoint (Prometheus-compatible format can be added later)
-   * Returns current metrics buffer
-   */
   @Public()
   @Get('/metrics')
-  metrics(): Record<string, any> {
+  metrics(): Record<string, unknown> {
     return this.observability.getMetricsSummary();
   }
 
-  /**
-   * System metrics (memory, CPU, uptime)
-   */
   @Public()
   @Get('/system')
   systemMetrics(): {

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { WebhookErrorHandlingService } from './application/services/webhook-error-handling.service';
 
 @Module({

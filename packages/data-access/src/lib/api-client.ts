@@ -1,40 +1,21 @@
 import { z } from "zod";
 
-/**
- * Shared API Client Factory
- *
- * Provides a configurable, type-safe API client that can be used
- * across all frontend apps (app, admin, landing).
- *
- * Features:
- * - Configurable base URL
- * - Automatic token injection
- * - Request/response interceptors
- * - Error handling with custom error types
- * - Retry logic for failed requests
- * - Request cancellation support
- */
-
-// =============================================================================
-// Types
-// =============================================================================
-
 export interface APIClientConfig {
-  /** Base URL for all API requests */
+  
   baseURL: string;
-  /** Function to get auth token */
+  
   getToken?: () => string | null;
-  /** Default request headers */
+  
   defaultHeaders?: Record<string, string>;
-  /** Request timeout in milliseconds */
+  
   timeout?: number;
-  /** Number of retry attempts for failed requests */
+  
   retries?: number;
-  /** Request interceptor */
+  
   onRequest?: (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
-  /** Response interceptor */
+  
   onResponse?: <T>(response: T) => T | Promise<T>;
-  /** Error interceptor */
+  
   onError?: (error: APIError) => void | Promise<void>;
 }
 
@@ -50,7 +31,7 @@ export interface APIError extends Error {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
-  /** Field-level validation errors from backend RFC 7807 response */
+  
   validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
@@ -63,16 +44,12 @@ export interface PaginatedResponse<T> {
   count?: number;
 }
 
-// =============================================================================
-// Error Classes
-// =============================================================================
-
 export class APIRequestError extends Error implements APIError {
   status?: number;
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
-  /** Field-level validation errors (e.g. { email: "Invalid", password: "Too short" }) */
+  
   validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
@@ -83,7 +60,7 @@ export class APIRequestError extends Error implements APIError {
     Object.assign(this, options);
   }
 
-  /** True if there are field-level errors to display inline */
+  
   get hasFieldErrors(): boolean {
     return (
       !!this.validationErrors && Object.keys(this.validationErrors).length > 0
@@ -91,7 +68,6 @@ export class APIRequestError extends Error implements APIError {
   }
 }
 
-// Common error codes
 export const ErrorCodes = {
   UNAUTHORIZED: "UNAUTHORIZED",
   FORBIDDEN: "FORBIDDEN",
@@ -102,30 +78,6 @@ export const ErrorCodes = {
   SERVER_ERROR: "SERVER_ERROR",
 } as const;
 
-// =============================================================================
-// API Client Factory
-// =============================================================================
-
-/**
- * Create a configured API client instance
- *
- * @example
- * ```typescript
- * const api = createAPIClient({
- *   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
- *   getToken: () => localStorage.getItem('auth_token'),
- *   onError: (error) => {
- *     if (error.status === 401) {
- *       // Redirect to login
- *     }
- *   },
- * });
- *
- * // Use the client
- * const patients = await api.get<Patient[]>('/patients');
- * const patient = await api.post<Patient>('/patients', { name: 'John' });
- * ```
- */
 export function createAPIClient(config: APIClientConfig) {
   const {
     baseURL,
@@ -138,9 +90,7 @@ export function createAPIClient(config: APIClientConfig) {
     onError,
   } = config;
 
-  /**
-   * Build URL with query parameters
-   */
+  
   function buildURL(
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined | null>,
@@ -164,9 +114,7 @@ export function createAPIClient(config: APIClientConfig) {
     return url.toString();
   }
 
-  /**
-   * Execute request with retries
-   */
+  
   async function executeWithRetry<T>(
     fn: () => Promise<T>,
     retriesLeft: number,
@@ -175,7 +123,7 @@ export function createAPIClient(config: APIClientConfig) {
       return await fn();
     } catch (error) {
       if (retriesLeft > 0 && (error as APIError).isNetworkError) {
-        // Exponential backoff
+
         const delay = Math.pow(2, retries - retriesLeft) * 1000;
         await new Promise((resolve) => setTimeout(resolve, delay));
         return executeWithRetry(fn, retriesLeft - 1);
@@ -184,9 +132,7 @@ export function createAPIClient(config: APIClientConfig) {
     }
   }
 
-  /**
-   * Core request function
-   */
+  
   async function request<T>(
     endpoint: string,
     options: RequestConfig = {},
@@ -200,7 +146,6 @@ export function createAPIClient(config: APIClientConfig) {
       },
     };
 
-    // Add auth token
     if (!options.skipAuth && getToken) {
       const token = getToken();
       if (token) {
@@ -211,7 +156,6 @@ export function createAPIClient(config: APIClientConfig) {
       }
     }
 
-    // Apply request interceptor
     if (onRequest) {
       requestConfig = await onRequest(requestConfig);
     }
@@ -241,8 +185,6 @@ export function createAPIClient(config: APIClientConfig) {
             errorData = null;
           }
 
-          // Backend uses RFC 7807 Problem Details: detail holds the message,
-          // validationErrors holds { field: errorMessage } for 400/422.
           const rfc7807 = errorData as {
             detail?: string;
             message?: string;
@@ -269,7 +211,6 @@ export function createAPIClient(config: APIClientConfig) {
           throw error;
         }
 
-        // Handle empty responses
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           return {} as T;
@@ -277,7 +218,6 @@ export function createAPIClient(config: APIClientConfig) {
 
         let data = await response.json();
 
-        // Apply response interceptor
         if (onResponse) {
           data = await onResponse(data);
         }
@@ -314,9 +254,7 @@ export function createAPIClient(config: APIClientConfig) {
     return executeWithRetry(makeRequest, requestRetries);
   }
 
-  /**
-   * Map HTTP status to error code
-   */
+  
   function getErrorCode(status: number): string {
     switch (status) {
       case 401:
@@ -333,18 +271,13 @@ export function createAPIClient(config: APIClientConfig) {
     }
   }
 
-  // Return the API client interface
   return {
-    /**
-     * GET request
-     */
+    
     get<T>(endpoint: string, options?: RequestConfig): Promise<T> {
       return request<T>(endpoint, { ...options, method: "GET" });
     },
 
-    /**
-     * POST request
-     */
+    
     post<T>(
       endpoint: string,
       body?: unknown,
@@ -353,13 +286,11 @@ export function createAPIClient(config: APIClientConfig) {
       return request<T>(endpoint, {
         ...options,
         method: "POST",
-        body: body ? JSON.stringify(body) : (null as any),
+        body: body ? JSON.stringify(body) : null,
       });
     },
 
-    /**
-     * PUT request
-     */
+    
     put<T>(
       endpoint: string,
       body?: unknown,
@@ -368,13 +299,11 @@ export function createAPIClient(config: APIClientConfig) {
       return request<T>(endpoint, {
         ...options,
         method: "PUT",
-        body: body ? JSON.stringify(body) : (null as any),
+        body: body ? JSON.stringify(body) : null,
       });
     },
 
-    /**
-     * PATCH request
-     */
+    
     patch<T>(
       endpoint: string,
       body?: unknown,
@@ -383,25 +312,19 @@ export function createAPIClient(config: APIClientConfig) {
       return request<T>(endpoint, {
         ...options,
         method: "PATCH",
-        body: body ? JSON.stringify(body) : (null as any),
+        body: body ? JSON.stringify(body) : null,
       });
     },
 
-    /**
-     * DELETE request
-     */
+    
     delete<T>(endpoint: string, options?: RequestConfig): Promise<T> {
       return request<T>(endpoint, { ...options, method: "DELETE" });
     },
 
-    /**
-     * Raw request with custom config
-     */
+    
     request,
 
-    /**
-     * Request with Zod validation
-     */
+    
     async validate<T>(
       endpoint: string,
       schema: z.ZodType<T>,
@@ -411,12 +334,9 @@ export function createAPIClient(config: APIClientConfig) {
       const result = schema.safeParse(data);
 
       if (!result.success) {
-        // In development, throw for awareness; in production, return raw data
+
         if (process.env["NODE_ENV"] === "development") {
-          console.error(
-            "API response validation failed:",
-            result.error.format(),
-          );
+          
           throw new APIRequestError(
             `Response validation failed: ${result.error.message}`,
             {
@@ -431,9 +351,7 @@ export function createAPIClient(config: APIClientConfig) {
       return result.data;
     },
 
-    /**
-     * Safe parse helper
-     */
+    
     safeParse<T>(
       schema: z.ZodType<T>,
       data: Record<string, unknown>,
@@ -442,13 +360,11 @@ export function createAPIClient(config: APIClientConfig) {
       return result.success ? result.data : undefined;
     },
 
-    /**
-     * Upload file(s)
-     */
+    
     async upload<T>(
       endpoint: string,
       files: File | File[],
-      data?: Record<string, any>,
+      data?: Record<string, unknown>,
       options?: RequestConfig,
     ): Promise<T> {
       const formData = new FormData();
@@ -470,7 +386,6 @@ export function createAPIClient(config: APIClientConfig) {
         });
       }
 
-      // Don't set Content-Type - let browser set it with boundary
       const { headers, ...restOptions } = options || {};
       const authHeaders: Record<string, string> = {};
 
@@ -506,23 +421,6 @@ export function createAPIClient(config: APIClientConfig) {
   };
 }
 
-// =============================================================================
-// CRUD Resource Helper
-// =============================================================================
-
-/**
- * Create CRUD methods for a resource
- *
- * @example
- * ```typescript
- * const api = createAPIClient({ baseURL: '...' });
- * const patientsResource = createCRUDResource<Patient>(api, '/patients');
- *
- * const patients = await patientsResource.getAll();
- * const patient = await patientsResource.getOne('123');
- * const newPatient = await patientsResource.create({ name: 'John' });
- * ```
- */
 export function createCRUDResource<T extends { id?: string }>(
   client: ReturnType<typeof createAPIClient>,
   basePath: string,
@@ -560,16 +458,8 @@ export function createCRUDResource<T extends { id?: string }>(
   };
 }
 
-// =============================================================================
-// Default Singleton (for convenience)
-// =============================================================================
-
 let defaultClient: ReturnType<typeof createAPIClient> | null = null;
 
-/**
- * Get or create the default API client
- * Call this once at app initialization with config, then without to get the instance
- */
 export function getAPIClient(
   config?: APIClientConfig,
 ): ReturnType<typeof createAPIClient> {

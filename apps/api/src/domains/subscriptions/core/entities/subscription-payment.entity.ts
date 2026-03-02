@@ -92,9 +92,6 @@ export class SubscriptionPayment {
     return this.status === PaymentStatusEnum.REFUNDED;
   }
 
-  /**
-   * Mark payment as successful
-   */
   markAsPaid(paidAt: Date = new Date()): void {
     if (!this.isPending()) {
       throw new Error(`Cannot mark ${this.status} payment as paid`);

@@ -13,7 +13,7 @@ export default function PatientsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Patients route error:", error);
+
   }, [error]);
 
   return (

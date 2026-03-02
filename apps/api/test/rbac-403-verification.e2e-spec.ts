@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,26 +11,20 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 import { UserRole, ClinicType } from '@workspace/types';
 
-/**
- * E2E Tests for 403 Forbidden responses on RBAC violations
- * Verifies that wrong-role users are properly rejected with 403 status
- */
 describe('RBAC 403 Forbidden Responses (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  // Test fixtures
   let testClinic: { id: string; name: string };
   let testPatient: { id: string; firstName: string; lastName: string };
   let testAppointment: { id: string; patientId: string; doctorId: string };
 
-  // Users with different roles
   let adminUser: { id: string; email: string; token: string };
   let doctorUser: { id: string; email: string; token: string };
   let staffUser: { id: string; email: string; token: string };
@@ -61,7 +55,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    // Create clinic
     testClinic = await prisma.clinic.create({
       data: {
         name: 'Test Clinic',
@@ -73,7 +66,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
       },
     });
 
-    // Create users with different roles
     adminUser = {
       id: 'admin-id',
       email: 'admin@test.com',
@@ -92,7 +84,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
       token: 'staff-token-mock',
     };
 
-    // Create test patient
     testPatient = await prisma.patient.create({
       data: {
         clinicId: testClinic.id,
@@ -103,10 +94,9 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
       },
     });
 
-    // Create test appointment
     const now = new Date();
-    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour later
+    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
     testAppointment = await prisma.appointment.create({
       data: {
@@ -126,7 +116,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('Appointment Endpoints - 403 Responses', () => {
     it('should return 403 when STAFF tries to create appointment', async () => {
-      // STAFF role cannot create appointments (reserved for DOCTOR/ADMIN)
       const response = await request(app.getHttpServer())
         .post(`/api/v1/clinics/${testClinic.id}/appointments`)
         .set('Authorization', `Bearer ${staffUser.token}`)
@@ -165,7 +154,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
     });
 
     it('should return 403 when DOCTOR tries to delete appointment', async () => {
-      // Only ADMIN can delete appointments
       const response = await request(app.getHttpServer())
         .delete(
           `/api/v1/clinics/${testClinic.id}/appointments/${testAppointment.id}`,
@@ -178,7 +166,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('Patient Endpoints - 403 Responses', () => {
     it('should return 403 when STAFF tries to delete patient', async () => {
-      // Only ADMIN can delete patients
       const response = await request(app.getHttpServer())
         .delete(`/api/v1/clinics/${testClinic.id}/patients/${testPatient.id}`)
         .set('Authorization', `Bearer ${staffUser.token}`);
@@ -187,7 +174,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
     });
 
     it('should return 403 when DOCTOR tries to delete patient', async () => {
-      // Only ADMIN can delete patients
       const response = await request(app.getHttpServer())
         .delete(`/api/v1/clinics/${testClinic.id}/patients/${testPatient.id}`)
         .set('Authorization', `Bearer ${doctorUser.token}`);
@@ -196,7 +182,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
     });
 
     it('should return 403 when STAFF tries to create patient', async () => {
-      // STAFF cannot create patients (admin/doctor only)
       const response = await request(app.getHttpServer())
         .post(`/api/v1/clinics/${testClinic.id}/patients`)
         .set('Authorization', `Bearer ${staffUser.token}`)
@@ -213,7 +198,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('Prescription Endpoints - 403 Responses', () => {
     it('should return 403 when STAFF tries to create prescription', async () => {
-      // Only DOCTOR and ADMIN can create prescriptions
       const response = await request(app.getHttpServer())
         .post(`/api/v1/clinics/${testClinic.id}/prescriptions`)
         .set('Authorization', `Bearer ${staffUser.token}`)
@@ -270,7 +254,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('Invoice Endpoints - 403 Responses', () => {
     it('should return 403 when STAFF tries to create invoice', async () => {
-      // Only ADMIN and DOCTOR can create invoices
       const response = await request(app.getHttpServer())
         .post(`/api/v1/clinics/${testClinic.id}/invoices`)
         .set('Authorization', `Bearer ${staffUser.token}`)
@@ -318,7 +301,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('Clinic Settings - 403 Responses', () => {
     it('should return 403 when DOCTOR tries to update clinic settings', async () => {
-      // Only ADMIN can update clinic settings
       const response = await request(app.getHttpServer())
         .patch(`/api/v1/clinics/${testClinic.id}`)
         .set('Authorization', `Bearer ${doctorUser.token}`)
@@ -343,7 +325,6 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
 
   describe('User Management - 403 Responses', () => {
     it('should return 403 when DOCTOR tries to create user', async () => {
-      // Only ADMIN can manage users
       const response = await request(app.getHttpServer())
         .post(`/api/v1/clinics/${testClinic.id}/users`)
         .set('Authorization', `Bearer ${doctorUser.token}`)

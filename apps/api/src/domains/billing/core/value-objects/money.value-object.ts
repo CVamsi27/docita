@@ -1,8 +1,3 @@
-/**
- * Money Value Object - Handles currency and amount
- * Ensures type safety and prevents accidental currency mixing
- */
-
 export class Money {
   constructor(
     readonly amount: number,

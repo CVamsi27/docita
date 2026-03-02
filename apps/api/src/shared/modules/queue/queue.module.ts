@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { InMemoryQueueService } from './in-memory-queue.service';
 import { BullMQQueueService } from './bull-mq-queue.service';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Module({
   providers: [

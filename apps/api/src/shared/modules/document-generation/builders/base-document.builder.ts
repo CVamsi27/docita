@@ -1,8 +1,3 @@
-/**
- * Base Document Builder
- * Abstract base class with common document building logic
- */
-
 import {
   IDocumentBuilder,
   DocumentContent,

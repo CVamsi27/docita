@@ -18,7 +18,6 @@ import {
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
 
-// Available tiers for clinic creation (excluding INTELLIGENCE which is an add-on)
 const AVAILABLE_TIERS: TierName[] = [
   "CAPTURE",
   "CORE",
@@ -27,7 +26,6 @@ const AVAILABLE_TIERS: TierName[] = [
   "ENTERPRISE",
 ];
 
-// Clinic types with descriptions
 const CLINIC_TYPES = [
   {
     value: "GENERAL",
@@ -169,7 +167,6 @@ export function CreateClinicDialog({
           body: JSON.stringify(formData),
         });
 
-        // Handle auth errors
         if (res.status === 401) {
           logout("Your session has expired. Please log in again.");
           return;
@@ -207,7 +204,7 @@ export function CreateClinicDialog({
           toast.error(error.message || "Failed to create clinic");
         }
       } catch (error) {
-        console.error(error);
+
         toast.error("Error creating clinic");
       } finally {
         setLoading(false);

@@ -20,10 +20,10 @@ export const LabOrderCard: FC<{
   if (!order) return null;
 
   const statusColors = {
-    pending: "bg-amber-100 text-amber-700",
-    collected: "bg-blue-100 text-blue-700",
-    processing: "bg-purple-100 text-purple-700",
-    completed: "bg-green-100 text-green-700",
+    pending: "badge-warning",
+    collected: "badge-info",
+    processing: "tier-pro",
+    completed: "badge-success",
   };
 
   return (

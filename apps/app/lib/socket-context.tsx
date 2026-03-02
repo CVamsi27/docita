@@ -21,10 +21,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  /**
-   * Reconnect socket with new token
-   * Called when token changes or after auth state changes
-   */
+  
   const reconnectSocket = (newToken: string) => {
     if (socketRef.current) {
       socketRef.current.auth = { token: newToken };
@@ -32,9 +29,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  /**
-   * Manually trigger socket reconnection
-   */
+  
   const reconnect = () => {
     if (token && socketRef.current) {
       reconnectSocket(token);
@@ -42,7 +37,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Clean up any pending reconnection timeout
+
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
@@ -51,7 +46,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Only connect if authenticated and token exists
+
     if (!isAuthenticated || !token) {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -77,19 +72,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
-      console.debug("Socket connected successfully");
+
     });
 
     socketInstance.on("disconnect", (reason) => {
       setIsConnected(false);
-      console.debug("Socket disconnected:", reason);
 
-      // If disconnected due to server-side auth failure, re-authenticate
       if (reason === "io server disconnect") {
-        console.warn(
-          "Server disconnected socket, attempting re-authentication",
-        );
-        // Give server time to process disconnect
+        
+
         reconnectTimeoutRef.current = setTimeout(() => {
           if (token && socketRef.current) {
             reconnectSocket(token);
@@ -99,7 +90,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     socketInstance.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
+
       setIsConnected(false);
 
       const errorPayload =
@@ -107,33 +98,26 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
           ? (err as { data?: { content?: { message?: string } } }).data
           : undefined;
 
-      // If 401 (Unauthorized), trigger re-authentication
       if (
         err.message === "Unauthorized" ||
         errorPayload?.content?.message === "Unauthorized"
       ) {
-        console.warn("Socket: Unauthorized error, logging out user");
+
         logout();
         socketInstance.disconnect();
       }
     });
 
-    /**
-     * Handle unauthorized socket events
-     * Server sends this if token becomes invalid/expired during connection
-     */
+    
     socketInstance.on("unauthorized", () => {
-      console.warn("Socket: Unauthorized event received, logging out");
+
       logout();
       socketInstance.disconnect();
     });
 
-    /**
-     * Handle token refresh events from auth
-     * Server may send this when token is about to expire
-     */
+    
     socketInstance.on("token_refresh", () => {
-      console.debug("Socket: Token refresh requested, will reconnect");
+
       if (token) {
         reconnectSocket(token);
       }

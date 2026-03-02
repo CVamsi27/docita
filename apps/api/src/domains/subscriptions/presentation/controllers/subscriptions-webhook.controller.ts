@@ -6,8 +6,8 @@ import {
   HttpCode,
   BadRequestException,
 } from '@nestjs/common';
-import { Public } from '../../../../shared/modules/auth/auth/public.decorator';
-import { ProcessWebhookUseCase } from '../../application/use-cases';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { ProcessWebhookUseCase } from '@/domains/subscriptions/application/use-cases';
 import type { RazorpayWebhookPayload } from '@workspace/types';
 
 @Controller('webhooks/subscriptions')

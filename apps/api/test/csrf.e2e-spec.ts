@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -45,7 +45,6 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should set XSRF-TOKEN cookie on GET request', async () => {
-    // Hit a valid public GET endpoint
     const response = await request(app.getHttpServer()).get('/');
 
     const cookies = response.get('Set-Cookie');
@@ -54,13 +53,11 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should block POST request without X-XSRF-TOKEN header', async () => {
-    // 1. Get the cookie first from a valid GET endpoint
     const getRes = await request(app.getHttpServer()).get('/');
     const cookies = getRes.get('Set-Cookie');
     const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
     const tokenValue = csrfCookie!.split(';')[0].split('=')[1];
 
-    // 2. Try to post without header
     await request(app.getHttpServer())
       .post('/auth/check-email')
       .set('Cookie', [`XSRF-TOKEN=${tokenValue}`])
@@ -69,13 +66,11 @@ describe('CSRF Protection (e2e)', () => {
   });
 
   it('should allow POST request with valid X-XSRF-TOKEN header', async () => {
-    // 1. Get the cookie first from a valid GET endpoint
     const getRes = await request(app.getHttpServer()).get('/');
     const cookies = getRes.get('Set-Cookie');
     const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
     const tokenValue = csrfCookie!.split(';')[0].split('=')[1];
 
-    // 2. Post with valid header
     await request(app.getHttpServer())
       .post('/auth/check-email')
       .set('Cookie', [`XSRF-TOKEN=${tokenValue}`])

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PatientAllergy } from '@workspace/db';
-import { FhirAllergyIntolerance } from '../interfaces/fhir.interfaces';
+import { FhirAllergyIntolerance } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
 type AllergyWithRelations = PatientAllergy & {
   patient: { firstName: string; lastName: string };
@@ -70,12 +70,10 @@ export class FhirAllergyFactory {
         recordedDate: allergy.createdAt.toISOString(),
       };
 
-      // Add onset date
       if (allergy.onsetDate) {
         fhirAllergy.onsetDateTime = allergy.onsetDate.toISOString();
       }
 
-      // Add reaction
       if (allergy.reaction) {
         const severityMap: Record<string, 'mild' | 'moderate' | 'severe'> = {
           MILD: 'mild',

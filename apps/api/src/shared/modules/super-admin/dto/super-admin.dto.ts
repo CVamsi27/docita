@@ -8,9 +8,14 @@ import {
   superAdminClinicTierInfoSchema,
   superAdminTierPricingSchema,
   superAdminClinicListResponseSchema,
+  listClinicsQuerySchema,
   auditLogSchema,
   userSchema,
 } from '@workspace/types';
+
+export class SuperAdminClinicListQueryDto extends createZodDto(
+  listClinicsQuerySchema,
+) {}
 
 export class SuperAdminGlobalStatsResponseDto extends createZodDto(
   superAdminGlobalStatsSchema,
@@ -41,7 +46,6 @@ export class SuperAdminUserListResponseDto extends createZodDto(
 ) {}
 export class SuperAdminUserResponseDto extends createZodDto(userSchema) {}
 
-// For generic success/failure
 export class SuccessResponseDto extends createZodDto(
   z.object({ success: z.boolean(), message: z.string().optional() }),
 ) {}

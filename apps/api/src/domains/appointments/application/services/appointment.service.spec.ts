@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   NotFoundException,
   ForbiddenException,
@@ -7,13 +7,17 @@ import {
 } from '@nestjs/common';
 
 describe('AppointmentService', () => {
-  let service: {
-    findAll: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    update: jest.Mock;
-    delete: jest.Mock;
+  type MockAppointmentService = {
+    createAppointment: jest.Mock;
+    getAppointment: jest.Mock;
+    updateAppointment: jest.Mock;
+    listAppointments: jest.Mock;
+    cancelAppointment: jest.Mock;
+    getAvailableSlots: jest.Mock;
+    completeAppointment: jest.Mock;
   };
+
+  let service: MockAppointmentService;
   let prisma: PrismaService;
 
   const mockPrismaService = {
@@ -52,7 +56,7 @@ describe('AppointmentService', () => {
       ],
     }).compile();
 
-    service = module.get('AppointmentService');
+    service = module.get<MockAppointmentService>('AppointmentService');
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -107,7 +111,7 @@ describe('AppointmentService', () => {
         patientId: 'patient-1',
         doctorId: 'doctor-1',
         clinicId: 'clinic-1',
-        startTime: new Date('2020-03-01 10:00:00'), // Past date
+        startTime: new Date('2020-03-01 10:00:00'),
         endTime: new Date('2020-03-01 10:30:00'),
         consultationType: 'IN_PERSON',
       };
@@ -125,7 +129,7 @@ describe('AppointmentService', () => {
         doctorId: 'doctor-1',
         clinicId: 'clinic-1',
         startTime: new Date('2024-03-01 10:00:00'),
-        endTime: new Date('2024-03-01 10:05:00'), // Only 5 minutes (min 15)
+        endTime: new Date('2024-03-01 10:05:00'),
         consultationType: 'IN_PERSON',
       };
 
@@ -143,7 +147,7 @@ describe('AppointmentService', () => {
         patientId: 'patient-1',
         doctorId: 'doctor-1',
         clinicId: 'clinic-1',
-        startTime: new Date('2024-03-01 22:00:00'), // 10 PM (after business hours)
+        startTime: new Date('2024-03-01 22:00:00'),
         endTime: new Date('2024-03-01 22:30:00'),
         consultationType: 'IN_PERSON',
       };
@@ -459,7 +463,7 @@ describe('AppointmentService', () => {
     it('should exclude booked slots', async () => {
       const slots = [
         { time: new Date('2024-03-01 10:00:00'), available: true },
-        { time: new Date('2024-03-01 10:30:00'), available: false }, // Booked
+        { time: new Date('2024-03-01 10:30:00'), available: false },
         { time: new Date('2024-03-01 11:00:00'), available: true },
       ];
 
@@ -478,7 +482,7 @@ describe('AppointmentService', () => {
 
     it('should respect doctor time-off', async () => {
       const slots = [
-        { time: new Date('2024-03-01 10:00:00'), available: false }, // Doctor on leave
+        { time: new Date('2024-03-01 10:00:00'), available: false },
         { time: new Date('2024-03-01 10:30:00'), available: false },
       ];
 
@@ -536,7 +540,7 @@ describe('AppointmentService', () => {
     });
 
     it('should list only clinic-specific appointments', async () => {
-      service.listAppointments.mockImplementation((clinicId) => {
+      service.listAppointments.mockImplementation((clinicId: string) => {
         return {
           data: [
             { id: 'appt-1', clinicId },
@@ -558,7 +562,6 @@ describe('AppointmentService', () => {
 
   describe('integration scenarios', () => {
     it('should handle complete appointment lifecycle', async () => {
-      // Create
       const createDto = {
         patientId: 'patient-1',
         doctorId: 'doctor-1',
@@ -574,12 +577,10 @@ describe('AppointmentService', () => {
       const created = await service.createAppointment(createDto);
       expect(created.status).toBe('SCHEDULED');
 
-      // Retrieve
       service.getAppointment.mockResolvedValueOnce(createdAppt);
       const retrieved = await service.getAppointment('appt-1', 'clinic-1');
       expect(retrieved.id).toBe('appt-1');
 
-      // Reschedule
       const updatedAppt = {
         ...createdAppt,
         startTime: new Date('2024-03-01 14:00:00'),
@@ -591,7 +592,6 @@ describe('AppointmentService', () => {
       });
       expect(updated.startTime).toEqual(new Date('2024-03-01 14:00:00'));
 
-      // Complete
       service.completeAppointment.mockResolvedValueOnce({
         ...updatedAppt,
         status: 'COMPLETED',

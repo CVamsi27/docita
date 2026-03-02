@@ -7,13 +7,18 @@ import {
   Request,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../../../shared/modules/auth/auth/jwt-auth.guard';
-import { RolesGuard } from '../../../../shared/modules/auth/auth/roles.guard';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
-import { WhatsAppQueryService } from '../../application/services/whatsapp-query.service';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { WhatsAppQueryService } from '@/domains/whatsapp/application/services/whatsapp-query.service';
+import { RequestWithUser } from '@/common/types/common.types';
+import {
+  SendWhatsAppMessageDto,
+  SendWhatsAppMessageResponseDto,
+} from '@/domains/whatsapp/application/dto/whatsapp.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('whatsapp')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -30,15 +35,10 @@ export class WhatsAppController {
   }
 
   @Post('messages/send')
+  @ZodSerializerDto(SendWhatsAppMessageResponseDto)
   async sendMessage(
     @Request() req: RequestWithUser,
-    @Body()
-    body: {
-      recipientPhone: string;
-      templateName: string;
-      variables: Record<string, string>;
-      metadata?: Record<string, string | number | boolean>;
-    },
+    @Body() body: SendWhatsAppMessageDto,
   ) {
     return this.sendMessageUseCase.execute({
       clinicId: req.user!.clinicId!,

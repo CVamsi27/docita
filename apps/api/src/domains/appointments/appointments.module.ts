@@ -4,7 +4,7 @@ import { AppointmentsController } from './presentation/controllers/appointments.
 import { PrismaAppointmentRepository } from './infrastructure/persistence/prisma-appointment.repository';
 import { AppointmentSchedulingRulesService } from './core/domain-services/appointment-scheduling-rules.service';
 import { CreateAppointmentUseCase } from './application/use-cases/create-appointment.use-case';
-import { PatientsModule } from '../patients';
+import { PatientsModule } from '@/domains/patients';
 
 @Module({
   imports: [PatientsModule],

@@ -20,7 +20,6 @@ export function PricingSection() {
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
-  // Detect currency after hydration
   useEffect(() => {
     const currency = detectCurrencyFromTimezone();
     queueMicrotask(() => {
@@ -96,7 +95,7 @@ export function PricingSection() {
   return (
     <section className="px-6 py-24 relative overflow-hidden" id="pricing">
       <div className="mx-auto max-w-7xl">
-        {/* Pricing Header */}
+        {}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Simple, Transparent Pricing
@@ -110,7 +109,7 @@ export function PricingSection() {
             </p>
           )}
 
-          {/* Billing Period Toggle */}
+          {}
           <div className="mt-6 inline-flex items-center gap-3 rounded-full bg-muted p-1">
             <button
               onClick={() => setBillingPeriod("monthly")}
@@ -131,14 +130,14 @@ export function PricingSection() {
               }`}
             >
               Annual
-              <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-xs bg-success text-success dark:text-success px-2 py-0.5 rounded-full font-semibold">
                 Save 10%
               </span>
             </button>
           </div>
         </div>
 
-        {/* Pricing Tiers Grid */}
+        {}
         <div className="grid gap-6 lg:grid-cols-5 items-start">
           <PricingTierCard
             tier="Tier 0"
@@ -215,7 +214,7 @@ export function PricingSection() {
           />
         </div>
 
-        {/* Add-ons Section */}
+        {}
         <div className="mt-12 space-y-6">
           <div className="text-center mb-8">
             <h3 className="text-xl font-bold">Powerful Add-ons</h3>
@@ -289,7 +288,7 @@ export function PricingSection() {
           </div>
         </div>
 
-        {/* Pricing Notes */}
+        {}
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>All plans include a 7 day free trial. No credit card required.</p>
           <p>

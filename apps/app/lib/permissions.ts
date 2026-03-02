@@ -24,12 +24,7 @@ export type Permission =
   | "manageTenants";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  SUPER_ADMIN: [
-    "viewPlatformAnalytics",
-    "viewSystemLogs",
-    "manageTenants",
-    "viewReports",
-  ],
+  SUPER_ADMIN: [],
   ADMIN: [
     "manageStaff",
     "manageClinic",
@@ -90,6 +85,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
   if (!role) return false;
+  if (role === "SUPER_ADMIN") return true;
   const permissions = ROLE_PERMISSIONS[role] || [];
   return permissions.includes(permission);
 }
@@ -110,7 +106,6 @@ export function hasAllPermissions(
   return permissions.every((permission) => hasPermission(role, permission));
 }
 
-// Permission check helper functions
 export function isAdmin(role: UserRole): boolean {
   return hasPermission(role, "manageClinic");
 }

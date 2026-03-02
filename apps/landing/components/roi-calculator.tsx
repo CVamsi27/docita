@@ -38,26 +38,21 @@ export function ROICalculator({
   const [staffSalary, setStaffSalary] = useState(25000);
 
   const savings = useMemo(() => {
-    // Calculations based on typical clinic operations
+
     const workingDaysPerMonth = 25;
 
-    // Time savings: Docita saves ~50% of admin time
     const timeSavedPerDayHours = adminHoursPerDay * 0.5;
     const timeSavedPerMonthHours = timeSavedPerDayHours * workingDaysPerMonth;
 
-    // Staff cost savings: Less admin work = partial staff time freed
-    const staffHourlyCost = staffSalary / (25 * 8); // Assuming 8 hour days
+    const staffHourlyCost = staffSalary / (25 * 8); 
     const staffCostSaved = timeSavedPerMonthHours * staffHourlyCost;
 
-    // Extra patients: With time saved, doctor can see ~15% more patients
     const extraPatientsPerDay = Math.floor(patientsPerDay * 0.15);
     const extraPatientsPerMonth = extraPatientsPerDay * workingDaysPerMonth;
     const extraRevenuePerMonth = extraPatientsPerMonth * avgConsultationFee;
 
-    // Paper and printing savings
-    const paperSavings = patientsPerDay * workingDaysPerMonth * 5; // ₹5 per patient in paper/printing
+    const paperSavings = patientsPerDay * workingDaysPerMonth * 5; 
 
-    // Total benefit
     const totalBenefit = staffCostSaved + extraRevenuePerMonth + paperSavings;
     const netBenefit = totalBenefit - subscriptionPrice;
     const roi = ((netBenefit / subscriptionPrice) * 100).toFixed(0);
@@ -101,7 +96,7 @@ export function ROICalculator({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Input sliders */}
+        {}
         <div className="grid gap-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -204,7 +199,7 @@ export function ROICalculator({
           </div>
         </div>
 
-        {/* Results */}
+        {}
         <div className="mt-8 p-6 bg-linear-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
           <h4 className="text-center text-sm font-medium text-muted-foreground mb-4">
             YOUR ESTIMATED MONTHLY SAVINGS
@@ -212,14 +207,14 @@ export function ROICalculator({
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="text-center p-3 bg-background rounded-lg">
-              <Clock className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+              <Clock className="h-5 w-5 mx-auto mb-1 text-info" />
               <p className="text-2xl font-bold">
                 {savings.timeSavedPerMonthHours}
               </p>
               <p className="text-xs text-muted-foreground">Hours saved/month</p>
             </div>
             <div className="text-center p-3 bg-background rounded-lg">
-              <Users className="h-5 w-5 mx-auto mb-1 text-green-500" />
+              <Users className="h-5 w-5 mx-auto mb-1 text-success" />
               <p className="text-2xl font-bold">
                 +{savings.extraPatientsPerMonth}
               </p>
@@ -228,14 +223,14 @@ export function ROICalculator({
               </p>
             </div>
             <div className="text-center p-3 bg-background rounded-lg">
-              <DollarSign className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+              <DollarSign className="h-5 w-5 mx-auto mb-1 text-warning" />
               <p className="text-2xl font-bold">
                 {formatCurrency(savings.staffCostSaved)}
               </p>
               <p className="text-xs text-muted-foreground">Staff cost saved</p>
             </div>
             <div className="text-center p-3 bg-background rounded-lg">
-              <TrendingUp className="h-5 w-5 mx-auto mb-1 text-purple-500" />
+              <TrendingUp className="h-5 w-5 mx-auto mb-1 text-primary" />
               <p className="text-2xl font-bold">
                 {formatCurrency(savings.extraRevenuePerMonth)}
               </p>
@@ -254,7 +249,7 @@ export function ROICalculator({
             </div>
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-muted-foreground">Docita subscription</span>
-              <span className="font-medium text-red-500">
+              <span className="font-medium text-destructive">
                 -{formatCurrency(subscriptionPrice)}
               </span>
             </div>
@@ -263,7 +258,7 @@ export function ROICalculator({
               <span
                 className={cn(
                   "text-2xl font-bold",
-                  savings.netBenefit > 0 ? "text-green-600" : "text-red-600",
+                  savings.netBenefit > 0 ? "text-success" : "text-destructive",
                 )}
               >
                 {formatCurrency(savings.netBenefit)}

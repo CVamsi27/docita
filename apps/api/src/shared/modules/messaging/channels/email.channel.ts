@@ -1,8 +1,3 @@
-/**
- * Email Channel Implementation
- * Sends messages via email
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import {
   IMessageChannel,
@@ -49,7 +44,6 @@ export class EmailChannel implements IMessageChannel {
   }
 
   async handleWebhook(payload: unknown): Promise<void> {
-    // Handle email provider webhooks (delivery, bounce, etc.)
     await Promise.resolve();
     this.logger.log('Handling email webhook:', payload);
   }

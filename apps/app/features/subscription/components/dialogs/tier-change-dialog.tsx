@@ -61,16 +61,14 @@ export function TierChangeDialog({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currency: SupportedCurrency = "INR"; // Could be from user preferences
+  const currency: SupportedCurrency = "INR"; 
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
 
-  // Fetch pricing from backend
   const { pricingConfig, isLoading: pricingLoading } =
     usePricingConfig(currency);
 
   if (!selectedTier) return null;
 
-  // Show loading while fetching pricing
   if (pricingLoading || !pricingConfig) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,7 +89,6 @@ export function TierChangeDialog({
   const isUpgrade = selectedTierNumeric > currentTier;
   const isDowngrade = selectedTierNumeric < currentTier;
 
-  // Get pricing from backend response
   const currentTierData = pricingConfig.tiers.find(
     (t: TierPricing) => t.id === currentTierName,
   );
@@ -143,17 +140,17 @@ export function TierChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-muted/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50">
+      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-muted/30">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isUpgrade ? (
               <>
-                <ArrowRight className="h-5 w-5 text-emerald-500" />
+                <ArrowRight className="h-5 w-5 text-success" />
                 Upgrade Your Plan
               </>
             ) : (
               <>
-                <ArrowDown className="h-5 w-5 text-amber-500" />
+                <ArrowDown className="h-5 w-5 text-warning" />
                 Downgrade Plan
               </>
             )}
@@ -167,8 +164,8 @@ export function TierChangeDialog({
 
         {success ? (
           <div className="py-8 text-center space-y-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mx-auto">
-              <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15 mx-auto">
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <div>
               <h3 className="text-lg font-semibold">Plan Updated!</h3>
@@ -182,11 +179,11 @@ export function TierChangeDialog({
           </div>
         ) : (
           <>
-            {/* Plan Comparison */}
+            {}
             <div className="flex items-center justify-center gap-4 py-6">
-              {/* Current Plan */}
-              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50 dark:bg-slate-800/50 min-w-[120px]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted dark:bg-slate-700">
+              {}
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50 min-w-[120px]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
                   <CurrentIcon className="h-5 w-5" />
                 </div>
                 <span className="text-sm font-medium">{currentInfo.name}</span>
@@ -197,45 +194,45 @@ export function TierChangeDialog({
                 </span>
               </div>
 
-              {/* Arrow */}
+              {}
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
                   isUpgrade
-                    ? "bg-emerald-100 dark:bg-emerald-900/30"
-                    : "bg-amber-100 dark:bg-amber-900/30",
+                    ? "bg-success/15"
+                    : "bg-warning/15",
                 )}
               >
                 {isUpgrade ? (
-                  <ArrowRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  <ArrowRight className="h-5 w-5 text-success" />
                 ) : (
-                  <ArrowDown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <ArrowDown className="h-5 w-5 text-warning" />
                 )}
               </div>
 
-              {/* New Plan */}
+              {}
               <div
                 className={cn(
                   "flex flex-col items-center gap-2 p-4 rounded-lg min-w-[120px]",
                   isUpgrade
-                    ? "bg-emerald-50 dark:bg-emerald-900/20 ring-2 ring-emerald-500/30"
-                    : "bg-amber-50 dark:bg-amber-900/20 ring-2 ring-amber-500/30",
+                    ? "bg-success/10 ring-2 ring-success/30"
+                    : "bg-warning/10 ring-2 ring-warning/30",
                 )}
               >
                 <div
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-lg",
                     isUpgrade
-                      ? "bg-emerald-100 dark:bg-emerald-800"
-                      : "bg-amber-100 dark:bg-amber-800",
+                      ? "bg-success/20"
+                      : "bg-warning/20",
                   )}
                 >
                   <SelectedIcon
                     className={cn(
                       "h-5 w-5",
                       isUpgrade
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-amber-600 dark:text-amber-400",
+                        ? "text-success"
+                        : "text-warning",
                     )}
                   />
                 </div>
@@ -248,14 +245,14 @@ export function TierChangeDialog({
               </div>
             </div>
 
-            {/* Price Difference */}
+            {}
             {priceDiff !== null && priceDiff !== 0 && (
               <div
                 className={cn(
                   "text-center py-3 px-4 rounded-lg",
                   isUpgrade
-                    ? "bg-emerald-50 dark:bg-emerald-900/20"
-                    : "bg-amber-50 dark:bg-amber-900/20",
+                    ? "bg-success/10"
+                    : "bg-warning/10",
                 )}
               >
                 <p className="text-sm">
@@ -267,11 +264,11 @@ export function TierChangeDialog({
               </div>
             )}
 
-            {/* Downgrade Warning */}
+            {}
             {isDowngrade && (
-              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800 dark:text-amber-200">
+              <Alert className="surface-warning">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-warning-foreground">
                   Downgrading will limit your access to certain features. Your
                   data will be preserved, but you may not be able to access all
                   of it until you upgrade again.
@@ -279,21 +276,21 @@ export function TierChangeDialog({
               </Alert>
             )}
 
-            {/* Error */}
+            {}
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-600">
+              <Alert className="surface-danger">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-destructive">
                   {error}
                 </AlertDescription>
               </Alert>
             )}
 
-            {/* Enterprise Notice */}
+            {}
             {selectedTier === "ENTERPRISE" && (
-              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                <Building2 className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800 dark:text-blue-200">
+              <Alert className="surface-info">
+                <Building2 className="h-4 w-4 text-info" />
+                <AlertDescription className="text-info">
                   Enterprise plans require a sales consultation. Click confirm
                   to request a callback from our team.
                 </AlertDescription>
@@ -312,9 +309,7 @@ export function TierChangeDialog({
                 onClick={handleConfirm}
                 disabled={isLoading}
                 className={cn(
-                  isUpgrade
-                    ? "bg-linear-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400"
-                    : "bg-amber-600 hover:bg-amber-500",
+                  isUpgrade ? "bg-success hover:bg-success/90" : "btn-warning",
                 )}
               >
                 {isLoading ? (

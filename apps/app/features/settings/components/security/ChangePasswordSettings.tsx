@@ -16,7 +16,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
-import { settingsApi } from "../../api/settings.api";
+import { settingsApi } from "@/features/settings/api/settings.api";
 
 const changePasswordSchema = z
   .object({
@@ -50,7 +50,7 @@ export function ChangePasswordSettings() {
       toast.success("Password updated successfully");
       form.reset();
     } catch (error) {
-      console.error("Failed to change password", error);
+
     }
   };
 

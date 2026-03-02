@@ -6,12 +6,9 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { DEFAULT_TIMEZONE, DEFAULT_LOCALE } from '@workspace/utils';
 
-/**
- * Extended Request interface with timezone context
- */
 export interface RequestWithTimezone extends Request {
   timezone: string;
   locale: string;
@@ -22,21 +19,6 @@ export interface RequestWithTimezone extends Request {
   };
 }
 
-/**
- * Timezone Interceptor
- *
- * This interceptor extracts the clinic's timezone and locale settings
- * and attaches them to the request object for use in downstream handlers.
- *
- * Usage in controllers/services:
- * ```typescript
- * @Get()
- * async getData(@Req() req: RequestWithTimezone) {
- *   const { timezone, locale } = req;
- *   // Use timezone and locale for date formatting
- * }
- * ```
- */
 @Injectable()
 export class TimezoneInterceptor implements NestInterceptor {
   constructor(private prisma: PrismaService) {}
@@ -48,11 +30,9 @@ export class TimezoneInterceptor implements NestInterceptor {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<RequestWithTimezone>();
 
-    // Set defaults
     request.timezone = DEFAULT_TIMEZONE;
     request.locale = DEFAULT_LOCALE;
 
-    // Try to get clinic-specific settings if user is authenticated
     const user = request.user;
     if (user?.clinicId) {
       try {
@@ -68,9 +48,7 @@ export class TimezoneInterceptor implements NestInterceptor {
           request.timezone = clinic.timezone || DEFAULT_TIMEZONE;
           request.locale = clinic.locale || DEFAULT_LOCALE;
         }
-      } catch {
-        // Silently fall back to defaults if clinic lookup fails
-      }
+      } catch {}
     }
 
     return next.handle();

@@ -1,25 +1,3 @@
-/**
- * Combined Auth Guard (Facade Pattern + DRY)
- *
- * Combines JWT + Role + Tier checks into a single guard.
- * Eliminates the need for:
- *   @UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
- * Replace with:
- *   @UseGuards(CombinedAuthGuard)
- *
- * Benefits:
- * - Single guard invocation instead of 3 (reduces middleware overhead)
- * - Consistent error responses across all checks
- * - Uses cached tier data (via ClinicAuthCacheService)
- * - Correct check ordering: Auth → Role → Tier (fail fast)
- *
- * Usage:
- *   @UseGuards(CombinedAuthGuard)
- *   @Roles(Role.ADMIN, Role.DOCTOR)
- *   @RequireTier(Tier.PLUS)
- *   async myEndpoint() { ... }
- */
-
 import {
   Injectable,
   CanActivate,
@@ -50,14 +28,12 @@ export class CombinedAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Step 0: Public endpoints bypass all checks
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
     if (isPublic) return true;
 
-    // Step 1: JWT Authentication (fail fast)
     try {
       const canActivateJwt = await this.jwtAuthGuard.canActivate(context);
       if (!canActivateJwt) {
@@ -76,20 +52,14 @@ export class CombinedAuthGuard implements CanActivate {
       throw new UnauthorizedException('User not found in request');
     }
 
-    // Step 2: Role Check (fast, in-memory)
     const roleAllowed = this.checkRole(context, user);
     if (!roleAllowed) return false;
 
-    // Step 3: Tier Check (cached, very fast)
     const tierAllowed = await this.checkTier(context, user);
     if (!tierAllowed) return false;
 
     return true;
   }
-
-  // ========================================================================
-  // Private: Role Authorization
-  // ========================================================================
 
   private checkRole(
     context: ExecutionContext,
@@ -100,7 +70,6 @@ export class CombinedAuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    // Deny by default: if no @Roles() is set, deny access
     if (!requiredRoles) {
       return false;
     }
@@ -118,10 +87,6 @@ export class CombinedAuthGuard implements CanActivate {
     return true;
   }
 
-  // ========================================================================
-  // Private: Tier Authorization (with caching)
-  // ========================================================================
-
   private async checkTier(
     context: ExecutionContext,
     user: { role: Role; clinicId?: string },
@@ -136,7 +101,6 @@ export class CombinedAuthGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // No tier/feature requirement → allow
     if (requiredTier === undefined && requiredFeature === undefined) {
       return true;
     }
@@ -148,10 +112,8 @@ export class CombinedAuthGuard implements CanActivate {
       });
     }
 
-    // Use cached clinic auth data (50x faster than DB query)
     const clinicAuth = await this.clinicAuthCache.getClinicAuth(user.clinicId);
 
-    // Check subscription is active
     if (
       clinicAuth.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
       clinicAuth.subscriptionStatus !== SubscriptionStatus.TRIALING
@@ -166,7 +128,6 @@ export class CombinedAuthGuard implements CanActivate {
 
     const userTier = this.mapDbTierToEnum(clinicAuth.tier);
 
-    // Feature-based check
     if (requiredFeature !== undefined) {
       return this.checkFeatureAccess(
         requiredFeature,
@@ -176,7 +137,6 @@ export class CombinedAuthGuard implements CanActivate {
       );
     }
 
-    // Tier-based check
     if (requiredTier !== undefined) {
       return this.checkTierAccess(
         requiredTier,
@@ -194,7 +154,6 @@ export class CombinedAuthGuard implements CanActivate {
     hasIntelligence: boolean,
     featureOverrides: Record<string, boolean>,
   ): boolean {
-    // Custom override takes precedence
     if (featureOverrides[feature] !== undefined) {
       if (!featureOverrides[feature]) {
         throw new ForbiddenException({
@@ -261,10 +220,6 @@ export class CombinedAuthGuard implements CanActivate {
     return true;
   }
 
-  // ========================================================================
-  // Private: Tier Mapping
-  // ========================================================================
-
   private mapDbTierToEnum(dbTier: ClinicTier): Tier {
     const tierMap: Record<string, Tier> = {
       CAPTURE: Tier.CAPTURE,
@@ -272,7 +227,7 @@ export class CombinedAuthGuard implements CanActivate {
       PLUS: Tier.PLUS,
       PRO: Tier.PRO,
       ENTERPRISE: Tier.ENTERPRISE,
-      // Legacy mappings
+
       FREE: Tier.CAPTURE,
       STARTER: Tier.CORE,
       PROFESSIONAL: Tier.PRO,

@@ -51,7 +51,6 @@ function generateAuditLogs(clinicId, userId, count) {
 }
 
 async function backfillAuditLogs() {
-  console.log('Starting audit logs backfill...');
 
   try {
     const clinics = await prisma.clinic.findMany({
@@ -59,7 +58,7 @@ async function backfillAuditLogs() {
     });
 
     if (clinics.length === 0) {
-      console.log('No clinics found. Skipping backfill.');
+
       return;
     }
 
@@ -77,12 +76,11 @@ async function backfillAuditLogs() {
       });
 
       totalInserted += result.count;
-      console.log(`Clinic ${clinic.id}: Inserted ${result.count} audit logs`);
+
     }
 
-    console.log(`Backfill Complete: ${totalInserted} total audit logs`);
   } catch (error) {
-    console.error('Backfill failed:', error);
+
     throw error;
   } finally {
     await prisma.$disconnect();

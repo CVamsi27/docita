@@ -1,32 +1,22 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Prisma } from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
 
-/**
- * Feature Flag Value Types
- */
 export type FeatureFlagValue =
   | boolean
   | number
   | string
   | Record<string, unknown>;
 
-/**
- * Feature Flag Configuration
- */
 export interface FeatureFlagConfig {
   key: string;
   defaultValue: FeatureFlagValue;
   description: string;
-  /** If true, can be overridden per clinic */
+
   perClinic?: boolean;
 }
 
-/**
- * Default Feature Flags
- * Add new feature flags here with their defaults
- */
 export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
-  // Core Features
   {
     key: 'enable_whatsapp_reminders',
     defaultValue: true,
@@ -58,7 +48,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
     perClinic: true,
   },
 
-  // UI Features
   {
     key: 'enable_dark_mode',
     defaultValue: true,
@@ -72,7 +61,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
     perClinic: true,
   },
 
-  // Limits
   {
     key: 'max_file_upload_size_mb',
     defaultValue: 10,
@@ -86,7 +74,6 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
     perClinic: true,
   },
 
-  // Beta Features
   {
     key: 'enable_beta_prescription_editor',
     defaultValue: false,
@@ -107,29 +94,16 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
   },
 ];
 
-/**
- * Feature Flag Service
- *
- * Provides feature flag management with database persistence
- * and per-clinic overrides.
- *
- * Usage:
- * ```typescript
- * // Check if feature is enabled
- * if (await this.featureFlags.isEnabled('enable_ai_features', clinicId)) {
- *   // AI features available
- * }
- *
- * // Get a numeric value
- * const maxSize = await this.featureFlags.getValue<number>('max_file_upload_size_mb', clinicId);
- * ```
- */
+function toInputJsonValue(value: FeatureFlagValue): Prisma.InputJsonValue {
+  return value as Prisma.InputJsonValue;
+}
+
 @Injectable()
 export class FeatureFlagService implements OnModuleInit {
   private readonly logger = new Logger(FeatureFlagService.name);
   private cache: Map<string, FeatureFlagValue> = new Map();
   private cacheExpiry: Date = new Date(0);
-  private readonly CACHE_TTL_MS = 60000; // 1 minute
+  private readonly CACHE_TTL_MS = 60000;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -137,9 +111,6 @@ export class FeatureFlagService implements OnModuleInit {
     await this.initializeDefaultFlags();
   }
 
-  /**
-   * Initialize default feature flags in the database
-   */
   private async initializeDefaultFlags(): Promise<void> {
     try {
       for (const flag of DEFAULT_FEATURE_FLAGS) {
@@ -151,7 +122,7 @@ export class FeatureFlagService implements OnModuleInit {
           await this.prisma.featureFlag?.create({
             data: {
               key: flag.key,
-              value: flag.defaultValue as any,
+              value: toInputJsonValue(flag.defaultValue),
               description: flag.description,
               clinicId: null,
             },
@@ -160,29 +131,21 @@ export class FeatureFlagService implements OnModuleInit {
         }
       }
     } catch (error) {
-      // FeatureFlag model might not exist yet
       this.logger.warn('FeatureFlag model not available, using defaults');
     }
   }
 
-  /**
-   * Check if a feature is enabled
-   */
   async isEnabled(key: string, clinicId?: string): Promise<boolean> {
     const value = await this.getValue<boolean>(key, clinicId);
     return value === true;
   }
 
-  /**
-   * Get a feature flag value
-   */
   async getValue<T extends FeatureFlagValue>(
     key: string,
     clinicId?: string,
     defaultValue?: T,
   ): Promise<T> {
     try {
-      // Check clinic-specific override first
       if (clinicId) {
         const clinicFlag = await this.prisma.featureFlag?.findFirst({
           where: { key, clinicId },
@@ -192,13 +155,11 @@ export class FeatureFlagService implements OnModuleInit {
         }
       }
 
-      // Check cache
       const cacheKey = `global:${key}`;
       if (this.cache.has(cacheKey) && this.cacheExpiry > new Date()) {
         return this.cache.get(cacheKey) as T;
       }
 
-      // Get global flag
       const globalFlag = await this.prisma.featureFlag?.findFirst({
         where: { key, clinicId: null },
       });
@@ -208,20 +169,14 @@ export class FeatureFlagService implements OnModuleInit {
         this.cacheExpiry = new Date(Date.now() + this.CACHE_TTL_MS);
         return globalFlag.value as T;
       }
-    } catch (error) {
-      // FeatureFlag model might not exist
-    }
+    } catch (error) {}
 
-    // Return default from config or provided default
     const configDefault = DEFAULT_FEATURE_FLAGS.find(
       (f) => f.key === key,
     )?.defaultValue;
     return (defaultValue ?? configDefault ?? false) as T;
   }
 
-  /**
-   * Set a feature flag value
-   */
   async setValue(
     key: string,
     value: FeatureFlagValue,
@@ -235,19 +190,18 @@ export class FeatureFlagService implements OnModuleInit {
       if (existing) {
         await this.prisma.featureFlag?.update({
           where: { id: existing.id },
-          data: { value: value as any },
+          data: { value: toInputJsonValue(value) },
         });
       } else {
         await this.prisma.featureFlag?.create({
           data: {
             key,
-            value: value as any,
+            value: toInputJsonValue(value),
             clinicId: clinicId ?? null,
           },
         });
       }
 
-      // Invalidate cache
       this.cache.delete(`global:${key}`);
       this.logger.log(
         `Feature flag updated: ${key} = ${JSON.stringify(value)}`,
@@ -258,21 +212,16 @@ export class FeatureFlagService implements OnModuleInit {
     }
   }
 
-  /**
-   * Get all feature flags for a clinic
-   */
   async getAllForClinic(
     clinicId: string,
   ): Promise<Record<string, FeatureFlagValue>> {
     const result: Record<string, FeatureFlagValue> = {};
 
-    // Start with defaults
     for (const flag of DEFAULT_FEATURE_FLAGS) {
       result[flag.key] = flag.defaultValue;
     }
 
     try {
-      // Get global flags
       const globalFlags =
         (await this.prisma.featureFlag?.findMany({
           where: { clinicId: null },
@@ -282,7 +231,6 @@ export class FeatureFlagService implements OnModuleInit {
         result[flag.key] = flag.value as FeatureFlagValue;
       }
 
-      // Get clinic-specific overrides
       const clinicFlags =
         (await this.prisma.featureFlag?.findMany({
           where: { clinicId },
@@ -291,16 +239,11 @@ export class FeatureFlagService implements OnModuleInit {
       for (const flag of clinicFlags) {
         result[flag.key] = flag.value as FeatureFlagValue;
       }
-    } catch (error) {
-      // FeatureFlag model might not exist
-    }
+    } catch (error) {}
 
     return result;
   }
 
-  /**
-   * Delete a clinic-specific override
-   */
   async deleteClinicOverride(key: string, clinicId: string): Promise<void> {
     try {
       await this.prisma.featureFlag?.deleteMany({
@@ -315,9 +258,6 @@ export class FeatureFlagService implements OnModuleInit {
     }
   }
 
-  /**
-   * Invalidate cache
-   */
   invalidateCache(): void {
     this.cache.clear();
     this.cacheExpiry = new Date(0);

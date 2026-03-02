@@ -13,7 +13,6 @@ test.describe("Documents", () => {
   test.beforeAll(async ({ request }) => {
     user = await setupTestUser(request);
 
-    // Create Patient
     const patientRes = await request.post(`${API_URL}/patients`, {
       headers: { Authorization: `Bearer ${user.accessToken}` },
       data: {
@@ -31,7 +30,6 @@ test.describe("Documents", () => {
     const patient = await patientRes.json();
     patientId = patient.id;
 
-    // Seed Document via API
     const buffer = Buffer.from("dummy content");
     const uploadRes = await request.post(`${API_URL}/documents/upload`, {
       headers: { Authorization: `Bearer ${user.accessToken}` },
@@ -48,7 +46,7 @@ test.describe("Documents", () => {
     });
 
     if (!uploadRes.ok()) {
-      console.log("Upload failed:", await uploadRes.text());
+
     }
     expect(uploadRes.ok()).toBeTruthy();
     await uploadRes.json();
@@ -61,35 +59,29 @@ test.describe("Documents", () => {
   test("should display seeded document in list", async ({ page }) => {
     await page.goto("/documents", { waitUntil: "networkidle" });
 
-    // Strict: Verify Page Header exists
     await expect(page.locator("h1")).toContainText("Documents");
 
-    // Strict: Verify Card title exists
     await expect(
       page.locator("div", { hasText: "All Documents" }).first(),
     ).toBeVisible();
 
-    // Strict: Wait for loading to complete (no "Loading documents..." text)
     await expect(page.getByText("Loading documents...")).not.toBeVisible({
       timeout: 10000,
     });
 
-    // Strict: Verify the seeded document appears in table (by filename or ID)
-    // Strict: Verify the seeded document appears in table (by filename or ID)
     await expect(
       page.locator("tr").filter({ hasText: "test-report.pdf" }),
     ).toBeVisible();
 
-    // Document should be visible OR we check that documents count is > 0
     const noDocsMessage = page.getByText("No documents found.");
     if (await noDocsMessage.isVisible({ timeout: 2000 }).catch(() => false)) {
-      // This means document wasn't created - fail the test
+
       expect(
         false,
         "Expected document to be visible but found 'No documents found'",
       ).toBeTruthy();
     } else {
-      // Document table has rows - verify at least the structure is correct
+
       await expect(page.locator("table")).toBeVisible();
       await expect(page.locator("th")).toContainText([
         "Document ID",
@@ -105,7 +97,6 @@ test.describe("Documents", () => {
   test("should display correct table headers", async ({ page }) => {
     await page.goto("/documents", { waitUntil: "networkidle" });
 
-    // Strict: Verify all column headers
     await expect(
       page.getByRole("columnheader", { name: /Document ID/i }),
     ).toBeVisible();
@@ -123,17 +114,14 @@ test.describe("Documents", () => {
   test("should have search functionality", async ({ page }) => {
     await page.goto("/documents", { waitUntil: "networkidle" });
 
-    // Strict: Verify search input exists with correct placeholder
     const searchInput = page.getByPlaceholder(
       "Search by patient, file name, or type...",
     );
     await expect(searchInput).toBeVisible();
 
-    // Test search functionality
     await searchInput.fill("NonExistentFile12345");
-    await page.waitForTimeout(500); // Debounce
+    await page.waitForTimeout(500); 
 
-    // Strict: Verify empty state message
     await expect(page.getByText("No documents found.")).toBeVisible();
   });
 });

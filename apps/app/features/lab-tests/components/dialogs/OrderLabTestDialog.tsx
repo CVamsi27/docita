@@ -32,7 +32,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import { LabTest, Patient } from "@workspace/types";
-import { CreateLabTestOrderInput } from "../../hooks/use-lab-tests-logic";
+import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
 
 interface OrderLabTestDialogProps {
   open: boolean;

@@ -52,7 +52,7 @@ export function useObservationsForm({
       }
       toast.success("Notes saved successfully");
     } catch (error) {
-      console.error("Failed to save notes:", error);
+
       toast.error("Failed to save notes");
     }
   };

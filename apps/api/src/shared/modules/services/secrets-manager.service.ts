@@ -1,26 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-/**
- * Secrets Manager Service
- * Abstracts secrets management to support multiple providers (AWS SSM, HashiCorp Vault, etc.)
- * In development/local, uses environment variables
- * In production, can use AWS Secrets Manager or similar
- */
 @Injectable()
 export class SecretsManagerService {
   private readonly logger = new Logger(SecretsManagerService.name);
   private secretsCache: Map<string, { value: string; expiresAt: number }> =
     new Map();
-  private readonly CACHE_TTL_MS = 3600000; // 1 hour
+  private readonly CACHE_TTL_MS = 3600000;
 
   constructor(private configService: ConfigService) {
     this.initializeSecretsProvider();
   }
 
-  /**
-   * Initialize the secrets provider based on environment
-   */
   private initializeSecretsProvider(): void {
     const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
     const secretsProvider = this.configService.get<string>(
@@ -37,17 +28,12 @@ export class SecretsManagerService {
     }
   }
 
-  /**
-   * Get a secret value
-   * Returns from cache if valid, otherwise fetches from provider
-   */
   getSecret(
     secretName: string,
     options?: { cached?: boolean; ttl?: number },
   ): string | undefined {
     const { cached = true, ttl = this.CACHE_TTL_MS } = options || {};
 
-    // Check cache first
     if (cached && this.secretsCache.has(secretName)) {
       const cached = this.secretsCache.get(secretName);
       if (cached && cached.expiresAt > Date.now()) {
@@ -58,7 +44,6 @@ export class SecretsManagerService {
       }
     }
 
-    // Fetch from provider
     let secretValue: string | undefined;
 
     const provider = this.configService.get<string>('SECRETS_PROVIDER', 'env');
@@ -68,11 +53,9 @@ export class SecretsManagerService {
     } else if (provider === 'vault') {
       secretValue = this.getFromHashiCorpVault(secretName);
     } else {
-      // Default: environment variables
       secretValue = this.configService.get<string>(secretName);
     }
 
-    // Cache the result
     if (secretValue && cached) {
       this.secretsCache.set(secretName, {
         value: secretValue,
@@ -83,9 +66,6 @@ export class SecretsManagerService {
     return secretValue;
   }
 
-  /**
-   * Get multiple secrets at once
-   */
   getSecrets(
     secretNames: string[],
     options?: { cached?: boolean },
@@ -101,16 +81,8 @@ export class SecretsManagerService {
     );
   }
 
-  /**
-   * Fetch secret from AWS Secrets Manager
-   * Requires AWS SDK and proper IAM permissions
-   */
   private getFromAwsSecretsManager(secretName: string): string | undefined {
     try {
-      // AWS Secrets Manager integration would go here
-      // This requires: import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-      // For now, return undefined to fallback to environment variables
-
       this.logger.warn(
         `AWS Secrets Manager integration not yet implemented for ${secretName}`,
       );
@@ -120,21 +92,13 @@ export class SecretsManagerService {
       this.logger.error(
         `Failed to fetch secret from AWS Secrets Manager: ${errorMsg}`,
       );
-      // Fallback to environment variables
+
       return this.configService.get<string>(secretName);
     }
   }
 
-  /**
-   * Fetch secret from HashiCorp Vault
-   * Requires Vault server and proper authentication
-   */
   private getFromHashiCorpVault(secretName: string): string | undefined {
     try {
-      // HashiCorp Vault integration would go here
-      // This requires: import * as Vault from 'node-vault';
-      // For now, return undefined to fallback to environment variables
-
       this.logger.warn(
         `HashiCorp Vault integration not yet implemented for ${secretName}`,
       );
@@ -144,15 +108,11 @@ export class SecretsManagerService {
       this.logger.error(
         `Failed to fetch secret from HashiCorp Vault: ${errorMsg}`,
       );
-      // Fallback to environment variables
+
       return this.configService.get<string>(secretName);
     }
   }
 
-  /**
-   * Validate that critical secrets are available
-   * Call this at startup to ensure all required secrets are set
-   */
   validateRequiredSecrets(requiredSecrets: string[]): void {
     const missing: string[] = [];
 
@@ -171,13 +131,10 @@ export class SecretsManagerService {
     }
 
     this.logger.log(
-      `✓ All ${requiredSecrets.length} required secrets validated`,
+      ` All ${requiredSecrets.length} required secrets validated`,
     );
   }
 
-  /**
-   * Clear cache for a specific secret or all secrets
-   */
   clearCache(secretName?: string): void {
     if (secretName) {
       this.secretsCache.delete(secretName);
@@ -188,23 +145,12 @@ export class SecretsManagerService {
     }
   }
 
-  /**
-   * Rotate a secret (future enhancement)
-   * Will trigger secret rotation in the provider
-   */
   rotateSecret(secretName: string): void {
     this.logger.log(`Rotating secret: ${secretName}`);
 
-    // Clear cache to force refresh
     this.clearCache(secretName);
-
-    // In the future, this would trigger actual rotation in AWS/Vault
-    // For now, just clear the cache and log
   }
 
-  /**
-   * Get secrets metadata (non-sensitive information)
-   */
   getSecretsMetadata(): {
     provider: string;
     cachedSecrets: number;

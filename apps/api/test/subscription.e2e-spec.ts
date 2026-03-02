@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,9 +11,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Subscription (e2e)', () => {
@@ -48,7 +48,6 @@ describe('Subscription (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    // Create clinic and admin user
     const clinic = await factories.clinic({ tier: 'CORE' });
     clinicId = clinic.id;
 
@@ -82,7 +81,6 @@ describe('Subscription (e2e)', () => {
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
 
-      // Validate tier structure
       const firstTier = response.body[0];
       expect(firstTier).toHaveProperty('id');
       expect(firstTier).toHaveProperty('name');
@@ -135,7 +133,7 @@ describe('Subscription (e2e)', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      // Returns priceCents for new/inactive subscriptions
+
       if (response.body.isNewSubscription) {
         expect(response.body).toHaveProperty('priceCents');
       } else {

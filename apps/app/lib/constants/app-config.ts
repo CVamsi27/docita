@@ -1,4 +1,4 @@
-// Types for config options
+
 export interface SelectOption {
   value: string;
   label: string;
@@ -58,7 +58,7 @@ export interface ClinicSettings {
   timezone: string;
   appointmentDuration: number;
   appointmentType?: string;
-  clinicType?: string; // GENERAL, DENTAL, PEDIATRIC, etc.
+  clinicType?: string; 
 }
 
 export interface AppConfig {
@@ -68,7 +68,6 @@ export interface AppConfig {
   clinicSettings?: ClinicSettings;
 }
 
-// Default fallback values (should match backend)
 export const DEFAULT_FORM_OPTIONS: FormOptions = {
   gender: [
     { value: "MALE", label: "Male" },

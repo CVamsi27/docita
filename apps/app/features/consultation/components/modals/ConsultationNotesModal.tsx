@@ -44,7 +44,7 @@ export function ConsultationNotesModal({
       setNotes("");
     } catch (error) {
       toast.error("Failed to save notes");
-      console.error(error);
+
     }
   };
 
@@ -53,7 +53,7 @@ export function ConsultationNotesModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <StickyNote className="h-5 w-5 text-amber-500" />
+            <StickyNote className="h-5 w-5 text-warning" />
             Add Clinical Notes
           </DialogTitle>
         </DialogHeader>

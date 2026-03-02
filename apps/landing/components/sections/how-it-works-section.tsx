@@ -17,7 +17,7 @@ export function HowItWorksSection() {
         </div>
 
         <div className="relative">
-          {/* Connecting Line */}
+          {}
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2 hidden lg:block" />
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 relative z-10">

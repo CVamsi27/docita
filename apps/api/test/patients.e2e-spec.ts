@@ -5,8 +5,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -14,9 +14,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Patients (e2e)', () => {
@@ -54,7 +54,7 @@ describe('Patients (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    // Disable logging in tests to suppress expected error messages
+
     app.useLogger(false);
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
@@ -66,7 +66,6 @@ describe('Patients (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    // Setup: Create clinic and doctor - do this AFTER reset
     try {
       const clinic = await factories.clinic();
       clinicId = clinic.id;
@@ -74,10 +73,8 @@ describe('Patients (e2e)', () => {
       const { user, plainPassword } = await factories.user({ clinicId });
       doctorId = user.id;
 
-      // Link doctor to clinic
       await factories.doctorClinic(doctorId, clinicId);
 
-      // Login
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -87,7 +84,6 @@ describe('Patients (e2e)', () => {
 
       token = loginResponse.body.access_token;
     } catch (error) {
-      console.error('Setup error:', error.message);
       throw error;
     }
   });
@@ -136,7 +132,6 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           firstName: 'Jane',
-          // Missing required fields
         })
         .expect(400);
     });
@@ -144,7 +139,6 @@ describe('Patients (e2e)', () => {
 
   describe('GET /patients', () => {
     it('should list patients for clinic', async () => {
-      // Create multiple patients
       await factories.patient(clinicId);
       await factories.patient(clinicId);
 
@@ -173,11 +167,9 @@ describe('Patients (e2e)', () => {
     });
 
     it('should not list patients from other clinics', async () => {
-      // Create another clinic with patient
       const otherClinic = await factories.clinic();
       await factories.patient(otherClinic.id);
 
-      // Doctor from first clinic should only see their clinic's patients
       const response = await request(app.getHttpServer())
         .get('/patients')
         .set('Authorization', `Bearer ${token}`)
@@ -236,7 +228,6 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      // Verify deletion
       await request(app.getHttpServer())
         .get(`/patients/${patient.id}`)
         .set('Authorization', `Bearer ${token}`)

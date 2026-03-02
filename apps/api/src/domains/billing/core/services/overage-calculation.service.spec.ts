@@ -1,27 +1,19 @@
-/**
- * Unit Tests for OverageCalculationService
- *
- * Tests:
- * - Basic overage calculation
- * - No overage when under limits
- * - Add-on overage calculation
- * - Parallel data fetching
- * - Invalid add-on data handling
- */
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { OverageCalculationService } from './overage-calculation.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('OverageCalculationService', () => {
   let service: OverageCalculationService;
-  let prisma: any;
+  let prisma: {
+    tierPricing: { findUnique: jest.Mock };
+    clinicAddOn: { findMany: jest.Mock };
+  };
 
   const mockTierPricing = {
     tier: 'PRO',
-    overagePatientCents: 500, // ₹5 per patient
-    overageAppointmentCents: 200, // ₹2 per appointment
-    overageUserCents: 10000, // ₹100 per user
+    overagePatientCents: 500,
+    overageAppointmentCents: 200,
+    overageUserCents: 10000,
   };
 
   const mockAddOns = [
@@ -30,7 +22,7 @@ describe('OverageCalculationService', () => {
       addOnType: 'WHATSAPP',
       status: 'ACTIVE',
       addOn: {
-        overageRateByTier: JSON.stringify({ PRO: 50 }), // ₹0.50 per message
+        overageRateByTier: JSON.stringify({ PRO: 50 }),
       },
     },
   ];
@@ -96,8 +88,8 @@ describe('OverageCalculationService', () => {
 
       expect(result.breakdown.activePatients).toBeDefined();
       expect(result.breakdown.activePatients.quantity).toBe(50);
-      expect(result.breakdown.activePatients.rate).toBe(5); // ₹5 per patient
-      expect(result.breakdown.activePatients.charge).toBe(250); // 50 * ₹5
+      expect(result.breakdown.activePatients.rate).toBe(5);
+      expect(result.breakdown.activePatients.charge).toBe(250);
       expect(result.totalOverageCharges).toBe(250);
     });
 
@@ -118,7 +110,7 @@ describe('OverageCalculationService', () => {
 
       expect(result.breakdown.activePatients).toBeDefined();
       expect(result.breakdown.appointments).toBeDefined();
-      expect(result.totalOverageCharges).toBe(250 + 40); // (50*5) + (20*2)
+      expect(result.totalOverageCharges).toBe(250 + 40);
     });
 
     it('should calculate WhatsApp overage', async () => {
@@ -155,7 +147,6 @@ describe('OverageCalculationService', () => {
         usageWithOverage,
       );
 
-      // No tier pricing = no base overages
       expect(result.breakdown.activePatients).toBeUndefined();
     });
 
@@ -170,7 +161,6 @@ describe('OverageCalculationService', () => {
     it('should fetch data in parallel', async () => {
       await service.calculateOverageCharges('clinic-1', baseUsageData);
 
-      // Both should be called
       expect(prisma.tierPricing.findUnique).toHaveBeenCalledTimes(1);
       expect(prisma.clinicAddOn.findMany).toHaveBeenCalledTimes(1);
     });

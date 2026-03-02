@@ -9,7 +9,7 @@ import {
   Request,
   UsePipes,
 } from '@nestjs/common';
-import { CustomFieldsService } from '../../application/services/custom-fields.service';
+import { CustomFieldsService } from '@/domains/custom-fields/application/services/custom-fields.service';
 import {
   CreateCustomFieldDto,
   UpdateCustomFieldDto,
@@ -17,15 +17,15 @@ import {
   CustomFieldListResponseDto,
   CreateCustomFieldSchema,
   UpdateCustomFieldSchema,
-} from '../../dto/custom-fields.dto';
+} from '@/domains/custom-fields/dto/custom-fields.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('custom-fields')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
 export class CustomFieldsController {
   constructor(private readonly customFieldsService: CustomFieldsService) {}
 

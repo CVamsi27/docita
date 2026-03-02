@@ -13,12 +13,12 @@ import { OnboardingDataService } from './application/services/onboarding/onboard
 import { OnboardingValidationService } from './application/services/onboarding/onboarding-validation.service';
 import { OnboardingWorkflowService } from './application/services/onboarding/onboarding-workflow.service';
 import { OnboardingComplianceService } from './application/services/onboarding/onboarding-compliance.service';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
-import { AuthModule } from '../../shared/modules/auth/auth/auth.module';
-import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
-import { BillingModule } from '../billing/billing.module';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
+import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
+import { BillingModule } from '@/domains/billing/billing.module';
+import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { ClinicFactory } from './core/factories/clinic.factory';
 import { SettingsFactory } from './core/factories/settings.factory';
 

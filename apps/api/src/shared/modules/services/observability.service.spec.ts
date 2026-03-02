@@ -13,7 +13,6 @@ describe.skip('ObservabilityService', () => {
   });
 
   afterEach(() => {
-    // Clean up any pending metrics
     service.getMetricsSummary();
   });
 
@@ -141,10 +140,8 @@ describe.skip('ObservabilityService', () => {
       service.recordMetric('test', 100, 'label');
       const summaryBefore = service.getMetricsSummary();
 
-      // Metrics should be available before expiration
       expect(summaryBefore.length).toBeGreaterThan(0);
 
-      // Create a summary again to trigger cleanup
       const summaryAfter = service.getMetricsSummary();
       expect(summaryAfter).toBeDefined();
     });
@@ -197,54 +194,46 @@ describe.skip('ObservabilityService', () => {
       await service.flush(2000);
 
       const elapsed = Date.now() - startTime;
-      expect(elapsed).toBeLessThan(5000); // Should complete quickly
+      expect(elapsed).toBeLessThan(5000);
     });
 
     it('should handle flush timeout gracefully', async () => {
-      // Create a large amount of metrics
       for (let i = 0; i < 100; i++) {
         service.recordMetric(`metric_${i}`, Math.random() * 1000, `label_${i}`);
       }
 
-      await expect(service.flush(100)).resolves.not.toThrow(); // Very short timeout
+      await expect(service.flush(100)).resolves.not.toThrow();
     });
   });
 
   describe('integration scenarios', () => {
     it('should handle complete observability workflow', async () => {
-      // 1. Initialize
       service.initializeSentry({
         dsn: 'https://example@sentry.io/123456',
         environment: 'test',
       });
 
-      // 2. Record metrics
       service.recordMetric('request_time', 250, 'POST /api/login');
       service.recordMetric('auth_success', 1, 'user-123');
 
-      // 3. Log structured data
       service.logStructured('info', 'User login action', {
         correlationId: 'correlation-123',
         action: 'user_login',
         details: { userId: 'user-123', timestamp: new Date().toISOString() },
       });
 
-      // 4. Check system health
       const systemHealth = await service.getSystemHealth();
       expect(systemHealth).toBeDefined();
 
-      // 5. Get metrics
       const metrics = service.getMetricsSummary();
       expect(metrics).toBeDefined();
 
-      // 6. Capture an event
       service.captureMessage(
         'Request processed successfully',
         'workflow',
         'info',
       );
 
-      // 7. Flush
       await service.flush(2000);
     });
 

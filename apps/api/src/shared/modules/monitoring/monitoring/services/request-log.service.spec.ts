@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RequestLogService } from './request-log.service';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { MonitoringFactory } from '../factories/monitoring.factory';
-import { ApiRequestInput } from '../schemas/monitoring.schema';
+import { PrismaService } from '@/prisma/prisma.service';
+import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 
 describe('RequestLogService', () => {
   let service: RequestLogService;
@@ -38,7 +38,7 @@ describe('RequestLogService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    // Clear buffer implicitly or explicitly if needed, but recreate service in beforeEach handles it
+
     if (service['flushTimer']) {
       clearInterval(service['flushTimer']);
     }
@@ -74,7 +74,6 @@ describe('RequestLogService', () => {
         responseSize: 0,
       };
 
-      // Fill buffer to limit (BATCH_SIZE is 100)
       for (let i = 0; i < 100; i++) {
         service.logRequest(request);
       }
@@ -110,7 +109,7 @@ describe('RequestLogService', () => {
     it('should aggregate stats', async () => {
       const stats = await service.getRequestStats();
       expect(stats.totalRequests).toBe(100);
-      expect(prismaService.apiRequest.count).toHaveBeenCalledTimes(3); // Total, success, failed
+      expect(prismaService.apiRequest.count).toHaveBeenCalledTimes(3);
       expect(prismaService.apiRequest.aggregate).toHaveBeenCalled();
     });
   });

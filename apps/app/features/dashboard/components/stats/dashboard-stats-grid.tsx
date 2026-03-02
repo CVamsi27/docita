@@ -30,29 +30,29 @@ export function DashboardStatsGridUI({
       title: "Total Patients",
       value: stats.totalPatients,
       icon: Users,
-      color: "text-blue-600",
-      bgColor: "from-blue-500/20 to-blue-500/10",
+      color: "text-info",
+      bgColor: "from-info/20 to-info/10",
     },
     {
       title: "Today's Appointments",
       value: stats.todayAppointments,
       icon: CalendarCheck2,
-      color: "text-amber-600",
-      bgColor: "from-amber-500/20 to-amber-500/10",
+      color: "text-warning",
+      bgColor: "from-warning/20 to-warning/10",
     },
     {
       title: "Completed Today",
       value: completedToday,
       icon: CheckCircle2,
-      color: "text-green-600",
-      bgColor: "from-green-500/20 to-green-500/10",
+      color: "text-success",
+      bgColor: "from-success/20 to-success/10",
     },
     {
       title: "In Progress",
       value: inProgressToday,
       icon: Clock,
-      color: "text-purple-600",
-      bgColor: "from-purple-500/20 to-purple-500/10",
+      color: "text-primary",
+      bgColor: "from-primary/20 to-primary/10",
     },
   ];
 
@@ -84,5 +84,4 @@ export function DashboardStatsGridUI({
   );
 }
 
-// Export alias for backward compatibility
 export { DashboardStatsGridUI as DashboardStatsGrid };

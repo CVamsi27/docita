@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ClinicSettings,
   ClinicSettingsSchema,
-} from '../../presentation/schemas/settings.schema';
+} from '@/domains/clinics/presentation/schemas/settings.schema';
 
 @Injectable()
 export class SettingsFactory {
@@ -16,7 +16,7 @@ export class SettingsFactory {
         'Friday',
         'Saturday',
       ],
-      consultationDuration: 30, // minutes
+      consultationDuration: 30,
       reminderBefore: 30,
       reminderUnit: 'minutes',
       whatsappAppointmentReminders: true,
@@ -24,7 +24,7 @@ export class SettingsFactory {
       whatsappBirthdayWishes: false,
       whatsappMedicineReminders: true,
       emailNotifications: true,
-      smsNotifications: false, // Usually costs money, default off
+      smsNotifications: false,
       pushNotifications: true,
       appointmentAlerts: true,
       reportAlerts: true,
@@ -39,7 +39,6 @@ export class SettingsFactory {
       paymentReminderAutoSendWhatsApp: true,
       useSameBankAccountForSubscriptionAndReceipts: true,
 
-      // Prescription defaults
       includeClinicHeader: true,
       includeDoctorSignature: true,
       includeQRCode: false,

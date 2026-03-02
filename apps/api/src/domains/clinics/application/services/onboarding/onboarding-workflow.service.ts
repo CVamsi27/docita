@@ -4,13 +4,14 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   SubscriptionStatus,
   User,
   Clinic,
   Subscription,
   Specialization,
+  Role,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import type { PrismaTransaction } from '@workspace/types';
@@ -20,7 +21,7 @@ import {
   PlanSelectionDto,
   StaffSetupDto,
   BillingCycle,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
 
 interface OnboardingPaymentInput {
@@ -35,6 +36,10 @@ interface OnboardingPaymentInput {
   };
   whatsappBusinessNumber?: string;
   skipPayment?: boolean;
+}
+
+function toStaffRole(role: 'DOCTOR' | 'RECEPTIONIST'): Role {
+  return role === 'DOCTOR' ? Role.DOCTOR : Role.RECEPTIONIST;
 }
 
 @Injectable()
@@ -228,7 +233,7 @@ export class OnboardingWorkflowService {
           email: member.email,
           password: hashedPassword,
           phoneNumber: member.phoneNumber,
-          role: member.role as any,
+          role: toStaffRole(member.role),
           clinicId,
           qualification: member.qualification,
           registrationNumber: member.registrationNumber,

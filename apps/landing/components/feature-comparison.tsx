@@ -189,20 +189,20 @@ function FeatureIcon({ status }: { status: FeatureStatus }) {
   switch (status) {
     case "yes":
       return (
-        <div className="h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <Check className="h-4 w-4 text-green-600" />
+        <div className="h-6 w-6 rounded-full bg-success/15 flex items-center justify-center">
+          <Check className="h-4 w-4 text-success" />
         </div>
       );
     case "no":
       return (
-        <div className="h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-          <X className="h-4 w-4 text-red-600" />
+        <div className="h-6 w-6 rounded-full bg-destructive/15 flex items-center justify-center">
+          <X className="h-4 w-4 text-destructive" />
         </div>
       );
     case "partial":
       return (
-        <div className="h-6 w-6 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <Minus className="h-4 w-4 text-amber-600" />
+        <div className="h-6 w-6 rounded-full bg-warning/15 flex items-center justify-center">
+          <Minus className="h-4 w-4 text-warning" />
         </div>
       );
     case "na":
@@ -253,16 +253,16 @@ export function FeatureComparisonTable({ className }: { className?: string }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Setup Time Row */}
+            {}
             <TableRow>
               <TableCell className="font-medium">Setup Time</TableCell>
               <TableCell className="text-center">
-                <span className="text-green-600 font-semibold">
+                <span className="text-success font-semibold">
                   {statusLabels.docita.setup}
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <span className="text-amber-600">
+                <span className="text-warning">
                   {statusLabels.practo.setup}
                 </span>
               </TableCell>
@@ -272,13 +272,13 @@ export function FeatureComparisonTable({ className }: { className?: string }) {
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <span className="text-red-600">
+                <span className="text-destructive">
                   {statusLabels.genericEHR.setup}
                 </span>
               </TableCell>
             </TableRow>
 
-            {/* Feature Rows */}
+            {}
             {features.slice(1).map((feature) => (
               <TableRow key={feature.name}>
                 <TableCell className="font-medium">
@@ -327,15 +327,12 @@ export function FeatureComparisonTable({ className }: { className?: string }) {
   );
 }
 
-/**
- * Simplified comparison cards for mobile
- */
 export function FeatureComparisonCards({ className }: { className?: string }) {
   const docitaFeatures = features.filter((f) => f.comparison.docita === "yes");
 
   return (
     <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)}>
-      {/* Docita Card */}
+      {}
       <div className="rounded-xl border-2 border-primary bg-primary/5 p-4">
         <div className="text-center mb-4">
           <h3 className="text-lg font-bold text-primary">Docita</h3>
@@ -344,7 +341,7 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
         <ul className="space-y-2">
           {docitaFeatures.slice(0, 6).map((feature) => (
             <li key={feature.name} className="flex items-center gap-2 text-sm">
-              <Check className="h-4 w-4 text-green-600 shrink-0" />
+              <Check className="h-4 w-4 text-success shrink-0" />
               {feature.name}
             </li>
           ))}
@@ -354,7 +351,7 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
         </ul>
       </div>
 
-      {/* Practo Card */}
+      {}
       <div className="rounded-xl border p-4">
         <div className="text-center mb-4">
           <h3 className="text-lg font-bold">Practo</h3>
@@ -364,11 +361,11 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
           {features.slice(0, 6).map((feature) => (
             <li key={feature.name} className="flex items-center gap-2 text-sm">
               {feature.comparison.practo === "yes" ? (
-                <Check className="h-4 w-4 text-green-600 shrink-0" />
+                <Check className="h-4 w-4 text-success shrink-0" />
               ) : feature.comparison.practo === "partial" ? (
-                <Minus className="h-4 w-4 text-amber-600 shrink-0" />
+                <Minus className="h-4 w-4 text-warning shrink-0" />
               ) : (
-                <X className="h-4 w-4 text-red-600 shrink-0" />
+                <X className="h-4 w-4 text-destructive shrink-0" />
               )}
               {feature.name}
             </li>
@@ -376,7 +373,7 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
         </ul>
       </div>
 
-      {/* Paper Card */}
+      {}
       <div className="rounded-xl border p-4">
         <div className="text-center mb-4">
           <h3 className="text-lg font-bold">Paper Records</h3>
@@ -386,11 +383,11 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
           {features.slice(0, 6).map((feature) => (
             <li key={feature.name} className="flex items-center gap-2 text-sm">
               {feature.comparison.paper === "yes" ? (
-                <Check className="h-4 w-4 text-green-600 shrink-0" />
+                <Check className="h-4 w-4 text-success shrink-0" />
               ) : feature.comparison.paper === "na" ? (
                 <Minus className="h-4 w-4 text-muted-foreground shrink-0" />
               ) : (
-                <X className="h-4 w-4 text-red-600 shrink-0" />
+                <X className="h-4 w-4 text-destructive shrink-0" />
               )}
               {feature.name}
             </li>
@@ -398,7 +395,7 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
         </ul>
       </div>
 
-      {/* Generic EHR Card */}
+      {}
       <div className="rounded-xl border p-4">
         <div className="text-center mb-4">
           <h3 className="text-lg font-bold">Generic EHR</h3>
@@ -408,11 +405,11 @@ export function FeatureComparisonCards({ className }: { className?: string }) {
           {features.slice(0, 6).map((feature) => (
             <li key={feature.name} className="flex items-center gap-2 text-sm">
               {feature.comparison.genericEHR === "yes" ? (
-                <Check className="h-4 w-4 text-green-600 shrink-0" />
+                <Check className="h-4 w-4 text-success shrink-0" />
               ) : feature.comparison.genericEHR === "partial" ? (
-                <Minus className="h-4 w-4 text-amber-600 shrink-0" />
+                <Minus className="h-4 w-4 text-warning shrink-0" />
               ) : (
-                <X className="h-4 w-4 text-red-600 shrink-0" />
+                <X className="h-4 w-4 text-destructive shrink-0" />
               )}
               {feature.name}
             </li>

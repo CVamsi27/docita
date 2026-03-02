@@ -10,7 +10,7 @@ import {
   defaultClinicRegistrationData,
   type PaymentDetails,
   type TeamMember,
-} from "../components/types";
+} from "@/features/onboarding/components/types";
 
 interface PlanPricing {
   monthly: number | "custom";

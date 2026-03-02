@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolesGuard } from '../auth/roles.guard';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -30,7 +30,7 @@ describe('RolesGuard', () => {
     it('should deny request when no roles are required (deny-by-default)', () => {
       mockReflector.getAllAndOverride
         .mockReturnValueOnce(false)
-        .mockReturnValueOnce(undefined); // No roles required
+        .mockReturnValueOnce(undefined);
 
       const mockExecutionContext = {
         getHandler: jest.fn(),
@@ -40,7 +40,7 @@ describe('RolesGuard', () => {
             user: { id: 'user-1', role: 'DOCTOR' },
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -60,7 +60,7 @@ describe('RolesGuard', () => {
             user: { id: 'user-1', role: 'DOCTOR', clinicId: 'clinic-1' },
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -80,7 +80,7 @@ describe('RolesGuard', () => {
             user: { id: 'user-1', role: 'PATIENT', clinicId: 'clinic-1' },
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
@@ -98,7 +98,7 @@ describe('RolesGuard', () => {
             user: undefined,
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
@@ -117,7 +117,7 @@ describe('RolesGuard', () => {
             user: { id: 'user-1', role: 'NURSE', clinicId: 'clinic-1' },
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -137,7 +137,7 @@ describe('RolesGuard', () => {
             user: { id: 'user-1', role: 'SUPER_ADMIN', clinicId: 'clinic-1' },
           }),
         }),
-      } as unknown as ExecutionContext;
+      } as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });

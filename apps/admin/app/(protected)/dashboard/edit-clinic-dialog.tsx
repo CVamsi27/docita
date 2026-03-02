@@ -18,7 +18,6 @@ import {
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
 
-// Available tiers for clinic editing (excluding INTELLIGENCE which is an add-on)
 const AVAILABLE_TIERS: TierName[] = [
   "CAPTURE",
   "CORE",
@@ -27,7 +26,6 @@ const AVAILABLE_TIERS: TierName[] = [
   "ENTERPRISE",
 ];
 
-// Clinic types with descriptions
 const CLINIC_TYPES = [
   {
     value: "GENERAL",
@@ -84,7 +82,6 @@ const CLINIC_TYPES = [
 
 type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
 
-// Helper to normalize legacy tier names to new tier names
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
     FREE: "CAPTURE",
@@ -194,7 +191,6 @@ export function EditClinicDialog({
           body: JSON.stringify(formData),
         });
 
-        // Handle auth errors
         if (res.status === 401) {
           logout("Your session has expired. Please log in again.");
           return;
@@ -219,7 +215,7 @@ export function EditClinicDialog({
           toast.error(error.message || "Failed to update clinic");
         }
       } catch (error) {
-        console.error(error);
+
         toast.error("Error updating clinic");
       } finally {
         setLoading(false);
@@ -229,7 +225,12 @@ export function EditClinicDialog({
 
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(true)}
+        aria-label="Edit clinic"
+      >
         <Pencil className="h-4 w-4" />
       </Button>
       <CRUDDialog

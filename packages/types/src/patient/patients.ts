@@ -9,7 +9,6 @@ export const patientTagSchema = z.object({
 });
 export type PatientTag = z.infer<typeof patientTagSchema>;
 
-// Isolation Status
 export const isolationStatusSchema = z.enum([
   "NONE",
   "CONTACT",
@@ -29,24 +28,23 @@ export const ISOLATION_STATUS_LABELS: Record<IsolationStatus, string> = {
   PROTECTIVE: "Protective (Neutropenic)",
 };
 
-// Comprehensive Vitals Schema
 export const comprehensiveVitalsSchema = z.object({
   systolicBP: z.number().min(0).max(300).optional(),
   diastolicBP: z.number().min(0).max(200).optional(),
   heartRate: z.number().min(0).max(300).optional(),
-  temperature: z.number().min(30).max(45).optional(), // Celsius default
+  temperature: z.number().min(30).max(45).optional(), 
   temperatureUnit: z.enum(["C", "F"]).default("C"),
   oxygenSaturation: z.number().min(0).max(100).optional(),
   respiratoryRate: z.number().min(0).max(100).optional(),
   painScore: z.number().min(0).max(10).optional(),
-  bloodGlucose: z.number().optional(), // mg/dL
+  bloodGlucose: z.number().optional(), 
   consciousness: z.enum(["ALERT", "VERBAL", "PAIN", "UNRESPONSIVE"]).optional(),
 });
 export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
 
 export const patientSchema = z.object({
   id: z.string().optional(),
-  mrn: z.string().max(50).nullable().optional(), // Medical Record Number
+  mrn: z.string().max(50).nullable().optional(), 
   firstName: z.string().min(1, "First name is required").max(100),
   lastName: z.string().min(1, "Last name is required").max(100),
   preferredName: z.string().max(100).nullable().optional(),
@@ -69,27 +67,22 @@ export const patientSchema = z.object({
     .transform(stripHtmlTags),
   clinicId: z.string().optional(),
 
-  // Hospital-Grade Demographics
   race: z.string().max(50).optional(),
   ethnicity: z.string().max(50).optional(),
   preferredLanguage: z.string().max(50).optional(),
   maritalStatus: z.string().max(50).optional(),
 
-  // Hospital Safety
   isolationStatus: isolationStatusSchema.default("NONE"),
   fallRisk: z.boolean().default(false),
 
-  // Insurance Information
   insuranceProvider: z.string().max(100).optional(),
   insurancePolicyNumber: z.string().max(100).optional(),
   insuranceGroupNumber: z.string().max(100).optional(),
 
-  // Emergency Contact
   emergencyContactName: z.string().max(100).optional(),
   emergencyContactPhone: z.string().max(20).optional(),
   emergencyContactRelation: z.string().max(50).optional(),
 
-  // Patient Safety - Code Status (DNR/Full Code)
   codeStatus: codeStatusSchema.optional(),
   codeStatusUpdatedAt: z.string().or(z.date()).optional(),
   codeStatusUpdatedBy: z.string().optional(),
@@ -120,13 +113,6 @@ export const createPatientSchema = patientSchema.extend({
 });
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 
-// Moved updatePatientSchema down to use extended schema
-
-// ============================================================================
-// Structured Medical History Schemas
-// ============================================================================
-
-// Medical Condition Types
 export const medicalConditionTypeSchema = z.enum([
   "CHRONIC",
   "ACUTE",
@@ -151,7 +137,6 @@ export const MEDICAL_CONDITION_TYPE_LABELS: Record<
   OTHER: "Other",
 };
 
-// Condition Status
 export const conditionStatusSchema = z.enum([
   "ACTIVE",
   "MANAGED",
@@ -174,7 +159,6 @@ export const CONDITION_STATUS_COLORS: Record<ConditionStatus, string> = {
   IN_REMISSION: "default",
 };
 
-// Condition Severity
 export const conditionSeveritySchema = z.enum([
   "MILD",
   "MODERATE",
@@ -197,7 +181,6 @@ export const CONDITION_SEVERITY_COLORS: Record<ConditionSeverity, string> = {
   CRITICAL: "bg-red-100 text-red-800 border-red-300",
 };
 
-// Source type for tracking how conditions were added
 export const conditionSourceTypeSchema = z.enum([
   "MANUAL",
   "AUTO_SUGGESTED",
@@ -205,7 +188,6 @@ export const conditionSourceTypeSchema = z.enum([
 ]);
 export type ConditionSourceType = z.infer<typeof conditionSourceTypeSchema>;
 
-// Patient Medical Condition Schema
 export const patientMedicalConditionSchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
@@ -227,7 +209,6 @@ export type PatientMedicalCondition = z.infer<
   typeof patientMedicalConditionSchema
 >;
 
-// Allergy Types
 export const allergyTypeSchema = z.enum([
   "DRUG",
   "FOOD",
@@ -249,7 +230,6 @@ export const ALLERGY_TYPE_LABELS: Record<AllergyType, string> = {
   OTHER: "Other",
 };
 
-// Allergy Severity
 export const allergySeveritySchema = z.enum([
   "MILD",
   "MODERATE",
@@ -272,7 +252,6 @@ export const ALLERGY_SEVERITY_COLORS: Record<AllergySeverity, string> = {
   LIFE_THREATENING: "bg-red-200 text-red-900 border-red-500 animate-pulse",
 };
 
-// Patient Allergy Schema
 export const patientAllergySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
@@ -294,7 +273,6 @@ export const patientAllergySchema = z.object({
 });
 export type PatientAllergy = z.infer<typeof patientAllergySchema>;
 
-// Family History Schema
 export const patientFamilyHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
@@ -311,7 +289,6 @@ export const patientFamilyHistorySchema = z.object({
 });
 export type PatientFamilyHistory = z.infer<typeof patientFamilyHistorySchema>;
 
-// Smoking Status
 export const smokingStatusSchema = z.enum([
   "NEVER",
   "FORMER",
@@ -327,7 +304,6 @@ export const SMOKING_STATUS_LABELS: Record<SmokingStatus, string> = {
   UNKNOWN: "Unknown",
 };
 
-// Alcohol Use Status
 export const alcoholUseStatusSchema = z.enum([
   "NONE",
   "OCCASIONAL",
@@ -345,7 +321,6 @@ export const ALCOHOL_USE_STATUS_LABELS: Record<AlcoholUseStatus, string> = {
   UNKNOWN: "Unknown",
 };
 
-// Social History Schema
 export const patientSocialHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
@@ -365,7 +340,6 @@ export const patientSocialHistorySchema = z.object({
 });
 export type PatientSocialHistory = z.infer<typeof patientSocialHistorySchema>;
 
-// Surgical History Schema
 export const patientSurgicalHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
@@ -382,7 +356,6 @@ export type PatientSurgicalHistory = z.infer<
   typeof patientSurgicalHistorySchema
 >;
 
-// Extended Patient Schema with structured medical history
 export const patientWithMedicalHistorySchema = patientSchema.extend({
   medicalConditions: z.array(patientMedicalConditionSchema).optional(),
   patientAllergies: z.array(patientAllergySchema).optional(),

@@ -27,7 +27,7 @@ export const AddOnSchema = z.object({
   name: z.string(),
   description: z.string(),
   pricing: z.record(
-    z.string(), // TierName
+    z.string(), 
     z.object({
       basePrice: z.number().or(z.literal("custom")),
       includedQuota: z.number(),
@@ -57,7 +57,6 @@ export const IntelligenceInfoSchema = z.object({
   features: z.array(z.string()),
 });
 
-// The FULL config response schema
 export const SubscriptionConfigResponseSchema = z.object({
   tiers: z.array(SubscriptionTierConfigSchema),
   featureTierMap: z.record(z.string(), z.number()),
@@ -68,13 +67,13 @@ export const SubscriptionConfigResponseSchema = z.object({
   intelligenceAddons: z.array(IntelligenceAddonSchema),
   intelligenceBundleDiscount: z.number(),
   intelligenceInfo: IntelligenceInfoSchema,
-  addOns: z.array(AddOnSchema).optional(), // Optional for backward compat if needed, but we'll populate it
+  addOns: z.array(AddOnSchema).optional(), 
 });
 
 export const SubscriptionSchema = z.object({
   id: z.string(),
   status: z.string(),
-  plan: z.string(), // tier name
+  plan: z.string(), 
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
   currentPeriodStart: z.date().or(z.string()),
   currentPeriodEnd: z.date().or(z.string()),

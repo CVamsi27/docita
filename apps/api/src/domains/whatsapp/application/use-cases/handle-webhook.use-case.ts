@@ -2,11 +2,12 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
-} from '../ports/whatsapp.repository.port';
-import { WhatsAppMessageStatus } from '../../core/entities/whatsapp-message.entity';
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
+import { WhatsAppWebhookPayload } from '@workspace/types';
 
 export interface WebhookRequest {
-  payload: Record<string, unknown>;
+  payload: WhatsAppWebhookPayload;
 }
 
 @Injectable()
@@ -21,25 +22,20 @@ export class HandleWebhookUseCase {
   async execute(request: WebhookRequest): Promise<void> {
     const { payload } = request;
 
-    const entries = (payload.entry as Array<Record<string, unknown>>) || [];
+    const entries = payload.entry || [];
     for (const entry of entries) {
-      const changes = (entry.changes as Array<Record<string, unknown>>) || [];
+      const changes = entry.changes || [];
       for (const change of changes) {
         if (change.field !== 'messages') continue;
 
-        const value = change.value as Record<string, unknown>;
-        const statuses =
-          (value.statuses as Array<Record<string, unknown>>) || [];
+        const value = change.value;
+        const statuses = value.statuses || [];
 
         for (const statusObj of statuses) {
-          const externalId = statusObj.id as string;
-          const status = statusObj.status as string;
+          const externalId = statusObj.id;
+          const status = statusObj.status;
 
-          await this.processStatusUpdate(
-            externalId,
-            status,
-            statusObj.errors as Array<Record<string, unknown>>,
-          );
+          await this.processStatusUpdate(externalId, status, statusObj.errors);
         }
       }
     }
@@ -80,7 +76,10 @@ export class HandleWebhookUseCase {
       errors.length > 0
     ) {
       const error = errors[0];
-      message.setError(String(error.code), error.message as string);
+      message.setError(
+        String(error.code),
+        typeof error.message === 'string' ? error.message : 'Unknown error',
+      );
     } else {
       message.updateStatus(domainStatus);
     }

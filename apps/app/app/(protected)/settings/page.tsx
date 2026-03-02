@@ -15,7 +15,7 @@ function SettingsContent() {
   useEffect(() => {
     if (searchParams?.get("payment") === "success") {
       setShowSuccessModal(true);
-      // Clean up URL
+
       const newParams = new URLSearchParams(searchParams.toString());
       newParams.delete("payment");
       router.replace(`/settings?${newParams.toString()}`);

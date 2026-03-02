@@ -1,18 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { appointmentsApi } from "../api/appointments.api";
+import { appointmentsApi } from "@/features/appointments/api/appointments.api";
 import type {
   CreateAppointmentInput,
   UpdateAppointmentInput,
 } from "@workspace/types";
 import { toast } from "sonner";
 
-/**
- * React Query hooks for appointment operations
- */
-
-/**
- * Fetch all appointments with optional filters
- */
 export function useAppointments(params?: {
   date?: string;
   startDate?: string;
@@ -25,9 +18,6 @@ export function useAppointments(params?: {
   });
 }
 
-/**
- * Fetch a single appointment by ID
- */
 export function useAppointment(id: string) {
   return useQuery({
     queryKey: ["appointments", id],
@@ -36,9 +26,6 @@ export function useAppointment(id: string) {
   });
 }
 
-/**
- * Create a new appointment
- */
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
 
@@ -54,9 +41,6 @@ export function useCreateAppointment() {
   });
 }
 
-/**
- * Update an existing appointment
- */
 export function useUpdateAppointment(id: string) {
   const queryClient = useQueryClient();
 
@@ -74,9 +58,6 @@ export function useUpdateAppointment(id: string) {
   });
 }
 
-/**
- * Delete an appointment
- */
 export function useDeleteAppointment(id: string) {
   const queryClient = useQueryClient();
 
@@ -92,9 +73,6 @@ export function useDeleteAppointment(id: string) {
   });
 }
 
-/**
- * Check-in an appointment
- */
 export function useCheckInAppointment(id: string) {
   const queryClient = useQueryClient();
 

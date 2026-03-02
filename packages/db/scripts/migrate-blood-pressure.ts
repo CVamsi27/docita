@@ -1,23 +1,9 @@
-/**
- * Blood Pressure Migration Script
- *
- * This script migrates legacy blood pressure data from the string format "120/80"
- * to separate systolic/diastolic integer fields for hospital-grade accuracy.
- *
- * Migration Strategy:
- * 1. Parse standard format "XXX/YY" into systolic and diastolic values
- * 2. Flag non-standard entries (ranges, text, invalid values) for manual review
- * 3. Validate parsed values are within clinically reasonable ranges
- *
- * Usage:
- *   npx tsx packages/db/scripts/migrate-blood-pressure.ts [--dry-run]
- */
+
 
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Clinically reasonable ranges for blood pressure
 const BP_RANGES = {
   systolic: { min: 60, max: 300 },
   diastolic: { min: 30, max: 200 },
@@ -32,9 +18,6 @@ interface MigrationResult {
   reason?: string;
 }
 
-/**
- * Parse blood pressure string into systolic and diastolic values
- */
 function parseBloodPressure(bp: string): {
   systolic: number | null;
   diastolic: number | null;
@@ -52,13 +35,11 @@ function parseBloodPressure(bp: string): {
 
   const trimmed = bp.trim();
 
-  // Standard format: "120/80" or "120 / 80"
   const standardMatch = trimmed.match(/^(\d+)\s*\/\s*(\d+)$/);
   if (standardMatch) {
     const systolic = parseInt(standardMatch[1], 10);
     const diastolic = parseInt(standardMatch[2], 10);
 
-    // Validate ranges
     if (
       systolic < BP_RANGES.systolic.min ||
       systolic > BP_RANGES.systolic.max
@@ -83,7 +64,6 @@ function parseBloodPressure(bp: string): {
       };
     }
 
-    // Validate systolic > diastolic
     if (systolic <= diastolic) {
       return {
         systolic,
@@ -96,12 +76,11 @@ function parseBloodPressure(bp: string): {
     return { systolic, diastolic, status: "MIGRATED" };
   }
 
-  // Range format: "120-130/80-90" or "120-130 / 80-90"
   const rangeMatch = trimmed.match(
     /^(\d+)\s*-\s*(\d+)\s*\/\s*(\d+)\s*-\s*(\d+)$/,
   );
   if (rangeMatch) {
-    // Use average of range for migration, but flag for review
+
     const systolicAvg = Math.round(
       (parseInt(rangeMatch[1], 10) + parseInt(rangeMatch[2], 10)) / 2,
     );
@@ -116,7 +95,6 @@ function parseBloodPressure(bp: string): {
     };
   }
 
-  // Systolic range only: "140-150/90"
   const systolicRangeMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)\s*\/\s*(\d+)$/);
   if (systolicRangeMatch) {
     const systolicAvg = Math.round(
@@ -133,7 +111,6 @@ function parseBloodPressure(bp: string): {
     };
   }
 
-  // Text-based entries
   const textPatterns = [
     /normal/i,
     /high/i,
@@ -157,7 +134,6 @@ function parseBloodPressure(bp: string): {
     }
   }
 
-  // Single number (could be systolic only)
   const singleNumberMatch = trimmed.match(/^(\d+)$/);
   if (singleNumberMatch) {
     return {
@@ -168,7 +144,6 @@ function parseBloodPressure(bp: string): {
     };
   }
 
-  // Unknown format
   return {
     systolic: null,
     diastolic: null,
@@ -178,14 +153,7 @@ function parseBloodPressure(bp: string): {
 }
 
 async function migrateBloodPressure(dryRun: boolean = false): Promise<void> {
-  console.log("=".repeat(60));
-  console.log("Blood Pressure Migration Script");
-  console.log(`Mode: ${dryRun ? "DRY RUN (no changes will be made)" : "LIVE"}`);
-  console.log("=".repeat(60));
-  console.log("");
 
-  // Fetch all vital signs with legacy bloodPressure field
-  // Using raw query to handle fields that may not exist in older schema
   const vitalSigns = await prisma.$queryRaw<
     Array<{
       id: string;
@@ -199,9 +167,6 @@ async function migrateBloodPressure(dryRun: boolean = false): Promise<void> {
     WHERE "bloodPressure" IS NOT NULL
     AND ("systolicBP" IS NULL OR "bpMigrationStatus" IS NULL)
   `;
-
-  console.log(`Found ${vitalSigns.length} vital sign records to process`);
-  console.log("");
 
   const results: MigrationResult[] = [];
   let migratedCount = 0;
@@ -228,7 +193,7 @@ async function migrateBloodPressure(dryRun: boolean = false): Promise<void> {
     }
 
     if (!dryRun) {
-      // Use raw query for update to handle new fields
+
       await prisma.$executeRaw`
         UPDATE "VitalSign"
         SET 
@@ -240,64 +205,35 @@ async function migrateBloodPressure(dryRun: boolean = false): Promise<void> {
     }
   }
 
-  // Summary
-  console.log("=".repeat(60));
-  console.log("MIGRATION SUMMARY");
-  console.log("=".repeat(60));
-  console.log(`Total records processed: ${vitalSigns.length}`);
-  console.log(`Successfully migrated:   ${migratedCount}`);
-  console.log(`Flagged for review:      ${flaggedCount}`);
-  console.log("");
-
-  // Print flagged records for review
   if (flaggedCount > 0) {
-    console.log("=".repeat(60));
-    console.log("FLAGGED RECORDS (require manual review)");
-    console.log("=".repeat(60));
 
     const flaggedResults = results.filter((r) => r.status === "FLAGGED");
     for (const result of flaggedResults) {
-      console.log(`ID: ${result.id}`);
-      console.log(`  Original: "${result.originalValue}"`);
-      console.log(
-        `  Parsed:   ${result.systolicBP ?? "null"}/${result.diastolicBP ?? "null"}`,
-      );
-      console.log(`  Reason:   ${result.reason}`);
-      console.log("");
+
+      
+
     }
   }
 
-  // Print sample migrated records
   const migratedResults = results
     .filter((r) => r.status === "MIGRATED")
     .slice(0, 5);
   if (migratedResults.length > 0) {
-    console.log("=".repeat(60));
-    console.log("SAMPLE MIGRATED RECORDS");
-    console.log("=".repeat(60));
 
     for (const result of migratedResults) {
-      console.log(`ID: ${result.id}`);
-      console.log(
-        `  "${result.originalValue}" → ${result.systolicBP}/${result.diastolicBP}`,
-      );
-      console.log("");
+
+      
+
     }
   }
 
   if (dryRun) {
-    console.log("=".repeat(60));
-    console.log("DRY RUN COMPLETE - No changes were made to the database");
-    console.log("Run without --dry-run to apply changes");
-    console.log("=".repeat(60));
+
   } else {
-    console.log("=".repeat(60));
-    console.log("MIGRATION COMPLETE");
-    console.log("=".repeat(60));
+
   }
 }
 
-// CLI execution
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 
@@ -306,7 +242,7 @@ migrateBloodPressure(dryRun)
     process.exit(0);
   })
   .catch((error) => {
-    console.error("Migration failed:", error);
+
     process.exit(1);
   })
   .finally(async () => {

@@ -5,19 +5,19 @@ export interface PDFClinicInfo {
   phone?: string;
   email?: string;
   logo?: Buffer | string;
-  registrationNumber?: string; // Clinic registration number
-  gstin?: string; // GST number for invoices
+  registrationNumber?: string; 
+  gstin?: string; 
   website?: string;
 }
 
 export interface PDFDoctorInfo {
   name: string;
-  qualification?: string; // e.g., "MBBS, MD (Internal Medicine)"
-  registrationNumber?: string; // Medical council registration
-  licenseNumber?: string; // Practice license
+  qualification?: string; 
+  registrationNumber?: string; 
+  licenseNumber?: string; 
   specialization?: string;
   signatureUrl?: string;
-  councilName?: string; // e.g., "Medical Council of India"
+  councilName?: string; 
 }
 
 export interface PDFPatientInfo {
@@ -29,22 +29,22 @@ export interface PDFPatientInfo {
   age?: number;
   dateOfBirth?: Date;
   bloodGroup?: string;
-  patientId?: string; // Unique patient identifier
-  allergies?: string[]; // Critical for prescriptions
-  weight?: number; // kg - important for dosing
-  height?: number; // cm
+  patientId?: string; 
+  allergies?: string[]; 
+  weight?: number; 
+  height?: number; 
 }
 
 export interface PDFMedicationInfo {
-  name: string; // Generic/brand name
-  genericName?: string; // Generic name if brand provided
-  dosage: string; // e.g., "500mg"
-  route: string; // PO, IV, IM, SC, etc.
-  frequency: string; // e.g., "TDS", "BD", "OD"
-  duration: string; // e.g., "7 days"
-  timing?: string; // Before/after meals
-  specialInstructions?: string; // e.g., "Take with water"
-  quantity?: number; // Total tablets/units to dispense
+  name: string; 
+  genericName?: string; 
+  dosage: string; 
+  route: string; 
+  frequency: string; 
+  duration: string; 
+  timing?: string; 
+  specialInstructions?: string; 
+  quantity?: number; 
 }
 
 export interface PDFInvoiceItem {
@@ -52,8 +52,8 @@ export interface PDFInvoiceItem {
   quantity: number;
   unitPrice: number;
   amount: number;
-  hsnCode?: string; // HSN/SAC code for GST
-  gstRate?: number; // GST percentage
+  hsnCode?: string; 
+  gstRate?: number; 
 }
 
 export interface TableColumn {

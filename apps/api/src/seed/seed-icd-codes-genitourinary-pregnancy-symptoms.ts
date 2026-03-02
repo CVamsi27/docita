@@ -1,5 +1,4 @@
 export const ICD_10_CODES_GENITOURINARY_PREGNANCY_SYMPTOMS = [
-  // Genitourinary system
   {
     code: 'N00',
     description: 'Acute nephritic syndrome',
@@ -194,7 +193,6 @@ export const ICD_10_CODES_GENITOURINARY_PREGNANCY_SYMPTOMS = [
     category: 'Diseases of the genitourinary system',
   },
 
-  // Pregnancy
   {
     code: 'O10',
     description: 'Pre-existing hypertension complicating pregnancy',
@@ -232,7 +230,6 @@ export const ICD_10_CODES_GENITOURINARY_PREGNANCY_SYMPTOMS = [
     category: 'Pregnancy, childbirth and the puerperium',
   },
 
-  // Symptoms and signs
   {
     code: 'R00',
     description: 'Abnormalities of heart beat',

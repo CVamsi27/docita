@@ -1,6 +1,6 @@
 "use client";
 
-import { ClinicRegistrationForm } from "../forms/clinic-registration-form";
+import { ClinicRegistrationForm } from "@/features/onboarding/components/forms/clinic-registration-form";
 import { useRouter } from "next/navigation";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 

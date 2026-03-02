@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderSettingsService } from './reminder-settings.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('ReminderSettingsService', () => {
   let service: ReminderSettingsService;
@@ -266,7 +266,7 @@ describe('ReminderSettingsService', () => {
       const result = await service.updateSettings(partialUpdate);
 
       expect(result.emailEnabled).toBe(false);
-      expect(result.enabled).toBe(true); // unchanged
+      expect(result.enabled).toBe(true);
     });
   });
 

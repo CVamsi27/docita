@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Post,
   Body,
@@ -8,7 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { Roles } from '../auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ClinicTier } from '@workspace/db';
 import { ClinicManagementService } from './clinic-management.service';
@@ -25,6 +26,7 @@ import {
 import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
 import { ProcessPaymentDto } from './dto/payment.dto';
 import {
+  SuperAdminClinicListQueryDto,
   SuperAdminGlobalStatsResponseDto,
   SuperAdminAnalyticsResponseDto,
   SuperAdminPerformanceMetricsResponseDto,
@@ -37,8 +39,17 @@ import {
   SuperAdminUserResponseDto,
   SuccessResponseDto,
 } from './dto/super-admin.dto';
-import { ClinicResponseDto } from '../../../domains/clinics/application/dto/clinics.dto';
+import { ClinicResponseDto } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
+import {
+  FeedbackListResponseDto,
+  FeedbackResponseDto,
+  UpdateFeedbackStatusDto,
+  UpdateFeedbackStatusSchema,
+} from '@/domains/feedback/dto/feedback.dto';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { UsePipes } from '@nestjs/common';
 
 @Controller('super-admin')
 @Roles(Role.SUPER_ADMIN)
@@ -49,17 +60,16 @@ export class SuperAdminController {
     private readonly logService: SuperAdminLogService,
     private readonly aiService: SuperAdminAiService,
     private readonly billingService: SuperAdminBillingService,
+    private readonly feedbackService: FeedbackService,
   ) {}
 
   @Get('clinics')
   @ZodSerializerDto(SuperAdminClinicListResponseDto)
-  async getAllClinics(
-    @Query('cursor') cursor?: string,
-    @Query('limit') limit?: string,
-  ) {
+  async getAllClinics(@Query() query?: SuperAdminClinicListQueryDto) {
+    const { cursor, limit } = query ?? {};
     return this.clinicService.getAllClinics({
       cursor,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      limit,
     });
   }
 
@@ -67,6 +77,14 @@ export class SuperAdminController {
   @ZodSerializerDto(SuperAdminUserListResponseDto)
   async getClinicDoctors(@Param('id') id: string) {
     return this.clinicService.getClinicDoctors(id);
+  }
+
+  @Get('clinics/:clinicId/doctors/:doctorId')
+  async getClinicDoctorDetails(
+    @Param('clinicId') clinicId: string,
+    @Param('doctorId') doctorId: string,
+  ) {
+    return this.clinicService.getClinicDoctorDetails(clinicId, doctorId);
   }
 
   @Post('clinics')
@@ -126,10 +144,67 @@ export class SuperAdminController {
   async getLogs(
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('level') level?: 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG',
+    @Query('module') module?: string,
+    @Query('q') q?: string,
   ) {
     const parsedLimit = limit ? parseInt(limit, 10) : 50;
     const parsedOffset = offset ? parseInt(offset, 10) : 0;
-    return this.logService.getLogs(parsedLimit, parsedOffset);
+    return this.logService.getLogs(parsedLimit, parsedOffset, {
+      level,
+      module,
+      q,
+    });
+  }
+
+  @Get('feedback/all')
+  @ZodSerializerDto(FeedbackListResponseDto)
+  async getAllFeedback(
+    @Query('status') status?: string,
+    @Query('category') category?: string,
+    @Query('clinicId') clinicId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('minRating') minRating?: string,
+    @Query('maxRating') maxRating?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.feedbackService.findAll({
+      status,
+      category,
+      clinicId,
+      startDate,
+      endDate,
+      minRating: minRating ? parseInt(minRating, 10) : undefined,
+      maxRating: maxRating ? parseInt(maxRating, 10) : undefined,
+      search,
+    });
+  }
+
+  @Get('feedback/stats')
+  async getFeedbackStats(@Query('clinicId') clinicId?: string) {
+    return this.feedbackService.getStats(clinicId);
+  }
+
+  @Get('feedback/:id')
+  @ZodSerializerDto(FeedbackResponseDto)
+  async getFeedbackById(@Param('id') id: string) {
+    return this.feedbackService.findOne(id);
+  }
+
+  @Patch('feedback/:id/status')
+  @ZodSerializerDto(FeedbackResponseDto)
+  @UsePipes(new ZodValidationPipe(UpdateFeedbackStatusSchema))
+  async updateFeedbackStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateFeedbackStatusDto,
+  ) {
+    return this.feedbackService.updateStatus(id, dto);
+  }
+
+  @Delete('feedback/:id')
+  async deleteFeedback(@Param('id') id: string) {
+    return this.feedbackService.delete(id);
   }
 
   @Get('performance')
@@ -138,7 +213,6 @@ export class SuperAdminController {
     return this.analyticsService.getPerformanceMetrics();
   }
 
-  // Admin Management Endpoints
   @Get('clinics/:id/admins')
   @ZodSerializerDto(SuperAdminUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {
@@ -178,9 +252,7 @@ export class SuperAdminController {
     return this.clinicService.activateAdmin(id);
   }
 
-  // AI Features Management
   @Get('clinics/:id/ai-features')
-  // @ZodSerializerDto() // Need schema for this if specific
   async getClinicAIFeatures(@Param('id') id: string) {
     return this.aiService.getClinicAIFeatures(id);
   }
@@ -206,7 +278,6 @@ export class SuperAdminController {
     return this.aiService.disableAIFeatures(id);
   }
 
-  // Payment & Tier Management
   @Post('clinics/:id/process-payment')
   @ZodSerializerDto(SuccessResponseDto)
   async processPaymentAndUpdateTier(

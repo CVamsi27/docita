@@ -2,14 +2,15 @@ import type { Patient, User } from "@workspace/types";
 import { differenceInYears } from "date-fns";
 import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 
-/**
- * Patient Business Rules
- * Pure functions for patient-related business logic
- */
+type PatientNameLike = {
+  firstName?: string | null;
+  lastName?: string | null;
+};
 
-/**
- * Check if patient is a minor (under 18)
- */
+type PatientDateLike = {
+  dateOfBirth?: string | Date | null;
+};
+
 export const isPatientMinor = (patient: Patient): boolean => {
   if (!patient.dateOfBirth) return false;
 
@@ -17,66 +18,44 @@ export const isPatientMinor = (patient: Patient): boolean => {
   return age < 18;
 };
 
-/**
- * Check if patient requires guardian consent
- */
 export const requiresGuardianConsent = (patient: Patient): boolean => {
   return isPatientMinor(patient);
 };
 
-/**
- * Check if user can delete a patient
- */
 export const canDeletePatient = (patient: Patient, user: User): boolean => {
-  // Only clinic admins (ADMIN / ADMIN_DOCTOR) can delete patients
+
   if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
     return false;
 
-  // Cannot delete patient with active appointments (if appointments exist)
-  // This would need actual appointment data to check
   return true;
 };
 
-/**
- * Check if user can edit patient
- */
 export const canEditPatient = (user: User): boolean => {
   return ["admin", "doctor", "receptionist"].includes(user.role);
 };
 
-/**
- * Check if user can view patient details
- */
 export const canViewPatient = (user: User): boolean => {
-  // All authenticated users can view patients
+
   return !!user;
 };
 
-/**
- * Get patient's display name
- */
-export const getPatientDisplayName = (patient: Patient): string => {
-  return `${patient.firstName} ${patient.lastName}`.trim();
+export const getPatientDisplayName = (patient: PatientNameLike): string => {
+  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
 };
 
-/**
- * Get patient's age in years
- */
-export const getPatientAge = (patient: Patient): number | null => {
+export const getPatientAge = (patient: PatientDateLike): number | null => {
   if (!patient.dateOfBirth) return null;
   return differenceInYears(new Date(), new Date(patient.dateOfBirth));
 };
 
-/**
- * Get patient's age display string
- */
-export const getPatientAgeDisplay = (patient: Patient): string => {
+export const getPatientAgeDisplay = (patient: PatientDateLike): string => {
   const age = getPatientAge(patient);
   if (age === null) return "Age unknown";
 
   if (age === 0) {
+    if (!patient.dateOfBirth) return "Age unknown";
     const months = Math.floor(
-      (new Date().getTime() - new Date(patient.dateOfBirth!).getTime()) /
+      (new Date().getTime() - new Date(patient.dateOfBirth).getTime()) /
         (1000 * 60 * 60 * 24 * 30),
     );
     if (months === 0) return "Less than 1 month";
@@ -86,9 +65,10 @@ export const getPatientAgeDisplay = (patient: Patient): string => {
   return `${age} year${age > 1 ? "s" : ""}`;
 };
 
-/**
- * Validate patient data before submission
- */
+export const getPatientDisplayLabel = (patient: PatientNameLike): string => {
+  return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+};
+
 export const validatePatientData = (data: Partial<Patient>): string[] => {
   const errors: string[] = [];
 

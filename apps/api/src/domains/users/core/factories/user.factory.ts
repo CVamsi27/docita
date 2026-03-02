@@ -22,13 +22,10 @@ export class UserFactory {
 
     switch (role) {
       case Role.DOCTOR:
-        // Future: Initialize Doctor Profile or Settings
         break;
       case Role.RECEPTIONIST:
-        // Future: Initialize Receptionist specific settings
         break;
       case Role.ADMIN:
-        // Admin specific defaults
         break;
       default:
         break;

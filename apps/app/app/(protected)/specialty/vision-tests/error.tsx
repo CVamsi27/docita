@@ -13,7 +13,7 @@ export default function VisionTestsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Vision Tests route error:", error);
+
   }, [error]);
 
   return (

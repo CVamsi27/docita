@@ -1,8 +1,8 @@
-import { Money } from '../value-objects/money.value-object';
-import { InvoiceItem } from '../entities/invoice-item.entity';
+import { Money } from '@/domains/billing/core/value-objects/money.value-object';
+import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity';
 
 export interface TaxConfiguration {
-  rate: number; // 0-100
+  rate: number;
   name: string;
   description?: string;
 }

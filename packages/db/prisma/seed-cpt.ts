@@ -90,7 +90,6 @@ const cptCodes = [
 ];
 
 async function main() {
-  console.log("Start seeding CPT codes...");
 
   for (const cpt of cptCodes) {
     const { price, ...data } = cpt;
@@ -106,12 +105,11 @@ async function main() {
     });
   }
 
-  console.log("Seeding finished.");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+
     process.exit(1);
   })
   .finally(async () => {

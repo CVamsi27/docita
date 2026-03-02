@@ -1,24 +1,19 @@
-/**
- * API Endpoints
- * Centralized API route definitions
- */
+
 
 export const API_ENDPOINTS = {
-  // Auth
+
   auth: {
     login: "/api/auth/login",
     logout: "/api/auth/logout",
     refresh: "/api/auth/refresh",
   },
 
-  // Clinic
   clinic: {
     get: "/api/clinic",
     update: "/api/clinic",
     settings: "/api/clinic/settings",
   },
 
-  // Patients
   patients: {
     list: "/api/patients",
     create: "/api/patients",
@@ -27,7 +22,6 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/api/patients/${id}`,
   },
 
-  // Appointments
   appointments: {
     list: "/api/appointments",
     create: "/api/appointments",
@@ -36,7 +30,6 @@ export const API_ENDPOINTS = {
     cancel: (id: string) => `/api/appointments/${id}/cancel`,
   },
 
-  // Invoices
   invoices: {
     list: "/api/invoices",
     create: "/api/invoices",
@@ -44,7 +37,6 @@ export const API_ENDPOINTS = {
     download: (id: string) => `/api/invoices/${id}/download`,
   },
 
-  // Subscriptions
   subscriptions: {
     get: "/api/subscriptions",
     upgrade: "/api/subscriptions/upgrade",

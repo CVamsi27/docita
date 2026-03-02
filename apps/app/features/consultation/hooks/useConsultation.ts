@@ -1,11 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { consultationApi } from "../api/consultation.api";
+import { consultationApi } from "@/features/consultation/api/consultation.api";
 import type { VitalSign } from "@workspace/types";
 import { toast } from "sonner";
-
-/**
- * React Query hooks for consultation operations
- */
 
 export function useConsultation(appointmentId: string) {
   return useQuery({

@@ -8,7 +8,7 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
-import { useConstants } from "../../../../hooks/api/use-common";
+import { useConstants } from "@/hooks/api/use-common";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
 interface ToothData {
@@ -39,7 +39,6 @@ export function DentalChartUI({
   const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } =
     constants;
 
-  // Helper to safely get tooth data
   const getToothData = (toothId: number) => {
     return value?.[toothId] || { condition: "HEALTHY", notes: "" };
   };
@@ -104,15 +103,15 @@ export function DentalChartUI({
   const getConditionColor = (code: string) => {
     switch (code) {
       case "CARIES":
-        return "bg-red-500";
+        return "bg-destructive";
       case "FILLED":
-        return "bg-blue-500";
+        return "bg-info";
       case "CROWN":
-        return "bg-yellow-500";
+        return "bg-warning";
       case "ROOT_CANAL":
-        return "bg-purple-500";
+        return "bg-primary";
       case "IMPLANT":
-        return "bg-green-500";
+        return "bg-success";
       case "MISSING":
         return "bg-slate-400";
       default:
@@ -123,7 +122,7 @@ export function DentalChartUI({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 items-center p-6 bg-slate-50 rounded-xl border border-slate-100">
-        {/* Upper Arch */}
+        {}
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.UR.map(renderTooth)}
@@ -133,14 +132,14 @@ export function DentalChartUI({
           </div>
         </div>
 
-        {/* Divider */}
+        {}
         <div className="w-full h-px bg-slate-200 relative">
           <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-slate-50 px-2 text-xs text-slate-400 font-medium tracking-widest">
             FDI CHART
           </span>
         </div>
 
-        {/* Lower Arch */}
+        {}
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.LR.map(renderTooth)}
@@ -151,7 +150,7 @@ export function DentalChartUI({
         </div>
       </div>
 
-      {/* Editor Panel */}
+      {}
       {!readOnly && selectedTooth && (
         <Card>
           <CardHeader className="pb-3">

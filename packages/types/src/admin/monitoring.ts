@@ -18,7 +18,7 @@ export const RequestStatsSchema = z.object({
 export const ErrorStatsSchema = z.object({
   totalErrors: z.number().int(),
   byType: z.record(z.number().int()),
-  recentErrors: z.array(z.unknown()), // Refine if possible
+  recentErrors: z.array(z.unknown()), 
 });
 
 export const PerformanceMetricsSchema = z.object({
@@ -30,7 +30,7 @@ export const PerformanceMetricsSchema = z.object({
 export const WebVitalSchema = z.object({
   name: z.string(),
   value: z.number(),
-  rating: z.string(), // "good" | "needs-improvement" | "poor"
+  rating: z.string(), 
   delta: z.number().optional(),
   id: z.string().optional(),
   navigationType: z.string().optional(),

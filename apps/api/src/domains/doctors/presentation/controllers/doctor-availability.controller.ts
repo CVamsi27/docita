@@ -12,14 +12,14 @@ import {
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
-import { DoctorAvailabilityService } from '../../application/services/doctor-availability.service';
+import { DoctorAvailabilityService } from '@/domains/doctors/application/services/doctor-availability.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
   Feature,
-} from '../../../../shared/modules/auth/auth/tier.decorator';
+} from '@/shared/modules/auth/auth/tier.decorator';
 
 import {
   BulkScheduleDto,
@@ -30,9 +30,12 @@ import {
   UpdateScheduleDto,
   createTimeOffSchema,
   CreateTimeOffDto,
-} from '../../application/dto/doctor-availability.dto';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
-import { RequestWithUser } from '../../../../common/types/common.types';
+  ListDoctorSchedulesQueryDto,
+  ListDoctorTimeOffQueryDto,
+  DoctorAvailableSlotsQueryDto,
+} from '@/domains/doctors/application/dto/doctor-availability.dto';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('doctor-availability')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -63,10 +66,7 @@ export class DoctorAvailabilityController {
       throw new BadRequestException('Clinic ID is required');
     }
     const doctorId =
-      (req.user.role === Role.ADMIN || req.user.role === Role.SUPER_ADMIN) &&
-      dto.doctorId
-        ? dto.doctorId
-        : req.user.id;
+      req.user.role === Role.ADMIN && dto.doctorId ? dto.doctorId : req.user.id;
     return this.doctorAvailabilityService.bulkUpsertSchedules(
       doctorId,
       req.user.clinicId,
@@ -77,13 +77,11 @@ export class DoctorAvailabilityController {
   @Get('schedules')
   getMySchedules(
     @Request() req: RequestWithUser,
-    @Query('doctorId') doctorId?: string,
+    @Query() query: ListDoctorSchedulesQueryDto,
   ) {
+    const { doctorId } = query;
     const targetDoctorId =
-      (req.user?.role === Role.ADMIN || req.user?.role === Role.SUPER_ADMIN) &&
-      doctorId
-        ? doctorId
-        : req.user!.id;
+      req.user?.role === Role.ADMIN && doctorId ? doctorId : req.user!.id;
     return this.doctorAvailabilityService.getSchedules(
       targetDoctorId,
       req.user?.clinicId || undefined,
@@ -112,41 +110,28 @@ export class DoctorAvailabilityController {
     });
   }
 
-  /**
-   * Update a schedule entry
-   */
   @Put('schedules/:id')
   @UsePipes(new ZodValidationPipe(updateScheduleSchema))
   updateSchedule(@Param('id') id: string, @Body() dto: UpdateScheduleDto) {
     return this.doctorAvailabilityService.updateSchedule(id, dto);
   }
 
-  /**
-   * Delete a schedule entry
-   */
   @Delete('schedules/:id')
   deleteSchedule(@Param('id') id: string) {
     return this.doctorAvailabilityService.deleteSchedule(id);
   }
 
-  // ============================================================================
-  // Time Off
-  // ============================================================================
-
   @Get('time-off')
   getTimeOffs(
     @Request() req: RequestWithUser,
-    @Query('doctorId') doctorId?: string,
-    @Query('upcoming') upcoming?: string,
+    @Query() query: ListDoctorTimeOffQueryDto,
   ) {
+    const { doctorId, upcoming } = query;
     const targetDoctorId =
-      (req.user?.role === Role.ADMIN || req.user?.role === Role.SUPER_ADMIN) &&
-      doctorId
-        ? doctorId
-        : req.user!.id;
+      req.user?.role === Role.ADMIN && doctorId ? doctorId : req.user!.id;
     return this.doctorAvailabilityService.getTimeOffs(targetDoctorId, {
       clinicId: req.user?.clinicId || undefined,
-      upcoming: upcoming === 'true',
+      upcoming: upcoming === true,
     });
   }
 
@@ -157,8 +142,7 @@ export class DoctorAvailabilityController {
     @Body() dto: CreateTimeOffDto,
   ) {
     const doctorId =
-      (req.user?.role === Role.ADMIN || req.user?.role === Role.SUPER_ADMIN) &&
-      dto.doctorId
+      req.user?.role === Role.ADMIN && dto.doctorId
         ? dto.doctorId
         : req.user!.id;
     return this.doctorAvailabilityService.createTimeOff({
@@ -181,9 +165,9 @@ export class DoctorAvailabilityController {
   @Get('slots')
   getAvailableSlots(
     @Request() req: RequestWithUser,
-    @Query('date') date: string,
-    @Query('doctorId') doctorId?: string,
+    @Query() query: DoctorAvailableSlotsQueryDto,
   ) {
+    const { date, doctorId } = query;
     if (!req.user?.clinicId) {
       throw new BadRequestException('Clinic ID is required');
     }

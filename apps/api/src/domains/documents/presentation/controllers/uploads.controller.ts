@@ -8,13 +8,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadsService } from '../../application/services/uploads.service';
+import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { memoryStorage } from 'multer';
 import { MAX_FILE_SIZE } from '@workspace/utils';
-import { UploadSessionResponseDto } from '../../application/dto/uploads.dto';
+import { UploadSessionResponseDto } from '@/domains/documents/application/dto/uploads.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 
 @Controller('uploads')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -38,10 +38,9 @@ export class UploadsController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: {
-        fileSize: MAX_FILE_SIZE, // Shared limit (e.g., 5MB)
+        fileSize: MAX_FILE_SIZE,
       },
       fileFilter: (req, file, cb) => {
-        // Accept common safe image and document types
         const allowedMimes = [
           'image/jpeg',
           'image/jpg',
@@ -58,10 +57,6 @@ export class UploadsController {
           );
         }
 
-        // We will perform magic-bytes check in the controller method since
-        // Multer fileFilter doesn't have easy access to the buffer if memoryStorage is used
-        // (it's actually available in UploadedFile after filter passes).
-        // For simplicity and to fail fast, we let it pass filter and check in uploadFile.
         cb(null, true);
       },
     }),
@@ -75,16 +70,15 @@ export class UploadsController {
       throw new BadRequestException('File is required');
     }
 
-    // Magic Bytes Validation
     const buffer = file.buffer;
     const header = buffer.toString('hex', 0, 4).toUpperCase();
     const webpHeader = buffer.toString('hex', 8, 12).toUpperCase();
 
     const signatures = {
-      PDF: '25504446', // %PDF
+      PDF: '25504446',
       PNG: '89504E47',
       JPEG: 'FFD8FF',
-      RIFF: '52494646', // WebP container
+      RIFF: '52494646',
     };
 
     let isValid = false;

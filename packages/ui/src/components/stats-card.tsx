@@ -4,10 +4,6 @@ import { cn } from "../lib/utils";
 import { Card, CardContent } from "./card";
 import { LucideIcon } from "lucide-react";
 
-// =============================================================================
-// GRADIENT STAT CARD (used in dashboard)
-// =============================================================================
-
 interface GradientStatCardProps {
   title: string;
   value: string | number;
@@ -99,10 +95,6 @@ export function GradientStatCard({
   );
 }
 
-// =============================================================================
-// QUICK ACTION CARD
-// =============================================================================
-
 interface QuickActionCardProps {
   icon: LucideIcon;
   label: string;
@@ -165,10 +157,6 @@ export function QuickActionCard({
     </Card>
   );
 }
-
-// =============================================================================
-// PROGRESS STAT
-// =============================================================================
 
 interface ProgressStatProps {
   label: string;

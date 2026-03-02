@@ -32,10 +32,10 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          <FlaskConical className="h-4 w-4 text-blue-500" />
+          <FlaskConical className="h-4 w-4 text-info" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-blue-500">
+          <div className="text-2xl font-bold text-info">
             {stats?.inProgress ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">Currently processing</p>
@@ -44,10 +44,10 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Completed</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-500" />
+          <CheckCircle className="h-4 w-4 text-success" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-500">
+          <div className="text-2xl font-bold text-success">
             {stats?.completed ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">Results available</p>
@@ -56,10 +56,10 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Urgent</CardTitle>
-          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertCircle className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-red-500">
+          <div className="text-2xl font-bold text-destructive">
             {stats?.urgent ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">High priority tests</p>

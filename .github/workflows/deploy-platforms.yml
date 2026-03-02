@@ -1,0 +1,58 @@
+name: Deploy Platforms
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-vercel:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger App deploy hook
+        env:
+          VERCEL_APP_DEPLOY_HOOK: ${{ secrets.VERCEL_APP_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$VERCEL_APP_DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$VERCEL_APP_DEPLOY_HOOK"
+          fi
+
+      - name: Trigger Admin deploy hook
+        env:
+          VERCEL_ADMIN_DEPLOY_HOOK: ${{ secrets.VERCEL_ADMIN_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$VERCEL_ADMIN_DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$VERCEL_ADMIN_DEPLOY_HOOK"
+          fi
+
+      - name: Trigger Landing deploy hook
+        env:
+          VERCEL_LANDING_DEPLOY_HOOK: ${{ secrets.VERCEL_LANDING_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$VERCEL_LANDING_DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$VERCEL_LANDING_DEPLOY_HOOK"
+          fi
+
+  deploy-railway:
+    name: Deploy API to Railway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy Railway service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_NAME: ${{ secrets.RAILWAY_SERVICE_NAME }}
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            railway up --service "${RAILWAY_SERVICE_NAME:-api}"
+          fi

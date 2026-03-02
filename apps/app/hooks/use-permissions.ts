@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAuth } from "../lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import {
   canCreatePrescription,
   canExportData,
@@ -13,7 +13,7 @@ import {
   canViewReports,
   isAdmin,
   isDoctor as isDoctorRole,
-} from "../lib/permissions";
+} from "@/lib/permissions";
 import type { UserRole } from "@workspace/types";
 
 export function usePermissions() {

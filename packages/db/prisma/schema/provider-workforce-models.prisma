@@ -10,11 +10,18 @@ model User {
   qualification      String?
   registrationNumber String?
   signatureUrl       String?
+  signatureUploadedAt DateTime?
   bio                String?
   consultationFee    Float?
   hospitalRole       HospitalRole?
   licenseExpiry      DateTime?
   licenseNumber      String?
+  verificationStatus    DoctorVerificationStatus @default(UNVERIFIED)
+  verificationSource    String?
+  verificationRef       String?
+  verificationReason    String?
+  verificationData      Json?
+  verificationCheckedAt DateTime?
   phoneNumber        String?
   profilePhotoUrl    String?
   specialization     Specialization?
@@ -43,6 +50,7 @@ model User {
   admissions                Admission[]
   refreshTokens             RefreshToken[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
+  uploadSessions            UploadSession[]
 
   @@index([clinicId])
   @@index([specialization])

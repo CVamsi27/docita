@@ -32,7 +32,7 @@ export function parseDate(date: string | Date | null | undefined): Date | null {
         return result;
       }
     } catch {
-      // Continue to next format
+      continue;
     }
   }
 

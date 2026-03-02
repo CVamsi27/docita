@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { useTemplatesSettingsLogic } from "../../hooks/use-templates-settings-logic";
+import { useTemplatesSettingsLogic } from "@/features/settings/hooks/use-templates-settings-logic";
 import { ClinicalTemplate } from "@workspace/types";
 import { Copy, Edit2, Loader2, Plus, Trash2 } from "lucide-react";
 

@@ -1,8 +1,8 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   getMonthRange,
@@ -13,7 +13,7 @@ import {
 import {
   PATIENT_ANALYTICS_SELECT,
   APPOINTMENT_ANALYTICS_SELECT,
-} from '../../../common/select-fragments';
+} from '@/common/select-fragments';
 import {
   OverviewMetrics,
   PatientGrowthPoint,

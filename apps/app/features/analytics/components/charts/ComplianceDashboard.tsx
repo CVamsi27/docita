@@ -16,7 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ComplianceMetric } from "../../hooks/use-analytics-logic";
+import type { ComplianceMetric } from "@/features/analytics/hooks/use-analytics-logic";
 import { LoadingSpinner } from "./chart-helpers";
 
 interface ComplianceDashboardProps {
@@ -40,9 +40,9 @@ export const ComplianceDashboard = ({
                 {metric.metric}
               </CardTitle>
               {metric.status === "good" || metric.status === "compliant" ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
               ) : (
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertCircle className="h-4 w-4 text-warning" />
               )}
             </CardHeader>
             <CardContent>

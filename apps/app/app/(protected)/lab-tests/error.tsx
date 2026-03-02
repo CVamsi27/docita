@@ -13,7 +13,7 @@ export default function LabTestsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Lab Tests route error:", error);
+
   }, [error]);
 
   return (

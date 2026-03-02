@@ -14,7 +14,7 @@ import {
   AppearanceSettings,
   ClinicGeneralSettings,
   CustomFieldsSettings,
-  DoctorAvailabilitySettingsDynamic,
+  DoctorAvailabilitySettings,
   MemberManagementSettings,
   NotificationFeed,
   NotificationSettings,
@@ -62,7 +62,7 @@ export function SettingsPageUI({
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6 pb-24">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -87,7 +87,7 @@ export function SettingsPageUI({
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Search */}
+          {}
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -165,7 +165,7 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="availability" className="mt-0 space-y-6">
-            <DoctorAvailabilitySettingsDynamic />
+            <DoctorAvailabilitySettings />
           </TabsContent>
 
           <TabsContent value="queue" className="mt-0 space-y-6">

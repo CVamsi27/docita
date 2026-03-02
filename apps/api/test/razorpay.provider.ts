@@ -1,5 +1,5 @@
 import { Provider } from '@nestjs/common';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 
 export const mockRazorpayGateway = {
   paymentLink: {

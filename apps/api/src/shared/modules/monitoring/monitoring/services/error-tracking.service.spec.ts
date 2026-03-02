@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@workspace/db';
 import { ErrorTrackingService } from './error-tracking.service';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { MonitoringFactory } from '../factories/monitoring.factory';
-import { ErrorLogInput } from '../schemas/monitoring.schema';
+import { PrismaService } from '@/prisma/prisma.service';
+import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 
 describe('ErrorTrackingService', () => {
   let service: ErrorTrackingService;

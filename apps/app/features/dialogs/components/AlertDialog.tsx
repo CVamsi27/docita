@@ -8,8 +8,8 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { AlertOptions } from "../types";
-import { getVariantStyles } from "../utils";
+import { AlertOptions } from "@/features/dialogs/types";
+import { getVariantStyles } from "@/features/dialogs/utils";
 
 interface AlertDialogProps {
   open: boolean;

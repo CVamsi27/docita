@@ -53,11 +53,11 @@ import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 
 const STATUS_OPTIONS = [
-  { value: "NEW", label: "New", color: "bg-blue-500" },
-  { value: "REVIEWED", label: "Reviewed", color: "bg-yellow-500" },
-  { value: "IN_PROGRESS", label: "In Progress", color: "bg-purple-500" },
-  { value: "RESOLVED", label: "Resolved", color: "bg-green-500" },
-  { value: "ARCHIVED", label: "Archived", color: "bg-gray-500" },
+  { value: "NEW", label: "New", color: "badge-info" },
+  { value: "REVIEWED", label: "Reviewed", color: "badge-warning" },
+  { value: "IN_PROGRESS", label: "In Progress", color: "tier-pro" },
+  { value: "RESOLVED", label: "Resolved", color: "badge-success" },
+  { value: "ARCHIVED", label: "Archived", color: "badge-muted" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -103,10 +103,10 @@ export default function FeedbackPage() {
 
       const [feedbackRes, statsRes] = await Promise.all([
         fetch(
-          `${API_URL}/feedback/all${queryString ? `?${queryString}` : ""}`,
+          `${API_URL}/super-admin/feedback/all${queryString ? `?${queryString}` : ""}`,
           { headers },
         ),
-        fetch(`${API_URL}/feedback/stats`, { headers }),
+        fetch(`${API_URL}/super-admin/feedback/stats`, { headers }),
       ]);
 
       if (feedbackRes.ok) {
@@ -115,7 +115,7 @@ export default function FeedbackPage() {
       }
       if (statsRes.ok) setStats(await statsRes.json());
     } catch (error) {
-      console.error("Failed to load feedback:", error);
+
     } finally {
       setLoading(false);
     }
@@ -136,7 +136,7 @@ export default function FeedbackPage() {
       setSelectedFeedback(updated);
       setAdminNotes("");
     } catch (error) {
-      console.error("Failed to update status:", error);
+
     } finally {
       setUpdatingStatus(false);
     }
@@ -149,17 +149,13 @@ export default function FeedbackPage() {
       setFeedbacks(feedbacks.filter((f) => f.id !== id));
       setSelectedFeedback(null);
     } catch (error) {
-      console.error("Failed to delete feedback:", error);
+
     }
   };
 
   const getStatusBadge = (status: string) => {
     const option = STATUS_OPTIONS.find((o) => o.value === status);
-    return (
-      <Badge className={`${option?.color || "bg-gray-500"} text-white`}>
-        {option?.label || status}
-      </Badge>
-    );
+    return <Badge className={option?.color || "badge-muted"}>{option?.label || status}</Badge>;
   };
 
   const renderStars = (rating: number) => (
@@ -168,7 +164,9 @@ export default function FeedbackPage() {
         <Star
           key={star}
           className={`h-4 w-4 ${
-            rating >= star ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+            rating >= star
+              ? "text-warning fill-warning"
+              : "text-muted-foreground"
           }`}
         />
       ))}
@@ -177,7 +175,7 @@ export default function FeedbackPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -203,7 +201,7 @@ export default function FeedbackPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-5">
           <Card>
@@ -225,7 +223,7 @@ export default function FeedbackPage() {
               <CardTitle className="text-sm font-medium">
                 Average Rating
               </CardTitle>
-              <Star className="h-4 w-4 text-yellow-500" />
+              <Star className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -237,10 +235,10 @@ export default function FeedbackPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">New</CardTitle>
-              <AlertCircle className="h-4 w-4 text-blue-500" />
+              <AlertCircle className="h-4 w-4 text-info" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-500">
+              <div className="text-2xl font-bold text-info">
                 {stats.byStatus.NEW || 0}
               </div>
               <p className="text-xs text-muted-foreground">Awaiting review</p>
@@ -249,10 +247,10 @@ export default function FeedbackPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              <Clock className="h-4 w-4 text-purple-500" />
+              <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-primary">
                 {stats.byStatus.IN_PROGRESS || 0}
               </div>
               <p className="text-xs text-muted-foreground">Being addressed</p>
@@ -261,10 +259,10 @@ export default function FeedbackPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-500">
+              <div className="text-2xl font-bold text-success">
                 {stats.byStatus.RESOLVED || 0}
               </div>
               <p className="text-xs text-muted-foreground">Completed</p>
@@ -273,12 +271,12 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {/* Feature Insights */}
+      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-600">
+              <CardTitle className="flex items-center gap-2 text-success">
                 <ThumbsUp className="h-5 w-5" />
                 Top Liked Features
               </CardTitle>
@@ -305,7 +303,7 @@ export default function FeedbackPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-600">
+              <CardTitle className="flex items-center gap-2 text-destructive">
                 <ThumbsDown className="h-5 w-5" />
                 Features Needing Work
               </CardTitle>
@@ -334,7 +332,7 @@ export default function FeedbackPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-600">
+              <CardTitle className="flex items-center gap-2 text-warning">
                 <Lightbulb className="h-5 w-5" />
                 Improvement Requests
               </CardTitle>
@@ -364,7 +362,7 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {/* Filters */}
+      {}
       {showFilters && (
         <Card>
           <CardContent className="pt-6">
@@ -481,7 +479,7 @@ export default function FeedbackPage() {
         </Card>
       )}
 
-      {/* Feedback List */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>All Feedback</CardTitle>
@@ -525,12 +523,12 @@ export default function FeedbackPage() {
                     )}
                     {feedback.goodFeatures.length > 0 && (
                       <div className="flex gap-1 flex-wrap">
-                        <ThumbsUp className="h-4 w-4 text-green-500" />
+                        <ThumbsUp className="h-4 w-4 text-success" />
                         {feedback.goodFeatures.slice(0, 3).map((f) => (
                           <Badge
                             key={f}
                             variant="secondary"
-                            className="text-xs bg-green-50 text-green-700"
+                            className="text-xs badge-success"
                           >
                             {f}
                           </Badge>
@@ -569,7 +567,7 @@ export default function FeedbackPage() {
         </CardContent>
       </Card>
 
-      {/* Feedback Detail Dialog */}
+      {}
       <Dialog
         open={!!selectedFeedback}
         onOpenChange={() => setSelectedFeedback(null)}
@@ -590,7 +588,7 @@ export default function FeedbackPage() {
               </DialogHeader>
 
               <div className="space-y-6">
-                {/* Rating & Category */}
+                {}
                 <div className="flex items-center gap-4">
                   <div>
                     <Label className="text-muted-foreground">
@@ -618,76 +616,73 @@ export default function FeedbackPage() {
                   </div>
                 </div>
 
-                {/* Good Features */}
+                {}
                 {selectedFeedback.goodFeatures.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-green-600">
+                    <Label className="flex items-center gap-2 text-success">
                       <ThumbsUp className="h-4 w-4" />
                       Liked Features
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {selectedFeedback.goodFeatures.map((f) => (
-                        <Badge key={f} className="bg-green-100 text-green-700">
+                        <Badge key={f} className="badge-success">
                           {f}
                         </Badge>
                       ))}
                     </div>
                     {selectedFeedback.goodFeaturesReason && (
-                      <p className="text-sm text-muted-foreground bg-green-50 p-3 rounded-lg">
+                      <p className="text-sm surface-success p-3 rounded-lg">
                         {selectedFeedback.goodFeaturesReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Bad Features */}
+                {}
                 {selectedFeedback.badFeatures.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-red-600">
+                    <Label className="flex items-center gap-2 text-destructive">
                       <ThumbsDown className="h-4 w-4" />
                       Disliked Features
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {selectedFeedback.badFeatures.map((f) => (
-                        <Badge key={f} className="bg-red-100 text-red-700">
+                        <Badge key={f} className="badge-danger">
                           {f}
                         </Badge>
                       ))}
                     </div>
                     {selectedFeedback.badFeaturesReason && (
-                      <p className="text-sm text-muted-foreground bg-red-50 p-3 rounded-lg">
+                      <p className="text-sm surface-danger p-3 rounded-lg">
                         {selectedFeedback.badFeaturesReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Improvement Areas */}
+                {}
                 {selectedFeedback.improvementAreas.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-yellow-600">
+                    <Label className="flex items-center gap-2 text-warning">
                       <Lightbulb className="h-4 w-4" />
                       Areas to Improve
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {selectedFeedback.improvementAreas.map((f) => (
-                        <Badge
-                          key={f}
-                          className="bg-yellow-100 text-yellow-700"
-                        >
+                        <Badge key={f} className="badge-warning">
                           {f}
                         </Badge>
                       ))}
                     </div>
                     {selectedFeedback.improvementReason && (
-                      <p className="text-sm text-muted-foreground bg-yellow-50 p-3 rounded-lg">
+                      <p className="text-sm surface-warning p-3 rounded-lg">
                         {selectedFeedback.improvementReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Feature Requests */}
+                {}
                 {selectedFeedback.featureRequests && (
                   <div className="space-y-2">
                     <Label>Feature Requests</Label>
@@ -697,7 +692,7 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {/* General Comments */}
+                {}
                 {selectedFeedback.generalComments && (
                   <div className="space-y-2">
                     <Label>General Comments</Label>
@@ -707,7 +702,7 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {/* Admin Actions */}
+                {}
                 <div className="border-t pt-4 space-y-4">
                   <div className="space-y-2">
                     <Label>Admin Notes</Label>

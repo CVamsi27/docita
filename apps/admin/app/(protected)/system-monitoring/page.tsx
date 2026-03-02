@@ -99,7 +99,7 @@ export default function SystemMonitoringPage() {
       }
       setHealth(healthData);
     } catch (error) {
-      console.error("Failed to fetch monitoring data", error);
+
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -110,7 +110,6 @@ export default function SystemMonitoringPage() {
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(fetchData, 30000);
@@ -125,15 +124,15 @@ export default function SystemMonitoringPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "healthy":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-success" />;
       case "degraded":
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="h-5 w-5 text-warning" />;
       case "unhealthy":
       case "critical":
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-destructive" />;
       default:
-        return <Activity className="h-5 w-5 text-gray-500" />;
+        return <Activity className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -141,14 +140,14 @@ export default function SystemMonitoringPage() {
     switch (status) {
       case "healthy":
         return (
-          <Badge className="bg-green-500/15 text-green-700 hover:bg-green-500/25 border-green-500/20">
+          <Badge className="badge-success">
             Healthy
           </Badge>
         );
       case "degraded":
       case "warning":
         return (
-          <Badge className="bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25 border-yellow-500/20">
+          <Badge className="badge-warning">
             {status === "degraded" ? "Degraded" : "Warning"}
           </Badge>
         );
@@ -174,7 +173,7 @@ export default function SystemMonitoringPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -213,9 +212,9 @@ export default function SystemMonitoringPage() {
           <TabsTrigger value="health">Health Checks</TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
+        {}
         <TabsContent value="overview" className="space-y-6">
-          {/* Key Metrics */}
+          {}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {performanceData && (
               <>
@@ -227,7 +226,7 @@ export default function SystemMonitoringPage() {
                     <Activity className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-success">
                       {performanceData.uptime}
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -273,7 +272,7 @@ export default function SystemMonitoringPage() {
                     <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-success">
                       {performanceData.errorRate}%
                     </div>
                     <p className="text-xs text-muted-foreground">Last hour</p>
@@ -283,7 +282,7 @@ export default function SystemMonitoringPage() {
             )}
           </div>
 
-          {/* Resource Usage */}
+          {}
           {performanceData && (
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
@@ -334,7 +333,7 @@ export default function SystemMonitoringPage() {
             </div>
           )}
 
-          {/* Health Summary */}
+          {}
           {health && (
             <Card>
               <CardHeader>
@@ -353,11 +352,11 @@ export default function SystemMonitoringPage() {
           )}
         </TabsContent>
 
-        {/* Performance Tab */}
+        {}
         <TabsContent value="performance" className="space-y-6">
           {performanceData ? (
             <>
-              {/* Key Metrics */}
+              {}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -367,7 +366,7 @@ export default function SystemMonitoringPage() {
                     <Activity className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-success">
                       {performanceData.uptime}
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -413,7 +412,7 @@ export default function SystemMonitoringPage() {
                     <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-success">
                       {performanceData.errorRate}%
                     </div>
                     <p className="text-xs text-muted-foreground">Last hour</p>
@@ -421,7 +420,7 @@ export default function SystemMonitoringPage() {
                 </Card>
               </div>
 
-              {/* Resource Usage */}
+              {}
               <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -476,7 +475,7 @@ export default function SystemMonitoringPage() {
                 </Card>
               </div>
 
-              {/* Service Health */}
+              {}
               <Card>
                 <CardHeader>
                   <CardTitle>Service Health</CardTitle>
@@ -524,7 +523,7 @@ export default function SystemMonitoringPage() {
           )}
         </TabsContent>
 
-        {/* Health Checks Tab */}
+        {}
         <TabsContent value="health" className="space-y-6">
           {health ? (
             <>

@@ -1,20 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import {
-  PatientMedicalCondition,
-  Diagnosis,
-  Appointment,
-  Patient,
-  IcdCode,
-} from '@workspace/db';
-import { FhirCondition } from '../interfaces/fhir.interfaces';
+import { PatientMedicalCondition, Diagnosis, IcdCode } from '@workspace/db';
+import { FhirCondition } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
 type MedicalConditionWithRelations = PatientMedicalCondition & {
   patient: { firstName: string; lastName: string };
 };
 
 type DiagnosisWithRelations = Diagnosis & {
-  icdCode: IcdCode;
-  appointment: Appointment & {
+  icdCode: Pick<IcdCode, 'code' | 'description'> | null;
+  appointment: {
+    id: string;
+    patientId: string;
     patient: { firstName: string; lastName: string };
   };
 };
@@ -74,7 +70,6 @@ export class FhirConditionFactory {
         recordedDate: condition.createdAt.toISOString(),
       };
 
-      // Add ICD code if available
       if (condition.icdCode && fhirCondition.code?.coding) {
         fhirCondition.code.coding.push({
           system: 'http://hl7.org/fhir/sid/icd-10',
@@ -83,17 +78,14 @@ export class FhirConditionFactory {
         });
       }
 
-      // Add onset date
       if (condition.diagnosedDate) {
         fhirCondition.onsetDateTime = condition.diagnosedDate.toISOString();
       }
 
-      // Add abatement date if resolved
       if (condition.resolvedDate) {
         fhirCondition.abatementDateTime = condition.resolvedDate.toISOString();
       }
 
-      // Add severity
       if (condition.severity) {
         fhirCondition.severity = {
           coding: [
@@ -106,7 +98,6 @@ export class FhirConditionFactory {
         };
       }
 
-      // Add notes
       if (condition.notes) {
         fhirCondition.note = [{ text: condition.notes }];
       }
@@ -122,7 +113,7 @@ export class FhirConditionFactory {
     for (const diagnosis of diagnoses) {
       if (!diagnosis.icdCode) continue;
 
-      const patientId = diagnosis.appointment.patientId; // Assuming implicit or explicit relation
+      const patientId = diagnosis.appointment.patientId;
       const patientRef = `Patient/${diagnosis.appointment.patientId}`;
       const patientDisplay = `${diagnosis.appointment.patient.firstName} ${diagnosis.appointment.patient.lastName}`;
 

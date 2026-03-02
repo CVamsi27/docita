@@ -1,14 +1,10 @@
-/**
- * Role-based permission mapping
- * Centralized permissions configuration for all roles
- * Used by both frontend (UI control) and API (authorization)
- */
+
 
 import type { Permission } from "./auth-context";
 
 export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
   SUPER_ADMIN: [
-    // Super admin has all permissions
+
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
     "EDIT_PATIENTS",
@@ -91,24 +87,15 @@ export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
   PATIENT: ["VIEW_PATIENTS"],
 };
 
-/**
- * Check if user has a specific permission
- */
 export function hasPermission(role: string, permission: Permission): boolean {
   const rolePermissions = PERMISSIONS_BY_ROLE[role] || [];
   return rolePermissions.includes(permission);
 }
 
-/**
- * Get all permissions for a role
- */
 export function getPermissionsForRole(role: string): Permission[] {
   return PERMISSIONS_BY_ROLE[role] || [];
 }
 
-/**
- * Check if user can perform multiple actions
- */
 export function canPerformActions(
   role: string,
   permissions: Permission[],

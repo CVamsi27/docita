@@ -37,7 +37,7 @@ export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-orange-500" />
+          <FileText className="h-5 w-5 text-warning" />
           Smart Task Engine
         </CardTitle>
         <CardDescription>AI-powered workflow automation</CardDescription>
@@ -130,6 +130,6 @@ const AutomationItem = ({ task, time }: AutomationItemProps) => (
       <p className="text-sm font-medium">{task}</p>
       <p className="text-xs text-muted-foreground">{time}</p>
     </div>
-    <CheckCircle2 className="h-4 w-4 text-green-500" />
+    <CheckCircle2 className="h-4 w-4 text-success" />
   </div>
 );

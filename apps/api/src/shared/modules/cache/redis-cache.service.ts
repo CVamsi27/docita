@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ICacheProvider } from './cache.interface';
 import Redis from 'ioredis';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class RedisCacheService
@@ -44,7 +44,7 @@ export class RedisCacheService
     try {
       return JSON.parse(value);
     } catch {
-      return value as unknown as T;
+      return value as T;
     }
   }
 

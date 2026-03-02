@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PerformanceService } from './performance.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PerformanceService', () => {
   let service: PerformanceService;
@@ -143,7 +143,7 @@ describe('PerformanceService', () => {
 
     it('should format uptime with days when uptime is high', () => {
       const originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(90000); // ~1 day
+      jest.spyOn(process, 'uptime').mockReturnValue(90000);
 
       const result = service.getMetrics();
 
@@ -154,7 +154,7 @@ describe('PerformanceService', () => {
 
     it('should format uptime with hours and minutes', () => {
       const originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(3665); // 1h 1m 5s
+      jest.spyOn(process, 'uptime').mockReturnValue(3665);
 
       const result = service.getMetrics();
 
@@ -167,7 +167,7 @@ describe('PerformanceService', () => {
 
     it('should format uptime with only seconds when uptime is low', () => {
       const originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(30); // 30s
+      jest.spyOn(process, 'uptime').mockReturnValue(30);
 
       const result = service.getMetrics();
 
@@ -206,8 +206,8 @@ describe('PerformanceService', () => {
       mockPrismaService.$queryRaw.mockResolvedValue([]);
 
       const [dbStats, metrics] = await Promise.all([
-        service.getDatabaseStats() as Promise<any>,
-        service.getMetrics() as Promise<any>,
+        service.getDatabaseStats(),
+        Promise.resolve(service.getMetrics()),
       ] as const);
 
       expect(dbStats.status).toBe('connected');

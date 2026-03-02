@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { InvoiceGeneratedEvent } from '../../application/services/events/invoice-generated.event';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { SendMessageUseCase } from '../../../whatsapp/application/use-cases/send-message.use-case';
-import { PaymentsService } from '../../application/services/payments.service';
+import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 
 @Injectable()
 export class InvoiceEventsListener {
@@ -34,7 +34,6 @@ export class InvoiceEventsListener {
       return;
     }
 
-    // Create payment link
     let paymentLink: string | undefined;
     try {
       const paymentSession = await this.paymentsService.createPaymentSession({
@@ -54,7 +53,6 @@ export class InvoiceEventsListener {
       );
     }
 
-    // Get clinic name
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: { name: true },
@@ -66,7 +64,6 @@ export class InvoiceEventsListener {
       paymentLink,
     );
 
-    // Send WhatsApp notification using DDD use case
     try {
       await this.sendMessage.execute({
         clinicId,
@@ -78,7 +75,7 @@ export class InvoiceEventsListener {
           amount: `₹${invoice.total.toFixed(2)}`,
           link: paymentLink || `https://docita.work/i/${invoiceId}`,
         },
-        text: message, // Fallback to builder output
+        text: message,
         metadata: { invoiceId },
       });
     } catch (error) {

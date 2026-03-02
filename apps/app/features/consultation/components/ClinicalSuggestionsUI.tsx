@@ -38,9 +38,9 @@ export function ClinicalSuggestionsUI({
   }
 
   const confidenceColors = {
-    high: "bg-green-100 text-green-800 border-green-300",
-    medium: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    low: "bg-gray-100 text-gray-800 border-gray-300",
+    high: "badge-success",
+    medium: "badge-warning",
+    low: "badge-muted",
   };
 
   const typeIcons = {
@@ -50,11 +50,11 @@ export function ClinicalSuggestionsUI({
   };
 
   return (
-    <Card className={cn("border-blue-200 bg-blue-50/50", className)}>
+    <Card className={cn("surface-info", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-blue-600" />
+            <Lightbulb className="h-4 w-4 text-info" />
             Clinical Decision Support
           </CardTitle>
           <Button

@@ -37,7 +37,7 @@ function DatePicker({
   const dateValue = React.useMemo(() => {
     if (!value) return undefined;
     if (value instanceof Date) return value;
-    // Handle string dates
+
     const parsed = new Date(value);
     return isNaN(parsed.getTime()) ? undefined : parsed;
   }, [value]);

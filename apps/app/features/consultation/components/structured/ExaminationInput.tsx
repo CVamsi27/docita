@@ -27,10 +27,10 @@ export interface ExaminationData {
     notes?: string;
   };
   systemic: {
-    cvs: string; // Cardiovascular System
-    rs: string; // Respiratory System
-    pa: string; // Per Abdomen
-    cns: string; // Central Nervous System
+    cvs: string; 
+    rs: string; 
+    pa: string; 
+    cns: string; 
     musculoskeletal?: string;
     notes?: string;
   };
@@ -67,7 +67,7 @@ export function ExaminationInput({
   onChange,
   readOnly = false,
 }: ExaminationInputProps) {
-  // Merge with default to ensure all fields exist
+
   const data = {
     general: { ...DEFAULT_VALUE.general, ...(value?.general || {}) },
     systemic: { ...DEFAULT_VALUE.systemic, ...(value?.systemic || {}) },
@@ -92,7 +92,7 @@ export function ExaminationInput({
 
   return (
     <div className="space-y-6">
-      {/* General Examination */}
+      {}
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -153,7 +153,7 @@ export function ExaminationInput({
         </CardContent>
       </Card>
 
-      {/* Systemic Examination */}
+      {}
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -170,7 +170,7 @@ export function ExaminationInput({
             <AccordionItem value="cvs" className="px-6 border-b">
               <AccordionTrigger className="hover:no-underline py-3">
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Heart className="h-4 w-4 text-rose-500" /> CVS
+                  <Heart className="h-4 w-4 text-destructive" /> CVS
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -187,7 +187,7 @@ export function ExaminationInput({
             <AccordionItem value="rs" className="px-6 border-b">
               <AccordionTrigger className="hover:no-underline py-3">
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Wind className="h-4 w-4 text-blue-500" /> Respiratory System
+                  <Wind className="h-4 w-4 text-info" /> Respiratory System
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -204,7 +204,7 @@ export function ExaminationInput({
             <AccordionItem value="pa" className="px-6 border-b">
               <AccordionTrigger className="hover:no-underline py-3">
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Activity className="h-4 w-4 text-orange-500" /> Per Abdomen
+                  <Activity className="h-4 w-4 text-warning" /> Per Abdomen
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -221,7 +221,7 @@ export function ExaminationInput({
             <AccordionItem value="cns" className="px-6">
               <AccordionTrigger className="hover:no-underline py-3">
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <FileText className="h-4 w-4 text-purple-500" /> CNS & Other
+                  <FileText className="h-4 w-4 text-primary" /> CNS & Other
                 </div>
               </AccordionTrigger>
               <AccordionContent>

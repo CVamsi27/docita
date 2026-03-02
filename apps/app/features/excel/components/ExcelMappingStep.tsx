@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { AlertTriangle, ArrowRight, Users } from "lucide-react";
-import { ImportPreview } from "../hooks/use-excel-import";
+import { ImportPreview } from "@/features/excel/hooks/use-excel-import";
 
 interface DBField {
   label: string;
@@ -53,7 +53,7 @@ export const ExcelMappingStep = ({
 }: ExcelMappingStepProps) => {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {/* Mapping Section */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Column Mapping</CardTitle>
@@ -96,7 +96,7 @@ export const ExcelMappingStep = ({
         </CardContent>
         <CardFooter className="flex-col gap-4">
           {!hasRequiredMappings() && (
-            <div className="flex items-center gap-2 text-amber-600 text-sm w-full">
+            <div className="flex items-center gap-2 text-warning text-sm w-full">
               <AlertTriangle className="h-4 w-4" />
               <span>
                 Please map both First Name and Phone Number (required)
@@ -114,7 +114,7 @@ export const ExcelMappingStep = ({
         </CardFooter>
       </Card>
 
-      {/* Preview Section */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Data Preview</CardTitle>

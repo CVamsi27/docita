@@ -50,5 +50,4 @@ export function WhatsAppBroadcastDialogContainer({
   );
 }
 
-// Alias for backward compatibility
 export { WhatsAppBroadcastDialogContainer as WhatsAppBroadcastDialog };

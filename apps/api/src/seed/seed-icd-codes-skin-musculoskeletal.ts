@@ -1,5 +1,4 @@
 export const ICD_10_CODES_SKIN_MUSCULOSKELETAL = [
-  // Skin disorders
   {
     code: 'L01',
     description: 'Impetigo',
@@ -158,7 +157,6 @@ export const ICD_10_CODES_SKIN_MUSCULOSKELETAL = [
     category: 'Diseases of the skin',
   },
 
-  // Musculoskeletal system
   {
     code: 'M05',
     description: 'Rheumatoid arthritis with rheumatoid factor',

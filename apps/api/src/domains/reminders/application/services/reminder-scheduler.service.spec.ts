@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderSchedulerService } from './reminder-scheduler.service';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
 describe('ReminderSchedulerService', () => {

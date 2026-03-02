@@ -175,7 +175,7 @@ describe('ClinicalAiService', () => {
       ]);
 
       expect(Array.isArray(result)).toBe(true);
-      // Verify medications list is returned
+
       expect(result).toBeDefined();
     });
   });
@@ -205,7 +205,7 @@ describe('ClinicalAiService', () => {
   describe.skip('error handling', () => {
     it('should handle invalid request gracefully', async () => {
       try {
-        await service.analyzePrescription(null as any);
+        await service.analyzePrescription(null as never);
       } catch (error) {
         expect(error).toBeDefined();
       }

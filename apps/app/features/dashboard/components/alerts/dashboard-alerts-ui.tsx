@@ -46,8 +46,8 @@ export function DashboardAlertsUI({
             "flex items-center gap-3 p-3 rounded-lg border transition-all",
             alert.type === "urgent" &&
               "bg-destructive/10 border-destructive/30",
-            alert.type === "warning" && "bg-amber-500/10 border-amber-500/30",
-            alert.type === "success" && "bg-green-500/10 border-green-500/30",
+            alert.type === "warning" && "bg-warning/10 border-warning/30",
+            alert.type === "success" && "bg-success/10 border-success/30",
             alert.type === "info" && "bg-primary/5 border-primary/20",
           )}
         >
@@ -55,8 +55,8 @@ export function DashboardAlertsUI({
             className={cn(
               "flex h-8 w-8 items-center justify-center rounded-full shrink-0",
               alert.type === "urgent" && "bg-destructive/20 text-destructive",
-              alert.type === "warning" && "bg-amber-500/20 text-amber-600",
-              alert.type === "success" && "bg-green-500/20 text-green-600",
+              alert.type === "warning" && "bg-warning/20 text-warning",
+              alert.type === "success" && "bg-success/20 text-success",
               alert.type === "info" && "bg-primary/20 text-primary",
             )}
           >
@@ -100,14 +100,14 @@ export function DashboardAlertsUI({
         </div>
       ))}
 
-      {/* Progress bar */}
+      {}
       {todayAppointments > 0 && (
         <div className="flex items-center gap-3 px-1">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className={cn(
                 "h-full transition-all duration-500",
-                progressPercentage === 100 ? "bg-green-500" : "bg-primary",
+                progressPercentage === 100 ? "bg-success" : "bg-primary",
               )}
               style={{ width: `${progressPercentage}%` }}
             />
@@ -121,7 +121,6 @@ export function DashboardAlertsUI({
   );
 }
 
-// AlertStrip component
 export function AlertStripUI({
   message,
   type = "info",
@@ -138,8 +137,8 @@ export function AlertStripUI({
       className={cn(
         "flex items-center justify-between gap-4 px-4 py-2 text-sm",
         type === "urgent" && "bg-destructive text-destructive-foreground",
-        type === "warning" && "bg-amber-500 text-white",
-        type === "success" && "bg-green-500 text-white",
+        type === "warning" && "bg-warning text-warning-foreground",
+        type === "success" && "bg-success text-success-foreground",
         type === "info" && "bg-primary text-primary-foreground",
       )}
     >

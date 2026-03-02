@@ -12,14 +12,14 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Page error:", error);
+
   }, [error]);
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+        <div className="surface-danger mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
+          <AlertCircle className="h-8 w-8" />
         </div>
         <h2 className="mb-2 text-xl font-semibold">Something went wrong</h2>
         <p className="mb-6 text-muted-foreground">

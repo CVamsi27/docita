@@ -58,8 +58,6 @@ export async function seedSchedulesAndLabTests(
     ],
   });
 
-  console.log('Doctor schedules created');
-
   await prisma.labTest.createMany({
     data: [
       {
@@ -142,6 +140,4 @@ export async function seedSchedulesAndLabTests(
       },
     ],
   });
-
-  console.log('Lab tests created');
 }

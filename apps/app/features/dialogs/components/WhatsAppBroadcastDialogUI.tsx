@@ -54,7 +54,6 @@ export function WhatsAppBroadcastDialogUI({
     },
   });
 
-  // Reset form when dialog opens
   useEffect(() => {
     if (isOpen) {
       form.reset({

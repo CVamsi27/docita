@@ -1,5 +1,4 @@
 export const ICD_10_CODES_INFECTIOUS_NEOPLASMS = [
-  // Infectious diseases
   {
     code: 'A00',
     description: 'Cholera',
@@ -101,7 +100,6 @@ export const ICD_10_CODES_INFECTIOUS_NEOPLASMS = [
     category: 'Certain infectious and parasitic diseases',
   },
 
-  // Neoplasms
   {
     code: 'C18',
     description: 'Malignant neoplasm of colon',

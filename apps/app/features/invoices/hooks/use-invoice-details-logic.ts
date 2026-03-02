@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useClinic } from "@/lib/clinic-context";
 
 import { useInvoice } from "@/hooks/api/use-billing";
@@ -6,12 +6,27 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 
-export const useInvoiceDetailsLogic = (invoiceId: string) => {
+export const useInvoiceDetailsLogic = (
+  invoiceId: string,
+  options?: { autoPrint?: boolean },
+) => {
   const router = useRouter();
   const { clinic } = useClinic();
   const printRef = useRef<HTMLDivElement>(null);
+  const hasAutoPrintedRef = useRef(false);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
+
+  useEffect(() => {
+    if (!options?.autoPrint || hasAutoPrintedRef.current) {
+      return;
+    }
+
+    if (!isLoading && invoice) {
+      hasAutoPrintedRef.current = true;
+      window.print();
+    }
+  }, [options?.autoPrint, isLoading, invoice]);
 
   const handlePrint = () => {
     window.print();
@@ -20,16 +35,13 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
   const handleDownload = async () => {
     try {
       toast.info("Preparing PDF for download...");
-      // In a real app, this would be an API call
-      // window.open(`/api/invoices/${invoiceId}/pdf`, '_blank');
 
-      // Simulating delay for demo
       setTimeout(() => {
         toast.success("PDF Downloaded successfully");
       }, 1500);
     } catch (err) {
       toast.error("Failed to download PDF");
-      console.error(err);
+
     }
   };
 
@@ -50,7 +62,6 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
     return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
   };
 
-  // Helper to format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -58,7 +69,6 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
     }).format(amount);
   };
 
-  // Helper to format date
   const formatDate = (dateString?: string | Date) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -68,9 +78,8 @@ export const useInvoiceDetailsLogic = (invoiceId: string) => {
     });
   };
 
-  // Helper to convert number to words (simplified for this context)
   const numberToWords = (amount: number) => {
-    // This is a placeholder. In a real app, use a library like 'number-to-words'
+
     return `${amount} Rupees Only`;
   };
 

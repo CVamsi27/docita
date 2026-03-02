@@ -68,7 +68,6 @@ export default function SuperAdminDashboard() {
         fetch(`${API_URL}/super-admin/stats`, { headers }),
       ]);
 
-      // Handle auth errors
       if (clinicsRes.status === 401 || statsRes.status === 401) {
         logout("Your session has expired. Please log in again.");
         return;
@@ -86,20 +85,19 @@ export default function SuperAdminDashboard() {
 
       if (clinicsRes.ok) {
         const clinicsData = await clinicsRes.json();
-        // Handle both paginated response { items: [] } and direct array []
+
         setClinics(
           Array.isArray(clinicsData) ? clinicsData : clinicsData.items || [],
         );
       }
       if (statsRes.ok) setStats(await statsRes.json());
     } catch (error) {
-      console.error("Failed to load data", error);
+
     } finally {
       setLoading(false);
     }
   }, [token, logout]);
 
-  // Fetch data on mount and when token changes
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -116,7 +114,7 @@ export default function SuperAdminDashboard() {
   const renderTrend = (value: number, isPercentage: boolean = false) => {
     const isPositive = value >= 0;
     const Icon = isPositive ? TrendingUp : TrendingDown;
-    const colorClass = isPositive ? "text-green-500" : "text-red-500";
+    const colorClass = isPositive ? "text-success" : "text-destructive";
     const prefix = isPositive ? "+" : "";
     const suffix = isPercentage ? "%" : "";
 
@@ -138,8 +136,8 @@ export default function SuperAdminDashboard() {
   return (
     <div className="space-y-8">
       {!token && (
-        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
-          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+        <div className="surface-warning rounded-lg p-4">
+          <p className="text-sm">
             Loading authentication... If this persists, please log in again.
           </p>
         </div>

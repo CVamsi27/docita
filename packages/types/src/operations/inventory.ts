@@ -31,7 +31,6 @@ export const inventoryItemSchema = z.object({
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 
-  // Relations
   movements: z.array(inventoryMovementSchema).optional(),
 });
 

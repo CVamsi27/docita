@@ -27,16 +27,6 @@ export interface FormDialogProps {
   onCancel?: () => void;
 }
 
-/**
- * FormDialog is a wrapper for react-hook-form dialogs.
- * Unlike CRUDDialog which manages form submission,
- * FormDialog only handles dialog state and rendering.
- * The actual form submission is handled by react-hook-form's handleSubmit.
- *
- * Usage with react-hook-form:
- * Pass the form element as children to FormDialog.
- * FormDialog will handle dialog state management.
- */
 export function FormDialog({
   open,
   onOpenChange,
@@ -75,10 +65,6 @@ export function FormDialog({
   );
 }
 
-/**
- * FormDialogFooter - Use inside FormDialog for consistent footer styling.
- * Place this after your form element to render submit/cancel buttons.
- */
 export interface FormDialogFooterProps {
   isLoading?: boolean;
   disabled?: boolean;

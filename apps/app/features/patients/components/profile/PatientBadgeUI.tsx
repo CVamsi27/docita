@@ -132,7 +132,7 @@ export function PatientBadgeUI({
               <Tooltip>
                 <TooltipTrigger>
                   <Badge variant="outline" className="gap-1 h-5 text-[10px]">
-                    <Droplets className="h-3 w-3 text-red-500" />
+                    <Droplets className="h-3 w-3 text-destructive" />
                     {bloodGroup}
                   </Badge>
                 </TooltipTrigger>

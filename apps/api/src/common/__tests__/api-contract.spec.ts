@@ -4,38 +4,61 @@ import * as path from 'path';
 const specPath = path.resolve(process.cwd(), 'docs/openapi.json');
 const describeIfSpec = fs.existsSync(specPath) ? describe : describe.skip;
 
-/**
- * API Contract Tests
- *
- * Verifies that actual API responses conform to the OpenAPI specification.
- * This prevents regressions where responses deviate from documented contract.
- *
- * How it works:
- * 1. Load committed OpenAPI spec (docs/openapi.json)
- * 2. For each endpoint, make real requests
- * 3. Validate response against schema in OpenAPI spec
- * 4. Fail if response doesn't match spec
- */
-
 describeIfSpec('API Contract Tests', () => {
-  let openApiSpec: any;
+  interface OpenApiSchema {
+    properties?: Record<string, OpenApiSchema>;
+    required?: string[];
+    type?: string;
+    enum?: string[];
+  }
+
+  interface OpenApiParameter {
+    name?: string;
+    schema?: {
+      enum?: string[];
+    };
+  }
+
+  interface OpenApiResponse {
+    content?: {
+      'application/json'?: {
+        schema?: OpenApiSchema;
+      };
+    };
+  }
+
+  interface OpenApiOperation {
+    responses?: Record<string, OpenApiResponse>;
+    requestBody?: {
+      content?: {
+        'application/json'?: {
+          schema?: OpenApiSchema;
+        };
+      };
+    };
+    parameters?: OpenApiParameter[];
+  }
+
+  interface OpenApiPathItem {
+    get?: OpenApiOperation;
+    post?: OpenApiOperation;
+    patch?: OpenApiOperation;
+    delete?: OpenApiOperation;
+  }
+
+  interface OpenApiSpec {
+    paths?: Record<string, OpenApiPathItem>;
+  }
+
+  let openApiSpec: OpenApiSpec;
 
   beforeAll(() => {
-    // Load OpenAPI specification
     const specContent = fs.readFileSync(specPath, 'utf-8');
-    openApiSpec = JSON.parse(specContent);
+    openApiSpec = JSON.parse(specContent) as OpenApiSpec;
   });
 
   describe('GET /patients', () => {
     it('should return response matching OpenAPI schema', () => {
-      // This test would make a real request to the API
-      // and validate the response against the OpenAPI schema
-      //
-      // Example pseudo-code:
-      //   const response = await api.get('/api/v1/patients');
-      //   const schema = openApiSpec.paths['/patients'].get.responses['200'].content['application/json'].schema;
-      //   expect(validateAgainstSchema(response.body, schema)).toBe(true);
-
       const patientsSchema = openApiSpec.paths?.['/patients']?.get?.responses;
       expect(patientsSchema).toBeDefined();
       expect(patientsSchema['200']).toBeDefined();
@@ -47,7 +70,6 @@ describeIfSpec('API Contract Tests', () => {
           'application/json'
         ]?.schema;
 
-      // Verify schema includes pagination fields
       expect(patientsSchema?.properties).toBeDefined();
       expect(patientsSchema?.properties?.data).toBeDefined();
       expect(patientsSchema?.properties?.cursor).toBeDefined();
@@ -96,13 +118,13 @@ describeIfSpec('API Contract Tests', () => {
 
     it('should document validation errors response', () => {
       const responses = openApiSpec.paths?.['/patients']?.post?.responses;
-      expect(responses?.['400']).toBeDefined(); // Bad request
-      expect(responses?.['422']).toBeDefined(); // Unprocessable entity (validation)
+      expect(responses?.['400']).toBeDefined();
+      expect(responses?.['422']).toBeDefined();
     });
 
     it('should document 409 response for duplicate data', () => {
       const responses = openApiSpec.paths?.['/patients']?.post?.responses;
-      expect(responses?.['409']).toBeDefined(); // Conflict
+      expect(responses?.['409']).toBeDefined();
     });
   });
 
@@ -121,7 +143,7 @@ describeIfSpec('API Contract Tests', () => {
         openApiSpec.paths?.['/patients/{id}']?.patch?.requestBody?.content?.[
           'application/json'
         ]?.schema;
-      // Update requests typically have no required fields
+
       expect(updateSchema?.required?.length || 0).toBeLessThan(5);
     });
   });
@@ -144,7 +166,7 @@ describeIfSpec('API Contract Tests', () => {
     it('should document query parameters for filtering', () => {
       const appointmentParams =
         openApiSpec.paths?.['/appointments']?.get?.parameters;
-      const paramNames = appointmentParams?.map((p: any) => p.name) || [];
+      const paramNames = appointmentParams?.map((p) => p.name) || [];
 
       expect(paramNames).toContain('limit');
       expect(paramNames).toContain('cursor');
@@ -155,7 +177,7 @@ describeIfSpec('API Contract Tests', () => {
     it('should document status parameter as enum', () => {
       const statusParam = openApiSpec.paths?.[
         '/appointments'
-      ]?.get?.parameters?.find((p: any) => p.name === 'status');
+      ]?.get?.parameters?.find((p) => p.name === 'status');
       expect(statusParam?.schema?.enum).toBeDefined();
       expect(statusParam.schema.enum).toContain('scheduled');
       expect(statusParam.schema.enum).toContain('completed');
@@ -259,13 +281,11 @@ describeIfSpec('API Contract Tests', () => {
   describe('API Versioning', () => {
     it('should have v1 in all endpoint paths', () => {
       const paths = Object.keys(openApiSpec.paths || {});
-      // In our URL-based versioning, paths are versioned via servers or prefix
-      // Verify version is defined in info
+
       expect(openApiSpec.info?.version).toBe('1.0.0');
     });
 
     it('should document servers for different environments', () => {
-      // Recommended to document multiple environment URLs
       expect(openApiSpec.servers).toBeDefined();
     });
   });
@@ -275,7 +295,12 @@ describeIfSpec('API Contract Tests', () => {
       let endpointsWithoutDescription = 0;
 
       for (const [path, pathItem] of Object.entries(openApiSpec.paths || {})) {
-        for (const [method, endpoint] of Object.entries(pathItem as any)) {
+        if (!pathItem || typeof pathItem !== 'object') {
+          continue;
+        }
+
+        const operations = Object.fromEntries(Object.entries(pathItem));
+        for (const [method, endpoint] of Object.entries(operations)) {
           if (
             ['get', 'post', 'put', 'patch', 'delete'].includes(
               method.toLowerCase(),
@@ -288,12 +313,10 @@ describeIfSpec('API Contract Tests', () => {
         }
       }
 
-      // Allow some undocumented endpoints but aim for 100%
       expect(endpointsWithoutDescription).toBeLessThan(5);
     });
 
     it('should have examples in request bodies', () => {
-      // Check a few critical endpoints have examples
       const createPatientExample =
         openApiSpec.paths?.['/patients']?.post?.requestBody?.example;
       expect(createPatientExample || 'schema').toBeDefined();

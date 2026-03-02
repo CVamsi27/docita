@@ -1,4 +1,3 @@
-// Barrel export for entities
 export { Subscription, type SubscriptionProps } from './subscription.entity';
 export {
   SubscriptionPayment,

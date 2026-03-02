@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { DoctorVerificationService } from './doctor-verification.service';
 import { NotFoundException } from '@nestjs/common';
 
 describe('DoctorsService', () => {
@@ -75,6 +76,10 @@ describe('DoctorsService', () => {
     $transaction: jest.fn(),
   };
 
+  const mockDoctorVerificationService = {
+    verifyAndPersistDoctorVerification: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -83,6 +88,10 @@ describe('DoctorsService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: DoctorVerificationService,
+          useValue: mockDoctorVerificationService,
+        },
       ],
     }).compile();
 
@@ -90,6 +99,9 @@ describe('DoctorsService', () => {
     prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
+    mockDoctorVerificationService.verifyAndPersistDoctorVerification.mockResolvedValue(
+      mockDoctor,
+    );
   });
 
   it('should be defined', () => {
@@ -138,7 +150,7 @@ describe('DoctorsService', () => {
         email: 'newdoctor@example.com',
         password: 'password123',
         name: 'Dr. New Doctor',
-        specialization: 'PEDIATRICS' as any,
+        specialization: 'PEDIATRICS' as never,
       };
 
       mockPrismaService.doctorClinic.findFirst.mockResolvedValue(null);
@@ -160,6 +172,10 @@ describe('DoctorsService', () => {
     it('should update doctor information', async () => {
       const updateData = { name: 'Dr. Updated Name' };
       mockPrismaService.user.update.mockResolvedValue({
+        ...mockDoctor,
+        ...updateData,
+      });
+      mockPrismaService.user.findUnique.mockResolvedValue({
         ...mockDoctor,
         ...updateData,
       });
@@ -277,7 +293,6 @@ describe('DoctorsService', () => {
 
   describe('formatSpecializationLabel', () => {
     it('should format specialization enum to readable label from getAvailableSpecializations result', () => {
-      // Test the public getAvailableSpecializations method instead
       const specializations = service.getAvailableSpecializations();
       const hasLabel = specializations.some(
         (s) => s.label && typeof s.label === 'string',
@@ -288,7 +303,6 @@ describe('DoctorsService', () => {
 
   describe('formatHospitalRoleLabel', () => {
     it('should format hospital role enum to readable label from getAvailableHospitalRoles result', () => {
-      // Test the public getAvailableHospitalRoles method instead
       const roles = service.getAvailableHospitalRoles();
       const hasLabel = roles.some(
         (r) => r.label && typeof r.label === 'string',

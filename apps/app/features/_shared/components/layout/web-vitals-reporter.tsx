@@ -5,19 +5,6 @@ import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { API_URL } from "@/lib/api-config";
 
-/**
- * Web Vitals Reporter - Track Core Web Vitals and send to backend
- * ✅ OPTIMIZATION: Real User Monitoring (RUM) for performance tracking
- *
- * Metrics tracked:
- * - LCP (Largest Contentful Paint): Loading performance
- * - INP (Interaction to Next Paint): Interactivity (replaced FID)
- * - CLS (Cumulative Layout Shift): Visual stability
- * - FCP (First Contentful Paint): First paint
- * - TTFB (Time to First Byte): Server response time
- *
- * Usage: Add <WebVitalsReporter /> to root layout
- */
 export function WebVitalsReporter() {
   const pathname = usePathname();
 
@@ -33,23 +20,21 @@ export function WebVitalsReporter() {
         sessionId,
       });
 
-      // Use sendBeacon for reliability (works even during page unload)
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${API_URL}/monitoring/web-vitals`, body);
       } else {
-        // Fallback to fetch
+
         fetch(`${API_URL}/monitoring/web-vitals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,
           keepalive: true,
         }).catch((err) => {
-          console.error("Failed to send web vital:", err);
+
         });
       }
     }
 
-    // Dynamically import web-vitals to avoid SSR issues
     import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
       onCLS(sendToAnalytics);
       onINP(sendToAnalytics);
@@ -59,5 +44,5 @@ export function WebVitalsReporter() {
     });
   }, [pathname]);
 
-  return null; // This component doesn't render anything
+  return null; 
 }

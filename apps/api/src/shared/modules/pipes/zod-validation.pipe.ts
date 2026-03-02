@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ZodSchema, ZodError } from 'zod';
-import { createZodValidationException } from '../../../common/utils/zod-exception.util';
+import { createZodValidationException } from '@/common/utils/zod-exception.util';
 
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
@@ -24,7 +24,7 @@ export class ZodValidationPipe implements PipeTransform {
         errors: zodError?.errors,
         value: value,
       });
-      // Throw ZodValidationException so AllExceptionsFilter can extract field-level errors
+
       throw createZodValidationException(zodError);
     }
   }

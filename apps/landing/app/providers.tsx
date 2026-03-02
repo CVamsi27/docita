@@ -4,13 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
 
-// OPTIMIZATION: Web Vitals monitoring for performance tracking
 async function reportWebVitals(): Promise<void> {
-  // Collect Core Web Vitals metrics using PerformanceObserver
+
   try {
     const vitals: Record<string, number | undefined> = {};
 
-    // Measure CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         const layoutShiftEntry = entry as PerformanceEntry & {
@@ -24,19 +22,16 @@ async function reportWebVitals(): Promise<void> {
     });
     clsObserver.observe({ type: "layout-shift", buffered: true });
 
-    // Measure LCP (Largest Contentful Paint)
     const lcpObserver = new PerformanceObserver((list) => {
       vitals.lcp = list.getEntries().pop()?.startTime;
     });
     lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
 
-    // Measure FCP (First Contentful Paint)
     const fcpObserver = new PerformanceObserver((list) => {
       vitals.fcp = list.getEntries()[0]?.startTime;
     });
     fcpObserver.observe({ type: "paint", buffered: true });
 
-    // Measure TTFB (Time to First Byte)
     const navigation = performance.getEntriesByType(
       "navigation",
     )[0] as PerformanceEntry & { responseStart?: number };
@@ -44,7 +39,6 @@ async function reportWebVitals(): Promise<void> {
       vitals.ttfb = navigation.responseStart;
     }
 
-    // Send vitals to analytics endpoint if available
     setTimeout(() => {
       if (
         process.env.NEXT_PUBLIC_ANALYTICS_URL &&
@@ -55,10 +49,9 @@ async function reportWebVitals(): Promise<void> {
           JSON.stringify(vitals),
         );
       }
-    }, 5000); // Send after 5 seconds to allow all metrics to be collected
+    }, 5000); 
   } catch {
-    // Gracefully handle if PerformanceObserver is not available
-    console.warn("Web Vitals monitoring not available");
+
   }
 }
 
@@ -68,16 +61,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minute
+            staleTime: 60 * 1000, 
             refetchOnWindowFocus: false,
-            retry: 1, // Reduce retry attempts to prevent cascading failures
+            retry: 1, 
           },
         },
       }),
   );
 
   useEffect(() => {
-    // Initialize Web Vitals reporting on mount
+
     reportWebVitals();
   }, []);
 

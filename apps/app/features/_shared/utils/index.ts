@@ -1,12 +1,5 @@
-/**
- * Shared Utility Functions
- *
- * Common helper functions used across feature modules.
- */
 
-/**
- * Format phone number for display
- */
+
 export const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, "");
 
@@ -21,9 +14,6 @@ export const formatPhoneNumber = (phone: string): string => {
   return phone;
 };
 
-/**
- * Generate initials from name
- */
 export const getInitials = (firstName: string, lastName?: string): string => {
   if (!firstName) return "";
 
@@ -33,17 +23,11 @@ export const getInitials = (firstName: string, lastName?: string): string => {
   return `${first}${last}`;
 };
 
-/**
- * Truncate text with ellipsis
- */
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}...`;
 };
 
-/**
- * Debounce function utility
- */
 export function debounce<
   T extends (
     ...args: Array<string | number | Record<string, unknown>>
@@ -57,9 +41,6 @@ export function debounce<
   };
 }
 
-/**
- * Format currency for display
- */
 export const formatCurrency = (
   amount: number,
   currency: string = "INR",

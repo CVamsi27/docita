@@ -43,17 +43,14 @@ export const ClinicSettingsSchema = z.object({
   primaryColor: z.string().optional(),
   compactMode: z.boolean().optional(),
 
-  // Payment reminder scheduler
   paymentReminderEnabled: z.boolean().optional(),
   paymentReminderDays: z.array(z.number().int().min(1).max(30)).optional(),
   paymentReminderAutoSendWhatsApp: z.boolean().optional(),
 
-  // Billing bank account preferences
   useSameBankAccountForSubscriptionAndReceipts: z.boolean().optional(),
   subscriptionPaymentBankAccount: BankAccountSchema.optional(),
   paymentReceivingBankAccount: BankAccountSchema.optional(),
 
-  // Prescription defaults
   defaultInstructions: z.string().optional(),
   defaultFooterText: z.string().optional(),
   includeClinicHeader: z.boolean().optional(),

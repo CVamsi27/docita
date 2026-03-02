@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { NotifyExpiringSubscriptionsUseCase } from '../../application/use-cases/notify-expiring-subscriptions.use-case';
-import { ExpireSubscriptionUseCase } from '../../application/use-cases/expire-subscription.use-case';
-import { EnterGracePeriodUseCase } from '../../application/use-cases/enter-grace-period.use-case';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
+import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
+import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class SubscriptionReminderScheduler {

@@ -1,11 +1,10 @@
-import "@workspace/ui/globals.css";
+import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
 
-// Disable static generation for this route
 export const dynamic = "force-dynamic";
 
 export const metadata = {

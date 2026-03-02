@@ -28,8 +28,8 @@ describe("Settings Rules", () => {
     });
 
     it("should reject invalid phone numbers", () => {
-      expect(isValidPhoneNumber("123")).toBe(false); // Too short
-      expect(isValidPhoneNumber("abc")).toBe(false); // Letters
+      expect(isValidPhoneNumber("123")).toBe(false); 
+      expect(isValidPhoneNumber("abc")).toBe(false); 
     });
   });
 

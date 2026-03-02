@@ -8,7 +8,7 @@ import {
 describe("Medical Calculations", () => {
   describe("calculateBMI", () => {
     it("should calculate BMI correctly", () => {
-      // 70kg, 175cm -> 22.9
+
       expect(calculateBMI(70, 175)).toBe(22.9);
     });
 
@@ -20,9 +20,7 @@ describe("Medical Calculations", () => {
 
   describe("calculateQTc", () => {
     it("should calculate QTc using Bazett's formula", () => {
-      // QT: 400ms, HR: 75bpm
-      // RR = 60/75 = 0.8s
-      // QTc = 400 / sqrt(0.8) = 400 / 0.894 = 447.2 -> 447
+
       expect(calculateQTc(400, 75)).toBe(447);
     });
 

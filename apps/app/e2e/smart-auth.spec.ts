@@ -7,11 +7,9 @@ test.describe("Smart Authentication Flow", () => {
   const password = "Test@123456";
 
   test.beforeEach(async ({ page, request }) => {
-    console.log("Using API_URL:", API_URL);
-    // 1. Create a user via API to ensure "existing user" scenarios work
+
     uniqueEmail = `doctor${Date.now()}${Math.floor(Math.random() * 1000)}@test.com`;
-    // Register the user
-    // Note: API_URL defaults to 127.0.0.1 in patient-helpers.ts to avoid IPv6 issues
+
     const registerRes = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: uniqueEmail,
@@ -24,7 +22,6 @@ test.describe("Smart Authentication Flow", () => {
     });
     expect(registerRes.ok()).toBeTruthy();
 
-    // Create clinic and assign user (required for login)
     const userData = await registerRes.json();
     const token = userData.access_token || userData.accessToken;
 
@@ -52,7 +49,6 @@ test.describe("Smart Authentication Flow", () => {
     });
     expect(assignRes.ok()).toBeTruthy();
 
-    // 2. Prepare a new user email for signup scenarios
     newUserEmail = `newuser${Date.now()}${Math.floor(Math.random() * 1000)}@test.com`;
 
     await page.goto("/login");
@@ -69,7 +65,7 @@ test.describe("Smart Authentication Flow", () => {
 
   test("should show login form for existing user", async ({ page }) => {
     await page.getByLabel("Email Address").fill(uniqueEmail);
-    // Add small wait before clicking continue to ensure state is settled
+
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Continue" }).click();
 
@@ -130,11 +126,10 @@ test.describe("Smart Authentication Flow", () => {
 
     const signInBtn = page.getByRole("button", { name: "Sign In" });
     await signInBtn.waitFor({ state: "visible" });
-    // Add small wait before clicking sign in
+
     await page.waitForTimeout(500);
     await signInBtn.click();
 
-    // Verify redirect to dashboard with increased timeout
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
   });
 
@@ -148,9 +143,6 @@ test.describe("Smart Authentication Flow", () => {
     await page.getByLabel("Password").fill("WrongPassword123!");
     await page.getByRole("button", { name: "Sign In" }).click();
 
-    // Verify error message with specific text from Login component
-    // Assuming UI shows "Invalid credentials" or similar.
-    // Relaxed regex to catch more possibilities.
     await expect(
       page.getByText(/Invalid credentials|Login failed|error/i),
     ).toBeVisible({ timeout: 10000 });
@@ -179,11 +171,9 @@ test.describe("Smart Authentication Flow", () => {
   test("should validate email format", async ({ page }) => {
     const emailInput = page.getByLabel("Email Address");
 
-    // Try invalid email
     await emailInput.fill("invalid-email");
     await page.getByRole("button", { name: "Continue" }).click();
 
-    // HTML5 validation should prevent submission
     const validationMessage = await emailInput.evaluate(
       (el: HTMLInputElement) => el.validationMessage,
     );

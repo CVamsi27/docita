@@ -14,7 +14,6 @@ export default function ConsultationPage() {
   const params = useParams();
   const appointmentId = params["id"] as string;
 
-  // Utilize the custom hook for logic
   const { state, handlers } = useConsultationLogic(appointmentId);
 
   const {
@@ -28,7 +27,6 @@ export default function ConsultationPage() {
 
   const { handleBack, handleSave, toggleSidebar } = handlers;
 
-  // Loading State
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -40,7 +38,6 @@ export default function ConsultationPage() {
     );
   }
 
-  // Not Found State
   if (!appointmentData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
@@ -54,23 +51,20 @@ export default function ConsultationPage() {
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
     : "Patient";
 
-  // Sidebar Props
   const sidebarProps = {
     appointment: appointmentData,
     pastAppointments: pastAppointments,
   };
 
-  // Desktop Sidebar (Pass toggle handler)
   const DesktopSidebar = (
     <ConsultationSidebar {...sidebarProps} onClose={toggleSidebar} />
   );
 
-  // Mobile Sidebar (No toggle handler, relies on Sheet close)
   const MobileSidebar = <ConsultationSidebar {...sidebarProps} />;
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
+      {}
       <ConsultationPageHeaderUI
         patientName={patientName}
         appointmentDate={appointmentData.startTime}
@@ -78,7 +72,7 @@ export default function ConsultationPage() {
         MobileSidebarContent={MobileSidebar}
       />
 
-      {/* Main Layout */}
+      {}
       <ConsultationLayoutUI
         Sidebar={DesktopSidebar}
         isSidebarOpen={isSidebarOpen}

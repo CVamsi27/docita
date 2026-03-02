@@ -100,7 +100,7 @@ export default function CreateDoctorPage() {
         toast.error(error.message || "Failed to create doctor");
       }
     } catch (err) {
-      console.error("Error creating doctor:", err);
+
       toast.error("Error creating doctor");
     } finally {
       setLoading(false);
@@ -126,7 +126,7 @@ export default function CreateDoctorPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            {/* Basic Information */}
+            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Basic Information</h3>
 
@@ -238,7 +238,7 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {/* Professional Information */}
+            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Professional Information</h3>
 
@@ -294,7 +294,7 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {}
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"

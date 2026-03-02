@@ -9,6 +9,16 @@ import {
   Calendar,
   User as UserIcon,
 } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
 
 interface AuditLog {
   id: string;
@@ -55,7 +65,7 @@ export function AuditLogViewer() {
       const data = await response.json();
       setLogs(Array.isArray(data) ? data : data.logs || []);
     } catch (error) {
-      console.error("Error fetching audit logs:", error);
+
       alert("Failed to load audit logs");
     } finally {
       setIsLoading(false);
@@ -145,69 +155,68 @@ export function AuditLogViewer() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Audit Logs</h2>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             System-wide audit trail (Real-time, updates every 30s)
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={() => fetchLogs()}
             disabled={isLoading}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+            variant="ghost"
+            size="icon"
             title="Refresh"
+            aria-label="Refresh audit logs"
           >
             <RefreshCw
               className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
             />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            variant="outline"
           >
             <Filter className="h-4 w-4" />
             Filters
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Download className="h-4 w-4" />
             Export CSV
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Filters */}
       {showFilters && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+        <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Date
               </label>
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
+                <Calendar className="h-4 w-4 text-muted-foreground" />
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Action Type
               </label>
               <select
                 value={selectedActionType}
                 onChange={(e) => setSelectedActionType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
               >
                 <option value="">All Actions</option>
                 {actionTypes.map((type) => (
@@ -219,87 +228,83 @@ export function AuditLogViewer() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 User ID
               </label>
               <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-gray-400" />
+                <UserIcon className="h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
                   placeholder="Filter by user ID"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                 />
               </div>
             </div>
           </div>
 
           <div className="flex justify-end gap-2">
-            <button
-              onClick={resetFilters}
-              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-            >
+            <Button onClick={resetFilters} variant="outline">
               Reset
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         {isLoading && logs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             Loading audit logs...
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             No audit logs found
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+            <Table>
+              <TableHeader className="bg-muted/40 border-b border-border">
+                <TableRow>
+                  <TableHead className="px-4 py-3">
                     Timestamp
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3">
                     User
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3">
                     Action
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3">
                     Resource
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3">
                     Status
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3">
                     IP Address
-                  </th>
-                  <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-center">
                     Details
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border">
                 {logs.map((log) => (
                   <React.Fragment key={log.id}>
-                    <tr className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-gray-900">
+                    <TableRow className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="px-4 py-3 text-foreground">
                         {new Date(log.createdAt).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-gray-900 font-mono text-xs">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-foreground font-mono text-xs">
                         {log.userId}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-900 rounded text-xs font-medium">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Badge variant="secondary" className="text-xs">
                           {log.actionType}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-muted-foreground">
                         {log.resourceType ? (
                           <span className="text-xs">
                             {log.resourceType}{" "}
@@ -308,45 +313,51 @@ export function AuditLogViewer() {
                         ) : (
                           "-"
                         )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Badge
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             log.status === "success"
-                              ? "bg-green-100 text-green-900"
-                              : "bg-red-100 text-red-900"
+                              ? "badge-success"
+                              : "badge-danger"
                           }`}
                         >
                           {log.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-muted-foreground font-mono text-xs">
                         {log.ipAddress || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-center">
+                        <Button
                           onClick={() => toggleRowExpand(log.id)}
-                          className="p-1 hover:bg-gray-200 rounded"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={
+                            expandedRows.has(log.id)
+                              ? `Collapse details for log ${log.id}`
+                              : `Expand details for log ${log.id}`
+                          }
                         >
                           <ChevronDown
                             className={`h-4 w-4 transition-transform ${
                               expandedRows.has(log.id) ? "rotate-180" : ""
                             }`}
                           />
-                        </button>
-                      </td>
-                    </tr>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
 
                     {expandedRows.has(log.id) && (
-                      <tr className="bg-gray-50">
-                        <td colSpan={7} className="px-4 py-4">
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={7} className="px-4 py-4">
                           <div className="space-y-3">
                             {log.errorMessage && (
-                              <div className="bg-red-50 border border-red-200 rounded p-3">
-                                <p className="text-sm font-semibold text-red-900">
+                              <div className="surface-danger rounded p-3">
+                                <p className="text-sm font-semibold text-destructive">
                                   Error
                                 </p>
-                                <p className="text-sm text-red-800 font-mono">
+                                <p className="text-sm text-destructive font-mono">
                                   {log.errorMessage}
                                 </p>
                               </div>
@@ -354,19 +365,19 @@ export function AuditLogViewer() {
 
                             {log.changes &&
                               Object.keys(log.changes).length > 0 && (
-                                <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                                  <p className="text-sm font-semibold text-blue-900 mb-2">
+                                <div className="bg-secondary/40 border border-border rounded p-3">
+                                  <p className="text-sm font-semibold text-foreground mb-2">
                                     Changes
                                   </p>
-                                  <pre className="text-xs bg-white rounded p-2 overflow-x-auto border border-blue-100">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
                                     {JSON.stringify(log.changes, null, 2)}
                                   </pre>
                                 </div>
                               )}
 
                             {log.userAgent && (
-                              <div className="bg-gray-100 rounded p-3">
-                                <p className="text-xs text-gray-600">
+                              <div className="bg-muted rounded p-3">
+                                <p className="text-xs text-muted-foreground">
                                   <span className="font-semibold">
                                     User Agent:
                                   </span>{" "}
@@ -377,29 +388,28 @@ export function AuditLogViewer() {
 
                             {log.metadata &&
                               Object.keys(log.metadata).length > 0 && (
-                                <div className="bg-purple-50 border border-purple-200 rounded p-3">
-                                  <p className="text-sm font-semibold text-purple-900 mb-2">
+                                <div className="bg-accent/40 border border-border rounded p-3">
+                                  <p className="text-sm font-semibold text-foreground mb-2">
                                     Metadata
                                   </p>
-                                  <pre className="text-xs bg-white rounded p-2 overflow-x-auto border border-purple-100">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
                                     {JSON.stringify(log.metadata, null, 2)}
                                   </pre>
                                 </div>
                               )}
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </React.Fragment>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
+      <div className="bg-accent/40 border border-border rounded-lg p-3 text-sm text-foreground">
         Showing {logs.length} audit log entries. Page auto-refreshes every 30
         seconds. All sensitive actions (user updates, payments, admin
         operations) are logged for compliance.

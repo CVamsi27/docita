@@ -16,7 +16,7 @@ export function HistoryVitals({ vitalSign }: { vitalSign: VitalSigns }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Activity className="h-4 w-4 text-green-600" />
+        <Activity className="h-4 w-4 text-success" />
         Vital Signs
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

@@ -8,9 +8,15 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../../../shared/modules/auth/auth/public.decorator';
-import { HandleWebhookUseCase } from '../../application/use-cases/handle-webhook.use-case';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
 import { ConfigService } from '@nestjs/config';
+import {
+  HandleWhatsAppWebhookDto,
+  VerifyWhatsAppWebhookQueryDto,
+  WhatsAppWebhookAckResponseDto,
+} from '@/domains/whatsapp/application/dto/whatsapp.dto';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('webhooks/whatsapp')
 export class WhatsAppWebhookController {
@@ -23,14 +29,13 @@ export class WhatsAppWebhookController {
 
   @Public()
   @Get()
-  verifyWebhook(
-    @Query('hub.mode') mode: string,
-    @Query('hub.verify_token') token: string,
-    @Query('hub.challenge') challenge: string,
-  ) {
+  verifyWebhook(@Query() query: VerifyWhatsAppWebhookQueryDto) {
     const verifyToken = this.configService.get<string>('META_VERIFY_TOKEN');
-    if (mode === 'subscribe' && token === verifyToken) {
-      return challenge;
+    if (
+      query['hub.mode'] === 'subscribe' &&
+      query['hub.verify_token'] === verifyToken
+    ) {
+      return query['hub.challenge'];
     }
     return 'Verification failed';
   }
@@ -38,7 +43,8 @@ export class WhatsAppWebhookController {
   @Public()
   @Post()
   @HttpCode(HttpStatus.OK)
-  async handleWebhook(@Body() payload: Record<string, unknown>) {
+  @ZodSerializerDto(WhatsAppWebhookAckResponseDto)
+  async handleWebhook(@Body() payload: HandleWhatsAppWebhookDto) {
     this.logger.debug('Received WhatsApp webhook', payload);
     await this.handleWebhookUseCase.execute({ payload });
     return { status: 'ok' };

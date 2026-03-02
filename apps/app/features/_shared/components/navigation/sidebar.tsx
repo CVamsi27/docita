@@ -51,7 +51,6 @@ interface NavItem {
   feature?: Feature;
 }
 
-// Base navigation items with feature mapping
 const navItems: NavItem[] = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   {
@@ -117,7 +116,6 @@ const navItems: NavItem[] = [
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
-// Icon mapping for specialty sections
 const SPECIALTY_ICONS: Record<string, LucideIcon> = {
   Smile: SmilePlus,
   Baby: Baby,
@@ -126,7 +124,6 @@ const SPECIALTY_ICONS: Record<string, LucideIcon> = {
   Brain: Activity,
 };
 
-// Specialty section URL mappings
 const SPECIALTY_URLS: Record<string, string> = {
   "dental-chart": "/specialty/dental-charts",
   "growth-chart": "/specialty/growth-charts",
@@ -142,7 +139,7 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
-  // Only clinic admins can access the subscription endpoint (DOCTOR/RECEPTIONIST get 403)
+
   const canSeeSubscription = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
   const { data: subscription } = useSubscription({
     enabled: canSeeSubscription,
@@ -152,22 +149,18 @@ export function Sidebar({
   const { canAccess } = usePermissionStore();
   const notificationCount = unreadNotificationCount?.count ?? 0;
 
-  // Get clinic type and specialty sections from ClinicFeatureService
   const clinicType = getClinicSetting("clinicType") as ClinicType | undefined;
   const specialtySections =
     ClinicFeatureService.getSpecialtySections(clinicType);
 
-  // Convert specialty sections to nav items
   const specialtyNavItems = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
     icon: SPECIALTY_ICONS[section.icon] || Activity,
     label: section.label,
-    // Specialty features don't have direct Feature enum mapping yet in this context
-    // They are controlled by clinic type, but we could add specific features if needed
+
     feature: undefined,
   }));
 
-  // Add Hospital Bed Management for supported types
   const hospitalNavItems: NavItem[] = [];
   if (clinicType === "SPECIALTY") {
     hospitalNavItems.push({
@@ -178,10 +171,8 @@ export function Sidebar({
     });
   }
 
-  // Combine base nav items with specialty items
   const allNavItems = [...navItems, ...specialtyNavItems, ...hospitalNavItems];
 
-  // Only clinic admins see the upgrade section
   const canSeeUpgrade = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
 
   return (
@@ -202,6 +193,7 @@ export function Sidebar({
           size="icon"
           onClick={() => onCollapsedChange?.(!isCollapsed)}
           className="h-8 w-8"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -213,7 +205,7 @@ export function Sidebar({
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {allNavItems
           .filter((item) => {
-            // Hide features that are locked by subscription tier
+
             if (item.feature && !canAccess(item.feature)) {
               return false;
             }
@@ -270,13 +262,13 @@ export function Sidebar({
                   </p>
                 </div>
                 {subscription?.tier === "free" && (
-                  <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                  <div className="h-2 w-2 rounded-full bg-warning" />
                 )}
                 {subscription?.tier === "pro" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-500" />
+                  <div className="h-2 w-2 rounded-full bg-info" />
                 )}
                 {subscription?.tier === "enterprise" && (
-                  <div className="h-2 w-2 rounded-full bg-purple-500" />
+                  <div className="h-2 w-2 rounded-full bg-primary" />
                 )}
               </div>
               <Button

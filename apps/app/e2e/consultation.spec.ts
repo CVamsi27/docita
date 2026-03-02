@@ -14,7 +14,6 @@ test.describe("Consultation Flow", () => {
   test.beforeAll(async ({ request }) => {
     user = await setupTestUser(request);
 
-    // Create Patient
     const patientRes = await request.post(`${API_URL}/patients`, {
       headers: { Authorization: `Bearer ${user.accessToken}` },
       data: {
@@ -29,15 +28,14 @@ test.describe("Consultation Flow", () => {
       },
     });
     if (!patientRes.ok()) {
-      console.log("Patient creation failed:", await patientRes.text());
+
     }
     expect(patientRes.ok()).toBeTruthy();
     const patient = await patientRes.json();
     patientId = patient.id;
 
-    // Create Appointment
     const now = new Date();
-    // Schedule for 10 minutes from now to ensure it's "upcoming"/active
+
     now.setMinutes(now.getMinutes() + 10);
 
     const endTime = new Date(now);
@@ -56,7 +54,7 @@ test.describe("Consultation Flow", () => {
       },
     });
     if (!apptRes.ok()) {
-      console.log("Appointment creation failed:", await apptRes.text());
+
     }
     expect(apptRes.ok()).toBeTruthy();
     const appointment = await apptRes.json();
@@ -64,22 +62,20 @@ test.describe("Consultation Flow", () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    test.setTimeout(120000); // Increase timeout for slow dev server
+    test.setTimeout(120000); 
     await loginUser(page, user);
   });
 
   test("should start consultation, add notes, and complete visit", async ({
     page,
   }) => {
-    // Navigate to consultation page
+
     await page.goto(`/consultation/${appointmentId}`);
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
-    // Verify consultation page loaded (flexible check)
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
 
-    // 4. Add Chief Complaint (Structured)
     const addComplaintBtn = page.locator('button:has-text("Add Complaint")');
     if (await addComplaintBtn.isVisible()) {
       await addComplaintBtn.click();
@@ -87,14 +83,11 @@ test.describe("Consultation Flow", () => {
       await expect(symptomInput).toBeVisible();
       await symptomInput.fill("Severe Headache");
 
-      // Set Duration
       const durationInput = page.locator('input[placeholder="Duration"]');
       await durationInput.fill("2");
-      // Unit defaults to days, Severity defaults to moderate
+
     }
 
-    // 5. Add Diagnosis (Structured)
-    // Click tab if needed (assuming unified view or tabs)
     const diagnosisTab = page.locator('button:has-text("Diagnosis")');
     if (await diagnosisTab.isVisible()) {
       await diagnosisTab.click();
@@ -107,20 +100,17 @@ test.describe("Consultation Flow", () => {
       await expect(conditionInput).toBeVisible();
       await conditionInput.fill("Migraine");
 
-      // Set status (Testing select interaction if possible, or leave default)
     }
 
-    // 6. Save Notes / Finish
     const saveButton = page.locator('button:has-text("Save Notes")');
     if (await saveButton.isVisible()) {
       await saveButton.click();
-      // Verify toast or success indication
+
       await expect(page.locator("text=Consultation saved").first()).toBeVisible(
         { timeout: 10000 },
       );
     }
 
-    // Optional: Finish Consultation if button exists (might be in sidebar)
     const finishButton = page
       .locator(
         'button:has-text("Finish"), button:has-text("Complete"), button:has-text("End Consultation")',

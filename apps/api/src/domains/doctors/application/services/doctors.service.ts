@@ -1,11 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { Specialization, HospitalRole, Role } from '@workspace/db';
+import {
+  Specialization,
+  HospitalRole,
+  Role,
+  UploadSessionPurpose,
+} from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
-} from '../../../../common/select-fragments';
+} from '@/common/select-fragments';
+import { DoctorVerificationService } from './doctor-verification.service';
 
 interface CreateDoctorData {
   email: string;
@@ -63,9 +69,22 @@ interface CreateCertificationData {
   credentialUrl?: string;
 }
 
+function normalizeRole(role: string | undefined): Role {
+  if (!role) {
+    return Role.DOCTOR;
+  }
+
+  return Object.values(Role).includes(role as Role)
+    ? (role as Role)
+    : Role.DOCTOR;
+}
+
 @Injectable()
 export class DoctorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private doctorVerificationService: DoctorVerificationService,
+  ) {}
 
   async findAll(clinicId: string) {
     const [doctorClinics, clinicUsers] = await Promise.all([
@@ -85,6 +104,10 @@ export class DoctorsService {
         select: {
           ...DOCTOR_LIST_SELECT,
           registrationNumber: true,
+          verificationStatus: true,
+          verificationReason: true,
+          verificationCheckedAt: true,
+          signatureUrl: true,
           profilePhotoUrl: true,
           yearsOfExperience: true,
           consultationFee: true,
@@ -111,6 +134,10 @@ export class DoctorsService {
         hospitalRole: dc.doctor.hospitalRole,
         qualification: dc.doctor.qualification,
         registrationNumber: dc.doctor.registrationNumber,
+        verificationStatus: dc.doctor.verificationStatus,
+        verificationReason: dc.doctor.verificationReason,
+        verificationCheckedAt: dc.doctor.verificationCheckedAt,
+        signatureUrl: dc.doctor.signatureUrl,
         profilePhotoUrl: dc.doctor.profilePhotoUrl,
         yearsOfExperience: dc.doctor.yearsOfExperience,
         consultationFee: dc.doctor.consultationFee,
@@ -125,6 +152,10 @@ export class DoctorsService {
         hospitalRole: u.hospitalRole,
         qualification: u.qualification,
         registrationNumber: u.registrationNumber,
+        verificationStatus: u.verificationStatus,
+        verificationReason: u.verificationReason,
+        verificationCheckedAt: u.verificationCheckedAt,
+        signatureUrl: u.signatureUrl,
         profilePhotoUrl: u.profilePhotoUrl,
         yearsOfExperience: u.yearsOfExperience,
         consultationFee: u.consultationFee,
@@ -149,6 +180,13 @@ export class DoctorsService {
         licenseNumber: true,
         licenseExpiry: true,
         signatureUrl: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationSource: true,
+        verificationRef: true,
+        verificationReason: true,
+        verificationData: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         phoneNumber: true,
         bio: true,
@@ -206,7 +244,7 @@ export class DoctorsService {
         password: hashedPassword,
         name,
         clinicId,
-        role: (role as unknown as Role) || 'DOCTOR',
+        role: normalizeRole(role),
         specialization,
         hospitalRole,
         qualification,
@@ -227,7 +265,6 @@ export class DoctorsService {
       },
     });
 
-    // If specialization is set, also add to additional specializations as primary
     if (specialization) {
       await this.prisma.doctorSpecialization.create({
         data: {
@@ -237,6 +274,10 @@ export class DoctorsService {
         },
       });
     }
+
+    await this.doctorVerificationService.verifyAndPersistDoctorVerification(
+      user.id,
+    );
 
     return {
       id: user.id,
@@ -250,7 +291,6 @@ export class DoctorsService {
   }
 
   async update(id: string, data: UpdateDoctorData, clinicId?: string) {
-    // Verify doctor belongs to clinic
     if (clinicId) await this.findOne(id, clinicId);
     const {
       name,
@@ -281,7 +321,10 @@ export class DoctorsService {
       updateData.registrationNumber = registrationNumber;
     if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
-    if (signatureUrl !== undefined) updateData.signatureUrl = signatureUrl;
+    if (signatureUrl !== undefined) {
+      updateData.signatureUrl = signatureUrl;
+      updateData.signatureUploadedAt = signatureUrl ? new Date() : null;
+    }
     if (profilePhotoUrl !== undefined)
       updateData.profilePhotoUrl = profilePhotoUrl;
     if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
@@ -305,12 +348,30 @@ export class DoctorsService {
         registrationNumber: true,
         licenseNumber: true,
         signatureUrl: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationSource: true,
+        verificationRef: true,
+        verificationReason: true,
+        verificationData: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         bio: true,
         yearsOfExperience: true,
         consultationFee: true,
       },
     });
+
+    if (
+      registrationNumber !== undefined ||
+      licenseNumber !== undefined ||
+      name !== undefined
+    ) {
+      await this.doctorVerificationService.verifyAndPersistDoctorVerification(
+        id,
+      );
+      return this.findOne(id, clinicId);
+    }
 
     if (role) {
       await this.prisma.doctorClinic.updateMany({
@@ -322,10 +383,31 @@ export class DoctorsService {
     return user;
   }
 
-  async remove(id: string, clinicId?: string) {
-    // Verify doctor belongs to clinic
+  async createSignatureUploadSession(id: string, clinicId?: string) {
     if (clinicId) await this.findOne(id, clinicId);
-    // Delete related records first
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    return this.prisma.uploadSession.create({
+      data: {
+        expiresAt,
+        purpose: UploadSessionPurpose.DOCTOR_SIGNATURE,
+        doctorId: id,
+      },
+    });
+  }
+
+  async reverifyDoctor(id: string, clinicId?: string) {
+    if (clinicId) await this.findOne(id, clinicId);
+    return this.doctorVerificationService.verifyAndPersistDoctorVerification(
+      id,
+    );
+  }
+
+  async remove(id: string, clinicId?: string) {
+    if (clinicId) await this.findOne(id, clinicId);
+
     await this.prisma.doctorEducation.deleteMany({
       where: { doctorId: id },
     });
@@ -345,10 +427,6 @@ export class DoctorsService {
 
     return { success: true };
   }
-
-  // ============================================================================
-  // Education Management
-  // ============================================================================
 
   async addEducation(doctorId: string, data: CreateEducationData) {
     return this.prisma.doctorEducation.create({
@@ -383,10 +461,6 @@ export class DoctorsService {
     });
   }
 
-  // ============================================================================
-  // Certification Management
-  // ============================================================================
-
   async addCertification(doctorId: string, data: CreateCertificationData) {
     return this.prisma.doctorCertification.create({
       data: {
@@ -420,10 +494,6 @@ export class DoctorsService {
     });
   }
 
-  // ============================================================================
-  // Additional Specializations Management
-  // ============================================================================
-
   async addSpecialization(
     doctorId: string,
     specialization: Specialization,
@@ -455,10 +525,6 @@ export class DoctorsService {
       where: { doctorId },
     });
   }
-
-  // ============================================================================
-  // Get All Available Specializations
-  // ============================================================================
 
   getAvailableSpecializations() {
     return Object.values(Specialization).map((spec: string) => ({

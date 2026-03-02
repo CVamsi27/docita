@@ -1,6 +1,6 @@
 import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { AuditService, AuditLogFilter } from './audit.service';
-import { Roles } from '../../auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
   AnyAuditResponseDto,
@@ -14,7 +14,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @ZodSerializerDto(AnyAuditResponseDto) // Temporary until we confirm pagination structure
+  @ZodSerializerDto(AnyAuditResponseDto)
   async getAuditLogs(
     @Req() req: Request & { user: { clinicId?: string; role?: string } },
     @Query() filter: AuditLogFilter,
@@ -22,7 +22,6 @@ export class AuditController {
     const userRole = req.user?.role || 'DOCTOR';
     const userClinicId = req.user?.clinicId;
 
-    // Enforce clinic scope for non-SUPER_ADMIN users
     if (userRole !== 'SUPER_ADMIN' && userClinicId) {
       filter.clinicId = userClinicId;
     }

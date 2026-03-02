@@ -5,7 +5,7 @@ import { AppointmentCalendarSkeleton } from "./appointment-calendar-skeleton";
 describe("AppointmentCalendarSkeleton", () => {
   it("renders calendar header skeleton", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
-    // Should have header with month/year placeholder
+
     const header = container.querySelector(".h-8.w-48");
     expect(header).toBeInTheDocument();
   });
@@ -34,7 +34,7 @@ describe("AppointmentCalendarSkeleton", () => {
 
   it("renders appointment slot skeletons within some cells", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
-    // Some cells have appointment slots (every 3rd cell)
+
     const cells = container.querySelectorAll(".min-h-24");
     let cellsWithSlots = 0;
     cells.forEach((cell) => {
@@ -62,8 +62,6 @@ describe("AppointmentCalendarSkeleton", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
     const animatedElements = container.querySelectorAll(".animate-pulse");
 
-    // Should have many animated elements (header + nav + days + slots + legend)
-    // 1 header + 2 nav + 7 day names + 35 day numbers + various slots + 3 legend = many
     expect(animatedElements.length).toBeGreaterThan(40);
   });
 });

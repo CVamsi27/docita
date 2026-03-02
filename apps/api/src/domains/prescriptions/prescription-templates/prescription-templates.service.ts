@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 
 interface MedicationData {
@@ -25,6 +25,10 @@ interface UpdateTemplateData {
 export class PrescriptionTemplatesService {
   constructor(private prisma: PrismaService) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   async findAll(userId: string) {
     return this.prisma.prescriptionTemplate.findMany({
       where: { userId },
@@ -48,7 +52,7 @@ export class PrescriptionTemplatesService {
     return this.prisma.prescriptionTemplate.create({
       data: {
         name: data.name,
-        medications: data.medications as unknown as Prisma.InputJsonValue,
+        medications: this.toInputJsonValue(data.medications),
         instructions: data.instructions,
         userId,
       },
@@ -62,7 +66,7 @@ export class PrescriptionTemplatesService {
       data: {
         name: data.name,
         medications: data.medications
-          ? (data.medications as unknown as Prisma.InputJsonValue)
+          ? this.toInputJsonValue(data.medications)
           : undefined,
         instructions: data.instructions,
       },

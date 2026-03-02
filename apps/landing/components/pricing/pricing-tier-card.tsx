@@ -1,7 +1,4 @@
-/**
- * Pricing tier card component - reusable for any pricing plan
- * Used in pricing section to display individual tier options
- */
+
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
@@ -34,10 +31,10 @@ export interface PricingTierCardProps {
 
 const badgeColorMap = {
   slate: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
-  blue: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  green: "bg-green-500/10 text-green-700 dark:text-green-300",
-  purple: "bg-purple-500/10 text-purple-700 dark:text-purple-300",
-  amber: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  blue: "bg-info text-info dark:text-info",
+  green: "bg-success text-success dark:text-success",
+  purple: "bg-primary text-primary dark:text-primary",
+  amber: "bg-warning text-warning dark:text-warning",
 };
 
 export function PricingTierCard({

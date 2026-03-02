@@ -46,17 +46,22 @@ export function MobileNav() {
 
   return (
     <div className="lg:hidden">
-      <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+      >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {}
           <div
             className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setIsOpen(false)}
           />
-          {/* Menu */}
+          {}
           <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
               <Link href="/dashboard" onClick={() => setIsOpen(false)}>
@@ -66,6 +71,7 @@ export function MobileNav() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
+                aria-label="Close navigation menu"
               >
                 <X className="h-5 w-5" />
               </Button>

@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
+
 interface InvoiceItem {
   description: string;
   quantity: number;
@@ -17,38 +26,40 @@ export function InvoiceItemsTableReadOnly({
 }: InvoiceItemsTableReadOnlyProps) {
   return (
     <div className="rounded-lg border overflow-hidden mb-6">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr>
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+      <Table>
+        <TableHeader className="bg-muted/50">
+          <TableRow>
+            <TableHead className="py-3 px-4">
               Description
-            </th>
-            <th className="py-3 px-4 text-center font-medium text-muted-foreground w-24">
+            </TableHead>
+            <TableHead className="py-3 px-4 text-center w-24">
               Qty
-            </th>
-            <th className="py-3 px-4 text-right font-medium text-muted-foreground w-32">
+            </TableHead>
+            <TableHead className="py-3 px-4 text-right w-32">
               Price
-            </th>
-            <th className="py-3 px-4 text-right font-medium text-muted-foreground w-32">
+            </TableHead>
+            <TableHead className="py-3 px-4 text-right w-32">
               Total
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y">
           {(items || []).map((item, index: number) => (
-            <tr key={index}>
-              <td className="py-3 px-4">{item.description}</td>
-              <td className="py-3 px-4 text-center">{item.quantity}</td>
-              <td className="py-3 px-4 text-right">
+            <TableRow key={index}>
+              <TableCell className="py-3 px-4">{item.description}</TableCell>
+              <TableCell className="py-3 px-4 text-center">
+                {item.quantity}
+              </TableCell>
+              <TableCell className="py-3 px-4 text-right">
                 {formatCurrency(item.price)}
-              </td>
-              <td className="py-3 px-4 text-right font-medium">
+              </TableCell>
+              <TableCell className="py-3 px-4 text-right font-medium">
                 {formatCurrency(item.quantity * item.price)}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

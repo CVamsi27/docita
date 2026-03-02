@@ -1,20 +1,22 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePatientAppointments } from "@/hooks/api/use-appointments";
+import {
+  type AppointmentWithRelations,
+  usePatientAppointments,
+} from "@/hooks/api/use-appointments";
 import { usePatient } from "@/hooks/api/use-patients";
 
 import type {
   PatientPortalSnapshot,
   PatientPrescriptionStatus,
-} from "../types/patient-portal-types";
-import { summarizePortalSnapshot } from "../rules/patient-portal-rules";
+} from "@/features/patient-portal/types/patient-portal-types";
+import { summarizePortalSnapshot } from "@/features/patient-portal/rules/patient-portal-rules";
 
-type AppointmentWithPortalRelations = {
+type AppointmentWithPortalRelations = AppointmentWithRelations & {
   id: string;
   startTime: string;
   status?: string;
-  doctor?: { name?: string | null } | null;
   prescription?: {
     id: string;
     createdAt?: string;
@@ -77,9 +79,11 @@ export function usePatientPortalData(patientId?: string | null) {
       };
     }
 
-    const items =
-      ((appointmentsResponse?.items ??
-        []) as unknown as AppointmentWithPortalRelations[]) || [];
+    const items: AppointmentWithPortalRelations[] =
+      (appointmentsResponse?.items || []).filter(
+        (item): item is AppointmentWithPortalRelations =>
+          Boolean(item.id && item.startTime),
+      );
 
     const now = Date.now();
 

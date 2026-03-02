@@ -1,5 +1,15 @@
-import { Clinic, User } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "../../lib/api-core";
+import {
+  Clinic,
+  CreateClinicDoctorRequest,
+  CreateClinicReceptionistRequest,
+  CreateDoctorRequest,
+  UpdateClinicMemberRequest,
+  UpdateClinicSettingsRequest,
+  UpdateDoctorRequest,
+  UpdateProfileRequest,
+  User,
+} from "@workspace/types";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
 export interface CustomField {
   name: string;
@@ -80,12 +90,17 @@ export interface Subscription {
     email: string;
     tier: string;
   };
-  // UI-friendly aliases (optional) to support older/varied payload shapes
+
   tier?: string;
   tierName?: string;
   subscriptionStatus?: string;
 }
 
+export interface SignatureUploadSessionResponse {
+  id: string;
+  expiresAt?: string;
+  status?: string;
+}
 
 export const useClinicSettings = () =>
   useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings");
@@ -93,15 +108,55 @@ export const useClinicSettings = () =>
 export const useClinicMembers = () =>
   useAPIQuery<User[]>(["clinic", "members"], "/clinic/members");
 
-export const useUpdateClinicSettings = () =>
+export const useCreateClinicDoctor = (clinicId?: string) =>
+  useAPIMutation<User, CreateClinicDoctorRequest>(
+    () => {
+      if (!clinicId) throw new Error("Clinic ID is required");
+      return `/clinics/${clinicId}/doctors`;
+    },
+    "POST",
+    {
+      invalidateKeys: [["clinic", "members"]],
+    },
+  );
+
+export const useCreateClinicReceptionist = (clinicId?: string) =>
+  useAPIMutation<User, CreateClinicReceptionistRequest>(
+    () => {
+      if (!clinicId) throw new Error("Clinic ID is required");
+      return `/clinics/${clinicId}/receptionists`;
+    },
+    "POST",
+    {
+      invalidateKeys: [["clinic", "members"]],
+    },
+  );
+
+export const useUpdateClinicMember = () =>
   useAPIMutation<
-    Clinic,
-    Partial<ClinicAppSettings> & {
-      name?: string;
-      address?: string;
-      phone?: string;
+    User,
+    UpdateClinicMemberRequest & {
+      memberId: string;
     }
-  >("/clinic/settings", "PUT");
+  >(
+    ({ memberId }) => `/clinic/members/${memberId}`,
+    "PUT",
+    {
+      invalidateKeys: [["clinic", "members"]],
+    },
+  );
+
+export const useDeleteClinicMember = () =>
+  useAPIMutation<{ success: boolean }, { memberId: string }>(
+    ({ memberId }) => `/clinic/members/${memberId}`,
+    "DELETE",
+    {
+      invalidateKeys: [["clinic", "members"]],
+    },
+  );
+
+export const useUpdateClinicSettings = () =>
+  useAPIMutation<Clinic, UpdateClinicSettingsRequest>("/clinic/settings", "PUT");
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
@@ -121,16 +176,31 @@ export const useDoctor = (id: string) =>
   useAPIQuery<User>(["doctors", id], `/doctors/${id}`);
 
 export const useCreateDoctor = () =>
-  useAPIMutation<User, Omit<User, "id" | "createdAt" | "updatedAt">>(
+  useAPIMutation<User, CreateDoctorRequest>(
     "/doctors",
     "POST",
   );
 
 export const useUpdateDoctor = (id: string) =>
-  useAPIMutation<User, Partial<User>>(`/doctors/${id}`, "PUT");
+  useAPIMutation<User, UpdateDoctorRequest>(`/doctors/${id}`, "PUT");
 
 export const useDeleteDoctor = (id: string) =>
   useAPIMutation<void, void>(`/doctors/${id}`, "DELETE");
+
+export const useCreateDoctorSignatureUploadSession = () =>
+  useAPIMutation<SignatureUploadSessionResponse, { doctorId: string }>(
+    ({ doctorId }) => `/doctors/${doctorId}/signature-upload-session`,
+    "POST",
+  );
+
+export const useReverifyDoctorRegistration = () =>
+  useAPIMutation<User | null, { doctorId: string }>(
+    ({ doctorId }) => `/doctors/${doctorId}/reverify-registration`,
+    "POST",
+    {
+      invalidateKeys: [["clinic", "members"], ["doctors"]],
+    },
+  );
 
 export const useDoctorSchedules = (doctorId?: string) =>
   useAPIQuery<DoctorSchedule[]>(
@@ -234,7 +304,6 @@ export const useUpdateMedicalCodingSettings = () =>
 export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
   const res = useAPIQuery<Subscription>(["clinic", "subscription"], "/clinic/subscription", queryOptions);
 
-  // Normalize common fields used by the UI to be tolerant of backend shape changes
   const normalized = {
     ...res,
   } as typeof res & {
@@ -280,6 +349,6 @@ export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
 export const useUpdateProfile = () =>
   useAPIMutation<
     { id: string; name?: string; email?: string },
-    Partial<{ name: string; email: string }>
+    UpdateProfileRequest
   >("/users/profile", "PATCH");
 

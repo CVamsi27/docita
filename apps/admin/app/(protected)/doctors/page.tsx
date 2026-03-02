@@ -33,7 +33,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Label } from "@workspace/ui/components/label";
-import { Textarea } from "@workspace/ui/components/textarea";
 import {
   Loader2,
   Search,
@@ -42,6 +41,8 @@ import {
   Award,
   Stethoscope,
   Building2,
+  ShieldCheck,
+  ShieldX,
 } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -57,6 +58,7 @@ interface Doctor {
   id: string;
   name: string;
   email: string;
+  clinicId?: string;
   specialization?: Specialization;
   hospitalRole?: HospitalRole;
   qualification?: string;
@@ -67,6 +69,16 @@ interface Doctor {
   yearsOfExperience?: number;
   consultationFee?: number;
   profilePhotoUrl?: string;
+  signatureUrl?: string;
+  signatureUploadedAt?: string;
+  verificationStatus?:
+    | "UNVERIFIED"
+    | "PENDING"
+    | "VERIFIED"
+    | "REJECTED"
+    | "FAILED";
+  verificationReason?: string;
+  verificationCheckedAt?: string;
   createdAt: string;
   educationHistory?: Education[];
   certifications?: Certification[];
@@ -106,20 +118,6 @@ interface Clinic {
   name: string;
 }
 
-const SPECIALIZATIONS = Object.entries(SPECIALIZATION_LABELS).map(
-  ([value, label]) => ({
-    value,
-    label,
-  }),
-);
-
-const HOSPITAL_ROLES = Object.entries(HOSPITAL_ROLE_LABELS).map(
-  ([value, label]) => ({
-    value,
-    label,
-  }),
-);
-
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -128,10 +126,28 @@ export default function DoctorsPage() {
   const [selectedClinic, setSelectedClinic] = useState<string>("");
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<Doctor>>({});
-  const [saving, setSaving] = useState(false);
   const { token } = useAuth();
+
+  const getVerificationBadgeVariant = (
+    status?: Doctor["verificationStatus"],
+  ): "default" | "secondary" | "destructive" | "outline" => {
+    if (status === "VERIFIED") return "default";
+    if (status === "FAILED" || status === "REJECTED") return "destructive";
+    if (status === "PENDING") return "secondary";
+    return "outline";
+  };
+
+  const getVerificationLabel = (status?: Doctor["verificationStatus"]) => {
+    if (!status) return "Unverified";
+    return status.charAt(0) + status.slice(1).toLowerCase();
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("en-IN");
+  };
 
   const fetchClinics = useCallback(async () => {
     if (!token) return;
@@ -144,14 +160,14 @@ export default function DoctorsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Ensure data is an array
+
         const clinicsArray = Array.isArray(data) ? data : [];
         setClinics(clinicsArray);
-        // Fetch doctors for the first clinic
+
         if (clinicsArray.length > 0) {
           const firstClinicId = clinicsArray[0].id;
           setSelectedClinic(firstClinicId);
-          // Fetch doctors for first clinic
+
           try {
             const doctorsRes = await fetch(
               `${API_URL}/super-admin/clinics/${firstClinicId}/doctors`,
@@ -166,13 +182,13 @@ export default function DoctorsPage() {
               setDoctors(doctorsData);
             }
           } catch (error) {
-            console.error("Error fetching doctors:", error);
+
             toast.error("Failed to load doctors");
           }
         }
       }
     } catch (error) {
-      console.error("Error fetching clinics:", error);
+
       toast.error("Failed to load clinics");
     } finally {
       setLoading(false);
@@ -198,7 +214,7 @@ export default function DoctorsPage() {
           setDoctors(Array.isArray(data) ? data : []);
         }
       } catch (error) {
-        console.error("Error fetching doctors:", error);
+
         toast.error("Failed to load doctors");
       } finally {
         setLoading(false);
@@ -215,7 +231,7 @@ export default function DoctorsPage() {
     if (selectedClinic && selectedClinic !== "all" && selectedClinic !== "") {
       fetchDoctors(selectedClinic);
     } else if (selectedClinic === "all") {
-      // Fetch all doctors from all clinics
+
       const fetchAllDoctors = async () => {
         if (!token || clinics.length === 0) return;
 
@@ -224,14 +240,21 @@ export default function DoctorsPage() {
           const allDoctorsPromises = clinics.map((clinic) =>
             fetch(`${API_URL}/super-admin/clinics/${clinic.id}/doctors`, {
               headers: { Authorization: `Bearer ${token}` },
-            }).then((res) => (res.ok ? res.json() : [])),
+            }).then(async (res) => {
+              if (!res.ok) return [];
+              const clinicDoctors = (await res.json()) as Doctor[];
+              return clinicDoctors.map((doctor) => ({
+                ...doctor,
+                clinicId: clinic.id,
+              }));
+            }),
           );
 
           const allDoctorsArrays = await Promise.all(allDoctorsPromises);
           const allDoctors = allDoctorsArrays.flat();
           setDoctors(allDoctors);
         } catch (error) {
-          console.error("Error fetching all doctors:", error);
+
           toast.error("Failed to load doctors");
         } finally {
           setLoading(false);
@@ -242,64 +265,39 @@ export default function DoctorsPage() {
     }
   }, [selectedClinic, fetchDoctors, token, clinics]);
 
-  const fetchDoctorDetails = async (doctorId: string) => {
+  const fetchDoctorDetails = async (clinicId: string, doctorId: string) => {
     if (!token) return;
 
     try {
-      const res = await fetch(`${API_URL}/doctors/${doctorId}`, {
+      const res = await fetch(
+        `${API_URL}/super-admin/clinics/${clinicId}/doctors/${doctorId}`,
+        {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      },
+      );
       if (res.ok) {
         const data = await res.json();
         setSelectedDoctor(data);
-        setEditForm(data);
       }
     } catch (error) {
-      console.error("Error fetching doctor details:", error);
+
       toast.error("Failed to load doctor details");
     }
   };
 
   const handleViewDoctor = async (doctor: Doctor) => {
-    await fetchDoctorDetails(doctor.id);
-    setIsViewOpen(true);
-  };
+    const clinicId =
+      doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
-  const handleEditDoctor = async (doctor: Doctor) => {
-    await fetchDoctorDetails(doctor.id);
-    setIsEditOpen(true);
-  };
-
-  const handleSaveDoctor = async () => {
-    if (!selectedDoctor || !token) return;
-    setSaving(true);
-    try {
-      const res = await fetch(`${API_URL}/doctors/${selectedDoctor.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editForm),
-      });
-      if (res.ok) {
-        toast.success("Doctor updated successfully");
-        setIsEditOpen(false);
-        if (selectedClinic !== "all") {
-          fetchDoctors(selectedClinic);
-        }
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to update doctor");
-      }
-    } catch (error) {
-      console.error("Error updating doctor:", error);
-      toast.error("Error updating doctor");
-    } finally {
-      setSaving(false);
+    if (!clinicId) {
+      toast.error("Clinic context is required to load doctor details");
+      return;
     }
+
+    await fetchDoctorDetails(clinicId, doctor.id);
+    setIsViewOpen(true);
   };
 
   const filteredDoctors = doctors.filter(
@@ -318,12 +316,12 @@ export default function DoctorsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Doctors</h1>
           <p className="text-muted-foreground">
-            Manage doctor profiles, specializations, and credentials
+            Monitor doctor profiles, specializations, and credentials
           </p>
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -356,7 +354,7 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {/* Doctors Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -381,6 +379,7 @@ export default function DoctorsPage() {
                 <TableRow>
                   <TableHead>Doctor</TableHead>
                   <TableHead>Specialization</TableHead>
+                  <TableHead>Compliance</TableHead>
                   <TableHead>Hospital Role</TableHead>
                   <TableHead>Qualification</TableHead>
                   <TableHead>Registration</TableHead>
@@ -407,6 +406,29 @@ export default function DoctorsPage() {
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge
+                          variant={getVerificationBadgeVariant(
+                            doctor.verificationStatus,
+                          )}
+                        >
+                          {doctor.verificationStatus === "VERIFIED" ? (
+                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                          ) : (
+                            <ShieldX className="mr-1 h-3.5 w-3.5" />
+                          )}
+                          {getVerificationLabel(doctor.verificationStatus)}
+                        </Badge>
+                        <Badge
+                          variant={
+                            doctor.signatureUploadedAt ? "default" : "outline"
+                          }
+                        >
+                          Signature {doctor.signatureUploadedAt ? "Ready" : "Missing"}
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {doctor.hospitalRole ? (
@@ -437,13 +459,6 @@ export default function DoctorsPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditDoctor(doctor)}
-                        >
-                          Edit
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -454,7 +469,7 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {/* View Doctor Dialog */}
+      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -469,7 +484,7 @@ export default function DoctorsPage() {
 
           {selectedDoctor && (
             <div className="space-y-6">
-              {/* Basic Info */}
+              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Email</Label>
@@ -522,6 +537,24 @@ export default function DoctorsPage() {
                   </p>
                 </div>
                 <div>
+                  <Label className="text-muted-foreground">Verification</Label>
+                  <p className="font-medium">
+                    {getVerificationLabel(selectedDoctor.verificationStatus)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Last Verification</Label>
+                  <p className="font-medium">
+                    {formatDate(selectedDoctor.verificationCheckedAt)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Signature Uploaded</Label>
+                  <p className="font-medium">
+                    {formatDate(selectedDoctor.signatureUploadedAt)}
+                  </p>
+                </div>
+                <div>
                   <Label className="text-muted-foreground">
                     Years of Experience
                   </Label>
@@ -543,7 +576,7 @@ export default function DoctorsPage() {
                 </div>
               </div>
 
-              {/* Bio */}
+              {}
               {selectedDoctor.bio && (
                 <div>
                   <Label className="text-muted-foreground">Biography</Label>
@@ -551,7 +584,14 @@ export default function DoctorsPage() {
                 </div>
               )}
 
-              {/* Education History */}
+              {selectedDoctor.verificationReason && (
+                <div>
+                  <Label className="text-muted-foreground">Verification Note</Label>
+                  <p className="mt-1">{selectedDoctor.verificationReason}</p>
+                </div>
+              )}
+
+              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <GraduationCap className="h-5 w-5 text-primary" />
@@ -594,7 +634,7 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {/* Certifications */}
+              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Award className="h-5 w-5 text-primary" />
@@ -643,7 +683,7 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {/* Additional Specializations */}
+              {}
               {Array.isArray(selectedDoctor.additionalSpecializations) &&
                 selectedDoctor.additionalSpecializations.length > 0 && (
                   <div>
@@ -672,197 +712,6 @@ export default function DoctorsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Doctor Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Doctor Profile</DialogTitle>
-            <DialogDescription>
-              Update doctor information, specialization, and credentials
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={editForm.name || ""}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={editForm.email || ""}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="specialization">Specialization</Label>
-                <Select
-                  value={editForm.specialization || ""}
-                  onValueChange={(val) =>
-                    setEditForm({
-                      ...editForm,
-                      specialization: val as Specialization,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select specialization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPECIALIZATIONS.map((spec) => (
-                      <SelectItem key={spec.value} value={spec.value}>
-                        {spec.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hospitalRole">Hospital Role</Label>
-                <Select
-                  value={editForm.hospitalRole || ""}
-                  onValueChange={(val) =>
-                    setEditForm({
-                      ...editForm,
-                      hospitalRole: val as HospitalRole,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOSPITAL_ROLES.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="qualification">Qualification</Label>
-                <Input
-                  id="qualification"
-                  placeholder="e.g., MBBS, MD, MS"
-                  value={editForm.qualification || ""}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, qualification: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="registrationNumber">Registration Number</Label>
-                <Input
-                  id="registrationNumber"
-                  placeholder="Medical Council Reg. No."
-                  value={editForm.registrationNumber || ""}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      registrationNumber: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="licenseNumber">License Number</Label>
-                <Input
-                  id="licenseNumber"
-                  value={editForm.licenseNumber || ""}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, licenseNumber: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  value={editForm.phoneNumber || ""}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, phoneNumber: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
-                <Input
-                  id="yearsOfExperience"
-                  type="number"
-                  value={editForm.yearsOfExperience || ""}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      yearsOfExperience: parseInt(e.target.value) || undefined,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="consultationFee">Consultation Fee (₹)</Label>
-                <Input
-                  id="consultationFee"
-                  type="number"
-                  value={editForm.consultationFee || ""}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      consultationFee: parseFloat(e.target.value) || undefined,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Biography</Label>
-              <Textarea
-                id="bio"
-                placeholder="Short biography of the doctor..."
-                value={editForm.bio || ""}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, bio: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveDoctor} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

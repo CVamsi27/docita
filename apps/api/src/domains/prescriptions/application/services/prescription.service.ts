@@ -9,10 +9,10 @@ import { PrescriptionPdfService } from './prescription-pdf.service';
 import {
   IPrescriptionRepository,
   PrescriptionDetail,
-} from '../../core/repositories/prescription.repository.interface';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+} from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrescriptionCreatedEvent } from '../../core/events/prescription-created.event';
+import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import {
   calculateAge,
   DEFAULT_TIMEZONE,
@@ -77,6 +77,34 @@ export class PrescriptionsService {
     doctorLicenseNumber?: string;
     clinicId?: string;
   }) {
+    const doctorProfile = await this.repository.findDoctorCompliance(
+      data.doctorId,
+      data.clinicId,
+    );
+
+    if (!doctorProfile) {
+      throw new NotFoundException(
+        `Doctor with ID ${data.doctorId} not found for this clinic`,
+      );
+    }
+
+    if (!doctorProfile.signatureUrl) {
+      throw new BadRequestException({
+        message:
+          'Prescription blocked: doctor digital signature is required before issuing prescriptions',
+        code: 'DOCTOR_SIGNATURE_REQUIRED',
+      });
+    }
+
+    if (doctorProfile.verificationStatus !== 'VERIFIED') {
+      throw new BadRequestException({
+        message:
+          'Prescription blocked: doctor registration is not verified with government records',
+        code: 'DOCTOR_VERIFICATION_REQUIRED',
+        verificationStatus: doctorProfile.verificationStatus,
+      });
+    }
+
     const patient = await this.repository.findPatientWithAllergies(
       data.patientId,
     );
@@ -132,13 +160,17 @@ export class PrescriptionsService {
       patient: { connect: { id: data.patientId } },
       doctor: { connect: { id: data.doctorId } },
       instructions: data.instructions,
-      doctorName: data.doctorName,
-      doctorEmail: data.doctorEmail,
-      doctorPhone: data.doctorPhone,
+      doctorName: data.doctorName ?? doctorProfile.name,
+      doctorEmail: data.doctorEmail ?? doctorProfile.email,
+      doctorPhone: data.doctorPhone ?? doctorProfile.phoneNumber ?? undefined,
       doctorSpecialization: data.doctorSpecialization,
       doctorRole: data.doctorRole,
-      doctorRegistrationNumber: data.doctorRegistrationNumber,
-      doctorLicenseNumber: data.doctorLicenseNumber,
+      doctorRegistrationNumber:
+        data.doctorRegistrationNumber ??
+        doctorProfile.registrationNumber ??
+        undefined,
+      doctorLicenseNumber:
+        data.doctorLicenseNumber ?? doctorProfile.licenseNumber ?? undefined,
       medications: {
         create: data.medications.map((med) => ({
           name: med.name,

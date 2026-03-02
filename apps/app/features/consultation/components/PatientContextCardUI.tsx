@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-// import { SummaryVitals } from "./shared/SummaryVitals";
+
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
 
@@ -72,11 +72,9 @@ export function PatientContextCardUI({
   isExpanded,
   onToggleExpand,
   className,
-  // showVitalsTrend = false,
+
 }: PatientContextCardUIProps) {
   const hasAllergies = patient.allergies && patient.allergies.length > 0;
-  // const hasConditions = patient.conditions && patient.conditions.length > 0;
-  // const hasMedications = patient.currentMedications && patient.currentMedications.length > 0;
 
   return (
     <div
@@ -86,7 +84,7 @@ export function PatientContextCardUI({
         className,
       )}
     >
-      {/* Header */}
+      {}
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -140,24 +138,24 @@ export function PatientContextCardUI({
         </div>
       </div>
 
-      {/* Allergies banner */}
+      {}
       {hasAllergies && (
-        <div className="px-3 py-2 bg-red-50 dark:bg-red-950/30 border-b">
+        <div className="px-3 py-2 surface-danger border-b">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
-            <span className="text-sm font-medium text-red-600 dark:text-red-400">
+            <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+            <span className="text-sm font-medium">
               Allergies: {patient.allergies!.join(", ")}
             </span>
           </div>
         </div>
       )}
 
-      {/* Collapsible content */}
+      {}
       <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
         <CollapsibleContent>
           <div className="p-3 space-y-4">
-            {/* Active Problems */}
-            {/* Use shared SummaryConditions - map PatientCondition to required format */}
+            {}
+            {}
             <div className="px-4 py-2 border-b">
               <SummaryConditions
                 conditions={(patient.conditions || []).map((c) => ({
@@ -168,7 +166,7 @@ export function PatientContextCardUI({
               />
             </div>
 
-            {/* Use shared SummaryMedications - map PatientMedication to required format */}
+            {}
             <div className="px-4 py-2 border-b">
               <SummaryMedications
                 medications={(patient.currentMedications || []).map((m) => ({
@@ -180,35 +178,16 @@ export function PatientContextCardUI({
             </div>
 
             <div className="px-4 py-2 border-b">
-              {/* Map recent vitals to SummaryVitals format. 
-               This part is tricky because PatientContextCard has specialized trend view which SummaryVitals doesn't support yet.
-               However, I can use SummaryVitals for the 'latest' view if I had it.
-               The context card shows specific vitals like BP, Weight, HbA1c with history/trend sparklines (in advanced version) or just list.
-               The original code had lists of readings.
-               SummaryVitals is for a snapshot.
-               So, for now, I will NOT force simple SummaryVitals here if it loses functionality (like history).
-               But looking at the outline, it seemed to just list them.
-               Let's stick to the outline content I saw earlier?
-               Wait, outline 783 showed "recentVitals?: { bp?: VitalReading[]; ... }".
-               It seems ContextCard is more advanced.
-               I should arguably NOT replace it with the simple snapshot component unless I upgrade the snapshot component.
-               
-               DECISION: Skip replacing ContextCard sections with the simple Summary components to avoid feature regression.
-               ContextCard is distinct in its purpose (sidebar history vs dashboard snapshot).
-               I will only remove the unused imports I added if I decide against it?
-               Actually, I already extracted SummaryConditions and Medications. Those are lists and safe to use.
-               Vitals... ContextCard likely shows trends.
-               I'll revert the Vitals part of this plan for ContextCard but keep Conditions/Meds.
-           */}
+              {}
 
-              {/* Original Vitals Section Logic Key: 'recentVitals' */}
+              {}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Activity className="h-4 w-4" />
                   Key Vitals (Last 3 visits)
                 </div>
 
-                {/* BP Trend */}
+                {}
                 {patient.recentVitals?.bp &&
                   patient.recentVitals.bp.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -228,7 +207,7 @@ export function PatientContextCardUI({
                     </div>
                   )}
 
-                {/* Weight Trend */}
+                {}
                 {patient.recentVitals?.weight &&
                   patient.recentVitals.weight.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -268,7 +247,7 @@ export function PatientContextCardUI({
               </div>
             )}
 
-            {/* Actions */}
+            {}
             <div className="flex items-center gap-2 pt-2">
               <Button
                 asChild

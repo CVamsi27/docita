@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';

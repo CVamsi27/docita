@@ -1,15 +1,15 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
-  CreatePatientInput,
+  CreatePatientRequest,
   Patient,
-  UpdatePatientInput,
+  UpdatePatientRequest,
 } from "@workspace/types";
 import {
   fetchAPI,
   MedicalHistoryTimelineItem,
   useAPIMutation,
   useAPIQuery,
-} from "../../lib/api-core";
+} from "@/lib/api-core";
 
 export const usePatients = (
   options?: { limit?: number; search?: string } | null,
@@ -78,12 +78,12 @@ export const usePatientMedicalHistoryTimeline = (patientId: string) =>
   );
 
 export const useCreatePatient = () =>
-  useAPIMutation<Patient, CreatePatientInput>("/patients", "POST", {
+  useAPIMutation<Patient, CreatePatientRequest>("/patients", "POST", {
     invalidateKeys: [["patients"]],
   });
 
 export const useUpdatePatient = (id: string) =>
-  useAPIMutation<Patient, UpdatePatientInput>(`/patients/${id}`, "PUT", {
+  useAPIMutation<Patient, UpdatePatientRequest>(`/patients/${id}`, "PATCH", {
     invalidateKeys: [["patients"], ["patients", id]],
   });
 

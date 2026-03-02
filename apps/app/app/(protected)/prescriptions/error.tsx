@@ -13,7 +13,7 @@ export default function PrescriptionsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Prescriptions route error:", error);
+
   }, [error]);
 
   return (

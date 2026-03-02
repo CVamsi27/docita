@@ -1,8 +1,3 @@
-/**
- * Patient Entity - Core aggregate
- * Represents a patient in the clinic
- */
-
 export interface PatientProps {
   id: string;
   clinicId: string;
@@ -61,10 +56,6 @@ export class Patient {
       throw new Error('Patient name is required');
   }
 
-  // ========================================================================
-  // Getters
-  // ========================================================================
-
   getFullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }
@@ -72,10 +63,6 @@ export class Patient {
   getMrn(): string | undefined {
     return this.mrn;
   }
-
-  // ========================================================================
-  // Domain Logic
-  // ========================================================================
 
   updateContactInfo(email?: string, phone?: string): void {
     this.email = email;

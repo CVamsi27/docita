@@ -3,8 +3,8 @@ import {
   DPDPComplianceService,
   DataSubjectRight,
 } from './dpdp-compliance.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AuditService } from '../audit/audit/audit.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { AnonymizationFactory } from './factories/anonymization.factory';
 import { DataExportFactory } from './factories/data-export.factory';
 

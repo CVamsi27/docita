@@ -3,17 +3,17 @@
 import { useCallback, useMemo } from "react";
 import { type ClinicType, Feature } from "@workspace/types";
 
-import { AccessControlFactory } from "../lib/access-control/factory";
+import { AccessControlFactory } from "@/lib/access-control/factory";
 import {
   AddOnType,
   type IAccessContext,
   type IAccessDecision,
   type IUpgradeOption,
-} from "../lib/access-control/interfaces";
-import { usePermissionStore } from "../lib/stores/permission-store";
-import { useAuth } from "../lib/auth-context";
-import { useClinic } from "../lib/clinic-context";
-import type { Permission } from "../lib/permissions";
+} from "@/lib/access-control/interfaces";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
+import type { Permission } from "@/lib/permissions";
 
 export function useFeatureAccess() {
   const { currentTier, hasIntelligence } = usePermissionStore();
@@ -123,12 +123,10 @@ export function useFeatureAccess() {
 
       return accessService.getReason(context);
     },
-    [currentTier, hasIntelligence, accessService, user, clinic], // Added clinic
+    [currentTier, hasIntelligence, accessService, user, clinic], 
   );
 
-  /**
-   * Get upgrade options for a feature
-   */
+  
   const getUpgradeOptions = useCallback(
     (feature: Feature | string): IUpgradeOption[] => {
       const context: IAccessContext = {
@@ -155,7 +153,7 @@ export function useFeatureAccess() {
           : [],
         overrides: [],
         userRole: user?.role || "RECEPTIONIST",
-        clinicType: (clinic?.type as ClinicType) || undefined, // NEW
+        clinicType: (clinic?.type as ClinicType) || undefined, 
       };
 
       return accessService.getUpgradeOptions(context);

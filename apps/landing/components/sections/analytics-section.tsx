@@ -13,9 +13,9 @@ export function AnalyticsSection() {
     <section className="px-6 py-24 bg-background">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-4 py-2 text-sm mb-4">
-            <BarChart3 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-            <span className="font-medium text-indigo-700 dark:text-indigo-300">
+          <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+            <BarChart3 className="h-4 w-4 text-info" />
+            <span className="font-medium text-info">
               Data-Driven Insights
             </span>
           </div>
@@ -29,14 +29,14 @@ export function AnalyticsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-linear-to-br from-indigo-50 to-white dark:from-indigo-950/30 dark:to-background border-indigo-100 dark:border-indigo-900">
+          <Card className="bg-linear-to-br from-info/10 to-background border-info/20">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Monthly Revenue
               </CardTitle>
               <div className="text-2xl font-bold flex items-baseline gap-2">
                 $45,231
-                <span className="text-xs text-green-600 flex items-center">
+                <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +12%
                 </span>
               </div>
@@ -46,7 +46,7 @@ export function AnalyticsSection() {
                 {[40, 65, 45, 80, 55, 90, 75].map((h, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-indigo-500/20 rounded-t hover:bg-indigo-500 transition-colors"
+                    className="flex-1 bg-info/20 rounded-t hover:bg-info transition-colors"
                     style={{ height: `${h}%` }}
                   />
                 ))}
@@ -54,14 +54,14 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-background border-purple-100 dark:border-purple-900">
+          <Card className="bg-linear-to-br from-primary/10 to-background border-primary/20">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Patient Growth
               </CardTitle>
               <div className="text-2xl font-bold flex items-baseline gap-2">
                 1,204
-                <span className="text-xs text-green-600 flex items-center">
+                <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +8%
                 </span>
               </div>
@@ -71,7 +71,7 @@ export function AnalyticsSection() {
                 {[30, 45, 55, 60, 75, 85, 95].map((h, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-purple-500/20 rounded-t hover:bg-purple-500 transition-colors"
+                    className="flex-1 bg-primary/20 rounded-t hover:bg-primary transition-colors"
                     style={{ height: `${h}%` }}
                   />
                 ))}
@@ -79,7 +79,7 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-pink-50 to-white dark:from-pink-950/30 dark:to-background border-pink-100 dark:border-pink-900">
+          <Card className="bg-linear-to-br from-accent to-background border-border">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Top Diagnoses
@@ -89,9 +89,9 @@ export function AnalyticsSection() {
             <CardContent>
               <div className="space-y-3 pt-2">
                 {[
-                  { name: "Viral Fever", val: 45, color: "bg-pink-500" },
-                  { name: "Hypertension", val: 30, color: "bg-purple-500" },
-                  { name: "Diabetes T2", val: 25, color: "bg-indigo-500" },
+                  { name: "Viral Fever", val: 45, color: "bg-primary" },
+                  { name: "Hypertension", val: 30, color: "bg-info" },
+                  { name: "Diabetes T2", val: 25, color: "bg-success" },
                 ].map((item, i) => (
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between text-xs">

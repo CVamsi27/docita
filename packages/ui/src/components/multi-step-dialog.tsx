@@ -35,33 +35,6 @@ export interface MultiStepDialogProps {
   allowSkip?: boolean;
 }
 
-/**
- * MultiStepDialog is a dialog for multi-step workflows (wizards).
- * Use this when you need to guide users through multiple sequential steps.
- *
- * @example
- * ```tsx
- * const [step, setStep] = useState(0);
- *
- * <MultiStepDialog
- *   open={open}
- *   onOpenChange={setOpen}
- *   title="Create Account"
- *   steps={[
- *     { id: "personal", title: "Personal Info" },
- *     { id: "contact", title: "Contact Details" },
- *     { id: "verification", title: "Verify Email" }
- *   ]}
- *   currentStepIndex={step}
- *   onStepChange={setStep}
- *   onComplete={() => handleComplete()}
- * >
- *   {step === 0 && <PersonalInfoForm />}
- *   {step === 1 && <ContactDetailsForm />}
- *   {step === 2 && <VerificationForm />}
- * </MultiStepDialog>
- * ```
- */
 export function MultiStepDialog({
   open,
   onOpenChange,
@@ -115,7 +88,7 @@ export function MultiStepDialog({
             <DialogDescription>{currentStep.description}</DialogDescription>
           )}
 
-          {/* Step indicator */}
+          {}
           <div className="mt-4 flex gap-2">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center gap-2 flex-1">
@@ -145,10 +118,10 @@ export function MultiStepDialog({
           </div>
         </DialogHeader>
 
-        {/* Step content */}
+        {}
         <div className="py-6">{children}</div>
 
-        {/* Navigation buttons */}
+        {}
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
             type="button"

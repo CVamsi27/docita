@@ -19,10 +19,10 @@ export const LabResultsSummary: FC<{
   }>;
 }> = ({ results = [] }) => {
   const statusIcons = {
-    normal: <CheckCircle2 className="h-4 w-4 text-green-600" />,
-    low: <AlertTriangle className="h-4 w-4 text-blue-600" />,
-    high: <AlertTriangle className="h-4 w-4 text-amber-600" />,
-    critical: <AlertTriangle className="h-4 w-4 text-red-600" />,
+    normal: <CheckCircle2 className="h-4 w-4 text-success" />,
+    low: <AlertTriangle className="h-4 w-4 text-info" />,
+    high: <AlertTriangle className="h-4 w-4 text-warning" />,
+    critical: <AlertTriangle className="h-4 w-4 text-destructive" />,
   };
 
   return (

@@ -1,20 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Specialization } from '@workspace/db';
 import {
   IImportStrategy,
   ImportValidationResult,
 } from './import-strategy.interface';
 
-/**
- * Strategy for importing doctor/staff data from CSV.
- */
 @Injectable()
 export class DoctorImportStrategy implements IImportStrategy {
   readonly entityType = 'DOCTOR';
   private readonly logger = new Logger(DoctorImportStrategy.name);
 
   constructor(private prisma: PrismaService) {}
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' ? value : undefined;
+  }
 
   validate(row: Record<string, unknown>): ImportValidationResult {
     if (!row.name || !row.email) {
@@ -24,16 +29,20 @@ export class DoctorImportStrategy implements IImportStrategy {
   }
 
   async import(row: Record<string, unknown>, clinicId: string): Promise<void> {
-    // Verify email uniqueness
-    const existing = await this.prisma.user.findUnique({
-      where: { email: row.email as string },
-    });
-    if (existing) {
-      throw new Error(`Email already exists: ${String(row.email)}`);
+    const email = this.readString(row, 'email');
+    const name = this.readString(row, 'name');
+    if (!email || !name) {
+      throw new Error('Missing required doctor fields: name or email');
     }
 
-    // Parse specialization if provided
-    const specializationValue = row.specialization as string | undefined;
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (existing) {
+      throw new Error(`Email already exists: ${email}`);
+    }
+
+    const specializationValue = this.readString(row, 'specialization');
     const specialization =
       specializationValue &&
       Object.values(Specialization).includes(
@@ -42,21 +51,21 @@ export class DoctorImportStrategy implements IImportStrategy {
         ? (specializationValue as Specialization)
         : undefined;
 
-    // Create doctor user
     await this.prisma.user.create({
       data: {
-        email: row.email as string,
-        name: row.name as string,
-        password: 'temp_password', // Should be sent via separate notification
+        email,
+        name,
+        password: 'temp_password',
         role: 'DOCTOR',
         clinicId,
         specialization,
-        registrationNumber: (row.registrationNumber as string) || undefined,
-        phoneNumber: (row.phoneNumber as string) || undefined,
+        registrationNumber:
+          this.readString(row, 'registrationNumber') || undefined,
+        phoneNumber: this.readString(row, 'phoneNumber') || undefined,
       },
     });
 
-    this.logger.log(`Imported doctor: ${String(row.email)}`);
+    this.logger.log(`Imported doctor: ${email}`);
   }
 
   getTemplate(): Record<string, string> {

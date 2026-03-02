@@ -23,25 +23,13 @@ export class MonitoringService implements OnModuleDestroy {
     this.logger.log('MonitoringService shutting down...');
   }
 
-  // =============================================
-  // Request Logging
-  // =============================================
-
   logRequest(data: ApiRequestInput): void {
     this.requestLogService.logRequest(data);
   }
 
-  // =============================================
-  // Error Logging
-  // =============================================
-
   logError(data: ErrorLogInput): void {
     this.errorTrackingService.logError(data);
   }
-
-  // =============================================
-  // System Metrics
-  // =============================================
 
   async recordMetric(
     metricType: MetricType,
@@ -96,13 +84,9 @@ export class MonitoringService implements OnModuleDestroy {
     startDate: Date,
     endDate: Date,
     metricType?: MetricType,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     return this.metricsService.getSystemMetrics(startDate, endDate, metricType);
   }
-
-  // =============================================
-  // Analytics Retrieval
-  // =============================================
 
   async getRequestStats(
     startDate?: Date,
@@ -167,10 +151,6 @@ export class MonitoringService implements OnModuleDestroy {
     return this.healthCheckService.getSystemHealth();
   }
 
-  // =============================================
-  // Error Resolution
-  // =============================================
-
   async resolveError(
     errorId: string,
     resolvedBy: string,
@@ -187,10 +167,6 @@ export class MonitoringService implements OnModuleDestroy {
       resolvedBy,
     );
   }
-
-  // =============================================
-  // Cleanup & Aggregation
-  // =============================================
 
   async cleanupOldData(daysToKeep: number = 30): Promise<{
     requestsDeleted: number;
@@ -218,7 +194,7 @@ export class MonitoringService implements OnModuleDestroy {
     period: 'hourly' | 'daily',
     startDate: Date,
     endDate: Date,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     return this.metricsService.getAggregatedPerformance(
       period,
       startDate,

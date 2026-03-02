@@ -25,7 +25,6 @@ interface PlanSelectionProps {
   currency?: string;
 }
 
-// Tiers to display (exclude INTELLIGENCE add-on)
 const DISPLAY_TIERS = ["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"];
 
 export function PlanSelectionStep({
@@ -39,7 +38,6 @@ export function PlanSelectionStep({
     defaultBillingCycle,
   );
 
-  // Fetch pricing from backend
   const { pricingConfig, isLoading, error } = usePricingConfig(currency);
 
   const handleSelect = () => {
@@ -51,7 +49,6 @@ export function PlanSelectionStep({
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <Card>
@@ -63,7 +60,6 @@ export function PlanSelectionStep({
     );
   }
 
-  // Error state
   if (error || !pricingConfig) {
     return (
       <Card>
@@ -78,7 +74,6 @@ export function PlanSelectionStep({
 
   const { tiers, currency: currencyInfo, discounts } = pricingConfig;
 
-  // Filter to display tiers only
   const displayTiers = tiers.filter((t) => DISPLAY_TIERS.includes(t.id));
 
   return (
@@ -90,7 +85,7 @@ export function PlanSelectionStep({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Billing Toggle */}
+        {}
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -113,7 +108,7 @@ export function PlanSelectionStep({
           </div>
         </div>
 
-        {/* Tier Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayTiers.map((tier: TierPricing) => {
             const isSelected = selectedTier === tier.id;
@@ -139,7 +134,7 @@ export function PlanSelectionStep({
                 )}
               >
                 {tier.id === "PLUS" && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-linear-to-r from-emerald-500 to-emerald-600">
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-linear-to-r from-success to-success">
                     Most Popular
                   </Badge>
                 )}

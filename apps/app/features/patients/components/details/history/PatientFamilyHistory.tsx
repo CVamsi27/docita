@@ -35,7 +35,7 @@ export function PatientFamilyHistory({
     <Card className="mt-6">
       <CardHeader className="py-4">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Users className="h-5 w-5 text-purple-500" />
+          <Users className="h-5 w-5 text-primary" />
           Family History
         </CardTitle>
       </CardHeader>

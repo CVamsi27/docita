@@ -56,22 +56,17 @@ export function deepClone<T>(obj: T): T {
   }
 
   if (obj instanceof Date) {
-    return new Date(obj.getTime()) as unknown as T;
+    return new Date(obj.getTime()) as T;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => deepClone(item)) as unknown as T;
+    return obj.map((item) => deepClone(item)) as T;
   }
 
-  const clonedObj = {} as Record<string, unknown>;
-  const inputObj = obj as Record<string, unknown>;
-
-  for (const key in inputObj) {
-    if (Object.prototype.hasOwnProperty.call(inputObj, key)) {
-      clonedObj[key] = deepClone(inputObj[key]);
-    }
-  }
-  return clonedObj as unknown as T;
+  const clonedObj = Object.fromEntries(
+    Object.entries(obj as object).map(([key, value]) => [key, deepClone(value)]),
+  );
+  return clonedObj as T;
 }
 
 export function isEmpty(value: unknown): boolean {

@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ReminderSettings } from '@workspace/db';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
@@ -36,27 +36,55 @@ export class ReminderHistoryService {
   ) {}
 
   async getReminderHistory(clinicId: string, limit: number = 50) {
-    return this.prisma.appointmentReminder.findMany({
+    const appointments = await this.prisma.appointment.findMany({
+      where: { clinicId },
+      select: { id: true },
+    });
+
+    const appointmentIds = appointments.map((appointment) => appointment.id);
+
+    if (appointmentIds.length === 0) {
+      return [];
+    }
+
+    const reminders = await this.prisma.appointmentReminder.findMany({
       where: {
-        appointment: {
-          clinicId,
-        },
+        appointmentId: { in: appointmentIds },
       },
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: {
-        appointment: {
-          include: {
-            patient: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
+    });
+
+    const reminderAppointmentIds = reminders.map(
+      (reminder) => reminder.appointmentId,
+    );
+
+    const appointmentsForReminders = await this.prisma.appointment.findMany({
+      where: {
+        id: { in: reminderAppointmentIds },
+      },
+      select: {
+        id: true,
+        patient: {
+          select: {
+            firstName: true,
+            lastName: true,
           },
         },
       },
-    } as any);
+    });
+
+    const appointmentById = new Map(
+      appointmentsForReminders.map((appointment) => [
+        appointment.id,
+        appointment,
+      ]),
+    );
+
+    return reminders.map((reminder) => ({
+      ...reminder,
+      appointment: appointmentById.get(reminder.appointmentId) ?? null,
+    }));
   }
 
   async sendManualReminder(

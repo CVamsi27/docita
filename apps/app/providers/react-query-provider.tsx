@@ -62,7 +62,7 @@ async function reportWebVitals() {
       }
     }, 5000);
   } catch {
-    console.warn("Web Vitals monitoring not available");
+
   }
 }
 

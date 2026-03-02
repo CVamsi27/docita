@@ -11,8 +11,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import type { PatientPortalInvoice } from "../../types/patient-portal-types";
-import { getInvoiceStatusLabel } from "../../rules/patient-portal-rules";
+import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
+import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 
 interface PatientPortalBillingUIProps {
   invoices: PatientPortalInvoice[];

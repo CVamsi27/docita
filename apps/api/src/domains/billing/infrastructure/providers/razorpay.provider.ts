@@ -8,7 +8,7 @@ import {
 export type { IPaymentProvider } from './payment.provider.interface';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export const PAYMENT_PROVIDER_TOKEN = 'PAYMENT_PROVIDER_TOKEN';
 
@@ -16,6 +16,14 @@ export const PAYMENT_PROVIDER_TOKEN = 'PAYMENT_PROVIDER_TOKEN';
 export class RazorpayPaymentProvider implements IPaymentProvider {
   private readonly logger = new Logger(RazorpayPaymentProvider.name);
   private razorpay: Razorpay;
+
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (typeof value !== 'object' || value === null) {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
 
   constructor(private configService: AppConfigService) {
     this.razorpay = new Razorpay({
@@ -46,11 +54,13 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
         callback_method: 'get',
       });
 
+      const rawLink: unknown = JSON.parse(JSON.stringify(link));
+
       return {
         id: link.id,
         shortUrl: link.short_url,
         status: link.status,
-        raw: link as unknown as Record<string, unknown>,
+        raw: this.toRecord(rawLink),
       };
     } catch (error) {
       this.logger.error(

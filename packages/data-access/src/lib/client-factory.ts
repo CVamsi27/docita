@@ -218,10 +218,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
 
       if (!result.success) {
         if (process.env["NODE_ENV"] === "development") {
-          console.error(
-            "API response validation failed:",
-            result.error.format(),
-          );
+          
           throw new APIRequestError(
             `Response validation failed: ${result.error.message}`,
             {

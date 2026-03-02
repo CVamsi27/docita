@@ -1,14 +1,3 @@
-/**
- * Unit Tests for CombinedAuthGuard
- *
- * Tests:
- * - Public endpoints bypass all checks
- * - Role-based access control
- * - Tier-based access control (with caching)
- * - Correct error codes and messages
- * - Deny by default behavior
- */
-
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   ExecutionContext,
@@ -35,14 +24,14 @@ describe('CombinedAuthGuard', () => {
     features: {},
   };
 
-  const createMockContext = (user: any = null): ExecutionContext => {
+  const createMockContext = (user: unknown = null): ExecutionContext => {
     return {
       switchToHttp: () => ({
         getRequest: () => ({ user }),
       }),
       getHandler: () => ({}),
       getClass: () => ({}),
-    } as any;
+    } as never;
   };
 
   beforeEach(async () => {
@@ -231,10 +220,17 @@ describe('CombinedAuthGuard', () => {
       try {
         await guard.canActivate(context);
         fail('Should have thrown');
-      } catch (error: any) {
-        expect(error.response.code).toBe('INSUFFICIENT_TIER');
-        expect(error.response.action).toBe('UPGRADE');
-        expect(error.response.upgradeUrl).toBe('/settings/billing');
+      } catch (error: unknown) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        const forbiddenError = error as ForbiddenException;
+        const response = forbiddenError.getResponse() as {
+          code?: string;
+          action?: string;
+          upgradeUrl?: string;
+        };
+        expect(response.code).toBe('INSUFFICIENT_TIER');
+        expect(response.action).toBe('UPGRADE');
+        expect(response.upgradeUrl).toBe('/settings/billing');
       }
     });
   });

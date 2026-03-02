@@ -10,7 +10,7 @@ import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-w
 import { WhatsAppApiAdapter } from './infrastructure/adapters/whatsapp-api.adapter';
 import { WhatsAppController } from './presentation/controllers/whatsapp.controller';
 import { WhatsAppWebhookController } from './presentation/controllers/whatsapp-webhook.controller';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { DefaultTemplatesService } from './core/services/default-templates.service';
 import { TemplateResolverService } from './core/services/template-resolver.service';
 

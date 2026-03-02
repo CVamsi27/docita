@@ -49,7 +49,7 @@ export function FollowUpSummary({
         {reminderEnabled && (
           <Badge
             variant="outline"
-            className="gap-1 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30"
+            className="gap-1 badge-warning"
           >
             <Bell className="h-3 w-3" />
             Reminder {reminderDays}d before
@@ -58,7 +58,7 @@ export function FollowUpSummary({
         {reminderEnabled && whatsappReminder && (
           <Badge
             variant="outline"
-            className="gap-1 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30"
+            className="gap-1 badge-success"
           >
             <MessageSquare className="h-3 w-3" />
             WhatsApp

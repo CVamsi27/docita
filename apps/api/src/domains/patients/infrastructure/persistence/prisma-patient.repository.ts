@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPatientRepository,
   PatientSearchParams,
-} from '../../core/repositories/patient.repository.interface';
-import { Patient } from '../../core/entities/patient.entity';
-import { PatientMapper } from '../mappers/patient.mapper';
+} from '@/domains/patients/core/repositories/patient.repository.interface';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
+import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
 
 @Injectable()
@@ -67,17 +67,20 @@ export class PrismaPatientRepository implements IPatientRepository {
   async save(patient: Patient): Promise<void> {
     const data = PatientMapper.toPersistence(patient);
     await this.prisma.patient.create({
-      data: data as Prisma.PatientCreateInput,
+      data: data as Prisma.PatientUncheckedCreateInput,
     });
   }
 
   async update(patient: Patient): Promise<void> {
     const data = PatientMapper.toPersistence(patient);
     const { id, ...updateData } = data;
+    if (!id || typeof id !== 'string') {
+      throw new Error('Patient id is required for update');
+    }
     await this.prisma.patient.update({
-      where: { id: id as string },
+      where: { id },
       data: {
-        ...(updateData as Prisma.PatientUpdateInput),
+        ...(updateData as Prisma.PatientUncheckedUpdateInput),
         version: { increment: 1 },
       },
     });

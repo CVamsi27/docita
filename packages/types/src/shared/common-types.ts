@@ -1,10 +1,6 @@
-// Common types to replace 'any' and 'unknown' throughout the codebase
-// Note: JsonValue is already defined in common.ts
-import type { JsonValue } from "./common";
 
-// ============================================================================
-// Generic Types
-// ============================================================================
+
+import type { JsonValue } from "./common";
 
 export type JsonPrimitive = string | number | boolean | null;
 export interface JsonObject {
@@ -19,10 +15,6 @@ export interface JsonObject {
 export type JsonArray = Array<string | number | boolean | null | JsonObject>;
 
 export type LogMessage = string | JsonObject;
-
-// ============================================================================
-// Cache & Queue Types
-// ============================================================================
 
 export interface CacheManager {
   get<T = JsonValue>(key: string): Promise<T | undefined>;
@@ -55,10 +47,6 @@ export interface MockQueue<T = JsonValue> {
   ): Promise<void>;
   on(event: string, callback: (...args: JsonValue[]) => void): void;
 }
-
-// ============================================================================
-// API Response Types
-// ============================================================================
 
 export interface AuthResponse {
   access_token?: string;
@@ -144,10 +132,6 @@ export interface SnapshotTrends {
   };
 }
 
-// ============================================================================
-// Test & Mock Types
-// ============================================================================
-
 export interface TestUser extends UserResponse {
   password?: string;
   accessToken?: string;
@@ -181,10 +165,6 @@ export interface AxeResults {
   incomplete: Array<{ id: string; description: string }>;
 }
 
-// ============================================================================
-// WhatsApp & Notification Types
-// ============================================================================
-
 export interface WhatsAppPayload {
   to: string;
   type: string;
@@ -210,14 +190,6 @@ export interface WhatsAppComponent {
   }>;
 }
 
-// ============================================================================
-// Payment & Razorpay Types (Removed - use types from payments.ts)
-// ============================================================================
-
-// ============================================================================
-// Interceptor & Request Types
-// ============================================================================
-
 export interface RequestWithUser {
   user?: UserResponse;
   clinicId?: string;
@@ -238,20 +210,12 @@ export interface ResponseContext {
   send(body: string | Buffer): this;
 }
 
-// ============================================================================
-// Validation & Settings Types (Removed duplicates - defined in other files)
-// ============================================================================
-
 export interface ValidationResult {
   valid: boolean;
   errors?: string[];
   warnings?: string[];
   data?: JsonObject;
 }
-
-// ============================================================================
-// Medication & Clinical Types (Removed DrugInteraction - use from ai-components.ts)
-// ============================================================================
 
 export interface ClinicalAlert {
   type: "allergy" | "interaction" | "contraindication" | "warning";
@@ -260,10 +224,6 @@ export interface ClinicalAlert {
   details?: string;
   actionRequired?: boolean;
 }
-
-// ============================================================================
-// Audit & Logging Types
-// ============================================================================
 
 export interface AuditLogEntry {
   id: string;
@@ -287,10 +247,6 @@ export interface DomainEventPayload {
   timestamp: Date | string;
 }
 
-// ============================================================================
-// Database & Repository Types
-// ============================================================================
-
 export interface PrismaModel {
   id: string;
   createdAt?: Date;
@@ -306,10 +262,6 @@ export interface HistoryItem {
   notes?: string;
   [key: string]: JsonValue | Date | undefined;
 }
-
-// ============================================================================
-// External API & OpenAPI Types
-// ============================================================================
 
 export interface OpenAPIParameter {
   name: string;
@@ -349,10 +301,6 @@ export interface OpenAPIDocument {
     securitySchemes?: JsonObject;
   };
 }
-
-// ============================================================================
-// Utility Types
-// ============================================================================
 
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];

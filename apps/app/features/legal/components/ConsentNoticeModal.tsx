@@ -22,7 +22,6 @@ import {
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Globe, Mail, Shield } from "lucide-react";
 
-// Supported languages for consent notice (22 Scheduled Indian Languages + English)
 const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nativeName: "English" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
@@ -36,7 +35,6 @@ const SUPPORTED_LANGUAGES = [
   { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
 ] as const;
 
-// Consent notice content in multiple languages
 const CONSENT_CONTENT: Record<
   string,
   {
@@ -160,7 +158,6 @@ export function ConsentNoticeModal({
 
   const content = CONSENT_CONTENT[language] || CONSENT_CONTENT.en;
 
-  // Required consents (all except WhatsApp which is optional)
   const requiredConsents = ["medical_records", "data_storage", "data_sharing"];
   const allRequiredAccepted = requiredConsents.every((key) => consents[key]);
 
@@ -214,7 +211,7 @@ export function ConsentNoticeModal({
           <div className="space-y-6">
             <p className="text-muted-foreground">{content.description}</p>
 
-            {/* Consent Purposes */}
+            {}
             <div className="space-y-4">
               <h4 className="font-semibold">Purpose of Data Collection</h4>
               {content.purposes.map((purpose) => (
@@ -247,7 +244,7 @@ export function ConsentNoticeModal({
               ))}
             </div>
 
-            {/* Your Rights */}
+            {}
             <div className="space-y-3">
               <h4 className="font-semibold">Your Rights</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -260,7 +257,7 @@ export function ConsentNoticeModal({
               </ul>
             </div>
 
-            {/* DPO Contact */}
+            {}
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">

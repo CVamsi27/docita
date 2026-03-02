@@ -5,7 +5,7 @@ import {
   BillingCycle as PrismaBillingCycle,
   SubscriptionStatus as PrismaSubscriptionStatus,
 } from '@workspace/db';
-import { Subscription } from '../../core/entities';
+import { Subscription } from '@/domains/subscriptions/core/entities';
 import {
   SubscriptionStatus,
   SubscriptionStatusEnum,
@@ -14,9 +14,13 @@ import {
   DiscountAggregate,
   Discount,
   DiscountType,
-} from '../../core/value-objects';
+} from '@/domains/subscriptions/core/value-objects';
 
 export class SubscriptionMapper {
+  private static toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   static toDomain(raw: PrismaSubscription): Subscription {
     const statusValue = raw.status as SubscriptionStatusEnum;
     const status = new SubscriptionStatus(statusValue);
@@ -63,7 +67,7 @@ export class SubscriptionMapper {
       basePriceCents: subscription.getBasePrice().paise,
       currency: 'INR',
       status: subscription.getStatus().toString() as PrismaSubscriptionStatus,
-      discountsApplied: discountsJson as unknown as Prisma.InputJsonValue,
+      discountsApplied: this.toInputJsonValue(discountsJson),
       totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),
       currentPeriodStart: subscription.currentPeriodStart,
       currentPeriodEnd: subscription.currentPeriodEnd,
@@ -76,7 +80,7 @@ export class SubscriptionMapper {
       createdAt: subscription.createdAt,
       updatedAt: new Date(),
       version: subscription.version,
-      // Default values for fields required by Prisma but not in domain
+
       scheduledChange: Prisma.JsonNull,
     };
   }
@@ -105,9 +109,7 @@ export class SubscriptionMapper {
           description: d.description || '',
         });
         aggregate.addDiscount(discount);
-      } catch (error) {
-        // Silently skip invalid discounts
-      }
+      } catch (error) {}
     });
 
     return aggregate;

@@ -92,8 +92,6 @@ export async function seedPatientsAndEncounters(
     }),
   ]);
 
-  console.log('Patients created');
-
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -217,8 +215,6 @@ export async function seedPatientsAndEncounters(
     },
   });
 
-  console.log('Appointments, vitals, prescriptions, and invoices created');
-
   await prisma.document.create({
     data: {
       patientId: patients[0].id,
@@ -236,8 +232,6 @@ export async function seedPatientsAndEncounters(
       url: '/uploads/documents/xray-priya-dec2024.pdf',
     },
   });
-
-  console.log('Documents created');
 
   return patients.map((patient) => ({ id: patient.id }));
 }

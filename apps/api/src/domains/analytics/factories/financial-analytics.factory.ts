@@ -1,15 +1,15 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma } from '@workspace/db';
 import {
   getLastNDaysRange,
   toISODateString,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { INVOICE_ANALYTICS_SELECT } from '../../../common/select-fragments';
+import { INVOICE_ANALYTICS_SELECT } from '@/common/select-fragments';
 import {
   RevenueMetric,
   RevenueTrendPoint,
@@ -111,17 +111,20 @@ export class FinancialAnalyticsFactory {
       take: 50,
     });
 
-    const cptCodeIds = procedures.map((p) => p.cptCodeId).filter(Boolean);
+    const cptCodeIds = procedures
+      .map((p) => p.cptCodeId)
+      .filter((id): id is string => typeof id === 'string');
 
     const cptCodes = await readClient.cptCode.findMany({
-      where: { id: { in: cptCodeIds as string[] } },
+      where: { id: { in: cptCodeIds } },
     });
 
     const cptCodeMap = new Map(cptCodes.map((code) => [code.id, code]));
 
     const result: CptRevenueMetric[] = procedures
       .map((p) => {
-        const cptCode = cptCodeMap.get(p.cptCodeId as string);
+        const cptCodeId = typeof p.cptCodeId === 'string' ? p.cptCodeId : '';
+        const cptCode = cptCodeMap.get(cptCodeId);
         const count = p._count.id;
         const totalRevenue = cptCode ? Number(cptCode.price) * count : 0;
 

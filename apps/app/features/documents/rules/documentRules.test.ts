@@ -9,13 +9,9 @@ import {
 
 describe("Document Rules", () => {
   describe("isValidFileExtension", () => {
-    // Assuming ALLOWED_EXTENSIONS includes common types like .pdf, .png.
-    // Since I cannot see utils, I will test against likely standard behavior or mock if needed.
-    // Based on previous reads, imports from @workspace/utils.
-    // I will assume standard extensions are supported.
+
     it("should validate allowed extension (e.g. .pdf)", () => {
-      // Ideally I should know what ALLOWED_EXTENSIONS contains.
-      // If this fails, I'll read allow list.
+
       expect(isValidFileExtension("test.pdf")).toBe(true);
     });
   });

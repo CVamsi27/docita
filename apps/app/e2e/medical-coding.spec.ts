@@ -9,7 +9,7 @@ test.describe("Medical Coding", () => {
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-      // Register doctor
+
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -76,7 +76,7 @@ test.describe("Medical Coding", () => {
   });
 
   test("should add favorite ICD code", async ({ request }) => {
-    // First fetch some ICD codes to get an ID
+
     const icdRes = await request.get(`${API_URL}/medical-coding/icd-codes`, {
       headers: { Authorization: `Bearer ${authToken}` },
       params: {
@@ -89,7 +89,6 @@ test.describe("Medical Coding", () => {
       if (Array.isArray(codes) && codes.length > 0) {
         const codeId = codes[0].id;
 
-        // Add as favorite
         const favRes = await request.post(
           `${API_URL}/medical-coding/favorites`,
           {

@@ -3,21 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import { Calendar, FileText, LogOut, Receipt, User } from "lucide-react";
+import { Calendar, FileText, LogOut, Receipt, Shield, User } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { useAuth } from "@workspace/auth";
+import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
 
 const navigation = [
   { name: "Dashboard", href: "/portal", icon: User },
   { name: "Appointments", href: "/portal/appointments", icon: Calendar },
   { name: "Prescriptions", href: "/portal/prescriptions", icon: FileText },
   { name: "Billing", href: "/portal/billing", icon: Receipt },
+  { name: "Consent", href: "/portal/profile/consent-form", icon: Shield },
   { name: "Profile", href: "/portal/profile", icon: User },
 ];
 
 export function PortalNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { data: consentSettings } = usePatientConsentSettings();
+
+  const isItemActive = (href: string) =>
+    href === "/portal"
+      ? pathname === "/portal"
+      : pathname === href || pathname.startsWith(`${href}/`);
+
+  const consentUpdatedOn = consentSettings?.whatsappConsentAt
+    ? new Date(consentSettings.whatsappConsentAt).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   return (
     <nav className="border-b bg-white">
@@ -30,7 +46,7 @@ export function PortalNav() {
             <div className="hidden md:flex md:space-x-4">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = isItemActive(item.href);
                 return (
                   <Link
                     key={item.name}
@@ -39,7 +55,7 @@ export function PortalNav() {
                       "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -50,10 +66,42 @@ export function PortalNav() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.name}</span>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">{user?.name}</p>
+              <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                <span>Consent updated: {consentUpdatedOn || "Not yet"}</span>
+                <Link href="/portal/profile/consent-form" className="text-primary hover:underline">
+                  View
+                </Link>
+              </div>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => logout()}>
               <LogOut className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+
+        <div className="md:hidden pb-3">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = isItemActive(item.href);
+              return (
+                <Link
+                  key={`mobile-${item.name}`}
+                  href={item.href}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import {
   BillingCycle,
   SubscriptionPrice,
   DiscountAggregate,
-} from '../value-objects';
+} from '@/domains/subscriptions/core/value-objects';
 
 export interface SubscriptionProps {
   id: string;

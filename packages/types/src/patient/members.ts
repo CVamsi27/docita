@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-// ============================================================================
-// Local schema definitions (to avoid circular dependencies)
-// ============================================================================
-
-// Define these locally to avoid circular dependency with index.ts
 const userRoleSchema = z.enum([
   "DOCTOR",
   "RECEPTIONIST",
@@ -13,13 +8,6 @@ const userRoleSchema = z.enum([
   "ADMIN_DOCTOR",
 ]);
 
-// ============================================================================
-// Team Member Schemas & Types
-// ============================================================================
-
-/**
- * Doctor-specific properties
- */
 export const doctorDetailsSchema = z.object({
   specialization: z.string().optional(),
   qualification: z.string().optional(),
@@ -31,16 +19,13 @@ export const doctorDetailsSchema = z.object({
 
 export type DoctorDetails = z.infer<typeof doctorDetailsSchema>;
 
-/**
- * Base member form data (for create/edit operations)
- */
 export const memberFormDataSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
   password: z.string().optional(),
   phoneNumber: z.string().optional(),
   role: userRoleSchema.optional(),
-  // Doctor-specific fields
+
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -51,9 +36,6 @@ export const memberFormDataSchema = z.object({
 
 export type MemberFormData = z.infer<typeof memberFormDataSchema>;
 
-/**
- * Team member (fetched from API)
- */
 export const teamMemberSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -62,7 +44,7 @@ export const teamMemberSchema = z.object({
   role: userRoleSchema,
   createdAt: z.string(),
   updatedAt: z.string().optional(),
-  // Doctor-specific fields
+
   specialization: z.string().optional().nullable(),
   qualification: z.string().optional().nullable(),
   registrationNumber: z.string().optional().nullable(),
@@ -73,15 +55,9 @@ export const teamMemberSchema = z.object({
 
 export type TeamMember = z.infer<typeof teamMemberSchema>;
 
-/**
- * Clinic doctor (response from /clinics/:clinicId/doctors)
- */
 export const clinicDoctorSchema = teamMemberSchema;
 export type ClinicDoctor = z.infer<typeof clinicDoctorSchema>;
 
-/**
- * Clinic receptionist (response from /clinics/:clinicId/receptionists)
- */
 export const clinicReceptionistSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -94,16 +70,13 @@ export const clinicReceptionistSchema = z.object({
 
 export type ClinicReceptionist = z.infer<typeof clinicReceptionistSchema>;
 
-/**
- * Create member request payload
- */
 export const createMemberSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   phoneNumber: z.string().optional(),
   role: z.literal("DOCTOR").or(z.literal("RECEPTIONIST")).optional(),
-  // Doctor-specific
+
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -114,15 +87,12 @@ export const createMemberSchema = z.object({
 
 export type CreateMemberPayload = z.infer<typeof createMemberSchema>;
 
-/**
- * Update member request payload
- */
 export const updateMemberSchema = z.object({
   name: z.string().min(1, "Name is required").optional(),
   email: z.string().email("Invalid email").optional(),
   password: z.string().optional(),
   phoneNumber: z.string().optional(),
-  // Doctor-specific
+
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),

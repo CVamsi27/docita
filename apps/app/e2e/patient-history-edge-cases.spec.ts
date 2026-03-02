@@ -53,16 +53,13 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    // Strict: Wait for loading to complete
     await expect(page.getByText("Loading patient details...")).not.toBeVisible({
       timeout: 15000,
     });
 
-    // Strict: Verify patient name is displayed
     const patientName = `${cachedPatient!.firstName} ${cachedPatient!.lastName}`;
     await expect(page.getByText(patientName).first()).toBeVisible();
 
-    // Strict: Verify tabs exist
     await expect(page.getByRole("tab", { name: /Timeline/i })).toBeVisible();
     await expect(
       page.getByRole("tab", { name: /Medical History/i }),
@@ -75,19 +72,16 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    // Wait for loading to complete
     await expect(page.getByText("Loading patient details...")).not.toBeVisible({
       timeout: 15000,
     });
 
-    // Click Medical History tab
     const medicalHistoryTab = page.getByRole("tab", {
       name: /Medical History/i,
     });
     await expect(medicalHistoryTab).toBeVisible();
     await medicalHistoryTab.click();
 
-    // Strict: Verify tab is active
     await expect(medicalHistoryTab).toHaveAttribute("data-state", "active");
   });
 
@@ -95,7 +89,7 @@ test.describe("Patient Medical History - Edge Cases", () => {
     page,
     request,
   }) => {
-    // Update patient via API with new allergies
+
     const update1 = await request.patch(
       `${API_URL}/patients/${cachedPatient!.id}`,
       {
@@ -116,11 +110,9 @@ test.describe("Patient Medical History - Edge Cases", () => {
       },
     );
 
-    // Strict: Both updates should succeed (200 status)
     expect(update1.status()).toBe(200);
     expect(update2.status()).toBe(200);
 
-    // Verify UI reflects the updates
     await page.goto(`/patients/${cachedPatient!.id}`, {
       waitUntil: "networkidle",
     });
@@ -129,7 +121,6 @@ test.describe("Patient Medical History - Edge Cases", () => {
       timeout: 15000,
     });
 
-    // Verify the page loads correctly after updates
     const patientName = `${cachedPatient!.firstName} ${cachedPatient!.lastName}`;
     await expect(page.getByText(patientName).first()).toBeVisible();
   });
@@ -143,10 +134,8 @@ test.describe("Patient Medical History - Edge Cases", () => {
       timeout: 15000,
     });
 
-    // Set offline mode
     await page.context().setOffline(true);
 
-    // Try to navigate to medical history tab
     const medicalHistoryTab = page.getByRole("tab", {
       name: /Medical History/i,
     });
@@ -157,10 +146,8 @@ test.describe("Patient Medical History - Edge Cases", () => {
       await page.waitForTimeout(1000);
     }
 
-    // Page should still be functional (graceful degradation)
     await expect(page.locator("body")).toBeVisible();
 
-    // Restore network
     await page.context().setOffline(false);
   });
 
@@ -171,12 +158,10 @@ test.describe("Patient Medical History - Edge Cases", () => {
       waitUntil: "networkidle",
     });
 
-    // Wait for loading to complete
     await expect(page.getByText("Loading patient details...")).not.toBeVisible({
       timeout: 15000,
     });
 
-    // Strict: Should show error message
     await expect(page.getByText("Patient not found")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Back to Patients" }),

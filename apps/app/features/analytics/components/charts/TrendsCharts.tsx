@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { DiseaseTrend } from "../../hooks/use-analytics-logic";
+import type { DiseaseTrend } from "@/features/analytics/hooks/use-analytics-logic";
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface TrendsChartProps {
@@ -49,7 +49,11 @@ export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="count" fill="#8884d8" name="Patient Count" />
+            <Bar
+              dataKey="count"
+              fill="var(--color-chart-1)"
+              name="Patient Count"
+            />
           </BarChart>
         </ResponsiveContainer>
       ) : (
@@ -84,7 +88,7 @@ export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
                 `${payload.disease}: ${payload.percentage}%`
               }
               outerRadius={120}
-              fill="#8884d8"
+              fill="var(--color-chart-1)"
               dataKey="count"
             >
               {data.slice(0, 8).map((_entry, index: number) => (

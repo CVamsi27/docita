@@ -4,23 +4,10 @@ import {
   OCRMedication as Medication,
 } from '@workspace/types';
 
-/**
- * TextParserService - Parses extracted text into structured medical fields
- * Responsibilities:
- * - Text tokenization and line-by-line processing
- * - Regular expression-based field extraction
- * - Patient details extraction (name, contact, demographics)
- * - Medical data extraction (vitals, lab values, medications)
- * - Invoice data extraction
- * - Date parsing and normalization
- */
 @Injectable()
 export class TextParserService {
   private readonly logger = new Logger(TextParserService.name);
 
-  /**
-   * Parse extracted text into structured medical fields
-   */
   parseExtractedText(text: string): ParsedMedicalFields {
     const fields: ParsedMedicalFields = {
       firstName: '',
@@ -78,7 +65,6 @@ export class TextParserService {
       const lowerLine = line.toLowerCase();
       const trimmedLine = line.trim();
 
-      // --- Metadata ---
       const clinicMatch = line.match(
         /(?:hospital|clinic|center)[:\s]+([a-z\s.]+)/i,
       );
@@ -89,7 +75,6 @@ export class TextParserService {
       if (doctorMatch && !fields.doctorName)
         fields.doctorName = doctorMatch[1].trim();
 
-      // --- Dates ---
       const dateRegex = /\b(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b/;
       const dateMatch = line.match(dateRegex);
       if (dateMatch) {
@@ -113,7 +98,6 @@ export class TextParserService {
         }
       }
 
-      // --- Patient Details ---
       const mrnMatch = line.match(
         /(?:mrn|medical record number)[:\s]+([a-z0-9-.]+)/i,
       );
@@ -143,7 +127,6 @@ export class TextParserService {
       const ethnicityMatch = line.match(/(?:ethnicity)[:\s]+([a-z\s]+)/i);
       if (ethnicityMatch) fields.ethnicity = ethnicityMatch[1].trim();
 
-      // Emergency Contact
       const ecMatch = line.match(
         /(?:emergency contact|emergency)[:\s]+([a-z\s]+)(?:[:\s-]+)?(\d+)?/i,
       );
@@ -155,7 +138,6 @@ export class TextParserService {
         };
       }
 
-      // --- Invoice Data ---
       const totalMatch = line.match(
         /(?:total|grand total|amount due)[:\s]+(?:[$€£₹]|rs.?)?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{2})?)/i,
       );
@@ -184,7 +166,6 @@ export class TextParserService {
           subtotalMatch[1].replace(/,/g, ''),
         );
 
-      // Invoice Line Items
       const simpleItemMatch = line.match(
         /^([a-zA-Z0-9\s-.]+?)\s+(?:[$€£₹]|rs.?)?((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{2})?)$/i,
       );
@@ -209,7 +190,6 @@ export class TextParserService {
         });
       }
 
-      // --- Contact Information ---
       const phoneMatch = line.match(
         /(?:(?:\+|0{0,2})91(\s*[-]\s*)?|[0]?)?[6789]\d{9}\b/,
       );
@@ -224,7 +204,6 @@ export class TextParserService {
         fields.email = emailMatch[1];
       }
 
-      // --- Demographics ---
       const ageMatch = line.match(/(?:age|yrs|years)[:\s]*(\d{1,3})/i);
       if (ageMatch && !fields.age) {
         fields.age = ageMatch[1];
@@ -241,7 +220,6 @@ export class TextParserService {
         }
       }
 
-      // --- Vital Signs ---
       const bpMatch = line.match(/(\d{2,3})\s*[/]\s*(\d{2,3})\s*(?:mmhg)?/i);
       if (bpMatch && !fields.vitals.bp) {
         fields.vitals.bp = `${bpMatch[1]}/${bpMatch[2]}`;
@@ -272,7 +250,6 @@ export class TextParserService {
         fields.vitals.spO2 = spo2Match[1];
       }
 
-      // --- Medications ---
       const medMatch = line.match(
         /(?:^\d+.?\s*)?([a-zA-Z\s]+?)\s*[-:]?\s*(\d+\s*(?:mg|ml|tabs?|units?|caps?|gm))/i,
       );
@@ -300,7 +277,6 @@ export class TextParserService {
         fields.medications.push(med);
       }
 
-      // --- Lab Values ---
       if (lowerLine.includes('hemoglobin') || lowerLine.includes('hb')) {
         const valueMatch = line.match(/(\d+.?\d*)\s*(?:g\/dl|gm\/dl)?/i);
         if (valueMatch) {
@@ -328,7 +304,6 @@ export class TextParserService {
         }
       }
 
-      // --- Diagnosis ---
       if (
         (lowerLine.includes('diagnosis') ||
           lowerLine.includes('diagnosed') ||
@@ -341,7 +316,6 @@ export class TextParserService {
         }
       }
 
-      // --- Names ---
       const namePrefixMatch = line.match(
         /(?:name|patient|pt)[:\s]+([a-z\s.]+)/i,
       );
@@ -370,7 +344,6 @@ export class TextParserService {
         }
       }
 
-      // --- Gender ---
       if (!fields.gender || fields.gender === 'MALE') {
         if (
           lowerLine.match(/\b(?:sex|gender)[:\s]*f/i) ||

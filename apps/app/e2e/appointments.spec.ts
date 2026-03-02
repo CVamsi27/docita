@@ -13,12 +13,10 @@ test.describe("Appointments", () => {
   let cachedPatient: { id: string } | null = null;
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
-    console.log("Starting beforeAll setup for Appointments tests");
 
     const uniqueEmail = `doctor${Date.now()}@test.com`;
     const password = "Test@123456";
 
-    // Register user
     const registerRes = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: uniqueEmail,
@@ -30,13 +28,11 @@ test.describe("Appointments", () => {
       },
     });
 
-    console.log("Register response status:", registerRes.status());
     if (!registerRes.ok()) {
-      console.error("Register failed:", await registerRes.text());
+
       throw new Error("User registration failed");
     }
 
-    // Extract token from register response
     const registerData = await registerRes.json();
     const token = registerData.access_token || registerData.accessToken;
 
@@ -47,9 +43,7 @@ test.describe("Appointments", () => {
       accessToken: token,
       role: registerData.user.role,
     };
-    console.log("Cached user created:", cachedUser);
 
-    // Create a clinic if clinicId is null, assign doctor and re-login to refresh token
     if (!cachedUser.clinicId) {
       const clinicRes = await request.post(`${API_URL}/clinics`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -68,9 +62,7 @@ test.describe("Appointments", () => {
       if (clinicRes.ok()) {
         const clinic = await clinicRes.json();
         cachedUser.clinicId = clinic.id;
-        console.log("Clinic created:", clinic.id);
 
-        // Assign the doctor to the clinic so token reflects clinicId
         const doctorId = cachedUser.id;
         const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -78,7 +70,7 @@ test.describe("Appointments", () => {
         });
 
         if (assignRes.ok()) {
-          // Re-login to refresh token and include clinicId in JWT
+
           const loginRes = await request.post(`${API_URL}/auth/login`, {
             data: { email: cachedUser.email, password },
           });
@@ -88,13 +80,12 @@ test.describe("Appointments", () => {
               loginData.access_token || loginData.accessToken;
             cachedUser.clinicId =
               loginData.user?.clinicId || cachedUser.clinicId;
-            console.log("Re-logged in, refreshed token and clinicId");
+
           }
         }
       }
     }
 
-    // Create patient (use refreshed token)
     const patientRes = await request.post(`${API_URL}/patients`, {
       headers: { Authorization: `Bearer ${cachedUser!.accessToken}` },
       data: {
@@ -107,21 +98,19 @@ test.describe("Appointments", () => {
       },
     });
 
-    console.log("Patient creation response status:", patientRes.status());
     if (!patientRes.ok()) {
-      console.error("Patient creation failed:", await patientRes.text());
+
       throw new Error("Patient creation failed");
     }
 
     cachedPatient = await patientRes.json();
-    console.log("Cached patient created:", cachedPatient);
+
   });
 
   test.beforeEach(async ({ page }: { page: Page }) => {
-    console.log("Starting beforeEach setup for Appointments tests");
-    // Use token-based auth to avoid flaky UI login during setup
+
     const token = cachedUser!.accessToken;
-    // Set the frontend's expected keys so the app recognizes the logged-in user
+
     const userForStorage = JSON.stringify({
       id: cachedUser!.id,
       email: cachedUser!.email,
@@ -136,13 +125,12 @@ test.describe("Appointments", () => {
           localStorage.setItem("docita_token", t);
           localStorage.setItem("docita_user", u);
         } catch {
-          // noop
+
         }
       },
       { t: token, u: userForStorage },
     );
 
-    // Navigate to dashboard which should pick up token from localStorage
     await page.goto("/dashboard", { waitUntil: "load" }).catch(() => null);
   });
 
@@ -155,28 +143,17 @@ test.describe("Appointments", () => {
   test("should create a new appointment", async ({ page }) => {
     await page.goto("/appointments");
 
-    // Click New Appointment button (assuming there is one)
     await page.getByRole("button", { name: "New Appointment" }).click();
 
-    // Fill form
-    // Select patient (this might be a combobox)
     await page.click('[role="combobox"]');
     await page.type('[role="combobox"]', "Test Patient");
     await page.keyboard.press("Enter");
 
-    // Select date/time (might need specific selectors based on UI)
-    // For now, assuming defaults or simple inputs
-
-    // Since UI might be complex, let's verify if an API-created appointment shows up
   });
 
   test("should show API-created appointment", async ({ page, request }) => {
-    // Create appointment via API
-    // Create appointment via API - set for 1 hour from now to ensure it appears in upcoming
+
     const startTime = new Date(Date.now() + 60 * 60 * 1000);
-    // Round to nearest 30 mins to be clean if needed, or just use as is.
-    // Ensuring it's within working hours might be important,
-    // but typically "upcoming" logic just checks start > now.
 
     const endTime = new Date(startTime);
     endTime.setMinutes(startTime.getMinutes() + 30);
@@ -196,14 +173,10 @@ test.describe("Appointments", () => {
 
     expect(appointmentRes.ok()).toBeTruthy();
 
-    // Wait a bit to ensure DB persistence and avoid race conditions
     await page.waitForTimeout(2000);
 
-    // Navigate to appointments page
     await page.goto("/appointments", { waitUntil: "load" });
-    console.log("Appointments Page URL:", page.url());
 
-    // Verify page loaded - flexible check
     const pageContent = page.locator("body");
     await expect(pageContent).toBeVisible({ timeout: 10000 });
   });

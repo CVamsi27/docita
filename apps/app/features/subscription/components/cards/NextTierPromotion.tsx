@@ -9,7 +9,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Feature, getTierInfo } from "@/lib/tier-config";
-import { getFeatureDetails } from "../../config/feature-config";
+import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 
 interface NextTierPromotionProps {
   nextTier: number;
@@ -35,7 +35,7 @@ export function NextTierPromotion({
 
   return (
     <Card className="relative overflow-hidden border-2 border-primary/30 bg-linear-to-br from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50">
-      {/* Decorative gradient blur */}
+      {}
       <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 dark:bg-primary/20" />
 
       <CardHeader>

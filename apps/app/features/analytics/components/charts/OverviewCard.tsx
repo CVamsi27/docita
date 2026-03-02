@@ -33,11 +33,11 @@ export const OverviewCard = ({
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           {growth > 0 ? (
             <>
-              <TrendingUp className="h-3 w-3 text-green-600" /> +{growth}%
+              <TrendingUp className="h-3 w-3 text-success" /> +{growth}%
             </>
           ) : (
             <>
-              <TrendingDown className="h-3 w-3 text-red-600" /> {growth}%
+              <TrendingDown className="h-3 w-3 text-destructive" /> {growth}%
             </>
           )}
           <span className="ml-1">from last month</span>

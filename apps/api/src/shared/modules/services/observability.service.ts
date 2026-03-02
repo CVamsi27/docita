@@ -1,12 +1,45 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../config/app-configuration.service';
+import { ErrorSeverity } from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+
+interface MetricEntry {
+  name: string;
+  value: number | number[];
+  labels?: Record<string, string>;
+  timestamp: number;
+}
+
+function toSentryContextValue(value: unknown): Record<string, unknown> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  return { value };
+}
+
+function getRecordStatus(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const status = (value as { status?: unknown }).status;
+  return typeof status === 'string' ? status : undefined;
+}
+
+function getRecordString(
+  value: Record<string, unknown> | undefined,
+  key: string,
+): string | undefined {
+  const field = value?.[key];
+  return typeof field === 'string' ? field : undefined;
+}
 
 @Injectable()
 export class ObservabilityService {
   private readonly logger = new Logger(ObservabilityService.name);
-  private metricsBuffer: Map<string, any> = new Map();
+  private metricsBuffer: Map<string, MetricEntry> = new Map();
   private readonly METRICS_FLUSH_INTERVAL = 60000;
 
   constructor(
@@ -56,7 +89,7 @@ export class ObservabilityService {
       scope.setLevel(level);
       if (normalizedContext) {
         Object.entries(normalizedContext).forEach(([key, value]) => {
-          scope.setContext(key, value as any);
+          scope.setContext(key, toSentryContextValue(value));
         });
       }
       Sentry.captureException(error);
@@ -74,7 +107,7 @@ export class ObservabilityService {
       scope.setLevel(level);
       if (normalizedContext) {
         Object.entries(normalizedContext).forEach(([key, value]) => {
-          scope.setContext(key, value as any);
+          scope.setContext(key, toSentryContextValue(value));
         });
       }
       Sentry.captureMessage(message);
@@ -90,7 +123,7 @@ export class ObservabilityService {
     const requestContext = scope?.getScopeData()?.contexts?.request as
       | Record<string, unknown>
       | undefined;
-    const correlationId = (requestContext?.id as string) || 'unknown';
+    const correlationId = getRecordString(requestContext, 'id') || 'unknown';
 
     const logEntry = {
       timestamp: new Date().toISOString(),
@@ -101,12 +134,60 @@ export class ObservabilityService {
       ...metadata,
     };
 
-    console.log(JSON.stringify(logEntry));
+    if (level !== 'debug') {
+      void this.persistStructuredLog(level, message, correlationId, metadata);
+    }
 
     if (level === 'warn' || level === 'error') {
       const sentryLevel = level === 'warn' ? 'warning' : 'error';
       this.captureMessage(message, { ...logEntry }, sentryLevel);
     }
+  }
+
+  private mapSeverity(level: 'debug' | 'info' | 'warn' | 'error') {
+    switch (level) {
+      case 'debug':
+        return ErrorSeverity.DEBUG;
+      case 'warn':
+        return ErrorSeverity.WARNING;
+      case 'error':
+        return ErrorSeverity.ERROR;
+      default:
+        return ErrorSeverity.INFO;
+    }
+  }
+
+  private async persistStructuredLog(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    correlationId: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    const rawPath = metadata?.['path'];
+    const rawMethod = metadata?.['method'];
+
+    await this.prisma.errorLog
+      .create({
+        data: {
+          type: `Observability:${level.toUpperCase()}`,
+          message: message.slice(0, 1000),
+          path: typeof rawPath === 'string' ? rawPath : undefined,
+          method: typeof rawMethod === 'string' ? rawMethod : 'OBSERVABILITY',
+          severity: this.mapSeverity(level),
+          metadata: {
+            source: 'api-observability',
+            correlationId,
+            level,
+            service: 'docita-api',
+            ...(metadata ?? {}),
+          },
+        },
+      })
+      .catch((error) => {
+        this.logger.warn(
+          `Failed to persist structured log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+      });
   }
 
   recordMetric(
@@ -144,9 +225,10 @@ export class ObservabilityService {
     });
 
     const percentileKey = `${endpoint}_${method}_${statusCode}`;
-    const latencies: number[] = JSON.parse(
-      (this.metricsBuffer.get(percentileKey)?.value as string) ?? '[]',
-    );
+    const existingValue = this.metricsBuffer.get(percentileKey)?.value;
+    const latencies: number[] = Array.isArray(existingValue)
+      ? [...existingValue]
+      : [];
     latencies.push(durationMs);
 
     if (latencies.length > 1000) {
@@ -196,8 +278,7 @@ export class ObservabilityService {
       };
     }
 
-    const dbConnected =
-      (checks.database as Record<string, unknown>)?.status === 'connected';
+    const dbConnected = getRecordStatus(checks.database) === 'connected';
     let status: 'healthy' | 'degraded' | 'unhealthy';
 
     if (dbConnected) {

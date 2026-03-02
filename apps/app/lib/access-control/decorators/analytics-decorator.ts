@@ -1,17 +1,12 @@
-/**
- * Analytics Decorator
- * Decorator Pattern: Adds analytics tracking to access control
- * Tracks feature lock events for product insights
- */
+
 
 import type {
   IAccessContext,
   IAccessControlService,
   IAccessDecision,
   IUpgradeOption,
-} from "../interfaces";
+} from "@/lib/access-control/interfaces";
 
-// Define analytics interface locally since it's an external script
 type StrictAnalyticsProperty =
   | string
   | number
@@ -50,7 +45,6 @@ interface FeatureAccessProperties {
   [key: string]: StrictAnalyticsProperty;
 }
 
-// Extend Window interface for this file
 declare global {
   interface Window {
     analytics?: Analytics;
@@ -92,16 +86,12 @@ export class AnalyticsAccessControlDecorator implements IAccessControlService {
     return this.wrapped.getUpgradeOptions(context);
   }
 
-  /**
-   * Track when a feature is locked
-   * This is valuable for understanding which features users want
-   */
+  
   private trackFeatureLock(
     context: IAccessContext,
     decision: IAccessDecision,
   ): void {
-    // In production, this would send to your analytics service
-    // e.g., Mixpanel, Amplitude, PostHog, etc.
+
     if (typeof window !== "undefined" && window.analytics) {
       const properties: FeatureLockProperties = {
         feature: String(context.feature),
@@ -117,20 +107,16 @@ export class AnalyticsAccessControlDecorator implements IAccessControlService {
         timestamp: new Date().toISOString(),
       };
 
-      // Pass directly without casting
       window.analytics.track("feature_locked", properties);
     }
   }
 
-  /**
-   * Track successful feature access
-   * Useful for feature usage analytics
-   */
+  
   private trackFeatureAccess(
     context: IAccessContext,
     decision: IAccessDecision,
   ): void {
-    // Only track in production and for important features
+
     if (
       process.env.NODE_ENV === "production" &&
       typeof window !== "undefined" &&
@@ -143,7 +129,6 @@ export class AnalyticsAccessControlDecorator implements IAccessControlService {
         timestamp: new Date().toISOString(),
       };
 
-      // Pass directly without casting
       window.analytics.track("feature_accessed", properties);
     }
   }

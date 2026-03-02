@@ -1,10 +1,14 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { ResponseHandlerService } from './response-handler.service';
-import { MetaWebhookPayload } from './types/webhook.types';
-import { AppointmentStatus, WhatsappLogStatus } from '@workspace/db';
+import { AppointmentStatus, Prisma, WhatsappLogStatus } from '@workspace/db';
+import { WhatsAppWebhookPayload } from '@workspace/types';
+
+function toJsonValue(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
 
 @Injectable()
 export class WhatsappWebhookService {
@@ -17,9 +21,6 @@ export class WhatsappWebhookService {
     private readonly responseHandler: ResponseHandlerService,
   ) {}
 
-  /**
-   * Validate incoming webhook signature from Meta
-   */
   validateWebhookSignature(rawBody: Buffer, signature: string): boolean {
     const appSecret = this.whatsappClient.AppSecret;
     if (!signature || !appSecret) {
@@ -34,18 +35,12 @@ export class WhatsappWebhookService {
     return `sha256=${expectedSignature}` === signature;
   }
 
-  /**
-   * Get the webhook verification token
-   */
   getVerifyToken(): string {
     return this.whatsappClient.VerifyToken;
   }
 
-  /**
-   * Process incoming messages from Meta webhook
-   */
   async processIncomingMessages(
-    value: MetaWebhookPayload['entry'][0]['changes'][0]['value'],
+    value: WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'],
   ) {
     for (const message of value.messages || []) {
       const contact = value.contacts?.[0];
@@ -102,11 +97,8 @@ export class WhatsappWebhookService {
     }
   }
 
-  /**
-   * Process status updates from Meta webhook
-   */
   async processStatusUpdates(
-    value: MetaWebhookPayload['entry'][0]['changes'][0]['value'],
+    value: WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'],
   ) {
     for (const status of value.statuses || []) {
       this.logger.log(`Status update for ${status.id}: ${status.status}`);
@@ -119,7 +111,7 @@ export class WhatsappWebhookService {
         if (log) {
           const updateData: Record<string, unknown> = {
             status: status.status.toUpperCase() as WhatsappLogStatus,
-            responseBody: status as any,
+            responseBody: toJsonValue(status),
           };
 
           if (status.status === 'delivered' || status.status === 'read') {
@@ -145,9 +137,6 @@ export class WhatsappWebhookService {
     }
   }
 
-  /**
-   * Find the most recent appointment for a phone number
-   */
   private async findRecentAppointmentByPhone(phoneNumber: string) {
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     const phoneVariants = [

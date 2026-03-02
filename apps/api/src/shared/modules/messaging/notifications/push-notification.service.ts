@@ -1,18 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
-/**
- * Notification payload interface
- */
 interface NotificationPayload {
   title: string;
   body: string;
   data?: Record<string, string>;
 }
 
-/**
- * Push notification types for categorization
- */
 export type PushNotificationType =
   | 'payment_received'
   | 'payment_failed'
@@ -24,43 +18,21 @@ export type PushNotificationType =
   | 'invoice_ready'
   | 'general';
 
-/**
- * In-App Notification Service
- *
- * Stores notifications in the database for in-app display.
- * Real-time delivery is handled by WebSocket (PaymentGateway).
- * Critical notifications go via WhatsApp (already implemented).
- *
- * No external dependencies - uses existing infrastructure:
- * - Database: DeviceToken model for future Web Push
- * - WebSocket: PaymentGateway for real-time updates
- * - WhatsApp: For critical patient notifications
- */
 @Injectable()
 export class PushNotificationService {
   private readonly logger = new Logger(PushNotificationService.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Send notification to a patient (stores in DB for in-app display)
-   * Real-time delivery happens via WebSocket in the calling service
-   */
   async sendToPatient(
     patientId: string,
     notification: NotificationPayload,
     type: PushNotificationType = 'general',
   ): Promise<{ success: boolean }> {
     try {
-      // Log notification for analytics/debugging
       this.logger.log(
         `Notification [${type}] for patient ${patientId}: ${notification.title}`,
       );
-
-      // Notifications are delivered via:
-      // 1. WhatsApp (already implemented in calling services)
-      // 2. WebSocket real-time (PaymentGateway emits events)
-      // 3. Future: Web Push API with VAPID keys
 
       return Promise.resolve({ success: true });
     } catch (error) {
@@ -69,9 +41,6 @@ export class PushNotificationService {
     }
   }
 
-  /**
-   * Send notification to a user (staff/doctor)
-   */
   async sendToUser(
     userId: string,
     notification: NotificationPayload,
@@ -88,9 +57,6 @@ export class PushNotificationService {
     }
   }
 
-  /**
-   * Send payment confirmation notification
-   */
   async sendPaymentConfirmation(
     patientId: string,
     amount: number,
@@ -112,9 +78,6 @@ export class PushNotificationService {
     );
   }
 
-  /**
-   * Send payment failed notification
-   */
   async sendPaymentFailed(
     patientId: string,
     amount: number,
@@ -136,9 +99,6 @@ export class PushNotificationService {
     );
   }
 
-  /**
-   * Send payment reminder notification
-   */
   async sendPaymentReminder(
     patientId: string,
     amount: number,
@@ -162,9 +122,6 @@ export class PushNotificationService {
     );
   }
 
-  /**
-   * Send invoice ready notification
-   */
   async sendInvoiceReady(
     patientId: string,
     amount: number,

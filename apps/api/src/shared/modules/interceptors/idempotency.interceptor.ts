@@ -11,8 +11,21 @@ import { Reflector } from '@nestjs/core';
 import {
   IDEMPOTENT_METADATA_KEY,
   IdempotentOptions,
-} from '../auth/decorators/idempotent.decorator';
-import { IdempotencyService } from '../services/idempotency.service';
+} from '@/shared/modules/auth/decorators/idempotent.decorator';
+import { IdempotencyService } from '@/shared/modules/services/idempotency.service';
+
+function toHeaderString(value: unknown): string | undefined {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const [first] = value;
+    return typeof first === 'string' && first.length > 0 ? first : undefined;
+  }
+
+  return undefined;
+}
 
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {
@@ -24,7 +37,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<any>> {
+  ): Promise<Observable<unknown>> {
     const request = context.switchToHttp().getRequest();
     const metadata = this.reflector.get<IdempotentOptions>(
       IDEMPOTENT_METADATA_KEY,
@@ -36,20 +49,18 @@ export class IdempotencyInterceptor implements NestInterceptor {
     }
 
     const headerName = metadata.header || 'x-idempotency-key';
-    const idempotencyKey = request.headers[headerName];
+    const idempotencyKey = toHeaderString(request.headers[headerName]);
 
     if (!idempotencyKey) {
       return next.handle();
     }
 
-    // 1. Check if already processed
     const cachedResponse =
       await this.idempotencyService.getResponse(idempotencyKey);
     if (cachedResponse) {
       return of(cachedResponse);
     }
 
-    // 2. Check if currently processing (prevent concurrent same-key requests)
     const isProcessing =
       await this.idempotencyService.isProcessing(idempotencyKey);
     if (isProcessing) {
@@ -58,27 +69,20 @@ export class IdempotencyInterceptor implements NestInterceptor {
       );
     }
 
-    // 3. Set processing lock
     await this.idempotencyService.setProcessing(idempotencyKey);
 
     return next.handle().pipe(
       tap({
         next: (response) => {
-          // Success: save response and clear lock
           void this.idempotencyService.saveResponse(
-            idempotencyKey as string,
+            idempotencyKey,
             response,
             metadata.ttl,
           );
-          void this.idempotencyService.clearProcessing(
-            idempotencyKey as string,
-          );
+          void this.idempotencyService.clearProcessing(idempotencyKey);
         },
         error: () => {
-          // Error: just clear lock so it can be retried
-          void this.idempotencyService.clearProcessing(
-            idempotencyKey as string,
-          );
+          void this.idempotencyService.clearProcessing(idempotencyKey);
         },
       }),
     );

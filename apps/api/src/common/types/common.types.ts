@@ -4,15 +4,11 @@ import {
 } from 'express';
 import { User, Role } from '@workspace/db';
 
-/**
- * Extended Express Request with authenticated user and clinic context
- * Replace all: @Request() req: any with @Request() req: RequestWithUser
- */
 export interface RequestWithUser extends ExpressRequest {
   user?: User & {
     requiredClinics?: string[];
     permissions?: string[];
-    patientId?: string; // For PATIENT role users only
+    patientId?: string;
   };
   clinic?: {
     id: string;
@@ -21,14 +17,8 @@ export interface RequestWithUser extends ExpressRequest {
   correlationId?: string;
 }
 
-/**
- * Extended Express Response with typed send
- */
 export type ResponseWithUser = ExpressResponse;
 
-/**
- * Standard API Response wrapper
- */
 export type ApiResponse<T = unknown> = {
   statusCode: number;
   message: string;
@@ -38,9 +28,6 @@ export type ApiResponse<T = unknown> = {
   path?: string;
 };
 
-/**
- * Paginated response
- */
 export interface PaginatedResponse<T> {
   statusCode: number;
   message: string;
@@ -53,9 +40,6 @@ export interface PaginatedResponse<T> {
   };
 }
 
-/**
- * Authentication context
- */
 export interface AuthContext {
   userId: string;
   userRole: Role;
@@ -63,9 +47,6 @@ export interface AuthContext {
   permissions: string[];
 }
 
-/**
- * Request context for logging and tracing
- */
 export interface RequestContext {
   correlationId: string;
   userId?: string;
@@ -75,12 +56,9 @@ export interface RequestContext {
   timestamp: Date;
 }
 
-/**
- * Error response with RFC 7807 format
- */
 export interface ErrorResponse {
-  type: string; // e.g., 'VALIDATION_ERROR'
-  title: string; // e.g., 'Validation Failed'
+  type: string;
+  title: string;
   status: number;
   detail: string;
   instance?: string;

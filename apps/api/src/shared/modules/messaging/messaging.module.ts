@@ -1,8 +1,3 @@
-/**
- * Messaging Module
- * Provides multi-channel notification system (WhatsApp, Email, SMS)
- */
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MessageTemplateService } from './templates';
@@ -15,7 +10,7 @@ import { NotificationsModule } from './notifications/notifications.module';
   providers: [
     MessageTemplateService,
     NotificationOrchestrator,
-    // Channel implementations
+
     {
       provide: WhatsAppChannel,
       useFactory: (configService: ConfigService) => {

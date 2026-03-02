@@ -7,7 +7,6 @@ import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
 
-// Schema definition
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required"),
@@ -16,13 +15,23 @@ export const invoiceItemSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
+  status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED", "PARTIALLY_PAID"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+
+const normalizeInvoiceStatus = (
+  status: Invoice["status"] | "created",
+): InvoiceFormValues["status"] => {
+  if (status === "created") {
+    return "PENDING";
+  }
+
+  return status;
+};
 
 export const useInvoiceEditLogic = (invoiceId: string) => {
   const router = useRouter();
@@ -47,23 +56,13 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
     name: "items",
   });
 
-  // Load data into form when invoice fetch completes
   useEffect(() => {
     if (invoice) {
-      // Extended interface to handle potential extra fields from API
-      interface ExtendedInvoice extends Invoice {
-        discount?: number;
-      }
-
-      const safeInvoice = invoice as unknown as ExtendedInvoice;
-
       form.reset({
-        status: ((safeInvoice.status as string) === "created"
-          ? "PENDING"
-          : safeInvoice.status) as "PENDING" | "PAID" | "OVERDUE" | "CANCELLED",
-        discount: safeInvoice.discount || 0,
-        notes: safeInvoice.notes || "",
-        items: safeInvoice.items?.map((item) => ({
+        status: normalizeInvoiceStatus(invoice.status),
+        discount: 0,
+        notes: invoice.notes || "",
+        items: invoice.items?.map((item) => ({
           id: item.id,
           description: item.description,
           quantity: item.quantity,
@@ -91,7 +90,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       router.push(`/invoices/${invoiceId}`);
     } catch (error) {
       toast.error("Failed to update invoice");
-      console.error(error);
+
     } finally {
       setIsSaving(false);
     }

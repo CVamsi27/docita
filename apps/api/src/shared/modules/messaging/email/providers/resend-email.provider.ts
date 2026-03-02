@@ -5,7 +5,7 @@ import {
   TemplatedEmailOptions,
   EmailSendResult,
 } from './email-provider.interface';
-import { AppConfigService } from '../../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class ResendEmailProvider implements IEmailProvider {

@@ -7,9 +7,6 @@ export type CreateInventoryItemInput = Omit<
 >;
 export type UpdateInventoryItemInput = Partial<CreateInventoryItemInput>;
 
-/**
- * Inventory API Client
- */
 export const inventoryApi = {
   getAll: (params?: { category?: string; lowStock?: boolean }) => {
     const searchParams = new URLSearchParams();

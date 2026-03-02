@@ -4,8 +4,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -13,9 +13,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Dashboard (e2e)', () => {
@@ -52,7 +52,7 @@ describe('Dashboard (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    // app.useLogger(false); // Enable logger to see errors
+
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
@@ -99,7 +99,6 @@ describe('Dashboard (e2e)', () => {
     });
 
     it('should return correct patient count', async () => {
-      // Create some patients
       await factories.patient(clinicId);
       await factories.patient(clinicId);
       await factories.patient(clinicId);

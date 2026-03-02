@@ -12,18 +12,8 @@ interface TemplateButton {
   action?: string;
 }
 
-/**
- * DefaultTemplatesService - Manages default WhatsApp template library
- * Responsibilities:
- * - Maintaining default template definitions
- * - Providing access to default templates
- * - Listing available templates
- */
 @Injectable()
 export class DefaultTemplatesService {
-  /**
-   * Default system templates - designed for interactive buttons with text fallback
-   */
   readonly templates: Record<
     string,
     {
@@ -416,25 +406,16 @@ View report: {{reportLink}}`,
     },
   };
 
-  /**
-   * Get all default template names
-   */
   getDefaultTemplateNames(): string[] {
     return Object.keys(this.templates);
   }
 
-  /**
-   * Get a default template by ID
-   */
   getDefaultTemplate(
     templateId: string,
   ): (typeof this.templates)[keyof typeof this.templates] | null {
     return this.templates[templateId] || null;
   }
 
-  /**
-   * Get all default templates
-   */
   getAllDefaultTemplates() {
     return Object.values(this.templates);
   }

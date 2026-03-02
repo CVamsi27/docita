@@ -41,7 +41,6 @@ export function BillingModal({
     new Date().toISOString().split("T")[0],
   );
 
-  // New fields for Tax, Discount, Payment Mode
   const [taxRate, setTaxRate] = useState<number>(0);
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [discountType, setDiscountType] = useState<"PERCENTAGE" | "AMOUNT">(
@@ -51,7 +50,6 @@ export function BillingModal({
 
   const createInvoice = useCreateInvoice();
 
-  // Calculations
   const calculations = useMemo(() => {
     const subtotal = items.reduce(
       (sum, item) => sum + item.quantity * item.price,
@@ -83,8 +81,6 @@ export function BillingModal({
         return;
       }
 
-      // Prepare items including tax and discount for persistent storage
-      // Since backend doesn't support separate tax/discount fields yet, we add them as items
       const finalItems = [...validItems];
 
       if (calculations.taxAmount > 0) {
@@ -115,13 +111,13 @@ export function BillingModal({
       toast.success("Invoice created");
       onSaved?.();
       onOpenChange?.(false);
-      // Reset form
+
       setItems([{ description: "Consultation Fee", quantity: 1, price: 50 }]);
       setTaxRate(0);
       setDiscountValue(0);
     } catch (err) {
       toast.error("Failed to create invoice");
-      console.error(err);
+
     }
   };
 
@@ -150,7 +146,7 @@ export function BillingModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-green-600" />
+            <CreditCard className="h-5 w-5 text-success" />
             Create Invoice
           </DialogTitle>
         </DialogHeader>
@@ -246,9 +242,9 @@ export function BillingModal({
             </Button>
           </div>
 
-          {/* Adjustments & Totals */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left: Settings */}
+            {}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -319,20 +315,20 @@ export function BillingModal({
               </div>
             </div>
 
-            {/* Right: Summary */}
+            {}
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-5 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${calculations.subtotal.toFixed(2)}</span>
               </div>
               {calculations.taxAmount > 0 && (
-                <div className="flex justify-between text-sm text-amber-600">
+                <div className="flex justify-between text-sm text-warning">
                   <span>Tax ({taxRate}%)</span>
                   <span>+${calculations.taxAmount.toFixed(2)}</span>
                 </div>
               )}
               {calculations.discountAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
+                <div className="flex justify-between text-sm text-success">
                   <span>Discount</span>
                   <span>-${calculations.discountAmount.toFixed(2)}</span>
                 </div>

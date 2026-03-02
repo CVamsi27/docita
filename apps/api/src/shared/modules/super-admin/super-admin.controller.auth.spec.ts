@@ -5,7 +5,8 @@ import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
 import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
 import { SuperAdminBillingService } from './super-admin-billing.service';
-import { RolesGuard } from '../auth/auth/roles.guard';
+import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { Role } from '@workspace/db';
@@ -36,6 +37,14 @@ describe('SuperAdminController - Authorization', () => {
     getTierPricing: jest.fn(),
   };
 
+  const mockFeedbackService = {
+    findAll: jest.fn(),
+    getStats: jest.fn(),
+    findOne: jest.fn(),
+    updateStatus: jest.fn(),
+    delete: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SuperAdminController],
@@ -59,6 +68,10 @@ describe('SuperAdminController - Authorization', () => {
         {
           provide: SuperAdminBillingService,
           useValue: mockBillingService,
+        },
+        {
+          provide: FeedbackService,
+          useValue: mockFeedbackService,
         },
         Reflector,
       ],

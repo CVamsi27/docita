@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -21,14 +21,11 @@ describe('AppointmentsController (e2e)', () => {
   let jwtToken;
 
   beforeAll(async () => {
-    // 1. Initialize DB
     prisma = setupTestDatabase();
     setPrismaInstance(prisma);
 
-    // 2. Clear DB
     await resetDatabase();
 
-    // 3. Initialize App
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -40,17 +37,13 @@ describe('AppointmentsController (e2e)', () => {
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
 
-    // 4. Seed Data
-    // Create Clinic
     clinic = await factories.clinic();
 
-    // Create Doctor & Link to Clinic
     const { user: docUser, plainPassword } = await factories.user({
       clinicId: clinic.id,
     });
     doctor = docUser;
 
-    // Login to get Token
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: doctor.email, password: plainPassword })
@@ -58,7 +51,6 @@ describe('AppointmentsController (e2e)', () => {
 
     jwtToken = loginRes.body.access_token;
 
-    // Create Patient
     patient = await factories.patient(clinic.id);
   });
 
@@ -73,7 +65,7 @@ describe('AppointmentsController (e2e)', () => {
   describe('/appointments (POST)', () => {
     it('should create a new appointment', async () => {
       const startTime = new Date();
-      startTime.setDate(startTime.getDate() + 1); // Tomorrow
+      startTime.setDate(startTime.getDate() + 1);
       startTime.setHours(10, 0, 0, 0);
 
       const endTime = new Date(startTime);
@@ -104,7 +96,6 @@ describe('AppointmentsController (e2e)', () => {
 
   describe('/appointments (GET)', () => {
     it('should list appointments for the clinic', async () => {
-      // Create another appointment to ensure list works
       await factories.appointment(patient.id, doctor.id, clinic.id, {
         startTime: new Date(),
         endTime: new Date(new Date().getTime() + 1800000),
@@ -118,7 +109,7 @@ describe('AppointmentsController (e2e)', () => {
       expect(response.body.items).toBeDefined();
       expect(Array.isArray(response.body.items)).toBeTruthy();
       expect(response.body.items.length).toBeGreaterThanOrEqual(1);
-      expect(response.body.items[0]).toHaveProperty('patient'); // Check relation included
+      expect(response.body.items[0]).toHaveProperty('patient');
     });
   });
 });

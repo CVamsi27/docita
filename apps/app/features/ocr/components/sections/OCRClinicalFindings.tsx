@@ -1,9 +1,9 @@
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
 import { FileText } from "lucide-react";
-import { ConfidenceIndicator } from "../common/confidence-indicator";
-import { SectionToggle } from "../common/section-toggle";
-import { OCRFormData } from "../../types";
+import { ConfidenceIndicator } from "@/features/ocr/components/common/confidence-indicator";
+import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
+import { OCRFormData } from "@/features/ocr/types";
 
 interface OCRClinicalFindingsProps {
   formData: OCRFormData;

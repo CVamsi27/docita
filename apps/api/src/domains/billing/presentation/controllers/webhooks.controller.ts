@@ -7,10 +7,10 @@ import {
   Logger,
   UsePipes,
 } from '@nestjs/common';
-import { PaymentsService } from '../../application/services/payments.service';
-import { Public } from '../../../../shared/modules/auth/auth/public.decorator';
-import { WebhookErrorHandlingService } from '../../../webhooks/application/services/webhook-error-handling.service';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { PaymentsService } from '@/domains/billing/application/services/payments.service';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { WebhookErrorHandlingService } from '@/domains/webhooks/application/services/webhook-error-handling.service';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import {
   paymentWebhookPayloadSchema,
   type PaymentWebhookPayload,
@@ -38,10 +38,8 @@ export class WebhooksController {
     const paymentLinkId = 'razorpay_webhook';
 
     try {
-      // Process webhook - already has internal error handling
       this.paymentsService.handleRazorpayWebhook(payload, signature);
 
-      // Track successful webhook processing
       await this.webhookErrorHandler.trackWebhookEvent(
         payload.event,
         paymentLinkId,
@@ -52,7 +50,6 @@ export class WebhooksController {
     } catch (error) {
       const err = error as Error;
 
-      // Log webhook error with context
       const isCritical = this.webhookErrorHandler.isCriticalError(
         err,
         payload.event,
@@ -70,7 +67,6 @@ export class WebhooksController {
         isCritical,
       );
 
-      // Track failed webhook processing
       await this.webhookErrorHandler.trackWebhookEvent(
         payload.event,
         paymentLinkId,
@@ -78,8 +74,6 @@ export class WebhooksController {
         err,
       );
 
-      // IMPORTANT: Still return 200 to Razorpay to prevent retries of bad webhooks
-      // Error is logged and can be investigated via error tracking
       this.logger.error(`Razorpay webhook error for event ${payload.event}`, {
         error: err.message,
         paymentLinkId,

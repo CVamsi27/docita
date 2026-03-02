@@ -50,7 +50,7 @@ export function ConsultationProgressUI({
           <div
             className={cn(
               "h-full transition-all duration-300",
-              progress.isMinimumMet ? "bg-green-500" : "bg-primary",
+              progress.isMinimumMet ? "bg-success" : "bg-primary",
             )}
             style={{ width: `${progress.percentage}%` }}
           />
@@ -58,7 +58,7 @@ export function ConsultationProgressUI({
         <span
           className={cn(
             "text-xs font-medium",
-            progress.isMinimumMet ? "text-green-600" : "text-muted-foreground",
+            progress.isMinimumMet ? "text-success" : "text-muted-foreground",
           )}
         >
           {progress.percentage}%
@@ -69,13 +69,13 @@ export function ConsultationProgressUI({
 
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Progress bar */}
+      {}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full transition-all duration-500 ease-out",
-              progress.isMinimumMet ? "bg-green-500" : "bg-primary",
+              progress.isMinimumMet ? "bg-success" : "bg-primary",
             )}
             style={{ width: `${progress.percentage}%` }}
           />
@@ -83,14 +83,14 @@ export function ConsultationProgressUI({
         <span
           className={cn(
             "text-sm font-semibold min-w-12 text-right",
-            progress.isMinimumMet ? "text-green-600" : "text-foreground",
+            progress.isMinimumMet ? "text-success" : "text-foreground",
           )}
         >
           {progress.percentage}%
         </span>
       </div>
 
-      {/* Step indicators */}
+      {}
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center justify-between">
           {steps.map((step, index) => {
@@ -112,7 +112,7 @@ export function ConsultationProgressUI({
                         className={cn(
                           "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all",
                           step.isComplete &&
-                            "bg-green-500 border-green-500 text-white",
+                            "bg-success border-success text-success-foreground",
                           !step.isComplete &&
                             isCurrent &&
                             "border-primary bg-primary/10 text-primary",
@@ -121,13 +121,13 @@ export function ConsultationProgressUI({
                             "border-muted bg-background text-muted-foreground",
                           step.hasWarnings &&
                             !step.isComplete &&
-                            "border-amber-500 bg-amber-50",
+                            "border-warning bg-warning/10",
                         )}
                       >
                         {step.isComplete ? (
                           <Check className="h-4 w-4" />
                         ) : step.hasWarnings ? (
-                          <AlertCircle className="h-4 w-4 text-amber-500" />
+                          <AlertCircle className="h-4 w-4 text-warning" />
                         ) : (
                           <span className="text-xs font-medium">
                             {index + 1}
@@ -137,7 +137,7 @@ export function ConsultationProgressUI({
                       <span
                         className={cn(
                           "text-[10px] font-medium max-w-[60px] text-center leading-tight",
-                          step.isComplete && "text-green-600",
+                          step.isComplete && "text-success",
                           isCurrent && !step.isComplete && "text-primary",
                           !step.isComplete &&
                             !isCurrent &&
@@ -152,27 +152,27 @@ export function ConsultationProgressUI({
                     <div className="text-center">
                       <p className="font-medium">{step.label}</p>
                       {step.isRequired && !step.isComplete && (
-                        <p className="text-xs text-amber-500">Required</p>
+                        <p className="text-xs text-warning">Required</p>
                       )}
                       {step.hasWarnings && step.warningMessage && (
-                        <p className="text-xs text-amber-500">
+                        <p className="text-xs text-warning">
                           {step.warningMessage}
                         </p>
                       )}
                       {step.isComplete && (
-                        <p className="text-xs text-green-500">Completed</p>
+                        <p className="text-xs text-success">Completed</p>
                       )}
                     </div>
                   </TooltipContent>
                 </Tooltip>
 
-                {/* Connector line */}
+                {}
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
                       "h-0.5 w-4 sm:w-8 md:w-12 mx-1",
                       steps[index + 1]!.isComplete || step.isComplete
-                        ? "bg-green-500"
+                        ? "bg-success"
                         : isCurrent
                           ? "bg-primary/30"
                           : "bg-muted",
@@ -185,10 +185,10 @@ export function ConsultationProgressUI({
         </div>
       </TooltipProvider>
 
-      {/* Status message */}
+      {}
       <div className="flex items-center justify-center gap-2 text-xs">
         {progress.isMinimumMet ? (
-          <span className="flex items-center gap-1 text-green-600">
+          <span className="flex items-center gap-1 text-success">
             <Check className="h-3 w-3" />
             Ready to complete consultation
           </span>

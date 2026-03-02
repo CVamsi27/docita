@@ -1,8 +1,4 @@
-/**
- * Subscription Repository
- * Single Responsibility: Data access and caching for subscription data
- * Repository Pattern implementation
- */
+
 
 import { Feature, Tier } from "@workspace/types";
 import type {
@@ -48,7 +44,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   >();
 
   constructor(cacheTTL = 60000, apiBaseUrl = "/api") {
-    this.cacheTTL = cacheTTL; // Default: 1 minute
+    this.cacheTTL = cacheTTL; 
     this.apiBaseUrl = apiBaseUrl;
   }
 
@@ -56,7 +52,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     userId: string,
     clinicId?: string,
   ): Promise<Partial<IAccessContext>> {
-    // Fetch all data in parallel
+
     const [subscription, addOns, overrides] = await Promise.all([
       this.getSubscription(userId, clinicId),
       this.getAddOns(userId, clinicId),
@@ -78,13 +74,11 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   ): Promise<ISubscription> {
     const cacheKey = this.getCacheKey(userId, clinicId);
 
-    // Check cache first
     const cached = this.subscriptionCache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp)) {
       return cached.data;
     }
 
-    // Fetch from API
     const url = clinicId
       ? `${this.apiBaseUrl}/clinics/${clinicId}/subscription`
       : `${this.apiBaseUrl}/users/${userId}/subscription`;
@@ -98,13 +92,11 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const data = (await response.json()) as RawSubscriptionData;
     const subscription = this.normalizeSubscription(data);
 
-    // Cache the result
     this.subscriptionCache.set(cacheKey, {
       data: subscription,
       timestamp: Date.now(),
     });
 
-    // Notify listeners
     this.notifySubscriptionChange(userId, subscription);
 
     return subscription;
@@ -113,13 +105,11 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   async getAddOns(userId: string, clinicId?: string): Promise<IAddOn[]> {
     const cacheKey = this.getCacheKey(userId, clinicId);
 
-    // Check cache first
     const cached = this.addOnsCache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp)) {
       return cached.data;
     }
 
-    // Fetch from API
     const url = clinicId
       ? `${this.apiBaseUrl}/clinics/${clinicId}/add-ons`
       : `${this.apiBaseUrl}/users/${userId}/add-ons`;
@@ -127,7 +117,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const response = await fetch(url);
 
     if (!response.ok) {
-      // If add-ons endpoint doesn't exist yet, return empty array
+
       if (response.status === 404) {
         return [];
       }
@@ -137,7 +127,6 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const data = (await response.json()) as IAddOn[];
     const addOns = Array.isArray(data) ? data : [];
 
-    // Cache the result
     this.addOnsCache.set(cacheKey, {
       data: addOns,
       timestamp: Date.now(),
@@ -149,18 +138,16 @@ export class SubscriptionRepository implements ISubscriptionRepository {
   async getOverrides(userId: string): Promise<IFeatureOverride[]> {
     const cacheKey = userId;
 
-    // Check cache first
     const cached = this.overridesCache.get(cacheKey);
     if (cached && this.isCacheValid(cached.timestamp)) {
       return cached.data;
     }
 
-    // Fetch from API
     const url = `${this.apiBaseUrl}/users/${userId}/overrides`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      // If overrides endpoint doesn't exist yet, return empty array
+
       if (response.status === 404) {
         return [];
       }
@@ -169,10 +156,11 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
     const data = (await response.json()) as RawOverrideData[];
     const overrides = Array.isArray(data)
-      ? data.map(this.normalizeOverride)
+      ? data
+          .map((override) => this.normalizeOverride(override))
+          .filter((override): override is IFeatureOverride => override !== null)
       : [];
 
-    // Cache the result
     this.overridesCache.set(cacheKey, {
       data: overrides,
       timestamp: Date.now(),
@@ -198,7 +186,6 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
     this.subscriptionListeners.get(userId)!.add(callback);
 
-    // Return unsubscribe function
     return () => {
       this.subscriptionListeners.get(userId)?.delete(callback);
       if (this.subscriptionListeners.get(userId)?.size === 0) {
@@ -215,18 +202,33 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     return Date.now() - timestamp < this.cacheTTL;
   }
 
-  private normalizeSubscription(raw: RawSubscriptionData): ISubscription {
-    // Validate Tier
-    let tier: Tier = Tier.CAPTURE;
-    if (raw.tier && Object.values(Tier).includes(raw.tier as unknown as Tier)) {
-      tier = raw.tier as unknown as Tier;
-    } else if (raw.tier && raw.tier in Tier) {
-      // Handle string enum access if needed
-      tier = Tier[raw.tier as keyof typeof Tier];
+  private parseTier(value?: string): Tier {
+    if (!value) {
+      return Tier.CAPTURE;
     }
 
+    const numericTier = Number(value);
+    if (Number.isInteger(numericTier) && Tier[numericTier] !== undefined) {
+      return numericTier as Tier;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(Tier, value)) {
+      const mappedTier = Tier[value as keyof typeof Tier];
+      if (typeof mappedTier === "number") {
+        return mappedTier;
+      }
+    }
+
+    return Tier.CAPTURE;
+  }
+
+  private isValidFeature(value: string): value is Feature {
+    return Object.values(Feature).includes(value as Feature);
+  }
+
+  private normalizeSubscription(raw: RawSubscriptionData): ISubscription {
     return {
-      tier,
+      tier: this.parseTier(raw.tier),
       status: this.isValidStatus(raw.status) ? raw.status : "active",
       features: Array.isArray(raw.features)
         ? raw.features
@@ -241,12 +243,13 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     };
   }
 
-  private normalizeOverride(raw: RawOverrideData): IFeatureOverride {
-    // Ensure feature is valid - trust API or runtime check
-    const feature = raw.feature as Feature;
+  private normalizeOverride(raw: RawOverrideData): IFeatureOverride | null {
+    if (!this.isValidFeature(raw.feature)) {
+      return null;
+    }
 
     return {
-      feature,
+      feature: raw.feature,
       granted: Boolean(raw.granted),
       reason: String(raw.reason || ""),
       grantedBy: String(raw.grantedBy || ""),

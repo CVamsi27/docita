@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Prescription, Medication, User } from '@workspace/db';
-import { FhirMedicationRequest } from '../interfaces/fhir.interfaces';
+import { Prescription, Medication } from '@workspace/db';
+import { FhirMedicationRequest } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
-type PrescriptionWithRelations = Prescription & {
+type PrescriptionWithRelations = Pick<
+  Prescription,
+  'patientId' | 'appointmentId' | 'createdAt' | 'doctorId'
+> & {
   medications: Medication[];
   patient: { firstName: string; lastName: string };
-  doctor: { id: string; name: string };
+  doctor: { name: string };
 };
 
 @Injectable()
@@ -52,7 +55,6 @@ export class FhirMedicationFactory {
           ],
         };
 
-        // Add NDC code if available
         if (med.ndcCode && request.medicationCodeableConcept?.coding) {
           request.medicationCodeableConcept.coding.push({
             system: 'http://hl7.org/fhir/sid/ndc',
@@ -61,7 +63,6 @@ export class FhirMedicationFactory {
           });
         }
 
-        // Add RxNorm code if available
         if (med.rxNormCui && request.medicationCodeableConcept?.coding) {
           request.medicationCodeableConcept.coding.push({
             system: 'http://www.nlm.nih.gov/research/umls/rxnorm',
@@ -70,7 +71,6 @@ export class FhirMedicationFactory {
           });
         }
 
-        // Add dispense request if quantity/refills available
         if (med.quantity || med.refillsAllowed) {
           request.dispenseRequest = {};
           if (med.quantity) {

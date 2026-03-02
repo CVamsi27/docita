@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { DomainEvent } from '../../../../common/events/domain-events';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { DomainEvent } from '@/common/events/domain-events';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class AuditEventListener {
@@ -12,6 +12,14 @@ export class AuditEventListener {
     private readonly prisma: PrismaService,
     private readonly configService: AppConfigService,
   ) {}
+
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
 
   @OnEvent('domain.*')
   async handleDomainEvent(event: DomainEvent): Promise<void> {
@@ -23,16 +31,13 @@ export class AuditEventListener {
         );
       }
 
-      // Skip if no userId (can't create audit log without it)
       if (!event.metadata.userId) {
         this.logger.debug(`Skipping audit log for ${event.type} - no userId`);
         return;
       }
 
-      // Determine action and entity from event type
       const [entity, action] = event.type.split('.');
 
-      // Create audit log entry
       await this.prisma.auditLog.create({
         data: {
           action: action?.toUpperCase() ?? 'UNKNOWN',
@@ -51,7 +56,6 @@ export class AuditEventListener {
         },
       });
     } catch (error) {
-      // Don't let audit failures break the main flow
       this.logger.error(
         `Failed to create audit log for ${event.type}`,
         error instanceof Error ? error.message : 'Unknown error',
@@ -59,13 +63,9 @@ export class AuditEventListener {
     }
   }
 
-  /**
-   * Extract entity ID from event payload
-   */
   private extractEntityId(event: DomainEvent): string | undefined {
-    const payload = event.payload as Record<string, unknown>;
+    const payload = this.toRecord(event.payload);
 
-    // Common patterns for entity IDs
     const idFields = [
       'patientId',
       'appointmentId',

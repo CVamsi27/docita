@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { RedisCachingService } from '../services/redis-caching.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
 
 export type SearchEntityType =
   | 'patient'
@@ -24,31 +24,16 @@ export interface SearchOptions {
   limit?: number;
 }
 
-/**
- * Unified search service with PostgreSQL full-text search optimization.
- *
- * Features:
- * - GIN index on tsvector columns for 10-50x faster text search
- * - pg_trgm for typo-tolerant LIKE queries
- * - Redis caching for frequent queries (5 minute TTL)
- * - Parallel entity searches
- * - Relevance scoring and ranking
- *
- * Performance: < 200ms for 10k+ records with indexes
- */
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
-  private readonly SEARCH_CACHE_TTL = 300; // 5 minutes
+  private readonly SEARCH_CACHE_TTL = 300;
 
   constructor(
     private prisma: PrismaService,
     private readonly cacheService: RedisCachingService,
   ) {}
 
-  /**
-   * Perform unified search across multiple entity types.
-   */
   async search(options: SearchOptions): Promise<SearchResult[]> {
     const { clinicId, query, types = ['all'], limit = 20 } = options;
 
@@ -56,7 +41,6 @@ export class SearchService {
       return [];
     }
 
-    // Check cache first
     const cacheKey = `search:${clinicId}:${query}:${types.join(',')}:${limit}`;
     const cached = await this.cacheService.get<SearchResult[]>(cacheKey);
     if (cached) {
@@ -71,7 +55,6 @@ export class SearchService {
     const results: SearchResult[] = [];
     const perTypeLimit = Math.ceil(limit / searchTypes.length);
 
-    // Search in parallel
     const searchPromises = searchTypes.map((type) => {
       switch (type) {
         case 'patient':
@@ -88,14 +71,12 @@ export class SearchService {
     const allResults = await Promise.all(searchPromises);
     allResults.forEach((r) => results.push(...r));
 
-    // Sort by relevance score (if available) and limit
     const sorted = results
       .sort((a, b) => {
         const scoreA = a.relevanceScore ?? 0;
         const scoreB = b.relevanceScore ?? 0;
         if (scoreB !== scoreA) return scoreB - scoreA;
 
-        // Fallback: sort by title match
         const aExact = a.title.toLowerCase().includes(query.toLowerCase());
         const bExact = b.title.toLowerCase().includes(query.toLowerCase());
         if (aExact && !bExact) return -1;
@@ -104,7 +85,6 @@ export class SearchService {
       })
       .slice(0, limit);
 
-    // Cache results
     await this.cacheService.set(cacheKey, sorted, {
       ttl: this.SEARCH_CACHE_TTL,
     });
@@ -112,30 +92,22 @@ export class SearchService {
     return sorted;
   }
 
-  /**
-   * Search patients by name, phone, or email.
-   * Uses full-text search if tsvector available, falls back to ILIKE.
-   */
   private async searchPatients(
     clinicId: string,
     query: string,
     limit: number,
   ): Promise<SearchResult[]> {
     try {
-      // Try full-text search first (faster for large datasets)
       return await this.searchPatientsFullText(clinicId, query, limit);
     } catch (error) {
       this.logger.warn(
         `Full-text search failed for patients, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      // Fallback to ILIKE search
+
       return this.searchPatientsFallback(clinicId, query, limit);
     }
   }
 
-  /**
-   * Patient full-text search using PostgreSQL tsvector (when index available)
-   */
   private async searchPatientsFullText(
     clinicId: string,
     query: string,
@@ -176,9 +148,6 @@ export class SearchService {
     }));
   }
 
-  /**
-   * Patient fallback search using ILIKE (always available)
-   */
   private async searchPatientsFallback(
     clinicId: string,
     query: string,
@@ -214,30 +183,22 @@ export class SearchService {
     }));
   }
 
-  /**
-   * Search appointments by patient name or notes.
-   * Uses full-text search if tsvector available, falls back to ILIKE.
-   */
   private async searchAppointments(
     clinicId: string,
     query: string,
     limit: number,
   ): Promise<SearchResult[]> {
     try {
-      // Try full-text search first (faster for large datasets)
       return await this.searchAppointmentsFullText(clinicId, query, limit);
     } catch (error) {
       this.logger.warn(
         `Full-text search failed for appointments, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      // Fallback to ILIKE search
+
       return this.searchAppointmentsFallback(clinicId, query, limit);
     }
   }
 
-  /**
-   * Appointment full-text search using PostgreSQL tsvector (when index available)
-   */
   private async searchAppointmentsFullText(
     clinicId: string,
     query: string,
@@ -281,9 +242,6 @@ export class SearchService {
     }));
   }
 
-  /**
-   * Appointment fallback search using ILIKE (always available)
-   */
   private async searchAppointmentsFallback(
     clinicId: string,
     query: string,
@@ -321,10 +279,6 @@ export class SearchService {
     }));
   }
 
-  /**
-   * Search prescriptions by instructions or patient name.
-   * Uses ILIKE for searching (prescriptions typically have less text).
-   */
   private async searchPrescriptions(
     clinicId: string,
     query: string,
@@ -360,15 +314,10 @@ export class SearchService {
     }));
   }
 
-  /**
-   * Invalidate search cache when data changes
-   */
   async invalidateSearchCache(clinicId?: string) {
     if (clinicId) {
-      // Invalidate all search caches for this clinic
       await this.cacheService.invalidateTag(`search:${clinicId}`);
     } else {
-      // Clear all search caches
       await this.cacheService.clear();
     }
     this.logger.debug(

@@ -15,9 +15,15 @@ interface TemplateVariable {
   defaultValue?: string;
 }
 
-/**
- * Resolved template ready for sending
- */
+function getMetaTemplateId(template: unknown): string | undefined {
+  if (!template || typeof template !== 'object') {
+    return undefined;
+  }
+
+  const raw = (template as { metaTemplateId?: unknown }).metaTemplateId;
+  return typeof raw === 'string' ? raw : undefined;
+}
+
 export interface ResolvedTemplate {
   content: string;
   buttons?: TemplateButton[];
@@ -26,14 +32,6 @@ export interface ResolvedTemplate {
   metaTemplateId?: string;
 }
 
-/**
- * TemplateResolutionService - Resolves templates with variables for sending
- * Responsibilities:
- * - Loading template (custom or default)
- * - Validating variables
- * - Resolving variables in content and buttons
- * - Preparing template for sending
- */
 @Injectable()
 export class TemplateResolutionService {
   private readonly logger = new Logger(TemplateResolutionService.name);
@@ -44,11 +42,46 @@ export class TemplateResolutionService {
     private templateVariable: TemplateVariableService,
   ) {}
 
-  /**
-   * Get a template (custom first, then default fallback)
-   */
+  private toTemplateVariables(value: unknown): TemplateVariable[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .filter(
+        (item): item is Record<string, unknown> =>
+          !!item && typeof item === 'object',
+      )
+      .map((item) => ({
+        name: typeof item.name === 'string' ? item.name : '',
+        required: typeof item.required === 'boolean' ? item.required : false,
+        defaultValue:
+          typeof item.defaultValue === 'string' ? item.defaultValue : undefined,
+      }))
+      .filter((item) => item.name.length > 0);
+  }
+
+  private toTemplateButtons(value: unknown): TemplateButton[] | undefined {
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const buttons = value
+      .filter(
+        (item): item is Record<string, unknown> =>
+          !!item && typeof item === 'object',
+      )
+      .map((item) => ({
+        id: typeof item.id === 'string' ? item.id : '',
+        text: typeof item.text === 'string' ? item.text : '',
+        action: typeof item.action === 'string' ? item.action : undefined,
+      }))
+      .filter((item) => item.id.length > 0 && item.text.length > 0);
+
+    return buttons.length > 0 ? buttons : undefined;
+  }
+
   async getTemplate(templateId: string, clinicId?: string) {
-    // First, check if clinic has a custom template
     if (clinicId) {
       const customTemplate = await this.templateData.getCustomTemplate(
         templateId,
@@ -60,19 +93,15 @@ export class TemplateResolutionService {
           name: customTemplate.name,
           category: customTemplate.category,
           content: customTemplate.content,
-          variables:
-            (customTemplate.variables as unknown as TemplateVariable[]) || [],
+          variables: this.toTemplateVariables(customTemplate.variables),
           buttonType: customTemplate.buttonType,
-          buttons: customTemplate.buttons as unknown as
-            | TemplateButton[]
-            | undefined,
+          buttons: this.toTemplateButtons(customTemplate.buttons),
           textFallback: customTemplate.content,
           metaTemplateId: customTemplate.metaTemplateId || undefined,
         };
       }
     }
 
-    // Fall back to default templates
     const defaultTemplate =
       this.defaultTemplates.getDefaultTemplate(templateId);
     if (defaultTemplate) {
@@ -82,10 +111,6 @@ export class TemplateResolutionService {
     return null;
   }
 
-  /**
-   * Resolve a template with variables - the core abstraction
-   * Always use this method, never construct messages directly
-   */
   async resolveTemplate(
     templateId: string,
     variables: Record<string, string>,
@@ -97,7 +122,6 @@ export class TemplateResolutionService {
       return null;
     }
 
-    // Validate required variables
     const { valid } = this.templateVariable.validateRequiredVariables(
       templateId,
       variables,
@@ -108,13 +132,11 @@ export class TemplateResolutionService {
       return null;
     }
 
-    // Fill in default values
     const filledVariables = this.templateVariable.fillDefaults(
       variables,
       template.variables,
     );
 
-    // Resolve content with variables
     const resolvedContent = this.templateVariable.replaceVariables(
       template.content,
       filledVariables,
@@ -124,7 +146,6 @@ export class TemplateResolutionService {
       filledVariables,
     );
 
-    // Resolve buttons if present
     let resolvedButtons: TemplateButton[] | undefined;
     if (template.buttons) {
       resolvedButtons = template.buttons.map((button) => ({
@@ -146,7 +167,7 @@ export class TemplateResolutionService {
       buttonType:
         template.buttonType === 'NONE' ? 'QUICK_REPLY' : template.buttonType,
       textFallback: resolvedFallback,
-      metaTemplateId: (template as any).metaTemplateId,
+      metaTemplateId: getMetaTemplateId(template),
     };
   }
 }

@@ -38,7 +38,6 @@ export function FloatingStartConsultation({
     return null;
   }
 
-  // Check permission directly
   if (!canStartConsultation) {
     return null;
   }

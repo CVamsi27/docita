@@ -1,9 +1,3 @@
-/**
- * Cursor-Based Pagination Service
- * Implements efficient cursor-based pagination for large datasets
- * Supports sorting and filtering without offset performance issues
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 
@@ -24,22 +18,18 @@ export interface CursorPaginationOptions {
   includeTotal?: boolean;
 }
 
+type CursorPayload = Record<string, unknown>;
+
 @Injectable()
 export class CursorPaginationService {
   private readonly logger = new Logger(CursorPaginationService.name);
 
-  /**
-   * Encode cursor from data point
-   */
-  encodeCursor(data: Record<string, any>): string {
+  encodeCursor(data: CursorPayload): string {
     const json = JSON.stringify(data);
     return Buffer.from(json).toString('base64');
   }
 
-  /**
-   * Decode cursor to data point
-   */
-  decodeCursor(cursor?: string): Record<string, any> | null {
+  decodeCursor(cursor?: string): CursorPayload | null {
     if (!cursor) return null;
 
     try {
@@ -53,9 +43,14 @@ export class CursorPaginationService {
     }
   }
 
-  /**
-   * Build WHERE clause for cursor-based pagination
-   */
+  private getSortValue(item: unknown, sortBy: string): unknown {
+    if (!item || typeof item !== 'object') {
+      return undefined;
+    }
+
+    return (item as CursorPayload)[sortBy];
+  }
+
   buildCursorWhereClause(
     decodedCursor: Record<string, unknown> | null,
     sortBy: string,
@@ -67,33 +62,24 @@ export class CursorPaginationService {
     const value = decodedCursor[sortBy];
     if (value === undefined) return {};
 
-    // For next page (ascending), get items > cursor value
-    // For next page (descending), get items < cursor value
     if (direction === 'next') {
       return sortOrder === 'asc'
         ? { [sortBy]: { gt: value } }
         : { [sortBy]: { lt: value } };
     }
 
-    // For previous page, reverse the logic
     return sortOrder === 'asc'
       ? { [sortBy]: { lt: value } }
       : { [sortBy]: { gt: value } };
   }
 
-  /**
-   * Build Prisma skip/take for cursor pagination
-   */
   buildSkipTake(limit: number): { skip: number; take: number } {
     return {
       skip: 0,
-      take: limit + 1, // Fetch one extra to determine if there are more pages
+      take: limit + 1,
     };
   }
 
-  /**
-   * Format paginated response
-   */
   formatPage<T>(
     items: T[],
     limit: number,
@@ -106,13 +92,18 @@ export class CursorPaginationService {
     const nextCursor =
       hasMore && pageItems.length > 0
         ? this.encodeCursor({
-            [sortBy]: (pageItems[pageItems.length - 1] as any)[sortBy],
+            [sortBy]: this.getSortValue(
+              pageItems[pageItems.length - 1],
+              sortBy,
+            ),
           })
         : undefined;
 
     const previousCursor =
       direction === 'next' && pageItems.length > 0
-        ? this.encodeCursor({ [sortBy]: (pageItems[0] as any)[sortBy] })
+        ? this.encodeCursor({
+            [sortBy]: this.getSortValue(pageItems[0], sortBy),
+          })
         : undefined;
 
     return {
@@ -124,9 +115,6 @@ export class CursorPaginationService {
     };
   }
 
-  /**
-   * Get documentation for cursor pagination
-   */
   getDocumentation(): string {
     return `
 ## Cursor-Based Pagination Guide

@@ -1,18 +1,9 @@
-/**
- * Vital Signs Status Utilities
- *
- * Utilities for determining vital sign status (normal, elevated, low, critical)
- * based on standard clinical ranges.
- */
+
 
 export type VitalStatusType = "normal" | "elevated" | "low" | "critical";
 
 export type VitalType = "bp" | "pulse" | "temp" | "spo2" | "weight" | "height";
 
-/**
- * Color mappings for vital sign statuses
- * Used for consistent UI representation across the application
- */
 export const VITAL_STATUS_COLORS: Record<VitalStatusType, string> = {
   normal: "text-green-600",
   elevated: "text-orange-500",
@@ -20,10 +11,6 @@ export const VITAL_STATUS_COLORS: Record<VitalStatusType, string> = {
   critical: "text-red-600 font-bold animate-pulse",
 };
 
-/**
- * Normal ranges for vital signs
- * Based on adult clinical standards
- */
 export const VITAL_RANGES = {
   bp: {
     normal: { min: 90, max: 140 },
@@ -43,28 +30,12 @@ export const VITAL_RANGES = {
   },
 } as const;
 
-/**
- * Determine vital sign status based on value and type
- *
- * @param type - Type of vital sign (bp, pulse, temp, spo2)
- * @param value - Vital sign value (can be string for blood pressure like "120/80")
- * @returns Status classification
- *
- * @example
- * ```typescript
- * getVitalStatus("bp", 150); // Returns "elevated"
- * getVitalStatus("pulse", 45); // Returns "critical"
- * getVitalStatus("temp", 98.6); // Returns "normal"
- * getVitalStatus("bp", "120/80"); // Returns "normal"
- * ```
- */
 export function getVitalStatus(
   type: string,
   value: number | string | undefined,
 ): VitalStatusType {
   if (value === undefined) return "normal";
 
-  // Extract numeric value from string (for blood pressure like "120/80")
   const numValue =
     typeof value === "string"
       ? parseFloat(value.split("/")[0] || value)
@@ -113,13 +84,6 @@ export function getVitalStatus(
   }
 }
 
-/**
- * Check if a vital sign is abnormal (not normal)
- *
- * @param type - Type of vital sign
- * @param value - Vital sign value
- * @returns True if vital is abnormal
- */
 export function isVitalAbnormal(
   type: string,
   value: number | string | undefined,
@@ -127,13 +91,6 @@ export function isVitalAbnormal(
   return getVitalStatus(type, value) !== "normal";
 }
 
-/**
- * Get vital sign status with human-readable description
- *
- * @param type - Type of vital sign
- * @param value - Vital sign value
- * @returns Object with status and description
- */
 export function getVitalStatusWithDescription(
   type: string,
   value: number | string | undefined,

@@ -3,7 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, FeedbackCategory, FeedbackStatus } from '@workspace/db';
 
 interface CreateFeedbackDto {
@@ -39,9 +39,6 @@ interface FeedbackFilters {
 export class FeedbackService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Submit feedback from a user
-   */
   async create(clinicId: string, userId: string, data: CreateFeedbackDto) {
     return this.prisma.feedback.create({
       data: {
@@ -77,9 +74,6 @@ export class FeedbackService {
     });
   }
 
-  /**
-   * Get all feedback for a clinic (admin view)
-   */
   async findAllForClinic(clinicId: string) {
     return this.prisma.feedback.findMany({
       where: { clinicId },
@@ -96,9 +90,6 @@ export class FeedbackService {
     });
   }
 
-  /**
-   * Get all feedback for super admin (all clinics)
-   */
   async findAll(filters: FeedbackFilters = {}) {
     const where: Prisma.FeedbackWhereInput = {};
 
@@ -173,9 +164,6 @@ export class FeedbackService {
     });
   }
 
-  /**
-   * Get feedback by ID
-   */
   async findOne(id: string, clinicId?: string) {
     const feedback = await this.prisma.feedback.findUnique({
       where: { id },
@@ -209,9 +197,6 @@ export class FeedbackService {
     return feedback;
   }
 
-  /**
-   * Get user's own feedback history
-   */
   async findByUser(userId: string) {
     return this.prisma.feedback.findMany({
       where: { userId },
@@ -227,16 +212,23 @@ export class FeedbackService {
     });
   }
 
-  /**
-   * Update feedback status (admin only)
-   */
-  async updateStatus(id: string, data: UpdateFeedbackStatusDto) {
+  async updateStatus(
+    id: string,
+    data: UpdateFeedbackStatusDto,
+    clinicId?: string,
+  ) {
     const feedback = await this.prisma.feedback.findUnique({
       where: { id },
     });
 
     if (!feedback) {
       throw new NotFoundException('Feedback not found');
+    }
+
+    if (clinicId && feedback.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'Cannot update feedback from another clinic',
+      );
     }
 
     return this.prisma.feedback.update({
@@ -263,9 +255,6 @@ export class FeedbackService {
     });
   }
 
-  /**
-   * Get feedback statistics for super admin
-   */
   async getStats(clinicId?: string) {
     const where = clinicId ? { clinicId } : {};
 
@@ -279,30 +268,25 @@ export class FeedbackService {
       topBadFeatures,
       topImprovementAreas,
     ] = await Promise.all([
-      // Total count
       this.prisma.feedback.count({ where }),
 
-      // Count by status
       this.prisma.feedback.groupBy({
         by: ['status'],
         where,
         _count: true,
       }),
 
-      // Count by category
       this.prisma.feedback.groupBy({
         by: ['category'],
         where,
         _count: true,
       }),
 
-      // Average rating
       this.prisma.feedback.aggregate({
         where,
         _avg: { overallRating: true },
       }),
 
-      // Recent feedback (last 7 days)
       this.prisma.feedback.count({
         where: {
           ...where,
@@ -312,26 +296,22 @@ export class FeedbackService {
         },
       }),
 
-      // Get all good features
       this.prisma.feedback.findMany({
         where,
         select: { goodFeatures: true },
       }),
 
-      // Get all bad features
       this.prisma.feedback.findMany({
         where,
         select: { badFeatures: true },
       }),
 
-      // Get all improvement areas
       this.prisma.feedback.findMany({
         where,
         select: { improvementAreas: true },
       }),
     ]);
 
-    // Aggregate feature mentions
     const goodFeaturesCounts = this.countFeatures(
       topGoodFeatures.flatMap((f) => f.goodFeatures),
     );
@@ -366,9 +346,6 @@ export class FeedbackService {
     };
   }
 
-  /**
-   * Count feature mentions and sort by frequency
-   */
   private countFeatures(
     features: string[],
   ): { feature: string; count: number }[] {
@@ -384,10 +361,7 @@ export class FeedbackService {
       .sort((a, b) => b.count - a.count);
   }
 
-  /**
-   * Delete feedback (admin only)
-   */
-  async delete(id: string) {
+  async delete(id: string, clinicId?: string) {
     const feedback = await this.prisma.feedback.findUnique({
       where: { id },
     });
@@ -396,14 +370,17 @@ export class FeedbackService {
       throw new NotFoundException('Feedback not found');
     }
 
+    if (clinicId && feedback.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'Cannot delete feedback from another clinic',
+      );
+    }
+
     return this.prisma.feedback.delete({
       where: { id },
     });
   }
 
-  /**
-   * Check if user has submitted feedback recently (within last 30 days)
-   */
   async hasRecentFeedback(userId: string, clinicId: string): Promise<boolean> {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 

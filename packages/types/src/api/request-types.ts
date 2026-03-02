@@ -1,9 +1,5 @@
 import type { UserRole } from "../shared/users";
 
-/**
- * Authenticated Express Request
- * Used in NestJS controllers with @Request() decorator
- */
 export interface AuthenticatedRequest {
   user: {
     id: string;
@@ -20,9 +16,6 @@ export interface AuthenticatedRequest {
   params: Record<string, string>;
 }
 
-/**
- * Request with optional user (for public endpoints)
- */
 export interface OptionalAuthRequest {
   user?: {
     id: string;

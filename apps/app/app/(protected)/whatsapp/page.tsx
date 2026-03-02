@@ -27,7 +27,7 @@ export default function WhatsAppPage() {
 
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">
-      {/* Add-on based */}
+      {}
       <div className="flex-1 space-y-6 max-w-4xl mx-auto p-4 md:p-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -51,8 +51,8 @@ export default function WhatsAppPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2 text-green-600 font-medium mb-4">
-                <div className="h-2.5 w-2.5 rounded-full bg-green-600 animate-pulse" />
+              <div className="flex items-center gap-2 text-success font-medium mb-4">
+                <div className="h-2.5 w-2.5 rounded-full bg-success animate-pulse" />
                 Active
               </div>
               <p className="text-sm text-muted-foreground">
@@ -95,11 +95,11 @@ export default function WhatsAppPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <span>Appointment Reminders</span>
-                <span className="text-green-600 font-medium">On</span>
+                <span className="text-success font-medium">On</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span>Follow-up Messages</span>
-                <span className="text-green-600 font-medium">On</span>
+                <span className="text-success font-medium">On</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span>Birthday Wishes</span>
@@ -132,7 +132,7 @@ export default function WhatsAppPage() {
               </p>
               <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-500"
+                  className="h-full bg-success"
                   style={{ width: `${optInRate}%` }}
                 />
               </div>

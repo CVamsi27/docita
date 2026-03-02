@@ -96,7 +96,6 @@ export default function TeamPage() {
       try {
         const allMembers: TeamMember[] = [];
 
-        // Fetch doctors
         const doctorsRes = await fetch(
           `${API_URL}/clinics/${user.clinicId}/doctors`,
           {
@@ -116,7 +115,6 @@ export default function TeamPage() {
           );
         }
 
-        // Fetch receptionists
         const receptRes = await fetch(
           `${API_URL}/clinics/${user.clinicId}/receptionists`,
           {
@@ -138,7 +136,7 @@ export default function TeamPage() {
 
         setMembers(allMembers);
       } catch (error) {
-        console.error("Error loading team:", error);
+
         toast.error("Failed to load team members");
       } finally {
         setLoading(false);
@@ -200,7 +198,7 @@ export default function TeamPage() {
       };
 
       if (editingMember) {
-        // Update
+
         const updatePayload: Record<string, unknown> = { ...payload };
         if (formData.password) {
           updatePayload.password = formData.password;
@@ -219,7 +217,7 @@ export default function TeamPage() {
           toast.success("Team member updated successfully");
           setIsDialogOpen(false);
           resetForm();
-          // Reload team
+
           const reloadRes = await fetch(
             `${API_URL}/clinics/${user?.clinicId}/doctors`,
             {
@@ -255,7 +253,7 @@ export default function TeamPage() {
           toast.error(error.message || "Failed to update team member");
         }
       } else {
-        // Create
+
         const createPayload = { ...payload, password: formData.password };
 
         const res = await fetch(`${API_URL}${endpoint}`, {
@@ -273,7 +271,7 @@ export default function TeamPage() {
           );
           setIsDialogOpen(false);
           resetForm();
-          // Reload team
+
           const reloadRes = await fetch(
             `${API_URL}/clinics/${user?.clinicId}/doctors`,
             {
@@ -310,7 +308,7 @@ export default function TeamPage() {
         }
       }
     } catch (err) {
-      console.error("Error saving team member:", err);
+
       toast.error("Error saving team member");
     } finally {
       setIsSubmitting(false);

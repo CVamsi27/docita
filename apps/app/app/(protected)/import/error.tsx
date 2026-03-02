@@ -13,7 +13,7 @@ export default function ImportError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Import route error:", error);
+
   }, [error]);
 
   return (

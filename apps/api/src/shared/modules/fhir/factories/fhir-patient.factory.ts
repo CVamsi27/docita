@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Patient } from '@workspace/db';
-import { FhirPatient } from '../interfaces/fhir.interfaces';
+import { FhirPatient } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
 @Injectable()
 export class FhirPatientFactory {
@@ -28,7 +28,6 @@ export class FhirPatientFactory {
       extension: [],
     };
 
-    // Add MRN identifier if present
     if (patient.mrn) {
       fhirPatient.identifier!.push({
         use: 'usual',
@@ -45,7 +44,6 @@ export class FhirPatientFactory {
       });
     }
 
-    // Add phone
     if (patient.phoneNumber) {
       fhirPatient.telecom!.push({
         system: 'phone',
@@ -54,7 +52,6 @@ export class FhirPatientFactory {
       });
     }
 
-    // Add email
     if (patient.email) {
       fhirPatient.telecom!.push({
         system: 'email',
@@ -63,7 +60,6 @@ export class FhirPatientFactory {
       });
     }
 
-    // Map gender
     const genderMap: Record<string, 'male' | 'female' | 'other' | 'unknown'> = {
       MALE: 'male',
       FEMALE: 'female',
@@ -74,7 +70,6 @@ export class FhirPatientFactory {
     };
     fhirPatient.gender = genderMap[patient.gender] || 'unknown';
 
-    // Add address
     if (patient.address) {
       fhirPatient.address = [
         {
@@ -84,7 +79,6 @@ export class FhirPatientFactory {
       ];
     }
 
-    // Add race extension (US Core)
     if (patient.race) {
       fhirPatient.extension!.push({
         url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race',
@@ -92,7 +86,6 @@ export class FhirPatientFactory {
       });
     }
 
-    // Add ethnicity extension (US Core)
     if (patient.ethnicity) {
       fhirPatient.extension!.push({
         url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity',
@@ -100,7 +93,6 @@ export class FhirPatientFactory {
       });
     }
 
-    // Add preferred language
     if (patient.preferredLanguage) {
       fhirPatient.communication = [
         {
@@ -118,7 +110,6 @@ export class FhirPatientFactory {
       ];
     }
 
-    // Add emergency contact
     if (patient.emergencyContactName) {
       fhirPatient.contact = [
         {

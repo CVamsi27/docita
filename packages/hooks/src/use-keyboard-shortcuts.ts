@@ -26,7 +26,6 @@ export function useKeyboardShortcuts({
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
-      // Don't trigger shortcuts when typing in inputs
       const target = event.target as HTMLElement;
       const isInput =
         target.tagName === "INPUT" ||
@@ -47,10 +46,8 @@ export function useKeyboardShortcuts({
           ? event.shiftKey
           : !event.shiftKey;
 
-        // For shortcuts without modifiers, skip if in input
         if (modifiers.length === 0 && isInput) continue;
 
-        // Safely handle undefined key values
         const eventKey = event.key?.toLowerCase();
         const shortcutKey = shortcut.key?.toLowerCase();
 
@@ -85,7 +82,6 @@ export function useKeyboardShortcuts({
   };
 }
 
-// Format shortcut for display
 export function formatShortcut(shortcut: KeyboardShortcut): string {
   const isMac =
     typeof navigator !== "undefined" && navigator.platform.includes("Mac");

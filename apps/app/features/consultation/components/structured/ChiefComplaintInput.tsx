@@ -71,8 +71,8 @@ export function ChiefComplaintInput({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-full">
-                  <Activity className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <div className="badge-warning p-1.5 rounded-full">
+                  <Activity className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">
                   Complaint #{index + 1}

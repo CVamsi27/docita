@@ -5,19 +5,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-/**
- * Centralized error handling service
- * Ensures all errors are properly logged with context
- * No silent catch blocks in production code
- */
 @Injectable()
 export class ErrorHandlingService {
   private readonly logger = new Logger('ErrorHandlingService');
 
-  /**
-   * Handle payment processing errors
-   * CRITICAL: Payment failures must NEVER be silently caught
-   */
   handlePaymentError(error: unknown, context: Record<string, unknown>): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -32,10 +23,6 @@ export class ErrorHandlingService {
     );
   }
 
-  /**
-   * Handle data import errors
-   * CRITICAL: Import failures must be logged with full context
-   */
   handleImportError(error: unknown, context: Record<string, unknown>): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -50,10 +37,6 @@ export class ErrorHandlingService {
     );
   }
 
-  /**
-   * Handle webhook processing errors
-   * CRITICAL: Webhook failures must be logged for debugging
-   */
   handleWebhookError(
     error: unknown,
     webhookType: string,
@@ -73,10 +56,6 @@ export class ErrorHandlingService {
     );
   }
 
-  /**
-   * Handle database operation errors
-   * CRITICAL: DB errors must be logged with query context
-   */
   handleDatabaseError(
     error: unknown,
     operation: string,
@@ -91,7 +70,6 @@ export class ErrorHandlingService {
       context,
     });
 
-    // Check if it's a validation error
     if (errorMessage.includes('Unique constraint')) {
       throw new BadRequestException('Resource already exists');
     }
@@ -99,10 +77,6 @@ export class ErrorHandlingService {
     throw new InternalServerErrorException('Database operation failed');
   }
 
-  /**
-   * Handle external service errors
-   * CRITICAL: API/service failures must be traced
-   */
   handleExternalServiceError(
     error: unknown,
     serviceName: string,
@@ -122,9 +96,6 @@ export class ErrorHandlingService {
     );
   }
 
-  /**
-   * Log error without throwing (for non-blocking operations)
-   */
   logError(
     source: string,
     error: unknown,
@@ -138,9 +109,6 @@ export class ErrorHandlingService {
     });
   }
 
-  /**
-   * Sanitize payload for logging (remove sensitive data)
-   */
   private sanitizePayload(payload: unknown): unknown {
     if (!payload || typeof payload !== 'object') {
       return '[non-object payload]';
@@ -148,12 +116,11 @@ export class ErrorHandlingService {
 
     const stringPayload = JSON.stringify(payload);
 
-    // Remove common sensitive fields
     return stringPayload
       .replace(/"password":\s*"[^"]*"/g, '"password":"***"')
       .replace(/"token":\s*"[^"]*"/g, '"token":"***"')
       .replace(/"apiKey":\s*"[^"]*"/g, '"apiKey":"***"')
       .replace(/"secret":\s*"[^"]*"/g, '"secret":"***"')
-      .substring(0, 500); // Limit size
+      .substring(0, 500);
   }
 }

@@ -1,7 +1,4 @@
-/**
- * Reusable error banner component for displaying general form errors
- * Used when error is not tied to a specific field
- */
+
 
 import React from "react";
 import { AlertCircle, X } from "lucide-react";
@@ -14,14 +11,6 @@ interface ErrorBannerProps {
   details?: string[];
 }
 
-/**
- * ErrorBanner displays a prominent error message at the top of a form
- * Features:
- * - Clear error message
- * - Optional dismiss button
- * - Support for multiple error details
- * - Accessible with proper ARIA labels
- */
 export const ErrorBanner: React.FC<ErrorBannerProps> = ({
   message,
   onDismiss,
@@ -34,7 +23,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
     <div
       role="alert"
       aria-live="polite"
-      className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-destructive animate-in fade-in slide-in-from-top-1"
+      className="surface-danger rounded-lg p-4 animate-in fade-in slide-in-from-top-1"
     >
       <div className="flex gap-3">
         <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />

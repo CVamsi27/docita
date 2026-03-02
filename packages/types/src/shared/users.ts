@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-// ============================================================================
-// User & Auth Schemas
-// ============================================================================
-
 export const userRoleSchema = z.enum([
   "DOCTOR",
   "RECEPTIONIST",
@@ -13,7 +9,6 @@ export const userRoleSchema = z.enum([
 ]);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
-// Gender
 export const genderSchema = z.enum([
   "MALE",
   "FEMALE",
@@ -33,7 +28,6 @@ export const GENDER_LABELS: Record<Gender, string> = {
   PREFER_NOT_TO_SAY: "Prefer Not to Say",
 };
 
-// Blood Group
 export const bloodGroupSchema = z.enum([
   "A+",
   "A-",
@@ -46,7 +40,6 @@ export const bloodGroupSchema = z.enum([
 ]);
 export type BloodGroup = z.infer<typeof bloodGroupSchema>;
 
-// Appointment Status
 export const appointmentStatusSchema = z.enum([
   "scheduled",
   "confirmed",
@@ -58,7 +51,6 @@ export const appointmentStatusSchema = z.enum([
 ]);
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 
-// Appointment Type
 export const appointmentTypeSchema = z.enum([
   "consultation",
   "follow-up",
@@ -68,7 +60,6 @@ export const appointmentTypeSchema = z.enum([
 ]);
 export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 
-// Weekday
 export const weekdaySchema = z.enum([
   "monday",
   "tuesday",
@@ -80,7 +71,6 @@ export const weekdaySchema = z.enum([
 ]);
 export type Weekday = z.infer<typeof weekdaySchema>;
 
-// Invoice Status
 export const invoiceStatusSchema = z.enum([
   "PENDING",
   "PAID",
@@ -90,7 +80,6 @@ export const invoiceStatusSchema = z.enum([
 ]);
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
 
-// Payment Status
 export const paymentStatusSchema = z.enum([
   "created",
   "pending",
@@ -101,7 +90,6 @@ export const paymentStatusSchema = z.enum([
 ]);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
-// Custom Field & Template Field Types
 export const customFieldTypeSchema = z.enum([
   "text",
   "number",
@@ -121,7 +109,6 @@ export const templateFieldTypeSchema = z.enum([
 ]);
 export type TemplateFieldType = z.infer<typeof templateFieldTypeSchema>;
 
-// WhatsApp Message Type
 export const whatsappMessageTypeSchema = z.enum([
   "reminder",
   "receipt",
@@ -130,7 +117,6 @@ export const whatsappMessageTypeSchema = z.enum([
 ]);
 export type WhatsappMessageType = z.infer<typeof whatsappMessageTypeSchema>;
 
-// Currency
 export const currencySchema = z.enum([
   "INR",
   "USD",
@@ -144,7 +130,6 @@ export const currencySchema = z.enum([
 ]);
 export type Currency = z.infer<typeof currencySchema>;
 
-// Facility Type
 export const facilityTypeSchema = z.enum(["CLINIC", "HOSPITAL"]);
 export type FacilityTypeType = z.infer<typeof facilityTypeSchema>;
 export enum FacilityType {
@@ -152,7 +137,6 @@ export enum FacilityType {
   HOSPITAL = "HOSPITAL",
 }
 
-// Clinic Type Configuration
 export const clinicTypeSchema = z.enum([
   "GENERAL",
   "DENTAL",
@@ -182,7 +166,6 @@ export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
   SPECIALTY: "Specialty Clinic",
 };
 
-// Feature matrix defining available consultation features per clinic type
 export interface ClinicTypeFeatures {
   chiefComplaint: boolean;
   history: boolean;
@@ -429,7 +412,6 @@ export const CLINIC_TYPE_FEATURES: Record<ClinicType, ClinicTypeFeatures> = {
   },
 };
 
-// Medical Specializations
 export const specializationSchema = z.enum([
   "GENERAL_PRACTICE",
   "DENTAL",
@@ -491,7 +473,6 @@ export const SPECIALIZATION_LABELS: Record<Specialization, string> = {
   OTHER: "Other",
 };
 
-// Hospital Role - What role the doctor plays in the hospital
 export const hospitalRoleSchema = z.enum([
   "CONSULTANT",
   "SENIOR_CONSULTANT",
@@ -523,7 +504,6 @@ export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
   FELLOW: "Fellow",
 };
 
-// Doctor Education Schema
 export const doctorEducationSchema = z.object({
   id: z.string().optional(),
   doctorId: z.string(),
@@ -542,7 +522,6 @@ export const doctorEducationSchema = z.object({
 });
 export type DoctorEducation = z.infer<typeof doctorEducationSchema>;
 
-// Doctor Certification Schema
 export const doctorCertificationSchema = z.object({
   id: z.string().optional(),
   doctorId: z.string(),
@@ -557,7 +536,6 @@ export const doctorCertificationSchema = z.object({
 });
 export type DoctorCertification = z.infer<typeof doctorCertificationSchema>;
 
-// Doctor Additional Specialization Schema
 export const doctorSpecializationSchema = z.object({
   id: z.string().optional(),
   doctorId: z.string(),
@@ -570,10 +548,6 @@ export const doctorSpecializationSchema = z.object({
 export type DoctorSpecializationEntry = z.infer<
   typeof doctorSpecializationSchema
 >;
-
-// ============================================================================
-// Doctor Availability Schemas
-// ============================================================================
 
 export const dayOfWeekSchema = z.enum([
   "SUNDAY",
@@ -596,7 +570,6 @@ export const DAY_OF_WEEK_LABELS: Record<DayOfWeek, string> = {
   SATURDAY: "Saturday",
 };
 
-// Day index for sorting (0 = Sunday, 6 = Saturday)
 export const DAY_OF_WEEK_INDEX: Record<DayOfWeek, number> = {
   SUNDAY: 0,
   MONDAY: 1,
@@ -673,10 +646,9 @@ export type CreateDoctorTimeOffInput = z.infer<
   typeof createDoctorTimeOffSchema
 >;
 
-// Available time slot for scheduling
 export const availableSlotSchema = z.object({
-  time: z.string(), // Start time of the slot in HH:MM format
-  endTime: z.string(), // End time of the slot in HH:MM format
+  time: z.string(), 
+  endTime: z.string(), 
   doctorId: z.string(),
   doctorName: z.string(),
   isAvailable: z.boolean().default(true),
@@ -690,7 +662,6 @@ export const userSchema = z.object({
   role: userRoleSchema,
   clinicId: z.string().optional(),
 
-  // Doctor Profile Fields
   specialization: specializationSchema.optional(),
   hospitalRole: hospitalRoleSchema.optional(),
   qualification: z.string().optional(),
@@ -698,13 +669,21 @@ export const userSchema = z.object({
   licenseNumber: z.string().optional(),
   licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(),
+  signatureUploadedAt: z.string().or(z.date()).optional(),
+  verificationStatus: z
+    .enum(["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED", "FAILED"])
+    .optional(),
+  verificationSource: z.string().optional(),
+  verificationRef: z.string().optional(),
+  verificationReason: z.string().optional(),
+  verificationData: z.unknown().optional(),
+  verificationCheckedAt: z.string().or(z.date()).optional(),
   profilePhotoUrl: z.string().optional(),
   bio: z.string().optional(),
   yearsOfExperience: z.number().optional(),
   consultationFee: z.number().optional(),
   phoneNumber: z.string().optional(),
 
-  // Relations (optional, populated on demand)
   educationHistory: z.array(doctorEducationSchema).optional(),
   certifications: z.array(doctorCertificationSchema).optional(),
   additionalSpecializations: z.array(doctorSpecializationSchema).optional(),

@@ -11,7 +11,7 @@ import {
   hasFieldError,
   InlineFieldError,
 } from "./AuthSharedFields";
-import type { FieldErrors } from "../types/auth";
+import type { FieldErrors } from "@/features/auth/types/auth";
 
 interface SignupStepProps {
   email: string;

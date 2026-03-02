@@ -3,7 +3,7 @@ import type {
   PatientInvoiceStatus,
   PatientPortalSnapshot,
   PatientPrescriptionStatus,
-} from "../types/patient-portal-types";
+} from "@/features/patient-portal/types/patient-portal-types";
 
 export function getAppointmentStatusLabel(
   status: PatientAppointmentStatus,

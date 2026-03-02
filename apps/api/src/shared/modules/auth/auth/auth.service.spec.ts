@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { UserFactory } from '../../../../domains/users/core/factories/user.factory';
-import { ClinicFactory } from '../../../../domains/clinics/core/factories/clinic.factory';
-import { MonitoringService } from '../../monitoring/monitoring/monitoring.service';
-import { ObservabilityService } from '../../services/observability.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { UserFactory } from '@/domains/users/core/factories/user.factory';
+import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
+import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 
@@ -232,7 +232,7 @@ describe.skip('AuthService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedNewPassword');
       jest
         .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockUserWithoutPassword as any);
+        .mockResolvedValue(mockUserWithoutPassword as never);
 
       const result = await service.register(registerData);
 
@@ -269,7 +269,7 @@ describe.skip('AuthService', () => {
       jest.spyOn(prismaService.user, 'create').mockResolvedValue({
         ...mockUserWithoutPassword,
         role: Role.ADMIN,
-      } as any);
+      } as never);
 
       await service.register(registerData);
 
@@ -300,8 +300,8 @@ describe.skip('AuthService', () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
       jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock)
-        .mockResolvedValueOnce(true) // current password match
-        .mockResolvedValueOnce(false); // new password different
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
       (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
 
       const result = await service.changePassword({
@@ -345,7 +345,7 @@ describe.skip('AuthService', () => {
 
     it('should throw UnauthorizedException when new password is same as current', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true); // Both comparisons return true
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       await expect(
         service.changePassword({

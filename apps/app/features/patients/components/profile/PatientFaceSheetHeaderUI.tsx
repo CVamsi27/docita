@@ -85,8 +85,8 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <Badge
                 className={`px-2.5 py-0.5 font-medium border ${
                   isFullCode
-                    ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-50"
-                    : "bg-red-50 text-red-700 border-red-200 hover:bg-red-50"
+                    ? "badge-info"
+                    : "badge-danger"
                 }`}
               >
                 <ShieldAlert className="w-3 h-3 mr-1.5" />
@@ -95,15 +95,15 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
             )}
 
             {isIsolation && isolationStatusLabel && (
-              <Badge className="px-2.5 py-0.5 bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-50 font-medium border">
+              <Badge className="px-2.5 py-0.5 badge-warning font-medium border">
                 <AlertTriangle className="w-3 h-3 mr-1.5" />
                 {isolationStatusLabel}
               </Badge>
             )}
 
             {fallRisk && (
-              <Badge className="px-2.5 py-0.5 bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-50 font-medium border">
-                ⚠️ FALL RISK
+              <Badge className="px-2.5 py-0.5 badge-warning font-medium border">
+                ️ FALL RISK
               </Badge>
             )}
 
@@ -111,8 +111,8 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               variant={hasAllergies ? "destructive" : "secondary"}
               className={`px-2.5 py-0.5 font-medium border ${
                 hasAllergies
-                  ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-50"
-                  : "bg-green-50 text-green-700 border-green-200 hover:bg-green-50"
+                  ? "badge-danger"
+                  : "badge-success"
               }`}
             >
               {hasAllergies ? `Allergies: ${allergies}` : "NKA"}

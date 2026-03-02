@@ -11,22 +11,23 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { PrescriptionsService } from '../../application/services/prescription.service';
-import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
+import { PrescriptionsService } from '@/domains/prescriptions/application/services/prescription.service';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
   Feature,
-} from '../../../../shared/modules/auth/auth/tier.decorator';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, Specialization, HospitalRole } from '@workspace/db';
 import {
   CreatePrescriptionDto,
+  ListPrescriptionsQueryDto,
   PrescriptionResponseDto,
   PrescriptionListResponseDto,
   CreatePrescriptionSchema,
-} from '../../application/dto/prescription.dto';
+} from '@/domains/prescriptions/application/dto/prescription.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 interface AuthRequest {
   user: {
@@ -45,9 +46,9 @@ export class PrescriptionsController {
   @ZodSerializerDto(PrescriptionListResponseDto)
   findAll(
     @Request() req: AuthRequest,
-    @Query('search') search?: string,
-    @Query('date') date?: string,
+    @Query() query?: ListPrescriptionsQueryDto,
   ) {
+    const { search, date } = query ?? {};
     return this.prescriptionsService.findAll(req.user.clinicId, {
       search,
       date,

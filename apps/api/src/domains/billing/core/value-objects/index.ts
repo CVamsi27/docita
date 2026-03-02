@@ -1,4 +1,3 @@
-// Barrel export for value objects
 export { Money } from './money.value-object';
 export {
   InvoiceStatus,

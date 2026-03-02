@@ -1,7 +1,3 @@
-/**
- * Cursor-based pagination helper for Prisma queries
- */
-
 import {
   CursorPaginationResult,
   OffsetPaginationResult,
@@ -9,39 +5,27 @@ import {
   PrismaQuery,
 } from '@workspace/types';
 
-// Generic interface for Prisma Delegate (compatible with any Prisma model delegate)
-// We use generics with optional args to maintain compatibility across Prisma model delegates
 export interface PrismaModelDelegate<T> {
   findMany: (args?: Record<string, unknown>) => Promise<T[]>;
   count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
 }
 
 export interface CursorPaginationOptions<T> {
-  /** Prisma model to query */
   model: PrismaModelDelegate<T>;
 
-  /** Cursor ID from previous page (undefined for first page) */
   cursor?: string;
 
-  /** Number of items per page (default: 50, max: 100) */
   limit?: number;
 
-  /** Prisma where clause */
   where?: PrismaQuery;
 
-  /** Prisma orderBy clause */
   orderBy?: PrismaQuery;
 
-  /** Prisma select clause */
   select?: PrismaQuery;
 
-  /** Prisma include clause (use select instead for better performance) */
   include?: PrismaQuery;
 }
 
-/**
- * Execute cursor-based pagination query
- */
 export async function paginateWithCursor<T>(
   options: CursorPaginationOptions<T>,
 ): Promise<CursorPaginationResult<T>> {
@@ -55,10 +39,8 @@ export async function paginateWithCursor<T>(
     include,
   } = options;
 
-  // Enforce max limit to prevent abuse
   const safeLimit = Math.min(limit, 100);
 
-  // Fetch one extra item to determine if there are more pages
   const takeCount = safeLimit + 1;
 
   const queryOptions: {
@@ -75,40 +57,28 @@ export async function paginateWithCursor<T>(
     orderBy,
   };
 
-  // Add cursor if provided (not first page)
   if (cursor) {
     queryOptions.cursor = { id: cursor };
-    queryOptions.skip = 1; // Skip the cursor item itself
+    queryOptions.skip = 1;
   }
 
-  // Add select or include (prefer select for performance)
   if (select) {
     queryOptions.select = select;
   } else if (include) {
     queryOptions.include = include;
   }
 
-  // Execute query
   const items = await model.findMany(queryOptions);
 
-  // Determine if there are more pages
   const hasMore = items.length > safeLimit;
 
-  // Remove extra item if present
   const paginatedItems = hasMore ? items.slice(0, safeLimit) : items;
 
-  // Get next cursor (ID of last item)
-  // Casting to any to access 'id' without generic constraint on T
   const lastItem =
     paginatedItems.length > 0
-      ? (paginatedItems[paginatedItems.length - 1] as unknown as {
-          id?: unknown;
-        })
+      ? paginatedItems[paginatedItems.length - 1]
       : undefined;
-  const nextCursor =
-    hasMore && lastItem && typeof lastItem.id === 'string'
-      ? lastItem.id
-      : undefined;
+  const nextCursor = hasMore ? extractCursorId(lastItem) : undefined;
 
   return {
     items: paginatedItems,
@@ -119,6 +89,15 @@ export async function paginateWithCursor<T>(
 }
 
 export type { PaginationMeta };
+
+function extractCursorId(item: unknown): string | undefined {
+  if (!item || typeof item !== 'object') {
+    return undefined;
+  }
+
+  const id = (item as { id?: unknown }).id;
+  return typeof id === 'string' ? id : undefined;
+}
 
 export function createPaginationMeta(
   result: CursorPaginationResult<unknown>,
@@ -132,9 +111,6 @@ export function createPaginationMeta(
   };
 }
 
-/**
- * Offset-based pagination (legacy, use cursor pagination for better performance)
- */
 export interface OffsetPaginationOptions<T> {
   model: PrismaModelDelegate<T>;
   page?: number;
@@ -162,7 +138,6 @@ export async function paginateWithOffset<T>(
   const safePage = Math.max(page, 1);
   const skip = (safePage - 1) * safeLimit;
 
-  // Typed query options
   const findManyOptions: {
     skip: number;
     take: number;

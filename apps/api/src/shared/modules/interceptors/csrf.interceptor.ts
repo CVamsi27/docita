@@ -8,13 +8,13 @@ import {
 import { Observable } from 'rxjs';
 import { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class CsrfInterceptor implements NestInterceptor {
   constructor(private configService: AppConfigService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 

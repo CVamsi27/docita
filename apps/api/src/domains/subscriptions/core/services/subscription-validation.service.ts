@@ -1,4 +1,4 @@
-import { Subscription } from '../entities';
+import { Subscription } from '@/domains/subscriptions/core/entities';
 
 export class SubscriptionValidationService {
   validateSubscription(subscription: Subscription): {

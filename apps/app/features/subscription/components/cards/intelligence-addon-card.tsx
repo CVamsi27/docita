@@ -33,7 +33,6 @@ export function IntelligenceAddonCard({
 }: IntelligenceAddonCardProps) {
   const { pricingConfig, isLoading } = usePricingConfig(currency);
 
-  // Find Intelligence add-on from backend pricing
   const intelligenceAddon = pricingConfig?.addOns?.find(
     (addon) =>
       addon.id === "INTELLIGENCE" ||
@@ -46,7 +45,7 @@ export function IntelligenceAddonCard({
       : intelligenceAddon.pricing.monthly
     : currency === "INR"
       ? 1999
-      : 29; // Fallback
+      : 29; 
 
   const currencySymbol = currency === "INR" ? "₹" : "$";
 
@@ -69,16 +68,16 @@ export function IntelligenceAddonCard({
       className={cn(
         "relative rounded-xl border-2 p-5 transition-all",
         enabled
-          ? "border-purple-500/50 bg-purple-500/5 shadow-md"
+          ? "border-primary/50 bg-primary shadow-md"
           : "border-muted hover:border-muted-foreground/30",
         className,
       )}
     >
-      {/* Header */}
+      {}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20">
-            <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h3 className="font-semibold text-lg">Intelligence (AI)</h3>
@@ -100,7 +99,7 @@ export function IntelligenceAddonCard({
         </div>
       </div>
 
-      {/* Pricing */}
+      {}
       <div className="mb-4">
         <span className="text-2xl font-bold">
           {currencySymbol}
@@ -111,11 +110,11 @@ export function IntelligenceAddonCard({
         </span>
       </div>
 
-      {/* Features */}
+      {}
       <ul className="space-y-2">
         {INTELLIGENCE_FEATURES.map((feature, i) => (
           <li key={i} className="flex items-center gap-2 text-sm">
-            <Check className="h-4 w-4 text-purple-500" />
+            <Check className="h-4 w-4 text-primary" />
             <span className="text-muted-foreground">{feature}</span>
           </li>
         ))}

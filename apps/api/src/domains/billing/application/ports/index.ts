@@ -1,4 +1,3 @@
-// Barrel export for ports
 export {
   type IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,

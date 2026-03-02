@@ -33,3 +33,16 @@ enum AdmissionStatus {
   DISCHARGED
   TRANSFERRED
 }
+
+enum UploadSessionPurpose {
+  GENERAL
+  DOCTOR_SIGNATURE
+}
+
+enum DoctorVerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+  FAILED
+}

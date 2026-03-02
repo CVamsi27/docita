@@ -12,7 +12,6 @@ describe('ContactService', () => {
 
     service = module.get<ContactService>(ContactService);
 
-    // Spy on logger to prevent console output during tests
     jest.spyOn(service['logger'], 'log').mockImplementation();
   });
 
@@ -69,7 +68,7 @@ describe('ContactService', () => {
 
     it('should generate unique inquiry IDs', async () => {
       const result1 = service.submitInquiry(validInquiry);
-      // Wait 5ms to ensure different timestamp
+
       await new Promise((resolve) => setTimeout(resolve, 5));
       const result2 = service.submitInquiry(validInquiry);
 
@@ -251,10 +250,15 @@ describe('ContactService', () => {
       });
 
       it('should handle optional clinic field as null', () => {
-        const inquiry = {
+        const inquiry: {
+          name: string;
+          email: string;
+          clinic: string | null;
+          message: string;
+        } = {
           name: 'Test User',
           email: 'test@example.com',
-          clinic: null as unknown as string,
+          clinic: null,
           message: 'Test message',
         };
 

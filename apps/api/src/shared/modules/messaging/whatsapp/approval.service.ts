@@ -1,19 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ApprovalStatus } from '@workspace/db';
 
-/**
- * Handles approval workflow for prescriptions and invoices
- */
 @Injectable()
 export class ApprovalService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Approve prescription for WhatsApp sharing (clinic-scoped)
-   */
   async approvePrescription(id: string, userId: string, clinicId: string) {
-    // Verify prescription belongs to user's clinic
     const existing = await this.prisma.prescription.findFirst({
       where: { id, appointment: { clinicId } },
     });
@@ -33,11 +26,7 @@ export class ApprovalService {
     return { success: true, prescription };
   }
 
-  /**
-   * Approve invoice for WhatsApp sharing (clinic-scoped)
-   */
   async approveInvoice(id: string, userId: string, clinicId: string) {
-    // Verify invoice belongs to user's clinic (Invoice has no direct clinicId; scope via appointment)
     const existing = await this.prisma.invoice.findFirst({
       where: { id, appointment: { clinicId } },
     });

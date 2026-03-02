@@ -2,10 +2,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Comprehensive ICD-10 codes from WHO ICD-10 classification
-// Reference: https://icd.who.int/browse10/2019/en
 const commonIcdCodes = [
-  // A00-B99: Certain infectious and parasitic diseases
+
   {
     code: "A00",
     description: "Cholera",
@@ -88,7 +86,6 @@ const commonIcdCodes = [
     category: "Certain infectious and parasitic diseases",
   },
 
-  // C00-D49: Neoplasms
   {
     code: "C00.0",
     description: "Malignant neoplasm of external upper lip",
@@ -263,7 +260,6 @@ const commonIcdCodes = [
     category: "Neoplasms",
   },
 
-  // D50-D89: Diseases of the blood and blood-forming organs
   {
     code: "D50.0",
     description: "Iron deficiency anemia secondary to blood loss (chronic)",
@@ -301,7 +297,6 @@ const commonIcdCodes = [
     category: "Diseases of the blood and blood-forming organs",
   },
 
-  // E00-E89: Endocrine, nutritional and metabolic diseases
   {
     code: "E03.9",
     description: "Hypothyroidism, unspecified",
@@ -384,7 +379,6 @@ const commonIcdCodes = [
     category: "Endocrine, nutritional and metabolic diseases",
   },
 
-  // F00-F99: Mental and behavioral disorders
   {
     code: "F01.50",
     description: "Vascular dementia without behavioral disturbance",
@@ -523,7 +517,6 @@ const commonIcdCodes = [
     category: "Mental and behavioral disorders",
   },
 
-  // G00-G99: Diseases of the nervous system
   {
     code: "G00.9",
     description: "Bacterial meningitis, unspecified",
@@ -587,7 +580,6 @@ const commonIcdCodes = [
     category: "Diseases of the nervous system",
   },
 
-  // H00-H59: Diseases of the eye and adnexa
   {
     code: "H00.019",
     description: "Hordeolum externum unspecified eye, unspecified eyelid",
@@ -619,7 +611,6 @@ const commonIcdCodes = [
     category: "Diseases of the eye and adnexa",
   },
 
-  // H60-H95: Diseases of the ear and mastoid process
   {
     code: "H60.90",
     description: "Unspecified otitis externa, unspecified ear",
@@ -646,13 +637,12 @@ const commonIcdCodes = [
     category: "Diseases of the ear and mastoid process",
   },
 
-  // I00-I99: Diseases of the circulatory system
   {
     code: "I10",
     description: "Essential (primary) hypertension",
     category: "Diseases of the circulatory system",
   },
-  // I00-I99: Diseases of the circulatory system
+
   {
     code: "I10",
     description: "Essential (primary) hypertension",
@@ -742,7 +732,6 @@ const commonIcdCodes = [
     category: "Diseases of the circulatory system",
   },
 
-  // J00-J99: Diseases of the respiratory system
   {
     code: "J00",
     description: "Acute nasopharyngitis [common cold]",
@@ -858,7 +847,6 @@ const commonIcdCodes = [
     category: "Diseases of the respiratory system",
   },
 
-  // K00-K95: Diseases of the digestive system
   {
     code: "K21.0",
     description: "Gastro-esophageal reflux disease with esophagitis",
@@ -959,7 +947,6 @@ const commonIcdCodes = [
     category: "Diseases of the digestive system",
   },
 
-  // L00-L99: Diseases of the skin and subcutaneous tissue
   {
     code: "L00",
     description: "Staphylococcal scalded skin syndrome",
@@ -1021,7 +1008,6 @@ const commonIcdCodes = [
     category: "Diseases of the skin and subcutaneous tissue",
   },
 
-  // M00-M99: Diseases of the musculoskeletal system and connective tissue
   {
     code: "M05.9",
     description: "Rheumatoid arthritis with rheumatoid factor, unspecified",
@@ -1126,7 +1112,6 @@ const commonIcdCodes = [
     category: "Diseases of the musculoskeletal system and connective tissue",
   },
 
-  // N00-N99: Diseases of the genitourinary system
   {
     code: "N10",
     description: "Acute pyelonephritis",
@@ -1189,7 +1174,6 @@ const commonIcdCodes = [
     category: "Diseases of the genitourinary system",
   },
 
-  // O00-O99: Pregnancy, childbirth and the puerperium
   {
     code: "O00.9",
     description: "Ectopic pregnancy, unspecified",
@@ -1218,7 +1202,6 @@ const commonIcdCodes = [
     category: "Pregnancy, childbirth and the puerperium",
   },
 
-  // R00-R99: Symptoms, signs and abnormal clinical and laboratory findings
   {
     code: "R00.0",
     description: "Tachycardia, unspecified",
@@ -1310,7 +1293,6 @@ const commonIcdCodes = [
     category: "Symptoms, signs and abnormal clinical and laboratory findings",
   },
 
-  // S00-T88: Injury, poisoning and certain other consequences of external causes
   {
     code: "S06.0X0A",
     description: "Concussion without loss of consciousness, initial encounter",
@@ -1392,14 +1374,12 @@ const commonIcdCodes = [
       "Injury, poisoning and certain other consequences of external causes",
   },
 
-  // U00-U99: Codes for special purposes
   {
     code: "U07.1",
     description: "COVID-19",
     category: "Codes for special purposes",
   },
 
-  // Z00-Z99: Factors influencing health status and contact with health services
   {
     code: "Z00.00",
     description:
@@ -1478,7 +1458,6 @@ const commonIcdCodes = [
 ];
 
 async function main() {
-  console.log("Start seeding ICD-10 codes...");
 
   for (const icd of commonIcdCodes) {
     const code = await prisma.icdCode.upsert({
@@ -1486,15 +1465,14 @@ async function main() {
       update: {},
       create: icd,
     });
-    console.log(`Created/Updated ICD code: ${code.code}`);
+
   }
 
-  console.log("Seeding finished.");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+
     process.exit(1);
   })
   .finally(async () => {

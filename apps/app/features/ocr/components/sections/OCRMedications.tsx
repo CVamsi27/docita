@@ -1,6 +1,6 @@
 import { Pill } from "lucide-react";
-import { SectionToggle } from "../common/section-toggle";
-import { OCRFormData } from "../../types";
+import { SectionToggle } from "@/features/ocr/components/common/section-toggle";
+import { OCRFormData } from "@/features/ocr/types";
 
 interface OCRMedicationsProps {
   formData: OCRFormData;

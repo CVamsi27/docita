@@ -51,7 +51,6 @@ export const useInventoryLogic = () => {
     };
   };
 
-  // Backend-driven filtering, so filteredInventory is just the data
   const filteredInventory = inventory;
 
   const uniqueCategories = useMemo(() => {

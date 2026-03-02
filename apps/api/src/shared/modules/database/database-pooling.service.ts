@@ -1,9 +1,3 @@
-/**
- * Database Connection Pooling Configuration
- * Configures optimal pool settings for production
- * Supports both native PostgreSQL pooling and Prisma Accelerate
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -22,9 +16,6 @@ export class DatabasePoolingService {
 
   constructor(private configService: ConfigService) {}
 
-  /**
-   * Get optimal pool configuration based on environment and node count
-   */
   getOptimalPoolConfig(nodeCount: number = 1): PoolConfig {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
@@ -33,33 +24,27 @@ export class DatabasePoolingService {
       10,
     );
 
-    // Production config: more aggressive pooling for reliability
     if (isProduction) {
       return {
         min: 10,
-        max: cpuCount * 5 + 10, // Total: 30 for 4 CPU (safe upper bound)
-        idleTimeoutMillis: 300_000, // 5 minutes
-        connectionTimeoutMillis: 10_000, // 10 seconds
-        maxUses: 7500, // Recycle connections after 7500 uses
-        reapIntervalMillis: 60_000, // Check idle every 60s
+        max: cpuCount * 5 + 10,
+        idleTimeoutMillis: 300_000,
+        connectionTimeoutMillis: 10_000,
+        maxUses: 7500,
+        reapIntervalMillis: 60_000,
       };
     }
 
-    // Development config: smaller pool
     return {
       min: 2,
       max: 5,
-      idleTimeoutMillis: 30_000, // 30 seconds
-      connectionTimeoutMillis: 5_000, // 5 seconds
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 5_000,
       maxUses: Infinity,
       reapIntervalMillis: 30_000,
     };
   }
 
-  /**
-   * Get connection string with pool parameters for PgBouncer
-   * PgBouncer sits between app and PostgreSQL for advanced pooling
-   */
   getPgBouncerConnectionString(): string {
     const pgBouncerHost =
       this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
@@ -72,10 +57,6 @@ export class DatabasePoolingService {
     return `postgresql://${user}:${password}@${pgBouncerHost}:${pgBouncerPort}/${database}`;
   }
 
-  /**
-   * Get connection string for Prisma Accelerate (managed pooling service)
-   * More convenient than PgBouncer for serverless environments
-   */
   getPrismaAccelerateUrl(): string {
     const accelerateKey = this.configService.get<string>(
       'PRISMA_ACCELERATE_KEY',
@@ -86,9 +67,6 @@ export class DatabasePoolingService {
     return `prisma://${accelerateKey}`;
   }
 
-  /**
-   * Determine whether to use Prisma Accelerate or PgBouncer
-   */
   shouldUsePrismaAccelerate(): boolean {
     return (
       this.configService.get<string>('USE_PRISMA_ACCELERATE') === 'true' &&
@@ -96,20 +74,16 @@ export class DatabasePoolingService {
     );
   }
 
-  /**
-   * Get Prisma connection configuration with optimal pooling
-   */
   getPrismaPoolConfig() {
     const config = this.getOptimalPoolConfig();
 
     return {
-      // Connection pool settings
       connection: {
         timeout: config.connectionTimeoutMillis,
       },
-      // Query timeout
+
       queryTimeout: 30_000,
-      // Pool settings (if using Prisma's native pooling)
+
       pool: {
         min: config.min,
         max: config.max,
@@ -118,9 +92,6 @@ export class DatabasePoolingService {
     };
   }
 
-  /**
-   * Log pool configuration for debugging
-   */
   logPoolConfig(): void {
     const config = this.getOptimalPoolConfig();
     this.logger.log(`Database Connection Pool Configuration:`);
@@ -148,9 +119,6 @@ export class DatabasePoolingService {
     }
   }
 
-  /**
-   * Get documentation for manual pool tuning
-   */
   getPoolTuningGuide(): string {
     return `
 ## Database Connection Pool Tuning Guide

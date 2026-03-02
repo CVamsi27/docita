@@ -1,13 +1,5 @@
 import type { Appointment, VitalSign } from "@workspace/types";
 
-/**
- * Consultation Business Rules
- * Pure functions for consultation-related business logic
- */
-
-/**
- * Vital sign normal ranges by age
- */
 export const getVitalRanges = (age: number) => {
   if (age < 1) {
     return {
@@ -33,9 +25,6 @@ export const getVitalRanges = (age: number) => {
   }
 };
 
-/**
- * Check if vital sign is within normal range
- */
 export const isVitalNormal = (
   vital: string,
   value: number,
@@ -47,9 +36,6 @@ export const isVitalNormal = (
   return value >= range.min && value <= range.max;
 };
 
-/**
- * Check if vitals require urgent attention
- */
 export const requiresUrgentAttention = (vitals: VitalSign): boolean => {
   const bp = vitals.bloodPressure?.split("/");
   const systolic = bp?.[0] ? parseInt(bp[0]) : 0;
@@ -63,18 +49,12 @@ export const requiresUrgentAttention = (vitals: VitalSign): boolean => {
   );
 };
 
-/**
- * Calculate BMI from vitals
- */
 export const calculateBMIFromVitals = (vitals: VitalSign): number | null => {
   if (!vitals.weight || !vitals.height) return null;
   const heightInMeters = vitals.height / 100;
   return parseFloat((vitals.weight / heightInMeters ** 2).toFixed(1));
 };
 
-/**
- * Validate consultation can be completed
- */
 export const canCompleteConsultation = (
   consultation: Pick<Appointment, "chiefComplaint" | "diagnoses" | "vitalSign">,
 ): boolean => {

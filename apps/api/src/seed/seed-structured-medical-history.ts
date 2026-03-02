@@ -6,8 +6,6 @@ export async function seedStructuredMedicalHistory(
   prisma: PrismaClient,
   patients: SeedEntityRef[],
 ): Promise<void> {
-  console.log('Seeding structured medical history...');
-
   await prisma.patientMedicalCondition.createMany({
     data: [
       {
@@ -251,6 +249,4 @@ export async function seedStructuredMedicalHistory(
       },
     ],
   });
-
-  console.log('Structured medical history created');
 }

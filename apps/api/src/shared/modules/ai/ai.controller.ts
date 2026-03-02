@@ -11,10 +11,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AIService } from './ai.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/auth/roles.decorator';
-import { TierGuard } from '../auth/auth/tier.guard';
-import { RequireFeature, Feature } from '../auth/auth/tier.decorator';
-import { RateLimit } from '../../../common/interceptors/rate-limit.interceptor';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  RequireFeature,
+  Feature,
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import {
@@ -35,7 +38,7 @@ export class AIController {
   constructor(private readonly aiService: AIService) {}
 
   @Post('prescription-analysis')
-  @RateLimit({ limit: 20, window: 60000 }) // 20 AI requests/minute
+  @RateLimit({ limit: 20, window: 60000 })
   @ZodSerializerDto(AIAnalysisResponseDto)
   async analyzePrescription(
     @Body()
@@ -45,14 +48,14 @@ export class AIController {
   }
 
   @Post('diagnosis-suggestions')
-  @RateLimit({ limit: 20, window: 60000 }) // 20 AI requests/minute
+  @RateLimit({ limit: 20, window: 60000 })
   @ZodSerializerDto(DiagnosisSuggestionListResponseDto)
   async suggestDiagnoses(@Body() dto: DiagnosisSuggestionRequestDto) {
     return this.aiService.suggestDiagnoses(dto.symptoms, dto.findingsNotes);
   }
 
   @Post('medication-recommendations')
-  @RateLimit({ limit: 20, window: 60000 }) // 20 AI requests/minute
+  @RateLimit({ limit: 20, window: 60000 })
   @ZodSerializerDto(MedicationRecommendationListResponseDto)
   async recommendMedications(@Body() dto: MedicationRecommendationRequestDto) {
     return this.aiService.recommendMedications(
@@ -63,7 +66,7 @@ export class AIController {
   }
 
   @Post('ocr/extract')
-  @RateLimit({ limit: 10, window: 60000 }) // 10 OCR requests/minute (expensive)
+  @RateLimit({ limit: 10, window: 60000 })
   @RequireFeature(Feature.OCR_ADVANCED)
   @ZodSerializerDto(ExtractionResultResponseDto)
   @UseInterceptors(

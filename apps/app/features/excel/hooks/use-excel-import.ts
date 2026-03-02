@@ -36,7 +36,6 @@ export const useExcelImport = () => {
   const { token } = useAuth();
   const { config } = useAppConfig();
 
-  // Get patient import fields from config
   const DB_FIELDS =
     config.patientImportFields.length > 0
       ? config.patientImportFields
@@ -107,7 +106,6 @@ export const useExcelImport = () => {
   const apiUrl =
     process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
-  // Handle file selection
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -120,7 +118,6 @@ export const useExcelImport = () => {
     [],
   );
 
-  // Upload and get preview
   const handleUpload = async () => {
     if (!file) return;
 
@@ -154,7 +151,6 @@ export const useExcelImport = () => {
     }
   };
 
-  // Update column mapping
   const updateMapping = (excelColumn: string, dbField: string | null) => {
     setColumnMappings((prev) => {
       const updated = { ...prev };
@@ -167,7 +163,6 @@ export const useExcelImport = () => {
     });
   };
 
-  // Check if required fields are mapped
   const hasRequiredMappings = () => {
     const mappedFields = Object.values(columnMappings);
     return (
@@ -175,7 +170,6 @@ export const useExcelImport = () => {
     );
   };
 
-  // Start import
   const handleImport = async () => {
     if (!preview) return;
 
@@ -184,7 +178,7 @@ export const useExcelImport = () => {
     setImportProgress(10);
 
     try {
-      // Simulate progress
+
       const progressInterval = setInterval(() => {
         setImportProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
@@ -229,7 +223,6 @@ export const useExcelImport = () => {
     }
   };
 
-  // Reset and start over
   const handleReset = () => {
     setStep("upload");
     setFile(null);

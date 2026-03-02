@@ -1,8 +1,4 @@
-/**
- * Optimistic Update Utilities for React Query
- *
- * Provides helpers for implementing optimistic updates in mutations.
- */
+
 
 import {
   useMutation,
@@ -10,9 +6,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-/**
- * Local paginated list interface for optimistic updates
- */
 interface PaginatedList<T> {
   items: T[];
   hasMore: boolean;
@@ -20,19 +13,6 @@ interface PaginatedList<T> {
   count?: number;
 }
 
-/**
- * Create an optimistic update mutation with automatic rollback on error.
- * Wraps @tanstack/react-query useMutation.
- *
- * @example
- * ```typescript
- * const mutation = useOptimisticMutation<Patient, UpdatePatientInput>({
- *   mutationFn: (data) => api.patch(`/patients/${id}`, data),
- *   queryKey: ['patients', 'detail', id],
- *   updater: (old, input) => ({ ...old, ...input }),
- * });
- * ```
- */
 export function useOptimisticMutation<TData, TVariables>(options: {
   mutationFn: (variables: TVariables) => Promise<TData>;
   queryKey: readonly unknown[];
@@ -70,22 +50,19 @@ export function useOptimisticMutation<TData, TVariables>(options: {
   >({
     mutationFn: options.mutationFn,
     onMutate: async (variables: TVariables) => {
-      // Cancel any outgoing refetches
+
       await queryClient.cancelQueries({ queryKey: options.queryKey });
 
-      // Snapshot the previous value
       const previousData = queryClient.getQueryData<TData>(options.queryKey);
 
-      // Optimistically update to the new value
       queryClient.setQueryData<TData>(options.queryKey, (old) =>
         options.updater(old, variables),
       );
 
-      // Return a context object with the snapshotted value
       return { previousData };
     },
     onError: (err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+
       if (context?.previousData !== undefined) {
         queryClient.setQueryData(options.queryKey, context.previousData);
       }
@@ -95,7 +72,7 @@ export function useOptimisticMutation<TData, TVariables>(options: {
       options.onSuccess?.(data, variables, context);
     },
     onSettled: (data, error, variables, context) => {
-      // Always refetch after error or success to ensure server state is synced
+
       if (options.invalidateOnSuccess !== false) {
         queryClient.invalidateQueries({ queryKey: options.queryKey });
       }
@@ -104,9 +81,6 @@ export function useOptimisticMutation<TData, TVariables>(options: {
   });
 }
 
-/**
- * Optimistically add an item to a paginated list.
- */
 export function optimisticAddToList<T extends { id: string }>(
   old: PaginatedList<T> | undefined,
   newItem: T,
@@ -124,9 +98,6 @@ export function optimisticAddToList<T extends { id: string }>(
   };
 }
 
-/**
- * Optimistically update an item in a paginated list.
- */
 export function optimisticUpdateInList<T extends { id: string }>(
   old: PaginatedList<T> | undefined,
   id: string,
@@ -144,9 +115,6 @@ export function optimisticUpdateInList<T extends { id: string }>(
   };
 }
 
-/**
- * Optimistically remove an item from a paginated list.
- */
 export function optimisticRemoveFromList<T extends { id: string }>(
   old: PaginatedList<T> | undefined,
   id: string,
@@ -161,25 +129,6 @@ export function optimisticRemoveFromList<T extends { id: string }>(
   };
 }
 
-/**
- * Hook to get optimistic update helpers for a query.
- *
- * @example
- * ```typescript
- * const { setOptimistic, rollback } = useOptimisticUpdate<Patient>({
- *   queryKey: ['patients', 'detail', id],
- * });
- *
- * // In mutation:
- * onMutate: async (newData) => {
- *   const previous = await setOptimistic((old) => ({ ...old, ...newData }));
- *   return { previous };
- * },
- * onError: (err, vars, context) => {
- *   if (context?.previous) rollback(context.previous);
- * }
- * ```
- */
 export function useOptimisticUpdate<T>(options: {
   queryKey: readonly unknown[];
 }) {
@@ -187,9 +136,7 @@ export function useOptimisticUpdate<T>(options: {
   const { queryKey } = options;
 
   return {
-    /**
-     * Set optimistic data, returns previous data for rollback
-     */
+    
     setOptimistic: async (
       updater: (old: T | undefined) => T,
     ): Promise<T | undefined> => {
@@ -199,16 +146,12 @@ export function useOptimisticUpdate<T>(options: {
       return previous;
     },
 
-    /**
-     * Rollback to previous data
-     */
+    
     rollback: (previousData: T | undefined) => {
       queryClient.setQueryData(queryKey, previousData);
     },
 
-    /**
-     * Invalidate the query to refetch fresh data
-     */
+    
     invalidate: () => {
       queryClient.invalidateQueries({ queryKey });
     },

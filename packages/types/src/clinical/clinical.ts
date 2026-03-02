@@ -2,28 +2,25 @@ import { z } from "zod";
 import { stripHtmlTags } from "../api/sanitization";
 import { vitalSignSchema } from "./vitals";
 export const generalExaminationSchema = z.object({
-  // Consciousness
-  gcs: z.number().min(3).max(15).optional(), // Glasgow Coma Scale
+
+  gcs: z.number().min(3).max(15).optional(), 
   consciousness: z.enum(["CONSCIOUS", "DROWSY", "STUPOR", "COMA"]).optional(),
   orientation: z.enum(["ORIENTED", "DISORIENTED", "CONFUSED"]).optional(),
 
-  // General Signs
   pallor: z.boolean().optional(),
-  icterus: z.boolean().optional(), // Jaundice
+  icterus: z.boolean().optional(), 
   cyanosis: z.boolean().optional(),
   clubbing: z.boolean().optional(),
   lymphadenopathy: z.boolean().optional(),
   edema: z.boolean().optional(),
 
-  // Notes for each
   pallorNotes: z.string().max(500).optional().transform(stripHtmlTags),
   icterusNotes: z.string().max(500).optional().transform(stripHtmlTags),
   cyanosisNotes: z.string().max(500).optional().transform(stripHtmlTags),
   clubbingNotes: z.string().max(500).optional().transform(stripHtmlTags),
   lymphadenopathyNotes: z.string().max(500).optional().transform(stripHtmlTags),
-  edemaLocation: z.string().max(255).optional().transform(stripHtmlTags), // e.g., "bilateral pedal edema"
+  edemaLocation: z.string().max(255).optional().transform(stripHtmlTags), 
 
-  // Nutritional Status
   nutritionStatus: z
     .enum(["WELL_NOURISHED", "MALNOURISHED", "OBESE", "UNDERWEIGHT"])
     .optional(),
@@ -31,40 +28,36 @@ export const generalExaminationSchema = z.object({
     .enum(["WELL_HYDRATED", "DEHYDRATED", "OVERHYDRATED"])
     .optional(),
 
-  // Additional notes
   generalNotes: z.string().max(2000).optional().transform(stripHtmlTags),
 });
 export type GeneralExamination = z.infer<typeof generalExaminationSchema>;
 
-// Systemic Examination findings
 export const systemicExaminationSchema = z.object({
-  // Cardiovascular System (CVS)
+
   cvs: z
     .object({
       heartRate: z.number().optional(),
       rhythm: z
         .enum(["REGULAR", "IRREGULAR", "IRREGULARLY_IRREGULAR"])
         .optional(),
-      heartSounds: z.string().max(500).optional().transform(stripHtmlTags), // e.g., "S1 S2 heard, no murmurs"
-      jvp: z.string().max(100).optional().transform(stripHtmlTags), // Jugular Venous Pressure
+      heartSounds: z.string().max(500).optional().transform(stripHtmlTags), 
+      jvp: z.string().max(100).optional().transform(stripHtmlTags), 
       peripheralPulses: z.string().max(200).optional().transform(stripHtmlTags),
       notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
-  // Respiratory System (RS)
   rs: z
     .object({
       respiratoryRate: z.number().optional(),
-      breathSounds: z.string().max(500).optional().transform(stripHtmlTags), // e.g., "Bilateral vesicular breath sounds"
-      additionalSounds: z.string().max(500).optional().transform(stripHtmlTags), // Crackles, wheezes, rhonchi
+      breathSounds: z.string().max(500).optional().transform(stripHtmlTags), 
+      additionalSounds: z.string().max(500).optional().transform(stripHtmlTags), 
       chestMovement: z.enum(["NORMAL", "REDUCED", "ASYMMETRIC"]).optional(),
       percussion: z.string().max(200).optional().transform(stripHtmlTags),
       notes: z.string().max(1000).optional().transform(stripHtmlTags),
     })
     .optional(),
 
-  // Per Abdomen (P/A)
   pa: z
     .object({
       shape: z.enum(["FLAT", "DISTENDED", "SCAPHOID", "NORMAL"]).optional(),
@@ -74,7 +67,7 @@ export const systemicExaminationSchema = z.object({
         .max(255)
         .optional()
         .transform(stripHtmlTags),
-      organomegaly: z.string().max(255).optional().transform(stripHtmlTags), // Hepatomegaly, splenomegaly
+      organomegaly: z.string().max(255).optional().transform(stripHtmlTags), 
       bowelSounds: z
         .enum(["NORMAL", "HYPERACTIVE", "HYPOACTIVE", "ABSENT"])
         .optional(),
@@ -83,7 +76,6 @@ export const systemicExaminationSchema = z.object({
     })
     .optional(),
 
-  // Central Nervous System (CNS)
   cns: z
     .object({
       consciousness: z
@@ -98,7 +90,6 @@ export const systemicExaminationSchema = z.object({
     })
     .optional(),
 
-  // Musculoskeletal System (MSS)
   mss: z
     .object({
       gait: z
@@ -115,7 +106,6 @@ export const systemicExaminationSchema = z.object({
     })
     .optional(),
 
-  // Skin / Integumentary
   skin: z
     .object({
       color: z.string().max(100).optional().transform(stripHtmlTags),
@@ -126,15 +116,12 @@ export const systemicExaminationSchema = z.object({
     })
     .optional(),
 
-  // Local Examination (for specific complaints)
   localExamination: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  // Additional systemic examination notes
   additionalNotes: z.string().max(2000).optional(),
 });
 export type SystemicExamination = z.infer<typeof systemicExaminationSchema>;
 
-// Clinical Investigations ordered
 export const clinicalInvestigationSchema = z.object({
   id: z.string().optional(),
   name: z.string().max(255),
@@ -147,10 +134,6 @@ export const clinicalInvestigationSchema = z.object({
   completedAt: z.string().or(z.date()).optional(),
 });
 export type ClinicalInvestigation = z.infer<typeof clinicalInvestigationSchema>;
-
-// ============================================================================
-// Dental Chart Schema
-// ============================================================================
 
 export const toothConditionSchema = z.enum([
   "HEALTHY",
@@ -186,18 +169,14 @@ export const dentalChartSchema = z.object({
 });
 export type DentalChartData = z.infer<typeof dentalChartSchema>;
 
-// ============================================================================
-// Growth Chart Schemas (for Pediatric)
-// ============================================================================
-
 export const growthMeasurementSchema = z.object({
   id: z.string().optional(),
-  date: z.string(), // ISO date string
-  ageMonths: z.number(), // Age in months at measurement
-  weight: z.number().optional(), // kg
-  height: z.number().optional(), // cm
-  headCircumference: z.number().optional(), // cm (for 0-36 months)
-  bmi: z.number().optional(), // Calculated
+  date: z.string(), 
+  ageMonths: z.number(), 
+  weight: z.number().optional(), 
+  height: z.number().optional(), 
+  headCircumference: z.number().optional(), 
+  bmi: z.number().optional(), 
   notes: z.string().optional(),
 });
 export type GrowthMeasurement = z.infer<typeof growthMeasurementSchema>;
@@ -209,30 +188,26 @@ export const growthChartDataSchema = z.object({
 });
 export type GrowthChartData = z.infer<typeof growthChartDataSchema>;
 
-// ============================================================================
-// Ophthalmology Exam Schemas
-// ============================================================================
-
 export const refractionEyeDataSchema = z.object({
-  sphere: z.number().optional(), // Diopters
-  cylinder: z.number().optional(), // Diopters
-  axis: z.number().min(0).max(180).optional(), // Degrees
-  add: z.number().optional(), // Addition for near vision
-  prism: z.string().optional(), // Prism correction
+  sphere: z.number().optional(), 
+  cylinder: z.number().optional(), 
+  axis: z.number().min(0).max(180).optional(), 
+  add: z.number().optional(), 
+  prism: z.string().optional(), 
 });
 export type RefractionEyeData = z.infer<typeof refractionEyeDataSchema>;
 
 export const refractionDataSchema = z.object({
-  od: refractionEyeDataSchema.optional(), // Oculus Dexter (Right Eye)
-  os: refractionEyeDataSchema.optional(), // Oculus Sinister (Left Eye)
-  pupillaryDistance: z.number().optional(), // PD in mm
+  od: refractionEyeDataSchema.optional(), 
+  os: refractionEyeDataSchema.optional(), 
+  pupillaryDistance: z.number().optional(), 
   notes: z.string().optional(),
 });
 export type RefractionData = z.infer<typeof refractionDataSchema>;
 
 export const visualAcuityEyeDataSchema = z.object({
-  uncorrected: z.string().optional(), // e.g., "20/40"
-  corrected: z.string().optional(), // e.g., "20/20"
+  uncorrected: z.string().optional(), 
+  corrected: z.string().optional(), 
   pinhole: z.string().optional(),
 });
 export type VisualAcuityEyeData = z.infer<typeof visualAcuityEyeDataSchema>;
@@ -243,16 +218,16 @@ export const visualAcuityBothEyesDataSchema = z.object({
 });
 
 export const visualAcuityDataSchema = z.object({
-  od: visualAcuityEyeDataSchema.optional(), // Right Eye
-  os: visualAcuityEyeDataSchema.optional(), // Left Eye
-  ou: visualAcuityBothEyesDataSchema.optional(), // Both Eyes
+  od: visualAcuityEyeDataSchema.optional(), 
+  os: visualAcuityEyeDataSchema.optional(), 
+  ou: visualAcuityBothEyesDataSchema.optional(), 
   notes: z.string().optional(),
 });
 export type VisualAcuityData = z.infer<typeof visualAcuityDataSchema>;
 
 export const iopDataSchema = z.object({
-  od: z.number().optional(), // mmHg
-  os: z.number().optional(), // mmHg
+  od: z.number().optional(), 
+  os: z.number().optional(), 
   method: z.enum(["NCT", "Applanation", "iCare", "Other"]).optional(),
   time: z.string().optional(),
   notes: z.string().optional(),
@@ -281,12 +256,8 @@ export const ophthalmologyExamDataSchema = z.object({
 });
 export type OphthalmologyExamData = z.infer<typeof ophthalmologyExamDataSchema>;
 
-// ============================================================================
-// Cardiology Exam Schemas
-// ============================================================================
-
 export const ecgDataSchema = z.object({
-  heartRate: z.number().optional(), // bpm
+  heartRate: z.number().optional(), 
   rhythm: z
     .enum([
       "Sinus",
@@ -297,10 +268,10 @@ export const ecgDataSchema = z.object({
       "Other",
     ])
     .optional(),
-  prInterval: z.number().optional(), // ms
-  qrsDuration: z.number().optional(), // ms
-  qtInterval: z.number().optional(), // ms
-  qtcInterval: z.number().optional(), // ms (corrected QT)
+  prInterval: z.number().optional(), 
+  qrsDuration: z.number().optional(), 
+  qtInterval: z.number().optional(), 
+  qtcInterval: z.number().optional(), 
   axis: z
     .enum([
       "Normal",
@@ -318,18 +289,18 @@ export const ecgDataSchema = z.object({
 export type ECGData = z.infer<typeof ecgDataSchema>;
 
 export const echoDataSchema = z.object({
-  lvef: z.number().optional(), // %
-  lviddDiastole: z.number().optional(), // mm
-  lvisdSystole: z.number().optional(), // mm
-  septumThickness: z.number().optional(), // mm
-  posteriorWallThickness: z.number().optional(), // mm
-  lvMass: z.number().optional(), // grams
+  lvef: z.number().optional(), 
+  lviddDiastole: z.number().optional(), 
+  lvisdSystole: z.number().optional(), 
+  septumThickness: z.number().optional(), 
+  posteriorWallThickness: z.number().optional(), 
+  lvMass: z.number().optional(), 
   mitralValve: z.string().optional(),
   aorticValve: z.string().optional(),
   tricuspidValve: z.string().optional(),
   pulmonicValve: z.string().optional(),
-  leftAtriumSize: z.number().optional(), // mm
-  aorticRoot: z.number().optional(), // mm
+  leftAtriumSize: z.number().optional(), 
+  aorticRoot: z.number().optional(), 
   rightVentricle: z.string().optional(),
   pericardium: z.string().optional(),
   dopplerFindings: z.string().optional(),
@@ -344,9 +315,9 @@ export const stressTestDataSchema = z.object({
     .enum(["Treadmill", "Pharmacological", "Stress Echo", "Nuclear"])
     .optional(),
   protocol: z.string().optional(),
-  maxHeartRate: z.number().optional(), // bpm
-  targetHeartRate: z.number().optional(), // bpm
-  duration: z.number().optional(), // minutes
+  maxHeartRate: z.number().optional(), 
+  targetHeartRate: z.number().optional(), 
+  duration: z.number().optional(), 
   mets: z.number().optional(),
   stSegmentChanges: z.boolean().optional(),
   symptoms: z.string().optional(),
@@ -368,15 +339,10 @@ export const cardiologyExamDataSchema = z.object({
 });
 export type CardiologyExamData = z.infer<typeof cardiologyExamDataSchema>;
 
-// ============================================================================
-// Gynecology/Obstetrics Examination Schemas
-// ============================================================================
-
-// Menstrual History
 export const menstrualHistoryDataSchema = z.object({
-  lmp: z.string().optional(), // Last Menstrual Period (ISO date)
-  cycleLength: z.number().optional(), // Days
-  cycleDuration: z.number().optional(), // Days of bleeding
+  lmp: z.string().optional(), 
+  cycleLength: z.number().optional(), 
+  cycleDuration: z.number().optional(), 
   regularity: z.enum(["regular", "irregular"]).optional(),
   flow: z.enum(["scanty", "normal", "heavy"]).optional(),
   dysmenorrhea: z.enum(["none", "mild", "moderate", "severe"]).optional(),
@@ -384,23 +350,21 @@ export const menstrualHistoryDataSchema = z.object({
 });
 export type MenstrualHistoryData = z.infer<typeof menstrualHistoryDataSchema>;
 
-// Obstetric History (GTPAL)
 export const obstetricHistoryDataSchema = z.object({
-  gravida: z.number().optional(), // Total pregnancies
-  term: z.number().optional(), // Full-term deliveries (≥37 weeks)
-  preterm: z.number().optional(), // Preterm deliveries (<37 weeks)
-  abortions: z.number().optional(), // Spontaneous + induced abortions
-  living: z.number().optional(), // Living children
-  edd: z.string().optional(), // Expected Date of Delivery (ISO date)
-  gestationalAge: z.string().optional(), // e.g., "28w 3d"
+  gravida: z.number().optional(), 
+  term: z.number().optional(), 
+  preterm: z.number().optional(), 
+  abortions: z.number().optional(), 
+  living: z.number().optional(), 
+  edd: z.string().optional(), 
+  gestationalAge: z.string().optional(), 
   previousPregnancyNotes: z.string().optional(),
 });
 export type ObstetricHistoryData = z.infer<typeof obstetricHistoryDataSchema>;
 
-// Antenatal Record
 export const antenatalRecordDataSchema = z.object({
-  fundalHeight: z.number().optional(), // cm
-  fetalHeartRate: z.number().optional(), // bpm
+  fundalHeight: z.number().optional(), 
+  fetalHeartRate: z.number().optional(), 
   presentation: z
     .enum(["cephalic", "breech", "transverse", "oblique"])
     .optional(),
@@ -412,13 +376,12 @@ export const antenatalRecordDataSchema = z.object({
     .optional(),
   placentalLocation: z.string().optional(),
   movements: z.enum(["normal", "reduced", "excessive"]).optional(),
-  cervicalDilation: z.number().optional(), // cm
-  cervicalEffacement: z.number().optional(), // %
+  cervicalDilation: z.number().optional(), 
+  cervicalEffacement: z.number().optional(), 
   notes: z.string().optional(),
 });
 export type AntenatalRecordData = z.infer<typeof antenatalRecordDataSchema>;
 
-// Complete Gynecology Examination Data
 export const gynecologyExamDataSchema = z.object({
   menstrualHistory: menstrualHistoryDataSchema.optional(),
   obstetricHistory: obstetricHistoryDataSchema.optional(),
@@ -428,11 +391,6 @@ export const gynecologyExamDataSchema = z.object({
 });
 export type GynecologyExamData = z.infer<typeof gynecologyExamDataSchema>;
 
-// ============================================================================
-// Dermatology Examination Schemas
-// ============================================================================
-
-// Skin Assessment
 export const skinAssessmentDataSchema = z.object({
   fitzpatrickType: z.enum(["I", "II", "III", "IV", "V", "VI"]).optional(),
   skinType: z
@@ -443,12 +401,11 @@ export const skinAssessmentDataSchema = z.object({
 });
 export type SkinAssessmentData = z.infer<typeof skinAssessmentDataSchema>;
 
-// Lesion Data
 export const lesionDataSchema = z.object({
   id: z.string(),
   location: z.string(),
   bodyRegion: z.string().optional(),
-  size: z.number().optional(), // mm
+  size: z.number().optional(), 
   shape: z.enum(["round", "oval", "irregular", "linear", "annular"]).optional(),
   color: z.string().optional(),
   border: z
@@ -467,7 +424,6 @@ export const lesionDataSchema = z.object({
 });
 export type LesionData = z.infer<typeof lesionDataSchema>;
 
-// Complete Dermatology Examination Data
 export const dermatologyExamDataSchema = z.object({
   skinAssessment: skinAssessmentDataSchema.optional(),
   lesions: z.array(lesionDataSchema).optional(),
@@ -476,24 +432,17 @@ export const dermatologyExamDataSchema = z.object({
 });
 export type DermatologyExamData = z.infer<typeof dermatologyExamDataSchema>;
 
-// ============================================================================
-// Psychiatry Examination Schemas
-// ============================================================================
-
-// Mental Status Examination Schema
 export const mseDataSchema = z.object({
-  // Appearance & Behavior
+
   appearance: z.string().optional(),
   behavior: z.string().optional(),
   eyeContact: z.string().optional(),
   psychomotorActivity: z.string().optional(),
 
-  // Speech
   speech: z.string().optional(),
   speechRate: z.enum(["normal", "slow", "rapid", "pressured"]).optional(),
   speechVolume: z.enum(["normal", "soft", "loud"]).optional(),
 
-  // Mood & Affect
   mood: z.string().optional(),
   affect: z.string().optional(),
   affectType: z
@@ -501,7 +450,6 @@ export const mseDataSchema = z.object({
     .optional(),
   affectCongruence: z.enum(["congruent", "incongruent"]).optional(),
 
-  // Thought
   thoughtProcess: z.string().optional(),
   thoughtProcessType: z
     .enum([
@@ -521,7 +469,6 @@ export const mseDataSchema = z.object({
   suicidalIdeation: z.boolean().optional(),
   homicidalIdeation: z.boolean().optional(),
 
-  // Perception
   hallucinations: z.boolean().optional(),
   hallucinationType: z.string().optional(),
   hallucinationDescription: z.string().optional(),
@@ -529,7 +476,6 @@ export const mseDataSchema = z.object({
   depersonalization: z.boolean().optional(),
   derealization: z.boolean().optional(),
 
-  // Cognition
   consciousness: z
     .enum(["alert", "drowsy", "obtunded", "stuporous", "comatose"])
     .optional(),
@@ -542,19 +488,16 @@ export const mseDataSchema = z.object({
   memoryRecent: z.string().optional(),
   memoryRemote: z.string().optional(),
 
-  // Insight & Judgment
   insight: z.enum(["good", "fair", "poor", "absent"]).optional(),
   insightDescription: z.string().optional(),
   judgment: z.enum(["good", "fair", "poor", "impaired"]).optional(),
   judgmentDescription: z.string().optional(),
 
-  // Additional Notes
   notes: z.string().optional(),
 });
 
-// Risk Assessment Schema
 export const riskAssessmentDataSchema = z.object({
-  // Suicide Risk
+
   suicideRisk: z.enum(["low", "moderate", "high", "imminent"]).optional(),
   suicidalThoughts: z.boolean().optional(),
   suicidalPlan: z.boolean().optional(),
@@ -564,7 +507,6 @@ export const riskAssessmentDataSchema = z.object({
   previousAttemptsDetails: z.string().optional(),
   protectiveFactors: z.string().optional(),
 
-  // Homicide Risk
   homicideRisk: z.enum(["low", "moderate", "high", "imminent"]).optional(),
   homicidalThoughts: z.boolean().optional(),
   homicidalPlan: z.boolean().optional(),
@@ -573,31 +515,25 @@ export const riskAssessmentDataSchema = z.object({
   identifiedTarget: z.boolean().optional(),
   targetDetails: z.string().optional(),
 
-  // Risk Management
   riskManagement: z.string().optional(),
   safetyPlan: z.string().optional(),
 });
 
-// Screening Scales Schema
 export const screeningScalesDataSchema = z.object({
-  // PHQ-9 (Depression)
+
   phq9Score: z.number().min(0).max(27).optional(),
   phq9Severity: z
     .enum(["minimal", "mild", "moderate", "moderately-severe", "severe"])
     .optional(),
 
-  // GAD-7 (Anxiety)
   gad7Score: z.number().min(0).max(21).optional(),
   gad7Severity: z.enum(["minimal", "mild", "moderate", "severe"]).optional(),
 
-  // YMRS (Mania)
   ymrsScore: z.number().min(0).max(60).optional(),
 
-  // Other scales
   otherScales: z.string().optional(),
 });
 
-// Psychiatry Exam Data Schema (Combines all sub-schemas)
 export const psychiatryExamDataSchema = z.object({
   mse: mseDataSchema.optional(),
   riskAssessment: riskAssessmentDataSchema.optional(),
@@ -611,11 +547,10 @@ export type RiskAssessmentData = z.infer<typeof riskAssessmentDataSchema>;
 export type ScreeningScalesData = z.infer<typeof screeningScalesDataSchema>;
 export type PsychiatryExamData = z.infer<typeof psychiatryExamDataSchema>;
 
-// Full Clinical Note in SOAP format
 export const clinicalNoteSchema = z.object({
-  // Subjective
+
   chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
-  treatmentHistory: z.string().max(5000).optional().transform(stripHtmlTags), // Previous treatments attempted for the current condition
+  treatmentHistory: z.string().max(5000).optional().transform(stripHtmlTags), 
   historyOfPresentIllness: z
     .string()
     .max(5000)
@@ -628,12 +563,10 @@ export const clinicalNoteSchema = z.object({
   allergies: z.string().max(2000).optional().transform(stripHtmlTags),
   currentMedications: z.string().max(5000).optional().transform(stripHtmlTags),
 
-  // Objective
   vitalSigns: vitalSignSchema.optional(),
   generalExamination: generalExaminationSchema.optional(),
   systemicExamination: systemicExaminationSchema.optional(),
 
-  // Specialty-specific data
   dentalChart: dentalChartSchema.optional(),
   growthData: growthChartDataSchema.optional(),
   ophthalmologyExam: ophthalmologyExamDataSchema.optional(),
@@ -642,7 +575,6 @@ export const clinicalNoteSchema = z.object({
   dermatologyExam: dermatologyExamDataSchema.optional(),
   psychiatryExam: psychiatryExamDataSchema.optional(),
 
-  // Assessment
   provisionalDiagnosis: z
     .string()
     .max(1000)
@@ -655,7 +587,6 @@ export const clinicalNoteSchema = z.object({
     .transform(stripHtmlTags),
   clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  // Plan
   investigations: z.array(clinicalInvestigationSchema).optional(),
   finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags),
   treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags),
@@ -674,10 +605,6 @@ export const clinicalNoteSchema = z.object({
   patientEducation: z.string().max(5000).optional().transform(stripHtmlTags),
 });
 export type ClinicalNote = z.infer<typeof clinicalNoteSchema>;
-
-// ============================================================================
-// Clinical Templates
-// ============================================================================
 
 export const clinicalTemplateSchema = z.object({
   id: z.string(),

@@ -71,8 +71,8 @@ export default function ProtectedLayout({
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-muted/30">
+      {}
       <aside className="hidden w-64 flex-col border-r bg-background md:flex">
         <div className="flex h-14 items-center border-b px-6">
           <Link
@@ -124,9 +124,9 @@ export default function ProtectedLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header */}
+        {}
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
           <MobileNav />
           <span className="font-bold text-lg">Docita Admin</span>

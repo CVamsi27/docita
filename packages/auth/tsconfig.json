@@ -5,7 +5,11 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
-    "module": "ESNext"
+    "module": "ESNext",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

@@ -24,7 +24,6 @@ export const useInvoiceCreateLogic = () => {
   const [patientSearch, setPatientSearch] = useState("");
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
 
-  // Fetch patients for selector
   const { data: patientsData, isLoading: patientsLoading } = usePatients({
     search: patientSearch,
     limit: 10,
@@ -65,7 +64,7 @@ export const useInvoiceCreateLogic = () => {
       const payload = {
         ...data,
         notes: data.notes ?? "",
-        total: totalAmount, // Include calculated total
+        total: totalAmount, 
       };
 
       const result = await createInvoice.mutateAsync(payload);
@@ -76,7 +75,7 @@ export const useInvoiceCreateLogic = () => {
       });
     } catch (error) {
       toast.error("Failed to create invoice");
-      console.error(error);
+
     } finally {
       setIsSaving(false);
     }
@@ -91,7 +90,7 @@ export const useInvoiceCreateLogic = () => {
     isSaving,
     totalAmount,
     router,
-    // Patient selector props
+
     patients: patientsData?.items || [],
     patientsLoading,
     patientSearch,

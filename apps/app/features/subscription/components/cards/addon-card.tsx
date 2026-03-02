@@ -55,66 +55,56 @@ const COLOR_VARIANTS: Record<
   }
 > = {
   pink: {
-    card: "from-pink-50 via-purple-50/50 to-background dark:from-pink-950/30 dark:via-purple-950/20 dark:to-slate-900/50",
-    icon: "from-pink-500 to-purple-600",
-    badge: "bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30",
-    title: "text-pink-700 dark:text-pink-300",
-    desc: "text-pink-600/80 dark:text-pink-400/70",
-    button:
-      "bg-linear-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700",
-    featureIcon: "text-pink-600 dark:text-pink-400",
-    featureText: "text-pink-900 dark:text-pink-100",
-    featureDesc: "text-pink-600/70 dark:text-pink-400/60",
-    featureBg:
-      "bg-white/60 dark:bg-slate-800/50 border border-pink-200/50 dark:border-pink-800/30",
-    border: "border-pink-300/50 dark:border-pink-700/30",
+    card: "from-background via-primary/10 to-background",
+    icon: "bg-primary text-primary-foreground",
+    badge: "tier-pro",
+    title: "text-primary",
+    desc: "text-primary/80",
+    button: "bg-primary text-primary-foreground hover:bg-primary/90",
+    featureIcon: "text-primary",
+    featureText: "text-foreground",
+    featureDesc: "text-muted-foreground",
+    featureBg: "bg-background/60 border border-primary/20",
+    border: "border-primary/30",
   },
   green: {
-    card: "from-emerald-50 via-green-50/50 to-background dark:from-emerald-950/30 dark:via-green-950/20 dark:to-slate-900/50",
-    icon: "from-emerald-500 to-teal-600",
-    badge:
-      "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-    title: "text-emerald-700 dark:text-emerald-300",
-    desc: "text-emerald-600/80 dark:text-emerald-400/70",
-    button:
-      "bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700",
-    featureIcon: "text-emerald-600 dark:text-emerald-400",
-    featureText: "text-emerald-900 dark:text-emerald-100",
-    featureDesc: "text-emerald-600/70 dark:text-emerald-400/60",
-    featureBg:
-      "bg-white/60 dark:bg-slate-800/50 border border-emerald-200/50 dark:border-emerald-800/30",
-    border: "border-emerald-300/50 dark:border-emerald-700/30",
+    card: "from-background via-success/10 to-background",
+    icon: "bg-success text-success-foreground",
+    badge: "tier-plus",
+    title: "text-success",
+    desc: "text-success/80",
+    button: "bg-success text-success-foreground hover:bg-success/90",
+    featureIcon: "text-success",
+    featureText: "text-foreground",
+    featureDesc: "text-muted-foreground",
+    featureBg: "bg-background/60 border border-success/20",
+    border: "border-success/30",
   },
   blue: {
-    card: "from-blue-50 via-indigo-50/50 to-background dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-slate-900/50",
-    icon: "from-blue-500 to-indigo-600",
-    badge: "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30",
-    title: "text-blue-700 dark:text-blue-300",
-    desc: "text-blue-600/80 dark:text-blue-400/70",
-    button:
-      "bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700",
-    featureIcon: "text-blue-600 dark:text-blue-400",
-    featureText: "text-blue-900 dark:text-blue-100",
-    featureDesc: "text-blue-600/70 dark:text-blue-400/60",
-    featureBg:
-      "bg-white/60 dark:bg-slate-800/50 border border-blue-200/50 dark:border-blue-800/30",
-    border: "border-blue-300/50 dark:border-blue-700/30",
+    card: "from-background via-info/10 to-background",
+    icon: "bg-info text-info-foreground",
+    badge: "tier-core",
+    title: "text-info",
+    desc: "text-info/80",
+    button: "bg-info text-info-foreground hover:bg-info/90",
+    featureIcon: "text-info",
+    featureText: "text-foreground",
+    featureDesc: "text-muted-foreground",
+    featureBg: "bg-background/60 border border-info/20",
+    border: "border-info/30",
   },
   purple: {
-    card: "from-violet-50 via-purple-50/50 to-background dark:from-violet-950/30 dark:via-purple-950/20 dark:to-slate-900/50",
-    icon: "from-violet-500 to-purple-600",
-    badge:
-      "bg-violet-500/20 text-violet-600 dark:text-violet-400 border-violet-500/30",
-    title: "text-violet-700 dark:text-violet-300",
-    desc: "text-violet-600/80 dark:text-violet-400/70",
-    button:
-      "bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700",
-    featureIcon: "text-violet-600 dark:text-violet-400",
-    featureText: "text-violet-900 dark:text-violet-100",
-    featureDesc: "text-violet-600/70 dark:text-violet-400/60",
-    featureBg:
-      "bg-white/60 dark:bg-slate-800/50 border border-violet-200/50 dark:border-violet-800/30",
-    border: "border-violet-300/50 dark:border-violet-700/30",
+    card: "from-background via-warning/10 to-background",
+    icon: "bg-warning text-warning-foreground",
+    badge: "tier-enterprise",
+    title: "text-warning",
+    desc: "text-warning/80",
+    button: "btn-warning",
+    featureIcon: "text-warning",
+    featureText: "text-foreground",
+    featureDesc: "text-muted-foreground",
+    featureBg: "bg-background/60 border border-warning/20",
+    border: "border-warning/30",
   },
 };
 
@@ -153,11 +143,11 @@ export function AddonCard({
             <div className="flex items-center gap-2 mb-2">
               <div
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br shadow-lg",
+                  "flex h-10 w-10 items-center justify-center rounded-xl shadow-lg",
                   colors.icon,
                 )}
               >
-                <Icon className="h-5 w-5 text-white" />
+                <Icon className="h-5 w-5" />
               </div>
               <Badge className={cn("border", colors.badge)}>Add-on</Badge>
             </div>
@@ -236,7 +226,7 @@ export function AddonCard({
                   colors.featureBg,
                 )}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/50 dark:bg-black/20 shrink-0">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background/60 shrink-0">
                   <FeatureIcon className={cn("h-4 w-4", colors.featureIcon)} />
                 </div>
                 <div>

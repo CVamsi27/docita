@@ -8,12 +8,22 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
-import { PatientService } from '../../application/services/patient.service';
+import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '../../../../common/types/common.types';
-import { PatientProps } from '../../core/entities/patient.entity';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
+import {
+  CreatePatientDto,
+  ListPatientsQueryDto,
+  UpdatePatientDto,
+} from '@/domains/patients/application/dto/patients.dto';
+import {
+  type PatientDomainCreateInput,
+  type PatientDomainUpdateInput,
+  patientDomainCreateSchema,
+  patientDomainUpdateSchema,
+} from '@workspace/types';
 
 @ApiTags('patients')
 @Controller('patients')
@@ -21,20 +31,31 @@ import { PatientProps } from '../../core/entities/patient.entity';
 export class PatientsController {
   constructor(private readonly patientService: PatientService) {}
 
+  private normalizeCreateBody(
+    body: CreatePatientDto,
+    clinicId: string,
+  ): PatientDomainCreateInput {
+    return patientDomainCreateSchema.parse({
+      ...body,
+      clinicId,
+    });
+  }
+
+  private normalizeUpdateBody(
+    body: UpdatePatientDto,
+  ): PatientDomainUpdateInput {
+    return patientDomainUpdateSchema.parse(body);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create new patient' })
   async create(
     @Request() req: RequestWithUser,
-    @Body()
-    body: Omit<
-      PatientProps,
-      'id' | 'createdAt' | 'updatedAt' | 'version' | 'clinicId'
-    >,
+    @Body() body: CreatePatientDto,
   ) {
-    return this.patientService.createPatient({
-      ...body,
-      clinicId: req.user!.clinicId!,
-    });
+    return this.patientService.createPatient(
+      this.normalizeCreateBody(body, req.user!.clinicId!),
+    );
   }
 
   @Get()
@@ -45,17 +66,15 @@ export class PatientsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async findAll(
     @Request() req: RequestWithUser,
-    @Query('search') search?: string,
-    @Query('gender') gender?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query() query: ListPatientsQueryDto,
   ) {
+    const { search, gender, page, limit } = query;
     return this.patientService.listPatients({
       clinicId: req.user!.clinicId!,
       search,
       gender,
-      page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 20,
+      page: page ?? 1,
+      limit: limit ?? 20,
     });
   }
 
@@ -67,7 +86,10 @@ export class PatientsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update patient' })
-  async update(@Param('id') id: string, @Body() body: Partial<PatientProps>) {
-    return this.patientService.updatePatient(id, body);
+  async update(@Param('id') id: string, @Body() body: UpdatePatientDto) {
+    return this.patientService.updatePatient(
+      id,
+      this.normalizeUpdateBody(body),
+    );
   }
 }

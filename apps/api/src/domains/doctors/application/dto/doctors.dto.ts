@@ -1,33 +1,24 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { Specialization, HospitalRole } from '@workspace/db';
-import { userSchema } from '@workspace/types';
+import {
+  createDoctorRequestSchema,
+  updateDoctorRequestSchema,
+  doctorResponseSchema,
+  doctorListResponseSchema,
+} from '@workspace/types';
 
-export const CreateDoctorSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1),
-  role: z.string().optional(),
+export const CreateDoctorSchema = createDoctorRequestSchema.extend({
   specialization: z.nativeEnum(Specialization).optional(),
   hospitalRole: z.nativeEnum(HospitalRole).optional(),
-  qualification: z.string().optional(),
-  registrationNumber: z.string().optional(),
-  licenseNumber: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  bio: z.string().optional(),
-  yearsOfExperience: z.number().int().nonnegative().optional(),
-  consultationFee: z.number().nonnegative().optional(),
 });
 export class CreateDoctorDto extends createZodDto(CreateDoctorSchema) {}
 
-export const UpdateDoctorSchema = CreateDoctorSchema.partial()
-  .omit({ email: true, password: true })
-  .extend({
-    email: z.string().email().optional(), // Allow email update?
-    licenseExpiry: z.coerce.date().optional(),
-    signatureUrl: z.string().url().optional(),
-    profilePhotoUrl: z.string().url().optional(),
-  });
+export const UpdateDoctorSchema = updateDoctorRequestSchema.extend({
+  specialization: z.nativeEnum(Specialization).optional(),
+  hospitalRole: z.nativeEnum(HospitalRole).optional(),
+  licenseExpiry: z.coerce.date().optional(),
+});
 export class UpdateDoctorDto extends createZodDto(UpdateDoctorSchema) {}
 
 export const CreateEducationSchema = z.object({
@@ -64,6 +55,8 @@ export class AddSpecializationDto extends createZodDto(
   AddSpecializationSchema,
 ) {}
 
-export class DoctorResponseDto extends createZodDto(userSchema) {}
+export class DoctorResponseDto extends createZodDto(doctorResponseSchema) {}
 
-export class DoctorListResponseDto extends createZodDto(z.array(userSchema)) {}
+export class DoctorListResponseDto extends createZodDto(
+  doctorListResponseSchema,
+) {}

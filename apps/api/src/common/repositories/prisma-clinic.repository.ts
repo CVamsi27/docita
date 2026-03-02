@@ -1,19 +1,5 @@
-/**
- * Prisma Clinic Repository Implementation
- *
- * SOLID PRINCIPLES:
- * - Single Responsibility: Only handles Prisma-specific clinic queries
- * - Liskov Substitution: Can be replaced with any IClinicRepository implementation
- * - Dependency Inversion: Implements interface, consumed by services
- *
- * OPTIMIZATIONS:
- * - Uses select to fetch only needed fields
- * - Implements cursor-based pagination for large datasets
- * - Batches queries where possible
- */
-
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IClinicRepository,
   ClinicFilter,
@@ -94,7 +80,6 @@ export class PrismaClinicRepository implements IClinicRepository {
 
     const where: Prisma.ClinicWhereInput = this.buildWhereClause(filter);
 
-    // Execute count and data queries in parallel (optimization!)
     const [total, data] = await Promise.all([
       this.prisma.clinic.count({ where }),
       this.prisma.clinic.findMany({
@@ -125,7 +110,6 @@ export class PrismaClinicRepository implements IClinicRepository {
   }
 
   async delete(id: string): Promise<void> {
-    // Soft delete - update subscription status
     await this.prisma.clinic.update({
       where: { id },
       data: {
@@ -140,7 +124,6 @@ export class PrismaClinicRepository implements IClinicRepository {
     byStatus: Record<SubscriptionStatus, number>;
     activeCount: number;
   }> {
-    // Use groupBy for efficient aggregation
     const [tierStats, statusStats, total] = await Promise.all([
       this.prisma.clinic.groupBy({
         by: ['tier'],
@@ -182,7 +165,7 @@ export class PrismaClinicRepository implements IClinicRepository {
         subscription: {
           currentPeriodEnd: {
             lte: expiryDate,
-            gte: new Date(), // Not already expired
+            gte: new Date(),
           },
         },
       },
@@ -198,8 +181,6 @@ export class PrismaClinicRepository implements IClinicRepository {
       },
     });
   }
-
-  // Private helpers
 
   private buildWhereClause(filter?: ClinicFilter): Prisma.ClinicWhereInput {
     const where: Prisma.ClinicWhereInput = {};

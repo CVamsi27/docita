@@ -119,7 +119,6 @@ describe('FhirPatientFactory', () => {
 
       expect(fhirPatient.resourceType).toBe('Patient');
       expect(fhirPatient.name?.[0]?.family).toBe('Doe');
-      // Should still have core fields
     });
 
     it('should set gender property (not extension)', () => {

@@ -1,11 +1,15 @@
-/**
- * Shared API Request/Response Validation Schemas
- * Used across all API endpoints for consistent validation
- */
+
 
 import { z } from "zod";
+import {
+  createPatientRequestSchema,
+  updatePatientRequestSchema,
+} from "../contracts/patients";
+import {
+  createPrescriptionRequestSchema,
+} from "../contracts/prescriptions";
+import { createLabTestRequestSchema } from "../contracts/lab-tests";
 
-// Common validators
 export const IdSchema = z.string().uuid("Invalid ID format");
 export const EmailSchema = z.string().email("Invalid email address");
 export const PhoneSchema = z
@@ -16,7 +20,6 @@ export const DateTimeSchema = z.coerce.date();
 export const PositiveIntSchema = z.number().int().positive();
 export const NonNegativeIntSchema = z.number().int().nonnegative();
 
-// Common pagination
 export const PaginationSchema = z.object({
   page: NonNegativeIntSchema.default(1),
   limit: z.number().int().min(1).max(100).default(20),
@@ -26,7 +29,6 @@ export const PaginationSchema = z.object({
 
 export type Pagination = z.infer<typeof PaginationSchema>;
 
-// Common responses
 export const ErrorResponseSchema = z.object({
   type: z.string(),
   title: z.string(),
@@ -38,27 +40,13 @@ export const ErrorResponseSchema = z.object({
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
-// Patient API
-export const CreatePatientSchema = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  email: EmailSchema.optional(),
-  phoneNumber: PhoneSchema.optional(),
-  dateOfBirth: DateTimeSchema.optional(),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postalCode: z.string().optional(),
-  country: z.string().optional(),
-});
+export const CreatePatientSchema = createPatientRequestSchema;
 
 export type CreatePatient = z.infer<typeof CreatePatientSchema>;
 
-export const UpdatePatientSchema = CreatePatientSchema.partial();
+export const UpdatePatientSchema = updatePatientRequestSchema;
 export type UpdatePatient = z.infer<typeof UpdatePatientSchema>;
 
-// Appointment API
 export const CreateAppointmentSchema = z.object({
   patientId: IdSchema,
   doctorId: IdSchema,
@@ -84,7 +72,6 @@ export type CreateAppointment = z.infer<typeof CreateAppointmentSchema>;
 export const UpdateAppointmentSchema = CreateAppointmentSchema.partial();
 export type UpdateAppointment = z.infer<typeof UpdateAppointmentSchema>;
 
-// Prescription API
 export const PrescriptionItemSchema = z.object({
   medicineId: IdSchema,
   medicineName: z.string(),
@@ -95,18 +82,10 @@ export const PrescriptionItemSchema = z.object({
   quantity: PositiveIntSchema.optional(),
 });
 
-export const CreatePrescriptionSchema = z.object({
-  appointmentId: IdSchema,
-  patientId: IdSchema,
-  doctorId: IdSchema,
-  items: z.array(PrescriptionItemSchema).min(1),
-  notes: z.string().optional(),
-  followUpDate: DateTimeSchema.optional(),
-});
+export const CreatePrescriptionSchema = createPrescriptionRequestSchema;
 
 export type CreatePrescription = z.infer<typeof CreatePrescriptionSchema>;
 
-// Invoice API
 export const InvoiceItemSchema = z.object({
   description: z.string().min(1),
   quantity: PositiveIntSchema,
@@ -126,7 +105,6 @@ export const CreateInvoiceSchema = z.object({
 
 export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>;
 
-// Clinic API
 export const CreateClinicSchema = z.object({
   name: z.string().min(1).max(200),
   email: EmailSchema,
@@ -146,19 +124,10 @@ export type CreateClinic = z.infer<typeof CreateClinicSchema>;
 export const UpdateClinicSchema = CreateClinicSchema.partial();
 export type UpdateClinic = z.infer<typeof UpdateClinicSchema>;
 
-// Lab Test API
-export const CreateLabTestSchema = z.object({
-  patientId: IdSchema,
-  appointmentId: IdSchema.optional(),
-  testName: z.string().min(1),
-  category: z.string().min(1),
-  instructions: z.string().optional(),
-  priority: z.enum(["ROUTINE", "URGENT", "STAT"]).default("ROUTINE"),
-});
+export const CreateLabTestSchema = createLabTestRequestSchema;
 
 export type CreateLabTest = z.infer<typeof CreateLabTestSchema>;
 
-// User/Auth API
 export const SignUpSchema = z.object({
   email: EmailSchema,
   password: z
@@ -194,7 +163,6 @@ export const ChangePasswordSchema = z.object({
 
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
 
-// Query schemas
 export const ListPatientsQuerySchema = PaginationSchema.extend({
   search: z.string().optional(),
   clinicId: IdSchema.optional(),
@@ -213,7 +181,6 @@ export const ListAppointmentsQuerySchema = PaginationSchema.extend({
 
 export type ListAppointmentsQuery = z.infer<typeof ListAppointmentsQuerySchema>;
 
-// Export all schemas as a namespace
 export const API_SCHEMAS = {
   common: {
     Id: IdSchema,

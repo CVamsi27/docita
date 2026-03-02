@@ -1,8 +1,3 @@
-/**
- * Billing Period Value Object
- * Handles start and end dates with validation
- */
-
 export class BillingPeriod {
   constructor(
     readonly startDate: Date,

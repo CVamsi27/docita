@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicsService } from './clinics.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { ClinicFactory } from '../../core/factories/clinic.factory';
-import { SettingsFactory } from '../../core/factories/settings.factory';
+import { PrismaService } from '@/prisma/prisma.service';
+import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
+import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
@@ -19,7 +19,6 @@ describe('ClinicsService', () => {
   let settingsFactory: SettingsFactory;
 
   const mockClinic = {
-    // ... (previous content preserved or re-defined if shorter)
     id: 'clinic-123',
     name: 'Test Clinic',
     address: '123 Test St',
@@ -162,7 +161,7 @@ describe('ClinicsService', () => {
     it('should create a clinic with default tier', async () => {
       jest
         .spyOn(prismaService.clinic, 'create')
-        .mockResolvedValue(mockClinic as any);
+        .mockResolvedValue(mockClinic as never);
 
       const result = await service.create({
         name: 'Test Clinic',
@@ -178,16 +177,13 @@ describe('ClinicsService', () => {
         phone: '1234567890',
         email: 'clinic@test.com',
         tier: undefined,
-        settings: undefined,
+        settings: {},
       });
       expect(prismaService.clinic.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           name: 'Test Clinic',
           tier: 'CORE',
           active: true,
-          // settings is included in '...clinicInput' which comes from mocked factory.
-          // Since our mocked factory in test setup returns '...data', and we didn't mock settings logic in the SERVICE test's factory mock for `clinicFactory` specifically to be complex,
-          // we just expect objectContaining.
         }),
       });
     });
@@ -200,7 +196,7 @@ describe('ClinicsService', () => {
       ];
       jest
         .spyOn(prismaService.clinic, 'findMany')
-        .mockResolvedValue(mockClinics as any);
+        .mockResolvedValue(mockClinics as never);
 
       const result = await service.findAll();
 
@@ -225,7 +221,7 @@ describe('ClinicsService', () => {
         queueBufferMinutes: 10,
         defaultInvoiceCurrency: 'INR',
         invoiceNumberFormat: 'INV-{clinic_id}-{date}-{sequence}',
-      } as any;
+      } as never;
       jest
         .spyOn(prismaService.clinic, 'findUnique')
         .mockResolvedValue(clinicWithUsers);
@@ -251,7 +247,7 @@ describe('ClinicsService', () => {
       const updatedClinic = { ...mockClinic, name: 'Updated Clinic' };
       jest
         .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(updatedClinic as any);
+        .mockResolvedValue(updatedClinic as never);
 
       const result = await service.update('clinic-123', {
         name: 'Updated Clinic',
@@ -270,7 +266,7 @@ describe('ClinicsService', () => {
       const deactivatedClinic = { ...mockClinic, active: false };
       jest
         .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(deactivatedClinic as any);
+        .mockResolvedValue(deactivatedClinic as never);
 
       const result = await service.delete('clinic-123');
 
@@ -305,10 +301,10 @@ describe('ClinicsService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       jest
         .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockUser as any);
+        .mockResolvedValue(mockUser as never);
       jest
         .spyOn(prismaService.doctorClinic, 'create')
-        .mockResolvedValue({} as any);
+        .mockResolvedValue({} as never);
 
       const result = await service.createDoctor('clinic-123', {
         name: 'Dr. Test',
@@ -332,7 +328,7 @@ describe('ClinicsService', () => {
     it('should return doctors for a clinic', async () => {
       jest
         .spyOn(prismaService.user, 'findMany')
-        .mockResolvedValue([mockUser] as any);
+        .mockResolvedValue([mockUser] as never);
 
       const result = await service.getDoctors('clinic-123');
 
@@ -351,7 +347,7 @@ describe('ClinicsService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       jest
         .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockReceptionist as any);
+        .mockResolvedValue(mockReceptionist as never);
 
       const result = await service.createReceptionist('clinic-123', {
         name: 'Receptionist',
@@ -368,7 +364,7 @@ describe('ClinicsService', () => {
       const mockReceptionist = { ...mockUser, role: 'RECEPTIONIST' };
       jest
         .spyOn(prismaService.user, 'findMany')
-        .mockResolvedValue([mockReceptionist] as any);
+        .mockResolvedValue([mockReceptionist] as never);
 
       const result = await service.getReceptionists('clinic-123');
 

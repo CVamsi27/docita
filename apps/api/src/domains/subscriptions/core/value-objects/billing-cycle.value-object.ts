@@ -9,13 +9,11 @@ export class BillingCycle {
   constructor(readonly value: BillingCycleEnum) {}
 
   static fromString(value: string): BillingCycle {
-    const cycle = Object.values(BillingCycleEnum).find(
-      (v) => (v as string) === value,
-    );
+    const cycle = Object.values(BillingCycleEnum).find((v) => v === value);
     if (!cycle) {
       throw new Error(`Invalid billing cycle: ${value}`);
     }
-    return new BillingCycle(cycle as BillingCycleEnum);
+    return new BillingCycle(cycle);
   }
 
   isMonthly(): boolean {

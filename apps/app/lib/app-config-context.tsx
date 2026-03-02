@@ -17,7 +17,6 @@ import {
   FormOptions,
 } from "./constants/app-config";
 
-// Re-export types for backward compatibility
 export type {
   SelectOption,
   DurationOption,
@@ -34,7 +33,7 @@ interface AppConfigContextType {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-  // Convenience getters
+
   getFormOptions: <K extends keyof FormOptions>(key: K) => FormOptions[K];
   getDefault: <K extends keyof DefaultValues>(key: K) => DefaultValues[K];
   getClinicSetting: <K extends keyof ClinicSettings>(
@@ -83,15 +82,14 @@ export function AppConfigProvider({
       const data = await response.json();
       setConfig(data);
     } catch (err) {
-      console.error("Failed to load app config:", err);
+
       setError(err instanceof Error ? err : new Error("Unknown error"));
-      // Keep using default config on error
+
     } finally {
       setIsLoading(false);
     }
   }, [clinicId]);
 
-  // Use useEffect to trigger initial fetch
   useEffect(() => {
     fetchConfig();
   }, [fetchConfig]);
@@ -142,7 +140,6 @@ export function useAppConfig() {
   return context;
 }
 
-// Convenience hook for form options
 export function useFormOptions<K extends keyof FormOptions>(
   key: K,
 ): FormOptions[K] {
@@ -150,7 +147,6 @@ export function useFormOptions<K extends keyof FormOptions>(
   return getFormOptions(key);
 }
 
-// Convenience hook for defaults
 export function useDefaultValue<K extends keyof DefaultValues>(
   key: K,
 ): DefaultValues[K] {

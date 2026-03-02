@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
-import { ViewAllLinkUI } from "../layout/view-all-link-ui";
+import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
 import { DashboardAppointment } from "@workspace/types";
 
@@ -78,7 +78,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     "hover:bg-muted/60 hover:border-border/50 hover:shadow-sm",
                   )}
                 >
-                  {/* Time */}
+                  {}
                   <div className="flex flex-col items-center justify-center min-w-12 text-center">
                     <p
                       className={cn(
@@ -93,18 +93,18 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  {/* Divider with status indicator */}
+                  {}
                   <div className="relative h-10 flex items-center">
                     <div className="w-px h-full bg-border" />
                     {apt.status === "in-progress" && (
                       <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
                     )}
                     {apt.status === "completed" && (
-                      <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-green-500" />
+                      <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-success" />
                     )}
                   </div>
 
-                  {/* Patient Info */}
+                  {}
                   <Avatar className="h-9 w-9 shrink-0">
                     <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">
                       {apt.patient?.firstName?.[0]}
@@ -121,7 +121,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  {/* Status & Actions */}
+                  {}
                   <div className="flex items-center gap-2">
                     <StatusBadge status={apt.status} />
                     {(apt.status === "scheduled" ||

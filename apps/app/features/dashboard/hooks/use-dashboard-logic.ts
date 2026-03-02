@@ -6,13 +6,11 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   DashboardAppointment,
   DashboardPatient,
-  PaginatedResponse,
 } from "@workspace/types";
 
 export const useDashboardLogic = () => {
   const { canAccess } = usePermissionStore();
 
-  // ✅ OPTIMIZATION: All hooks run in parallel automatically via React Query
   const { data, isLoading: loadingStats } = useDashboardStats();
   const { data: rawAppointmentsResponse, isLoading: loadingAppointments } =
     useTodayAppointments();
@@ -30,15 +28,11 @@ export const useDashboardLogic = () => {
     [data],
   );
 
-  // ✅ OPTIMIZATION: Memoize filtered patients
   const castRecentPatients = useMemo<DashboardPatient[]>(() => {
-    const paginatedResponse =
-      recentPatientsResponse as unknown as PaginatedResponse<DashboardPatient>;
-    const patients = paginatedResponse?.items || [];
+    const patients = recentPatientsResponse?.items || [];
     return patients.filter((p): p is DashboardPatient => !!(p && p.id));
   }, [recentPatientsResponse]);
 
-  // ✅ OPTIMIZATION: Memoize sorted appointments and computed values
   const {
     todayAppointments,
     completedToday,
@@ -47,12 +41,13 @@ export const useDashboardLogic = () => {
     nextPatients,
     waitingCount,
   } = useMemo(() => {
-    // Extract items from paginated response
-    const paginatedResponse =
-      rawAppointmentsResponse as unknown as PaginatedResponse<DashboardAppointment>;
-    const appointmentsData = paginatedResponse?.items || [];
+    const appointmentsData = rawAppointmentsResponse?.items || [];
+    const validAppointments = appointmentsData.filter(
+      (appointment): appointment is DashboardAppointment =>
+        Boolean(appointment.id && appointment.startTime),
+    );
 
-    const sorted = [...appointmentsData].sort(
+    const sorted = [...validAppointments].sort(
       (a, b) =>
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     );
@@ -61,10 +56,8 @@ export const useDashboardLogic = () => {
     const inProgress = sorted.filter((a) => a.status === "in-progress").length;
     const waiting = sorted.filter((a) => a.status === "scheduled").length;
 
-    // Current patient is the one in-progress
     const current = sorted.find((a) => a.status === "in-progress");
 
-    // Next patients are the scheduled ones (take next 3)
     const next = sorted.filter((a) => a.status === "scheduled").slice(0, 3);
 
     return {

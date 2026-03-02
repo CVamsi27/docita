@@ -20,14 +20,14 @@ export const useNavigationStore = create<NavigationState>()(
 
       pushRoute: (route: string) => {
         const { history } = get();
-        // Skip if same as last route (duplicate prevention)
+
         if (history.length > 0 && history[history.length - 1] === route) {
           return;
         }
 
         set((state) => {
           const newHistory = [...state.history, route];
-          // Limit history size to MAX_HISTORY_SIZE
+
           if (newHistory.length > MAX_HISTORY_SIZE) {
             return { history: newHistory.slice(-MAX_HISTORY_SIZE) };
           }
@@ -55,13 +55,13 @@ export const useNavigationStore = create<NavigationState>()(
 
       canGoBack: (): boolean => {
         const { history } = get();
-        // Need at least 2 entries: current page + previous page
+
         return history.length > 1;
       },
 
       getPreviousRoute: (fallback: string = "/"): string => {
         const { history } = get();
-        // history[length-1] is current, history[length-2] is previous
+
         if (history.length > 1) {
           return history[history.length - 2] || fallback;
         }

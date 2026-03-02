@@ -4,7 +4,7 @@ import {
   ApiRequestSchema,
   ErrorLogInput,
   ErrorLogSchema,
-} from '../schemas/monitoring.schema';
+} from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 
 @Injectable()
 export class MonitoringFactory {

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPaymentSessionRepository,
   PaymentSessionDetail,
-} from '../../core/repositories/payment-session.repository';
+} from '@/domains/billing/core/repositories/payment-session.repository';
 import { PaymentSession, Prisma } from '@workspace/db';
 
 @Injectable()

@@ -20,11 +20,11 @@ describe("Inventory Business Rules", () => {
 
   describe("isCriticalStock", () => {
     it("should return true if quantity < 50% of minQuantity", () => {
-      expect(isCriticalStock(4, 10)).toBe(true); // 4 < 5
+      expect(isCriticalStock(4, 10)).toBe(true); 
     });
 
     it("should return false if quantity >= 50% of minQuantity", () => {
-      expect(isCriticalStock(5, 10)).toBe(false); // 5 == 5
+      expect(isCriticalStock(5, 10)).toBe(false); 
       expect(isCriticalStock(6, 10)).toBe(false);
     });
   });
@@ -35,7 +35,7 @@ describe("Inventory Business Rules", () => {
     });
 
     it("should return 0 or negative if current >= max (sanity check)", () => {
-      // Though logic is just max - current, good to verify
+
       expect(calculateReorderQuantity(110, 20, 100)).toBe(-10);
     });
   });

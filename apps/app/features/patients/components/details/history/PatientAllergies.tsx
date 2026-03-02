@@ -50,7 +50,7 @@ export function PatientAllergies({
     <>
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <AlertTriangle className="h-4 w-4 text-orange-500" />
+          <AlertTriangle className="h-4 w-4 text-warning" />
           Allergies
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -58,22 +58,22 @@ export function PatientAllergies({
             <Badge
               key={allergy.id}
               variant="destructive"
-              className="pl-2 pr-1 py-1.5 h-auto text-sm bg-red-100 text-red-800 hover:bg-red-200 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 flex items-center gap-2"
+              className="pl-2 pr-1 py-1.5 h-auto text-sm badge-danger flex items-center gap-2"
             >
               <span className="font-medium">{allergy.allergen}</span>
               {!readOnly && (
-                <div className="flex items-center ml-1 border-l border-red-300 dark:border-red-700 pl-1 gap-1">
+                <div className="flex items-center ml-1 border-l border-destructive/40 pl-1 gap-1">
                   <button
                     type="button"
                     onClick={() => onEditAllergy(allergy)}
-                    className="p-0.5 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors focus:outline-none"
+                    className="p-0.5 rounded-full hover:bg-destructive/20 transition-colors focus:outline-none"
                   >
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onRemoveAllergy(allergy.id!)}
-                    className="p-0.5 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors focus:outline-none"
+                    className="p-0.5 rounded-full hover:bg-destructive/20 transition-colors focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -83,9 +83,9 @@ export function PatientAllergies({
           ))}
           {(!patient.patientAllergies ||
             patient.patientAllergies.length === 0) && (
-            <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-green-50/50 border-green-200 dark:bg-green-950/10 dark:border-green-900">
-              <span className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center justify-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
+            <div className="w-full py-6 text-center border-2 border-dashed rounded-lg surface-success">
+              <span className="text-sm font-medium flex items-center justify-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-success" />
                 NKA (No Known Allergies)
               </span>
             </div>

@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as redis from 'redis';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface CacheOptions {
   ttl?: number;
@@ -15,16 +15,16 @@ export class RedisCachingService implements OnModuleInit {
 
   constructor(private configService: AppConfigService) {
     this.client = redis.createClient({
-      host: this.configService.getRedisHost(),
-      port: this.configService.getRedisPort(),
       password: this.configService.getRedisPassword(),
       username: this.configService.getRedisUsername(),
       socket: {
+        host: this.configService.getRedisHost(),
+        port: this.configService.getRedisPort(),
         reconnectStrategy: (retries: number) => {
           return Math.min(retries * 50, 500);
         },
       },
-    } as any);
+    });
 
     this.client.on('error', (err) => {
       this.logger.error(`Redis error: ${err.message}`);

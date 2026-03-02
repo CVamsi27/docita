@@ -9,10 +9,6 @@ import {
   OcrExtractionResult,
 } from '@workspace/types';
 
-/**
- * Facade service for AI operations.
- * Delegates to specialized services for OCR and Clinical AI.
- */
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name);
@@ -22,9 +18,6 @@ export class AIService {
     private readonly clinicalService: ClinicalAiService,
   ) {}
 
-  /**
-   * Extract text and structured data from medical document
-   */
   async extractFromMedicalDocument(
     imagePath: string,
     hasAiSubscription: boolean = false,
@@ -35,18 +28,12 @@ export class AIService {
     );
   }
 
-  /**
-   * Analyze prescription for drug interactions and contraindications
-   */
   async analyzePrescription(
     request: PrescriptionAnalysisRequest,
   ): Promise<PrescriptionAnalysisResponse> {
     return this.clinicalService.analyzePrescription(request);
   }
 
-  /**
-   * Suggest diagnoses based on symptoms
-   */
   async suggestDiagnoses(
     symptoms: string[],
     findingsNotes?: string,
@@ -54,9 +41,6 @@ export class AIService {
     return this.clinicalService.suggestDiagnoses(symptoms, findingsNotes);
   }
 
-  /**
-   * Recommend medications based on condition
-   */
   async recommendMedications(
     condition: string,
     patientAge?: number,

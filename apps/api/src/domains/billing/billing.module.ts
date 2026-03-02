@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { BullModule } from '@nestjs/bull';
 import {
   BillingCalculatorService,
@@ -32,12 +32,12 @@ import {
   RazorpayPaymentProvider,
   PAYMENT_PROVIDER_TOKEN,
 } from './infrastructure/providers/razorpay.provider';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
-import { AuditModule } from '../../shared/modules/audit/audit/audit.module';
-import { MessagingModule } from '../../shared/modules/messaging/messaging.module';
-import { NotificationsModule } from '../../shared/modules/messaging/notifications/notifications.module';
-import { GatewaysModule } from '../../gateways/gateways.module';
-import { WebhooksModule } from '../webhooks/webhooks.module';
+import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { MessagingModule } from '@/shared/modules/messaging/messaging.module';
+import { NotificationsModule } from '@/shared/modules/messaging/notifications/notifications.module';
+import { GatewaysModule } from '@/gateways/gateways.module';
+import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
 
 @Module({
   imports: [

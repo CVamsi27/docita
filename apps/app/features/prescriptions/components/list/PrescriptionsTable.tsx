@@ -8,6 +8,7 @@ import {
   Download,
   Eye,
   Pill,
+  Printer,
 } from "lucide-react";
 import {
   Table,
@@ -172,6 +173,21 @@ export function PrescriptionsTable({
                     >
                       <Download className="h-4 w-4" />
                       PDF
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (!prescription.id) return;
+                        window.open(
+                          `/prescriptions/${prescription.id}?print=true`,
+                          "_blank",
+                        );
+                      }}
+                      className="gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print
                     </Button>
                     {prescription.patient?.phoneNumber && (
                       <WhatsAppButton

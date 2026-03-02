@@ -7,7 +7,7 @@ import {
   EMAIL_PROVIDER,
 } from './providers/email-provider.interface';
 import { escapeHtml } from '@workspace/utils';
-import { AppConfigService } from '../../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class EmailService {

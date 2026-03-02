@@ -1,13 +1,4 @@
-/**
- * Billing Domain DTOs
- * Request and response objects for API layer
- */
-
 import { z } from 'zod';
-
-// ============================================
-// CREATE INVOICE DTO
-// ============================================
 
 export const CreateInvoiceItemDtoSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -36,10 +27,6 @@ export const CreateInvoiceDtoSchema = z.object({
 });
 
 export type CreateInvoiceDto = z.infer<typeof CreateInvoiceDtoSchema>;
-
-// ============================================
-// INVOICE RESPONSE DTO
-// ============================================
 
 export const InvoiceItemResponseDtoSchema = z.object({
   id: z.string(),
@@ -85,10 +72,6 @@ export const InvoiceResponseDtoSchema = z.object({
 });
 
 export type InvoiceResponseDto = z.infer<typeof InvoiceResponseDtoSchema>;
-
-// ============================================
-// UPDATE INVOICE DTO
-// ============================================
 
 export const UpdateInvoiceDtoSchema = CreateInvoiceDtoSchema.partial();
 

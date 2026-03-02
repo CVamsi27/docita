@@ -64,5 +64,4 @@ export function InventoryAddItemDialogContainer({
   );
 }
 
-// Alias for backward compatibility
 export { InventoryAddItemDialogContainer as InventoryAddItemDialog };

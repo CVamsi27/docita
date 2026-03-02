@@ -20,17 +20,6 @@ import {
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
-/**
- * FeatureGuard - guards content based on feature access
- *
- * Uses usePermissionStore to check if the user's current tier/add-ons
- * allow access to the specified feature.
- *
- * Following SOLID principles:
- * - Single Responsibility: Only handles feature gating
- * - Open/Closed: Extensible via props without modification
- * - Dependency Inversion: Depends on abstractions (usePermissionStore)
- */
 interface FeatureGuardProps {
   feature: Feature | string;
   children: React.ReactNode;
@@ -44,15 +33,12 @@ interface FeatureLockedCardProps {
   customDescription?: string;
 }
 
-/**
- * Default locked state card with upgrade CTA
- */
 function FeatureLockedCard({
   feature,
   customTitle,
   customDescription,
 }: FeatureLockedCardProps) {
-  // Try to get tier info if feature is a known Feature enum value
+
   const featureEnum = Object.values(Feature).includes(feature as Feature)
     ? (feature as Feature)
     : null;
@@ -70,14 +56,14 @@ function FeatureLockedCard({
       : "Upgrade your plan to access this feature.");
 
   return (
-    <Card className="relative overflow-hidden border-2 border-amber-300/50 bg-linear-to-br from-amber-50 via-amber-50/50 to-background dark:from-amber-950/30 dark:via-amber-900/20 dark:to-slate-900/50 dark:border-amber-700/30">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 dark:bg-amber-500/10" />
+    <Card className="surface-warning relative overflow-hidden border-2">
+      <div className="absolute top-0 left-0 w-32 h-32 bg-warning/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+        <CardTitle className="flex items-center gap-2 text-warning">
           <Lock className="h-5 w-5" />
           {title}
         </CardTitle>
-        <CardDescription className="text-amber-600/80 dark:text-amber-400/70">
+        <CardDescription className="text-warning/80">
           {description}
         </CardDescription>
       </CardHeader>
@@ -97,24 +83,6 @@ function FeatureLockedCard({
   );
 }
 
-/**
- * FeatureGuard Component
- *
- * Wraps content and only renders if the user can access the feature.
- * Shows fallback or locked card when access is denied.
- *
- * @param feature - Feature enum value or string identifier
- * @param children - Content to show when access is granted
- * @param fallback - Optional custom content when access denied
- * @param showLockCard - Show default locked card instead of hiding
- *
- * @example
- * ```tsx
- * <FeatureGuard feature={Feature.LAB_TESTS} showLockCard>
- *   <LabTestsPanel />
- * </FeatureGuard>
- * ```
- */
 export function FeatureGuard({
   feature,
   children,
@@ -123,7 +91,6 @@ export function FeatureGuard({
 }: FeatureGuardProps) {
   const { canAccess } = usePermissionStore();
 
-  // Check if feature is a known Feature enum, else treat as custom flag
   const featureEnum = Object.values(Feature).includes(feature as Feature)
     ? (feature as Feature)
     : null;
@@ -134,7 +101,6 @@ export function FeatureGuard({
     return <>{children}</>;
   }
 
-  // Access denied - show appropriate UI
   if (fallback) {
     return <>{fallback}</>;
   }
@@ -143,31 +109,14 @@ export function FeatureGuard({
     return <FeatureLockedCard feature={feature} />;
   }
 
-  // Default: hide the content
   return null;
 }
 
-/**
- * Hook to check feature access for conditional rendering
- *
- * @example
- * ```tsx
- * const canAccessLabTests = useCanAccessFeature(Feature.LAB_TESTS);
- * if (canAccessLabTests) {
- *   // show lab tests link
- * }
- * ```
- */
 export function useCanAccessFeature(feature: Feature): boolean {
   const { canAccess } = usePermissionStore();
   return canAccess(feature);
 }
 
-/**
- * Hook to get feature lock status with tier info
- *
- * @returns { isLocked, requiredTier, tierInfo }
- */
 export function useFeatureLockStatus(feature: Feature): {
   isLocked: boolean;
   requiredTier: Tier;

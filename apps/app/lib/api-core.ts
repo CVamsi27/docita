@@ -128,6 +128,14 @@ export function handleAuthError() {
   }
 }
 
+function toRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
 export async function fetchAPI<T>(
   endpoint: string,
   options?: RequestInit,
@@ -169,14 +177,12 @@ export async function fetchAPI<T>(
         errorData = { message: `HTTP error! status: ${response.status}` };
       }
 
-      const errObj = errorData as Record<string, string | number | boolean | undefined>;
+      const errObj = toRecord(errorData) ?? {};
       const message = typeof errObj.message === "string" 
         ? errObj.message 
         : `HTTP error! status: ${response.status}`;
       const code = typeof errObj.code === "string" ? errObj.code : undefined;
-      const details = typeof errObj.details === "object" && errObj.details !== null && typeof errObj.details !== 'string' && typeof errObj.details !== 'number' && typeof errObj.details !== 'boolean'
-        ? (errObj.details as Record<string, unknown>)
-        : undefined;
+      const details = toRecord(errObj.details) ?? undefined;
 
       throw new ApiError(
         message,
@@ -239,7 +245,7 @@ export function useAPIMutation<TData, TVariables>(
         });
       }
       if (options?.onSuccess) {
-        const typedOnSuccess = options.onSuccess as unknown as (
+        const typedOnSuccess = options.onSuccess as (
           data: TData,
           variables: TVariables,
           context?: unknown,

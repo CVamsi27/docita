@@ -1,13 +1,7 @@
-/**
- * Shared Business Rules Library
- * Cross-cutting business logic used across multiple features
- */
+
 
 import { isAfter, isBefore, isToday, parseISO } from "date-fns";
 
-/**
- * Date Validation Rules
- */
 export const dateRules = {
   isValidFutureDate: (date: Date | string): boolean => {
     const dateObj = typeof date === "string" ? parseISO(date) : date;
@@ -34,9 +28,6 @@ export const dateRules = {
   },
 };
 
-/**
- * Validation Rules
- */
 export const validationRules = {
   isValidEmail: (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -69,9 +60,6 @@ export const validationRules = {
   },
 };
 
-/**
- * Permission/Access Control Rules
- */
 export const permissionRules = {
   canAccessFeature: (userRole: string, requiredRoles: string[]): boolean => {
     return requiredRoles.includes(userRole);
@@ -94,9 +82,6 @@ export const permissionRules = {
   },
 };
 
-/**
- * Medical Calculation Rules
- */
 export const medicalRules = {
   calculateAge: (dateOfBirth: Date | string): number => {
     const dob =
@@ -132,9 +117,6 @@ export const medicalRules = {
   },
 };
 
-/**
- * Formatting Rules
- */
 export const formattingRules = {
   formatCurrency: (amount: number, currency: string = "INR"): string => {
     return new Intl.NumberFormat("en-IN", {

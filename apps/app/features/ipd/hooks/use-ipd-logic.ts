@@ -3,7 +3,6 @@ import { useAPIQuery } from "@/lib/api-core";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { Bed as BedType, Room, Ward } from "@workspace/types";
 
-// Type definitions matching existing data structure
 export interface WardWithRooms extends Ward {
   rooms: (Room & { beds: BedType[] })[];
 }
@@ -16,7 +15,7 @@ export const useIpdLogic = () => {
     ["wards", debouncedSearch],
     `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
   );
-  // Normalize bed status values to the UI-expected uppercase enums (e.g. "OCCUPIED")
+
   const normalizedWards = useMemo(() => {
     if (!wards) return undefined;
     return wards.map((ward) => ({

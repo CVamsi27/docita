@@ -6,7 +6,7 @@ import { useCreatePatient } from "@/hooks/api/use-patients";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
-import { OCRFormData } from "../types";
+import { OCRFormData } from "@/features/ocr/types";
 
 export const useOCR = () => {
   const router = useRouter();
@@ -25,12 +25,10 @@ export const useOCR = () => {
     labValues: false,
   });
 
-  // Mutations
   const processOCRMutation = useProcessOCR();
   const createPatientMutation = useCreatePatient();
   const createAppointmentMutation = useCreateAppointment();
 
-  // Enhanced Form State with Confidence Scores and Suggestions
   const [formData, setFormData] = useState<OCRFormData>({
     firstName: "",
     lastName: "",
@@ -87,7 +85,6 @@ export const useOCR = () => {
 
       const result = await processOCRMutation.mutateAsync(formDataObj);
 
-      // Update form data from OCR result
       setFormData({
         firstName: result.fields?.firstName || result.firstName || "",
         lastName: result.fields?.lastName || result.lastName || "",
@@ -118,7 +115,6 @@ export const useOCR = () => {
         },
       });
 
-      // Set confidence scores and suggestions from enhanced response
       if (result.fields?.fieldConfidence) {
         setConfidenceScores(result.fields.fieldConfidence);
       }
@@ -138,7 +134,7 @@ export const useOCR = () => {
 
   const handleSave = async () => {
     try {
-      // 1. Create Patient
+
       const patient = await createPatientMutation.mutateAsync({
         firstName: formData.firstName || "Unknown",
         lastName: formData.lastName || "",
@@ -155,7 +151,6 @@ export const useOCR = () => {
         fallRisk: false,
       });
 
-      // 2. Create Appointment (Visit)
       const appointment = await createAppointmentMutation.mutateAsync({
         patientId: patient.id!,
         doctorId: user?.id || "default-doctor-id",
@@ -175,7 +170,6 @@ export const useOCR = () => {
         followUpPlan: "",
       });
 
-      // 3. Save Vitals separately if appointment was created successfully
       if (
         appointment.id &&
         (formData.vitals.bp || formData.vitals.temp || formData.vitals.pulse)
@@ -199,16 +193,14 @@ export const useOCR = () => {
             body: JSON.stringify(vitalsData),
           });
         } catch {
-          console.warn(
-            "Failed to save vitals, but patient and appointment were created",
-          );
+          
         }
       }
 
       toast.success("Patient and visit created successfully");
       router.push(`/patients/${patient.id}`);
     } catch (error) {
-      console.error(error);
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -217,7 +209,6 @@ export const useOCR = () => {
     }
   };
 
-  // Helpers
   const getScore = (key: string): number | undefined => confidenceScores[key];
   const getSection = (key: string): boolean => expandedSections[key] ?? false;
   const toggleSection = (key: string) => {

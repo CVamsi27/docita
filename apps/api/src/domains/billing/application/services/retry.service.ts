@@ -6,15 +6,15 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { AuditService } from '../../../../shared/modules/audit/audit/audit.service';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Cron } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
-import { runWithTenant } from '../../../../common/middleware/tenant.middleware';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { runWithTenant } from '@/common/middleware/tenant.middleware';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
-} from '../../core/repositories/invoice.repository';
+} from '@/domains/billing/core/repositories/invoice.repository';
 
 export interface PaymentRetryData {
   invoiceId: string;
@@ -64,7 +64,7 @@ export class RetryService {
         this.logger.debug('Processing pending payment retries...');
 
         const result = await this.invoiceRepository.findAll({
-          clinicId: '', // Unrestricted
+          clinicId: '',
           status: InvoiceStatus.PENDING,
           limit: 100,
         });

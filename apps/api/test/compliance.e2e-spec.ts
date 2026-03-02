@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,9 +11,9 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 import { ConsentType, ConsentStatus } from '@workspace/db';
 
@@ -72,7 +72,6 @@ describe('Compliance (e2e)', () => {
 
       token = loginResponse.body.access_token;
     } catch (error) {
-      console.error('Setup error:', error.message);
       throw error;
     }
   });
@@ -113,15 +112,13 @@ describe('Compliance (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           patientId,
-          // Missing other fields
         })
-        .expect(400); // ValidationPipe should catch this
+        .expect(400);
     });
   });
 
   describe('GET /consent/history', () => {
     it('should retrieve consent history', async () => {
-      // Create a consent record first
       await request(app.getHttpServer())
         .post('/consent')
         .set('Authorization', `Bearer ${token}`)
@@ -147,7 +144,6 @@ describe('Compliance (e2e)', () => {
 
   describe('POST /consent/:id/withdraw', () => {
     it('should withdraw existing consent', async () => {
-      // 1. Create consent
       const createRes = await request(app.getHttpServer())
         .post('/consent')
         .set('Authorization', `Bearer ${token}`)
@@ -162,7 +158,6 @@ describe('Compliance (e2e)', () => {
 
       const consentId = createRes.body.id;
 
-      // 2. Withdraw it
       const response = await request(app.getHttpServer())
         .post(`/consent/${consentId}/withdraw`)
         .set('Authorization', `Bearer ${token}`)
@@ -175,9 +170,7 @@ describe('Compliance (e2e)', () => {
         .expect(201);
 
       expect(response.body.status).toBe(ConsentStatus.REVOKED);
-      // expect(response.body.withdrawnAt).toBeDefined();
 
-      // 3. Verify history shows it as withdrawn
       const historyRes = await request(app.getHttpServer())
         .get(`/consent/history?patientId=${patientId}&clinicId=${clinicId}`)
         .set('Authorization', `Bearer ${token}`)

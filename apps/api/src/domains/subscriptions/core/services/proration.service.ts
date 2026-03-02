@@ -1,4 +1,4 @@
-import { SubscriptionPrice } from '../value-objects';
+import { SubscriptionPrice } from '@/domains/subscriptions/core/value-objects';
 
 export interface ProratedResult {
   creditCents: number;

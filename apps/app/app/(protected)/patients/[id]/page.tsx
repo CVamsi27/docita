@@ -25,14 +25,12 @@ import { Activity, Calendar, Clock, FileText } from "lucide-react";
 import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 
-// New imports
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 
 export default function PatientDetailPage() {
   const params = useParams();
-  const router = useRouter(); // needed for fallback redirects in logic? No, logic handles it mostly but hook returns handlers.
+  const router = useRouter(); 
 
-  // Use the new hook
   const { state, handlers } = usePatientDetailLogic(params["id"] as string);
 
   const {
@@ -54,7 +52,6 @@ export default function PatientDetailPage() {
     handleRefetch,
   } = handlers;
 
-  // Conditional returns
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -88,31 +85,31 @@ export default function PatientDetailPage() {
 
   return (
     <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full p-6">
-      {/* Top Navigation & Header */}
+      {}
       <PatientPageHeaderUI
         patient={patient as PatientWithHistory}
         onEdit={() => setIsEditDialogOpen(true)}
       />
 
-      {/* Hospital-Grade Sticky Face Sheet */}
+      {}
       <PatientFaceSheetHeader patient={patient} />
 
-      {/* Allergy Alert */}
+      {}
       <div className="mt-4">
         <PatientAllergyAlert patientId={patient.id!} />
       </div>
 
-      {/* Vitals Banner - Latest available */}
+      {}
       <div className="mt-2">
         <PatientVitalsBanner appointments={appointments} />
       </div>
 
-      {/* Stats Cards - always show, even if no appointments */}
+      {}
       <div className="mt-2">
         <PatientStatsCards statistics={statistics} loading={loading} />
       </div>
 
-      {/* Edit Patient Dialog */}
+      {}
       <EditPatientDialog
         patient={patient}
         open={isEditDialogOpen}
@@ -120,7 +117,7 @@ export default function PatientDetailPage() {
         onPatientUpdated={() => handleRefetch()}
       />
 
-      {/* Main Content Tabs */}
+      {}
       <Tabs defaultValue="history" className="w-full">
         <div className="flex items-center justify-between mb-6">
           <TabsList className="bg-muted/50 p-1 rounded-full h-12">

@@ -1,8 +1,8 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { IAppointmentRepository } from '../../core/repositories/appointment.repository.interface';
-import { Appointment } from '../../core/entities/appointment.entity';
-import { AppointmentStatus } from '../../core/value-objects/appointment-status.value-object';
-import { v4 as uuidv4 } from 'uuid';
+import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
+import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import { randomUUID } from 'crypto';
 
 export interface CreateAppointmentCommand {
   clinicId: string;
@@ -28,7 +28,7 @@ export class CreateAppointmentUseCase {
     }
 
     const appointment = new Appointment({
-      id: uuidv4(),
+      id: randomUUID(),
       clinicId: command.clinicId,
       patientId: command.patientId,
       doctorId: command.doctorId,

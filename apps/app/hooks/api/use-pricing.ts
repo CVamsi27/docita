@@ -1,11 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import type { PricingEstimateRequest } from "@workspace/types";
 
 const API_URL =
   process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
 
-// Types matching backend response
 interface TierPricing {
   id: string;
   name: string;
@@ -56,16 +56,16 @@ interface PricingConfig {
   };
 }
 
-interface EstimateRequest {
-  tier: string;
-  billingCycle?: "monthly" | "yearly";
-  patients?: number;
-  appointments?: number;
-  users?: number;
-  whatsapp?: boolean;
-  whatsappMessages?: number;
-  intelligence?: boolean;
-  aiCredits?: number;
+type EstimateRequest = PricingEstimateRequest;
+
+export interface EstimateUsageInputs {
+  patients: number;
+  appointments: number;
+  users: number;
+  whatsapp: boolean;
+  whatsappMessages: number;
+  intelligence: boolean;
+  aiCredits: number;
 }
 
 interface EstimateResponse {
@@ -115,20 +115,25 @@ export function useEstimate(params: EstimateRequest | null) {
   const queryParams = params
     ? new URLSearchParams({
         tier: params.tier,
+        ...(params.currency && { currency: params.currency }),
         billingCycle: params.billingCycle || "monthly",
-        ...(params.patients && { patients: String(params.patients) }),
-        ...(params.appointments && {
+        ...(params.patients !== undefined && {
+          patients: String(params.patients),
+        }),
+        ...(params.appointments !== undefined && {
           appointments: String(params.appointments),
         }),
-        ...(params.users && { users: String(params.users) }),
+        ...(params.users !== undefined && { users: String(params.users) }),
         ...(params.whatsapp && { whatsapp: String(params.whatsapp) }),
-        ...(params.whatsappMessages && {
+        ...(params.whatsappMessages !== undefined && {
           whatsappMessages: String(params.whatsappMessages),
         }),
         ...(params.intelligence && {
           intelligence: String(params.intelligence),
         }),
-        ...(params.aiCredits && { aiCredits: String(params.aiCredits) }),
+        ...(params.aiCredits !== undefined && {
+          aiCredits: String(params.aiCredits),
+        }),
       }).toString()
     : null;
 
@@ -143,6 +148,53 @@ export function useEstimate(params: EstimateRequest | null) {
     estimate: data,
     isLoading,
     error,
+  };
+}
+
+export function useTierEstimates(params: {
+  tiers: string[];
+  currency: string;
+  billingCycle: "monthly" | "yearly";
+  usage: EstimateUsageInputs;
+}) {
+  const { tiers, currency, billingCycle, usage } = params;
+
+  const results = useQueries({
+    queries: tiers.map((tier) => {
+      const queryString = new URLSearchParams({
+        tier,
+        currency,
+        billingCycle,
+        patients: String(usage.patients),
+        appointments: String(usage.appointments),
+        users: String(usage.users),
+        whatsapp: String(usage.whatsapp),
+        whatsappMessages: String(usage.whatsappMessages),
+        intelligence: String(usage.intelligence),
+        aiCredits: String(usage.aiCredits),
+      }).toString();
+
+      return {
+        queryKey: ["price-estimate", tier, queryString],
+        queryFn: () => fetcher(`${API_URL}/pricing/estimate?${queryString}`),
+        staleTime: 30000,
+        refetchOnWindowFocus: false,
+      };
+    }),
+  });
+
+  const estimateByTier = tiers.reduce<Record<string, EstimateResponse | null>>(
+    (acc, tier, index) => {
+      const data = results[index]?.data as EstimateResponse | undefined;
+      acc[tier] = data ?? null;
+      return acc;
+    },
+    {},
+  );
+
+  return {
+    estimateByTier,
+    isLoadingAny: results.some((result) => result.isLoading),
   };
 }
 

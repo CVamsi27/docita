@@ -7,6 +7,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";
@@ -31,37 +39,39 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
           <LoadingState message="Loading catalog..." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="py-3 px-4">
                     Name
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="py-3 px-4">
                     Category
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="py-3 px-4">
                     Price
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {testCatalog.map((test) => (
-                  <tr
+                  <TableRow
                     key={test.id}
                     className="border-b hover:bg-muted/50 transition-colors"
                   >
-                    <td className="py-3 px-4 font-medium">{test.name}</td>
-                    <td className="py-3 px-4 text-muted-foreground capitalize">
+                    <TableCell className="py-3 px-4 font-medium">
+                      {test.name}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-muted-foreground capitalize">
                       {test.category}
-                    </td>
-                    <td className="py-3 px-4">
+                    </TableCell>
+                    <TableCell className="py-3 px-4">
                       {test.price ? `₹${test.price}` : "-"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
         {!isLoading && testCatalog.length === 0 && (

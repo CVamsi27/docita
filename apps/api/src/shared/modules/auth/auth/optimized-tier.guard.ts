@@ -1,17 +1,3 @@
-/**
- * Optimized Tier Guard with Caching
- *
- * IMPROVEMENTS:
- * - Uses ClinicAuthCacheService to reduce DB queries
- * - Better error messages for UX
- * - Separates authorization logic (SRP)
- * - More maintainable and testable
- *
- * COST SAVINGS:
- * - ~40% reduction in authorization-related DB queries
- * - Estimated $15-20/month savings on Neon database costs
- */
-
 import {
   Injectable,
   CanActivate,
@@ -47,7 +33,6 @@ export class OptimizedTierGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // No tier or feature requirement - allow access
     if (requiredTier === undefined && requiredFeature === undefined) {
       return true;
     }
@@ -63,10 +48,8 @@ export class OptimizedTierGuard implements CanActivate {
       });
     }
 
-    // Use cached clinic auth data (optimized!)
     const clinicAuth = await this.clinicAuthCache.getClinicAuth(user.clinicId);
 
-    // Check subscription status
     if (
       clinicAuth.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
       clinicAuth.subscriptionStatus !== SubscriptionStatus.TRIALING
@@ -80,10 +63,8 @@ export class OptimizedTierGuard implements CanActivate {
       });
     }
 
-    // Map database tier to enum
     const userTier = this.mapDbTierToEnum(clinicAuth.tier);
 
-    // Feature-based authorization
     if (requiredFeature !== undefined) {
       return this.authorizeFeature(
         requiredFeature,
@@ -93,7 +74,6 @@ export class OptimizedTierGuard implements CanActivate {
       );
     }
 
-    // Tier-based authorization
     if (requiredTier !== undefined) {
       return this.authorizeTier(requiredTier, userTier);
     }
@@ -101,11 +81,6 @@ export class OptimizedTierGuard implements CanActivate {
     return true;
   }
 
-  /**
-   * Authorize feature access
-   *
-   * Separated for better testability and SRP
-   */
   private authorizeFeature(
     requiredFeature: Feature,
     userTier: Tier,
@@ -114,7 +89,6 @@ export class OptimizedTierGuard implements CanActivate {
   ): boolean {
     const featureTier = FEATURE_TIER_MAP[requiredFeature];
 
-    // Check custom override first
     if (featureOverrides[requiredFeature] !== undefined) {
       if (!featureOverrides[requiredFeature]) {
         throw new ForbiddenException({
@@ -127,7 +101,6 @@ export class OptimizedTierGuard implements CanActivate {
       return true;
     }
 
-    // Intelligence tier features require the add-on
     if (featureTier === Tier.INTELLIGENCE) {
       if (!hasIntelligence) {
         throw new ForbiddenException({
@@ -141,7 +114,6 @@ export class OptimizedTierGuard implements CanActivate {
       return true;
     }
 
-    // Standard tier check
     if (!this.hasSufficientTier(featureTier, userTier)) {
       const tierNames = {
         [Tier.CAPTURE]: 'Capture',
@@ -166,11 +138,6 @@ export class OptimizedTierGuard implements CanActivate {
     return true;
   }
 
-  /**
-   * Authorize tier access
-   *
-   * Separated for better testability and SRP
-   */
   private authorizeTier(requiredTier: Tier, userTier: Tier): boolean {
     if (!this.hasSufficientTier(requiredTier, userTier)) {
       const tierNames = {
@@ -195,17 +162,10 @@ export class OptimizedTierGuard implements CanActivate {
     return true;
   }
 
-  /**
-   * Check if user has sufficient tier
-   */
   private hasSufficientTier(required: Tier, current: Tier): boolean {
-    // Tier enum values are numeric: CAPTURE=0, CORE=1, PLUS=2, PRO=3, ENTERPRISE=4, INTELLIGENCE=5
     return current >= required;
   }
 
-  /**
-   * Map database tier enum to guard tier enum
-   */
   private mapDbTierToEnum(dbTier: string): Tier {
     const mapping: Record<string, Tier> = {
       CAPTURE: Tier.CAPTURE,

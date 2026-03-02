@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
-import type { ComplianceSettings } from "../types";
+import type { ComplianceSettings } from "@/features/onboarding/components/types";
 
 interface ComplianceStepProps {
   complianceForm: UseFormReturn<ComplianceSettings>;

@@ -1,7 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
-import { uploadSessionSchema } from '@workspace/types';
+import { uploadSessionContractResponseSchema } from '@workspace/types';
 
 export class UploadSessionResponseDto extends createZodDto(
-  uploadSessionSchema,
+  uploadSessionContractResponseSchema,
 ) {}

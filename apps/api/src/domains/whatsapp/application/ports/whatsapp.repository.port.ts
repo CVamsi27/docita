@@ -1,4 +1,7 @@
-import { WhatsAppMessage, WhatsAppTemplate } from '../../core/entities';
+import {
+  WhatsAppMessage,
+  WhatsAppTemplate,
+} from '@/domains/whatsapp/core/entities';
 
 export interface IWhatsAppRepository {
   saveMessage(message: WhatsAppMessage): Promise<void>;

@@ -13,7 +13,7 @@ export default function BedManagementError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Bed Management route error:", error);
+
   }, [error]);
 
   return (

@@ -1,9 +1,4 @@
-/**
- * Payment Gateway Port (Interface)
- * Defines contract for external payment processing
- */
-
-import { Money } from '../../core/value-objects/money.value-object';
+import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 
 export interface PaymentGatewayResponse {
   transactionId: string;

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 

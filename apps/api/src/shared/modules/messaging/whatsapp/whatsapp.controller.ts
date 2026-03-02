@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   Param,
   Query,
@@ -17,10 +18,9 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { Roles } from '../../auth/auth/roles.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto, sendTemplateSchema } from './dto/send-template.dto';
-import { MetaWebhookPayload } from './types/webhook.types';
 import { Request } from 'express';
 import {
   WhatsappTemplateListResponseDto,
@@ -30,16 +30,18 @@ import {
   WhatsappStatsResponseDto,
   WhatsappUnreadCountResponseDto,
   WhatsappUnreadNotificationsResponseDto,
-  MarkNotificationsReadRequestDto,
-  markNotificationsReadRequestSchema,
   SuccessResponseDto,
+  WhatsappLogsQueryDto,
+  WhatsappUnreadNotificationsQueryDto,
 } from './dto/whatsapp-response.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import {
+  WhatsAppWebhookPayload,
+  WhatsAppWebhookVerifyQuery,
+} from '@workspace/types';
 
-// ... (comments elided for brevity if not strictly needed)
-
-import { Public } from '../../auth/auth/public.decorator';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
 
@@ -53,13 +55,6 @@ export class WhatsappController {
     private readonly whatsappWebhook: WhatsappWebhookService,
   ) {}
 
-  // ==========================================================================
-  // Template Management
-  // ==========================================================================
-
-  /**
-   * List all templates for the clinic
-   */
   @Get('templates')
   @ZodSerializerDto(WhatsappTemplateListResponseDto)
   async listTemplates(@Req() req: Request) {
@@ -70,18 +65,12 @@ export class WhatsappController {
     return this.whatsappService.listTemplates(user.clinicId);
   }
 
-  /**
-   * Get default template names
-   */
   @Get('templates/defaults')
   @ZodSerializerDto(WhatsappDefaultTemplatesResponseDto)
   getDefaultTemplates() {
     return this.whatsappService.getDefaultTemplateNames();
   }
 
-  /**
-   * Seed default templates for clinic
-   */
   @Post('templates/seed')
   @ZodSerializerDto(SuccessResponseDto)
   async seedTemplates(@Req() req: Request) {
@@ -93,13 +82,6 @@ export class WhatsappController {
     return { success: true, message: 'Templates seeded successfully' };
   }
 
-  // ==========================================================================
-  // Message Sending
-  // ==========================================================================
-
-  /**
-   * Send a template-based WhatsApp message
-   */
   @Post('send')
   @ZodSerializerDto(WhatsappMessageResponseDto)
   @UsePipes(new ZodValidationPipe(sendTemplateSchema))
@@ -112,9 +94,6 @@ export class WhatsappController {
     return this.whatsappService.handleSendTemplate(user.clinicId, user.id, dto);
   }
 
-  /**
-   * Resend prescription via WhatsApp
-   */
   @Post('resend-prescription/:id')
   @ZodSerializerDto(SuccessResponseDto)
   async resendPrescription(@Req() req: Request, @Param('id') id: string) {
@@ -127,9 +106,6 @@ export class WhatsappController {
     );
   }
 
-  /**
-   * Resend invoice via WhatsApp
-   */
   @Post('resend-invoice/:id')
   @ZodSerializerDto(SuccessResponseDto)
   async resendInvoice(@Req() req: Request, @Param('id') id: string) {
@@ -142,24 +118,12 @@ export class WhatsappController {
     );
   }
 
-  // ==========================================================================
-  // Webhooks
-  // ==========================================================================
-
-  // Note: Webhooks usually return raw 'OK' or challenge integer, not JSON.
-  // ZodSerializer might break this if it expects JSON.
-  // Skipping ZodSerializer for webhooks as they are machine-to-machine with strict protocol.
-
-  /**
-   * Meta webhook verification (GET request)
-   */
   @Public()
   @Get('webhook')
-  handleWebhookVerification(
-    @Query('hub.mode') mode: string,
-    @Query('hub.verify_token') token: string,
-    @Query('hub.challenge') challenge: string,
-  ) {
+  handleWebhookVerification(@Query() query: WhatsAppWebhookVerifyQuery) {
+    const mode = query['hub.mode'];
+    const token = query['hub.verify_token'];
+    const challenge = query['hub.challenge'];
     this.logger.log(`Webhook verification request: mode=${mode}`);
 
     if (
@@ -174,18 +138,14 @@ export class WhatsappController {
     throw new BadRequestException('Webhook verification failed');
   }
 
-  /**
-   * Meta incoming message webhook
-   */
   @Public()
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleIncomingWebhook(
-    @Body() payload: MetaWebhookPayload,
+    @Body() payload: WhatsAppWebhookPayload,
     @Req() req: RawBodyRequest<Request>,
     @Headers('x-hub-signature-256') signature: string,
   ) {
-    // Require signature validation — reject if rawBody or signature is missing
     if (!req.rawBody || !signature) {
       this.logger.warn('Webhook rejected: missing rawBody or signature header');
       return 'OK';
@@ -219,40 +179,21 @@ export class WhatsappController {
     }
   }
 
-  // ==========================================================================
-  // Message Logs
-  // ==========================================================================
-
-  /**
-   * Get WhatsApp message logs for the clinic
-   */
   @Get('logs')
   @ZodSerializerDto(WhatsappLogListResponseDto)
-  async getLogs(
-    @Req() req: Request,
-    @Query('limit') limit?: string,
-    @Query('patientId') patientId?: string,
-    @Query('type') type?: string,
-  ) {
+  async getLogs(@Req() req: Request, @Query() query?: WhatsappLogsQueryDto) {
     const user = req.user as { clinicId: string };
     if (!user.clinicId) {
       throw new BadRequestException('User not associated with a clinic');
     }
 
     return this.whatsappService.getLogs(user.clinicId, {
-      limit: limit ? parseInt(limit, 10) : undefined,
-      patientId,
-      type,
+      limit: query?.limit,
+      patientId: query?.patientId,
+      type: query?.type,
     });
   }
 
-  // ==========================================================================
-  // Approval Workflow
-  // ==========================================================================
-
-  /**
-   * Approve a prescription for WhatsApp sharing
-   */
   @Post('approve-prescription/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @ZodSerializerDto(SuccessResponseDto)
@@ -261,9 +202,6 @@ export class WhatsappController {
     return this.whatsappService.approvePrescription(id, user.id, user.clinicId);
   }
 
-  /**
-   * Approve an invoice for WhatsApp sharing
-   */
   @Post('approve-invoice/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
   @ZodSerializerDto(SuccessResponseDto)
@@ -272,9 +210,6 @@ export class WhatsappController {
     return this.whatsappService.approveInvoice(id, user.id, user.clinicId);
   }
 
-  /**
-   * Get WhatsApp statistics for the clinic
-   */
   @Get('stats')
   @ZodSerializerDto(WhatsappStatsResponseDto)
   async getStats(@Req() req: Request) {
@@ -286,9 +221,6 @@ export class WhatsappController {
     return this.whatsappService.getWhatsappStats(user.clinicId);
   }
 
-  /**
-   * Get unread in-app notification count for current user
-   */
   @Get('notifications/unread-count')
   @ZodSerializerDto(WhatsappUnreadCountResponseDto)
   async getUnreadNotificationCount(@Req() req: Request) {
@@ -299,54 +231,29 @@ export class WhatsappController {
     return { count };
   }
 
-  /**
-   * Get unread in-app notifications for current user
-   */
   @Get('notifications/unread')
   @ZodSerializerDto(WhatsappUnreadNotificationsResponseDto)
   async getUnreadNotifications(
     @Req() req: Request,
-    @Query('limit') limit?: string,
+    @Query() query?: WhatsappUnreadNotificationsQueryDto,
   ) {
     const user = req.user as { id: string };
-    return this.whatsappService.getUnreadNotifications(
-      user.id,
-      limit ? parseInt(limit, 10) : undefined,
-    );
+    return this.whatsappService.getUnreadNotifications(user.id, query?.limit);
   }
 
-  /**
-   * Mark selected in-app notifications as read
-   */
-  @Post('notifications/mark-read')
+  @Delete('notifications/:id')
   @ZodSerializerDto(SuccessResponseDto)
-  @UsePipes(new ZodValidationPipe(markNotificationsReadRequestSchema))
-  async markNotificationsRead(
-    @Req() req: Request,
-    @Body() dto: MarkNotificationsReadRequestDto,
-  ) {
+  async deleteNotification(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string };
-    await this.whatsappService.markNotificationsAsRead(
-      dto.notificationIds,
-      user.id,
-    );
-    return { success: true, message: 'Notifications marked as read' };
+    await this.whatsappService.deleteNotification(id, user.id);
+    return { success: true, message: 'Notification deleted' };
   }
 
-  /**
-   * Mark all in-app notifications as read
-   */
-  @Post('notifications/mark-all-read')
+  @Delete('notifications')
   @ZodSerializerDto(SuccessResponseDto)
-  async markAllNotificationsRead(@Req() req: Request) {
+  async deleteAllNotifications(@Req() req: Request) {
     const user = req.user as { id: string };
-    await this.whatsappService.markAllNotificationsAsRead(user.id);
-    return { success: true, message: 'All notifications marked as read' };
+    await this.whatsappService.deleteAllNotifications(user.id);
+    return { success: true, message: 'All notifications deleted' };
   }
-
-  // ==========================================================================
-  // Helper Methods
-  // ==========================================================================
-
-  // findRecentAppointmentByPhone moved to WhatsappService
 }

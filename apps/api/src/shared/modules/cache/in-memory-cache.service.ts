@@ -1,10 +1,3 @@
-/**
- * In-Memory Cache Service
- *
- * Simple in-memory cache implementation.
- * Use for development/testing. For production, use Redis.
- */
-
 import { Injectable } from '@nestjs/common';
 import { ICacheProvider } from './cache.interface';
 
@@ -15,7 +8,7 @@ interface CacheEntry<T> {
 
 @Injectable()
 export class InMemoryCacheService implements ICacheProvider {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
 
   async get<T>(key: string): Promise<T | null> {
     await Promise.resolve();
@@ -25,7 +18,6 @@ export class InMemoryCacheService implements ICacheProvider {
       return null;
     }
 
-    // Check if expired
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key);
       return null;
@@ -58,7 +50,6 @@ export class InMemoryCacheService implements ICacheProvider {
       return false;
     }
 
-    // Check if expired
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key);
       return false;
@@ -81,10 +72,6 @@ export class InMemoryCacheService implements ICacheProvider {
     return next;
   }
 
-  /**
-   * Clean expired entries (useful for memory management)
-   * Should be called periodically
-   */
   cleanExpired(): void {
     const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
@@ -94,9 +81,6 @@ export class InMemoryCacheService implements ICacheProvider {
     }
   }
 
-  /**
-   * Get cache stats for monitoring
-   */
   getStats() {
     return {
       size: this.cache.size,

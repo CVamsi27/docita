@@ -3,13 +3,29 @@ import {
   IClinicOperations,
   ClinicDetails,
   ClinicUpdateData,
-} from '../../application/ports/clinic-operations.port';
-import { PrismaService } from '../../../../prisma/prisma.service';
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   PaymentWebSocketGateway,
   ClinicUpdateData as WsClinicUpdateData,
-} from '../../../../gateways/payment.websocket.gateway';
+} from '@/gateways/payment.websocket.gateway';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
+
+function toClinicTier(value?: string): ClinicTier | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return Object.values(ClinicTier).find((tier) => tier === value);
+}
+
+function toSubscriptionStatus(value?: string): SubscriptionStatus | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return Object.values(SubscriptionStatus).find((status) => status === value);
+}
 
 @Injectable()
 export class ClinicOperationsAdapter implements IClinicOperations {
@@ -76,10 +92,14 @@ export class ClinicOperationsAdapter implements IClinicOperations {
 
   emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void> {
     if (this.paymentGateway) {
-      this.paymentGateway.emitClinicUpdate(
-        clinicId,
-        data as unknown as WsClinicUpdateData,
-      );
+      const wsData: WsClinicUpdateData = {
+        clinicId: data.clinicId,
+        intelligenceAddon: data.intelligenceAddon,
+        tier: toClinicTier(data.tier),
+        subscriptionStatus: toSubscriptionStatus(data.subscriptionStatus),
+      };
+
+      this.paymentGateway.emitClinicUpdate(clinicId, wsData);
     }
     return Promise.resolve();
   }

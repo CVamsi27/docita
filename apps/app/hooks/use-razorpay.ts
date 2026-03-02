@@ -40,7 +40,7 @@ export interface RazorpayResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
-  // Include any additional fields Razorpay might send
+
   [key: string]: unknown;
 }
 

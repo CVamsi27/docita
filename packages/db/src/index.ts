@@ -6,7 +6,6 @@ import { Pool } from "pg";
 const prismaClientSingleton = () => {
   let connectionString = `${process.env.DATABASE_URL}`;
 
-  // Fix for "SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'"
   if (process.env.DATABASE_URL) {
     try {
       const url = new URL(process.env.DATABASE_URL);
@@ -20,12 +19,8 @@ const prismaClientSingleton = () => {
         connectionString = url.toString();
       }
     } catch (error) {
-      // If URL parsing fails, we fallback to the original string.
-      // This might happen if the connection string involves placeholders or isn't a valid URL format.
-      console.warn(
-        "Failed to parse DATABASE_URL for SSL mode adjustment",
-        error,
-      );
+
+      
     }
   }
 

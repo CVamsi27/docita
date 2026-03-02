@@ -22,13 +22,13 @@ export const importJobSchema = z.object({
   status: z.string().or(ImportJobStatus),
   fileName: z.string().nullable().optional(),
   fileUrl: z.string().nullable().optional(),
-  columnMapping: z.record(z.unknown()).optional(), // Json
+  columnMapping: z.record(z.unknown()).optional(), 
   totalRecords: z.number().int(),
   processed: z.number().int(),
   successful: z.number().int(),
   failed: z.number().int(),
-  errors: z.record(z.unknown()).optional(), // Json
-  results: z.record(z.unknown()).optional(), // Json
+  errors: z.record(z.unknown()).optional(), 
+  results: z.record(z.unknown()).optional(), 
   createdAt: z.date().or(z.string()).optional(),
   updatedAt: z.date().or(z.string()).optional(),
 });

@@ -2,8 +2,8 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import {
   OnboardingStep,
   OnboardingProgressDto,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
-import type { CompleteOnboardingDto } from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
+import type { CompleteOnboardingDto } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 
 interface OnboardingSession {
   id: string;

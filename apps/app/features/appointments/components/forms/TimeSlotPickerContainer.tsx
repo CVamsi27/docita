@@ -36,7 +36,7 @@ export function TimeSlotPickerContainer({
         );
         setTimeSlots(response);
       } catch (error) {
-        console.error("Failed to fetch time slots:", error);
+
         setTimeSlots([]);
       } finally {
         setLoading(false);

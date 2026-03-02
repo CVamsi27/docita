@@ -82,7 +82,7 @@ export default function CreateReceptionistPage() {
         toast.error(error.message || "Failed to create receptionist");
       }
     } catch (err) {
-      console.error("Error creating receptionist:", err);
+
       toast.error("Error creating receptionist");
     } finally {
       setLoading(false);
@@ -223,7 +223,7 @@ export default function CreateReceptionistPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {}
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"

@@ -38,7 +38,7 @@ export function DoctorDashboardCardsUI({
 }: DoctorDashboardCardsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Current Patient Card */}
+      {}
       <Card className="border-none shadow-xl bg-card/60 backdrop-blur-xl lg:col-span-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -114,11 +114,11 @@ export function DoctorDashboardCardsUI({
         </CardContent>
       </Card>
 
-      {/* Queue Status Card */}
+      {}
       <Card className="border-none shadow-xl bg-card/60 backdrop-blur-xl">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center text-blue-600">
+            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
               <Users className="h-5 w-5" />
             </div>
             <div>
@@ -135,24 +135,24 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20">
-              <p className="text-2xl font-bold text-amber-600">
+            <div className="p-3 rounded-xl bg-warning/10">
+              <p className="text-2xl font-bold text-warning">
                 {queueStats.waiting}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20">
-              <p className="text-2xl font-bold text-blue-600">
+            <div className="p-3 rounded-xl bg-info/10">
+              <p className="text-2xl font-bold text-info">
                 {queueStats.inProgress}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Active
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-green-50 dark:bg-green-950/20">
-              <p className="text-2xl font-bold text-green-600">
+            <div className="p-3 rounded-xl bg-success/10">
+              <p className="text-2xl font-bold text-success">
                 {queueStats.completed}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -161,7 +161,7 @@ export function DoctorDashboardCardsUI({
             </div>
           </div>
 
-          {/* Progress Bar */}
+          {}
           <div className="mt-4">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
               <span>Today&apos;s Progress</span>
@@ -193,5 +193,4 @@ export function DoctorDashboardCardsUI({
   );
 }
 
-// Export alias for backward compatibility
 export { DoctorDashboardCardsUI as DoctorDashboardCards };

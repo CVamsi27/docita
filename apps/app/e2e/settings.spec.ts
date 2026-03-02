@@ -2,15 +2,31 @@ import { expect, Page, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+function readString(source: Record<string, unknown>, key: string): string | undefined {
+  const value = source[key];
+  return typeof value === "string" ? value : undefined;
+}
+
 let authToken: string;
 let clinicId: string;
+
+type GlobalWithE2EUser = typeof globalThis & {
+  __E2E_SETTINGS_USER?: Record<string, unknown>;
+};
 
 test.describe("Settings Management", () => {
   test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    // Setup: Create clinic and user via API
     const userEmail = `doctor${Date.now()}@test.com`;
     const userPassword = "Test@123456";
 
@@ -25,17 +41,16 @@ test.describe("Settings Management", () => {
       },
     });
 
-    const user = (await registerRes.json()) as Record<string, unknown>;
-    const regData = user as Record<string, unknown>;
+    const user = toRecord(await registerRes.json());
+    const regData = user;
 
     let token: string | null = null;
     try {
       token =
-        (regData?.access_token as string) ||
-        (regData?.accessToken as string) ||
+        readString(regData, "access_token") ||
+        readString(regData, "accessToken") ||
         null;
 
-      // Create clinic
       const clinicRes = await page.request.post(`${API_URL}/clinics`, {
         headers: { Authorization: `Bearer ${token}` },
         data: {
@@ -48,54 +63,48 @@ test.describe("Settings Management", () => {
       });
 
       if (clinicRes.ok()) {
-        const clinic = (await clinicRes.json()) as Record<string, unknown>;
-        clinicId = (clinic?.id as string) || "";
+        const clinic = toRecord(await clinicRes.json());
+        clinicId = readString(clinic, "id") || "";
 
-        // Assign doctor to clinic
-        const userInfo = (regData?.user as Record<string, unknown>) || regData;
-        const doctorId = (userInfo?.id as string) || (regData?.id as string);
+        const nestedUser = toRecord(regData?.user);
+        const userInfo = Object.keys(nestedUser).length > 0 ? nestedUser : regData;
+        const doctorId = readString(userInfo, "id") || readString(regData, "id");
         const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
           headers: { Authorization: `Bearer ${token}` },
           data: { doctorId, clinicId: clinic.id, role: "doctor" },
         });
 
         if (assignRes.ok()) {
-          // Re-login to refresh token
+
           const loginRes = await page.request.post(`${API_URL}/auth/login`, {
             data: { email: userEmail, password: userPassword },
           });
           if (loginRes.ok()) {
-            const loginData = (await loginRes.json()) as Record<
-              string,
-              unknown
-            >;
+            const loginData = toRecord(await loginRes.json());
             authToken =
-              (loginData?.access_token as string) ||
-              (loginData?.accessToken as string) ||
+              readString(loginData, "access_token") ||
+              readString(loginData, "accessToken") ||
               "";
             clinicId =
-              ((loginData?.user as Record<string, unknown>)
-                ?.clinicId as string) || clinicId;
-            (regData as Record<string, unknown>).user =
-              loginData?.user || regData?.user;
+              readString(toRecord(loginData?.user), "clinicId") || clinicId;
+            regData.user = loginData?.user || regData?.user;
           }
         }
       }
     } catch (_err) {
-      // Fallback setup
-      console.log("Setup failed", _err);
+
     }
 
-    // Prepare global storage for login helper
-    const storedUser = (regData?.user as Record<string, unknown>) || regData;
+    const nestedStoredUser = toRecord(regData?.user);
+    const storedUser =
+      Object.keys(nestedStoredUser).length > 0 ? nestedStoredUser : regData;
     const minimalUser = {
-      id: (storedUser?.id as string) || (storedUser?.userId as string) || null,
-      email: (storedUser?.email as string) || null,
-      clinicId: (storedUser?.clinicId as string) || clinicId || null,
-      role: (storedUser?.role as string) || "DOCTOR",
+      id: readString(storedUser, "id") || readString(storedUser, "userId") || null,
+      email: readString(storedUser, "email") || null,
+      clinicId: readString(storedUser, "clinicId") || clinicId || null,
+      role: readString(storedUser, "role") || "DOCTOR",
     };
-    (globalThis as unknown as Record<string, unknown>).__E2E_SETTINGS_USER =
-      minimalUser;
+    (globalThis as GlobalWithE2EUser).__E2E_SETTINGS_USER = minimalUser;
 
     await context.close();
   });
@@ -107,7 +116,6 @@ test.describe("Settings Management", () => {
     await page.goto("/settings", { waitUntil: "networkidle" });
     await page.waitForTimeout(2000);
 
-    // Verify settings page loaded
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 
@@ -115,21 +123,16 @@ test.describe("Settings Management", () => {
     await loginAsDoctor(page);
     await page.goto("/settings", { waitUntil: "networkidle" });
 
-    // Find Clinic Name input
     const nameInput = page
       .locator('input[value="Settings Test Clinic"]')
       .first();
-    // If exact value match fails (e.g. if it's not "value" attribute in DOM but prop), try generic selector
+
     if (!(await nameInput.isVisible())) {
-      // finding by nearest label
-      // locator('label:has-text("Clinic Name") + input') is brittle if structure changes
-      // Use placeholder or just assume first inputs in General section
+
     }
 
-    // Let's assume there is a Save Changes button
     const saveButton = page.locator('button:has-text("Save Changes")').first();
 
-    // Modification logic would go here, pending specific selector knowledge
     expect(await saveButton.isVisible()).toBeTruthy();
   });
 
@@ -138,7 +141,6 @@ test.describe("Settings Management", () => {
     await page.goto("/settings", { waitUntil: "networkidle" });
     await page.waitForTimeout(2000);
 
-    // Verify settings page loaded
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 });
@@ -149,8 +151,7 @@ async function loginAsDoctor(page: Page) {
     !(await page.url()).includes("/settings")
   ) {
     if (typeof authToken !== "undefined" && authToken) {
-      const e2eUser = (globalThis as unknown as Record<string, unknown>)
-        .__E2E_SETTINGS_USER as Record<string, unknown> | undefined;
+      const e2eUser = (globalThis as GlobalWithE2EUser).__E2E_SETTINGS_USER;
       const storedUser = e2eUser || {
         id: null,
         email: null,
@@ -160,10 +161,10 @@ async function loginAsDoctor(page: Page) {
       };
 
       const userForStorage = JSON.stringify({
-        id: (storedUser?.id as string) || null,
-        email: (storedUser?.email as string) || null,
-        clinicId: (storedUser?.clinicId as string) || clinicId || null,
-        role: (storedUser?.role as string) || "DOCTOR",
+        id: readString(storedUser, "id") || null,
+        email: readString(storedUser, "email") || null,
+        clinicId: readString(storedUser, "clinicId") || clinicId || null,
+        role: readString(storedUser, "role") || "DOCTOR",
       });
 
       await page.addInitScript(
@@ -173,7 +174,7 @@ async function loginAsDoctor(page: Page) {
             localStorage.setItem("docita_token", t);
             localStorage.setItem("docita_user", u);
           } catch {
-            // Ignore localStorage errors
+
           }
         },
         { t: authToken, u: userForStorage },

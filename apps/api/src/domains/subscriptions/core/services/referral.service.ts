@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
   REFERRAL_DISCOUNT_PERCENT,

@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
-import { dashboardStatsSchema } from '@workspace/types';
+import { dashboardStatsResponseSchema } from '@workspace/types';
 
 export class DashboardStatsResponseDto extends createZodDto(
-  dashboardStatsSchema,
+  dashboardStatsResponseSchema,
 ) {}

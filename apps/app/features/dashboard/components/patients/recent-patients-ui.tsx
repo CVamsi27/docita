@@ -10,7 +10,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import { ViewAllLinkUI } from "../layout/view-all-link-ui";
+import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
 export interface RecentPatient {
   id: string;
@@ -30,7 +30,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center text-blue-600">
+            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-info to-info flex items-center justify-center text-info">
               <Users className="h-4 w-4" />
             </div>
             <div>

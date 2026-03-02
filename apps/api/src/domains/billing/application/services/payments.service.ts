@@ -4,23 +4,23 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
-import { SendMessageUseCase } from '../../../whatsapp/application/use-cases/send-message.use-case';
-import { PushNotificationService } from '../../../../shared/modules/messaging/notifications/push-notification.service';
-import { PaymentWebSocketGateway } from '../../../../gateways/payment.websocket.gateway';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
+import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
 import {
   IPaymentProvider,
   PAYMENT_PROVIDER_TOKEN,
-} from '../../infrastructure/providers/razorpay.provider';
+} from '@/domains/billing/infrastructure/providers/razorpay.provider';
 import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
-} from '../../core/repositories/payment-session.repository';
+} from '@/domains/billing/core/repositories/payment-session.repository';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
-} from '../../core/repositories/invoice.repository';
+} from '@/domains/billing/core/repositories/invoice.repository';
 
 @Injectable()
 export class PaymentsService {
@@ -211,14 +211,10 @@ export class PaymentsService {
       throw new BadRequestException('Invoice not found');
     }
 
-    // Logic for manual payment - usually just updating invoice status
-    // and maybe creating a payment record/session for history.
-
     await this.invoiceRepository.update(invoice.id, {
       status: InvoiceStatus.PAID,
     });
 
-    // Create a dummy session for manual payment
     await this.repository.create({
       clinic: { connect: { id: data.clinicId } },
       invoice: { connect: { id: data.invoiceId } },
@@ -244,7 +240,7 @@ export class PaymentsService {
 
   handleRazorpayWebhook(payload: Record<string, unknown>, signature: string) {
     this.logger.log(`Received Razorpay webhook with signature: ${signature}`);
-    // Basic verification and processing stub
+
     return { status: 'ok' };
   }
 }

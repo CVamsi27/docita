@@ -5,7 +5,7 @@ export const DatabaseStatsSchema = z.object({
   activeConnections: z.number().int(),
   idleConnections: z.number().int(),
   sizeBytes: z.number().int(),
-  queryStats: z.record(z.unknown()), // Placeholder
+  queryStats: z.record(z.unknown()), 
 });
 
 export const AppPerformanceMetricsSchema = z.object({

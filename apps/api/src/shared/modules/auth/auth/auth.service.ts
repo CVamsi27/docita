@@ -6,14 +6,14 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
-import { UserFactory } from '../../../../domains/users/core/factories/user.factory';
-import { MonitoringService } from '../../monitoring/monitoring/monitoring.service';
-import { ObservabilityService } from '../../services/observability.service';
+import { UserFactory } from '@/domains/users/core/factories/user.factory';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
+import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { nanoid } from 'nanoid';
 
 interface UserWithoutPassword {
@@ -72,10 +72,9 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({ where: { email } });
 
       if (!user) {
-        return null; // User not found
+        return null;
       }
 
-      // Check if account is locked
       if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
         const minutesRemaining = Math.ceil(
           (user.accountLockedUntil.getTime() - Date.now()) / 60000,
@@ -85,7 +84,6 @@ export class AuthService {
         );
       }
 
-      // If lockout period has expired, reset the lockout
       if (user.accountLockedUntil && user.accountLockedUntil <= new Date()) {
         await this.prisma.user.update({
           where: { id: user.id },
@@ -97,11 +95,9 @@ export class AuthService {
         });
       }
 
-      // Verify password
       const passwordMatch = await bcrypt.compare(pass, user.password);
 
       if (passwordMatch) {
-        // Successful login - reset failed attempts
         if (user.failedLoginAttempts > 0) {
           await this.prisma.user.update({
             where: { id: user.id },
@@ -111,7 +107,6 @@ export class AuthService {
             },
           });
 
-          // Log successful login after previous failures (security check-in)
           this.observability.logStructured(
             'info',
             'Successful login after failed attempts',
@@ -127,7 +122,6 @@ export class AuthService {
         return result;
       }
 
-      // Failed login - increment failed attempts
       const newFailedAttempts = user.failedLoginAttempts + 1;
       const MAX_FAILED_ATTEMPTS = 5;
       const LOCKOUT_DURATION_MINUTES = 15;
@@ -137,7 +131,6 @@ export class AuthService {
         lastFailedLoginAt: new Date(),
       };
 
-      // Lock account if threshold reached
       if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
         updateData.accountLockedUntil = new Date(
           Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000,
@@ -149,7 +142,6 @@ export class AuthService {
         data: updateData,
       });
 
-      // Log failed auth attempt for security monitoring
       this.observability.logStructured(
         'warn',
         'Failed login attempt recorded',
@@ -166,7 +158,6 @@ export class AuthService {
         },
       );
 
-      // Alert on account lockout
       if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
         this.observability.captureMessage(
           `Account locked: ${user.email} due to ${MAX_FAILED_ATTEMPTS} failed login attempts`,
@@ -179,21 +170,19 @@ export class AuthService {
           'warning',
         );
 
-        // Record error metric
         this.observability.recordMetric('auth_account_lockout_total', 1, {
           email: user.email,
           reason: 'max_failed_attempts',
         });
       }
 
-      // Throw appropriate error message
       if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
         throw new UnauthorizedException(
           `Account locked due to ${MAX_FAILED_ATTEMPTS} failed login attempts. Please try again in ${LOCKOUT_DURATION_MINUTES} minutes.`,
         );
       }
 
-      return null; // Invalid password
+      return null;
     });
   }
 
@@ -206,7 +195,6 @@ export class AuthService {
       clinicId: user.clinicId,
     };
 
-    // For PATIENT role users, find and include Patient ID in JWT
     if (user.role === Role.PATIENT) {
       const patient = await this.prisma.patient.findFirst({
         where: {
@@ -222,17 +210,15 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = nanoid(64);
-    // Use nanoid(16) for token family ID for detecting token reuse attacks
+
     const newTokenFamily = tokenFamily || nanoid(16);
 
-    // Store raw refresh token — nanoid(64) provides 384 bits of entropy,
-    // making it safe for direct storage with unique index for O(1) lookup.
-    await (this.prisma as any).refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        tokenFamily: newTokenFamily, // Track token family for reuse attack detection
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        tokenFamily: newTokenFamily,
       },
     });
 
@@ -250,9 +236,8 @@ export class AuthService {
   }
 
   async refreshTokens(incomingRefreshToken: string) {
-    // O(1) lookup by unique token index
     const storedToken = await this.prisma.runUnrestricted(async () => {
-      return await (this.prisma as any).refreshToken.findUnique({
+      return await this.prisma.refreshToken.findUnique({
         where: { token: incomingRefreshToken },
         include: { user: true },
       });
@@ -266,13 +251,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    // **TOKEN REUSE ATTACK DETECTION**
-    // If the token has been replaced (indicates a previous refresh), check if someone is reusing
-    // an old token from the chain. Revoke all tokens in this family to prevent compromise.
     if (storedToken.replacedByToken) {
-      // This token was already rotated - possible reuse attack!
-      // Revoke all tokens in this family
-      await (this.prisma as any).refreshToken.updateMany({
+      await this.prisma.refreshToken.updateMany({
         where: {
           tokenFamily: storedToken.tokenFamily,
           userId: storedToken.userId,
@@ -287,14 +267,13 @@ export class AuthService {
       );
     }
 
-    // Rotate: issue new tokens and revoke old one with same family
     const { password, ...userWithoutPassword } = storedToken.user;
     const newTokens = await this.login(
       userWithoutPassword,
-      storedToken.tokenFamily, // Preserve token family for rotation chain
+      storedToken.tokenFamily ?? undefined,
     );
 
-    await (this.prisma as any).refreshToken.update({
+    await this.prisma.refreshToken.update({
       where: { id: storedToken.id },
       data: {
         revokedAt: new Date(),
@@ -307,18 +286,15 @@ export class AuthService {
 
   async logout(refreshToken: string) {
     try {
-      await (this.prisma as any).refreshToken.update({
+      await this.prisma.refreshToken.update({
         where: { token: refreshToken },
         data: { revokedAt: new Date() },
       });
-    } catch {
-      // Token not found or already revoked — silently ignore
-    }
+    } catch {}
   }
 
   async register(data: RegisterData) {
     return this.prisma.runUnrestricted(async () => {
-      // Validate password strength
       this.passwordPolicy.validate(data.password);
 
       if (await this.checkEmailExists(data.email)) {
@@ -326,7 +302,7 @@ export class AuthService {
       }
 
       const hashedPassword = await bcrypt.hash(data.password, 10);
-      // If clinicName is provided, default role to ADMIN (owner), otherwise DOCTOR (staff)
+
       const defaultRole = data.clinicName ? Role.ADMIN : Role.DOCTOR;
       const role = data.role || defaultRole;
 
@@ -340,10 +316,9 @@ export class AuthService {
         email: data.email,
         name: data.name,
         passwordHash: hashedPassword,
-        clinicId: data.clinicId, // May be undefined if creating new clinic
+        clinicId: data.clinicId,
       });
 
-      // Standard User Creation (e.g. Patient)
       const user = await this.prisma.user.create({
         data: userData,
         select: {
@@ -369,7 +344,6 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Verify current password
     const passwordMatch = await bcrypt.compare(
       data.currentPassword,
       user.password,
@@ -378,7 +352,6 @@ export class AuthService {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
-    // Prevent using the same password
     const samePassword = await bcrypt.compare(data.newPassword, user.password);
     if (samePassword) {
       throw new UnauthorizedException(
@@ -386,13 +359,10 @@ export class AuthService {
       );
     }
 
-    // Validate new password strength
     this.passwordPolicy.validate(data.newPassword);
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
 
-    // Update password
     await this.prisma.user.update({
       where: { id: data.userId },
       data: { password: hashedPassword },

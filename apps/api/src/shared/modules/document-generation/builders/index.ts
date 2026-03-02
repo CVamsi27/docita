@@ -1,4 +1,3 @@
-// Builder exports
 export type {
   IDocumentBuilder,
   DocumentContent,

@@ -18,13 +18,11 @@ export class ClinicTier {
   constructor(readonly value: ClinicTierEnum) {}
 
   static fromString(value: string): ClinicTier {
-    const tier = Object.values(ClinicTierEnum).find(
-      (v) => (v as string) === value,
-    );
+    const tier = Object.values(ClinicTierEnum).find((v) => v === value);
     if (!tier) {
       throw new Error(`Invalid clinic tier: ${value}`);
     }
-    return new ClinicTier(tier as ClinicTierEnum);
+    return new ClinicTier(tier);
   }
 
   isCapture(): boolean {

@@ -29,11 +29,11 @@ describe('MonitoringFactory', () => {
 
     it('should throw error for invalid data', () => {
       const data = {
-        method: '', // Invalid
+        method: '',
         path: '/api/test',
       };
 
-      expect(() => factory.createApiRequest(data as any)).toThrow(ZodError);
+      expect(() => factory.createApiRequest(data as never)).toThrow(ZodError);
     });
   });
 
@@ -56,10 +56,10 @@ describe('MonitoringFactory', () => {
 
     it('should throw error for invalid data', () => {
       const data = {
-        message: '', // Invalid
+        message: '',
       };
 
-      expect(() => factory.createErrorLog(data as any)).toThrow(ZodError);
+      expect(() => factory.createErrorLog(data as never)).toThrow(ZodError);
     });
   });
 });

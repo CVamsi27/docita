@@ -1,12 +1,37 @@
-import { Invoice, Prisma } from '@workspace/db';
+import { InvoiceStatus, Prisma } from '@workspace/db';
 
-export interface InvoiceDetail extends Invoice {
+export interface InvoiceListItem {
+  id: string;
+  total: number;
+  status: InvoiceStatus;
+  items: Prisma.JsonValue;
+  createdAt: Date;
   patient?: {
     id: string;
-    clinicId: string;
     firstName: string;
     lastName: string;
-    phoneNumber: string;
+    phoneNumber: string | null;
+  } | null;
+}
+
+export interface InvoiceDetail {
+  id: string;
+  patientId: string;
+  total: number;
+  status: InvoiceStatus;
+  items: Prisma.JsonValue;
+  doctorName: string | null;
+  doctorEmail: string | null;
+  doctorPhone: string | null;
+  doctorSpecialization: string | null;
+  doctorRegistrationNumber: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  patient?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string | null;
     email: string | null;
     address: string | null;
     clinic?: {
@@ -15,16 +40,19 @@ export interface InvoiceDetail extends Invoice {
       address: string | null;
       phone: string | null;
       email: string | null;
-      gstin: string | null;
+      gstin?: string | null;
     };
-  };
+  } | null;
   appointment?: {
+    id: string;
+    startTime: Date;
     doctor?: {
+      id?: string;
       name: string;
       qualification: string | null;
       registrationNumber: string | null;
     };
-  };
+  } | null;
 }
 
 export interface InvoiceSearchParams {
@@ -45,7 +73,9 @@ export interface PaginatedResult<T> {
 }
 
 export interface IInvoiceRepository {
-  findAll(params: InvoiceSearchParams): Promise<PaginatedResult<Invoice>>;
+  findAll(
+    params: InvoiceSearchParams,
+  ): Promise<PaginatedResult<InvoiceListItem>>;
   findById(id: string): Promise<InvoiceDetail | null>;
   create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
   update(id: string, data: Prisma.InvoiceUpdateInput): Promise<InvoiceDetail>;

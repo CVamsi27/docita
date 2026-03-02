@@ -59,7 +59,7 @@ export default function PerformancePage() {
         setData(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch performance data", error);
+
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,6 @@ export default function PerformancePage() {
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!token) return;
     const intervalId = setInterval(fetchData, 30000);
@@ -79,11 +78,11 @@ export default function PerformancePage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "healthy":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-success" />;
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        return <AlertTriangle className="h-4 w-4 text-warning" />;
       case "critical":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
         return null;
     }
@@ -93,19 +92,13 @@ export default function PerformancePage() {
     switch (status) {
       case "healthy":
         return (
-          <Badge
-            variant="outline"
-            className="bg-green-500/10 text-green-600 border-green-500/20"
-          >
+          <Badge variant="outline" className="badge-success">
             Healthy
           </Badge>
         );
       case "warning":
         return (
-          <Badge
-            variant="outline"
-            className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-          >
+          <Badge variant="outline" className="badge-warning">
             Warning
           </Badge>
         );
@@ -154,7 +147,7 @@ export default function PerformancePage() {
         </p>
       </div>
 
-      {/* Key Metrics */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -162,7 +155,7 @@ export default function PerformancePage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {metrics.uptime}
             </div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
@@ -198,7 +191,7 @@ export default function PerformancePage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {metrics.errorRate}%
             </div>
             <p className="text-xs text-muted-foreground">Last hour</p>
@@ -206,7 +199,7 @@ export default function PerformancePage() {
         </Card>
       </div>
 
-      {/* Resource Usage */}
+      {}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -240,7 +233,7 @@ export default function PerformancePage() {
         </Card>
       </div>
 
-      {/* Health Checks */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Service Health</CardTitle>

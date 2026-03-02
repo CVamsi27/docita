@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 interface SlowQuery {
   query: string;
@@ -29,7 +29,6 @@ export class SlowQueryLoggingService {
       return;
     }
 
-    // Prisma query event type is not fully exposed, so we use 'as any'
     (
       this.prisma.$on as (
         event: string,

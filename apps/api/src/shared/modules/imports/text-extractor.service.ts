@@ -16,14 +16,15 @@ interface TesseractModule {
   createWorker(lang: string): Promise<TesseractWorker>;
 }
 
-/**
- * TextExtractorService - Handles OCR extraction using Tesseract
- * Responsibilities:
- * - Tesseract library loading
- * - Worker initialization and lifecycle
- * - Text recognition from image buffers
- * - Error handling and fallback strategies
- */
+function isTesseractModule(value: unknown): value is TesseractModule {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const createWorker = (value as { createWorker?: unknown }).createWorker;
+  return typeof createWorker === 'function';
+}
+
 @Injectable()
 export class TextExtractorService {
   private readonly logger = new Logger(TextExtractorService.name);
@@ -32,9 +33,6 @@ export class TextExtractorService {
   private Tesseract: TesseractModule | null = null;
   private tesseractAvailable = false;
 
-  /**
-   * Initialize Tesseract module and worker
-   */
   async initialize(): Promise<void> {
     await this.loadTesseract();
     if (this.tesseractAvailable) {
@@ -42,9 +40,6 @@ export class TextExtractorService {
     }
   }
 
-  /**
-   * Cleanup - terminate worker
-   */
   async cleanup(): Promise<void> {
     if (this.worker) {
       await this.worker.terminate();
@@ -52,13 +47,19 @@ export class TextExtractorService {
     }
   }
 
-  /**
-   * Load Tesseract library dynamically
-   */
   private async loadTesseract(): Promise<void> {
     try {
-      this.Tesseract = (await import('tesseract.js'))
-        .default as unknown as TesseractModule;
+      const tesseractImport = await import('tesseract.js');
+      const moduleCandidate =
+        'default' in tesseractImport
+          ? tesseractImport.default
+          : tesseractImport;
+
+      if (!isTesseractModule(moduleCandidate)) {
+        throw new Error('Loaded Tesseract module does not expose createWorker');
+      }
+
+      this.Tesseract = moduleCandidate;
       this.tesseractAvailable = true;
     } catch (e) {
       this.logger.warn('Tesseract.js not found, OCR will use fallback mode');
@@ -66,9 +67,6 @@ export class TextExtractorService {
     }
   }
 
-  /**
-   * Initialize Tesseract worker for text recognition
-   */
   private async initWorker(): Promise<void> {
     try {
       this.logger.log('Initializing Tesseract worker...');
@@ -83,18 +81,11 @@ export class TextExtractorService {
     }
   }
 
-  /**
-   * Check if Tesseract is available and worker is ready
-   */
   isAvailable(): boolean {
     return this.tesseractAvailable && this.workerReady;
   }
 
-  /**
-   * Extract text from image buffer using Tesseract
-   */
   async extractTextFromBuffer(imageBuffer: Buffer): Promise<string> {
-    // Ensure worker is ready
     if (!this.worker || !this.workerReady) {
       this.logger.warn('[OCR] Worker not ready, attempting to re-initialize');
       await this.initWorker();
@@ -106,7 +97,6 @@ export class TextExtractorService {
     this.logger.log('[OCR] Starting Tesseract OCR');
 
     try {
-      // Run OCR with timeout
       const result = await Promise.race<TesseractResult>([
         this.worker.recognize(imageBuffer),
         new Promise<never>((_, reject) =>
@@ -122,7 +112,7 @@ export class TextExtractorService {
     } catch (recognizeError: unknown) {
       const err = recognizeError as Error;
       this.logger.warn(`[OCR] Tesseract recognition failed: ${err.message}`);
-      // Mark worker as not ready for next time if it crashed/timed out
+
       this.workerReady = false;
       throw err;
     }

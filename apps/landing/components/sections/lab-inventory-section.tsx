@@ -14,9 +14,9 @@ export function LabInventorySection() {
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-4 py-2 text-sm mb-4">
-              <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-              <span className="font-medium text-cyan-700 dark:text-cyan-300">
+            <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+              <FlaskConical className="h-4 w-4 text-info" />
+              <span className="font-medium text-info">
                 Lab & Inventory
               </span>
             </div>
@@ -32,8 +32,8 @@ export function LabInventorySection() {
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
-                    <FlaskConical className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
+                    <FlaskConical className="h-5 w-5 text-info" />
                   </div>
                 </div>
                 <div>
@@ -47,8 +47,8 @@ export function LabInventorySection() {
 
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <Package className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <Package className="h-5 w-5 text-warning" />
                   </div>
                 </div>
                 <div>
@@ -64,7 +64,7 @@ export function LabInventorySection() {
 
           <div className="relative">
             <div className="grid gap-4">
-              <Card className="bg-background/60 backdrop-blur-sm border-cyan-200 dark:border-cyan-800">
+              <Card className="bg-background/60 backdrop-blur-sm border-border">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Lab Orders
@@ -76,17 +76,17 @@ export function LabInventorySection() {
                       {
                         test: "Complete Blood Count",
                         status: "Completed",
-                        color: "text-green-600 bg-green-100",
+                        color: "badge-success",
                       },
                       {
                         test: "Lipid Profile",
                         status: "Processing",
-                        color: "text-blue-600 bg-blue-100",
+                        color: "badge-info",
                       },
                       {
                         test: "Thyroid Function",
                         status: "Sample Collected",
-                        color: "text-amber-600 bg-amber-100",
+                        color: "badge-warning",
                       },
                     ].map((item, i) => (
                       <div
@@ -95,7 +95,7 @@ export function LabInventorySection() {
                       >
                         <span className="font-medium">{item.test}</span>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full ${item.color} dark:bg-opacity-20`}
+                          className={`text-xs px-2 py-1 rounded-full ${item.color}`}
                         >
                           {item.status}
                         </span>
@@ -105,7 +105,7 @@ export function LabInventorySection() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/60 backdrop-blur-sm border-amber-200 dark:border-amber-800 ml-8">
+              <Card className="bg-background/60 backdrop-blur-sm border-border ml-8">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Low Stock Alerts
@@ -131,7 +131,7 @@ export function LabInventorySection() {
                       >
                         <span className="font-medium">{item.item}</span>
                         <div className="text-right">
-                          <div className="text-xs font-medium text-red-500">
+                          <div className="text-xs font-medium text-destructive">
                             {item.status}
                           </div>
                           <div className="text-xs text-muted-foreground">

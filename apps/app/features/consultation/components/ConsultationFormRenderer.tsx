@@ -12,7 +12,7 @@ import {
   ExaminationInput,
 } from "./structured/ExaminationInput";
 import { Medication, PrescriptionInput } from "./structured/PrescriptionInput";
-import { PatientMedicalHistoryContainer } from "../../patients/components";
+import { PatientMedicalHistoryContainer } from "@/features/patients/components";
 import { Textarea } from "@workspace/ui/components/textarea";
 import {
   GrowthChartData,

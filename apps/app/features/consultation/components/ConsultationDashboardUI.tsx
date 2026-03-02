@@ -18,7 +18,7 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
-import { useConsultationDashboard } from "../hooks/use-consultation-dashboard";
+import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Avatar,
@@ -55,7 +55,7 @@ export const ConsultationDashboardUI: FC = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -98,7 +98,7 @@ export const ConsultationDashboardUI: FC = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Active Consultations */}
+        {}
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>In Progress</CardTitle>
@@ -120,7 +120,7 @@ export const ConsultationDashboardUI: FC = () => {
                     <div className="flex items-center gap-4">
                       <Avatar>
                         <AvatarImage src="" />{" "}
-                        {/* Placeholder for patient image if available */}
+                        {}
                         <AvatarFallback>
                           {item.patient?.firstName?.[0]}
                           {item.patient?.lastName?.[0]}
@@ -147,7 +147,7 @@ export const ConsultationDashboardUI: FC = () => {
                     <Button
                       size="sm"
                       onClick={() =>
-                        // Prefer appointmentId if available for the full consultation view
+
                         handleStartConsultation(item.appointmentId || item.id)
                       }
                     >
@@ -160,7 +160,7 @@ export const ConsultationDashboardUI: FC = () => {
           </CardContent>
         </Card>
 
-        {/* Waiting Room */}
+        {}
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Waiting Room</CardTitle>
@@ -201,8 +201,7 @@ export const ConsultationDashboardUI: FC = () => {
                       size="sm"
                       variant="default"
                       onClick={() =>
-                        // For queue items, we might need a way to "start" which might create an appointment/visit logic if one doesn't exist
-                        // But for now assuming appointmentId exists or using queue ID as placeholder if logic supports it
+
                         handleStartConsultation(item.appointmentId || item.id)
                       }
                     >

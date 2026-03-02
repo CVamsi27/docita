@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { SendMessageUseCase } from '../../../whatsapp/application/use-cases/send-message.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { WhatsappLogStatus } from '@workspace/db';
 
 describe('ReminderNotificationService', () => {
@@ -82,7 +82,7 @@ describe('ReminderNotificationService', () => {
 
   describe('sendEmailReminder', () => {
     it('should send email reminder and log to database', async () => {
-      await service.sendEmailReminder(mockAppointment, mockSettings as any);
+      await service.sendEmailReminder(mockAppointment, mockSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -101,7 +101,7 @@ describe('ReminderNotificationService', () => {
           'Hello {patientName}, your appointment with {doctorName} is on {appointmentDate}',
       };
 
-      await service.sendEmailReminder(mockAppointment, customSettings as any);
+      await service.sendEmailReminder(mockAppointment, customSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -119,13 +119,13 @@ describe('ReminderNotificationService', () => {
         emailSubject: 'Appointment at {clinicName}',
       };
 
-      await service.sendEmailReminder(mockAppointment, customSettings as any);
+      await service.sendEmailReminder(mockAppointment, customSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
 
     it('should log error and mark reminder as failed on exception', async () => {
-      (prisma.appointmentReminder.create as any)
+      (prisma.appointmentReminder.create as jest.Mock)
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(new Error('Send failed'))
         .mockResolvedValueOnce({});
@@ -136,7 +136,7 @@ describe('ReminderNotificationService', () => {
         new Error('Database error'),
       );
 
-      await service.sendEmailReminder(mockAppointment, testSettings as any);
+      await service.sendEmailReminder(mockAppointment, testSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe('ReminderNotificationService', () => {
 
       await service.sendEmailReminder(
         mockAppointment,
-        settingsWithoutSubject as any,
+        settingsWithoutSubject as never,
       );
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
@@ -158,7 +158,7 @@ describe('ReminderNotificationService', () => {
 
   describe('sendSmsReminder', () => {
     it('should send SMS reminder and log to database', async () => {
-      await service.sendSmsReminder(mockAppointment, mockSettings as any);
+      await service.sendSmsReminder(mockAppointment, mockSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -177,7 +177,7 @@ describe('ReminderNotificationService', () => {
           '{patientName}, appointment with {doctorName} on {appointmentDate}',
       };
 
-      await service.sendSmsReminder(mockAppointment, customSettings as any);
+      await service.sendSmsReminder(mockAppointment, customSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -195,18 +195,18 @@ describe('ReminderNotificationService', () => {
         patient: { ...mockAppointment.patient, phoneNumber: '' },
       };
 
-      await service.sendSmsReminder(appointmentNoPhone, mockSettings as any);
+      await service.sendSmsReminder(appointmentNoPhone, mockSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
 
     it('should log error when SMS sending fails', async () => {
-      (prisma.appointmentReminder.create as any)
+      (prisma.appointmentReminder.create as jest.Mock)
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(new Error('SMS error'))
         .mockResolvedValueOnce({});
 
-      await service.sendSmsReminder(mockAppointment, mockSettings as any);
+      await service.sendSmsReminder(mockAppointment, mockSettings as never);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -216,7 +216,7 @@ describe('ReminderNotificationService', () => {
     it('should send WhatsApp reminder with correct template', async () => {
       await service.sendWhatsappReminder(
         mockAppointment,
-        mockSettings as any,
+        mockSettings as never,
         'appointment_reminder_24hr',
       );
 
@@ -236,7 +236,7 @@ describe('ReminderNotificationService', () => {
     it('should send WhatsApp message via use case', async () => {
       await service.sendWhatsappReminder(
         mockAppointment,
-        mockSettings as any,
+        mockSettings as never,
         'appointment_reminder_24hr',
       );
 
@@ -323,8 +323,8 @@ describe('ReminderNotificationService', () => {
       const appt2 = { ...mockAppointment, id: 'appt-2' };
 
       await Promise.all([
-        service.sendEmailReminder(mockAppointment, mockSettings as any),
-        service.sendEmailReminder(appt2, mockSettings as any),
+        service.sendEmailReminder(mockAppointment, mockSettings as never),
+        service.sendEmailReminder(appt2, mockSettings as never),
       ]);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledTimes(2);
@@ -333,7 +333,7 @@ describe('ReminderNotificationService', () => {
     it('should maintain appointment data integrity through reminder cycle', async () => {
       const originalId = mockAppointment.id;
 
-      await service.sendEmailReminder(mockAppointment, mockSettings as any);
+      await service.sendEmailReminder(mockAppointment, mockSettings as never);
 
       const firstCall = (prisma.appointmentReminder.create as jest.Mock).mock
         .calls[0][0];

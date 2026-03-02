@@ -9,10 +9,10 @@ export const auditLogSchema = z.object({
   action: z.string(),
   resource: z.string(),
   resourceId: z.string().optional(),
-  details: z.record(z.unknown()).optional(), // Flexible JSON
+  details: z.record(z.unknown()).optional(), 
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
-  status: z.string().optional(), // 'SUCCESS' | 'FAILURE'
+  status: z.string().optional(), 
   createdAt: z.date().or(z.string()),
 });
 

@@ -1,14 +1,9 @@
-/**
- * Abstract Payment Gateway Interface
- * Allows swapping payment providers (Razorpay, Stripe, etc.) based on region
- */
-
 export interface CreateSubscriptionParams {
   customerId: string;
   planId: string;
   quantity?: number;
   startAt?: Date;
-  totalCount?: number; // Number of billing cycles
+  totalCount?: number;
   notes?: Record<string, string>;
 }
 
@@ -73,15 +68,12 @@ export interface WebhookEvent {
 export interface IPaymentGateway {
   readonly provider: string;
 
-  // Customer management
   createCustomer(params: CreateCustomerParams): Promise<CreateCustomerResult>;
   getCustomer(customerId: string): Promise<Record<string, unknown> | null>;
 
-  // Plan management
   createPlan(params: CreatePlanParams): Promise<CreatePlanResult>;
   getPlan(planId: string): Promise<Record<string, unknown> | null>;
 
-  // Subscription management
   createSubscription(
     params: CreateSubscriptionParams,
   ): Promise<CreateSubscriptionResult>;
@@ -92,14 +84,11 @@ export interface IPaymentGateway {
   pauseSubscription(subscriptionId: string): Promise<void>;
   resumeSubscription(subscriptionId: string): Promise<void>;
 
-  // One-time payments / Checkout
   createCheckout(params: CreateCheckoutParams): Promise<CreateCheckoutResult>;
 
-  // Webhook verification
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean;
   parseWebhookEvent(payload: unknown): WebhookEvent;
 
-  // Recurring token-based payments (optional — not all gateways support this)
   chargeWithToken?(
     customerId: string,
     tokenId: string,
@@ -109,11 +98,7 @@ export interface IPaymentGateway {
   ): Promise<{ paymentId: string; status: string }>;
 }
 
-/**
- * Supported payment gateway providers
- */
 export enum PaymentProvider {
   RAZORPAY = 'razorpay',
   STRIPE = 'stripe',
-  // Future: PAYPAL, PADDLE, etc.
 }

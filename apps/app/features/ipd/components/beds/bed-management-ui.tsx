@@ -7,7 +7,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { AdmissionModal } from "../modals/admission-modal";
+import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 
 interface BedInfo {
   id: string;
@@ -109,7 +109,7 @@ export function BedManagementUI({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Occupied</CardTitle>
-            <Users className="h-4 w-4 text-amber-500" />
+            <Users className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{occupiedBeds}</div>
@@ -121,7 +121,7 @@ export function BedManagementUI({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{availableBeds}</div>
@@ -162,9 +162,9 @@ export function BedManagementUI({
                           key={bed.id}
                           className={`
                             relative p-2 rounded-md text-center text-xs font-medium border cursor-pointer transition-colors hover:bg-accent
-                            ${bed.status === "AVAILABLE" ? "bg-green-50/50 border-green-200 text-green-700 dark:bg-green-950/20 dark:border-green-900/50 dark:text-green-400" : ""}
-                            ${bed.status === "OCCUPIED" ? "bg-amber-50/50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/50 dark:text-amber-400" : ""}
-                            ${bed.status === "MAINTENANCE" ? "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-900 dark:border-gray-800" : ""}
+                            ${bed.status === "AVAILABLE" ? "badge-success" : ""}
+                            ${bed.status === "OCCUPIED" ? "badge-warning" : ""}
+                            ${bed.status === "MAINTENANCE" ? "badge-muted" : ""}
                           `}
                         >
                           <Bed className="h-4 w-4 mx-auto mb-1 opacity-70" />

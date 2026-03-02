@@ -104,16 +104,16 @@ export default function AdminsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Ensure data is an array
+
         const clinicsArray = Array.isArray(data) ? data : [];
         setClinics(clinicsArray);
-        // Set first clinic as default
+
         if (clinicsArray.length > 0) {
           setSelectedClinic(clinicsArray[0].id);
         }
       }
     } catch (error) {
-      console.error("Error fetching clinics:", error);
+
       toast.error("Failed to load clinics");
     }
   }, [token]);
@@ -137,7 +137,7 @@ export default function AdminsPage() {
           setAdmins(Array.isArray(data) ? data : []);
         }
       } catch (error) {
-        console.error("Error fetching admins:", error);
+
         toast.error("Failed to load admins");
       } finally {
         setLoading(false);
@@ -200,7 +200,7 @@ export default function AdminsPage() {
         toast.error(error.message || "Failed to create admin");
       }
     } catch (error) {
-      console.error("Error creating admin:", error);
+
       toast.error("Error creating admin");
     } finally {
       setSaving(false);
@@ -261,7 +261,7 @@ export default function AdminsPage() {
         toast.error(error.message || "Failed to update admin");
       }
     } catch (error) {
-      console.error("Error updating admin:", error);
+
       toast.error("Error updating admin");
     } finally {
       setSaving(false);
@@ -276,7 +276,7 @@ export default function AdminsPage() {
     }
 
     try {
-      // For now, we'll use deactivate endpoint
+
       const res = await fetch(
         `${API_URL}/super-admin/admins/${adminId}/deactivate`,
         {
@@ -297,7 +297,7 @@ export default function AdminsPage() {
         toast.error("Failed to delete admin");
       }
     } catch (error) {
-      console.error("Error deleting admin:", error);
+
       toast.error("Error deleting admin");
     }
   };
@@ -329,7 +329,7 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      {/* Filters and Create Button */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -365,7 +365,7 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {/* Admins Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -448,7 +448,7 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {/* View Admin Dialog */}
+      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -494,7 +494,7 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Admin Dialog */}
+      {}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -620,7 +620,7 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Admin Dialog */}
+      {}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

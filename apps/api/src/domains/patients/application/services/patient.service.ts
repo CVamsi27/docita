@@ -1,14 +1,14 @@
-/**
- * Patient Application Service
- */
-
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import {
   IPatientRepository,
   PatientSearchParams,
-} from '../../core/repositories/patient.repository.interface';
-import { Patient, PatientProps } from '../../core/entities/patient.entity';
-import { v4 as uuidv4 } from 'uuid';
+} from '@/domains/patients/core/repositories/patient.repository.interface';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
+import { randomUUID } from 'crypto';
+import {
+  type PatientDomainCreateInput,
+  type PatientDomainUpdateInput,
+} from '@workspace/types';
 
 @Injectable()
 export class PatientService {
@@ -17,12 +17,10 @@ export class PatientService {
     private readonly patientRepository: IPatientRepository,
   ) {}
 
-  async createPatient(
-    data: Omit<PatientProps, 'id' | 'createdAt' | 'updatedAt' | 'version'>,
-  ): Promise<Patient> {
+  async createPatient(data: PatientDomainCreateInput): Promise<Patient> {
     const patient = new Patient({
       ...data,
-      id: uuidv4(),
+      id: randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
       version: 1,
@@ -49,10 +47,13 @@ export class PatientService {
     return this.patientRepository.findAll(params);
   }
 
-  async updatePatient(id: string, data: Partial<PatientProps>): Promise<void> {
+  async updatePatient(
+    id: string,
+    data: PatientDomainUpdateInput,
+  ): Promise<void> {
     const patient = await this.getPatient(id);
 
-    if (data.email || data.phoneNumber) {
+    if (data.email !== undefined || data.phoneNumber !== undefined) {
       patient.updateContactInfo(data.email, data.phoneNumber);
     }
 

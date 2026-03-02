@@ -2,14 +2,24 @@ import { Card } from "@workspace/ui/components/card";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { Calendar, Mail, Phone } from "lucide-react";
-import type { Patient } from "@workspace/types";
+
+export interface PatientListItem {
+  id?: string;
+  firstName: string;
+  lastName: string;
+  gender?: string;
+  bloodGroup?: string | null;
+  dateOfBirth?: string | Date;
+  phoneNumber?: string | null;
+  email?: string | null;
+}
 
 interface VirtualizedPatientsListUIProps {
-  patients: Patient[];
+  patients: PatientListItem[];
   loading: boolean;
-  onPatientClick: (patient: Patient) => void;
-  getPatientInitials: (patient: Patient) => string;
-  getPatientAge: (patient: Patient) => string;
+  onPatientClick: (patient: PatientListItem) => void;
+  getPatientInitials: (patient: PatientListItem) => string;
+  getPatientAge: (patient: PatientListItem) => string;
 }
 
 export function VirtualizedPatientsListUI({

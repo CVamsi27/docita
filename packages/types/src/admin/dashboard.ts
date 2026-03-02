@@ -41,7 +41,6 @@ export const dashboardStatsSchema = z.object({
 
 export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
 
-// Extended types for Dashboard usage where ID is required
 import { Patient } from "../patient/patients";
 import { Appointment } from "../operations/appointments";
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardService } from './dashboard.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('DashboardService', () => {
@@ -71,22 +71,21 @@ describe('DashboardService', () => {
     it('should return stats for a clinic', async () => {
       const clinicId = 'clinic-123';
 
-      // Mock return values
       mockPrismaService.patient.count
-        .mockResolvedValueOnce(100) // totalPatients
-        .mockResolvedValueOnce(10); // newPatientsThisMonth
+        .mockResolvedValueOnce(100)
+        .mockResolvedValueOnce(10);
 
-      mockPrismaService.user.count.mockResolvedValue(5); // totalDoctors
+      mockPrismaService.user.count.mockResolvedValue(5);
 
       mockPrismaService.appointment.count
-        .mockResolvedValueOnce(8) // todayAppointments
-        .mockResolvedValueOnce(500); // totalAppointments
+        .mockResolvedValueOnce(8)
+        .mockResolvedValueOnce(500);
 
-      mockPrismaService.prescription.count.mockResolvedValue(25); // activePrescriptions
+      mockPrismaService.prescription.count.mockResolvedValue(25);
 
       mockPrismaService.appointment.findMany
-        .mockResolvedValueOnce([]) // recentActivity
-        .mockResolvedValueOnce([]); // upcomingAppointments
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
 
       const result = await service.getStats(clinicId);
 

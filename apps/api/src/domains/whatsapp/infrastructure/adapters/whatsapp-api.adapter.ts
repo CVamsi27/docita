@@ -8,7 +8,7 @@ import {
   SendMessageRequest,
   SendMessageResponse,
   SendInteractiveRequest,
-} from '../../application/ports/whatsapp-client.port';
+} from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -28,6 +28,32 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     if (!this.phoneNumberId || !this.accessToken) {
       this.logger.warn('WhatsApp API credentials not fully configured');
     }
+  }
+
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private extractErrorMessage(data: Record<string, unknown>): string {
+    const error = this.toRecord(data.error);
+    const message = error.message;
+    return typeof message === 'string' ? message : 'WhatsApp API error';
+  }
+
+  private extractFirstMessageId(data: Record<string, unknown>): string {
+    const messages = data.messages;
+    if (!Array.isArray(messages)) {
+      return '';
+    }
+
+    const first = messages[0];
+    const firstRecord = this.toRecord(first);
+    const id = firstRecord.id;
+    return typeof id === 'string' ? id : '';
   }
 
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
@@ -72,19 +98,15 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
         },
       );
 
-      const data = (await response.json()) as Record<string, unknown>;
+      const data = this.toRecord(await response.json());
 
       if (!response.ok) {
-        const error = data.error as Record<string, unknown> | undefined;
-        const errorMsg = (error?.message as string) || 'WhatsApp API error';
+        const errorMsg = this.extractErrorMessage(data);
         this.logger.error(`WhatsApp send failed: ${errorMsg}`, data);
         throw new ServiceUnavailableException(errorMsg);
       }
 
-      const messages = data.messages as
-        | Array<Record<string, unknown>>
-        | undefined;
-      return { externalId: (messages?.[0]?.id as string) || '' };
+      return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
       this.logger.error(
         `WhatsApp send failed for ${to}`,
@@ -139,18 +161,12 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
         },
       );
 
-      const data = (await response.json()) as Record<string, unknown>;
+      const data = this.toRecord(await response.json());
       if (!response.ok) {
-        const error = data.error as Record<string, unknown> | undefined;
-        throw new ServiceUnavailableException(
-          (error?.message as string) || 'API Error',
-        );
+        throw new ServiceUnavailableException(this.extractErrorMessage(data));
       }
 
-      const messages = data.messages as
-        | Array<Record<string, unknown>>
-        | undefined;
-      return { externalId: (messages?.[0]?.id as string) || '' };
+      return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
       this.logger.error(
         `Interactive message failed`,

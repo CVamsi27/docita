@@ -1,48 +1,26 @@
 import { NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PaginatedResult } from '../database/repositories/base.repository';
-import { paginateWithCursor } from '../database/pagination.helper';
+import { PrismaService } from '@/prisma/prisma.service';
+import { PaginatedResult } from '@/common/repositories/base.repository';
+import { paginateWithCursor } from '@/common/pagination.helper';
 
-/**
- * Standard pagination options used across all services
- */
 export interface ServicePaginationOptions {
   cursor?: string;
   limit?: number;
   search?: string;
 }
 
-/**
- * Context for operations - provides clinic and user info
- */
 export interface OperationContext {
   clinicId: string;
   userId?: string;
 }
 
-/**
- * Base service providing common CRUD operations with standardized patterns.
- *
- * This eliminates duplication across services by providing:
- * - Consistent clinic ID validation
- * - Standardized not-found error handling
- * - Common pagination patterns
- * - Template method pattern for extensibility
- *
- * @example
- * ```typescript
- * @Injectable()
- * export class PatientsService extends BaseService<Patient> {
- *   constructor(prisma: PrismaService) {
- *     super(prisma, 'patient', 'Patient');
- *   }
- *
- *   protected getListSelect() {
- *     return PATIENT_LIST_SELECT;
- *   }
- * }
- * ```
- */
+type ServiceModelDelegate<TItem> = {
+  findMany: (args?: Record<string, unknown>) => Promise<TItem[]>;
+  findUnique: (args?: Record<string, unknown>) => Promise<TItem | null>;
+  count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+  delete: (args?: Record<string, unknown>) => Promise<TItem>;
+};
+
 export abstract class BaseService<T> {
   protected readonly logger: Logger;
 
@@ -54,67 +32,61 @@ export abstract class BaseService<T> {
     this.logger = new Logger(this.constructor.name);
   }
 
-  /**
-   * Get the Prisma model delegate
-   */
-  protected get model() {
-    return (this.prisma as any)[this.modelName];
+  private isServiceModelDelegate(
+    value: unknown,
+  ): value is ServiceModelDelegate<T> {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<ServiceModelDelegate<T>>;
+    return (
+      typeof candidate.findMany === 'function' &&
+      typeof candidate.findUnique === 'function' &&
+      typeof candidate.count === 'function' &&
+      typeof candidate.delete === 'function'
+    );
   }
 
-  /**
-   * Validate clinic ID and return empty result if missing
-   * Override this to customize the empty result shape
-   */
+  protected get model(): ServiceModelDelegate<T> {
+    const delegate = Reflect.get(this.prisma, this.modelName);
+
+    if (!this.isServiceModelDelegate(delegate)) {
+      throw new BadRequestException(
+        `Model delegate '${this.modelName}' is unavailable`,
+      );
+    }
+
+    return delegate;
+  }
+
   protected getEmptyResult(): PaginatedResult<T> {
     return { items: [], hasMore: false, count: 0 };
   }
 
-  /**
-   * Validate clinic ID - returns true if valid, false if should return empty
-   */
   protected validateClinicId(clinicId: string | undefined): boolean {
     return !!clinicId;
   }
 
-  /**
-   * Throw standardized not found exception
-   */
   protected throwNotFound(id: string): never {
     throw new NotFoundException(`${this.entityName} with ID ${id} not found`);
   }
 
-  /**
-   * Abstract methods - must be implemented by subclasses
-   */
   protected abstract getListSelect(): Record<string, boolean | object>;
   protected abstract getDetailSelect(): Record<string, boolean | object>;
 
-  /**
-   * Override to customize how clinicId is used in where clause
-   * Default assumes direct clinicId field
-   */
   protected buildClinicWhereClause(clinicId: string): Record<string, unknown> {
     return { clinicId };
   }
 
-  /**
-   * Override to add additional search conditions
-   */
   protected buildSearchConditions(_search: string): Record<string, unknown>[] {
     return [];
   }
 
-  /**
-   * Override to customize order by clause
-   */
   protected getDefaultOrderBy(): Record<string, 'asc' | 'desc'> {
     return { createdAt: 'desc' };
   }
 
-  /**
-   * Find all entities with pagination
-   * Automatically handles empty clinicId
-   */
   async findAll(
     clinicId: string,
     options?: ServicePaginationOptions,
@@ -141,10 +113,6 @@ export abstract class BaseService<T> {
     });
   }
 
-  /**
-   * Find a single entity by ID
-   * Throws NotFoundException if not found
-   */
   async findOne(id: string): Promise<T> {
     const entity = await this.model.findUnique({
       where: { id },
@@ -158,31 +126,20 @@ export abstract class BaseService<T> {
     return entity as T;
   }
 
-  /**
-   * Find a single entity by ID, returns null if not found
-   */
   async findOneOrNull(id: string): Promise<T | null> {
     return this.model.findUnique({
       where: { id },
       select: this.getDetailSelect(),
-    }) as Promise<T | null>;
+    });
   }
 
-  /**
-   * Check if entity exists
-   */
   async exists(id: string): Promise<boolean> {
     const count = await this.model.count({ where: { id } });
     return count > 0;
   }
 
-  /**
-   * Delete an entity by ID
-   * Returns the deleted entity
-   */
   async delete(id: string): Promise<T> {
-    // Verify it exists first
     await this.findOne(id);
-    return this.model.delete({ where: { id } }) as Promise<T>;
+    return this.model.delete({ where: { id } });
   }
 }

@@ -95,6 +95,16 @@ interface CreateReceptionistData {
   phoneNumber?: string;
 }
 
+interface UpdateMemberData {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  role?: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
 @Injectable()
 export class ClinicsService {
   constructor(
@@ -103,7 +113,6 @@ export class ClinicsService {
     private staffManagementService: StaffManagementService,
   ) {}
 
-  // Clinic CRUD operations
   async create(data: CreateClinicData) {
     return this.clinicDataService.create(data);
   }
@@ -124,7 +133,6 @@ export class ClinicsService {
     return this.clinicDataService.delete(id);
   }
 
-  // Clinic data queries
   async getUserClinics(userId: string) {
     return this.clinicDataService.getUserClinics(userId);
   }
@@ -133,7 +141,6 @@ export class ClinicsService {
     return this.clinicDataService.getClinicStats(clinicId);
   }
 
-  // Clinic settings
   async updateSettings(id: string, data: ClinicSettingsData) {
     return this.clinicSettingsService.updateSettings(id, data);
   }
@@ -152,7 +159,6 @@ export class ClinicsService {
     );
   }
 
-  // Staff management
   async createDoctor(clinicId: string, data: CreateDoctorData) {
     return this.staffManagementService.createDoctor(clinicId, data);
   }
@@ -171,5 +177,27 @@ export class ClinicsService {
 
   async getMembers(clinicId: string) {
     return this.staffManagementService.getMembers(clinicId);
+  }
+
+  async updateMember(
+    clinicId: string,
+    memberId: string,
+    data: UpdateMemberData,
+    actorUserId: string,
+  ) {
+    return this.staffManagementService.updateMember(
+      clinicId,
+      memberId,
+      data,
+      actorUserId,
+    );
+  }
+
+  async removeMember(clinicId: string, memberId: string, actorUserId: string) {
+    return this.staffManagementService.removeMember(
+      clinicId,
+      memberId,
+      actorUserId,
+    );
   }
 }

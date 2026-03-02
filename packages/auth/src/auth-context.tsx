@@ -1,8 +1,4 @@
-/**
- * Shared Authentication Context and Hooks
- * Used by both apps/app and apps/admin
- * Centralized auth state management, token handling, permissions
- */
+
 
 "use client";
 
@@ -82,7 +78,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check auth on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -98,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
         }
       } catch (err) {
-        console.error("Auth check failed:", err);
+
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -144,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         headers: { "Content-Type": "application/json" },
       });
     } catch (err) {
-      console.error("Logout failed:", err);
+
     } finally {
       setUser(null);
       setIsLoading(false);
@@ -197,7 +192,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
       }
     } catch (err) {
-      console.error("Token refresh failed:", err);
+
       setUser(null);
     }
   }, []);
@@ -242,10 +237,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return React.createElement(AuthContext.Provider, { value }, children);
 }
 
-/**
- * Hook to access auth context
- * Throws error if used outside AuthProvider
- */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
@@ -254,33 +245,21 @@ export function useAuth(): AuthContextType {
   return context;
 }
 
-/**
- * Hook to check if user has specific permission
- */
 export function usePermission(permission: Permission): boolean {
   const { hasPermission } = useAuth();
   return hasPermission(permission);
 }
 
-/**
- * Hook to check if user has specific role
- */
 export function useRole(role: string): boolean {
   const { hasRole } = useAuth();
   return hasRole(role);
 }
 
-/**
- * Hook to check if user can access all required permissions
- */
 export function useCanAccess(permissions: Permission[]): boolean {
   const { canAccess } = useAuth();
   return canAccess(permissions);
 }
 
-/**
- * Hook to get current user
- */
 export function useUser(): User | null {
   const { user } = useAuth();
   return user;

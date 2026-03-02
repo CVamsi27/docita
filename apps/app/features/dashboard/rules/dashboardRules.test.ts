@@ -8,12 +8,12 @@ import {
 describe("Dashboard Business Rules", () => {
   describe("calculateGrowthRate", () => {
     it("should calculate positive growth", () => {
-      // 100 -> 150 = 50% increase
+
       expect(calculateGrowthRate(150, 100)).toBe(50);
     });
 
     it("should calculate negative growth", () => {
-      // 100 -> 50 = 50% decrease
+
       expect(calculateGrowthRate(50, 100)).toBe(-50);
     });
 

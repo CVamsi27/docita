@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-/**
- * Medical Validation Schemas
- * Hospital-grade validation for vital signs, dosages, and clinical parameters
- * All ranges based on standard medical references (WHO, AHA, etc.)
- */
-
-// ============================================================================
-// VITAL SIGNS VALIDATION
-// ============================================================================
-
 export interface VitalSignValidation {
   value: number;
   isValid: boolean;
@@ -18,10 +8,6 @@ export interface VitalSignValidation {
   severity?: "warning" | "critical";
   suggestion?: string;
 }
-
-// ============================================================================
-// DOSAGE VALIDATION
-// ============================================================================
 
 export interface DosageRange {
   min: number;
@@ -41,19 +27,11 @@ export interface DosageValidation {
   suggestion?: string;
 }
 
-// ============================================================================
-// PEDIATRIC DOSING
-// ============================================================================
-
 export interface PediatricDosageValidation extends DosageValidation {
   ageInMonths: number;
   weight: number;
   adjustedDosage?: string;
 }
-
-// ============================================================================
-// RENAL/HEPATIC DOSING
-// ============================================================================
 
 export type RenalFunction = "normal" | "mild" | "moderate" | "severe" | "esrd";
 
@@ -66,10 +44,6 @@ export interface RenalDosageAdjustment {
   requiresMonitoring: boolean;
 }
 
-// ============================================================================
-// PREGNANCY CONTRAINDICATION
-// ============================================================================
-
 export type PregnancyCategory = "A" | "B" | "C" | "D" | "X";
 
 export interface PregnancyContraindication {
@@ -79,10 +53,6 @@ export interface PregnancyContraindication {
   message: string;
   alternativeMedications?: string[];
 }
-
-// ============================================================================
-// ZONED SCHEMAS FOR FORM VALIDATION
-// ============================================================================
 
 export const vitalSignsInputSchema = z.object({
   bloodPressureSystolic: z
@@ -160,10 +130,6 @@ export type ValidationPrescriptionMedication = z.infer<
   typeof prescriptionMedicationSchema
 >;
 
-// ============================================================================
-// ALLERGY CHECKING
-// ============================================================================
-
 export interface AllergyCheck {
   hasAllergy: boolean;
   allergyMatches: Array<{
@@ -174,11 +140,3 @@ export interface AllergyCheck {
   warnings: string[];
 }
 
-/**
- * Common medication classes and their generic/brand names
- * Expanded to cover major drug families for comprehensive allergy checking
- */
-
-/**
- * Check if a medication matches any of the patient's allergies
- */

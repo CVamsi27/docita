@@ -72,7 +72,6 @@ export default function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Simulate form submission - in production, this would send to your backend
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     setSubmitted(true);
@@ -81,7 +80,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Header */}
+      {}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -99,7 +98,7 @@ export default function ContactPage() {
         </div>
       </header>
 
-      {/* Content */}
+      {}
       <main className="flex-1 px-6 py-12">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
@@ -113,7 +112,7 @@ export default function ContactPage() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Contact Information */}
+            {}
             <div className="lg:col-span-1 space-y-6">
               <Card>
                 <CardHeader>
@@ -215,7 +214,7 @@ export default function ContactPage() {
               </Card>
             </div>
 
-            {/* Contact Form */}
+            {}
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
@@ -228,8 +227,8 @@ export default function ContactPage() {
                 <CardContent>
                   {submitted ? (
                     <div className="text-center py-12">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                        <Send className="h-8 w-8 text-green-600 dark:text-green-400" />
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success dark:bg-success mb-4">
+                        <Send className="h-8 w-8 text-success dark:text-success" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">
                         Message Sent!
@@ -427,7 +426,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FAQ Section */}
+          {}
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-center mb-8">
               Frequently Asked Questions
@@ -499,7 +498,7 @@ export default function ContactPage() {
         </div>
       </main>
 
-      {/* Footer */}
+      {}
       <footer className="border-t px-6 py-8 bg-muted/30">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">

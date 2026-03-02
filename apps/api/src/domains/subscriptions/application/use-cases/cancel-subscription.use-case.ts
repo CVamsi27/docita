@@ -2,16 +2,16 @@ import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
-} from '../ports/subscription.repository.port';
+} from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import {
   IClinicOperations,
   CLINIC_OPERATIONS_TOKEN,
-} from '../ports/clinic-operations.port';
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import {
   IPaymentGateway,
   PAYMENT_GATEWAY_TOKEN,
-} from '../ports/payment-gateway.port';
-import { SubscriptionStatusEnum } from '../../core/value-objects';
+} from '@/domains/subscriptions/application/ports/payment-gateway.port';
+import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 
 export interface CancelSubscriptionRequest {
   clinicId: string;

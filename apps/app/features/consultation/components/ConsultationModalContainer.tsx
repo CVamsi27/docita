@@ -19,7 +19,6 @@ export function ConsultationModalContainer({
 }: ConsultationModalContainerProps) {
   const [open, setOpen] = useState(false);
 
-  // Placeholder implementation - ConsultationModalUI component doesn't exist
   return (
     <div>
       {trigger && <div onClick={() => setOpen(!open)}>{trigger}</div>}

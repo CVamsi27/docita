@@ -9,10 +9,8 @@ export class MetricsScheduler {
 
   constructor(private monitoringService: MonitoringService) {}
 
-  // Record system metrics every 10 minutes (reduced from 5 to prevent connection pool exhaustion)
   @Cron(CronExpression.EVERY_10_MINUTES)
   async recordSystemMetrics() {
-    // Prevent overlapping executions
     if (this.isRecordingMetrics) {
       this.logger.debug(
         'Skipping metrics recording - previous job still running',
@@ -31,7 +29,6 @@ export class MetricsScheduler {
     }
   }
 
-  // Aggregate hourly metrics at the start of each hour
   @Cron(CronExpression.EVERY_HOUR)
   async aggregateHourlyMetrics() {
     try {
@@ -42,7 +39,6 @@ export class MetricsScheduler {
     }
   }
 
-  // Clean up old data daily at 3 AM
   @Cron('0 3 * * *')
   async cleanupOldData() {
     try {

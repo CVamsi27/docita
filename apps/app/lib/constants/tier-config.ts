@@ -1,6 +1,5 @@
 import { Tier, TIER_INFO, TIER_LIMITS, TIER_PRICING } from "@workspace/types";
 
-// Types for tier configuration from backend
 export interface PlanPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -55,7 +54,6 @@ export interface TierConfigData {
   };
 }
 
-// Use single source of truth from @workspace/types
 export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
   [Tier.CAPTURE]: {
     monthly: TIER_PRICING.CAPTURE.monthly,

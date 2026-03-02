@@ -1,17 +1,6 @@
-/**
- * Unit Tests for ClinicAuthCacheService
- *
- * Tests:
- * - Cache hit/miss behavior
- * - TTL expiration
- * - LRU eviction
- * - Cache invalidation
- * - Cache statistics
- */
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   ClinicTier,
   SubscriptionStatus,
@@ -63,12 +52,10 @@ describe('ClinicAuthCacheService', () => {
     });
 
     it('should return cached data on cache hit', async () => {
-      // First call: cache miss
-      await service.getClinicAuth('clinic-1');
-      // Second call: cache hit
       await service.getClinicAuth('clinic-1');
 
-      // Should only query DB once
+      await service.getClinicAuth('clinic-1');
+
       expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(1);
     });
 
@@ -87,14 +74,11 @@ describe('ClinicAuthCacheService', () => {
 
   describe('invalidate', () => {
     it('should clear cached data for a specific clinic', async () => {
-      // Populate cache
       await service.getClinicAuth('clinic-1');
       expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(1);
 
-      // Invalidate
       service.invalidate('clinic-1');
 
-      // Should fetch from DB again
       await service.getClinicAuth('clinic-1');
       expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(2);
     });
@@ -105,9 +89,8 @@ describe('ClinicAuthCacheService', () => {
 
       service.invalidate('clinic-1');
 
-      // Should not re-fetch clinic-2
       await service.getClinicAuth('clinic-2');
-      expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(2); // Not 3
+      expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -121,18 +104,15 @@ describe('ClinicAuthCacheService', () => {
       await service.getClinicAuth('clinic-1');
       await service.getClinicAuth('clinic-2');
 
-      // 2 initial + 2 after invalidation = 4
       expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(4);
     });
   });
 
   describe('getCacheStats', () => {
     it('should report cache statistics', async () => {
-      // Start with empty cache
       const initialStats = service.getCacheStats();
       expect(initialStats.size).toBe(0);
 
-      // Add entries
       await service.getClinicAuth('clinic-1');
       await service.getClinicAuth('clinic-2');
 

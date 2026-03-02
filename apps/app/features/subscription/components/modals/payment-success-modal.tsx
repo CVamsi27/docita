@@ -35,7 +35,7 @@ export function PaymentSuccessModal({
 
   useEffect(() => {
     if (open) {
-      // Trigger confetti
+
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -72,12 +72,12 @@ export function PaymentSuccessModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-emerald-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-900/10 border-emerald-500/20">
+      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-success/10 border-success/20">
         <DialogHeader>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 ring-8 ring-emerald-50 dark:ring-emerald-900/10">
-            <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 ring-8 ring-success/10">
+            <CheckCircle2 className="h-8 w-8 text-success" />
           </div>
-          <DialogTitle className="text-center text-2xl font-bold bg-linear-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-emerald-300">
+          <DialogTitle className="text-center text-2xl font-bold bg-linear-to-r from-success to-success/80 bg-clip-text text-transparent">
             Payment Successful!
           </DialogTitle>
           <DialogDescription className="text-center text-base">
@@ -112,7 +112,7 @@ export function PaymentSuccessModal({
 
         <DialogFooter className="flex-col gap-2 sm:flex-col mt-4">
           <Button
-            className="w-full bg-linear-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-lg shadow-emerald-500/20"
+            className="w-full bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/20"
             onClick={() => onOpenChange(false)}
           >
             Continue to Dashboard

@@ -1,14 +1,54 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { Prisma, InvoiceStatus } from '@workspace/db';
+import {
+  Prisma,
+  InvoiceStatus,
+  HospitalRole,
+  Specialization,
+} from '@workspace/db';
 import { PDFService } from './pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { InvoiceItem } from '@workspace/types';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { invoiceItemSchema, type InvoiceItem } from '@workspace/types';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
-} from '../../core/repositories/invoice.repository';
+} from '@/domains/billing/core/repositories/invoice.repository';
+
+const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
+  const parsedItems = invoiceItemSchema.array().parse(items);
+  return parsedItems.map((item) => ({
+    id: item.id,
+    description: item.description,
+    quantity: item.quantity,
+    price: item.price,
+  })) as Prisma.InputJsonValue;
+};
+
+const parseInvoiceItems = (items: unknown): InvoiceItem[] => {
+  const parsed = invoiceItemSchema.array().safeParse(items);
+  return parsed.success ? parsed.data : [];
+};
+
+const normalizeSpecialization = (
+  value?: string | null,
+): Specialization | null | undefined => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  return Object.values(Specialization).includes(value as Specialization)
+    ? (value as Specialization)
+    : undefined;
+};
+
+const normalizeDoctorRole = (
+  value?: string | null,
+): HospitalRole | null | undefined => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  return Object.values(HospitalRole).includes(value as HospitalRole)
+    ? (value as HospitalRole)
+    : undefined;
+};
 
 @Injectable()
 export class InvoicesService {
@@ -44,7 +84,8 @@ export class InvoicesService {
     }
 
     if (clinicId) {
-      if (invoice.patient && invoice.patient.clinicId !== clinicId) {
+      const patientClinicId = invoice.patient?.clinic?.id;
+      if (patientClinicId && patientClinicId !== clinicId) {
         throw new NotFoundException(`Invoice ${id} not found`);
       }
     }
@@ -73,12 +114,12 @@ export class InvoicesService {
       patient: { connect: { id: data.patientId } },
       total: data.total,
       status: data.status,
-      items: data.items as unknown as Prisma.InputJsonValue,
+      items: toPrismaInvoiceItems(data.items),
       doctorName: data.doctorName,
       doctorEmail: data.doctorEmail,
       doctorPhone: data.doctorPhone,
-      doctorSpecialization: data.doctorSpecialization as any,
-      doctorRole: data.doctorRole as any,
+      doctorSpecialization: normalizeSpecialization(data.doctorSpecialization),
+      doctorRole: normalizeDoctorRole(data.doctorRole),
       doctorRegistrationNumber: data.doctorRegistrationNumber,
       doctorLicenseNumber: data.doctorLicenseNumber,
     });
@@ -102,9 +143,7 @@ export class InvoicesService {
 
     return this.repository.update(id, {
       ...data,
-      items: data.items
-        ? (data.items as unknown as Prisma.InputJsonValue)
-        : undefined,
+      items: data.items ? toPrismaInvoiceItems(data.items) : undefined,
     });
   }
 
@@ -115,7 +154,7 @@ export class InvoicesService {
   async generatePDF(id: string, clinicId?: string): Promise<Buffer> {
     const invoice = await this.findOne(id, clinicId);
 
-    const items = (invoice.items as unknown as InvoiceItem[]) || [];
+    const items = parseInvoiceItems(invoice.items);
     const patient = invoice.patient;
     const clinic = patient?.clinic;
     const defaultClinic = this.configService.getClinicInfo();

@@ -7,8 +7,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards, BadRequestException } from '@nestjs/common';
-import { getWebSocketCorsOrigins } from '../shared/modules/config/app-config';
-import { WsJwtAuthGuard } from '../shared/modules/auth/auth/ws-jwt-auth.guard';
+import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
+import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import {
   ClinicTier,
   SubscriptionStatus,
@@ -35,7 +35,7 @@ interface RateLimitTracker {
   resetTime: number;
 }
 
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
@@ -52,8 +52,8 @@ export class PaymentWebSocketGateway
   server!: Server;
 
   private logger = new Logger('PaymentGateway');
-  private readonly RATE_LIMIT_MESSAGES = 10; // Max 10 messages
-  private readonly RATE_LIMIT_WINDOW_MS = 60000; // Per 60 seconds
+  private readonly RATE_LIMIT_MESSAGES = 10;
+  private readonly RATE_LIMIT_WINDOW_MS = 60000;
   private rateLimitMap = new Map<string, RateLimitTracker>();
 
   constructor(
@@ -75,7 +75,7 @@ export class PaymentWebSocketGateway
     try {
       const payload = await this.jwtService.verifyAsync(authToken);
       client.data.user = payload;
-      // Initialize rate limiter for this client
+
       this.rateLimitMap.set(client.id, {
         messageCount: 0,
         resetTime: Date.now() + this.RATE_LIMIT_WINDOW_MS,
@@ -90,28 +90,22 @@ export class PaymentWebSocketGateway
   }
 
   handleDisconnect(client: Socket) {
-    // Clean up rate limit tracker
     this.rateLimitMap.delete(client.id);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  /**
-   * Check if client has exceeded rate limit
-   * Returns true if message should be allowed, false if rate limited
-   */
   private checkRateLimit(clientId: string): boolean {
     const tracker = this.rateLimitMap.get(clientId);
-    if (!tracker) return true; // Allow if not tracked
+    if (!tracker) return true;
 
     const now = Date.now();
     if (now > tracker.resetTime) {
-      // Window expired, reset
       tracker.messageCount = 0;
       tracker.resetTime = now + this.RATE_LIMIT_WINDOW_MS;
     }
 
     if (tracker.messageCount >= this.RATE_LIMIT_MESSAGES) {
-      return false; // Rate limited
+      return false;
     }
 
     tracker.messageCount++;
@@ -127,7 +121,6 @@ export class PaymentWebSocketGateway
 
   @SubscribeMessage('subscribe:clinic')
   handleSubscribeClinic(client: Socket, clinicId: string) {
-    // Check rate limit
     if (!this.checkRateLimit(client.id)) {
       this.emitRateLimitError(client);
       return { event: 'error', data: { message: 'Rate limit exceeded' } };
@@ -135,8 +128,6 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    // Security check: Only allow users to subscribe to their own clinic's updates
-    // except for SUPER_ADMIN users who can subscribe to any clinic.
     if (user.role !== 'SUPER_ADMIN' && user.clinicId !== clinicId) {
       this.logger.warn(
         `Unauthorized subscription attempt: User ${user.email} (clinic: ${user.clinicId}) tried to subscribe to clinic: ${clinicId}`,
@@ -151,7 +142,6 @@ export class PaymentWebSocketGateway
 
   @SubscribeMessage('subscribe:invoice')
   async handleSubscribeInvoice(client: Socket, invoiceId: string) {
-    // Check rate limit
     if (!this.checkRateLimit(client.id)) {
       this.emitRateLimitError(client);
       return { event: 'error', data: { message: 'Rate limit exceeded' } };
@@ -159,7 +149,6 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    // Verify invoice belongs to the user's clinic
     if (user.role !== 'SUPER_ADMIN') {
       const invoice = await this.prisma.invoice.findFirst({
         where: {
@@ -199,7 +188,6 @@ export class PaymentWebSocketGateway
     this.logger.log(`Emitted payment update for session ${sessionId}`);
   }
 
-  // Emit clinic updates (tier changes, subscription status, etc.)
   emitClinicUpdate(clinicId: string, data: ClinicUpdateData) {
     this.server.to(`clinic:${clinicId}`).emit('clinic:update', data);
     this.logger.log(

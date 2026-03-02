@@ -103,11 +103,10 @@ export default function UsersPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Handle both paginated response { items: [] } and direct array []
+
         const clinicsArray = Array.isArray(data) ? data : data.items || [];
         setClinics(clinicsArray);
 
-        // Set default clinic selection
         if (clinicsArray.length > 0) {
           setSelectedClinic("all");
         } else {
@@ -117,7 +116,7 @@ export default function UsersPage() {
         setLoading(false);
       }
     } catch (error) {
-      console.error("Error fetching clinics:", error);
+
       toast.error("Failed to load clinics");
       setLoading(false);
     }
@@ -134,7 +133,7 @@ export default function UsersPage() {
 
       try {
         if (clinicId === "all") {
-          // Fetch users from all clinics
+
           if (clinics.length === 0) {
             setUsers([]);
             setLoading(false);
@@ -159,7 +158,7 @@ export default function UsersPage() {
           const allUsers = allUsersArrays.flat();
           setUsers(allUsers);
         } else {
-          // Fetch users from specific clinic
+
           const [doctorsRes, adminsRes] = await Promise.all([
             fetch(`${API_URL}/super-admin/clinics/${clinicId}/doctors`, {
               headers: { Authorization: `Bearer ${token}` },
@@ -179,7 +178,7 @@ export default function UsersPage() {
           setUsers(combinedUsers);
         }
       } catch (error) {
-        console.error("Error fetching users:", error);
+
         toast.error("Failed to load users");
         setUsers([]);
       } finally {
@@ -194,7 +193,7 @@ export default function UsersPage() {
   }, [fetchClinics]);
 
   useEffect(() => {
-    // Only fetch users if we have a selected clinic and clinics are loaded
+
     if (
       selectedClinic &&
       (selectedClinic === "all" ? clinics.length > 0 : true)
@@ -225,15 +224,15 @@ export default function UsersPage() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "ADMIN":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+        return "tier-pro";
       case "ADMIN_DOCTOR":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+        return "tier-core";
       case "DOCTOR":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+        return "tier-plus";
       case "RECEPTIONIST":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+        return "tier-enterprise";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+        return "badge-muted";
     }
   };
 
@@ -258,7 +257,7 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-5">
         {Object.entries(ROLE_CONFIG).map(([role, config]) => (
           <Card
@@ -287,7 +286,7 @@ export default function UsersPage() {
         ))}
       </div>
 
-      {/* Filters */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -323,7 +322,7 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -400,7 +399,7 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* View User Dialog */}
+      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

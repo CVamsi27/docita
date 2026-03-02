@@ -1,8 +1,3 @@
-/**
- * WhatsApp Channel Implementation
- * Sends messages via WhatsApp Cloud API
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 import {
   IMessageChannel,
@@ -26,7 +21,6 @@ export class WhatsAppChannel implements IMessageChannel {
   }
 
   async isAvailable(): Promise<boolean> {
-    // Check if API credentials are configured
     await Promise.resolve();
     return !!(this.phoneNumberId && this.accessToken && this.businessAccountId);
   }
@@ -39,7 +33,6 @@ export class WhatsAppChannel implements IMessageChannel {
       `Sending WhatsApp message to ${recipientId} with template ${content.templateKey}`,
     );
 
-    // Placeholder response
     return await Promise.resolve({
       messageId: `wh_${Date.now()}`,
       status: 'pending',

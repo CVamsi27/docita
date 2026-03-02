@@ -19,9 +19,8 @@ import {
 } from "lucide-react";
 import { Feature, FEATURE_DISPLAY } from "@/lib/tier-config";
 
-// Icon mapping for features - uses FEATURE_DISPLAY from tier-config for names/descriptions
 export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
-  // Tier 0: CAPTURE
+
   [Feature.PAPER_SCANNING]: ScanLine,
   [Feature.EXCEL_IMPORT]: Upload,
   [Feature.PATIENT_DEDUPLICATION]: Users,
@@ -30,7 +29,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.EXPORT_CSV]: Upload,
   [Feature.OCR_BASIC]: ScanLine,
 
-  // Tier 1: CORE
   [Feature.CALENDAR_SLOTS]: Calendar,
   [Feature.VISIT_HISTORY]: FileText,
   [Feature.MEDICINES_LIST]: Package,
@@ -39,7 +37,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.BASIC_ANALYTICS]: BarChart3,
   [Feature.MEDICAL_CODING]: FileText,
 
-  // Tier 2: PLUS
   [Feature.AUTO_REMINDERS]: Calendar,
   [Feature.PAYMENT_LINKS]: Receipt,
   [Feature.PRESCRIPTION_TEMPLATES]: FileText,
@@ -48,7 +45,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.CONSENT_MANAGEMENT]: Shield,
   [Feature.DOCTOR_SIGNATURE]: FileText,
 
-  // Tier 3: PRO
   [Feature.MULTI_DOCTOR]: Users,
   [Feature.MULTI_CLINIC]: Building2,
   [Feature.LAB_TESTS]: FlaskConical,
@@ -61,7 +57,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.OCR_ADVANCED]: ScanLine,
   [Feature.ADVANCED_ANALYTICS]: BarChart3,
 
-  // Tier 4: ENTERPRISE
   [Feature.FULL_EHR]: FileText,
   [Feature.API_ACCESS]: Zap,
   [Feature.MULTI_LOCATION_ANALYTICS]: BarChart3,
@@ -70,7 +65,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.SSO]: Shield,
   [Feature.BULK_IMPORT_SUITE]: Upload,
 
-  // Tier 5: INTELLIGENCE
   [Feature.AI_PRESCRIPTION_ASSISTANT]: Brain,
   [Feature.AI_DIAGNOSIS_HINTS]: Brain,
   [Feature.SMART_TASK_ENGINE]: Zap,
@@ -79,7 +73,6 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.ANOMALY_DETECTION]: Shield,
 };
 
-// Helper to get feature details from single source of truth
 export function getFeatureDetails(feature: Feature) {
   const display = FEATURE_DISPLAY[feature];
   return {

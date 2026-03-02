@@ -40,8 +40,8 @@ export interface Clinic {
   trialEndsAt?: string;
   subscriptionStatus?: string;
   whatsappAutomation?: { enabled: boolean };
-  openingTime?: string; // HH:mm format
-  closingTime?: string; // HH:mm format
+  openingTime?: string; 
+  closingTime?: string; 
 }
 
 interface ClinicContextType {
@@ -55,7 +55,6 @@ interface ClinicContextType {
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 
-// Helper to read clinic from localStorage
 function getStoredClinic(): { id: string | null; clinic: Clinic | null } {
   if (typeof window === "undefined") {
     return { id: null, clinic: null };
@@ -67,12 +66,11 @@ function getStoredClinic(): { id: string | null; clinic: Clinic | null } {
       return { id: savedClinicId, clinic: JSON.parse(savedClinic) };
     }
   } catch {
-    // Silently handle parse errors
+
   }
   return { id: null, clinic: null };
 }
 
-// Subscribe to window focus/visibility for external store
 function subscribeToWindowFocus(callback: () => void) {
   const handleFocus = () => callback();
   const handleVisibilityChange = () => {
@@ -91,7 +89,7 @@ function subscribeToWindowFocus(callback: () => void) {
 }
 
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
-  // Start with null on both server and client to avoid hydration mismatch
+
   const [clinicId, setClinicId] = useState<string | null>(null);
   const [clinic, setClinicState] = useState<Clinic | null>(null);
   const [userClinics, setUserClinics] = useState<Clinic[]>([]);
@@ -110,15 +108,14 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const updatePermissionsFromClinic = useCallback(
     (clinicData: Clinic) => {
       if (clinicData.tier) {
-        // Map any custom tier names to standard tier values
+
         let mappedTier = clinicData.tier;
 
-        // Handle custom tier mappings
         if (
           clinicData.tier === "code subscription" ||
           clinicData.tier === "CODE_SUBSCRIPTION"
         ) {
-          mappedTier = "CAPTURE"; // Default to lowest tier for unknown tier values
+          mappedTier = "CAPTURE"; 
         }
 
         setTier(mappedTier);
@@ -129,11 +126,11 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (clinicData.features) {
         setFeatureOverrides(clinicData.features);
       }
-      // Sync clinic type for specialty feature filtering
+
       if (clinicData.type) {
         setClinicType(clinicData.type);
       }
-      // Sync facility type for CLINIC vs HOSPITAL distinction
+
       if (clinicData.facilityType) {
         setFacilityType(clinicData.facilityType);
       }
@@ -148,7 +145,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   );
 
   const fetchClinicFromAPI = useCallback(async () => {
-    // Prevent duplicate calls within 1 second
+
     const now = Date.now();
     if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
       return;
@@ -178,13 +175,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch {
-      // Silently handle API errors
+
     } finally {
       isFetchingRef.current = false;
     }
   }, [updatePermissionsFromClinic]);
 
-  // Load from localStorage after component mounts (client-side only)
   useEffect(() => {
     const stored = getStoredClinic();
     if (stored.id && stored.clinic) {
@@ -195,21 +191,18 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, [updatePermissionsFromClinic]);
 
-  // Use useSyncExternalStore for window focus/visibility - triggers refresh on focus
   useSyncExternalStore(
     useCallback(
       (notify) => {
-        // Only run after mounted
+
         if (!mounted) return () => {};
 
-        // Initial fetch on mount
         if (!hasFetchedRef.current) {
           hasFetchedRef.current = true;
-          // Then fetch fresh data
+
           fetchClinicFromAPI();
         }
 
-        // Subscribe to focus/visibility changes
         return subscribeToWindowFocus(() => {
           fetchClinicFromAPI();
           notify();
@@ -221,7 +214,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     () => null,
   );
 
-  // Handle WebSocket clinic updates
   useClinicSocket(clinicId, (data) => {
     if (data.clinicId === clinicId) {
       if (data.tier) {
@@ -246,7 +238,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setClinicId(newClinic.id);
     setClinicState(newClinic);
 
-    // Update permission store
     if (newClinic.tier) {
       setTier(newClinic.tier);
     }

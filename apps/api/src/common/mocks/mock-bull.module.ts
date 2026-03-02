@@ -45,20 +45,16 @@ export class MockBullModule {
     ...options: Array<Record<string, unknown>>
   ): DynamicModule {
     const providers = options.map((option) => ({
-      provide: getQueueToken(option.name as string),
+      provide: getQueueToken(getQueueName(option.name)),
       useValue: {
         add: () => {
           const queueName = getQueueName(option.name);
-          console.warn(
-            `[MockQueue] Job added to queue: ${queueName} (Redis Disabled)`,
-          );
+
           return Promise.resolve({ id: 'mock-job-id' });
         },
         process: () => {
           const queueName = getQueueName(option.name);
-          console.warn(
-            `[MockQueue] Process handler registered for: ${queueName} (No-op)`,
-          );
+
           return Promise.resolve();
         },
         on: () => {},
@@ -72,15 +68,12 @@ export class MockBullModule {
     };
   }
 
-  // Mock forRoot to prevent errors if we accidentally use it,
-  // though we are replacing imports so it shouldn't be called.
   static forRoot(): DynamicModule {
     return {
       module: MockBullModule,
     };
   }
 
-  // Mock forRootAsync for compatibility with BullModule.forRootAsync usage.
   static forRootAsync(..._args: unknown[]): DynamicModule {
     return {
       module: MockBullModule,

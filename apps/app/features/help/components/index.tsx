@@ -21,7 +21,6 @@ import {
   Video,
 } from "lucide-react";
 
-// Help categories
 const HELP_CATEGORIES = [
   {
     id: "getting-started",
@@ -40,7 +39,6 @@ const HELP_CATEGORIES = [
   { id: "settings", title: "Settings & Config", icon: HelpCircle, articles: 7 },
 ];
 
-// Help Center Component
 export const HelpCenter: FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -140,7 +138,6 @@ export const HelpCenter: FC = () => {
   );
 };
 
-// FAQ Component
 export const FAQSection: FC<{
   faqs?: Array<{ question: string; answer: string }>;
 }> = ({ faqs = [] }) => {

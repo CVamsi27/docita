@@ -53,6 +53,22 @@ export interface PatientWithAllergies {
   }>;
 }
 
+export interface DoctorComplianceProfile {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+  registrationNumber: string | null;
+  licenseNumber: string | null;
+  signatureUrl: string | null;
+  verificationStatus:
+    | 'UNVERIFIED'
+    | 'PENDING'
+    | 'VERIFIED'
+    | 'REJECTED'
+    | 'FAILED';
+}
+
 export interface IPrescriptionRepository {
   findAll(
     params: PrescriptionSearchParams,
@@ -67,4 +83,8 @@ export interface IPrescriptionRepository {
   findPatientWithAllergies(
     patientId: string,
   ): Promise<PatientWithAllergies | null>;
+  findDoctorCompliance(
+    doctorId: string,
+    clinicId?: string,
+  ): Promise<DoctorComplianceProfile | null>;
 }

@@ -42,8 +42,8 @@ export function BulkImportStepDownload({
           </>
         )}
       </Button>
-      <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-4 border border-blue-200 dark:border-blue-900">
-        <p className="text-sm text-blue-900 dark:text-blue-200">
+      <div className="surface-info rounded-lg p-4">
+        <p className="text-sm">
           <span className="font-semibold">Note:</span> Fill the CSV template
           with your data. Make sure not to change the header columns.
         </p>

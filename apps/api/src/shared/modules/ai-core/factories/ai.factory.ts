@@ -1,18 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { z } from 'zod';
-import { AiPromptInput, AiPromptSchema } from '../schemas/ai.schema';
+import {
+  AiPromptInput,
+  AiPromptSchema,
+} from '@/shared/modules/ai-core/schemas/ai.schema';
 
 @Injectable()
 export class AiFactory {
-  /**
-   * Creates a structured prompt object, merging context into templates if needed.
-   * Simple interpolation for now: {{key}} in text replaced by context[key].
-   */
   createPrompt(
     template: { system?: string; user: string },
-    context: Record<string, any> = {},
+    context: Record<string, unknown> = {},
   ): AiPromptInput {
-    const interpolate = (text: string, ctx: Record<string, any>) => {
+    const interpolate = (text: string, ctx: Record<string, unknown>) => {
       return text.replace(/\{\{(\w+)\}\}/g, (_, key) => {
         return ctx[key] !== undefined ? String(ctx[key]) : `{{${key}}}`;
       });
@@ -32,15 +31,10 @@ export class AiFactory {
     return AiPromptSchema.parse(promptData);
   }
 
-  /**
-   * Validates a raw JSON response (string) against a Zod schema.
-   * Useful for Structured Outputs mode.
-   */
   validateResponse<T>(schema: z.ZodSchema<T>, rawResponse: string): T {
     try {
-      // First try to parse the string as JSON
       const json = JSON.parse(rawResponse);
-      // Then validate against schema
+
       return schema.parse(json);
     } catch (error) {
       if (error instanceof SyntaxError) {

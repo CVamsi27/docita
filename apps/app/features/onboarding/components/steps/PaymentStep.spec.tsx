@@ -9,8 +9,11 @@ class ResizeObserverMock {
 }
 
 if (!globalThis.ResizeObserver) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).ResizeObserver = ResizeObserverMock;
+  (
+    globalThis as typeof globalThis & {
+      ResizeObserver?: typeof ResizeObserverMock;
+    }
+  ).ResizeObserver = ResizeObserverMock;
 }
 
 describe("PaymentStep", () => {

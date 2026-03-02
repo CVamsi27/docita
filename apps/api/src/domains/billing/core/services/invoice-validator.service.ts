@@ -1,15 +1,10 @@
-/**
- * Invoice Validator Service - Validates invoice business rules
- */
-
-import { Invoice } from '../entities/invoice.entity';
-import { InvoiceItem } from '../entities/invoice-item.entity';
+import { Invoice } from '@/domains/billing/core/entities/invoice.entity';
+import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity';
 
 export class InvoiceValidatorService {
   validateInvoice(invoice: Invoice): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Check items
     const items = invoice.getItems();
     if (items.length === 0) {
       errors.push('Invoice must have at least one item');
@@ -22,12 +17,10 @@ export class InvoiceValidatorService {
       }
     });
 
-    // Check dates
     if (invoice.issueDate > invoice.dueDate) {
       errors.push('Issue date must be before due date');
     }
 
-    // Check total
     try {
       const total = invoice.getTotal();
       if (total.amount <= 0) {

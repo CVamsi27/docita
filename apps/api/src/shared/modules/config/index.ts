@@ -1,7 +1,3 @@
-/**
- * Application Configuration Module Exports
- */
-
 export { AppConfigService } from './app-configuration.service';
 export { AppConfigModule } from './config.module';
 export type { EnvConfig } from './app-config';

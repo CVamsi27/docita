@@ -285,7 +285,7 @@ export function PatientTagManagerUI({
                             className="h-8 w-8 p-0"
                             onClick={saveEdit}
                           >
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-success" />
                           </Button>
                           <Button
                             size="sm"
@@ -293,7 +293,7 @@ export function PatientTagManagerUI({
                             className="h-8 w-8 p-0"
                             onClick={cancelEditing}
                           >
-                            <X className="h-4 w-4 text-red-600" />
+                            <X className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
                       ) : (

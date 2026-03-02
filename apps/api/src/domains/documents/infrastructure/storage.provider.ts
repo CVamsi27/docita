@@ -11,19 +11,10 @@ export interface StorageFile {
 }
 
 export abstract class StorageProvider {
-  /**
-   * Upload a file and return the public URL
-   */
   abstract upload(file: StorageFile, folder?: string): Promise<string>;
 
-  /**
-   * Delete a file by URL
-   */
   abstract delete(url: string): Promise<void>;
 
-  /**
-   * Sanitize filename to prevent path traversal and XSS
-   */
   protected sanitizeFilename(filename: string): string {
     return filename
       .replace(/[^a-zA-Z0-9.\-_]/g, '_')

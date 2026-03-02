@@ -1,7 +1,4 @@
-/**
- * Shared auth package exports
- * Centralized authentication for all apps
- */
+
 
 export {
   AuthProvider,

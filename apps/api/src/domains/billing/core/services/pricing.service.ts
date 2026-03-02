@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -19,6 +19,24 @@ import {
 @Injectable()
 export class PricingService {
   constructor(private prisma: PrismaService) {}
+
+  private parseJsonValue(value: unknown): unknown {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return {};
+      }
+    }
+
+    return value;
+  }
+
+  private readNumber(value: unknown, fallback = 0): number {
+    return typeof value === 'number' && Number.isFinite(value)
+      ? value
+      : fallback;
+  }
 
   async getPricingConfig(currency?: string) {
     const selectedCurrency =
@@ -90,7 +108,7 @@ export class PricingService {
             storage: tier.overageStorageCents / 100,
             user: tier.overageUserCents / 100,
           },
-          features: JSON.parse(tier.features as string),
+          features: this.parseJsonValue(tier.features),
         })),
         addOns: dbAddOns
           .filter((addOn) => addOn.type !== 'WHATSAPP')
@@ -99,12 +117,10 @@ export class PricingService {
             name: addOn.name,
             description: addOn.description,
             icon: addOn.icon,
-            pricingByTier: JSON.parse(addOn.pricingByTier as string),
-            includedQuotaByTier: JSON.parse(
-              addOn.includedQuotaByTier as string,
-            ),
-            overageRateByTier: JSON.parse(addOn.overageRateByTier as string),
-            features: JSON.parse(addOn.features as string),
+            pricingByTier: this.parseJsonValue(addOn.pricingByTier),
+            includedQuotaByTier: this.parseJsonValue(addOn.includedQuotaByTier),
+            overageRateByTier: this.parseJsonValue(addOn.overageRateByTier),
+            features: this.parseJsonValue(addOn.features),
           })),
         discounts: dbDiscounts.map((discount) => ({
           type: discount.type,
@@ -177,6 +193,8 @@ export class PricingService {
             'Calendar & scheduling',
             'Digital prescriptions',
             'ICD-10 medical coding',
+            'Team member management (roles & permissions)',
+            '2 users included',
             'Core WhatsApp workflow included',
             'Basic analytics',
             'Email support',
@@ -345,7 +363,7 @@ export class PricingService {
       };
     }
 
-    const basePrice = pricing.monthly as number;
+    const basePrice = this.readNumber(pricing.monthly);
 
     const patientOverage =
       Math.max(0, patients - limits.patients) * overageRates.patientRate;
@@ -374,7 +392,7 @@ export class PricingService {
     if (intelligence && tierKey !== 'CAPTURE') {
       const aiPrice =
         intelligencePricing[tierKey as keyof typeof intelligencePricing];
-      const aiBase = aiPrice.basePrice as number;
+      const aiBase = this.readNumber(aiPrice.basePrice);
       const aiOverage =
         Math.max(0, aiCredits - aiPrice.includedQuota) * aiPrice.overageRate;
 

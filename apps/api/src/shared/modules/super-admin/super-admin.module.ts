@@ -6,13 +6,14 @@ import { ClinicManagementService } from './clinic-management.service';
 import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
 import { SuperAdminLogService } from './super-admin-log.service';
 import { SuperAdminAiService } from './super-admin-ai.service';
-import { PrismaModule } from '../../../prisma/prisma.module';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { ClinicsModule } from '../../../domains/clinics/clinics.module';
-import { UsersModule } from '../../../domains/users/users.module';
-import { BillingModule } from '../../../domains/billing/billing.module';
-import { AuthModule } from '../auth/auth/auth.module';
-import { GatewaysModule } from '../../../gateways/gateways.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { ClinicsModule } from '@/domains/clinics/clinics.module';
+import { UsersModule } from '@/domains/users/users.module';
+import { BillingModule } from '@/domains/billing/billing.module';
+import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
+import { GatewaysModule } from '@/gateways/gateways.module';
+import { FeedbackModule } from '@/domains/feedback/feedback.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GatewaysModule } from '../../../gateways/gateways.module';
     ClinicsModule,
     UsersModule,
     BillingModule,
+    FeedbackModule,
     AuthModule,
     GatewaysModule,
   ],

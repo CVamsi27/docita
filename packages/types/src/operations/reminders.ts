@@ -27,12 +27,10 @@ export const appointmentReminderSchema = z.object({
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 
-  // Relations usually included in history
   appointment: z
     .object({
       id: z.string(),
-      // We can expand this with more appointment fields if needed
-      // Assuming simple structure for now or maybe including patient
+
       patient: z
         .object({
           firstName: z.string(),

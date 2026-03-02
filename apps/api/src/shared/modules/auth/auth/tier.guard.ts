@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   TIER_KEY,
   FEATURE_KEY,
@@ -37,7 +37,6 @@ export class TierGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // If no tier or feature requirement, allow access
     if (requiredTier === undefined && requiredFeature === undefined) {
       return true;
     }
@@ -49,13 +48,12 @@ export class TierGuard implements CanActivate {
       throw new ForbiddenException('User not associated with a clinic');
     }
 
-    // Fetch clinic tier and intelligence addon status
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: user.clinicId },
       select: {
         tier: true,
         intelligenceAddon: true,
-        features: true, // Custom feature overrides
+        features: true,
         subscriptionStatus: true,
       },
     });
@@ -64,7 +62,6 @@ export class TierGuard implements CanActivate {
       throw new ForbiddenException('Clinic not found');
     }
 
-    // Check subscription status
     if (
       clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
       clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
@@ -74,19 +71,15 @@ export class TierGuard implements CanActivate {
       );
     }
 
-    // Map database tier to enum
     const userTier = this.mapDbTierToEnum(clinic.tier);
     const hasIntelligence =
       clinic.intelligenceAddon === IntelligenceAddon.ACTIVE;
 
-    // Check for custom feature overrides
     const featureOverrides = (clinic.features as Record<string, boolean>) || {};
 
-    // If checking by feature
     if (requiredFeature !== undefined) {
       const featureTier = FEATURE_TIER_MAP[requiredFeature];
 
-      // Check custom override first
       if (featureOverrides[requiredFeature] !== undefined) {
         if (!featureOverrides[requiredFeature]) {
           throw new ForbiddenException(
@@ -96,7 +89,6 @@ export class TierGuard implements CanActivate {
         return true;
       }
 
-      // Intelligence tier features require the add-on
       if (featureTier === Tier.INTELLIGENCE) {
         if (!hasIntelligence) {
           throw new ForbiddenException(
@@ -106,7 +98,6 @@ export class TierGuard implements CanActivate {
         return true;
       }
 
-      // Check if user's tier meets feature requirement
       if (userTier < featureTier) {
         throw new ForbiddenException(
           `This feature requires ${this.getTierName(featureTier)} tier or higher.`,
@@ -116,9 +107,7 @@ export class TierGuard implements CanActivate {
       return true;
     }
 
-    // If checking by tier directly
     if (requiredTier !== undefined) {
-      // Intelligence tier check
       if (requiredTier === Tier.INTELLIGENCE && !hasIntelligence) {
         throw new ForbiddenException(
           'This feature requires the Docita Intelligence add-on.',
@@ -144,7 +133,6 @@ export class TierGuard implements CanActivate {
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
     } as Record<string, Tier>;
 
-    // Legacy mappings for backward compatibility
     const legacyMap: Record<string, Tier> = {
       FREE: Tier.CAPTURE,
       STARTER: Tier.CORE,

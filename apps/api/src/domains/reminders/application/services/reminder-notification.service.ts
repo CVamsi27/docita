@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ReminderSettings, WhatsappLogStatus } from '@workspace/db';
 import {
   formatDate,
@@ -7,7 +7,7 @@ import {
   DATE_FORMATS,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { SendMessageUseCase } from '../../../whatsapp/application/use-cases/send-message.use-case';
+import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 
 interface AppointmentForReminder {
   id: string;
@@ -180,7 +180,7 @@ export class ReminderNotificationService {
           clinicId: clinicId || '',
           patientId: appointment.patient.id,
           phoneNumber: appointment.patient.phoneNumber,
-          message: `Sent template: ${templateId}`, // Placeholder since we don't have the final text here easily
+          message: `Sent template: ${templateId}`,
           type: 'reminder',
           status: WhatsappLogStatus.SENT,
         },

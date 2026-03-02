@@ -13,7 +13,7 @@ export default function CodingQueueError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Coding Queue route error:", error);
+
   }, [error]);
 
   return (

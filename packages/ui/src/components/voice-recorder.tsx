@@ -11,7 +11,6 @@ import {
 import { Loader2, Mic, MicOff, Square } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
-// TypeScript declarations for Web Speech API
 interface SpeechRecognitionEvent {
   resultIndex: number;
   results: SpeechRecognitionResultList;
@@ -49,6 +48,10 @@ interface SpeechRecognitionInstance {
   start: () => void;
   stop: () => void;
 }
+
+type SpeechWindow = Window & {
+  webkitSpeechRecognition?: typeof window.SpeechRecognition;
+};
 
 interface SpeechRecognitionConstructor {
   new (): SpeechRecognitionInstance;
@@ -108,22 +111,13 @@ export function VoiceRecorder({
       setRecordingState("processing");
 
       try {
-        // Check if the browser supports Speech Recognition
+
         const SpeechRecognition =
-          (
-            window as unknown as {
-              SpeechRecognition?: typeof window.SpeechRecognition;
-            }
-          ).SpeechRecognition ||
-          (
-            window as unknown as {
-              webkitSpeechRecognition?: typeof window.SpeechRecognition;
-            }
-          ).webkitSpeechRecognition;
+          (window as SpeechWindow).SpeechRecognition ||
+          (window as SpeechWindow).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-          // Fallback: just indicate the recording was captured
-          // In production, you'd send this to a transcription API
+
           setError(
             "Speech recognition not supported. Audio recorded but cannot transcribe.",
           );
@@ -131,16 +125,10 @@ export function VoiceRecorder({
           return;
         }
 
-        // Create audio URL for playback (optional)
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        // For demo purposes, we'll simulate transcription
-        // In production, you'd send audioBlob to a transcription API (like OpenAI Whisper)
-
-        // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // For now, prompt user that audio was recorded
         onTranscript(
           "[Voice note recorded - " +
             (duration > 0 ? `${duration}s` : "audio captured") +
@@ -148,8 +136,7 @@ export function VoiceRecorder({
         );
 
         URL.revokeObjectURL(audioUrl);
-      } catch (err) {
-        console.error("Error processing audio:", err);
+      } catch (_err) {
         setError("Failed to process recording");
       } finally {
         setRecordingState("idle");
@@ -165,14 +152,12 @@ export function VoiceRecorder({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Set up audio context for visualization
       audioContextRef.current = new AudioContext();
       analyserRef.current = audioContextRef.current.createAnalyser();
       const source = audioContextRef.current.createMediaStreamSource(stream);
       source.connect(analyserRef.current);
       analyserRef.current.fftSize = 256;
 
-      // Visualize audio level
       const updateLevel = () => {
         if (!analyserRef.current) return;
 
@@ -185,7 +170,6 @@ export function VoiceRecorder({
       };
       updateLevel();
 
-      // Set up media recorder
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: MediaRecorder.isTypeSupported("audio/webm")
           ? "audio/webm"
@@ -209,16 +193,14 @@ export function VoiceRecorder({
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start(100); // Collect data every 100ms
+      mediaRecorder.start(100);
       setRecordingState("recording");
 
-      // Start duration timer
       setDuration(0);
       timerRef.current = setInterval(() => {
         setDuration((d) => d + 1);
       }, 1000);
-    } catch (err) {
-      console.error("Error accessing microphone:", err);
+    } catch (_err) {
       setError("Cannot access microphone. Please allow microphone access.");
       setRecordingState("idle");
     }
@@ -236,7 +218,6 @@ export function VoiceRecorder({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Cleanup on unmount
   React.useEffect(() => {
     return () => {
       cleanup();
@@ -318,7 +299,6 @@ export function VoiceRecorder({
   );
 }
 
-// Alternative: Real-time speech-to-text component
 interface LiveSpeechToTextProps {
   onTranscript: (text: string, isFinal: boolean) => void;
   className?: string;
@@ -341,16 +321,8 @@ export function LiveSpeechToText({
     setError(null);
 
     const SpeechRecognition =
-      (
-        window as unknown as {
-          SpeechRecognition?: typeof window.SpeechRecognition;
-        }
-      ).SpeechRecognition ||
-      (
-        window as unknown as {
-          webkitSpeechRecognition?: typeof window.SpeechRecognition;
-        }
-      ).webkitSpeechRecognition;
+      (window as SpeechWindow).SpeechRecognition ||
+      (window as SpeechWindow).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       setError("Speech recognition not supported in this browser");
@@ -390,7 +362,7 @@ export function LiveSpeechToText({
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+
       setError(`Error: ${event.error}`);
       setIsListening(false);
     };
@@ -410,7 +382,6 @@ export function LiveSpeechToText({
     }
   }, []);
 
-  // Cleanup on unmount
   React.useEffect(() => {
     return () => {
       if (recognitionRef.current) {

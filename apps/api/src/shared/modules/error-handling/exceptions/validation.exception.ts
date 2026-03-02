@@ -1,8 +1,3 @@
-/**
- * Validation Exception
- * Thrown when input validation fails
- */
-
 export class ValidationException extends Error {
   constructor(
     public readonly field: string,
@@ -15,10 +10,6 @@ export class ValidationException extends Error {
   }
 }
 
-/**
- * Aggregate Validation Exception
- * For multiple validation errors
- */
 export class AggregateValidationException extends Error {
   constructor(public readonly errors: ValidationException[]) {
     super(

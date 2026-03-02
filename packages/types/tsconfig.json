@@ -8,6 +8,10 @@
     "declarationMap": true,
     "strict": true,
     "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "outDir": "./dist",
     "rootDir": "./src",
     "lib": ["ES2022", "DOM"]

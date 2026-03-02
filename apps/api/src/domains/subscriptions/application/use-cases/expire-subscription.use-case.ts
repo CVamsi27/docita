@@ -2,12 +2,12 @@ import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
-} from '../ports/subscription.repository.port';
+} from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import {
   IClinicOperations,
   CLINIC_OPERATIONS_TOKEN,
-} from '../ports/clinic-operations.port';
-import { SubscriptionStatusEnum } from '../../core/value-objects';
+} from '@/domains/subscriptions/application/ports/clinic-operations.port';
+import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
 
 @Injectable()
 export class ExpireSubscriptionUseCase {

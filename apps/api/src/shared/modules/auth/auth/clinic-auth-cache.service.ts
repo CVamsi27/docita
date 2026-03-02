@@ -1,20 +1,5 @@
-/**
- * Clinic Authorization Cache Service
- * Caches clinic tier and feature access to reduce database queries
- *
- * COST OPTIMIZATION:
- * - Reduces DB queries from O(requests) to O(1) for frequently accessed data
- * - Uses in-memory LRU cache with TTL
- * - Invalidates on subscription changes
- *
- * PERFORMANCE:
- * - Average cache hit: ~0.1ms vs 5-10ms DB query
- * - Expected 90%+ cache hit rate for tier checks
- * - Reduces Neon database costs by ~40% for authorization queries
- */
-
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   ClinicTier,
   SubscriptionStatus,
@@ -30,10 +15,8 @@ interface ClinicAuthCache {
   cachedAt: number;
 }
 
-// Cache TTL: 5 minutes (balance between freshness and cost savings)
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-// Max cache size: 1000 clinics (prevents memory bloat)
 const MAX_CACHE_SIZE = 1000;
 
 @Injectable()
@@ -43,18 +26,12 @@ export class ClinicAuthCacheService {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Get clinic authorization data with caching
-   *
-   * Returns cached data if available and fresh, otherwise queries DB
-   */
   async getClinicAuth(clinicId: string): Promise<{
     tier: ClinicTier;
     subscriptionStatus: SubscriptionStatus;
     hasIntelligence: boolean;
     features: Record<string, boolean>;
   }> {
-    // Check cache first
     const cached = this.cache.get(clinicId);
     if (cached && this.isCacheFresh(cached)) {
       return {
@@ -65,7 +42,6 @@ export class ClinicAuthCacheService {
       };
     }
 
-    // Cache miss or stale - query database
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: {
@@ -87,33 +63,21 @@ export class ClinicAuthCacheService {
       features: (clinic.features as Record<string, boolean>) || {},
     };
 
-    // Store in cache
     this.setCache(clinicId, authData);
 
     return authData;
   }
 
-  /**
-   * Invalidate cache for a specific clinic
-   * Call this when subscription or tier changes
-   */
   invalidate(clinicId: string): void {
     this.cache.delete(clinicId);
     this.logger.log(`Cache invalidated for clinic: ${clinicId}`);
   }
 
-  /**
-   * Invalidate all cached data
-   * Use sparingly - mainly for testing or system-wide updates
-   */
   invalidateAll(): void {
     this.cache.clear();
     this.logger.log('All clinic auth cache invalidated');
   }
 
-  /**
-   * Get cache statistics for monitoring
-   */
   getCacheStats(): {
     size: number;
     maxSize: number;
@@ -127,8 +91,6 @@ export class ClinicAuthCacheService {
       utilizationPercent: (this.cache.size / MAX_CACHE_SIZE) * 100,
     };
   }
-
-  // Private helpers
 
   private isCacheFresh(cached: ClinicAuthCache): boolean {
     const age = Date.now() - cached.cachedAt;

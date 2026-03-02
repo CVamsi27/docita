@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Prisma } from '@workspace/db';
@@ -36,20 +36,14 @@ export class AuditService {
     @InjectQueue('audit') private auditQueue: Queue,
   ) {}
 
-  /**
-   * Log an action to audit trail
-   * Uses Bull queue for async processing to avoid blocking API responses
-   */
   async logAction(
     data: AuditLogData,
     immediate: boolean = false,
   ): Promise<void> {
     try {
       if (immediate) {
-        // Direct logging (used for critical actions)
         await this.createAuditLog(data);
       } else {
-        // Queue for async processing
         await this.auditQueue.add('log-action', data, {
           attempts: 3,
           backoff: {
@@ -67,13 +61,9 @@ export class AuditService {
     }
   }
 
-  /**
-   * Create audit log entry in database (Phase 2: Using AuditLog table)
-   */
   async createAuditLog(data: AuditLogData): Promise<unknown> {
     return this.prisma.runUnrestricted(async () => {
       try {
-        // Verify clinic and user exist
         const [clinic, user] = await Promise.all([
           this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
           this.prisma.user.findUnique({ where: { id: data.userId } }),
@@ -87,7 +77,6 @@ export class AuditService {
           throw new BadRequestException(`User ${data.userId} not found`);
         }
 
-        // Create audit log entry in AuditLog table (Phase 2)
         const auditLog = await this.prisma.auditLog.create({
           data: {
             clinicId: data.clinicId,
@@ -108,7 +97,6 @@ export class AuditService {
           `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
         );
 
-        // Return audit log entry
         const auditData = {
           id: auditLog.id,
           clinicId: data.clinicId,
@@ -123,7 +111,6 @@ export class AuditService {
           createdAt: new Date(),
         };
 
-        // Log to monitoring for immediate visibility
         this.logger.debug(`Audit log: ${JSON.stringify(auditData)}`);
 
         return auditData;
@@ -137,20 +124,17 @@ export class AuditService {
     });
   }
 
-  /**
-   * Get audit logs with filtering (Phase 2: Query AuditLog table)
-   * Only accessible to SUPER_ADMIN and clinic ADMIN
-   */
-  async getAuditLogs(filter: AuditLogFilter, userRole: string): Promise<any[]> {
+  async getAuditLogs(
+    filter: AuditLogFilter,
+    userRole: string,
+  ): Promise<unknown[]> {
     try {
-      // Access control: only SUPER_ADMIN and ADMIN can view
       if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
         throw new BadRequestException(
           'Insufficient permissions to view audit logs',
         );
       }
 
-      // Build where clause for AuditLog table
       const where: Prisma.AuditLogWhereInput = {};
 
       if (filter.clinicId) {
@@ -162,11 +146,11 @@ export class AuditService {
       }
 
       if (filter.actionType) {
-        where.action = filter.actionType; // Mapped to 'action' field in AuditLog table
+        where.action = filter.actionType;
       }
 
       if (filter.resourceType) {
-        where.entityType = filter.resourceType; // Mapped to 'entityType' field
+        where.entityType = filter.resourceType;
       }
 
       if (filter.startDate || filter.endDate) {
@@ -179,7 +163,6 @@ export class AuditService {
         }
       }
 
-      // Query audit logs from AuditLog table (Phase 2)
       const logs = await this.prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -201,10 +184,6 @@ export class AuditService {
     }
   }
 
-  /**
-   * Archive old audit logs (quarterly job)
-   * Moves logs older than 90 days to archive table
-   */
   archiveOldLogs(daysOld: number = 90): void {
     try {
       const cutoffDate = new Date();
@@ -214,8 +193,6 @@ export class AuditService {
         `Archiving audit logs older than ${cutoffDate.toISOString()} (${daysOld} days)`,
       );
 
-      // Archive logic will be implemented after Phase 2 migration
-      // For now, just log the operation
       this.logger.log(
         `Archive operation scheduled for logs before ${cutoffDate.toISOString()}`,
       );
@@ -227,14 +204,11 @@ export class AuditService {
     }
   }
 
-  /**
-   * Log sensitive user action
-   */
   async logUserAction(
     userId: string,
     clinicId: string,
     actionType: 'PROFILE_UPDATE' | 'ROLE_CHANGE' | 'PASSWORD_CHANGE',
-    changes: Record<string, any>,
+    changes: Record<string, unknown>,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<void> {
@@ -250,9 +224,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log prescription action
-   */
   async logPrescriptionAction(
     userId: string,
     clinicId: string,
@@ -262,7 +233,7 @@ export class AuditService {
       | 'PRESCRIPTION_APPROVE'
       | 'PRESCRIPTION_DELETE',
     prescriptionId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
     await this.logAction({
@@ -276,15 +247,12 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log payment action
-   */
   async logPaymentAction(
     userId: string,
     clinicId: string,
     actionType: 'PAYMENT_RETRY' | 'PAYMENT_REFUND' | 'PAYMENT_FAILED',
     invoiceId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
     await this.logAction({
@@ -298,15 +266,12 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log appointment action
-   */
   async logAppointmentAction(
     userId: string,
     clinicId: string,
     actionType: 'APPOINTMENT_CANCEL' | 'APPOINTMENT_NO_SHOW',
     appointmentId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
     await this.logAction({
@@ -320,9 +285,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log admin action
-   */
   async logAdminAction(
     userId: string,
     clinicId: string,
@@ -332,7 +294,7 @@ export class AuditService {
       | 'ADMIN_DELETE'
       | 'ADMIN_ROLE_CHANGE',
     adminId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
     await this.logAction({
@@ -346,9 +308,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log data export
-   */
   async logDataExport(
     userId: string,
     clinicId: string,
@@ -367,9 +326,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log patient medical history access (DPDP Compliance)
-   */
   async logPatientAccess(
     userId: string,
     clinicId: string,

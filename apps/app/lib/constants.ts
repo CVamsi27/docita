@@ -31,11 +31,11 @@ export interface SidebarItem {
   tier?: Tier;
   badge?: string;
   facilityType?: "CLINIC" | "HOSPITAL";
-  clinicTypes?: ClinicType[]; // If specified, only show for these clinic types
+  clinicTypes?: ClinicType[]; 
 }
 
 export const sidebarItems: SidebarItem[] = [
-  // ======= Always Available =======
+
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -50,7 +50,6 @@ export const sidebarItems: SidebarItem[] = [
     facilityType: "HOSPITAL",
   },
 
-  // ======= Core Workflow =======
   {
     title: "Patients",
     href: "/patients",
@@ -87,7 +86,6 @@ export const sidebarItems: SidebarItem[] = [
     feature: Feature.INVOICING,
   },
 
-  // ======= Documents & Import =======
   {
     title: "Documents",
     href: "/documents",
@@ -103,10 +101,6 @@ export const sidebarItems: SidebarItem[] = [
     feature: Feature.EXCEL_IMPORT,
   },
 
-  // WhatsApp removed - now requires add-on, not tier feature
-  // Access controlled via add-on check in the WhatsApp page itself
-
-  // ======= Tier 3: PRO =======
   {
     title: "Inventory",
     href: "/inventory",
@@ -129,7 +123,6 @@ export const sidebarItems: SidebarItem[] = [
     feature: Feature.MEDICAL_CODING,
   },
 
-  // ======= Specialty Features (Clinic-Type Specific) =======
   {
     title: "Dental Charts",
     href: "/specialty/dental-charts",
@@ -179,7 +172,6 @@ export const sidebarItems: SidebarItem[] = [
     badge: "Psych",
   },
 
-  // ======= Tier 5: INTELLIGENCE =======
   {
     title: "AI Assistant",
     href: "/ai-assistant",

@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -11,15 +11,11 @@ import {
   getPrismaInstance,
 } from './setup';
 import { factories, setPrismaInstance } from './factories';
-import { RazorpaySubscriptionGateway } from '../src/gateways/razorpay-subscription.gateway';
+import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '../src/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-/**
- * Critical User Flow E2E Tests
- * Tests the complete journey: login → patient creation → appointment → consultation → prescription → invoice
- */
 describe('Critical User Flow (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -81,7 +77,6 @@ describe('Critical User Flow (e2e)', () => {
       authToken = response.body.access_token;
       doctorId = response.body.user.id;
 
-      // Verify clinic was created
       const clinics = await prisma.clinic.findMany({
         where: { createdBy: doctorId },
       });
@@ -121,7 +116,6 @@ describe('Critical User Flow (e2e)', () => {
 
   describe('Step 2: Create Patient', () => {
     it('should create a new patient in the clinic', async () => {
-      // First, setup auth
       const authResponse = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
@@ -139,7 +133,6 @@ describe('Critical User Flow (e2e)', () => {
       });
       clinicId = clinic.id;
 
-      // Create patient
       const response = await request(app.getHttpServer())
         .post(`/api/patients`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -181,7 +174,6 @@ describe('Critical User Flow (e2e)', () => {
 
   describe('Step 3: Book Appointment', () => {
     it('should create appointment for patient', async () => {
-      // Setup auth and clinic
       const authResponse = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
@@ -200,7 +192,6 @@ describe('Critical User Flow (e2e)', () => {
       });
       clinicId = clinic.id;
 
-      // Create patient
       const patientResponse = await request(app.getHttpServer())
         .post(`/api/patients`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -218,7 +209,6 @@ describe('Critical User Flow (e2e)', () => {
       patientId = patientResponse.body.id;
       doctorId = doctorUser.id;
 
-      // Create appointment
       const startTime = new Date();
       startTime.setHours(10, 0, 0);
       const endTime = new Date(startTime);
@@ -257,7 +247,6 @@ describe('Critical User Flow (e2e)', () => {
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + 30);
 
-      // Create first appointment
       await request(app.getHttpServer())
         .post(`/api/appointments`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -272,7 +261,6 @@ describe('Critical User Flow (e2e)', () => {
         })
         .expect(201);
 
-      // Try to create overlapping appointment - should fail
       await request(app.getHttpServer())
         .post(`/api/appointments`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -285,7 +273,7 @@ describe('Critical User Flow (e2e)', () => {
           appointmentType: 'CONSULTATION',
           status: 'SCHEDULED',
         })
-        .expect(409); // Conflict
+        .expect(409);
     });
   });
 
@@ -384,7 +372,6 @@ describe('Critical User Flow (e2e)', () => {
         clinicId: clinic.id,
       });
 
-      // Create invoice first
       const invoiceResponse = await request(app.getHttpServer())
         .post(`/api/invoices`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -403,7 +390,6 @@ describe('Critical User Flow (e2e)', () => {
 
       const invoiceId = invoiceResponse.body.id;
 
-      // Record payment
       const paymentResponse = await request(app.getHttpServer())
         .post(`/api/invoices/${invoiceId}/payments`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -421,7 +407,6 @@ describe('Critical User Flow (e2e)', () => {
 
   describe('Tenant Isolation', () => {
     it('should not allow access to other clinic patient data', async () => {
-      // Create two clinics and patients
       const { clinic: clinic1 } = await factories.clinic();
       const { clinic: clinic2 } = await factories.clinic();
       const { patient: patient1 } = await factories.patient({
@@ -431,7 +416,6 @@ describe('Critical User Flow (e2e)', () => {
         clinicId: clinic2.id,
       });
 
-      // Login as doctor from clinic1
       const { user: doctor1 } = await factories.user({ clinicId: clinic1.id });
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
@@ -443,13 +427,11 @@ describe('Critical User Flow (e2e)', () => {
 
       const token = loginResponse.body.access_token;
 
-      // Should be able to access own clinic patient
       await request(app.getHttpServer())
         .get(`/api/patients/${patient1.id}`)
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      // Should NOT be able to access other clinic patient
       await request(app.getHttpServer())
         .get(`/api/patients/${patient2.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -502,7 +484,6 @@ describe('Critical User Flow (e2e)', () => {
         })
         .expect(200);
 
-      // Try to access admin stats endpoint
       await request(app.getHttpServer())
         .get(`/api/super-admin/stats`)
         .set('Authorization', `Bearer ${loginResponse.body.access_token}`)

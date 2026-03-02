@@ -9,7 +9,7 @@ test.describe("Clinics Management", () => {
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-      // Register doctor
+
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -80,7 +80,7 @@ test.describe("Clinics Management", () => {
   });
 
   test("should fetch specific clinic", async ({ request }) => {
-    // Create clinic
+
     const createRes = await request.post(`${API_URL}/clinics`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
@@ -96,7 +96,6 @@ test.describe("Clinics Management", () => {
 
     const clinic = await createRes.json();
 
-    // Fetch clinic
     const fetchRes = await request.get(`${API_URL}/clinics/${clinic.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
@@ -107,7 +106,7 @@ test.describe("Clinics Management", () => {
   });
 
   test("should update clinic", async ({ request }) => {
-    // Create clinic
+
     const createRes = await request.post(`${API_URL}/clinics`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
@@ -123,7 +122,6 @@ test.describe("Clinics Management", () => {
 
     const clinic = await createRes.json();
 
-    // Update clinic
     const updateRes = await request.put(`${API_URL}/clinics/${clinic.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {

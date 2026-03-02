@@ -12,7 +12,7 @@ export const useMobileUpload = () => {
 
       const interval = setInterval(async () => {
         try {
-          // Add cache-busting timestamp to prevent caching
+
           const cacheBuster = Date.now();
           const response = await fetch(
             `${API_URL}/uploads/session/${id}?t=${cacheBuster}`,
@@ -26,7 +26,7 @@ export const useMobileUpload = () => {
           );
 
           if (!response.ok) {
-            console.error(`[OCR] Poll failed with status: ${response.status}`);
+
             return;
           }
 
@@ -36,15 +36,11 @@ export const useMobileUpload = () => {
             clearInterval(interval);
             setShowQr(false);
 
-            // Construct the full URL.
-            // The backend stores "uploads/temp/filename.ext".
             const filename = data.fileUrl.split("/").pop();
 
-            // Remove /api suffix from API_URL if present for static file serving
             const baseUrl = API_URL.replace(/\/api\/?$/, "");
             const realUrl = `${baseUrl}/uploads/temp/${filename}`;
 
-            // Convert URL to File object
             fetch(realUrl)
               .then((res) => res.blob())
               .then((blob) => {
@@ -53,16 +49,15 @@ export const useMobileUpload = () => {
                 });
                 onUploadComplete(file, realUrl);
               })
-              .catch((err) =>
-                console.error("[OCR] Failed to fetch file:", err),
-              );
+              .catch(() => {
+                alert("Uploaded file detected but could not be downloaded");
+              });
           }
         } catch (_e) {
-          console.error("[OCR] Polling error:", _e);
+          return;
         }
       }, 2000);
 
-      // Stop polling after 2 minutes
       setTimeout(() => {
         clearInterval(interval);
       }, 120000);
@@ -76,13 +71,12 @@ export const useMobileUpload = () => {
         const data = await apiFetch<{ id: string }>(`/uploads/session`, {
           method: "POST",
         });
-        // In dev, use localhost. In prod, use actual domain.
+
         const origin = window.location.origin;
         setQrUrl(`${origin}/mobile-upload/${data.id}`);
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
-      } catch (error) {
-        console.error("Failed to start session", error);
+      } catch (_error) {
         alert("Could not start mobile session");
       }
     },

@@ -1,12 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-/**
- * Data Integrity Checker for Docita
- *
- * Runs comprehensive checks to ensure database integrity
- * before and after migrations.
- */
-
 interface IntegrityCheck {
   name: string;
   description: string;
@@ -28,7 +21,6 @@ export async function runIntegrityChecks(
 ): Promise<IntegrityReport> {
   const checks: IntegrityCheck[] = [];
 
-  // Check 1: Orphaned Appointments
   const orphanedAppointments = await prisma.appointment.count({
     where: {
       OR: [
@@ -50,7 +42,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 2: Orphaned Prescriptions
   const orphanedPrescriptions = await prisma.prescription.count({
     where: {
       OR: [
@@ -70,7 +61,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 3: Orphaned Invoices
   const orphanedInvoices = await prisma.invoice.count({
     where: {
       patientId: { not: undefined },
@@ -88,7 +78,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 4: Patients without Clinic
   const patientsWithoutClinic = await prisma.patient.count({
     where: {
       clinicId: { not: undefined },
@@ -106,7 +95,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 5: Users with Invalid Clinic Reference
   const usersWithInvalidClinic = await prisma.user.count({
     where: {
       clinicId: { not: null },
@@ -124,7 +112,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 6: Duplicate MRN
   const duplicateMrns = await prisma.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count FROM (
       SELECT mrn FROM "Patient" WHERE mrn IS NOT NULL GROUP BY mrn HAVING COUNT(*) > 1
@@ -142,7 +129,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 7: Duplicate User Emails
   const duplicateEmails = await prisma.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count FROM (
       SELECT email FROM "User" GROUP BY email HAVING COUNT(*) > 1
@@ -160,7 +146,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 8: Appointments with End Time Before Start Time
   const invalidAppointmentTimes = await prisma.appointment.count({
     where: {
       endTime: { lt: prisma.appointment.fields.startTime },
@@ -177,7 +162,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Check 9: Subscriptions without Clinic
   try {
     const subscriptionsWithoutClinic = await prisma.subscription.count({
       where: {
@@ -196,15 +180,15 @@ export async function runIntegrityChecks(
           : undefined,
     });
   } catch {
-    // Subscription model might not exist
+
   }
 
-  // Check 10: Null Values in Required Fields
-  const patientsWithNullNames = await prisma.patient.count({
-    where: {
-      OR: [{ firstName: null as any }, { lastName: null as any }],
-    },
-  });
+  const nullNameRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Patient"
+    WHERE "firstName" IS NULL OR "lastName" IS NULL
+  `;
+  const patientsWithNullNames = Number(nullNameRows[0]?.count ?? 0n);
   checks.push({
     name: "No Null Patient Names",
     description: "All patients have first and last names",
@@ -216,7 +200,6 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  // Calculate totals
   const totalPassed = checks.filter((c) => c.passed).length;
   const totalFailed = checks.filter((c) => !c.passed).length;
 
@@ -248,11 +231,11 @@ export function formatIntegrityReport(report: IntegrityReport): string {
   ];
 
   for (const check of report.checks) {
-    const icon = check.passed ? "✅" : "❌";
+    const icon = check.passed ? "" : "";
     lines.push(`${icon} ${check.name}`);
     lines.push(`   ${check.description}`);
     if (check.details) {
-      lines.push(`   ⚠️  ${check.details}`);
+      lines.push(`   ️  ${check.details}`);
     }
     lines.push("");
   }
@@ -262,17 +245,16 @@ export function formatIntegrityReport(report: IntegrityReport): string {
   return lines.join("\n");
 }
 
-// CLI execution
 if (require.main === module) {
   const prisma = new PrismaClient();
 
   runIntegrityChecks(prisma)
     .then((report) => {
-      console.log(formatIntegrityReport(report));
+
       process.exit(report.status === "FAILED" ? 1 : 0);
     })
     .catch((error) => {
-      console.error("Error running integrity checks:", error);
+
       process.exit(1);
     })
     .finally(() => {

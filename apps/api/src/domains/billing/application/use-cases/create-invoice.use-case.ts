@@ -1,29 +1,17 @@
-/**
- * Create Invoice Use Case
- * Orchestrates invoice creation with validation and persistence
- *
- * Flow:
- * 1. Convert DTO to domain items (Money value objects)
- * 2. Validate individual items
- * 3. Create Invoice aggregate root
- * 4. Validate complete invoice
- * 5. Persist via repository
- */
-
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Invoice, InvoiceItem } from '../../core/entities';
+import { Invoice, InvoiceItem } from '@/domains/billing/core/entities';
 import {
   Money,
   InvoiceStatus,
   InvoiceStatusEnum,
   BillingPeriod,
-} from '../../core/value-objects';
+} from '@/domains/billing/core/value-objects';
 import {
   BillingCalculatorService,
   InvoiceValidatorService,
-} from '../../core/services';
-import { CreateInvoiceDto } from '../dto/invoice.dto';
-import { IInvoiceRepository } from '../ports/invoice.repository.port';
+} from '@/domains/billing/core/services';
+import { CreateInvoiceDto } from '@/domains/billing/application/dto/invoice.dto';
+import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
 
 export class CreateInvoiceCommand {
   constructor(readonly createInvoiceDto: CreateInvoiceDto) {}
@@ -40,7 +28,6 @@ export class CreateInvoiceUseCase {
   async execute(dto: CreateInvoiceDto): Promise<{ invoiceId: string }> {
     const invoiceId = `invoice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // 1. Create domain items with Money value objects
     const items = dto.items.map(
       (item, index) =>
         new InvoiceItem({
@@ -54,7 +41,6 @@ export class CreateInvoiceUseCase {
         }),
     );
 
-    // 2. Validate all items
     const itemErrors = items.flatMap((item, idx) =>
       this.invoiceValidator
         .validateInvoiceItem(item)
@@ -68,7 +54,6 @@ export class CreateInvoiceUseCase {
       });
     }
 
-    // 3. Create invoice entity (aggregate root)
     const billingPeriod = new BillingPeriod(dto.issueDate, dto.dueDate);
     const status = new InvoiceStatus(InvoiceStatusEnum.DRAFT);
 
@@ -84,7 +69,6 @@ export class CreateInvoiceUseCase {
       notes: dto.notes,
     });
 
-    // 4. Validate complete invoice
     const validation = this.invoiceValidator.validateInvoice(invoice);
     if (!validation.valid) {
       throw new BadRequestException({
@@ -93,7 +77,6 @@ export class CreateInvoiceUseCase {
       });
     }
 
-    // 5. Persist via repository (port)
     await this.invoiceRepository.save(invoice);
 
     return { invoiceId: invoice.id };

@@ -11,14 +11,14 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { InvoicesService } from '../../application/services/invoices.service';
+import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
 import type { Response } from 'express';
-import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
   Feature,
-} from '../../../../shared/modules/auth/auth/tier.decorator';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, InvoiceStatus } from '@workspace/db';
 
 import {
@@ -26,7 +26,8 @@ import {
   UpdateInvoiceDto,
   InvoiceResponseDto,
   PaginatedInvoiceResponseDto,
-} from '../../application/dto/invoices.dto';
+  ListInvoicesQueryDto,
+} from '@/domains/billing/application/dto/invoices.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 interface AuthRequest {
@@ -43,20 +44,14 @@ export class InvoicesController {
 
   @Get()
   @ZodSerializerDto(PaginatedInvoiceResponseDto)
-  findAll(
-    @Request() req: AuthRequest,
-    @Query('cursor') cursor?: string,
-    @Query('limit') limit?: string,
-    @Query('patientId') patientId?: string,
-    @Query('status') status?: InvoiceStatus,
-    @Query('date') date?: string,
-    @Query('search') search?: string,
-  ) {
+  findAll(@Request() req: AuthRequest, @Query() query?: ListInvoicesQueryDto) {
+    const { cursor, limit, patientId, status, date, search } = query ?? {};
+
     return this.invoicesService.findAll(req.user.clinicId, {
       cursor,
-      limit: limit ? parseInt(limit, 10) : undefined,
+      limit,
       patientId,
-      status,
+      status: status as InvoiceStatus | undefined,
       date,
       search,
     });

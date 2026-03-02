@@ -13,7 +13,7 @@ export default function UpgradeError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Upgrade route error:", error);
+
   }, [error]);
 
   return (

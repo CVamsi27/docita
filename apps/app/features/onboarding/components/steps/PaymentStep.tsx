@@ -51,7 +51,6 @@ export function PaymentStep({
   const [autoPay, setAutoPay] = useState(true);
   const [formErrors, setFormErrors] = useState<PaymentFormErrors>({});
 
-  // Add-ons state
   const [intelligenceAddon, setIntelligenceAddon] = useState(false);
 
   const intelligencePrice = billingCycle === "YEARLY" ? 29990 : 2999;
@@ -95,7 +94,7 @@ export function PaymentStep({
     }
 
     onComplete({
-      cardNumber: cardNumber.slice(-4), // Only store last 4 for demo
+      cardNumber: cardNumber.slice(-4), 
       autoPay,
       addons: {
         intelligence: intelligenceAddon,
@@ -114,7 +113,7 @@ export function PaymentStep({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          {/* Add-ons Section */}
+          {}
           <div className="space-y-4 border-b pb-6">
             <h3 className="font-medium">Recommended Add-ons</h3>
 
@@ -143,7 +142,7 @@ export function PaymentStep({
             </div>
           </div>
 
-          {/* Payment Fields */}
+          {}
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Name on Card</Label>

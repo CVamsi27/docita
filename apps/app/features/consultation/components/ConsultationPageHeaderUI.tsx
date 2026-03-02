@@ -10,7 +10,7 @@ interface ConsultationPageHeaderUIProps {
   patientName: string;
   appointmentDate: string | Date;
   onBack: () => void;
-  // We accept the full sidebar content for the mobile sheet
+
   MobileSidebarContent?: React.ReactNode;
 }
 
@@ -32,7 +32,7 @@ export function ConsultationPageHeaderUI({
           <ArrowLeft className="h-5 w-5" />
         </Button>
 
-        {/* Mobile sidebar toggle */}
+        {}
         {MobileSidebarContent && (
           <Sheet>
             <SheetTrigger asChild>

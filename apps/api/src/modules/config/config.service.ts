@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -35,7 +35,6 @@ import {
   getDefaults,
 } from '@workspace/utils';
 
-// Re-export all configuration constants for backward compatibility
 export {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -73,10 +72,32 @@ export {
 export class ConfigService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Get all form options and configuration
-   * This is the single source of truth for the frontend
-   */
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+    fallback: string,
+  ): string {
+    const value = source[key];
+    return typeof value === 'string' ? value : fallback;
+  }
+
+  private readNumber(
+    source: Record<string, unknown>,
+    key: string,
+    fallback: number,
+  ): number {
+    const value = source[key];
+    return typeof value === 'number' ? value : fallback;
+  }
+
   getFormOptions() {
     return {
       gender: GENDER_OPTIONS,
@@ -98,16 +119,10 @@ export class ConfigService {
     };
   }
 
-  /**
-   * Get patient import field definitions
-   */
   getPatientImportFields() {
     return PATIENT_IMPORT_FIELDS;
   }
 
-  /**
-   * Get default values for various forms
-   */
   getDefaults() {
     return {
       appointmentDuration: DEFAULT_APPOINTMENT_DURATION,
@@ -118,9 +133,6 @@ export class ConfigService {
     };
   }
 
-  /**
-   * Get all global app constants
-   */
   getConstants() {
     return {
       followUpTypes: FOLLOW_UP_TYPES,
@@ -134,10 +146,6 @@ export class ConfigService {
     };
   }
 
-  /**
-   * Get complete app configuration
-   * Combines form options, defaults, and clinic-specific settings
-   */
   async getAppConfig(clinicId?: string) {
     const baseConfig = {
       formOptions: this.getFormOptions(),
@@ -145,7 +153,6 @@ export class ConfigService {
       defaults: this.getDefaults(),
     };
 
-    // If clinicId provided, merge clinic-specific settings
     if (clinicId) {
       const clinic = await this.prisma.clinic.findUnique({
         where: { id: clinicId },
@@ -156,19 +163,31 @@ export class ConfigService {
       });
 
       if (clinic) {
-        const clinicSettings =
-          (clinic.settings as Record<string, unknown>) || {};
+        const clinicSettings = this.toRecord(clinic.settings);
 
         return {
           ...baseConfig,
           clinicSettings: {
-            consultationFee:
-              clinicSettings.consultationFee ?? DEFAULT_CONSULTATION_FEE,
-            currency: clinicSettings.currency ?? DEFAULT_CURRENCY,
-            timezone: clinicSettings.timezone ?? DEFAULT_TIMEZONE,
-            appointmentDuration:
-              clinicSettings.appointmentDuration ??
+            consultationFee: this.readNumber(
+              clinicSettings,
+              'consultationFee',
+              DEFAULT_CONSULTATION_FEE,
+            ),
+            currency: this.readString(
+              clinicSettings,
+              'currency',
+              DEFAULT_CURRENCY,
+            ),
+            timezone: this.readString(
+              clinicSettings,
+              'timezone',
+              DEFAULT_TIMEZONE,
+            ),
+            appointmentDuration: this.readNumber(
+              clinicSettings,
+              'appointmentDuration',
               DEFAULT_APPOINTMENT_DURATION,
+            ),
           },
         };
       }
@@ -177,9 +196,6 @@ export class ConfigService {
     return baseConfig;
   }
 
-  /**
-   * Validate a value against allowed options
-   */
   validateOption(
     optionType: keyof ReturnType<typeof this.getFormOptions>,
     value: string,

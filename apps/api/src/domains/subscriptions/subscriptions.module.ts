@@ -28,8 +28,8 @@ import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operat
 import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { BillingModule } from '../billing/billing.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { BillingModule } from '@/domains/billing/billing.module';
 
 @Module({
   imports: [PrismaModule, BillingModule],

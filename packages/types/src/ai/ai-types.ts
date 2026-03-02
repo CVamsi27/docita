@@ -1,4 +1,4 @@
-// AI Service Type Definitions
+
 
 export interface OcrMedicationExtraction {
   name: string;
@@ -53,7 +53,7 @@ export interface OcrLabValues {
 }
 
 export interface OcrExtractedFields {
-  // Patient Information
+
   firstName?: string;
   lastName?: string;
   age?: string;
@@ -64,7 +64,6 @@ export interface OcrExtractedFields {
   bloodType?: string;
   patientId?: string;
 
-  // Clinical Data
   diagnosis?: string;
   symptoms?: string[];
   medicalHistory?: string[];
@@ -72,26 +71,20 @@ export interface OcrExtractedFields {
   complaints?: string[];
   physicalExamination?: string;
 
-  // Vitals
   vitals?: OcrVitalsData;
 
-  // Lab Values
   labValues?: OcrLabValues;
 
-  // Medications
   medications?: OcrMedicationExtraction[];
 
-  // Prescription Information
   prescriptionDate?: string;
   prescriptionId?: string;
   expiryDate?: string;
   documentDate?: string;
   referralDate?: string;
 
-  // Invoice/Billing Information
   invoice?: OcrInvoiceData;
 
-  // Document Metadata
   doctorName?: string;
   doctorLicense?: string;
   doctorSpecialization?: string;
@@ -103,7 +96,6 @@ export interface OcrExtractedFields {
   nextVisitDate?: string;
   referralTo?: string;
 
-  // Document Analysis
   documentType?:
     | "PRESCRIPTION"
     | "CASE_SHEET"
@@ -113,7 +105,6 @@ export interface OcrExtractedFields {
   notes?: string;
   followUpRecommendations?: string[];
 
-  // Confidence scores per field
   fieldConfidence: Record<string, number>;
 }
 
@@ -163,7 +154,6 @@ export interface MedicationRecommendation {
   confidence: number;
 }
 
-// OpenAI Response Normalization Types
 export interface OpenAIPrescriptionAnalysisData {
   drugInteractions?: Array<{
     drug1?: string;

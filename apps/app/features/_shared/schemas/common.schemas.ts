@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-/**
- * Common Zod validation schemas for reuse across the application.
- * Ensures consistent validation rules for common data types.
- */
-
-// Basic primitive schemas
 export const requiredStringSchema = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required`);
 
@@ -17,10 +11,8 @@ export const emailSchema = z
 export const phoneSchema = z
   .string()
   .min(10, "Phone number must be at least 10 digits")
-  // Allows optional + prefix, and common separators
-  .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format");
 
-// Common Entity Schemas
+  .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format");
 
 export const addressSchema = z.object({
   street: z.string().min(1, "Street address is required"),
@@ -29,8 +21,6 @@ export const addressSchema = z.object({
   zipCode: z.string().min(1, "ZIP/Postal code is required"),
   country: z.string().min(1, "Country is required"),
 });
-
-// Patient related schemas
 
 export const patientBasicInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -41,8 +31,3 @@ export const patientBasicInfoSchema = z.object({
   dateOfBirth: z.date().optional(),
 });
 
-// Usage example:
-// export const myFormSchema = z.object({
-//   ...patientBasicInfoSchema.shape,
-//   additionalField: z.string(),
-// });

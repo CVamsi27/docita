@@ -1,7 +1,4 @@
-/**
- * IPD Business Rules
- * Inpatient admission, bed management, and discharge
- */
+
 
 export type AdmissionStatus =
   | "admitted"
@@ -47,23 +44,14 @@ export interface Ward {
   type: "general" | "icu" | "pediatric" | "maternity" | "surgical";
 }
 
-/**
- * Check if patient can be admitted
- */
 export function canAdmitPatient(bed: Bed): boolean {
   return bed.status === "available";
 }
 
-/**
- * Check if patient can be discharged
- */
 export function canDischargePatient(admission: Admission): boolean {
   return admission.status === "admitted";
 }
 
-/**
- * Calculate length of stay in days
- */
 export function calculateLengthOfStay(
   admissionDate: Date,
   dischargeDate?: Date,
@@ -74,27 +62,18 @@ export function calculateLengthOfStay(
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-/**
- * Get bed occupancy rate
- */
 export function getBedOccupancyRate(beds: Bed[]): number {
   if (beds.length === 0) return 0;
   const occupied = beds.filter((b) => b.status === "occupied").length;
   return Math.round((occupied / beds.length) * 100);
 }
 
-/**
- * Get available beds in ward
- */
 export function getAvailableBeds(beds: Bed[], wardId?: string): Bed[] {
   return beds.filter(
     (b) => b.status === "available" && (!wardId || b.wardId === wardId),
   );
 }
 
-/**
- * Get ward statistics
- */
 export function getWardStats(ward: Ward, beds: Bed[]) {
   const wardBeds = beds.filter((b) => b.wardId === ward.id);
   return {
@@ -106,16 +85,10 @@ export function getWardStats(ward: Ward, beds: Bed[]) {
   };
 }
 
-/**
- * Check if bed needs cleaning
- */
 export function bedNeedsCleaning(bed: Bed): boolean {
   return bed.status === "maintenance";
 }
 
-/**
- * Get admission status label
- */
 export function getAdmissionStatusLabel(status: AdmissionStatus): string {
   const labels: Record<AdmissionStatus, string> = {
     admitted: "Admitted",
@@ -126,9 +99,6 @@ export function getAdmissionStatusLabel(status: AdmissionStatus): string {
   return labels[status];
 }
 
-/**
- * Get bed type label
- */
 export function getBedTypeLabel(type: Bed["type"]): string {
   const labels: Record<Bed["type"], string> = {
     general: "General Ward",

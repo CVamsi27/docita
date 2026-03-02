@@ -67,27 +67,22 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
 
-// Status badge colors
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  TRIAL: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  PAST_DUE:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  GRACE_PERIOD:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  EXPIRED: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
-  SCHEDULED_DOWNGRADE:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  ACTIVE: "badge-success",
+  TRIAL: "badge-info",
+  PAST_DUE: "badge-warning",
+  GRACE_PERIOD: "badge-warning",
+  CANCELLED: "badge-danger",
+  EXPIRED: "badge-muted",
+  SCHEDULED_DOWNGRADE: "tier-pro",
 };
 
 const tierColors: Record<string, string> = {
-  CAPTURE: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
-  CORE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  PLUS: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
-  PRO: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  ENTERPRISE:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+  CAPTURE: "tier-capture",
+  CORE: "tier-core",
+  PLUS: "tier-plus",
+  PRO: "tier-pro",
+  ENTERPRISE: "tier-enterprise",
 };
 
 export default function BillingDashboard() {
@@ -100,12 +95,10 @@ export default function BillingDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const { token } = useAuth();
 
-  // Filters
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [billingCycleFilter, setBillingCycleFilter] = useState<string>("all");
 
-  // Dialogs
   const [extendGraceDialog, setExtendGraceDialog] = useState<{
     open: boolean;
     subscription?: SubscriptionOverview;
@@ -128,31 +121,28 @@ export default function BillingDashboard() {
         billingAPI.getPayments({}),
       ]);
 
-      // Handle metrics
       if (results[0].status === "fulfilled") {
         setMetrics(results[0].value);
       } else {
-        console.error("Failed to fetch metrics:", results[0].reason);
+
         setMetrics(null);
       }
 
-      // Handle subscriptions
       if (results[1].status === "fulfilled") {
         setSubscriptions(results[1].value);
       } else {
-        console.error("Failed to fetch subscriptions:", results[1].reason);
+
         setSubscriptions([]);
       }
 
-      // Handle payments
       if (results[2].status === "fulfilled") {
         setPayments(results[2].value);
       } else {
-        console.error("Failed to fetch payments:", results[2].reason);
+
         setPayments([]);
       }
     } catch (error) {
-      console.error("Failed to fetch billing data:", error);
+
       setMetrics(null);
       setSubscriptions([]);
       setPayments([]);
@@ -175,9 +165,9 @@ export default function BillingDashboard() {
     setSending(true);
     try {
       await billingAPI.sendReminder(subscription.id);
-      // Show success toast or update UI
+
     } catch (error) {
-      console.error("Failed to send reminder:", error);
+
     } finally {
       setSending(false);
     }
@@ -196,7 +186,7 @@ export default function BillingDashboard() {
       setExtendDays(3);
       fetchData();
     } catch (error) {
-      console.error("Failed to extend grace period:", error);
+
     } finally {
       setSending(false);
     }
@@ -221,7 +211,7 @@ export default function BillingDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -239,7 +229,7 @@ export default function BillingDashboard() {
         </Button>
       </div>
 
-      {/* Metrics Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -253,7 +243,7 @@ export default function BillingDashboard() {
               {formatCurrency(metrics?.mrr || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 dark:text-green-400">
+              <span className="text-success">
                 <ArrowUpRight className="inline h-3 w-3" /> MRR
               </span>{" "}
               from active subscriptions
@@ -290,7 +280,7 @@ export default function BillingDashboard() {
               {metrics?.activeSubscriptions || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-blue-600 dark:text-blue-400">
+              <span className="text-info">
                 {metrics?.trialSubscriptions || 0} in trial
               </span>
             </p>
@@ -310,8 +300,8 @@ export default function BillingDashboard() {
               <span
                 className={
                   metrics?.churnRate && metrics.churnRate > 0.05
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-green-600 dark:text-green-400"
+                    ? "text-destructive"
+                    : "text-success"
                 }
               >
                 {metrics?.churnRate && metrics.churnRate > 0.05 ? (
@@ -329,15 +319,15 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {/* Alerts Section */}
+      {}
       {((metrics?.expiringSubscriptions?.length || 0) > 0 ||
         (metrics?.gracePeriodSubscriptions?.length || 0) > 0) && (
         <div className="grid gap-4 md:grid-cols-2">
           {(metrics?.expiringSubscriptions?.length || 0) > 0 && (
-            <Card className="border-yellow-200 dark:border-yellow-800">
+            <Card className="border-warning/40">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  <AlertTriangle className="h-5 w-5 text-warning" />
                   <CardTitle className="text-lg">Expiring Soon</CardTitle>
                 </div>
                 <CardDescription>
@@ -381,10 +371,10 @@ export default function BillingDashboard() {
           )}
 
           {(metrics?.gracePeriodSubscriptions?.length || 0) > 0 && (
-            <Card className="border-orange-200 dark:border-orange-800">
+            <Card className="border-warning/40">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-orange-600" />
+                  <Clock className="h-5 w-5 text-warning" />
                   <CardTitle className="text-lg">In Grace Period</CardTitle>
                 </div>
                 <CardDescription>
@@ -432,7 +422,7 @@ export default function BillingDashboard() {
         </div>
       )}
 
-      {/* Distribution Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -508,7 +498,7 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {/* Tabs for Subscriptions and Payments */}
+      {}
       <Tabs defaultValue="subscriptions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="subscriptions">
@@ -526,7 +516,7 @@ export default function BillingDashboard() {
         </TabsList>
 
         <TabsContent value="subscriptions" className="space-y-4">
-          {/* Filters */}
+          {}
           <div className="flex flex-wrap gap-4">
             <div className="w-40">
               <Select value={tierFilter} onValueChange={setTierFilter}>
@@ -576,7 +566,7 @@ export default function BillingDashboard() {
             </div>
           </div>
 
-          {/* Subscriptions Table */}
+          {}
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -658,7 +648,7 @@ export default function BillingDashboard() {
                         </TableCell>
                         <TableCell>
                           {subscription.clinic.referralCreditsMonths > 0 && (
-                            <Badge variant="outline" className="text-green-600">
+                            <Badge variant="outline" className="text-success">
                               {subscription.clinic.referralCreditsMonths} mo
                             </Badge>
                           )}
@@ -763,10 +753,10 @@ export default function BillingDashboard() {
                           <Badge
                             className={
                               payment.status === "SUCCESS"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                ? "badge-success"
                                 : payment.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                                  ? "badge-warning"
+                                  : "badge-danger"
                             }
                           >
                             {payment.status}
@@ -834,7 +824,7 @@ export default function BillingDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Extend Grace Period Dialog */}
+      {}
       <Dialog
         open={extendGraceDialog.open}
         onOpenChange={(open) => setExtendGraceDialog({ open })}

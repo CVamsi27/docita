@@ -3,15 +3,15 @@ import type { RoleFilter, User, UserRole } from "./types";
 export function getRoleBadgeColor(role: UserRole): string {
   switch (role) {
     case "ADMIN":
-      return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+      return "tier-pro";
     case "ADMIN_DOCTOR":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      return "tier-core";
     case "DOCTOR":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      return "tier-plus";
     case "RECEPTIONIST":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      return "tier-enterprise";
     default:
-      return "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground";
+      return "badge-muted";
   }
 }
 

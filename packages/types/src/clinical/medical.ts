@@ -1,5 +1,5 @@
 import { z } from "zod";
-// Code Status - Critical patient safety information (DNR/Full Code)
+
 export const codeStatusSchema = z.enum([
   "FULL_CODE",
   "DNR",
@@ -17,7 +17,6 @@ export const CODE_STATUS_LABELS: Record<CodeStatus, string> = {
   COMFORT_CARE: "Comfort Care Only",
 };
 
-// Blood Pressure Position - Clinical context for BP readings
 export const bpPositionSchema = z.enum([
   "SITTING",
   "STANDING",
@@ -33,7 +32,6 @@ export const BP_POSITION_LABELS: Record<BpPosition, string> = {
   UNKNOWN: "Unknown",
 };
 
-// Oxygen Delivery Method
 export const oxygenDeliverySchema = z.enum([
   "ROOM_AIR",
   "NASAL_CANNULA",
@@ -61,7 +59,6 @@ export const OXYGEN_DELIVERY_LABELS: Record<OxygenDelivery, string> = {
   OTHER: "Other",
 };
 
-// Dosage Form - Pharmaceutical dosage forms
 export const dosageFormSchema = z.enum([
   "TABLET",
   "CAPSULE",
@@ -105,7 +102,6 @@ export const DOSAGE_FORM_LABELS: Record<DosageForm, string> = {
   OTHER: "Other",
 };
 
-// Standardized Frequency Codes (SIG codes)
 export const sigCodeSchema = z.enum([
   "QD",
   "BID",
@@ -149,7 +145,6 @@ export const SIG_CODE_LABELS: Record<SigCode, string> = {
   OTHER: "Other",
 };
 
-// Consent Types
 export const consentTypeSchema = z.enum([
   "TREATMENT",
   "PROCEDURE",
@@ -179,7 +174,6 @@ export const CONSENT_TYPE_LABELS: Record<ConsentType, string> = {
   VACCINATION: "Vaccination Consent",
 };
 
-// Consent Status
 export const consentStatusSchema = z.enum([
   "ACTIVE",
   "REVOKED",
@@ -195,7 +189,6 @@ export const CONSENT_STATUS_LABELS: Record<ConsentStatus, string> = {
   PENDING: "Pending Signature",
 };
 
-// Immunization Route
 export const immunizationRouteSchema = z.enum([
   "IM",
   "SC",
@@ -215,7 +208,6 @@ export const IMMUNIZATION_ROUTE_LABELS: Record<ImmunizationRoute, string> = {
   OTHER: "Other",
 };
 
-// Immunization Site
 export const immunizationSiteSchema = z.enum([
   "LEFT_ARM",
   "RIGHT_ARM",

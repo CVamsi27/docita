@@ -52,7 +52,7 @@ export class OpenaiService {
     };
   }
 
-  async callChatCompletion<T = any>(params: {
+  async callChatCompletion<T = never>(params: {
     systemPrompt: string;
     userPrompt: string;
     temperature?: number;

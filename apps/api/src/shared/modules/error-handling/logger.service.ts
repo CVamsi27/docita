@@ -1,8 +1,3 @@
-/**
- * Logger Service
- * Centralized logging with structured format
- */
-
 import { Injectable, Logger } from '@nestjs/common';
 
 export interface LogContext {
@@ -10,7 +5,7 @@ export interface LogContext {
   clinicId?: string;
   requestId?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -54,8 +49,6 @@ export class LoggerService {
       ...(error && { error }),
     };
 
-    // In production, send to structured logging service (e.g., ELK, Datadog)
-    // For now, just use NestJS logger
     switch (level) {
       case 'DEBUG':
         this.logger.debug(JSON.stringify(logEntry));

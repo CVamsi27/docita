@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch (error) {
-        console.error("Token validation failed:", error);
+
         return false;
       }
     },
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedToken && storedUser) {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser.role === "SUPER_ADMIN") {
-            // Validate token on app load
+
             const isValid = await validateToken(storedToken);
 
             if (isValid) {
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setUser(parsedUser);
               setCookie(COOKIE_KEY, storedToken, 7);
             } else {
-              // Token is invalid, expired, or user was deleted
+
               localStorage.removeItem(TOKEN_KEY);
               localStorage.removeItem(USER_KEY);
               deleteCookie(COOKIE_KEY);
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         deleteCookie(COOKIE_KEY);
@@ -135,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [validateToken]);
 
-  // Handle route protection - validate token when accessing protected routes
   useEffect(() => {
     if (isLoading || !isMounted) return;
 
@@ -145,10 +144,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       !!token && !!user && user.role === "SUPER_ADMIN";
 
     if (isProtectedRoute && isAuthenticatedSuperAdmin) {
-      // Re-validate token when accessing protected route
+
       validateToken(token).then((isValid) => {
         if (!isValid) {
-          // Token is no longer valid
+
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
           deleteCookie(COOKIE_KEY);
@@ -159,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       });
     } else if (isProtectedRoute && !isAuthenticatedSuperAdmin) {
-      // If not authenticated SUPER_ADMIN and trying to access protected route, redirect to login
+
       router.replace("/");
     }
   }, [isLoading, isMounted, pathname, token, user, router, validateToken]);
@@ -189,7 +188,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
-  // Show loading spinner during SSR and initial hydration
   if (!isMounted || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

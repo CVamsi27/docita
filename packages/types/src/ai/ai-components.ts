@@ -1,6 +1,4 @@
-// ============================================================================
-// AI Assistant Tab State Types
-// ============================================================================
+
 
 import { z } from "zod";
 
@@ -99,10 +97,6 @@ export interface SmartTasksTabState {
   taskType: string;
 }
 
-// ============================================================================
-// AI Assistant Tab Handler Types
-// ============================================================================
-
 export interface PrescriptionTabHandlers {
   setSymptoms: (value: string) => void;
   setDiagnosis: (value: string) => void;
@@ -122,50 +116,42 @@ export interface SmartTasksTabHandlers {
   setTaskType: (value: string) => void;
 }
 
-// ============================================================================
-// Combined AI Assistant State (Union of all tabs)
-// ============================================================================
-
 export interface AIAssistantState {
   activeTab: string;
-  // Prescription tab fields
+
   symptoms: string;
   diagnosis: string;
   currentMedications: string;
   allergies: string;
   drugInteractions: PrescriptionTabState["drugInteractions"];
   prescriptionSuggestions: PrescriptionTabState["prescriptionSuggestions"];
-  // Diagnosis tab fields
+
   chiefComplaint: string;
   vitalSigns: string;
   examFindings: string;
   diagnosisSuggestions: UIDiagnosisSuggestion[];
-  // Smart tasks tab fields
+
   taskType: string;
-  // Common fields
+
   isLoading: boolean;
 }
 
 export interface AIAssistantHandlers {
   setActiveTab: (tab: string) => void;
-  // Prescription tab handlers
+
   setSymptoms: (value: string) => void;
   setDiagnosis: (value: string) => void;
   setCurrentMedications: (value: string) => void;
   setAllergies: (value: string) => void;
   handlePrescriptionAnalysis: () => void;
-  // Diagnosis tab handlers
+
   setChiefComplaint: (value: string) => void;
   setVitalSigns: (value: string) => void;
   setExamFindings: (value: string) => void;
   handleDiagnosisAnalysis: () => void;
-  // Smart tasks handlers
+
   setTaskType: (value: string) => void;
 }
-
-// ============================================================================
-// Component Props Types
-// ============================================================================
 
 export interface PrescriptionAssistantTabProps {
   state: AIAssistantState;

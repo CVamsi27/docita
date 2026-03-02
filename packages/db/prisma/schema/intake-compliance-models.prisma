@@ -2,8 +2,13 @@ model UploadSession {
   id        String   @id @default(cuid())
   status    String   @default("pending")
   fileUrl   String?
+  purpose   UploadSessionPurpose @default(GENERAL)
+  doctorId  String?
   createdAt DateTime @default(now())
   expiresAt DateTime
+  doctor    User?    @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([doctorId])
 }
 
 // ============================================================================

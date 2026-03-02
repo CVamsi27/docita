@@ -29,7 +29,7 @@ export function DashboardPageContainer() {
   const renderTrend = (value: number, isPercentage: boolean = false) => {
     const isPositive = value >= 0;
     const Icon = isPositive ? TrendingUp : TrendingDown;
-    const colorClass = isPositive ? "text-green-500" : "text-red-500";
+    const colorClass = isPositive ? "text-success" : "text-destructive";
     const prefix = isPositive ? "+" : "";
     const suffix = isPercentage ? "%" : "";
 
@@ -51,8 +51,8 @@ export function DashboardPageContainer() {
   return (
     <div className="space-y-8">
       {!token && (
-        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
-          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+        <div className="surface-warning rounded-lg p-4">
+          <p className="text-sm">
             Loading authentication... If this persists, please log in again.
           </p>
         </div>

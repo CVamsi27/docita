@@ -1,7 +1,4 @@
-/**
- * Access Control Factory
- * Factory Pattern: Creates properly configured access control service
- */
+
 
 import type {
   IAccessControlConfig,
@@ -20,10 +17,7 @@ import { LoggingAccessControlDecorator } from "./decorators/logging-decorator";
 import { AnalyticsAccessControlDecorator } from "./decorators/analytics-decorator";
 
 export class AccessControlFactory {
-  /**
-   * Create a fully configured access control service
-   * Factory Method Pattern
-   */
+  
   static create(config?: IAccessControlConfig): IAccessControlService {
     const repository = new SubscriptionRepository(
       config?.cacheTTL,
@@ -31,22 +25,17 @@ export class AccessControlFactory {
     );
 
     const rules: IAccessRule[] = [
-      // Priority 100: Overrides (admin grants, trials)
+
       new OverrideAccessRule(),
 
-      // Priority 15: Role-based permissions
       new RoleBasedAccessRule(),
 
-      // Priority 25: Clinic type-based access (specialty features)
       new ClinicTypeBasedAccessRule(),
 
-      // Priority 50: Subscription status
       new SubscriptionStatusRule(),
 
-      // Priority 20: Add-on features (WhatsApp, Intelligence)
       new AddOnBasedAccessRule(),
 
-      // Priority 10: Tier-based features
       new TierBasedAccessRule(),
     ];
 
@@ -55,7 +44,6 @@ export class AccessControlFactory {
       rules,
     );
 
-    // Apply decorators if enabled
     if (config?.enableLogging) {
       service = new LoggingAccessControlDecorator(service);
     }
@@ -67,10 +55,7 @@ export class AccessControlFactory {
     return service;
   }
 
-  /**
-   * Create service with custom rules
-   * Allows for extension with custom access logic
-   */
+  
   static createWithCustomRules(
     rules: IAccessRule[],
     config?: IAccessControlConfig,

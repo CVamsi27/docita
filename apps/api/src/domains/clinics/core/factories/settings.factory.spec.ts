@@ -83,7 +83,7 @@ describe('SettingsFactory', () => {
     it('should accept empty object since all fields are optional', () => {
       const result = factory.validate({});
       expect(result).toBeDefined();
-      // Zod will apply defaults for fields with .default()
+
       expect(result.consultationDuration).toBe(30);
     });
 
@@ -103,7 +103,7 @@ describe('SettingsFactory', () => {
         consultationDuration: 'not-a-number',
       };
 
-      expect(() => factory.validate(invalid as any)).toThrow(ZodError);
+      expect(() => factory.validate(invalid as never)).toThrow(ZodError);
     });
 
     it('should validate working days array', () => {

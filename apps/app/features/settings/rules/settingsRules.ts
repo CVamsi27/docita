@@ -1,6 +1,4 @@
-/**
- * Settings Business Rules
- */
+
 
 export const validateClinicHours = (
   opening: number,

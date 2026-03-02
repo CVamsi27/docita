@@ -20,8 +20,8 @@ import {
 import type {
   DrugInteraction,
   PrescriptionSuggestion,
-} from "../../hooks/use-ai-assistant-logic";
-import { EmptyState } from "../AIAssistantUI";
+} from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
+import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
 import type { PrescriptionAssistantTabProps } from "@workspace/types";
 
 export const PrescriptionAssistantTab = ({
@@ -32,7 +32,7 @@ export const PrescriptionAssistantTab = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Pill className="h-5 w-5 text-blue-500" />
+          <Pill className="h-5 w-5 text-info" />
           Prescription Assistant
         </CardTitle>
         <CardDescription>
@@ -123,9 +123,9 @@ const DrugInteractionsList = ({
 }: {
   interactions: DrugInteraction[];
 }) => (
-  <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+  <Card className="surface-warning">
     <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-orange-600">
+      <CardTitle className="flex items-center gap-2 text-warning">
         <AlertTriangle className="h-5 w-5" />
         Drug Interactions Detected
       </CardTitle>
@@ -171,7 +171,7 @@ const PrescriptionSuggestionsList = ({
   <Card>
     <CardHeader className="pb-3">
       <CardTitle className="flex items-center gap-2">
-        <CheckCircle2 className="h-5 w-5 text-green-500" />
+        <CheckCircle2 className="h-5 w-5 text-success" />
         Suggested Medications
       </CardTitle>
     </CardHeader>

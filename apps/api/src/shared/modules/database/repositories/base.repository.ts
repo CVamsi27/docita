@@ -1,17 +1,11 @@
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
-/**
- * Pagination options for list queries
- */
 export interface PaginationOptions {
   limit?: number;
   cursor?: string;
   search?: string;
 }
 
-/**
- * Result of a paginated query
- */
 export interface PaginatedResult<T> {
   items: T[];
   hasMore: boolean;
@@ -19,52 +13,72 @@ export interface PaginatedResult<T> {
   count?: number;
 }
 
-/**
- * Options for building where clauses
- */
 export interface WhereClauseOptions {
   clinicId: string;
   search?: string;
 }
 
-/**
- * Base repository providing common CRUD operations.
- *
- * Extend this class to create entity-specific repositories.
- * This enforces separation of concerns: repositories handle data access,
- * services handle business logic.
- *
- * @example
- * ```typescript
- * @Injectable()
- * export class PatientsRepository extends BaseRepository<Patient> {
- *   constructor(prisma: PrismaService) {
- *     super(prisma, 'patient');
- *   }
- *
- *   protected getSearchFields(): string[] {
- *     return ['firstName', 'lastName', 'phoneNumber', 'email'];
- *   }
- * }
- * ```
- */
-export abstract class BaseRepository<T> {
+type RepositoryModelDelegate = {
+  findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
+  findUnique: (args: Record<string, unknown>) => Promise<unknown | null>;
+  create: (args: Record<string, unknown>) => Promise<unknown>;
+  update: (args: Record<string, unknown>) => Promise<unknown>;
+  delete: (args: Record<string, unknown>) => Promise<unknown>;
+  count: (args: Record<string, unknown>) => Promise<number>;
+};
+
+function extractId(item: unknown): string | undefined {
+  if (!item || typeof item !== 'object') {
+    return undefined;
+  }
+
+  const id = (item as { id?: unknown }).id;
+  return typeof id === 'string' ? id : undefined;
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
+export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
   constructor(
     protected readonly prisma: PrismaService,
     protected readonly modelName: string,
   ) {}
 
-  /**
-   * Get the Prisma model delegate
-   */
-  protected get model() {
-    return (this.prisma as any)[this.modelName];
+  private isRepositoryModelDelegate(
+    value: unknown,
+  ): value is RepositoryModelDelegate {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<RepositoryModelDelegate>;
+
+    return (
+      typeof candidate.findMany === 'function' &&
+      typeof candidate.findUnique === 'function' &&
+      typeof candidate.create === 'function' &&
+      typeof candidate.update === 'function' &&
+      typeof candidate.delete === 'function' &&
+      typeof candidate.count === 'function'
+    );
   }
 
-  /**
-   * Build search OR conditions for text search
-   * Override in subclass to customize search fields
-   */
+  protected get model(): RepositoryModelDelegate {
+    const delegate = Reflect.get(this.prisma, this.modelName);
+
+    if (!this.isRepositoryModelDelegate(delegate)) {
+      throw new Error(`Model delegate '${this.modelName}' is unavailable`);
+    }
+
+    return delegate;
+  }
+
   protected buildSearchConditions(
     search: string,
   ): Record<string, { contains: string; mode: 'insensitive' }>[] {
@@ -74,30 +88,18 @@ export abstract class BaseRepository<T> {
     }));
   }
 
-  /**
-   * Override this to specify which fields to search
-   */
   protected getSearchFields(): string[] {
     return ['name'];
   }
 
-  /**
-   * Override this to specify the default select fragment
-   */
   protected getDefaultSelect(): Record<string, boolean | object> | undefined {
     return undefined;
   }
 
-  /**
-   * Override this to specify the detail select fragment (for findOne)
-   */
   protected getDetailSelect(): Record<string, boolean | object> | undefined {
     return this.getDefaultSelect();
   }
 
-  /**
-   * Find all records with pagination and optional search
-   */
   async findAll(
     clinicId: string,
     options?: PaginationOptions,
@@ -109,12 +111,10 @@ export abstract class BaseRepository<T> {
     const limit = options?.limit ?? 50;
     const where: Record<string, unknown> = { clinicId };
 
-    // Add search conditions if provided
     if (options?.search) {
       where.OR = this.buildSearchConditions(options.search);
     }
 
-    // Add cursor if provided
     const cursor = options?.cursor ? { id: options.cursor } : undefined;
 
     const items = await this.model.findMany({
@@ -129,7 +129,7 @@ export abstract class BaseRepository<T> {
     const hasMore = items.length > limit;
     const resultItems = hasMore ? items.slice(0, -1) : items;
     const nextCursor = hasMore
-      ? resultItems[resultItems.length - 1]?.id
+      ? extractId(resultItems[resultItems.length - 1])
       : undefined;
 
     return {
@@ -140,9 +140,6 @@ export abstract class BaseRepository<T> {
     };
   }
 
-  /**
-   * Find a single record by ID
-   */
   async findOne(id: string): Promise<T | null> {
     const result = await this.model.findUnique({
       where: { id },
@@ -151,9 +148,6 @@ export abstract class BaseRepository<T> {
     return result as T | null;
   }
 
-  /**
-   * Find a single record by ID, throwing if not found
-   */
   async findOneOrFail(id: string, entityName?: string): Promise<T> {
     const result = await this.findOne(id);
     if (!result) {
@@ -163,22 +157,14 @@ export abstract class BaseRepository<T> {
     return result;
   }
 
-  /**
-   * Create a new record
-   * Override in subclass with specific DTO type
-   */
-
-  async create(data: Record<string, any>): Promise<T> {
+  async create(data: TCreate): Promise<T> {
     const result = await this.model.create({
-      data,
+      data: toRecord(data),
       select: this.getDetailSelect(),
     });
     return result as T;
   }
 
-  /**
-   * Update a record by ID
-   */
   async update(id: string, data: Partial<T>): Promise<T> {
     const result = await this.model.update({
       where: { id },
@@ -188,18 +174,12 @@ export abstract class BaseRepository<T> {
     return result as T;
   }
 
-  /**
-   * Delete a record by ID
-   */
   async delete(id: string): Promise<void> {
     await this.model.delete({
       where: { id },
     });
   }
 
-  /**
-   * Check if a record exists
-   */
   async exists(id: string): Promise<boolean> {
     const count = await this.model.count({
       where: { id },
@@ -207,9 +187,6 @@ export abstract class BaseRepository<T> {
     return count > 0;
   }
 
-  /**
-   * Count records matching a condition
-   */
   async count(where: Record<string, unknown> = {}): Promise<number> {
     return await this.model.count({ where });
   }

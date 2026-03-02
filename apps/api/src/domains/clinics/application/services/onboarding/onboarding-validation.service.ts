@@ -3,7 +3,7 @@ import { Specialization } from '@workspace/db';
 import {
   CompleteOnboardingDto,
   ClinicTier,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import {
   validateSpecializationForOnboarding,
   validateClinicTier,
@@ -194,7 +194,7 @@ export class OnboardingValidationService {
         includedPatients: 300,
         includedAppointments: 500,
         includedStorageGB: 5,
-        includedUsers: 1,
+        includedUsers: 2,
       },
       PLUS: {
         includedPatients: 1000,

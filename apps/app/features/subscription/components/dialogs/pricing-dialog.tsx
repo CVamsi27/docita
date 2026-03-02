@@ -20,7 +20,8 @@ import {
 import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
-import { Building2, Check, Crown, Rocket, Sparkles, Zap } from "lucide-react";
+import { useDebounce } from "@workspace/hooks";
+import { Check } from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
@@ -29,7 +30,21 @@ import {
   TIER_LIMITS,
   type TierName,
 } from "@workspace/types";
-import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import {
+  type EstimateUsageInputs,
+  type TierPricing,
+  usePricingConfig,
+  useTierEstimates,
+} from "@/hooks/api/use-pricing";
+import {
+  DEFAULT_PRICING_USAGE_INPUTS,
+  PRICING_DIALOG_TIER_BORDERS,
+  PRICING_DIALOG_TIER_GRADIENTS,
+  PRICING_DIALOG_TIER_ICONS,
+  PRICING_DIALOG_TIERS,
+  PRICING_ESTIMATE_DEBOUNCE_MS,
+} from "@/features/subscription/config/pricing-config";
+import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 
 interface PricingDialogProps {
   open: boolean;
@@ -38,47 +53,42 @@ interface PricingDialogProps {
   onSelectTier: (tier: TierName, cycle: "MONTHLY" | "YEARLY") => void;
 }
 
-const TIER_ICONS: Record<TierName, React.ElementType> = {
-  CAPTURE: Zap,
-  CORE: Rocket,
-  PLUS: Sparkles,
-  PRO: Crown,
-  ENTERPRISE: Building2,
-  INTELLIGENCE: Sparkles,
-};
-
-const TIER_GRADIENTS: Record<TierName, string> = {
-  CAPTURE: "from-slate-500/20 to-slate-600/10",
-  CORE: "from-blue-500/20 to-blue-600/10",
-  PLUS: "from-emerald-500/20 to-emerald-600/10",
-  PRO: "from-violet-500/20 to-purple-600/10",
-  ENTERPRISE: "from-amber-500/20 to-orange-600/10",
-  INTELLIGENCE: "from-pink-500/20 to-rose-600/10",
-};
-
-const TIER_BORDER_COLORS: Record<TierName, string> = {
-  CAPTURE: "border-slate-500/30 hover:border-slate-400/50",
-  CORE: "border-blue-500/30 hover:border-blue-400/50",
-  PLUS: "border-emerald-500/30 hover:border-emerald-400/50",
-  PRO: "border-violet-500/30 hover:border-violet-400/50",
-  ENTERPRISE: "border-amber-500/30 hover:border-amber-400/50",
-  INTELLIGENCE: "border-pink-500/30 hover:border-pink-400/50",
-};
-
 export function PricingDialog({
   open,
   onOpenChange,
   currentTier,
   onSelectTier,
 }: PricingDialogProps) {
+  const TIER_ICON_CLASSES: Record<TierName, string> = {
+    CAPTURE: "tier-capture",
+    CORE: "tier-core",
+    PLUS: "tier-plus",
+    PRO: "tier-pro",
+    ENTERPRISE: "tier-enterprise",
+    INTELLIGENCE: "tier-intelligence",
+  };
+
   const [currency, setCurrency] = useState<SupportedCurrency>("INR");
   const [isYearly, setIsYearly] = useState(false);
+  const [usageInputs, setUsageInputs] = useState<EstimateUsageInputs>(
+    DEFAULT_PRICING_USAGE_INPUTS,
+  );
+  const debouncedUsageInputs = useDebounce(
+    usageInputs,
+    PRICING_ESTIMATE_DEBOUNCE_MS,
+  );
 
-  // Fetch pricing from backend
   const { pricingConfig } = usePricingConfig(currency);
 
-  const tiers: TierName[] = ["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"];
+  const tiers: TierName[] = PRICING_DIALOG_TIERS;
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
+  const currentTierName = Tier[currentTier] as TierName;
+  const { estimateByTier, isLoadingAny } = useTierEstimates({
+    tiers,
+    currency,
+    billingCycle: isYearly ? "yearly" : "monthly",
+    usage: debouncedUsageInputs,
+  });
 
   const formatPrice = (price: number | "custom") => {
     if (price === "custom") return "Custom";
@@ -94,7 +104,6 @@ export function PricingDialog({
     return Tier[tierName as keyof typeof Tier];
   };
 
-  // Get tier pricing from backend data
   const getTierPricing = (tierName: TierName) => {
     const tierData = pricingConfig?.tiers.find(
       (t: TierPricing) => t.id === tierName,
@@ -104,7 +113,7 @@ export function PricingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-background via-background to-muted/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-background via-background to-muted/30">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-2xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
             Choose Your Plan
@@ -113,7 +122,7 @@ export function PricingDialog({
             Select the plan that best fits your clinic&apos;s needs
           </DialogDescription>
         </DialogHeader>
-        {/* Currency and Billing Toggle */}
+        {}
         <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-border/50">
           <div className="flex items-center gap-3">
             <Label htmlFor="currency" className="text-sm font-medium">
@@ -165,20 +174,20 @@ export function PricingDialog({
               Yearly
             </Label>
             {isYearly && (
-              <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+              <Badge className="badge-success border">
                 Save {pricingConfig?.discounts?.annualPercent ?? 10}%
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Pricing Cards */}
+        {}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 py-4">
           {tiers.map((tierName, index) => {
             const info = TIER_INFO[tierName];
             const tierPricing = getTierPricing(tierName);
             const limits = TIER_LIMITS[tierName];
-            const Icon = TIER_ICONS[tierName];
+            const Icon = PRICING_DIALOG_TIER_ICONS[tierName];
             const tierNumeric = getTierNumeric(tierName);
             const isCurrentTier = tierNumeric === currentTier;
             const isUpgrade = tierNumeric > currentTier;
@@ -197,8 +206,8 @@ export function PricingDialog({
                   "bg-linear-to-br backdrop-blur-sm",
                   "transition-all duration-300 ease-out",
                   "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
-                  TIER_GRADIENTS[tierName],
-                  TIER_BORDER_COLORS[tierName],
+                  PRICING_DIALOG_TIER_GRADIENTS[tierName],
+                  PRICING_DIALOG_TIER_BORDERS[tierName],
                   isCurrentTier &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-background",
                 )}
@@ -209,21 +218,15 @@ export function PricingDialog({
                   </Badge>
                 )}
 
-                {/* Header */}
+                {}
                 <div className="flex items-center gap-2 mb-3">
                   <div
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-lg",
-                      "bg-linear-to-br",
-                      tierName === "CAPTURE" && "from-slate-500 to-slate-600",
-                      tierName === "CORE" && "from-blue-500 to-blue-600",
-                      tierName === "PLUS" && "from-emerald-500 to-emerald-600",
-                      tierName === "PRO" && "from-violet-500 to-purple-600",
-                      tierName === "ENTERPRISE" &&
-                        "from-amber-500 to-orange-600",
+                      TIER_ICON_CLASSES[tierName],
                     )}
                   >
-                    <Icon className="h-5 w-5 text-white" />
+                    <Icon className="h-5 w-5" />
                   </div>
                   <div>
                     <h3 className="font-semibold">{info.name}</h3>
@@ -233,7 +236,7 @@ export function PricingDialog({
                   </div>
                 </div>
 
-                {/* Price */}
+                {}
                 <div
                   key={isYearly ? "yearly" : "monthly"}
                   className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
@@ -259,10 +262,37 @@ export function PricingDialog({
                   )}
                 </div>
 
-                {/* Key Limits */}
+                {(() => {
+                  const estimate = estimateByTier[tierName];
+                  const estimateValue =
+                    estimate && typeof estimate.totalMonthly === "number"
+                      ? isYearly
+                        ? estimate.totalYearly
+                        : estimate.totalMonthly
+                      : null;
+
+                  if (estimateValue === null) {
+                    return null;
+                  }
+
+                  return (
+                    <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 px-2 py-1.5">
+                      <p className="text-[11px] text-muted-foreground">
+                        Est. with your usage
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {estimate?.currency.symbol}
+                        {estimateValue.toLocaleString()}
+                        {isYearly ? "/yr" : "/mo"}
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {}
                 <div className="space-y-2 mb-4 flex-1">
                   <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span>
                       {limits.patients === 999999
                         ? "Unlimited"
@@ -271,7 +301,7 @@ export function PricingDialog({
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span>
                       {limits.doctors === 999 ? "Unlimited" : limits.doctors}{" "}
                       doctor
@@ -279,12 +309,12 @@ export function PricingDialog({
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span>{limits.storageGB} GB storage</span>
                   </div>
                   {limits.appointments && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500" />
+                      <Check className="h-4 w-4 text-success" />
                       <span>
                         {limits.appointments === 999999
                           ? "Unlimited"
@@ -295,7 +325,7 @@ export function PricingDialog({
                   )}
                 </div>
 
-                {/* Action Button */}
+                {}
                 <Button
                   className={cn(
                     "w-full mt-auto",
@@ -320,8 +350,21 @@ export function PricingDialog({
             );
           })}
         </div>
-        {/* Footer */}
+
+        <div className="pt-2 border-t border-border/50">
+          <DynamicPricingEstimator
+            defaultTier={currentTierName}
+            currency={currency}
+            billingCycle={isYearly ? "yearly" : "monthly"}
+            showCurrencySelector={false}
+            showBillingSelector={false}
+            onUsageChange={setUsageInputs}
+          />
+        </div>
+
+        {}
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">
+          {isLoadingAny && <p className="mb-2">Updating usage estimates...</p>}
           <p>
             All plans include basic support. Enterprise customers get dedicated
             account management.

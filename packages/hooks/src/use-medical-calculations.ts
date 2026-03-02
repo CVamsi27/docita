@@ -1,24 +1,6 @@
 import { useMemo } from "react";
 import { calculateBMI, getBMICategory } from "@workspace/utils";
 
-/**
- * Medical calculations hook with memoization
- *
- * Automatically calculates medical values (BMI, etc.) from patient measurements
- * and memoizes the results to prevent unnecessary recalculations.
- *
- * @param weight - Patient weight in kilograms
- * @param height - Patient height in centimeters
- * @returns Object containing calculated medical values
- *
- * @example
- * ```typescript
- * const { bmi, bmiCategory, bmiStatus } = useMedicalCalculations(70, 170);
- * // bmi: 24.2
- * // bmiCategory: "Normal weight"
- * // bmiStatus: "normal"
- * ```
- */
 export function useMedicalCalculations(weight?: number, height?: number) {
   const bmi = useMemo(() => {
     if (!weight || !height) return undefined;

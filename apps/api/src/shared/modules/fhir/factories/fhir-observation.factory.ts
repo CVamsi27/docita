@@ -1,10 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { VitalSign, Appointment, Patient } from '@workspace/db';
-import { FhirObservation } from '../interfaces/fhir.interfaces';
+import { VitalSign, Appointment } from '@workspace/db';
+import { FhirObservation } from '@/shared/modules/fhir/interfaces/fhir.interfaces';
 
-// Type alias for VitalSign with required relations
-type VitalWithRelations = VitalSign & {
-  appointment: Appointment & {
+type VitalWithRelations = Pick<
+  VitalSign,
+  | 'id'
+  | 'appointmentId'
+  | 'systolicBP'
+  | 'diastolicBP'
+  | 'pulse'
+  | 'temperature'
+  | 'spo2'
+  | 'respiratoryRate'
+  | 'height'
+  | 'weight'
+  | 'bmi'
+  | 'bloodGlucose'
+> & {
+  appointment: Pick<Appointment, 'patientId' | 'startTime'> & {
     patient: { firstName: string; lastName: string };
   };
 };
@@ -15,19 +28,15 @@ export class FhirObservationFactory {
     const observations: FhirObservation[] = [];
 
     for (const vital of vitals) {
-      const patientId = vital.appointment.patientId; // Wait, appointment has patientId, but type definition above assumed just patient object. Prisma includes patientId in appointment usually.
-      // Actually checking prisma schema, Appointment has patientId.
+      const patientId = vital.appointment.patientId;
 
       const patientRef = `Patient/${vital.appointment.patientId}`;
-      // Ideally caller passes vital loaded with appointment.patient.
-      // The original code used appointment.patientId.
 
       const effectiveDateTime = vital.appointment.startTime.toISOString();
       const patientDisplay = `${vital.appointment.patient.firstName} ${vital.appointment.patient.lastName}`;
       const encounterRef = `Encounter/${vital.appointmentId}`;
-      const subjectRef = `Patient/${vital.appointment.patientId}`; // Assuming appointment has patientId loaded.
+      const subjectRef = `Patient/${vital.appointment.patientId}`;
 
-      // Blood Pressure (as component observation)
       const systolicBP = vital.systolicBP;
       const diastolicBP = vital.diastolicBP;
 
@@ -100,7 +109,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Heart Rate
       if (vital.pulse) {
         observations.push({
           resourceType: 'Observation',
@@ -140,7 +148,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Temperature
       if (vital.temperature) {
         observations.push({
           resourceType: 'Observation',
@@ -180,7 +187,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // SpO2
       if (vital.spo2) {
         observations.push({
           resourceType: 'Observation',
@@ -220,7 +226,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Respiratory Rate
       if (vital.respiratoryRate) {
         observations.push({
           resourceType: 'Observation',
@@ -260,7 +265,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Height
       if (vital.height) {
         observations.push({
           resourceType: 'Observation',
@@ -300,7 +304,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Weight
       if (vital.weight) {
         observations.push({
           resourceType: 'Observation',
@@ -340,7 +343,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // BMI
       if (vital.bmi) {
         observations.push({
           resourceType: 'Observation',
@@ -380,7 +382,6 @@ export class FhirObservationFactory {
         });
       }
 
-      // Blood Glucose
       if (vital.bloodGlucose) {
         observations.push({
           resourceType: 'Observation',

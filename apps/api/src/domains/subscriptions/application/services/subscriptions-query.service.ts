@@ -4,8 +4,8 @@ import {
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
   IClinicOperations,
-} from '../ports';
-import { SubscriptionPricingService } from '../../core/services/subscription-pricing.service';
+} from '@/domains/subscriptions/application/ports';
+import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -19,7 +19,7 @@ import {
 import {
   Tier,
   FEATURE_TIER_MAP,
-} from '../../../../shared/modules/auth/auth/tier.decorator';
+} from '@/shared/modules/auth/auth/tier.decorator';
 
 @Injectable()
 export class SubscriptionsQueryService {
@@ -30,6 +30,25 @@ export class SubscriptionsQueryService {
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
   ) {}
+
+  private getTierData<T extends Record<string, unknown>>(
+    source: T,
+    key: string,
+  ): unknown {
+    return source[key as keyof T];
+  }
+
+  private getTierObject<T extends Record<string, unknown>>(
+    source: T,
+    key: string,
+  ): Record<string, unknown> {
+    const value = this.getTierData(source, key);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
 
   getTierConfig() {
     const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
@@ -46,19 +65,19 @@ export class SubscriptionsQueryService {
     return {
       tiers: tiers.map((tier) => ({
         id: tier,
-        tier: (Tier as Record<string, unknown>)[tier],
-        ...((TIER_INFO as Record<string, unknown>)[tier] as object),
-        pricing: (TIER_PRICING as Record<string, unknown>)[tier],
-        limits: (TIER_LIMITS as Record<string, unknown>)[tier],
-        features: (TIER_FEATURES as Record<string, unknown>)[tier] || [],
+        tier: this.getTierData(Tier, tier),
+        ...this.getTierObject(TIER_INFO, tier),
+        pricing: this.getTierData(TIER_PRICING, tier),
+        limits: this.getTierData(TIER_LIMITS, tier),
+        features: this.getTierData(TIER_FEATURES, tier) || [],
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
       intelligenceAddons: INTELLIGENCE_ADDONS,
       intelligenceBundleDiscount: INTELLIGENCE_BUNDLE_DISCOUNT,
       intelligenceInfo: {
-        ...((TIER_INFO as Record<string, unknown>)['INTELLIGENCE'] as object),
-        pricing: (TIER_PRICING as Record<string, unknown>)['INTELLIGENCE'],
+        ...this.getTierObject(TIER_INFO, 'INTELLIGENCE'),
+        pricing: this.getTierData(TIER_PRICING, 'INTELLIGENCE'),
         features: intelligenceFeatures,
       },
       addOns: [
@@ -66,7 +85,7 @@ export class SubscriptionsQueryService {
           id: 'INTELLIGENCE',
           name: 'Docita Intelligence',
           description: 'AI-powered clinical assistant add-on',
-          pricing: INTELLIGENCE_ADDON_PRICING as Record<string, unknown>,
+          pricing: INTELLIGENCE_ADDON_PRICING,
         },
       ],
     };

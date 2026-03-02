@@ -52,7 +52,7 @@ export function DashboardUI({
       <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
         <DashboardHeaderContainer />
 
-        {/* Doctor-Centric Dashboard Cards */}
+        {}
         <DoctorDashboardCards
           currentPatient={currentPatient}
           nextPatients={nextPatients}
@@ -62,7 +62,7 @@ export function DashboardUI({
             completed: completedToday,
             total: todayAppointments.length,
           }}
-          estimatedWaitTime={waitingCount * 15} // Assume 15 min per patient
+          estimatedWaitTime={waitingCount * 15} 
         />
 
         <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
@@ -73,7 +73,7 @@ export function DashboardUI({
           inProgressToday={inProgressToday}
         />
 
-        {/* Main Content */}
+        {}
         <div
           className={cn(
             "grid gap-4 sm:gap-6",
@@ -82,12 +82,12 @@ export function DashboardUI({
               : "lg:grid-cols-1",
           )}
         >
-          {/* Schedule Section */}
+          {}
           {canAccess(Feature.CALENDAR_SLOTS) && (
             <TodayScheduleUI appointments={todayAppointments} />
           )}
 
-          {/* Right Column */}
+          {}
           <div className="space-y-4 sm:space-y-6">
             <RecentPatientsUI patients={recentPatients} />
 

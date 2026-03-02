@@ -4,15 +4,16 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { SendTemplateDto } from './dto/send-template.dto';
-import { WhatsappLogStatus } from '@workspace/db';
+import { Prisma, WhatsappLogStatus } from '@workspace/db';
 
-/**
- * Handles generic template message sending and custom messaging
- */
+function toJsonValue(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
 @Injectable()
 export class TemplateMessageService {
   private readonly logger = new Logger(TemplateMessageService.name);
@@ -23,15 +24,11 @@ export class TemplateMessageService {
     private readonly whatsappClient: WhatsappClientService,
   ) {}
 
-  /**
-   * Handle sending a template message (Business Logic)
-   */
   async handleSendTemplate(
     clinicId: string,
     userId: string,
     dto: SendTemplateDto,
   ) {
-    // Get clinic info for the template
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },
       select: { id: true, name: true },
@@ -41,13 +38,11 @@ export class TemplateMessageService {
       throw new NotFoundException('Clinic not found');
     }
 
-    // Add clinic name to variables
     const variables = {
       ...dto.variables,
       clinicName: clinic.name,
     };
 
-    // Resolve template with variables
     const resolved = await this.templatesService.resolveTemplate(
       dto.templateId,
       variables,
@@ -58,16 +53,13 @@ export class TemplateMessageService {
       throw new BadRequestException(`Template not found: ${dto.templateId}`);
     }
 
-    // Get the message to send based on mode (sandbox vs production)
     const message = this.templatesService.getMessageForMode(resolved);
 
-    // Send via WhatsApp Client
     const result = await this.whatsappClient.sendMessage({
       to: dto.phoneNumber,
       message,
     });
 
-    // Log the message
     await this.prisma.whatsappLog.create({
       data: {
         clinicId: clinicId,
@@ -79,7 +71,7 @@ export class TemplateMessageService {
         message,
         status: WhatsappLogStatus.SENT,
         providerMessageId: result.messageId,
-        requestBody: dto as any,
+        requestBody: toJsonValue(dto),
       },
     });
 

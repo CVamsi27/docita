@@ -19,7 +19,10 @@ export function InventoryItemDetailsContainer({
   onOpenChange,
 }: InventoryItemDetailsContainerProps) {
   const { data: rawItem, isLoading } = useInventoryItem(itemId || "");
-  const rawData = rawItem as Record<string, unknown> | null | undefined;
+  const rawData =
+    rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)
+      ? Object.fromEntries(Object.entries(rawItem))
+      : null;
 
   const item: InventoryItem | null = rawData
     ? {

@@ -1,15 +1,15 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
-import { ApiRequestInput } from '../schemas/monitoring.schema';
-import { MonitoringFactory } from '../factories/monitoring.factory';
+import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
+import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 
 @Injectable()
 export class RequestLogService implements OnModuleDestroy {
   private readonly logger = new Logger(RequestLogService.name);
   private requestBuffer: ApiRequestInput[] = [];
   private readonly BATCH_SIZE = 100;
-  private readonly FLUSH_INTERVAL = 5000; // 5 seconds
+  private readonly FLUSH_INTERVAL = 5000;
   private flushTimer: NodeJS.Timeout | null = null;
 
   constructor(
@@ -75,7 +75,6 @@ export class RequestLogService implements OnModuleDestroy {
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
       this.logger.error('Failed to write requests to database', error);
-      // Re-add failed requests to buffer? For now, we drop them to avoid memory leaks if DB is down
     }
   }
 
@@ -135,7 +134,6 @@ export class RequestLogService implements OnModuleDestroy {
       }),
     ]);
 
-    // Get requests by hour of day
     const requestsRaw = await this.prisma.apiRequest.findMany({
       where,
       select: { createdAt: true },

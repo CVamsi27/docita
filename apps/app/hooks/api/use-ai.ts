@@ -1,4 +1,4 @@
-import { useAPIMutation } from "../../lib/api-core";
+import { useAPIMutation } from "@/lib/api-core";
 
 export const useAIPrescriptionAnalysis = () =>
   useAPIMutation<

@@ -11,17 +11,18 @@ import {
   UsePipes,
   NotFoundException,
 } from '@nestjs/common';
-import { TemplatesService } from '../../application/services/templates.service';
+import { TemplatesService } from '@/domains/documents/application/services/templates.service';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import {
   CreateTemplateSchema,
   UpdateTemplateSchema,
   CreateTemplateDto,
   UpdateTemplateDto,
-} from '../../application/dto/templates.dto';
-import { RequestWithUser } from '../../../../common/types/common.types';
+  ListTemplatesQueryDto,
+} from '@/domains/documents/application/dto/templates.dto';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('templates')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -46,9 +47,9 @@ export class TemplatesController {
   @Get()
   findAll(
     @Request() req: RequestWithUser,
-    @Query('search') search?: string,
-    @Query('speciality') speciality?: string,
+    @Query() query?: ListTemplatesQueryDto,
   ) {
+    const { search, speciality } = query ?? {};
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
     }

@@ -1,8 +1,8 @@
 "use client";
 
-import { AddPatientDialog, EditPatientDialog } from "../forms/PatientDialogs";
+import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
 
-import { usePatientsLogic } from "../../hooks/use-patients-logic";
+import { usePatientsLogic } from "@/features/patients/hooks/use-patients-logic";
 import { PatientsPageUI } from "./PatientsPageUI";
 
 export function PatientsPageContainer() {

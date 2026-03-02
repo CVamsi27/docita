@@ -60,15 +60,12 @@ describe("Shared Business Rules", () => {
       const birthDate = new Date(today);
       birthDate.setFullYear(today.getFullYear() - 20);
 
-      // Birthday is today
       expect(medicalRules.calculateAge(birthDate)).toBe(20);
 
-      // Birthday was yesterday
       const yesterdayBirth = new Date(birthDate);
       yesterdayBirth.setDate(birthDate.getDate() - 1);
       expect(medicalRules.calculateAge(yesterdayBirth)).toBe(20);
 
-      // Birthday is tomorrow (should be 19)
       const tomorrowBirth = new Date(birthDate);
       tomorrowBirth.setDate(birthDate.getDate() + 1);
       expect(medicalRules.calculateAge(tomorrowBirth)).toBe(19);

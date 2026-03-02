@@ -4,21 +4,18 @@ import {
   PatientCondition,
 } from "@workspace/types";
 
-/**
- * Absolute and relative contraindications mapped by medication
- */
 export const MEDICATION_CONTRAINDICATIONS: Record<
   string,
   {
     absoluteConditions?: string[];
     relativeConditions?: string[];
-    allergyGroups?: string[]; // e.g., "penicillins", "sulfonamides"
+    allergyGroups?: string[]; 
     pregnancyContraindicated?: boolean;
     renalContraindicated?: boolean;
     hepaticContraindicated?: boolean;
   }
 > = {
-  // NSAIDs
+
   ibuprofen: {
     absoluteConditions: [
       "active peptic ulcer",
@@ -39,7 +36,6 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     allergyGroups: ["nsaids"],
   },
 
-  // ACE Inhibitors
   lisinopril: {
     absoluteConditions: ["angioedema history"],
     relativeConditions: ["hyperkalemia", "bilateral renal artery stenosis"],
@@ -51,7 +47,6 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     pregnancyContraindicated: true,
   },
 
-  // Beta Blockers
   metoprolol: {
     absoluteConditions: [
       "uncontrolled asthma",
@@ -65,7 +60,6 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     relativeConditions: ["diabetes", "peripheral arterial disease"],
   },
 
-  // Statins
   atorvastatin: {
     relativeConditions: ["liver disease", "muscle disorders"],
     pregnancyContraindicated: true,
@@ -75,26 +69,22 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     pregnancyContraindicated: true,
   },
 
-  // Anticoagulants
   warfarin: {
     absoluteConditions: ["active bleeding", "thrombocytopenia"],
     relativeConditions: ["peptic ulcer disease", "recent trauma"],
     pregnancyContraindicated: true,
   },
 
-  // PPIs
   omeprazole: {
     relativeConditions: ["prolonged use"],
   },
 
-  // Metformin
   metformin: {
     absoluteConditions: ["severe renal disease"],
     relativeConditions: ["moderate chronic kidney disease", "heart failure"],
-    pregnancyContraindicated: false, // Generally safe
+    pregnancyContraindicated: false, 
   },
 
-  // Fluoroquinolones
   ciprofloxacin: {
     relativeConditions: ["myasthenia gravis", "qT prolongation"],
   },
@@ -102,7 +92,6 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     relativeConditions: ["myasthenia gravis", "qT prolongation"],
   },
 
-  // Antihistamines
   diphenhydramine: {
     relativeConditions: [
       "glaucoma",
@@ -111,14 +100,12 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     ],
   },
 
-  // Aspirin
   aspirin: {
     absoluteConditions: ["active bleeding", "severe thrombocytopenia"],
     pregnancyContraindicated: true,
     allergyGroups: ["salicylates"],
   },
 
-  // Antibiotics
   amoxicillin: {
     allergyGroups: ["penicillins", "beta-lactams"],
     relativeConditions: ["infectious mononucleosis"],
@@ -127,21 +114,16 @@ export const MEDICATION_CONTRAINDICATIONS: Record<
     relativeConditions: ["qT prolongation", "myasthenia gravis"],
   },
 
-  // Theophylline
   theophylline: {
     relativeConditions: ["cardiac arrhythmias", "uncontrolled hypertension"],
   },
 
-  // Opioids
   morphine: {
     absoluteConditions: ["respiratory depression", "ileus"],
     relativeConditions: ["copd", "sleep apnea", "liver disease"],
   },
 };
 
-/**
- * Drug-drug interaction contraindications (absolute conflicts)
- */
 export const MAJOR_DRUG_INTERACTIONS: Array<{
   drug1: string;
   drug2: string;
@@ -183,9 +165,6 @@ export const MAJOR_DRUG_INTERACTIONS: Array<{
   },
 ];
 
-/**
- * Allergy groups that share cross-reactivity
- */
 export const ALLERGY_GROUPS: Record<string, string[]> = {
   penicillins: [
     "amoxicillin",
@@ -224,9 +203,6 @@ function medicationInGroup(medication: string, group: string[]): boolean {
   return group.some((med) => normalized.includes(normalizeText(med)));
 }
 
-/**
- * Check if medication is contraindicated based on patient conditions
- */
 export function checkConditionContraindications(
   medication: string,
   patientConditions: PatientCondition[],
@@ -237,13 +213,12 @@ export function checkConditionContraindications(
   );
 
   if (!contraindications) {
-    return null; // No known contraindications
+    return null; 
   }
 
   const [, rules] = contraindications;
   const conditionNames = patientConditions.map((c) => normalizeText(c.name));
 
-  // Check absolute contraindications
   if (rules.absoluteConditions) {
     for (const condition of rules.absoluteConditions) {
       if (
@@ -264,7 +239,6 @@ export function checkConditionContraindications(
     }
   }
 
-  // Check relative contraindications
   if (rules.relativeConditions) {
     for (const condition of rules.relativeConditions) {
       if (
@@ -288,16 +262,12 @@ export function checkConditionContraindications(
   return null;
 }
 
-/**
- * Check if medication causes allergic reaction
- */
 export function checkAllergyContraindications(
   medication: string,
   patientAllergies: Allergy[],
 ): ContraindicationCheck | null {
   const normalizedMed = normalizeText(medication);
 
-  // Direct medication allergy
   if (
     patientAllergies.some(
       (allergy) =>
@@ -321,15 +291,14 @@ export function checkAllergyContraindications(
     };
   }
 
-  // Cross-reactivity with allergy groups
   for (const [groupName, medications] of Object.entries(ALLERGY_GROUPS)) {
-    // Check if patient allergic to this group
+
     const allergyInGroup = patientAllergies.some((allergy) =>
       medicationInGroup(allergy.name, [...medications, groupName]),
     );
 
     if (allergyInGroup) {
-      // Check if prescribed med is in same group
+
       if (medicationInGroup(medication, medications)) {
         return {
           isContraindicated: true,
@@ -345,9 +314,6 @@ export function checkAllergyContraindications(
   return null;
 }
 
-/**
- * Check for major drug-drug interactions
- */
 export function checkDrugDrugContraindications(
   medication: string,
   currentMedications: string[],
@@ -357,12 +323,10 @@ export function checkDrugDrugContraindications(
   for (const currentMed of currentMedications) {
     const normalizedCurrent = normalizeText(currentMed);
 
-    // Check each major interaction
     for (const interaction of MAJOR_DRUG_INTERACTIONS) {
       const drug1 = normalizeText(interaction.drug1);
       const drug2 = normalizeText(interaction.drug2);
 
-      // Match both directions
       const match =
         (normalizedNew.includes(drug1) && normalizedCurrent.includes(drug2)) ||
         (normalizedNew.includes(drug2) && normalizedCurrent.includes(drug1));
@@ -387,9 +351,6 @@ export function checkDrugDrugContraindications(
   return null;
 }
 
-/**
- * Comprehensive contraindication check
- */
 export function checkMedicationContraindications(
   medication: string,
   patientData: {
@@ -403,7 +364,6 @@ export function checkMedicationContraindications(
 ): ContraindicationCheck[] {
   const contraindications: ContraindicationCheck[] = [];
 
-  // Check conditions
   if (patientData.conditions) {
     const condCheck = checkConditionContraindications(
       medication,
@@ -412,7 +372,6 @@ export function checkMedicationContraindications(
     if (condCheck) contraindications.push(condCheck);
   }
 
-  // Check allergies
   if (patientData.allergies) {
     const allergyCheck = checkAllergyContraindications(
       medication,
@@ -421,7 +380,6 @@ export function checkMedicationContraindications(
     if (allergyCheck) contraindications.push(allergyCheck);
   }
 
-  // Check drug-drug interactions
   if (patientData.currentMedications) {
     const drugCheck = checkDrugDrugContraindications(
       medication,
@@ -430,7 +388,6 @@ export function checkMedicationContraindications(
     if (drugCheck) contraindications.push(drugCheck);
   }
 
-  // Check pregnancy
   if (patientData.isPregnant) {
     const rules = Object.entries(MEDICATION_CONTRAINDICATIONS).find(([key]) =>
       normalizeText(medication).includes(normalizeText(key)),

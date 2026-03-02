@@ -1,27 +1,20 @@
-/**
- * Clinic Feature Service
- * Following Open/Closed Principle - easily extend with new clinic types
- * without modifying existing code
- */
+
 
 import type { ClinicType } from "@workspace/types";
 
-// Specialty sections configuration
 export interface SpecialtySection {
   id: string;
   label: string;
-  icon: string; // Icon name from lucide-react
+  icon: string; 
   description?: string;
 }
 
-// Preset tags for each clinic type
 export interface PresetTag {
   tag: string;
   color: string;
   category?: string;
 }
 
-// Clinic feature configuration
 export interface ClinicFeatureConfig {
   specialtySections: SpecialtySection[];
   presetTags: PresetTag[];
@@ -31,7 +24,6 @@ export interface ClinicFeatureConfig {
   supportsVisionExam: boolean;
 }
 
-// Base preset tags common to all clinics
 const BASE_PRESET_TAGS: PresetTag[] = [
   { tag: "Chronic", category: "Priority", color: "#ef4444" },
   { tag: "Follow-up", category: "Status", color: "#3b82f6" },
@@ -39,7 +31,6 @@ const BASE_PRESET_TAGS: PresetTag[] = [
   { tag: "Urgent", category: "Priority", color: "#f59e0b" },
 ];
 
-// Standard medication routes grouped by category
 export interface MedicationRoute {
   value: string;
   label: string;
@@ -47,28 +38,27 @@ export interface MedicationRoute {
 }
 
 const MEDICATION_ROUTES: MedicationRoute[] = [
-  // Oral routes
+
   { value: "ORAL", label: "Oral (PO)", category: "Oral" },
   { value: "SL", label: "Sublingual (SL)", category: "Oral" },
-  // Injectable routes
+
   { value: "IV", label: "Intravenous (IV)", category: "Injectable" },
   { value: "IM", label: "Intramuscular (IM)", category: "Injectable" },
   { value: "SC", label: "Subcutaneous (SC)", category: "Injectable" },
-  // Topical routes
+
   { value: "TOPICAL", label: "Topical", category: "Topical" },
   { value: "TRANSDERMAL", label: "Transdermal (Patch)", category: "Topical" },
   { value: "OPHTHALMIC", label: "Ophthalmic (Eye)", category: "Topical" },
   { value: "OTIC", label: "Otic (Ear)", category: "Topical" },
-  // Respiratory routes
+
   { value: "INHALED", label: "Inhaled", category: "Respiratory" },
   { value: "NEBULIZED", label: "Nebulized", category: "Respiratory" },
   { value: "NASAL", label: "Nasal", category: "Respiratory" },
-  // Other routes
+
   { value: "RECTAL", label: "Rectal (PR)", category: "Other" },
   { value: "OTHER", label: "Other", category: "Other" },
 ];
 
-// Clinic-specific default routes (prioritized for each clinic type)
 const CLINIC_DEFAULT_ROUTES: Record<string, string[]> = {
   GENERAL: ["ORAL", "IV", "IM", "TOPICAL"],
   DENTAL: ["TOPICAL", "ORAL", "IV", "IM"],
@@ -83,7 +73,6 @@ const CLINIC_DEFAULT_ROUTES: Record<string, string[]> = {
   SPECIALTY: ["ORAL", "IV", "IM", "TOPICAL"],
 };
 
-// Clinic-specific configurations - Only valid ClinicType values
 const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
   GENERAL: {
     specialtySections: [],
@@ -295,37 +284,25 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
   },
 };
 
-/**
- * Clinic Feature Service
- * Get configuration based on clinic type
- */
 export const ClinicFeatureService = {
-  /**
-   * Get full configuration for a clinic type
-   */
+  
   getConfig(clinicType: ClinicType | undefined): ClinicFeatureConfig {
     return CLINIC_CONFIGS[clinicType || "GENERAL"] || CLINIC_CONFIGS.GENERAL;
   },
 
-  /**
-   * Get preset tags for a clinic type
-   */
+  
   getPresetTags(clinicType: ClinicType | undefined): PresetTag[] {
     const config = this.getConfig(clinicType);
     return config.presetTags;
   },
 
-  /**
-   * Get specialty sections for a clinic type
-   */
+  
   getSpecialtySections(clinicType: ClinicType | undefined): SpecialtySection[] {
     const config = this.getConfig(clinicType);
     return config.specialtySections;
   },
 
-  /**
-   * Check if clinic type supports a specific feature
-   */
+  
   supportsFeature(
     clinicType: ClinicType | undefined,
     feature: "growthChart" | "dentalChart" | "visionExam",
@@ -343,22 +320,17 @@ export const ClinicFeatureService = {
     }
   },
 
-  /**
-   * Get all supported clinic types
-   */
+  
   getAllClinicTypes(): ClinicType[] {
     return Object.keys(CLINIC_CONFIGS) as ClinicType[];
   },
 
-  /**
-   * Get medication routes for a clinic type (prioritized)
-   */
+  
   getMedicationRoutes(clinicType: ClinicType | undefined): MedicationRoute[] {
     const defaultRoutes =
       CLINIC_DEFAULT_ROUTES[clinicType || "GENERAL"] ||
       CLINIC_DEFAULT_ROUTES.GENERAL;
 
-    // Sort routes: prioritized ones first, then rest
     return [...MEDICATION_ROUTES].sort((a, b) => {
       const aIndex = defaultRoutes.indexOf(a.value);
       const bIndex = defaultRoutes.indexOf(b.value);
@@ -370,9 +342,7 @@ export const ClinicFeatureService = {
     });
   },
 
-  /**
-   * Get medication routes grouped by category
-   */
+  
   getMedicationRoutesGrouped(
     clinicType: ClinicType | undefined,
   ): Record<string, MedicationRoute[]> {
@@ -389,9 +359,7 @@ export const ClinicFeatureService = {
     return grouped;
   },
 
-  /**
-   * Get preset tags grouped by category
-   */
+  
   getCategorizedTags(
     clinicType: ClinicType | undefined,
   ): Record<string, PresetTag[]> {

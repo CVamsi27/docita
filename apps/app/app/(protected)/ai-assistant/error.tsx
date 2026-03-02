@@ -13,7 +13,7 @@ export default function AIAssistantError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("AI Assistant route error:", error);
+
   }, [error]);
 
   return (

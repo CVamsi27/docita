@@ -1,6 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppointmentStatus } from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppointmentStatus, Prisma } from '@workspace/db';
+
+function toNullableJsonInput(
+  value: Prisma.JsonValue | null,
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  if (value === null) {
+    return Prisma.JsonNull;
+  }
+
+  return value;
+}
 
 @Injectable()
 export class ArchivalService {
@@ -8,9 +18,6 @@ export class ArchivalService {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Move old AuditLogs to AuditLogArchive
-   */
   async archiveAuditLogs(daysOld = 90): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
@@ -31,7 +38,6 @@ export class ArchivalService {
       if (records.length === 0) break;
 
       await this.prisma.$transaction(async (tx) => {
-        // Mirror the data - omitting relations as defined in schema
         await tx.auditLogArchive.createMany({
           data: records.map((record) => ({
             id: record.id,
@@ -40,13 +46,13 @@ export class ArchivalService {
             action: record.action,
             entityType: record.entityType,
             entityId: record.entityId,
-            oldValue: record.oldValue as any,
-            newValue: record.newValue as any,
+            oldValue: toNullableJsonInput(record.oldValue),
+            newValue: toNullableJsonInput(record.newValue),
             ipAddress: record.ipAddress,
             userAgent: record.userAgent,
             status: record.status,
             errorMessage: record.errorMessage,
-            metadata: record.metadata as any,
+            metadata: toNullableJsonInput(record.metadata),
             createdAt: record.createdAt,
             archivedAt: new Date(),
           })),
@@ -65,9 +71,6 @@ export class ArchivalService {
     return totalArchived;
   }
 
-  /**
-   * Move old WhatsappLogs to WhatsappLogArchive
-   */
   async archiveWhatsappLogs(daysOld = 180): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
@@ -102,8 +105,8 @@ export class ArchivalService {
             phoneNumber: record.phoneNumber,
             message: record.message,
             status: record.status,
-            requestBody: record.requestBody as any,
-            responseBody: record.responseBody as any,
+            requestBody: toNullableJsonInput(record.requestBody),
+            responseBody: toNullableJsonInput(record.responseBody),
             errorMessage: record.errorMessage,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
@@ -125,9 +128,6 @@ export class ArchivalService {
     return totalArchived;
   }
 
-  /**
-   * Move old stable Appointments to AppointmentArchive
-   */
   async archiveAppointments(yearsOld = 2): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setFullYear(cutoffDate.getFullYear() - yearsOld);
@@ -140,7 +140,6 @@ export class ArchivalService {
     const batchSize = 200;
 
     while (true) {
-      // Only archive COMPLETED or CANCELLED appointments that are ancient
       const records = await this.prisma.appointment.findMany({
         where: {
           startTime: { lt: cutoffDate },
@@ -175,21 +174,23 @@ export class ArchivalService {
             differentialDiagnosis: record.differentialDiagnosis,
             finalDiagnosis: record.finalDiagnosis,
             followUpPlan: record.followUpPlan,
-            generalExamination: record.generalExamination as any,
+            generalExamination: toNullableJsonInput(record.generalExamination),
             historyOfPresentIllness: record.historyOfPresentIllness,
-            investigations: record.investigations as any,
+            investigations: toNullableJsonInput(record.investigations),
             pastMedicalHistory: record.pastMedicalHistory,
             provisionalDiagnosis: record.provisionalDiagnosis,
             reviewOfSystems: record.reviewOfSystems,
-            systemicExamination: record.systemicExamination as any,
+            systemicExamination: toNullableJsonInput(
+              record.systemicExamination,
+            ),
             treatmentPlan: record.treatmentPlan,
-            dentalChart: record.dentalChart as any,
-            growthData: record.growthData as any,
-            ophthalmologyExam: record.ophthalmologyExam as any,
-            cardiologyExam: record.cardiologyExam as any,
-            gynecologyExam: record.gynecologyExam as any,
-            dermatologyExam: record.dermatologyExam as any,
-            psychiatryExam: record.psychiatryExam as any,
+            dentalChart: toNullableJsonInput(record.dentalChart),
+            growthData: toNullableJsonInput(record.growthData),
+            ophthalmologyExam: toNullableJsonInput(record.ophthalmologyExam),
+            cardiologyExam: toNullableJsonInput(record.cardiologyExam),
+            gynecologyExam: toNullableJsonInput(record.gynecologyExam),
+            dermatologyExam: toNullableJsonInput(record.dermatologyExam),
+            psychiatryExam: toNullableJsonInput(record.psychiatryExam),
             encounterSummary: record.encounterSummary,
             priority: record.priority,
             archivedAt: new Date(),
@@ -197,9 +198,6 @@ export class ArchivalService {
           skipDuplicates: true,
         });
 
-        // NOTE: Relations like VitalSign, Prescription, etc. might still point to this ID.
-        // In a true archival system, those should also be archived or the FK should be set to NULL.
-        // For Phase 1, we focus on log tables and root appointment records.
         await tx.appointment.deleteMany({
           where: { id: { in: records.map((r) => r.id) } },
         });

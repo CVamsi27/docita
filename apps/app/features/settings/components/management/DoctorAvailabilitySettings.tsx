@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   useBulkDoctorSchedules,
   useDoctorSchedules,
-  useUpdateDoctorSchedule,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import {
@@ -17,11 +16,10 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Calendar } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 
 export function DoctorAvailabilitySettings() {
   const { data: schedules, isLoading } = useDoctorSchedules("me");
-  useUpdateDoctorSchedule("dummy"); 
   const { mutate: bulkCreateSchedules, isPending: isSaving } =
     useBulkDoctorSchedules();
 
@@ -70,14 +68,20 @@ export function DoctorAvailabilitySettings() {
     );
   };
 
-  if (isLoading) return <div>Loading availability...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-blue-600" />
+            <Calendar className="h-5 w-5 text-info" />
             <div>
               <CardTitle>Doctor Availability</CardTitle>
               <CardDescription>

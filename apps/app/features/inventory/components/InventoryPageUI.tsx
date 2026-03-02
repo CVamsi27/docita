@@ -20,7 +20,7 @@ import {
   RefreshCw,
   TrendingDown,
 } from "lucide-react";
-import { useInventoryLogic } from "../hooks/use-inventory-logic";
+import { useInventoryLogic } from "@/features/inventory/hooks/use-inventory-logic";
 import { InventoryTable } from "./sections/list/InventoryTable";
 import { InventoryFilters } from "./sections/list/InventoryFilters";
 
@@ -59,7 +59,7 @@ export const InventoryPageUI: FC = () => {
       }
     >
       <div className="flex flex-col gap-6 p-4 md:p-6 container mx-auto">
-        {/* Header */}
+        {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
@@ -84,7 +84,7 @@ export const InventoryPageUI: FC = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -111,10 +111,10 @@ export const InventoryPageUI: FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-              <TrendingDown className="h-4 w-4 text-orange-500" />
+              <TrendingDown className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">
+              <div className="text-2xl font-bold text-warning">
                 {stats?.lowStock ?? 0}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -125,10 +125,10 @@ export const InventoryPageUI: FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Alerts</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-500">
+              <div className="text-2xl font-bold text-destructive">
                 {stats?.critical ?? 0}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -138,7 +138,7 @@ export const InventoryPageUI: FC = () => {
           </Card>
         </div>
 
-        {/* Search and Filter */}
+        {}
         <InventoryFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -149,7 +149,7 @@ export const InventoryPageUI: FC = () => {
           uniqueCategories={uniqueCategories}
         />
 
-        {/* Inventory Table */}
+        {}
         <InventoryTable
           items={filteredInventory}
           isLoading={isLoading}

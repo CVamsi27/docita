@@ -1,9 +1,4 @@
-/**
- * Invoice Repository Port (Interface)
- * Defines contract for invoice persistence
- */
-
-import { Invoice } from '../../core/entities/invoice.entity';
+import { Invoice } from '@/domains/billing/core/entities/invoice.entity';
 
 export interface IInvoiceRepository {
   save(invoice: Invoice): Promise<void>;

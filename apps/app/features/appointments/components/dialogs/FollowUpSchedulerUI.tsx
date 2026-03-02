@@ -24,9 +24,9 @@ import {
 import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@workspace/ui/lib/utils";
-import { FollowUpForm } from "../sections/follow-up/FollowUpForm";
-import { QuickScheduleButtons } from "../sections/follow-up/QuickScheduleButtons";
-import { FollowUpSummary } from "../sections/follow-up/FollowUpSummary";
+import { FollowUpForm } from "@/features/appointments/components/sections/follow-up/FollowUpForm";
+import { QuickScheduleButtons } from "@/features/appointments/components/sections/follow-up/QuickScheduleButtons";
+import { FollowUpSummary } from "@/features/appointments/components/sections/follow-up/FollowUpSummary";
 
 export interface FollowUpDetails {
   date: Date;
@@ -122,7 +122,7 @@ export function FollowUpSchedulerUI({
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          {/* Quick Schedule Buttons */}
+          {}
           <QuickScheduleButtons
             quickSchedules={quickSchedules}
             onQuickSchedule={onQuickSchedule}
@@ -130,7 +130,7 @@ export function FollowUpSchedulerUI({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Date Picker */}
+            {}
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -161,7 +161,7 @@ export function FollowUpSchedulerUI({
                 </PopoverContent>
               </Popover>
             </div>
-            {/* Extracted Form Component */}
+            {}
             <FollowUpForm
               followUpType={followUpType}
               onTypeChange={onTypeChange}
@@ -180,7 +180,7 @@ export function FollowUpSchedulerUI({
             />
           </div>
 
-          {/* Summary */}
+          {}
           {selectedDate && (
             <FollowUpSummary
               selectedDate={selectedDate}

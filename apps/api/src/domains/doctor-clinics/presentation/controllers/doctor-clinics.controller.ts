@@ -9,29 +9,26 @@ import {
   ForbiddenException,
   Request,
 } from '@nestjs/common';
-import { DoctorClinicsService } from '../../application/services/doctor-clinics.service';
+import { DoctorClinicsService } from '@/domains/doctor-clinics/application/services/doctor-clinics.service';
 import {
   AssignDoctorDto,
   RemoveDoctorDto,
   UpdateRoleDto,
   DoctorClinicResponseDto,
   DoctorClinicListResponseDto,
-} from '../../dto/doctor-clinics.dto';
+} from '@/domains/doctor-clinics/dto/doctor-clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('doctor-clinics')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
 export class DoctorClinicsController {
   constructor(private readonly doctorClinicsService: DoctorClinicsService) {}
 
   private verifyClinicAccess(req: RequestWithUser, clinicId: string): void {
-    if (
-      req.user!.role !== Role.SUPER_ADMIN &&
-      req.user!.clinicId !== clinicId
-    ) {
+    if (req.user!.clinicId !== clinicId) {
       throw new ForbiddenException(
         'Cannot manage doctor-clinic assignments for another clinic',
       );

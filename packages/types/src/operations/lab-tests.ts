@@ -27,7 +27,7 @@ export const labTestOrderSchema = z.object({
   appointmentId: z.string().nullable().optional(),
   labTestId: z.string(),
   status: z.string(),
-  result: z.unknown().nullable().optional(), // Json
+  result: z.unknown().nullable().optional(), 
   resultUrl: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   orderedBy: z.string(),
@@ -37,7 +37,7 @@ export const labTestOrderSchema = z.object({
   updatedAt: z.date().or(z.string()),
   labTest: labTestSchema.optional(),
   doctor: z.object({ name: z.string() }).optional(),
-  // We can include patient here if needed, consistent with other schemas
+
   patient: z
     .object({
       id: z.string(),

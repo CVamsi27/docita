@@ -3,7 +3,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function backfillPaymentRetries() {
-  console.log('Starting payment retries backfill...');
 
   try {
     const unpaidInvoices = await prisma.invoice.findMany({
@@ -12,7 +11,7 @@ async function backfillPaymentRetries() {
     });
 
     if (unpaidInvoices.length === 0) {
-      console.log('No unpaid invoices found. Skipping backfill.');
+
       return;
     }
 
@@ -45,14 +44,11 @@ async function backfillPaymentRetries() {
       });
 
       totalInserted += result.count;
-      console.log(
-        `Invoice ${invoice.id}: Inserted ${result.count} retry records`,
-      );
+      
     }
 
-    console.log(`Backfill Complete: ${totalInserted} total payment retries`);
   } catch (error) {
-    console.error('Backfill failed:', error);
+
     throw error;
   } finally {
     await prisma.$disconnect();

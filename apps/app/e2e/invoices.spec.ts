@@ -10,7 +10,7 @@ test.describe("Invoices", () => {
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-      // Register doctor
+
       const email = `doctor${Date.now()}@test.com`;
       const password = "Test@123456";
       const registerRes = await request.post(`${API_URL}/auth/register`, {
@@ -25,7 +25,7 @@ test.describe("Invoices", () => {
       });
 
       if (!registerRes.ok()) {
-        console.log("Doctor registration failed");
+
         invoiceEndpointAvailable = false;
         return;
       }
@@ -34,7 +34,6 @@ test.describe("Invoices", () => {
       authToken = userData.access_token;
       const doctorId = userData.user?.id || userData.id;
 
-      // Create clinic
       const clinicRes = await request.post(`${API_URL}/clinics`, {
         headers: { Authorization: `Bearer ${authToken}` },
         data: {
@@ -46,7 +45,7 @@ test.describe("Invoices", () => {
       });
 
       if (!clinicRes.ok()) {
-        console.log("Clinic creation failed");
+
         invoiceEndpointAvailable = false;
         return;
       }
@@ -54,7 +53,6 @@ test.describe("Invoices", () => {
       const clinic = await clinicRes.json();
       _clinicId = clinic.id;
 
-      // Try to assign doctor to clinic
       if (doctorId && clinic.id) {
         const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -66,9 +64,9 @@ test.describe("Invoices", () => {
         });
 
         if (!assignRes.ok()) {
-          console.log("Doctor-clinic assignment failed, will try without it");
+
         } else {
-          // Re-login to refresh token so clinicId is reflected in JWT
+
           const loginRes = await request.post(`${API_URL}/auth/login`, {
             data: { email, password },
           });
@@ -76,20 +74,15 @@ test.describe("Invoices", () => {
             const loginData = await loginRes.json();
             authToken = loginData.access_token;
           } else {
-            console.log(
-              "Re-login after assignment failed:",
-              await loginRes.text(),
-            );
+            
           }
         }
       }
 
-      // Test if invoices endpoint works without patient ID
       const testRes = await request.get(`${API_URL}/invoices`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      // Create a patient for invoice tests
       const patientRes = await request.post(`${API_URL}/patients`, {
         headers: { Authorization: `Bearer ${authToken}` },
         data: {
@@ -107,13 +100,10 @@ test.describe("Invoices", () => {
 
       invoiceEndpointAvailable = testRes.ok();
       if (!invoiceEndpointAvailable) {
-        console.log(
-          "Invoices endpoint test failed with status:",
-          testRes.status(),
-        );
+        
       }
     } catch (error) {
-      console.log("Setup error:", error);
+
       invoiceEndpointAvailable = false;
     }
   });
@@ -140,11 +130,7 @@ test.describe("Invoices", () => {
     });
 
     if (!invoiceRes.ok()) {
-      console.log(
-        "Invoice creation failed:",
-        invoiceRes.status(),
-        await invoiceRes.text(),
-      );
+      
       test.skip();
     }
 
@@ -165,12 +151,12 @@ test.describe("Invoices", () => {
     });
 
     if (!invoiceList.ok()) {
-      console.log("Invoice list fetch failed:", invoiceList.status());
+
       test.skip();
     }
 
     const invoices = await invoiceList.json();
-    // API now returns paginated response: { items, nextCursor, hasMore, count }
+
     expect(
       invoices && (Array.isArray(invoices.items) || Array.isArray(invoices)),
     ).toBeTruthy();
@@ -181,7 +167,6 @@ test.describe("Invoices", () => {
       test.skip();
     }
 
-    // Create invoice first
     const createRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
@@ -199,22 +184,18 @@ test.describe("Invoices", () => {
     });
 
     if (!createRes.ok()) {
-      console.log(
-        "Invoice creation failed for fetch test:",
-        createRes.status(),
-      );
+      
       test.skip();
     }
 
     const invoice = await createRes.json();
 
-    // Fetch the invoice
     const fetchRes = await request.get(`${API_URL}/invoices/${invoice.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
 
     if (!fetchRes.ok()) {
-      console.log("Invoice fetch failed:", fetchRes.status());
+
       test.skip();
     }
 
@@ -227,7 +208,6 @@ test.describe("Invoices", () => {
       test.skip();
     }
 
-    // Create invoice
     const createRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
@@ -246,7 +226,6 @@ test.describe("Invoices", () => {
 
     const invoice = await createRes.json();
 
-    // Update invoice
     const updateRes = await request.patch(`${API_URL}/invoices/${invoice.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {

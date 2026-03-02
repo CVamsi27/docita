@@ -2,7 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
-} from '../ports/whatsapp.repository.port';
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 
 @Injectable()
 export class WhatsAppQueryService {

@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OnboardingService } from './onboarding.service';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { AuthService } from '../../../../../shared/modules/auth/auth/auth.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import {
   OnboardingStep,
   ClinicTier,
   BillingCycle,
-} from '../../dto/onboarding/create-clinic-onboarding.dto';
+} from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
@@ -23,6 +23,7 @@ describe('OnboardingService', () => {
   let complianceService: OnboardingComplianceService;
 
   const mockPrismaService = {
+    runUnrestricted: jest.fn((callback) => callback()),
     $transaction: jest.fn((callback) => callback(mockPrismaService)),
     clinic: {
       findFirst: jest.fn(),
@@ -54,7 +55,7 @@ describe('OnboardingService', () => {
   const mockAuthService = {
     login: jest.fn(),
   };
-  const sessionStore = new Map<string, any>();
+  const sessionStore = new Map<string, Record<string, unknown>>();
   const mockDataService = {
     initializeOnboarding: jest.fn(() => {
       const onboardingId = `test_${Date.now()}`;
@@ -120,6 +121,8 @@ describe('OnboardingService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingService,
@@ -155,6 +158,7 @@ describe('OnboardingService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should be defined', () => {
@@ -166,7 +170,6 @@ describe('OnboardingService', () => {
       const result = service.initializeOnboarding();
       expect(result).toHaveProperty('onboardingId');
       expect(typeof result.onboardingId).toBe('string');
-      // Verify session is stored (implicitly via update check later or we can access private map if we really wanted to, but focusing on public API)
     });
   });
 
@@ -206,7 +209,7 @@ describe('OnboardingService', () => {
   });
 
   describe('completeOnboarding', () => {
-    const completeData: any = {
+    const completeData = {
       clinicDetails: {
         name: 'Test Clinic',
         email: 'test@clinic.com',
@@ -247,9 +250,8 @@ describe('OnboardingService', () => {
     it('should successfully complete onboarding', async () => {
       const { onboardingId } = service.initializeOnboarding();
 
-      // Mock successful DB operations
-      mockPrismaService.clinic.findFirst.mockResolvedValue(null); // No existing clinic
-      mockPrismaService.user.findUnique.mockResolvedValue(null); // No existing user
+      mockPrismaService.clinic.findFirst.mockResolvedValue(null);
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       const createdClinic = { id: 'clinic_123' };
       const createdUser = {
@@ -268,11 +270,9 @@ describe('OnboardingService', () => {
       mockPrismaService.mrnSequence.create.mockResolvedValue({});
       mockPrismaService.reminderSettings.create.mockResolvedValue({});
 
-      // Mock SLA update (finding clinic then updating)
       mockPrismaService.clinic.findUnique.mockResolvedValue(createdClinic);
       mockPrismaService.clinic.update.mockResolvedValue(createdClinic);
 
-      // Mock Login
       mockAuthService.login.mockResolvedValue({
         access_token: 'valid_token',
         user: createdUser,

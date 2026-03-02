@@ -44,7 +44,7 @@ describe('PaymentGatewayFactory', () => {
     });
 
     it('should throw error for null provider', () => {
-      expect(() => factory.getGateway(null as any)).toThrow();
+      expect(() => factory.getGateway(null as never)).toThrow();
     });
 
     it('should return consistent gateway on multiple calls', () => {

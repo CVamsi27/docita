@@ -60,7 +60,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       ) {
         setPatient(patientData);
       } else {
-        console.error("Invalid patient data:", patientData);
+
         setPatient(null);
         setError("Failed to load patient details");
       }
@@ -71,14 +71,14 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         );
         setAppointments(uniqueAppointments);
       } else {
-        console.error("Invalid appointments data:", appointmentsData);
+
         setAppointments([]);
       }
 
       if (Array.isArray(documentsData)) {
         setDocuments(documentsData);
       } else {
-        console.error("Invalid documents data:", documentsData);
+
         setDocuments([]);
       }
 
@@ -91,7 +91,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       ) {
         setStatistics(statisticsData);
       } else {
-        console.error("Invalid statistics data:", statisticsData);
+
         setStatistics({
           totalVisits: 0,
           lastVisit: null,
@@ -104,7 +104,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         });
       }
     } catch (err) {
-      console.error("Failed to load patient data:", err);
+
       const errorMessage =
         err instanceof Error
           ? err.message

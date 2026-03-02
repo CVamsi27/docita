@@ -44,15 +44,15 @@ import { AuditModule } from './shared/modules/audit/audit/audit.module';
 import { PerformanceModule } from './shared/modules/performance/performance.module';
 import { ComplianceModule } from './shared/modules/compliance/compliance.module';
 import { TenantContextInterceptor } from './shared/modules/interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from './shared/modules/interceptors/cache.interceptor';
+import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { PatientDataAuditInterceptor } from './shared/modules/interceptors/patient-audit.interceptor';
 import { BreakTheGlassInterceptor } from './shared/modules/interceptors/emergency-access.interceptor';
-import { RequestIdInterceptor } from './shared/modules/interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from './shared/modules/interceptors/request-context.interceptor';
+import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
-import { RateLimitInterceptor } from './shared/modules/interceptors/rate-limit.interceptor';
+import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
 
 import { EventsModule } from './common/events/events.module';
@@ -92,7 +92,7 @@ const BullModule = MockBullModule;
     PrometheusModule.register({
       path: '/metrics',
     }),
-    // Rate limiting: 100 requests per minute per IP
+
     ThrottlerModule.forRootAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],
@@ -117,7 +117,7 @@ const BullModule = MockBullModule;
         skipIf: () => config.getEnvironment() === 'test',
       }),
     }),
-    // Extensibility Infrastructure (must be early in the import list)
+
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
@@ -162,7 +162,7 @@ const BullModule = MockBullModule;
   controllers: [AppController],
   providers: [
     AppService,
-    // Apply rate limiting globally
+
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -175,52 +175,52 @@ const BullModule = MockBullModule;
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
-    // Global CSRF Protection
+
     {
       provide: APP_INTERCEPTOR,
       useClass: CsrfInterceptor,
     },
-    // Global Request Tracing
+
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
     },
-    // Global Request Context (Correlation ID) - for Sentry integration
+
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestContextInterceptor,
     },
-    // Global Tenant Context Interceptor
+
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantContextInterceptor,
     },
-    // Global Cache Interceptor
+
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
-    // Global Rate Limit Interceptor
+
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
     },
-    // Global Timeout Interceptor
+
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
     },
-    // Global Patient Audit Interceptor
+
     {
       provide: APP_INTERCEPTOR,
       useClass: PatientDataAuditInterceptor,
     },
-    // Global Break-the-Glass Interceptor (Emergency Access)
+
     {
       provide: APP_INTERCEPTOR,
       useClass: BreakTheGlassInterceptor,
     },
-    // Per-endpoint Rate Limiting (works with @RateLimit() decorator)
+
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,

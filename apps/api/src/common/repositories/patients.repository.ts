@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Patient } from '@workspace/types';
 import { Gender, AppointmentStatus, InvoiceStatus } from '@workspace/db';
 import {
@@ -10,11 +10,8 @@ import {
 import {
   PATIENT_LIST_SELECT,
   PATIENT_DETAIL_SELECT,
-} from '../select-fragments';
+} from '@/common/select-fragments';
 
-/**
- * DTO for creating patients
- */
 interface CreatePatientData {
   firstName: string;
   lastName: string;
@@ -30,26 +27,27 @@ interface CreatePatientData {
   tags?: { tag: string; color: string }[];
 }
 
-/**
- * Repository for Patient entity.
- * Handles all data access for patients.
- */
 @Injectable()
-export class PatientsRepository extends BaseRepository<Patient> {
+export class PatientsRepository extends BaseRepository<
+  Patient,
+  CreatePatientData
+> {
   constructor(prisma: PrismaService) {
     super(prisma, 'patient');
   }
 
-  /**
-   * Searchable fields for patients
-   */
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
   protected getSearchFields(): string[] {
     return ['firstName', 'lastName', 'phoneNumber', 'email'];
   }
 
-  /**
-   * Default select for list views
-   */
   protected getDefaultSelect() {
     return {
       ...PATIENT_LIST_SELECT,
@@ -66,16 +64,10 @@ export class PatientsRepository extends BaseRepository<Patient> {
     };
   }
 
-  /**
-   * Detail select for single patient views
-   */
   protected getDetailSelect() {
     return PATIENT_DETAIL_SELECT;
   }
 
-  /**
-   * Find all patients with customized pagination
-   */
   async findAll(
     clinicId: string,
     options?: PaginationOptions,
@@ -108,16 +100,13 @@ export class PatientsRepository extends BaseRepository<Patient> {
     const resultItems = hasMore ? items.slice(0, -1) : items;
 
     return {
-      items: resultItems as unknown as Patient[],
+      items: this.toPatientArray(resultItems),
       hasMore,
       nextCursor: hasMore ? resultItems[resultItems.length - 1]?.id : undefined,
       count: resultItems.length,
     };
   }
 
-  /**
-   * Find a single patient by ID
-   */
   async findOne(id: string): Promise<Patient | null> {
     const patient = await this.prisma.patient.findFirst({
       where: {
@@ -126,12 +115,9 @@ export class PatientsRepository extends BaseRepository<Patient> {
       },
       select: this.getDetailSelect(),
     });
-    return patient as unknown as Patient | null;
+    return this.toPatientOrNull(patient);
   }
 
-  /**
-   * Find patient or throw NotFoundException
-   */
   async findOneOrFail(id: string): Promise<Patient> {
     const patient = await this.findOne(id);
     if (!patient) {
@@ -140,9 +126,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     return patient;
   }
 
-  /**
-   * Create a new patient
-   */
   async create(data: CreatePatientData): Promise<Patient> {
     const dateOfBirth =
       typeof data.dateOfBirth === 'string'
@@ -176,16 +159,21 @@ export class PatientsRepository extends BaseRepository<Patient> {
       },
     });
 
-    return patient as unknown as Patient;
+    return this.toPatient(patient);
   }
 
-  /**
-   * Update a patient
-   */
   async update(
     id: string,
     data: Partial<Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Patient> {
+    type StructuredHistoryItem = {
+      id?: string;
+      patientId?: string;
+      [key: string]: unknown;
+    };
+
+    const rawData = this.toRecord(data);
+
     const {
       tags,
       medicalConditions,
@@ -194,87 +182,87 @@ export class PatientsRepository extends BaseRepository<Patient> {
       surgicalHistory,
       socialHistory,
       ...rest
-    } = data as Record<string, any>; // Cast to access structured fields not yet in interface
+    } = rawData;
 
-    const updateData: Record<string, any> = {
+    const normalizeStructuredHistoryList = (
+      value: unknown,
+    ): StructuredHistoryItem[] | undefined => {
+      if (!Array.isArray(value)) {
+        return undefined;
+      }
+
+      return value.filter(
+        (item): item is StructuredHistoryItem =>
+          !!item && typeof item === 'object',
+      );
+    };
+
+    const normalizeStructuredHistoryRecord = (
+      value: unknown,
+    ): StructuredHistoryItem | undefined => {
+      if (!value || typeof value !== 'object') {
+        return undefined;
+      }
+
+      return value as StructuredHistoryItem;
+    };
+
+    const medicalConditionsList =
+      normalizeStructuredHistoryList(medicalConditions);
+    const patientAllergiesList =
+      normalizeStructuredHistoryList(patientAllergies);
+    const familyHistoryList = normalizeStructuredHistoryList(familyHistory);
+    const surgicalHistoryList = normalizeStructuredHistoryList(surgicalHistory);
+    const socialHistoryRecord = normalizeStructuredHistoryRecord(socialHistory);
+
+    const updateData: Record<string, unknown> = {
       ...rest,
-      ...(rest.gender && { gender: rest.gender.toUpperCase() as Gender }),
-      ...(rest.dateOfBirth && {
-        dateOfBirth: new Date(rest.dateOfBirth as string),
+      ...(typeof rest.gender === 'string' && {
+        gender: rest.gender.toUpperCase() as Gender,
+      }),
+      ...(typeof rest.dateOfBirth === 'string' && {
+        dateOfBirth: new Date(rest.dateOfBirth),
       }),
     };
 
-    // Handle structured medical history (Replace Strategy for arrays)
-    if (medicalConditions) {
+    if (medicalConditionsList) {
       updateData.medicalConditions = {
         deleteMany: {},
-        create: medicalConditions.map(
-          ({
-            id,
-            patientId,
-            ...item
-          }: {
-            id?: string;
-            patientId?: string;
-            [key: string]: unknown;
-          }) => item,
+        create: medicalConditionsList.map(
+          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
 
-    if (patientAllergies) {
+    if (patientAllergiesList) {
       updateData.patientAllergies = {
         deleteMany: {},
-        create: patientAllergies.map(
-          ({
-            id,
-            patientId,
-            ...item
-          }: {
-            id?: string;
-            patientId?: string;
-            [key: string]: unknown;
-          }) => item,
+        create: patientAllergiesList.map(
+          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
 
-    if (familyHistory) {
+    if (familyHistoryList) {
       updateData.familyHistory = {
         deleteMany: {},
-        create: familyHistory.map(
-          ({
-            id,
-            patientId,
-            ...item
-          }: {
-            id?: string;
-            patientId?: string;
-            [key: string]: unknown;
-          }) => item,
+        create: familyHistoryList.map(
+          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
 
-    if (surgicalHistory) {
+    if (surgicalHistoryList) {
       updateData.surgicalHistory = {
         deleteMany: {},
-        create: surgicalHistory.map(
-          ({
-            id,
-            patientId,
-            ...item
-          }: {
-            id?: string;
-            patientId?: string;
-            [key: string]: unknown;
-          }) => item,
+        create: surgicalHistoryList.map(
+          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
 
-    if (socialHistory) {
-      const { id, patientId, ...socialData } = socialHistory;
+    if (socialHistoryRecord) {
+      const { id, patientId, ...socialData } = socialHistoryRecord;
       updateData.socialHistory = {
         upsert: {
           create: socialData,
@@ -287,12 +275,21 @@ export class PatientsRepository extends BaseRepository<Patient> {
       where: { id },
       data: updateData,
     });
-    return patient as unknown as Patient;
+    return this.toPatient(patient);
   }
 
-  /**
-   * Delete a patient
-   */
+  private toPatient(value: unknown): Patient {
+    return value as Patient;
+  }
+
+  private toPatientOrNull(value: unknown): Patient | null {
+    return value as Patient | null;
+  }
+
+  private toPatientArray(value: unknown[]): Patient[] {
+    return value as Patient[];
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.patient.update({
       where: { id },
@@ -302,9 +299,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     });
   }
 
-  /**
-   * Get all appointments for a patient
-   */
   async getAppointments(patientId: string) {
     return this.prisma.appointment.findMany({
       where: { patientId },
@@ -371,9 +365,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     });
   }
 
-  /**
-   * Get patient statistics including visit counts, adherence, etc.
-   */
   async getStatistics(patientId: string) {
     const appointments = await this.prisma.appointment.findMany({
       where: { patientId },
@@ -396,16 +387,13 @@ export class PatientsRepository extends BaseRepository<Patient> {
         apt.status === AppointmentStatus.CONFIRMED,
     );
 
-    // Calculate total visits (completed appointments)
     const totalVisits = completedAppointments.length;
 
-    // Find last visit (most recent completed appointment)
     const lastVisit =
       completedAppointments.length > 0
         ? completedAppointments[0].startTime
         : null;
 
-    // Find next visit (next scheduled/confirmed appointment in the future)
     const upcomingAppointments = scheduledAppointments.filter(
       (apt) => new Date(apt.startTime) > now,
     );
@@ -418,8 +406,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
         ? upcomingAppointments[0].startTime
         : null;
 
-    // Calculate adherence rate
-    // Adherence = completed / (completed + no-show + cancelled)
     const noShowAppointments = appointments.filter(
       (apt) => apt.status === AppointmentStatus.NO_SHOW,
     ).length;
@@ -447,9 +433,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     };
   }
 
-  /**
-   * Get all documents for a patient
-   */
   async getDocuments(patientId: string) {
     return this.prisma.document.findMany({
       where: { patientId },
@@ -467,9 +450,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     });
   }
 
-  /**
-   * Get all tags for a patient
-   */
   async getTags(patientId: string) {
     const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },
@@ -491,11 +471,6 @@ export class PatientsRepository extends BaseRepository<Patient> {
     return patient.tags;
   }
 
-  /**
-   * Get complete medical history timeline for a patient
-   * Returns all appointments with issue summaries (chiefComplaint/encounterSummary/finalDiagnosis),
-   * ICD-10 diagnoses, doctor info, and dates - ordered chronologically
-   */
   async getMedicalHistoryTimeline(patientId: string) {
     const appointments = await this.prisma.appointment.findMany({
       where: {
@@ -571,20 +546,19 @@ export class PatientsRepository extends BaseRepository<Patient> {
       orderBy: { startTime: 'desc' },
     });
 
-    // Transform to include computed summary
     return appointments.map((apt) => ({
       ...apt,
-      // Computed summary: prefer encounterSummary, then chiefComplaint, then finalDiagnosis
+
       issueSummary:
         apt.encounterSummary ||
         apt.chiefComplaint ||
         apt.finalDiagnosis ||
         apt.provisionalDiagnosis ||
         'General consultation',
-      // Primary diagnosis for quick display
+
       primaryDiagnosis:
         apt.diagnoses.find((d) => d.isPrimary) || apt.diagnoses[0] || null,
-      // Year-month grouping key
+
       yearMonth: new Date(apt.startTime).toISOString().slice(0, 7),
     }));
   }

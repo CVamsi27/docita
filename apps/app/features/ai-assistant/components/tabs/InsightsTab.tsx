@@ -110,8 +110,8 @@ const RiskItem = ({ name, time, risk, variant }: RiskItemProps) => (
     className={cn(
       "flex items-center justify-between p-3 rounded-lg",
       variant === "destructive"
-        ? "bg-red-50 dark:bg-red-950/20"
-        : "bg-orange-50 dark:bg-orange-950/20",
+        ? "surface-danger"
+        : "surface-warning",
     )}
   >
     <div>
@@ -144,10 +144,10 @@ interface AnomalyItemProps {
 const AnomalyItem = ({ title, description, type }: AnomalyItemProps) => (
   <div
     className={cn(
-      "p-3 rounded-lg border",
+      "p-3 rounded-lg",
       type === "warning"
-        ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200"
-        : "bg-blue-50 dark:bg-blue-950/20 border-blue-200",
+        ? "surface-warning"
+        : "surface-info",
     )}
   >
     <p className="text-sm font-medium">{title}</p>

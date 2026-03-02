@@ -1,8 +1,3 @@
-/**
- * Not Found Exception
- * Thrown when a requested resource is not found
- */
-
 export class NotFoundException extends Error {
   constructor(
     public readonly resourceType: string,
@@ -14,10 +9,6 @@ export class NotFoundException extends Error {
   }
 }
 
-/**
- * Conflict Exception
- * Thrown when a resource already exists or violates unique constraints
- */
 export class ConflictException extends Error {
   constructor(
     public readonly resourceType: string,

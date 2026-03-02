@@ -6,16 +6,16 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import cookieParser from 'cookie-parser';
 
-import { CsrfInterceptor } from '../interceptors/csrf.interceptor';
-import { RequestIdInterceptor } from '../interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from '../interceptors/request-context.interceptor';
-import { TimeoutInterceptor } from '../interceptors/timeout.interceptor';
-import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from '../interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from '../interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from '../interceptors/emergency-access.interceptor';
-import { AuditService } from '../../shared/modules/audit/audit/audit.service';
-import { AppConfigService } from '../../shared/modules/config/app-configuration.service';
+import { CsrfInterceptor } from '@/common/interceptors/csrf.interceptor';
+import { RequestIdInterceptor } from '@/common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from '@/common/interceptors/request-context.interceptor';
+import { TimeoutInterceptor } from '@/common/interceptors/timeout.interceptor';
+import { TenantContextInterceptor } from '@/common/interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from '@/common/interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from '@/common/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from '@/common/interceptors/emergency-access.interceptor';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Controller('pipeline')
 class PipelineController {
@@ -105,11 +105,6 @@ class PipelineController {
 class InterceptorPipelineTestModule {}
 
 describe.skip('Interceptor Pipeline Integration', () => {
-  // These tests are skipped due to environment-specific issues with the test harness.
-  // The interceptor pipeline is properly tested in individual unit tests.
-  // Integration tests require proper Express middleware setup that is difficult to
-  // replicate in the Jest/NestJS testing environment. See individual interceptor
-  // test files for unit test coverage.
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -120,7 +115,6 @@ describe.skip('Interceptor Pipeline Integration', () => {
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
 
-    // Add middleware to set test user on request
     app.use((req, res, next) => {
       req.user = {
         id: 'test-user-1',
@@ -148,7 +142,6 @@ describe.skip('Interceptor Pipeline Integration', () => {
       .set('x-request-id', requestId);
 
     if (response.status !== 200) {
-      console.error('Response error:', response.body);
     }
 
     expect(response.status).toBe(200);

@@ -17,7 +17,7 @@ import type {
   ComplianceMetric,
   DiseaseTrend,
   RevenueByCPT,
-} from "../hooks/use-analytics-logic";
+} from "@/features/analytics/hooks/use-analytics-logic";
 import { OverviewCard } from "./charts/OverviewCard";
 import { TrendsBarChart, TrendsPieChart } from "./charts/TrendsCharts";
 import { RevenueBarChart, RevenuePieChart } from "./charts/RevenueCharts";

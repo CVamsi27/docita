@@ -3,11 +3,37 @@ import {
   Appointment as PrismaAppointment,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
-import { Appointment } from '../../core/entities/appointment.entity';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import {
   AppointmentStatus,
   AppointmentStatusEnum,
-} from '../../core/value-objects/appointment-status.value-object';
+} from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+
+const PRISMA_TO_DOMAIN_STATUS: Record<
+  PrismaAppointmentStatus,
+  AppointmentStatusEnum
+> = {
+  [PrismaAppointmentStatus.SCHEDULED]: AppointmentStatusEnum.SCHEDULED,
+  [PrismaAppointmentStatus.CONFIRMED]: AppointmentStatusEnum.CONFIRMED,
+  [PrismaAppointmentStatus.RESCHEDULING]: AppointmentStatusEnum.CONFIRMED,
+  [PrismaAppointmentStatus.IN_PROGRESS]: AppointmentStatusEnum.IN_PROGRESS,
+  [PrismaAppointmentStatus.COMPLETED]: AppointmentStatusEnum.COMPLETED,
+  [PrismaAppointmentStatus.CANCELLED]: AppointmentStatusEnum.CANCELLED,
+  [PrismaAppointmentStatus.NO_SHOW]: AppointmentStatusEnum.NOSHOW,
+};
+
+const DOMAIN_TO_PRISMA_STATUS: Record<
+  AppointmentStatusEnum,
+  PrismaAppointmentStatus
+> = {
+  [AppointmentStatusEnum.SCHEDULED]: PrismaAppointmentStatus.SCHEDULED,
+  [AppointmentStatusEnum.CONFIRMED]: PrismaAppointmentStatus.CONFIRMED,
+  [AppointmentStatusEnum.ARRIVED]: PrismaAppointmentStatus.CONFIRMED,
+  [AppointmentStatusEnum.IN_PROGRESS]: PrismaAppointmentStatus.IN_PROGRESS,
+  [AppointmentStatusEnum.COMPLETED]: PrismaAppointmentStatus.COMPLETED,
+  [AppointmentStatusEnum.CANCELLED]: PrismaAppointmentStatus.CANCELLED,
+  [AppointmentStatusEnum.NOSHOW]: PrismaAppointmentStatus.NO_SHOW,
+};
 
 export class AppointmentMapper {
   static toDomain(raw: PrismaAppointment): Appointment {
@@ -18,7 +44,7 @@ export class AppointmentMapper {
       doctorId: raw.doctorId,
       startTime: raw.startTime,
       endTime: raw.endTime,
-      status: new AppointmentStatus(raw.status as AppointmentStatusEnum),
+      status: new AppointmentStatus(PRISMA_TO_DOMAIN_STATUS[raw.status]),
       notes: raw.notes || undefined,
       consultationNotes: raw.consultationNotes || undefined,
       observations: raw.observations || undefined,
@@ -47,7 +73,7 @@ export class AppointmentMapper {
       doctorId: plain.doctorId,
       startTime: plain.startTime,
       endTime: plain.endTime,
-      status: plain.status as unknown as PrismaAppointmentStatus,
+      status: DOMAIN_TO_PRISMA_STATUS[plain.status],
       notes: plain.notes || null,
       consultationNotes: plain.consultationNotes || null,
       observations: plain.observations || null,

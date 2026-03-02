@@ -1,9 +1,6 @@
-/**
- * Consultation Components Unit Tests
- */
+
 import { describe, expect, it } from "vitest";
 
-// Test ConsultationTimer rules
 describe("ConsultationTimer Business Rules", () => {
   it("should format time correctly", () => {
     const formatTime = (totalSeconds: number) => {
@@ -29,8 +26,8 @@ describe("ConsultationTimer Business Rules", () => {
 
   it("should calculate elapsed time badge color", () => {
     const getTimerColor = (seconds: number) => {
-      if (seconds > 1800) return "destructive"; // Over 30 min
-      if (seconds > 900) return "warning"; // Over 15 min
+      if (seconds > 1800) return "destructive"; 
+      if (seconds > 900) return "warning"; 
       return "secondary";
     };
 
@@ -40,7 +37,6 @@ describe("ConsultationTimer Business Rules", () => {
   });
 });
 
-// Test ConsultationProgress rules
 describe("ConsultationProgress Business Rules", () => {
   it("should calculate step progress percentage", () => {
     const calculateProgress = (steps: { isComplete: boolean }[]) => {
@@ -75,7 +71,6 @@ describe("ConsultationProgress Business Rules", () => {
   });
 });
 
-// Test ClinicalSuggestions rules
 describe("ClinicalSuggestions Business Rules", () => {
   it("should filter suggestions by category", () => {
     const suggestions = [
@@ -102,7 +97,6 @@ describe("ClinicalSuggestions Business Rules", () => {
   });
 });
 
-// Test PatientSummaryCard allergy rules
 describe("PatientSummaryCard Business Rules", () => {
   it("should identify critical allergies", () => {
     type AllergySeverity = "MILD" | "MODERATE" | "SEVERE" | "LIFE_THREATENING";

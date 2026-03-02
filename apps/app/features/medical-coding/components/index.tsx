@@ -13,7 +13,6 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
 import { BookOpen, CheckCircle2, FileText, Search } from "lucide-react";
 
-// Medical Coding Search Component
 export const MedicalCodingSearch: FC<{
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
@@ -71,7 +70,6 @@ export const MedicalCodingSearch: FC<{
   );
 };
 
-// Coding Queue Component
 export const CodingQueue: FC<{
   items?: Array<{
     id: string;
@@ -94,7 +92,7 @@ export const CodingQueue: FC<{
       <CardContent>
         {items.length === 0 ? (
           <div className="flex flex-col items-center py-8 text-muted-foreground">
-            <CheckCircle2 className="h-10 w-10 mb-2 text-green-500" />
+            <CheckCircle2 className="h-10 w-10 mb-2 text-success" />
             <p>All caught up!</p>
           </div>
         ) : (

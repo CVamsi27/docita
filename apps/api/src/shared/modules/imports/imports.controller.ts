@@ -15,11 +15,14 @@ import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
 import { ImportSessionService } from './import-session.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { TierGuard } from '../auth/auth/tier.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
-import { Roles } from '../auth/auth/roles.decorator';
-import { RequireFeature, Feature } from '../auth/auth/tier.decorator';
-import { RateLimit } from '../../../common/interceptors/rate-limit.interceptor';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import {
+  RequireFeature,
+  Feature,
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
 import {
   ImportPatientFieldsResponseDto,
   ImportPreviewResponseDto,
@@ -114,21 +117,19 @@ export class ImportsController {
   ) {
     const session = this.sessionService.getSession(sessionId);
 
-    // If getSession returns, it's valid and not expired
     const result = await this.importsService.processPatientImport(
       session.filePath,
       req.user.clinicId,
       dto.columnMapping,
     );
 
-    // Cleanup session after successful import
     this.sessionService.deleteSession(sessionId);
 
     return result;
   }
 
   @Post('patients')
-  @RateLimit({ limit: 5, window: 60000 }) // 5 bulk imports/minute
+  @RateLimit({ limit: 5, window: 60000 })
   @RequireFeature(Feature.EXCEL_IMPORT)
   @UseInterceptors(
     FileInterceptor('file', {
@@ -170,7 +171,7 @@ export class ImportsController {
   }
 
   @Post('ocr/process')
-  @RateLimit({ limit: 10, window: 60000 }) // 10 OCR requests/minute
+  @RateLimit({ limit: 10, window: 60000 })
   @RequireFeature(Feature.OCR_BASIC)
   @UseInterceptors(
     FileInterceptor('file', {
@@ -207,7 +208,6 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    // Use basic OCR (no AI)
     return await this.importsService.extractFromMedicalDocumentBasic(file.path);
   }
 }

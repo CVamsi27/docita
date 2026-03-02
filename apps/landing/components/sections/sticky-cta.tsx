@@ -10,7 +10,7 @@ export function StickyCta() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show sticky CTA after scrolling past hero (approx 700px)
+
       if (window.scrollY > 700) {
         setShowStickyCTA(true);
       } else {

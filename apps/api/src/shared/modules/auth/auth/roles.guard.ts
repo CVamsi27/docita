@@ -31,9 +31,6 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
-    // If no roles are specified, but the route is not public,
-    // we DENY access (Deny by Default).
-    // Every endpoint must explicitly specify @Roles() or be @Public().
     if (!requiredRoles) {
       return false;
     }

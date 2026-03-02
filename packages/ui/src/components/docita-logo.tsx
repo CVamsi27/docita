@@ -17,10 +17,10 @@ export function DocitaIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Background Shape - Soft Rounded Square with Gradient */}
+      {}
       <rect width="32" height="32" rx="8" fill="url(#docita_logo_gradient)" />
 
-      {/* Medical Cross + D Integration */}
+      {}
       <path d="M9 7H13V25H9V7Z" fill="white" />
       <path
         d="M13 7H17C21.4183 7 25 10.5817 25 15V17C25 21.4183 21.4183 25 17 25H13V20H17C18.6569 20 20 18.6569 20 17V15C20 13.3431 18.6569 12 17 12H13V7Z"

@@ -98,7 +98,7 @@ export function EditInvoiceDialog({
       onInvoiceUpdated();
       setTimeout(() => onOpenChange(false), 100);
     } catch (error) {
-      console.error("Failed to update invoice:", error);
+
       toast.error("Failed to update invoice");
     } finally {
       setLoading(false);

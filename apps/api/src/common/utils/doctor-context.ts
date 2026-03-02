@@ -1,13 +1,3 @@
-/**
- * Doctor context snapshot for audit trail.
- *
- * When creating prescriptions or invoices, we capture the doctor's
- * information at the time of creation so it persists even if the
- * doctor's profile changes later.
- *
- * This utility consolidates the duplicated doctor context handling
- * found in InvoicesService and PrescriptionsService.
- */
 export interface DoctorContextSnapshot {
   doctorName?: string;
   doctorEmail?: string;
@@ -18,9 +8,6 @@ export interface DoctorContextSnapshot {
   doctorLicenseNumber?: string;
 }
 
-/**
- * User record shape (from Prisma)
- */
 interface UserRecord {
   name?: string;
   email?: string;
@@ -31,24 +18,6 @@ interface UserRecord {
   licenseNumber?: string | null;
 }
 
-/**
- * Extract doctor context from a user record.
- *
- * @param user - The user/doctor record from database
- * @returns Standardized doctor context snapshot
- *
- * @example
- * ```typescript
- * const doctor = await prisma.user.findUnique({ where: { id: doctorId } });
- * const context = extractDoctorContext(doctor);
- * await prisma.prescription.create({
- *   data: {
- *     ...data,
- *     ...context,
- *   },
- * });
- * ```
- */
 export function extractDoctorContext(
   user: UserRecord | null | undefined,
 ): DoctorContextSnapshot {
@@ -67,13 +36,6 @@ export function extractDoctorContext(
   };
 }
 
-/**
- * Extract doctor context from input data (DTO).
- * Filters out undefined values for cleaner Prisma input.
- *
- * @param data - Input data containing doctor context fields
- * @returns Clean doctor context for database insert
- */
 export function extractDoctorContextFromInput(
   data: Partial<DoctorContextSnapshot>,
 ): DoctorContextSnapshot {
@@ -98,9 +60,6 @@ export function extractDoctorContextFromInput(
   return result;
 }
 
-/**
- * Select fields for fetching doctor context from user table
- */
 export const DOCTOR_CONTEXT_SELECT = {
   name: true,
   email: true,

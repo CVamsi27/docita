@@ -80,23 +80,14 @@ export class DiscountAggregate {
     return [...this.discounts];
   }
 
-  /**
-   * Get all active discounts
-   */
   getActiveDiscounts(): Discount[] {
     return this.discounts.filter((d) => d.isValid());
   }
 
-  /**
-   * Check if specific discount type is applied
-   */
   hasDiscount(type: DiscountType): boolean {
     return this.discounts.some((d) => d.type === type && d.isValid());
   }
 
-  /**
-   * Get discount by type
-   */
   getDiscount(type: DiscountType): Discount | null {
     return this.discounts.find((d) => d.type === type && d.isValid()) || null;
   }

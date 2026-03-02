@@ -5,7 +5,7 @@ import {
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
-import { Public } from '../auth/auth/public.decorator';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ContactService } from './contact.service';
 
 import {
@@ -14,7 +14,7 @@ import {
   ContactInquirySchema,
 } from './dto/contact.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 @Controller('contact')
 @Public()

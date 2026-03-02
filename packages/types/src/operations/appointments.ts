@@ -47,52 +47,43 @@ export const appointmentSchema = z.object({
   type: appointmentTypeSchema,
   priority: appointmentPrioritySchema.default("ROUTINE").optional(),
 
-  // Consultation Notes - Doctor's notes saved per consultation
-  consultationNotes: z.string().max(10000).optional().transform(stripHtmlTags), // Clinical notes and observations from this consultation
+  consultationNotes: z.string().max(10000).optional().transform(stripHtmlTags), 
 
-  // Legacy fields (kept for backward compatibility)
   notes: z.string().max(2000).optional().transform(stripHtmlTags),
   observations: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  // Clinical Documentation - SOAP Format
-  // Subjective
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags), // Primary reason for visit
+  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags), 
   historyOfPresentIllness: z
     .string()
     .max(5000)
     .optional()
-    .transform(stripHtmlTags), // Detailed history of current illness (HPI)
-  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags), // Past medical, surgical, family history
-  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags), // Systematic review of body systems
+    .transform(stripHtmlTags), 
+  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags), 
+  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags), 
 
-  // Objective
-  generalExamination: generalExaminationSchema.optional(), // General physical examination
-  systemicExamination: systemicExaminationSchema.optional(), // System-wise examination
+  generalExamination: generalExaminationSchema.optional(), 
+  systemicExamination: systemicExaminationSchema.optional(), 
 
-  // Assessment
   provisionalDiagnosis: z
     .string()
     .max(1000)
     .optional()
-    .transform(stripHtmlTags), // Initial diagnosis before investigations
+    .transform(stripHtmlTags), 
   differentialDiagnosis: z
     .string()
     .max(2000)
     .optional()
-    .transform(stripHtmlTags), // Other possible diagnoses
-  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags), // Doctor's overall clinical impression
+    .transform(stripHtmlTags), 
+  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags), 
 
-  // Plan
-  investigations: z.array(clinicalInvestigationSchema).optional(), // Ordered investigations
-  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags), // Confirmed diagnosis after investigations
-  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags), // Treatment approach
-  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags), // Follow-up instructions
+  investigations: z.array(clinicalInvestigationSchema).optional(), 
+  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags), 
+  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags), 
+  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags), 
 
-  // Timestamps
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
 
-  // Relations
   patient: patientSchema.optional(),
   doctor: z.object({ name: z.string().max(100) }).optional(),
   vitalSign: vitalSignSchema.optional(),
@@ -136,7 +127,7 @@ export const createAppointmentSchema = appointmentSchema.omit({
   invoice: true,
   diagnoses: true,
   procedures: true,
-  // Omit clinical documentation fields for initial creation
+
   chiefComplaint: true,
   historyOfPresentIllness: true,
   pastMedicalHistory: true,

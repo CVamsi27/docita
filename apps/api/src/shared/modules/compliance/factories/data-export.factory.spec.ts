@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataExportFactory } from './data-export.factory';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('DataExportFactory', () => {
   let factory: DataExportFactory;

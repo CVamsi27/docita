@@ -30,7 +30,7 @@ export default function OCRPage() {
 
   const handleMobileUploadStart = () => {
     startMobileUpload((file, _url) => {
-      // We can pass the file directly to the OCR hook's handleFileChange
+
       handleFileChange(file);
     });
   };
@@ -56,7 +56,7 @@ export default function OCRPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column: Upload & Preview */}
+        {}
         <OCRUploadSection
           previewUrl={previewUrl}
           file={file}
@@ -67,7 +67,7 @@ export default function OCRPage() {
           onScan={handleScan}
         />
 
-        {/* Right Column: Correction Panel */}
+        {}
         <OCRResults
           scanned={scanned}
           documentType={documentType}
@@ -82,7 +82,7 @@ export default function OCRPage() {
         />
       </div>
 
-      {/* QR Code Dialog */}
+      {}
       <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
     </div>
   );

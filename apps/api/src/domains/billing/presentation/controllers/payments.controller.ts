@@ -1,19 +1,19 @@
 import { Controller, Post, Get, Body, Param, Request } from '@nestjs/common';
-import { PaymentsService } from '../../application/services/payments.service';
+import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import {
   CreatePaymentLinkDto,
   PaymentLinkResponseDto,
   PaymentSessionResponseDto,
   MarkInvoicePaidDto,
   AnyResponseDto,
-} from '../../application/dto/payments.dto';
+} from '@/domains/billing/application/dto/payments.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { Idempotent } from '../../../../shared/modules/auth/decorators/idempotent.decorator';
-import { IdempotencyInterceptor } from '../../../../common/interceptors/idempotency.interceptor';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { Idempotent } from '@/shared/modules/auth/decorators/idempotent.decorator';
+import { IdempotencyInterceptor } from '@/common/interceptors/idempotency.interceptor';
 import { UseInterceptors } from '@nestjs/common';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('payments')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -61,7 +61,7 @@ export class PaymentsController {
       clinicId: req.user!.clinicId!,
       performedByUserId: req.user!.id,
       paymentMethod: dto.paymentMethod,
-      amount: dto.amount!, // dto.amount is required by the service
+      amount: dto.amount!,
       notes: dto.notes,
     });
   }

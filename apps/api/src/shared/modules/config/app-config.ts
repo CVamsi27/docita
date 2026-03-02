@@ -97,7 +97,6 @@ export function validateEnv(): EnvConfig {
   const result = EnvSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error('\n Environment configuration validation failed:\n');
     const formatted = result.error.format();
 
     Object.entries(formatted).forEach(([key, value]) => {
@@ -108,7 +107,6 @@ export function validateEnv(): EnvConfig {
       ) {
         const errors = (value as { _errors: string[] })._errors;
         if (errors.length > 0) {
-          console.error(`  • ${key}: ${errors.join(', ')}`);
         }
       }
     });

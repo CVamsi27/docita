@@ -1,17 +1,3 @@
-/**
- * Rate Limiting Decorator
- *
- * COST OPTIMIZATION:
- * - Prevents abuse and reduces unnecessary API calls
- * - Protects against DDoS and reduces Railway compute costs
- * - Implements sliding window algorithm for fair distribution
- *
- * USAGE:
- * @RateLimit({ limit: 100, window: 60000 }) // 100 requests per minute
- * @Get('/expensive-operation')
- * async expensiveOperation() { ... }
- */
-
 import {
   Injectable,
   NestInterceptor,
@@ -27,14 +13,14 @@ import { Observable, throwError } from 'rxjs';
 export const RATE_LIMIT_KEY = 'rate_limit';
 
 export interface RateLimitOptions {
-  limit: number; // Max requests
-  window: number; // Time window in milliseconds
+  limit: number;
+  window: number;
   keyGenerator?: (
     req: Record<string, unknown> & {
       ip?: string;
       user?: Record<string, unknown>;
     },
-  ) => string; // Custom key generator (default: IP + userId)
+  ) => string;
 }
 
 export const RateLimit = (options: RateLimitOptions) =>
@@ -49,7 +35,7 @@ export class RateLimitInterceptor implements NestInterceptor {
 
   constructor(private reflector: Reflector) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const rateLimitOptions = this.reflector.get<RateLimitOptions>(
       RATE_LIMIT_KEY,
       context.getHandler(),
@@ -65,7 +51,6 @@ export class RateLimitInterceptor implements NestInterceptor {
     const now = Date.now();
     const windowStart = now - rateLimitOptions.window;
 
-    // Get or initialize rate limit data
     let rateLimitData = this.requests.get(key);
     if (!rateLimitData) {
       rateLimitData = {
@@ -76,12 +61,10 @@ export class RateLimitInterceptor implements NestInterceptor {
       this.requests.set(key, rateLimitData);
     }
 
-    // Clean up old requests (sliding window)
     rateLimitData.requests = rateLimitData.requests.filter(
       (timestamp) => timestamp > windowStart,
     );
 
-    // Check if limit exceeded
     if (rateLimitData.requests.length >= rateLimitOptions.limit) {
       const oldestRequest = rateLimitData.requests[0];
       const retryAfter = Math.ceil(
@@ -95,16 +78,14 @@ export class RateLimitInterceptor implements NestInterceptor {
           error: 'Too Many Requests',
           retryAfter,
           limit: rateLimitOptions.limit,
-          window: rateLimitOptions.window / 1000, // Convert to seconds
+          window: rateLimitOptions.window / 1000,
         },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
-    // Add current request
     rateLimitData.requests.push(now);
 
-    // Set rate limit headers
     const response = context.switchToHttp().getResponse();
     response.setHeader('X-RateLimit-Limit', rateLimitOptions.limit);
     response.setHeader(
@@ -116,7 +97,6 @@ export class RateLimitInterceptor implements NestInterceptor {
       Math.ceil((windowStart + rateLimitOptions.window) / 1000),
     );
 
-    // Cleanup old entries periodically
     this.cleanupOldEntries();
 
     return next.handle();
@@ -134,14 +114,12 @@ export class RateLimitInterceptor implements NestInterceptor {
       return options.keyGenerator(request);
     }
 
-    // Default: IP + userId (if authenticated)
     const ip = request.ip || request.connection?.remoteAddress || 'unknown';
     const userId = request.user?.id || 'anonymous';
     return `${ip}:${userId}`;
   }
 
   private cleanupOldEntries(): void {
-    // Clean up every ~1 minute
     if (Math.random() > 0.01) return;
 
     const now = Date.now();
@@ -155,26 +133,3 @@ export class RateLimitInterceptor implements NestInterceptor {
     }
   }
 }
-
-/**
- * Usage Examples:
- *
- * // Basic rate limiting
- * @RateLimit({ limit: 100, window: 60000 }) // 100 per minute
- * @Get('/api/data')
- * async getData() { ... }
- *
- * // Strict rate limiting for expensive operations
- * @RateLimit({ limit: 10, window: 60000 }) // 10 per minute
- * @Post('/api/generate-report')
- * async generateReport() { ... }
- *
- * // Custom key generator (per clinic)
- * @RateLimit({
- *   limit: 1000,
- *   window: 60000,
- *   keyGenerator: (req) => req.user?.clinicId || req.ip
- * })
- * @Get('/api/appointments')
- * async getAppointments() { ... }
- */

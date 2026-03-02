@@ -13,12 +13,12 @@ export function ValuePropsSection() {
     <section className="px-6 py-20 bg-linear-to-b from-background to-muted/30">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-12 lg:gap-16">
-          {/* 1. Complete Paperless Implementation */}
+          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-green-500/10 px-4 py-2 text-sm mb-4">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="font-medium text-green-700 dark:text-green-300">
+              <div className="inline-flex items-center gap-2 rounded-full badge-success px-4 py-2 text-sm mb-4">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <span className="font-medium text-success">
                   Eco-Friendly Practice
                 </span>
               </div>
@@ -46,23 +46,23 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-2xl bg-linear-to-br from-green-500/20 to-emerald-500/20 p-8 backdrop-blur-sm border border-green-500/20">
-                <div className="aspect-square rounded-xl bg-linear-to-br from-green-500 to-emerald-600 p-12 flex items-center justify-center">
+              <div className="relative rounded-2xl bg-linear-to-br from-success/20 to-success/10 p-8 backdrop-blur-sm border border-success/20">
+                <div className="aspect-square rounded-xl bg-success p-12 flex items-center justify-center">
                   <FileText className="h-32 w-32 text-white" />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute -top-4 -right-4 bg-success text-success-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                   100% Digital
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 2. Track Entire Patient History */}
+          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-2 text-sm mb-4">
-                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="font-medium text-blue-700 dark:text-blue-300">
+              <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+                <Users className="h-4 w-4 text-info" />
+                <span className="font-medium text-info">
                   Complete Medical Timeline
                 </span>
               </div>
@@ -90,23 +90,23 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1">
-              <div className="relative rounded-2xl bg-linear-to-br from-blue-500/20 to-cyan-500/20 p-8 backdrop-blur-sm border border-blue-500/20">
-                <div className="aspect-square rounded-xl bg-linear-to-br from-blue-500 to-cyan-600 p-12 flex items-center justify-center">
+              <div className="relative rounded-2xl bg-linear-to-br from-info/20 to-info/10 p-8 backdrop-blur-sm border border-info/20">
+                <div className="aspect-square rounded-xl bg-info p-12 flex items-center justify-center">
                   <Calendar className="h-32 w-32 text-white" />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute -top-4 -right-4 bg-info text-info-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                   Complete Timeline
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 3. Perfect Clinical Accuracy */}
+          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-purple-500/10 px-4 py-2 text-sm mb-4">
-                <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span className="font-medium text-purple-700 dark:text-purple-300">
+              <div className="inline-flex items-center gap-2 rounded-full tier-pro px-4 py-2 text-sm mb-4">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <span className="font-medium text-primary"> 
                   Zero Errors
                 </span>
               </div>
@@ -134,11 +134,11 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-2xl bg-linear-to-br from-purple-500/20 to-pink-500/20 p-8 backdrop-blur-sm border border-purple-500/20">
-                <div className="aspect-square rounded-xl bg-linear-to-br from-purple-500 to-pink-600 p-12 flex items-center justify-center">
+              <div className="relative rounded-2xl bg-linear-to-br from-primary/20 to-primary/10 p-8 backdrop-blur-sm border border-primary/20">
+                <div className="aspect-square rounded-xl bg-primary p-12 flex items-center justify-center">
                   <ShieldCheck className="h-32 w-32 text-white" />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute -top-4 -right-4 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                   100% Accurate
                 </div>
               </div>

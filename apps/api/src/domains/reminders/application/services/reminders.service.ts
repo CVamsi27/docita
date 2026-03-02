@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderHistoryService } from './reminder-history.service';
-import { ReminderSettingsDto } from '../../dto/reminder-settings.dto';
+import { ReminderSettingsDto } from '@/domains/reminders/dto/reminder-settings.dto';
 
 @Injectable()
 export class RemindersService {

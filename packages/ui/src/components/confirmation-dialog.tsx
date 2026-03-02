@@ -45,26 +45,6 @@ const buttonVariantMap = {
   success: "default" as const,
 };
 
-/**
- * ConfirmationDialog is a specialized dialog for confirming user actions.
- * Use this for actions that need explicit confirmation before proceeding.
- *
- * @example
- * ```tsx
- * const [open, setOpen] = useState(false);
- *
- * <ConfirmationDialog
- *   open={open}
- *   onOpenChange={setOpen}
- *   type="danger"
- *   title="Delete Item?"
- *   description="This action cannot be undone."
- *   confirmText="Delete"
- *   cancelText="Cancel"
- *   onConfirm={() => handleDelete()}
- * />
- * ```
- */
 export function ConfirmationDialog({
   open,
   onOpenChange,

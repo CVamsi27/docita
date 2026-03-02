@@ -11,23 +11,24 @@ import {
   NotFoundException,
   UsePipes,
 } from '@nestjs/common';
-import { ClinicsService } from '../../application/services/clinics.service';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+import { ClinicsService } from '@/domains/clinics/application/services/clinics.service';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
   CreateClinicDto,
   UpdateClinicDto,
   ClinicCreateDoctorDto,
   ClinicCreateReceptionistDto,
+  ClinicUpdateMemberDto,
   ClinicSettingsDto,
   ClinicResponseDto,
   ClinicListResponseDto,
   CreateClinicSchema,
-} from '../../application/dto/clinics.dto';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
-import { UserResponseDto } from '../../../users/application/dto/users.dto';
+} from '@/domains/clinics/application/dto/clinics.dto';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('clinics')
 @Roles(Role.SUPER_ADMIN)
@@ -76,7 +77,7 @@ export class ClinicsController {
     return this.clinicsService.getClinicStats(id);
   }
 
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @Post(':clinicId/doctors')
   @ZodSerializerDto(UserResponseDto)
   async createDoctor(
@@ -92,13 +93,7 @@ export class ClinicsController {
     return this.clinicsService.createDoctor(clinicId, dto);
   }
 
-  @Roles(
-    Role.ADMIN,
-    Role.DOCTOR,
-    Role.RECEPTIONIST,
-    Role.ADMIN_DOCTOR,
-    Role.SUPER_ADMIN,
-  )
+  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
   @Get(':clinicId/doctors')
   async getDoctors(
     @Request() req: RequestWithUser,
@@ -112,7 +107,7 @@ export class ClinicsController {
     return this.clinicsService.getDoctors(clinicId);
   }
 
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @Post(':clinicId/receptionists')
   @ZodSerializerDto(UserResponseDto)
   async createReceptionist(
@@ -128,13 +123,7 @@ export class ClinicsController {
     return this.clinicsService.createReceptionist(clinicId, dto);
   }
 
-  @Roles(
-    Role.ADMIN,
-    Role.DOCTOR,
-    Role.RECEPTIONIST,
-    Role.ADMIN_DOCTOR,
-    Role.SUPER_ADMIN,
-  )
+  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
   @Get(':clinicId/receptionists')
   async getReceptionists(
     @Request() req: RequestWithUser,
@@ -187,6 +176,40 @@ export class ClinicSettingsController {
       throw new ForbiddenException('No clinic assigned to this user');
     }
     return this.clinicsService.getMembers(clinicId);
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Put('members/:memberId')
+  async updateMember(
+    @Request() req: RequestWithUser,
+    @Param('memberId') memberId: string,
+    @Body() dto: ClinicUpdateMemberDto,
+  ) {
+    const clinicId = req.user?.clinicId;
+    const actorUserId = req.user?.id;
+    if (!clinicId || !actorUserId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    return this.clinicsService.updateMember(
+      clinicId,
+      memberId,
+      dto,
+      actorUserId,
+    );
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Delete('members/:memberId')
+  async removeMember(
+    @Request() req: RequestWithUser,
+    @Param('memberId') memberId: string,
+  ) {
+    const clinicId = req.user?.clinicId;
+    const actorUserId = req.user?.id;
+    if (!clinicId || !actorUserId) {
+      throw new ForbiddenException('No clinic assigned to this user');
+    }
+    return this.clinicsService.removeMember(clinicId, memberId, actorUserId);
   }
 
   @Get('prescription-defaults')

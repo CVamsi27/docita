@@ -119,33 +119,43 @@ export function PatientMedicalHistoryUI({
 
     if (clinicType === "DENTAL") {
       title = "Baseline Dental Chart";
-      icon = <Smile className="h-5 w-5 text-teal-600" />;
+      icon = <Smile className="h-5 w-5 text-info" />;
       component = (
         <DentalChartUI
           value={
             (customData.dentalChart as unknown as DentalChartValue) ||
             ({} as DentalChartValue)
           }
-          onChange={(val: DentalChartValue) => onCustomDataUpdate?.("dentalChart", val as unknown as Record<string, unknown>)}
+          onChange={(val: DentalChartValue) =>
+            onCustomDataUpdate?.(
+              "dentalChart",
+              Object.fromEntries(Object.entries(val)),
+            )
+          }
           readOnly={readOnly}
         />
       );
     } else if (clinicType === "OPHTHALMOLOGY") {
       title = "Baseline Vision Exam";
-      icon = <Eye className="h-5 w-5 text-blue-600" />;
+      icon = <Eye className="h-5 w-5 text-info" />;
       component = (
         <VisionExamUI
           value={
-            (customData.ophthalmologyExam as unknown as OphthalmologyExamData) ||
+            (customData.ophthalmologyExam as OphthalmologyExamData) ||
             ({} as OphthalmologyExamData)
           }
-          onChange={(val: OphthalmologyExamData) => onCustomDataUpdate?.("ophthalmologyExam", val as unknown as Record<string, unknown>)}
+          onChange={(val: OphthalmologyExamData) =>
+            onCustomDataUpdate?.(
+              "ophthalmologyExam",
+              Object.fromEntries(Object.entries(val)),
+            )
+          }
           readOnly={readOnly}
         />
       );
     } else if (clinicType === "PEDIATRIC") {
       title = "Growth Data";
-      icon = <Baby className="h-5 w-5 text-pink-500" />;
+      icon = <Baby className="h-5 w-5 text-destructive" />;
       component = (
         <GrowthChartUI
           value={
@@ -154,7 +164,12 @@ export function PatientMedicalHistoryUI({
               measurements: [],
             }
           }
-          onChange={(val: GrowthChartData) => onCustomDataUpdate?.("growthData", val as unknown as Record<string, unknown>)}
+          onChange={(val: GrowthChartData) =>
+            onCustomDataUpdate?.(
+              "growthData",
+              Object.fromEntries(Object.entries(val)),
+            )
+          }
           readOnly={readOnly}
         />
       );
@@ -199,7 +214,7 @@ export function PatientMedicalHistoryUI({
           <CardHeader className="py-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                <History className="h-5 w-5 text-blue-500" />
+                <History className="h-5 w-5 text-info" />
                 Patient Medical History
               </CardTitle>
               {readOnly && (

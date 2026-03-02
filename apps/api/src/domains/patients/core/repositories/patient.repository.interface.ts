@@ -1,8 +1,4 @@
-/**
- * Patient Repository Interface
- */
-
-import { Patient } from '../entities/patient.entity';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
 export interface PatientSearchParams {
   clinicId: string;

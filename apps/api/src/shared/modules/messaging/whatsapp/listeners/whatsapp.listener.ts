@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { WhatsappService } from '../whatsapp.service';
-import { PrescriptionCreatedEvent } from '../../../../../domains/prescriptions/core/events/prescription-created.event';
-import { InvoiceGeneratedEvent } from '../../../../../domains/billing/application/services/events/invoice-generated.event';
-import { AppointmentCreatedEvent } from '../../../../../domains/appointments/application/events/appointment-created.event';
-import { AppointmentUpdatedEvent } from '../../../../../domains/appointments/application/events/appointment-updated.event';
+import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
+import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
+import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
+import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
+import { AppointmentUpdatedEvent } from '@/domains/appointments/application/events/appointment-updated.event';
 
 @Injectable()
 export class WhatsappEventListener {
@@ -68,14 +68,6 @@ export class WhatsappEventListener {
 
   @OnEvent('appointment.updated')
   async handleAppointmentUpdated(event: AppointmentUpdatedEvent) {
-    // Only send if status changed to cancelled or rescheduled (logic check done here or passed?)
-    // Actually the event has oldStatus and newStatus.
-    // Assuming 'scheduled' -> 'cancelled' or time change (which might not change status but is an update).
-    // For now, let's focus on status changes: 'cancelled'.
-    // Rescheduling is tricky because type might stay the same but startTime changes.
-    // We would need to detect start time change.
-    // For now, let's trigger on 'cancelled'.
-
     if (event.newStatus === 'cancelled' || event.newStatus === 'no-show') {
       this.logger.log(
         `Appointment cancelled event received for ${event.appointmentId}`,
@@ -95,7 +87,6 @@ export class WhatsappEventListener {
       return;
     }
 
-    // Check for rescheduling (start time changed)
     if (
       event.oldStartTime &&
       event.appointment.getStartTime() &&

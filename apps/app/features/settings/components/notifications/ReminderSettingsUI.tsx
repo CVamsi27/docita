@@ -69,7 +69,7 @@ export const ReminderSettingsUI: FC = () => {
       <Card className="border-none shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Clock className="h-5 w-5 text-purple-600" />
+            <Clock className="h-5 w-5 text-primary" />
             <div>
               <CardTitle>Reminder Settings</CardTitle>
               <CardDescription>

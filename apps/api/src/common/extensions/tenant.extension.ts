@@ -1,8 +1,6 @@
 import { Prisma } from '@workspace/db';
-import { getCurrentTenant } from '../middleware/tenant.middleware';
+import { getCurrentTenant } from '@/common/middleware/tenant.middleware';
 
-// Hardcoded list of tenant-scoped models
-// In a perfect world we'd derive this from Prisma.ModelName but that might include non-models
 const TENANT_SCOPED_MODELS = [
   'Patient',
   'Appointment',
@@ -47,35 +45,42 @@ const TENANT_SCOPED_MODELS = [
   'Admission',
 ];
 
+type TenantExtensionArgs = {
+  where?: Record<string, unknown>;
+  data?: Record<string, unknown> | Record<string, unknown>[];
+};
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
 export const tenantExtension = Prisma.defineExtension({
   name: 'tenant-extension',
   query: {
     $allModels: {
       async $allOperations({ model, operation, args, query }) {
-        // Skip if not tenant scoped
-        // console.log('TenantExtension checking model:', model);
         if (!model || !TENANT_SCOPED_MODELS.includes(model)) {
-          // console.log('TenantExtension skipping model:', model);
           return query(args);
         }
 
         const tenant = getCurrentTenant();
 
-        // Allow bypassing tenant check for system tasks
         if (tenant?.bypassed) {
           return query(args);
         }
 
-        // STRICT MODE
         if (!tenant?.clinicId) {
           throw new Error(
             `Security Violation: Attempted to access tenant-scoped model '${model}' without a valid tenant context.`,
           );
         }
 
-        const typedArgs = args as any;
+        const typedArgs = args as TenantExtensionArgs;
 
-        // Models that don't have direct clinicId but relate to it
         const RELATION_MAPPING: Record<string, string> = {
           Prescription: 'patient',
           Invoice: 'patient',
@@ -83,9 +88,8 @@ export const tenantExtension = Prisma.defineExtension({
           VitalSign: 'appointment',
         };
 
-        const relation = RELATION_MAPPING[model as string];
+        const relation = RELATION_MAPPING[model];
 
-        // Inject clinicId into WHERE clauses for Read operations
         if (
           [
             'findMany',
@@ -97,7 +101,8 @@ export const tenantExtension = Prisma.defineExtension({
           ].includes(operation)
         ) {
           if (relation) {
-            const existingRelation = typedArgs.where?.[relation] || {};
+            const existingRelationValue = typedArgs.where?.[relation];
+            const existingRelation = toRecord(existingRelationValue);
             typedArgs.where = {
               ...(typedArgs.where || {}),
               [relation]: {
@@ -113,12 +118,14 @@ export const tenantExtension = Prisma.defineExtension({
           }
         }
 
-        // Inject clinicId into Data for Create operations
-        // We only inject if it's a direct field (no relation mapping)
         if (operation === 'create' && tenant.clinicId && !relation) {
-          const data = typedArgs.data || {};
-          // Only inject clinicId if clinic relation is not already provided
-          // This prevents "Unknown argument clinicId" error when using 'connect'
+          const data =
+            typedArgs.data &&
+            !Array.isArray(typedArgs.data) &&
+            typeof typedArgs.data === 'object'
+              ? typedArgs.data
+              : {};
+
           if (!data.clinic) {
             typedArgs.data = {
               ...data,
@@ -129,7 +136,6 @@ export const tenantExtension = Prisma.defineExtension({
 
         if (operation === 'createMany' && tenant.clinicId && !relation) {
           if (Array.isArray(typedArgs.data)) {
-            // TS might complain about spread on unknown
             typedArgs.data = typedArgs.data.map(
               (item: Record<string, unknown>) => ({
                 ...item,
@@ -139,12 +145,12 @@ export const tenantExtension = Prisma.defineExtension({
           }
         }
 
-        // Enforce clinicId on Update/Delete
         if (
           ['update', 'updateMany', 'delete', 'deleteMany'].includes(operation)
         ) {
           if (relation) {
-            const existingRelation = typedArgs.where?.[relation] || {};
+            const existingRelationValue = typedArgs.where?.[relation];
+            const existingRelation = toRecord(existingRelationValue);
             typedArgs.where = {
               ...(typedArgs.where || {}),
               [relation]: {

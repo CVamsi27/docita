@@ -21,7 +21,7 @@ export const SectionToggle = ({
       <Icon className="h-4 w-4" />
       <span className="font-medium text-sm">{title}</span>
       {badge && (
-        <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded">
+        <span className="text-xs badge-danger px-2 py-1 rounded">
           {badge}
         </span>
       )}

@@ -48,8 +48,8 @@ export function CRUDDialog({
       if (onSubmit) {
         await onSubmit(e);
       }
-    } catch (error) {
-      console.error("Form submission error:", error);
+    } catch (_error) {
+      return;
     }
   };
 

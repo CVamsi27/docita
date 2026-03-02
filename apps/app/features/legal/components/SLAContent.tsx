@@ -1,6 +1,14 @@
 "use client";
 
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
 
 export function SLAContent() {
   return (
@@ -17,37 +25,37 @@ export function SLAContent() {
         </p>
 
         <h3>2. Support Response Times</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr>
-              <th className="text-left">Priority</th>
-              <th className="text-left">Response Time</th>
-              <th className="text-left">Resolution Target</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Critical (P1)</td>
-              <td>1 hour</td>
-              <td>4 hours</td>
-            </tr>
-            <tr>
-              <td>High (P2)</td>
-              <td>4 hours</td>
-              <td>24 hours</td>
-            </tr>
-            <tr>
-              <td>Medium (P3)</td>
-              <td>1 business day</td>
-              <td>3 business days</td>
-            </tr>
-            <tr>
-              <td>Low (P4)</td>
-              <td>2 business days</td>
-              <td>7 business days</td>
-            </tr>
-          </tbody>
-        </table>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Priority</TableHead>
+              <TableHead>Response Time</TableHead>
+              <TableHead>Resolution Target</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Critical (P1)</TableCell>
+              <TableCell>1 hour</TableCell>
+              <TableCell>4 hours</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>High (P2)</TableCell>
+              <TableCell>4 hours</TableCell>
+              <TableCell>24 hours</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Medium (P3)</TableCell>
+              <TableCell>1 business day</TableCell>
+              <TableCell>3 business days</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Low (P4)</TableCell>
+              <TableCell>2 business days</TableCell>
+              <TableCell>7 business days</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
 
         <h3>3. Data Protection</h3>
         <ul>

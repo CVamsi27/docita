@@ -71,7 +71,7 @@ export function TeamInviteStep({
   };
 
   const handleSubmit = () => {
-    // Filter out empty entries
+
     const validMembers = members.filter(
       (m) => m.email.trim() !== "" && m.email.includes("@"),
     );

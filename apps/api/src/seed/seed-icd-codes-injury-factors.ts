@@ -1,5 +1,4 @@
 export const ICD_10_CODES_INJURY_FACTORS = [
-  // Injury/Poisoning
   {
     code: 'S00',
     description: 'Superficial injury of head',
@@ -139,7 +138,6 @@ export const ICD_10_CODES_INJURY_FACTORS = [
     category: 'Injury, poisoning and certain other consequences',
   },
 
-  // Factors influencing health
   {
     code: 'Z00',
     description:

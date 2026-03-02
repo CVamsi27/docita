@@ -19,7 +19,7 @@ export class ImportSessionService {
 
     this.pendingImports.set(sessionId, {
       filePath,
-      expiresAt: Date.now() + 30 * 60 * 1000, // 30 minutes
+      expiresAt: Date.now() + 30 * 60 * 1000,
     });
 
     this.cleanupExpiredSessions();
@@ -69,7 +69,6 @@ export class ImportSessionService {
         fs.unlinkSync(filePath);
       }
     } catch (error) {
-      // Log error but don't crash
       this.logger.error(`Failed to delete temp file ${filePath}`, error);
     }
   }

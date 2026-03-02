@@ -1,21 +1,8 @@
-/**
- * Email provider interface for abstracting email delivery.
- * Enables swapping between providers (Resend, SES, SMTP) without code changes.
- */
 export interface IEmailProvider {
-  /**
-   * Send a single email.
-   */
   send(options: EmailOptions): Promise<EmailSendResult>;
 
-  /**
-   * Send a templated email.
-   */
   sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult>;
 
-  /**
-   * Verify the provider is configured correctly.
-   */
   verify(): Promise<boolean>;
 }
 

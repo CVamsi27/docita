@@ -1,15 +1,10 @@
-/**
- * Update Invoice Status Use Case
- * Demonstrates state machine pattern through use case
- */
-
 import {
   Injectable,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { InvoiceStatusEnum } from '../../core/value-objects';
-import { IInvoiceRepository } from '../ports/invoice.repository.port';
+import { InvoiceStatusEnum } from '@/domains/billing/core/value-objects';
+import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
 
 export interface UpdateInvoiceStatusCommand {
   invoiceId: string;
@@ -21,13 +16,11 @@ export class UpdateInvoiceStatusUseCase {
   constructor(private invoiceRepository: IInvoiceRepository) {}
 
   async execute(command: UpdateInvoiceStatusCommand): Promise<void> {
-    // 1. Fetch invoice
     const invoice = await this.invoiceRepository.findById(command.invoiceId);
     if (!invoice) {
       throw new NotFoundException(`Invoice ${command.invoiceId} not found`);
     }
 
-    // 2. Attempt state transition (entity validates this)
     const currentStatus = invoice.getStatus();
     if (!currentStatus.canTransitionTo(command.targetStatus)) {
       throw new BadRequestException(
@@ -35,7 +28,6 @@ export class UpdateInvoiceStatusUseCase {
       );
     }
 
-    // 3. Apply state change via entity method
     switch (command.targetStatus) {
       case InvoiceStatusEnum.ISSUED:
         invoice.issue();
@@ -67,7 +59,6 @@ export class UpdateInvoiceStatusUseCase {
         );
     }
 
-    // 4. Persist updated invoice
     await this.invoiceRepository.update(invoice);
   }
 }

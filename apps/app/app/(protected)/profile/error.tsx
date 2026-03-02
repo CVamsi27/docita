@@ -13,7 +13,7 @@ export default function ProfileError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Profile route error:", error);
+
   }, [error]);
 
   return (

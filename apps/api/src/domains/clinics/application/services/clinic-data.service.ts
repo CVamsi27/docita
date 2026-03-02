@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   ClinicTier,
   ClinicType,
   Prisma,
   SubscriptionStatus,
 } from '@workspace/db';
-import { ClinicFactory } from '../../core/factories/clinic.factory';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 interface CreateClinicData {
   name: string;
@@ -39,6 +39,45 @@ export class ClinicDataService {
     private configService: AppConfigService,
   ) {}
 
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' ? value : undefined;
+  }
+
+  private readStringArray(
+    source: Record<string, unknown>,
+    key: string,
+  ): string[] | undefined {
+    const value = source[key];
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const normalized = value.filter(
+      (item): item is string => typeof item === 'string',
+    );
+    return normalized.length > 0 ? normalized : [];
+  }
+
+  private readNumber(
+    source: Record<string, unknown>,
+    key: string,
+  ): number | undefined {
+    const value = source[key];
+    return typeof value === 'number' ? value : undefined;
+  }
+
   async create(data: CreateClinicData) {
     const clinicInput = this.clinicFactory.create({
       name: data.name,
@@ -46,7 +85,7 @@ export class ClinicDataService {
       phone: data.phone,
       address: data.address,
       tier: data.tier,
-      settings: data.settings as Record<string, unknown>,
+      settings: this.toRecord(data.settings),
     });
 
     return this.prisma.clinic.create({
@@ -100,18 +139,15 @@ export class ClinicDataService {
 
     if (!clinic) return null;
 
-    // Flatten settings for frontend convenience
-    const settings = clinic.settings as Record<string, unknown> | null;
+    const settings = this.toRecord(clinic.settings);
     return {
       ...clinic,
       phoneNumber: clinic.phone,
-      description: settings?.description as string | undefined,
-      openingTime: settings?.openingTime as string | undefined,
-      closingTime: settings?.closingTime as string | undefined,
-      workingDays: settings?.workingDays as string[] | undefined,
-      consultationDuration: settings?.consultationDuration as
-        | number
-        | undefined,
+      description: this.readString(settings, 'description'),
+      openingTime: this.readString(settings, 'openingTime'),
+      closingTime: this.readString(settings, 'closingTime'),
+      workingDays: this.readStringArray(settings, 'workingDays'),
+      consultationDuration: this.readNumber(settings, 'consultationDuration'),
     };
   }
 
@@ -166,17 +202,15 @@ export class ClinicDataService {
 
     return doctorClinics.map((dc) => {
       const clinic = dc.clinic;
-      const settings = clinic.settings as Record<string, unknown> | null;
+      const settings = this.toRecord(clinic.settings);
       return {
         ...clinic,
         phoneNumber: clinic.phone,
-        description: settings?.description as string | undefined,
-        openingTime: settings?.openingTime as string | undefined,
-        closingTime: settings?.closingTime as string | undefined,
-        workingDays: settings?.workingDays as string[] | undefined,
-        consultationDuration: settings?.consultationDuration as
-          | number
-          | undefined,
+        description: this.readString(settings, 'description'),
+        openingTime: this.readString(settings, 'openingTime'),
+        closingTime: this.readString(settings, 'closingTime'),
+        workingDays: this.readStringArray(settings, 'workingDays'),
+        consultationDuration: this.readNumber(settings, 'consultationDuration'),
       };
     });
   }

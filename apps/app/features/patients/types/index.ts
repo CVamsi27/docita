@@ -1,20 +1,9 @@
 import type { Patient } from "@workspace/types";
 
-/**
- * Patient-specific types
- * Types that are local to the patient feature and not shared globally
- */
-
-/**
- * Patient with medical history included
- */
 export interface PatientWithHistory extends Omit<Patient, "medicalHistory"> {
   medicalHistory?: MedicalHistoryItem[];
 }
 
-/**
- * Medical history timeline item
- */
 export interface MedicalHistoryItem {
   id: string;
   date: string;
@@ -26,9 +15,6 @@ export interface MedicalHistoryItem {
   };
 }
 
-/**
- * Patient list filters
- */
 export interface PatientFilters {
   search?: string;
   gender?: string;
@@ -39,9 +25,6 @@ export interface PatientFilters {
   bloodGroup?: string;
 }
 
-/**
- * Patient form data
- */
 export interface PatientFormData {
   firstName: string;
   lastName: string;

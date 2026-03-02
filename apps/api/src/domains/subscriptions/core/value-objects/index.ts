@@ -1,4 +1,3 @@
-// Barrel export for value objects
 export {
   SubscriptionStatus,
   SubscriptionStatusEnum,

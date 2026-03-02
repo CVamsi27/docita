@@ -1,5 +1,4 @@
 export const ICD_10_CODES_RESPIRATORY_DIGESTIVE = [
-  // Respiratory system
   {
     code: 'J00',
     description: 'Acute nasopharyngitis [common cold]',
@@ -141,7 +140,6 @@ export const ICD_10_CODES_RESPIRATORY_DIGESTIVE = [
     category: 'Diseases of the respiratory system',
   },
 
-  // Digestive system
   {
     code: 'K00',
     description: 'Disorders of tooth development and eruption',

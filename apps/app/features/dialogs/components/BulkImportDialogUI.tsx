@@ -75,7 +75,7 @@ export function BulkImportDialogUI({
         </DialogHeader>
 
         <div className="py-6">
-          {/* Step Indicator */}
+          {}
           <div className="mb-8 flex items-center justify-between px-2">
             {STEPS.map((s, idx) => (
               <React.Fragment key={s}>

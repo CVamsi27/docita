@@ -1,9 +1,13 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { getTierInfo } from "@/lib/tier-config";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useSubscription } from "@/hooks/api/use-settings";
 import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
+import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -22,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import { Check, Download, ExternalLink, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface Invoice {
@@ -56,6 +60,54 @@ function BillingHistory() {
     window.open(invoiceUrl, "_blank");
   };
 
+  const handleExportCsv = () => {
+    if (!invoices || invoices.length === 0) return;
+
+    const header = [
+      "Date",
+      "Description",
+      "Amount",
+      "Currency",
+      "Status",
+      "ReceiptUrl",
+    ];
+
+    const rows = invoices.map((invoice) => {
+      const formattedDate = new Date(invoice.createdAt).toISOString();
+      const description = (invoice.description || "Subscription Payment").replaceAll(
+        '"',
+        '""',
+      );
+      const amount = (invoice.amountCents / 100).toFixed(2);
+      const currency = invoice.currency || "INR";
+      const status = invoice.status;
+      const receipt = invoice.invoiceUrl || "";
+
+      return [
+        formattedDate,
+        `"${description}"`,
+        amount,
+        currency,
+        status,
+        `"${receipt}"`,
+      ].join(",");
+    });
+
+    const csvContent = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `billing-history-${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
@@ -74,7 +126,21 @@ function BillingHistory() {
   }
 
   return (
-    <div className="border rounded-md">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleExportCsv}
+          disabled={!invoices || invoices.length === 0}
+        >
+          <Download className="h-4 w-4" />
+          Export All CSV
+        </Button>
+      </div>
+
+      <div className="border rounded-md">
       <Table>
         <TableHeader>
           <TableRow>
@@ -106,8 +172,8 @@ function BillingHistory() {
                   className={cn(
                     "capitalize",
                     invoice.status === "paid"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
-                      : "bg-yellow-50 text-yellow-700 border-yellow-200",
+                      ? "badge-success"
+                      : "badge-warning",
                   )}
                 >
                   {invoice.status}
@@ -131,6 +197,7 @@ function BillingHistory() {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }
@@ -138,7 +205,9 @@ function BillingHistory() {
 export function SubscriptionSettings() {
   const router = useRouter();
   const { isAdmin } = useAuth();
+  const { currentTier, hasIntelligence } = usePermissionStore();
   const { data: subscription, isLoading } = useSubscription();
+  const billingHistoryRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) {
     return (
@@ -157,6 +226,13 @@ export function SubscriptionSettings() {
 
   const tierName = subscription?.tierName || "Free Plan";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
+  const billingCycle = subscription?.billingCycle || "monthly";
+  const currency = subscription?.currency || "INR";
+  const basePrice = (subscription?.basePriceCents ?? 0) / 100;
+  const periodEnd = subscription?.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN")
+    : "-";
+  const currentTierInfo = getTierInfo(currentTier);
 
   if (!isAdmin) {
     return (
@@ -183,123 +259,82 @@ export function SubscriptionSettings() {
   return (
     <div className="space-y-8">
       <Card className="border-none shadow-lg overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-blue-600 to-indigo-600" />
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div className="space-y-1">
-            <CardTitle className="text-2xl">Current Plan</CardTitle>
-            <CardDescription>Manage your subscription and billing</CardDescription>
-          </div>
-          <Badge className="px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
-            {subscriptionStatus.toUpperCase()}
-          </Badge>
+        <div className="h-2 bg-linear-to-r from-info to-primary" />
+        <CardHeader className="pb-2">
+          <CardTitle className="text-2xl">Current Plan</CardTitle>
+          <CardDescription>Manage your subscription and billing</CardDescription>
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
+          <CurrentPlanCard
+            tierInfo={currentTierInfo}
+            currentTier={currentTier}
+            hasIntelligence={hasIntelligence}
+            canChangeTier={isAdmin}
+            onChangePlan={() => router.push("/upgrade")}
+            onViewBillingHistory={() =>
+              billingHistoryRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
+          />
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="bg-muted/30 rounded-xl p-6 border">
-                <p className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider">
-                  Active Tier
+              <div className="bg-muted/30 rounded-xl p-6 border space-y-4">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Active Subscription
                 </p>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-foreground">
-                    {tierName}
-                  </h3>
-                  {tierName !== "Enterprise" && (
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                      Billed Monthly
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  {[
-                    "Unlimited Patients",
-                    "Advanced Analytics",
-                    "Priority Support",
-                    "Cloud Backup",
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <div className="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                        <Check className="h-3 w-3" />
-                      </div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
+                <h3 className="text-3xl font-black text-foreground">{tierName}</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Billing cycle</p>
+                    <p className="font-medium capitalize">
+                      {billingCycle.toLowerCase().replace("_", " ")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Base price</p>
+                    <p className="font-medium">
+                      {new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency,
+                      }).format(basePrice)}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">Current period ends</p>
+                    <p className="font-medium">{periodEnd}</p>
+                  </div>
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <Button
                   className="flex-1 bg-black hover:bg-black/90 text-white"
-                  onClick={() => router.push("/subscription/upgrade")}
+                  onClick={() => router.push("/upgrade")}
                 >
-                  Change Plan
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => router.push("/subscription/manage")}
-                >
-                  Cancel Plan
+                  Open Upgrade &amp; Billing
                 </Button>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  Quick Links
-                </h4>
-                <div className="grid grid-cols-1 gap-2">
-                  <Button
-                    variant="ghost"
-                    className="justify-start h-auto py-3 px-4 border hover:bg-muted/50"
-                  >
-                    <div className="text-left">
-                      <p className="font-semibold text-sm">Payment Methods</p>
-                      <p className="text-xs text-muted-foreground">
-                        Manage cards and bank accounts
-                      </p>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start h-auto py-3 px-4 border hover:bg-muted/50"
-                  >
-                    <div className="text-left">
-                      <p className="font-semibold text-sm">Billing Address</p>
-                      <p className="text-xs text-muted-foreground">
-                        Update tax and invoice details
-                      </p>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-semibold mb-4">Plan Estimator</h4>
-                <DynamicPricingEstimator />
-              </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-4">Plan Estimator</h4>
+              <DynamicPricingEstimator />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-lg">
+      <Card ref={billingHistoryRef} className="border-none shadow-lg">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Billing History</CardTitle>
-              <CardDescription>
-                View and download past invoices
-              </CardDescription>
-            </div>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="h-4 w-4" />
-              Export All CSV
-            </Button>
+          <div>
+            <CardTitle>Billing History</CardTitle>
+            <CardDescription>
+              View and download past invoices
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>

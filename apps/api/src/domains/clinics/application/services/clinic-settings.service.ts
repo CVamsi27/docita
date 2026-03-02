@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
-import { SettingsFactory } from '../../core/factories/settings.factory';
+import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 
 interface ClinicSettingsData {
   name?: string;
@@ -62,8 +62,37 @@ export class ClinicSettingsService {
     private settingsFactory: SettingsFactory,
   ) {}
 
+  private toRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+    fallback: string,
+  ): string {
+    const value = source[key];
+    return typeof value === 'string' ? value : fallback;
+  }
+
+  private readBoolean(
+    source: Record<string, unknown>,
+    key: string,
+    fallback: boolean,
+  ): boolean {
+    const value = source[key];
+    return typeof value === 'boolean' ? value : fallback;
+  }
+
   async updateSettings(id: string, data: ClinicSettingsData) {
-    // Extract settings-level fields
     const settingsToValidate = {
       description: data.description,
       openingTime: data.openingTime,
@@ -97,12 +126,10 @@ export class ClinicSettingsService {
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
     };
 
-    // Remove undefined values
     const cleanSettings = Object.fromEntries(
       Object.entries(settingsToValidate).filter(([_, v]) => v !== undefined),
     );
 
-    // Validate using factory
     const validatedSettings =
       this.settingsFactory.partialValidate(cleanSettings);
 
@@ -110,8 +137,7 @@ export class ClinicSettingsService {
       where: { id },
       select: { settings: true },
     });
-    const existingSettings =
-      (existingClinic?.settings as Record<string, unknown>) || {};
+    const existingSettings = this.toRecord(existingClinic?.settings);
 
     const resolvedSettings = {
       ...existingSettings,
@@ -138,7 +164,7 @@ export class ClinicSettingsService {
         phone: data.phoneNumber || data.phone,
         email: data.email,
         website: data.website,
-        settings: resolvedSettings as Prisma.InputJsonValue,
+        settings: this.toInputJsonValue(resolvedSettings),
       },
     });
   }
@@ -151,15 +177,22 @@ export class ClinicSettingsService {
 
     if (!clinic) return null;
 
-    const settings = clinic.settings as Record<string, unknown> | null;
+    const settings = this.toRecord(clinic.settings);
 
     return {
-      defaultInstructions: (settings?.defaultInstructions as string) ?? '',
-      defaultFooterText: (settings?.defaultFooterText as string) ?? '',
-      includeClinicHeader: (settings?.includeClinicHeader as boolean) ?? true,
-      includeDoctorSignature:
-        (settings?.includeDoctorSignature as boolean) ?? true,
-      includeQRCode: (settings?.includeQRCode as boolean) ?? false,
+      defaultInstructions: this.readString(settings, 'defaultInstructions', ''),
+      defaultFooterText: this.readString(settings, 'defaultFooterText', ''),
+      includeClinicHeader: this.readBoolean(
+        settings,
+        'includeClinicHeader',
+        true,
+      ),
+      includeDoctorSignature: this.readBoolean(
+        settings,
+        'includeDoctorSignature',
+        true,
+      ),
+      includeQRCode: this.readBoolean(settings, 'includeQRCode', false),
     };
   }
 
@@ -172,15 +205,16 @@ export class ClinicSettingsService {
       select: { settings: true },
     });
 
-    const currentSettings = (clinic?.settings as Record<string, unknown>) || {};
+    const currentSettings = this.toRecord(clinic?.settings);
+    const mergedSettings = {
+      ...currentSettings,
+      ...data,
+    };
 
     return this.prisma.clinic.update({
       where: { id: clinicId },
       data: {
-        settings: {
-          ...currentSettings,
-          ...data,
-        } as any,
+        settings: this.toInputJsonValue(mergedSettings),
       },
     });
   }

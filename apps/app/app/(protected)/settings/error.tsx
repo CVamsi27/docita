@@ -13,7 +13,7 @@ export default function SettingsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Settings route error:", error);
+
   }, [error]);
 
   return (

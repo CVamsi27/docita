@@ -6,9 +6,6 @@ export function setAuthLogoutCallback(callback: (reason: string) => void) {
   authLogoutCallback = callback;
 }
 
-/**
- * Admin portal API client
- */
 export const client = getAPIClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1",
   getToken: () => {
@@ -28,7 +25,6 @@ export const client = getAPIClient({
       authLogoutCallback?.(reason);
     }
 
-    // Check for 404 account deletion case (from original admin client)
     if (error.status === 404) {
       const data = error.data as { message?: string };
       if (
@@ -45,9 +41,6 @@ export const client = getAPIClient({
   },
 });
 
-/**
- * Legacy support for fetchWithAuth
- */
 export const fetchWithAuth = async (
   endpoint: string,
   options: RequestInit & { skipAuth?: boolean } = {},

@@ -3,11 +3,6 @@ import type { TierName } from "../billing/tier";
 import { clinicSchema } from "../shared/clinics";
 import { userSchema } from "../shared/users";
 
-/**
- * Onboarding Flow Types
- * =====================================================
- * Schema-based types for onboarding flow state management
- */
 export const onboardingStepSchema = z.enum([
   "clinic-details",
   "owner-details",
@@ -32,15 +27,6 @@ export const onboardingInitResponseSchema = z.object({
   step: onboardingStepSchema,
 });
 
-/**
- * Onboarding Step Data Types
- * =====================================================
- * Data structures for each step of the onboarding flow
- */
-
-/**
- * Billing Cycle for subscriptions
- */
 export type BillingCycle = "MONTHLY" | "YEARLY" | "SEMI_ANNUAL";
 
 export interface ClinicInfoData {
@@ -96,5 +82,4 @@ export type OnboardingStepType =
   | "payment"
   | "complete";
 
-// Backward compatibility export
 export type PaymentData = OnboardingPaymentData;

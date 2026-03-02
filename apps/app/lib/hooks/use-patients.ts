@@ -1,7 +1,4 @@
-/**
- * use-patients Hook
- * Example feature-specific hook for patients API and state management
- */
+
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_ENDPOINTS, apiFetch } from "@/lib/api";
@@ -23,13 +20,9 @@ export interface PatientsFilter {
   limit?: number;
 }
 
-/**
- * Hook to manage patients list
- */
 export function usePatients(filters?: PatientsFilter) {
   const queryClient = useQueryClient();
 
-  // Fetch patients
   const patientsQuery = useQuery({
     queryKey: ["patients", filters],
     queryFn: () =>
@@ -42,7 +35,6 @@ export function usePatients(filters?: PatientsFilter) {
     enabled: true,
   });
 
-  // Create patient
   const createMutation = useMutation({
     mutationFn: (data: Omit<Patient, "id" | "createdAt">) =>
       apiFetch<Patient>(API_ENDPOINTS.patients.create, {
@@ -54,7 +46,6 @@ export function usePatients(filters?: PatientsFilter) {
     },
   });
 
-  // Update patient
   const updateMutation = useMutation({
     mutationFn: ({ id, ...data }: Partial<Patient> & { id: string }) =>
       apiFetch<Patient>(API_ENDPOINTS.patients.update(id), {
@@ -66,7 +57,6 @@ export function usePatients(filters?: PatientsFilter) {
     },
   });
 
-  // Delete patient
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
       apiFetch(API_ENDPOINTS.patients.delete(id), {
@@ -78,30 +68,24 @@ export function usePatients(filters?: PatientsFilter) {
   });
 
   return {
-    // Query state
+
     patients: patientsQuery.data?.data || [],
     total: patientsQuery.data?.total || 0,
     isLoading: patientsQuery.isLoading,
     error: patientsQuery.error,
 
-    // Mutations
     createPatient: createMutation.mutateAsync,
     updatePatient: updateMutation.mutateAsync,
     deletePatient: deleteMutation.mutateAsync,
 
-    // Mutation states
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
 
-    // Refresh
     refetch: patientsQuery.refetch,
   };
 }
 
-/**
- * Hook to manage single patient
- */
 export function usePatient(id: string) {
   const patientQuery = useQuery({
     queryKey: ["patient", id],

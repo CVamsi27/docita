@@ -31,8 +31,6 @@ import {
 const notificationSettingsSchema = z.object({
   whatsappNotifications: z.boolean(),
   inAppNotifications: z.boolean(),
-  appointmentAlerts: z.boolean(),
-  reportAlerts: z.boolean(),
 });
 
 type NotificationSettingsFormValues = z.infer<
@@ -49,32 +47,45 @@ export function NotificationSettings() {
     defaultValues: {
       whatsappNotifications: true,
       inAppNotifications: true,
-      appointmentAlerts: true,
-      reportAlerts: true,
     },
   });
 
   useEffect(() => {
     if (clinic) {
       const s = (clinic.settings as ClinicAppSettings) || {};
+      const whatsappFromSettings =
+        s.whatsappNotifications ??
+        s.whatsappAppointmentReminders ??
+        s.whatsappFollowUpMessages ??
+        s.whatsappBirthdayWishes ??
+        s.whatsappMedicineReminders ??
+        true;
+
       form.reset({
-        whatsappNotifications: s.whatsappNotifications ?? true,
+        whatsappNotifications: whatsappFromSettings,
         inAppNotifications: s.inAppNotifications ?? s.pushNotifications ?? true,
-        appointmentAlerts: s.appointmentAlerts ?? true,
-        reportAlerts: s.reportAlerts ?? true,
       });
     }
   }, [clinic, form]);
 
   const onSubmit = (data: NotificationSettingsFormValues) => {
-    updateSettings(data, {
+    updateSettings(
+      {
+        pushNotifications: data.inAppNotifications,
+        whatsappAppointmentReminders: data.whatsappNotifications,
+        whatsappFollowUpMessages: data.whatsappNotifications,
+        whatsappBirthdayWishes: data.whatsappNotifications,
+        whatsappMedicineReminders: data.whatsappNotifications,
+      },
+      {
       onSuccess: () => {
         toast.success("Notification preferences saved successfully");
       },
       onError: (error) => {
         toast.error(`Failed to save preferences: ${error.message}`);
       },
-    });
+      },
+    );
   };
 
   if (isLoading) {
@@ -90,7 +101,7 @@ export function NotificationSettings() {
       <Card className="border-none shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-amber-600" />
+            <Bell className="h-5 w-5 text-warning" />
             <div>
               <CardTitle>Notification Preferences</CardTitle>
               <CardDescription>

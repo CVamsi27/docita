@@ -27,7 +27,7 @@ export function PatientSurgeries({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Scissors className="h-4 w-4 text-blue-500" />
+        <Scissors className="h-4 w-4 text-info" />
         Surgical History
       </div>
       <div className="space-y-2 mb-3">

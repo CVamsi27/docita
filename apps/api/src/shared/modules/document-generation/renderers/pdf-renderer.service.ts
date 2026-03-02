@@ -1,33 +1,50 @@
-/**
- * PDF Renderer Service
- * Converts document content to PDF format
- *
- * NOTE: This is a simplified interface. In production, use libraries like:
- * - PDFKit
- * - PuppeteerSharp
- * - ReportLab (via API)
- * - LibreOffice (via subprocess)
- */
-
 import { Injectable } from '@nestjs/common';
-import { DocumentContent } from '../builders';
+import { DocumentContent } from '@/shared/modules/document-generation/builders';
+
+type TableContent = {
+  columns: string[];
+  data: Record<string, string | number>[];
+};
+
+function toTableContent(value: unknown): TableContent {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { columns: [], data: [] };
+  }
+
+  const record = Object.fromEntries(Object.entries(value));
+  const columns = Array.isArray(record.columns)
+    ? record.columns.filter((col): col is string => typeof col === 'string')
+    : [];
+  const data = Array.isArray(record.data)
+    ? record.data
+        .filter((row) => row && typeof row === 'object' && !Array.isArray(row))
+        .map((row) =>
+          Object.fromEntries(
+            Object.entries(row).filter(
+              (entry): entry is [string, string | number] =>
+                typeof entry[1] === 'string' || typeof entry[1] === 'number',
+            ),
+          ),
+        )
+    : [];
+
+  return { columns, data };
+}
+
+function toStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is string => typeof item === 'string');
+}
 
 @Injectable()
 export class PdfRendererService {
-  /**
-   * Render document content to PDF
-   * Returns PDF as Buffer
-   */
   renderToPdf(content: DocumentContent): Buffer {
-    console.log('Rendering to PDF:', content);
-
-    // Placeholder: return empty buffer
     return Buffer.from('PDF content would go here');
   }
 
-  /**
-   * Convert document sections to HTML
-   */
   private contentToHtml(content: DocumentContent): string {
     let html = '<html><body>';
 
@@ -51,15 +68,10 @@ export class PdfRendererService {
           break;
         }
         case 'table':
-          html += this.renderTable(
-            section.content as {
-              columns: string[];
-              data: Record<string, string | number>[];
-            },
-          );
+          html += this.renderTable(toTableContent(section.content));
           break;
         case 'list':
-          html += this.renderList(section.content as string[]);
+          html += this.renderList(toStringList(section.content));
           break;
         case 'image': {
           const imageContent =
@@ -80,14 +92,12 @@ export class PdfRendererService {
   }): string {
     let html = '<table>';
 
-    // Header
     html += '<thead><tr>';
     for (const column of tableData.columns) {
       html += `<th>${column}</th>`;
     }
     html += '</tr></thead>';
 
-    // Body
     html += '<tbody>';
     for (const row of tableData.data) {
       html += '<tr>';

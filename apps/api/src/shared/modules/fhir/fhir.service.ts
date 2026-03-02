@@ -1,12 +1,5 @@
-/**
- * FHIR R4 Service
- *
- * Provides HL7 FHIR R4 resource mapping and export capabilities for
- * hospital interoperability and health information exchange.
- */
-
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import {
   FhirAllergyIntolerance,
@@ -40,9 +33,6 @@ export class FhirService {
     private appointmentFactory: FhirAppointmentFactory,
   ) {}
 
-  /**
-   * Map internal patient to FHIR R4 Patient resource
-   */
   async getPatientResource(
     patientId: string,
     clinicId: string,
@@ -58,9 +48,6 @@ export class FhirService {
     return this.patientFactory.create(patient);
   }
 
-  /**
-   * Map vital signs to FHIR R4 Observation resources
-   */
   async getVitalSignObservations(
     patientId: string,
     clinicId: string,
@@ -92,14 +79,9 @@ export class FhirService {
       take: 50,
     });
 
-    // Cast to any to satisfy the complex Relation type expected by factory
-    // In reality, Prisma include matches what factory expects.
-    return this.observationFactory.createMany(vitalSigns as any);
+    return this.observationFactory.createMany(vitalSigns);
   }
 
-  /**
-   * Map medications/prescriptions to FHIR R4 MedicationRequest resources
-   */
   async getMedicationRequests(
     patientId: string,
     clinicId: string,
@@ -118,17 +100,13 @@ export class FhirService {
       take: 100,
     });
 
-    return this.medicationFactory.createMany(prescriptions as any);
+    return this.medicationFactory.createMany(prescriptions);
   }
 
-  /**
-   * Map diagnoses/conditions to FHIR R4 Condition resources
-   */
   async getConditions(
     patientId: string,
     clinicId: string,
   ): Promise<FhirCondition[]> {
-    // Get from PatientMedicalCondition
     const conditions = await this.prisma.patientMedicalCondition.findMany({
       where: {
         patientId,
@@ -139,7 +117,6 @@ export class FhirService {
       },
     });
 
-    // Get from appointment diagnoses
     const diagnoses = await this.prisma.diagnosis.findMany({
       where: {
         appointment: {
@@ -157,19 +134,14 @@ export class FhirService {
       },
     });
 
-    const medicalConditions = this.conditionFactory.createFromConditions(
-      conditions as any,
-    );
-    const diagnosisConditions = this.conditionFactory.createFromDiagnoses(
-      diagnoses as any,
-    );
+    const medicalConditions =
+      this.conditionFactory.createFromConditions(conditions);
+    const diagnosisConditions =
+      this.conditionFactory.createFromDiagnoses(diagnoses);
 
     return [...medicalConditions, ...diagnosisConditions];
   }
 
-  /**
-   * Map allergies to FHIR R4 AllergyIntolerance resources
-   */
   async getAllergyIntolerances(
     patientId: string,
     clinicId: string,
@@ -184,12 +156,9 @@ export class FhirService {
       },
     });
 
-    return this.allergyFactory.createMany(allergies as any);
+    return this.allergyFactory.createMany(allergies);
   }
 
-  /**
-   * Map immunizations to FHIR R4 Immunization resources (NEW)
-   */
   async getImmunizations(
     patientId: string,
     clinicId: string,
@@ -205,9 +174,6 @@ export class FhirService {
     return this.immunizationFactory.createMany(immunizations);
   }
 
-  /**
-   * Map appointments to FHIR R4 Appointment resources (NEW)
-   */
   async getAppointments(
     patientId: string,
     clinicId: string,
@@ -224,9 +190,6 @@ export class FhirService {
     return this.appointmentFactory.createMany(appointments);
   }
 
-  /**
-   * Get single FHIR Appointment resource
-   */
   async getAppointmentResource(
     appointmentId: string,
     clinicId: string,
@@ -242,9 +205,6 @@ export class FhirService {
     return this.appointmentFactory.create(appointment);
   }
 
-  /**
-   * Get complete patient bundle with all resources
-   */
   async getPatientBundle(
     patientId: string,
     clinicId: string,
@@ -304,9 +264,6 @@ export class FhirService {
     };
   }
 
-  /**
-   * Export patient data as CCD (Continuity of Care Document)
-   */
   async getCCDExport(patientId: string, clinicId: string) {
     const bundle = await this.getPatientBundle(patientId, clinicId);
 
@@ -325,9 +282,6 @@ export class FhirService {
     };
   }
 
-  /**
-   * Get FHIR Capability Statement
-   */
   getCapabilityStatement() {
     return {
       resourceType: 'CapabilityStatement',

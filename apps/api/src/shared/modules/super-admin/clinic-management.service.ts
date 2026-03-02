@@ -3,22 +3,22 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentWebSocketGateway } from '../../../gateways/payment.websocket.gateway';
+import { PrismaService } from '@/prisma/prisma.service';
+import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
 import { ClinicTier, Prisma, Role, SubscriptionStatus } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import {
   CLINIC_CARD_SELECT,
   DOCTOR_CARD_SELECT,
-} from '../../../common/select-fragments';
-import { paginateWithCursor } from '../../../common/pagination.helper';
+} from '@/common/select-fragments';
+import { paginateWithCursor } from '@/common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
   SuperAdminCreateClinicDto,
   SuperAdminUpdateClinicDto,
 } from './dto/clinic-management.dto';
-import { ClinicFactory } from '../../../domains/clinics/core/factories/clinic.factory';
-import { UserFactory } from '../../../domains/users/core/factories/user.factory';
+import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
+import { UserFactory } from '@/domains/users/core/factories/user.factory';
 
 @Injectable()
 export class ClinicManagementService {
@@ -31,8 +31,15 @@ export class ClinicManagementService {
 
   async getAllClinics(options?: { cursor?: string; limit?: number }) {
     try {
+      const clinicModel = {
+        findMany: (args?: Record<string, unknown>) =>
+          this.prisma.clinic.findMany(args as Prisma.ClinicFindManyArgs),
+        count: (args?: { where?: Record<string, unknown> }) =>
+          this.prisma.clinic.count(args as Prisma.ClinicCountArgs),
+      };
+
       return paginateWithCursor({
-        model: this.prisma.clinic as any,
+        model: clinicModel,
         cursor: options?.cursor,
         limit: options?.limit || 50,
         orderBy: { createdAt: 'desc' },
@@ -51,6 +58,67 @@ export class ClinicManagementService {
       },
     });
     return doctorClinics.map((dc) => dc.doctor);
+  }
+
+  async getClinicDoctorDetails(clinicId: string, doctorId: string) {
+    const doctor = await this.prisma.user.findFirst({
+      where: {
+        id: doctorId,
+        role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
+        OR: [
+          { clinicId },
+          {
+            doctorClinics: {
+              some: {
+                clinicId,
+                active: true,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        clinicId: true,
+        specialization: true,
+        hospitalRole: true,
+        qualification: true,
+        registrationNumber: true,
+        licenseNumber: true,
+        licenseExpiry: true,
+        signatureUrl: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationSource: true,
+        verificationRef: true,
+        verificationReason: true,
+        verificationData: true,
+        verificationCheckedAt: true,
+        profilePhotoUrl: true,
+        phoneNumber: true,
+        bio: true,
+        yearsOfExperience: true,
+        consultationFee: true,
+        createdAt: true,
+        updatedAt: true,
+        educationHistory: {
+          orderBy: { order: 'asc' },
+        },
+        certifications: {
+          orderBy: { issueDate: 'desc' },
+        },
+        additionalSpecializations: true,
+      },
+    });
+
+    if (!doctor) {
+      throw new BadRequestException('Doctor not found in clinic');
+    }
+
+    return doctor;
   }
 
   async createClinic(data: SuperAdminCreateClinicDto) {

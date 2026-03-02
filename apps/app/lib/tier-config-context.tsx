@@ -23,7 +23,6 @@ import {
   TierConfigData,
 } from "./constants/tier-config";
 
-// Re-export types for backward compatibility
 export type {
   PlanPricing,
   PlanLimits,
@@ -38,7 +37,7 @@ interface TierConfigContextType {
   isLoading: boolean;
   error: string | null;
   refreshConfig: () => Promise<void>;
-  // Helper functions
+
   getPlanPricing: (tier: Tier) => PlanPricing;
   getPlanLimits: (tier: Tier) => PlanLimits;
   getPlanDescription: (tier: Tier) => { tagline: string; description: string };
@@ -76,15 +75,14 @@ export function TierConfigProvider({
       const data = await response.json();
       setConfig(data);
     } catch (err) {
-      console.error("Failed to fetch tier config:", err);
+
       setError(err instanceof Error ? err.message : "Unknown error");
-      // Keep using defaults if fetch fails
+
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Use useSyncExternalStore to trigger initial fetch without useEffect
   useSyncExternalStore(
     useCallback(() => {
       if (!hasFetchedRef.current) {
@@ -97,7 +95,6 @@ export function TierConfigProvider({
     () => null,
   );
 
-  // Get pricing for a tier
   const getPlanPricing = useCallback(
     (tier: Tier): PlanPricing => {
       if (!config) return DEFAULT_PRICING[tier];
@@ -108,7 +105,6 @@ export function TierConfigProvider({
     [config],
   );
 
-  // Get limits for a tier
   const getPlanLimits = useCallback(
     (tier: Tier): PlanLimits => {
       if (!config) return DEFAULT_LIMITS[tier];
@@ -119,7 +115,6 @@ export function TierConfigProvider({
     [config],
   );
 
-  // Get description for a tier
   const getPlanDescription = useCallback(
     (tier: Tier): { tagline: string; description: string } => {
       if (!config) return DEFAULT_DESCRIPTIONS[tier];
@@ -132,7 +127,6 @@ export function TierConfigProvider({
     [config],
   );
 
-  // Get feature display info
   const getFeatureDisplay = useCallback(
     (feature: Feature): FeatureDisplay => {
       if (!config?.featureDisplay) {
@@ -145,7 +139,6 @@ export function TierConfigProvider({
     [config],
   );
 
-  // Get intelligence bundle price
   const getIntelligenceBundlePrice = useCallback((): number => {
     if (!config?.intelligenceAddons) {
       return Math.round(4497 * (1 - DEFAULT_BUNDLE_DISCOUNT));
@@ -200,15 +193,9 @@ export function useTierConfig() {
   return context;
 }
 
-/**
- * Static exports for backward compatibility
- * These use the default values and will work without the context
- * For dynamic values, use the useTierConfig hook
- */
 export const PLAN_PRICING = DEFAULT_PRICING;
 export const PLAN_LIMITS = DEFAULT_LIMITS;
 export const PLAN_DESCRIPTIONS = DEFAULT_DESCRIPTIONS;
 export const INTELLIGENCE_BUNDLE_DISCOUNT = DEFAULT_BUNDLE_DISCOUNT;
 
-// Re-export from permission store
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };

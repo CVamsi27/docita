@@ -3,15 +3,11 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function analyzeIndexes() {
-  console.log("Starting Database Index Analysis...");
 
   try {
-    // 1. Unused Indexes
-    console.log("\n--- Unused Indexes (Scanned = 0) ---");
-    console.log(
-      "NOTE: New indexes will have 0 scans. Check index usage over time.",
-    );
-    // Cast to any to bypass type checking for raw query result if needed, but Prisma types should work.
+
+    
+
     const unusedIndexes = await prisma.$queryRaw`
       SELECT
         schemaname || '.' || relname AS table,
@@ -26,8 +22,6 @@ async function analyzeIndexes() {
     `;
     console.table(unusedIndexes);
 
-    // 2. Cache Hit Ratio
-    console.log("\n--- Cache Hit Ratios ---");
     const cacheHitRatio = await prisma.$queryRaw`
       SELECT
         sum(heap_blks_read) as heap_read,
@@ -37,8 +31,6 @@ async function analyzeIndexes() {
     `;
     console.table(cacheHitRatio);
 
-    // 3. Index Usage vs Sequential Scans
-    console.log("\n--- Tables with more Seq Scans than Index Scans ---");
     const seqScans = await prisma.$queryRaw`
       SELECT
         relname AS table,
@@ -53,7 +45,7 @@ async function analyzeIndexes() {
     `;
     console.table(seqScans);
   } catch (error) {
-    console.error("Error analyzing indexes:", error);
+
   } finally {
     await prisma.$disconnect();
   }

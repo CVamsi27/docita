@@ -7,6 +7,10 @@ import { Pool } from 'pg';
 
 let prisma: PrismaClient;
 
+type TestPrismaClient = PrismaClient & {
+  runUnrestricted<T>(fn: () => Promise<T>): Promise<T>;
+};
+
 export function setupTestDatabase() {
   const testDbUrl = process.env.DATABASE_URL_TEST;
 
@@ -20,18 +24,12 @@ export function setupTestDatabase() {
   const adapter = new PrismaPg(pool);
   const rawPrisma = new PrismaClient({ adapter });
 
-  // Mock runUnrestricted which is missing in plain PrismaClient
-  // but present in PrismaService
   prisma = Object.assign(rawPrisma, {
     runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
-      // For tests, we can just run the function directly
-      // as tenant isolation is usually not the focus of these E2E tests
-      // or we can import tenantStorage if needed.
       return fn();
     },
-  }) as any;
+  }) as TestPrismaClient;
 
-  // Run migrations for test database
   try {
     execSync('npx prisma db push --accept-data-loss --force-reset', {
       cwd: path.join(__dirname, '../../..', 'packages/db'),
@@ -41,12 +39,7 @@ export function setupTestDatabase() {
       },
       stdio: 'pipe',
     });
-  } catch (e) {
-    console.warn(
-      'Migrations may have already been applied or failed:',
-      e.message,
-    );
-  }
+  } catch (e) {}
 
   return prisma;
 }
@@ -54,7 +47,6 @@ export function setupTestDatabase() {
 export async function resetDatabase() {
   if (!prisma) return;
 
-  // Clear all tables in correct order (respecting foreign keys)
   const tables = [
     'RefreshToken',
     'SubscriptionReminder',
@@ -112,9 +104,7 @@ export async function resetDatabase() {
   for (const table of tables) {
     try {
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
-    } catch (e) {
-      // Table might not exist, continue
-    }
+    } catch (e) {}
   }
 }
 

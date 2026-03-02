@@ -11,7 +11,7 @@ import {
   ISubscriptionRepository,
   CLINIC_OPERATIONS_TOKEN,
   IClinicOperations,
-} from '../ports';
+} from '@/domains/subscriptions/application/ports';
 import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 import type { RazorpayWebhookPayload } from '@workspace/types';
 import {
@@ -19,8 +19,8 @@ import {
   BillingCycle,
   SubscriptionStatusEnum,
   SubscriptionStatus,
-} from '../../core/value-objects';
-import { Subscription } from '../../core/entities/subscription.entity';
+} from '@/domains/subscriptions/core/value-objects';
+import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 
 @Injectable()
 export class ProcessWebhookUseCase {
@@ -35,6 +35,13 @@ export class ProcessWebhookUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly activateSubscription: ActivateSubscriptionUseCase,
   ) {}
+  private readNoteString(
+    notes: Record<string, unknown> | undefined,
+    key: string,
+  ): string | undefined {
+    const value = notes?.[key];
+    return typeof value === 'string' ? value : undefined;
+  }
 
   async execute(
     signature: string,
@@ -82,9 +89,11 @@ export class ProcessWebhookUseCase {
     const clinicId = sub.notes?.clinic_id;
     if (!clinicId) return;
 
-    const tier = ClinicTier.fromString((sub.notes?.tier as string) || 'CORE');
+    const tier = ClinicTier.fromString(
+      this.readNoteString(sub.notes, 'tier') || 'CORE',
+    );
     const cycle = BillingCycle.fromString(
-      (sub.notes?.cycle as string) || 'MONTHLY',
+      this.readNoteString(sub.notes, 'cycle') || 'MONTHLY',
     );
 
     const periodStart = sub.current_start

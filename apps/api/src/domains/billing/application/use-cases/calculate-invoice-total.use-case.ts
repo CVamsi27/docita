@@ -1,11 +1,6 @@
-/**
- * Calculate Invoice Total Use Case
- * Simple example of orchestrating domain services
- */
-
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BillingCalculatorService } from '../../core/services';
-import { IInvoiceRepository } from '../ports/invoice.repository.port';
+import { BillingCalculatorService } from '@/domains/billing/core/services';
+import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
 
 export interface CalculateTotalResult {
   invoiceId: string;
@@ -23,13 +18,11 @@ export class CalculateInvoiceTotalUseCase {
   ) {}
 
   async execute(invoiceId: string): Promise<CalculateTotalResult> {
-    // 1. Fetch invoice from repository
     const invoice = await this.invoiceRepository.findById(invoiceId);
     if (!invoice) {
       throw new NotFoundException(`Invoice ${invoiceId} not found`);
     }
 
-    // 2. Use domain services to calculate
     const items = invoice.getItems();
     const subtotal = this.billingCalculator.calculateItemsSubtotal(items);
     const taxAmount = this.billingCalculator.calculateTotalTax(items);

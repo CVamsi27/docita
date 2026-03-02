@@ -1,5 +1,11 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappService } from './whatsapp.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
@@ -23,10 +29,26 @@ export interface StaffNotificationPayload {
   sendInApp?: boolean;
 }
 
-/**
- * Service to send notifications to clinic staff
- * Supports both WhatsApp and in-app notifications
- */
+function parseNotificationData(value: unknown): Record<string, unknown> {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return Object.fromEntries(Object.entries(parsed));
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return Object.fromEntries(Object.entries(value));
+  }
+
+  return {};
+}
+
 @Injectable()
 export class StaffNotificationService {
   private readonly logger = new Logger(StaffNotificationService.name);
@@ -56,10 +78,6 @@ export class StaffNotificationService {
     return automation.enabled !== false;
   }
 
-  /**
-   * Send notification to relevant staff members
-   * By default, sends both WhatsApp and in-app notifications
-   */
   async notifyStaff(payload: StaffNotificationPayload): Promise<void> {
     const {
       clinicId,
@@ -76,7 +94,6 @@ export class StaffNotificationService {
 
     const isWhatsappEnabled = await this.isWhatsappEnabled(clinicId);
 
-    // Get staff members who should receive this notification
     const recipients = await this.getRecipients(clinicId, doctorId, type);
 
     if (recipients.length === 0) {
@@ -86,11 +103,9 @@ export class StaffNotificationService {
       return;
     }
 
-    // Send notifications in parallel
     const notificationPromises: Promise<void>[] = [];
 
     for (const recipient of recipients) {
-      // Create in-app notification
       if (sendInApp) {
         notificationPromises.push(
           this.createInAppNotification(
@@ -105,7 +120,6 @@ export class StaffNotificationService {
         );
       }
 
-      // Send WhatsApp notification
       if (sendWhatsApp && isWhatsappEnabled && recipient.phoneNumber) {
         notificationPromises.push(
           this.sendWhatsAppNotification(
@@ -126,26 +140,19 @@ export class StaffNotificationService {
     );
   }
 
-  /**
-   * Get list of staff members who should receive the notification
-   */
   private async getRecipients(
     clinicId: string,
     doctorId: string | undefined,
     type: StaffNotificationType,
   ): Promise<Array<{ id: string; phoneNumber: string | null }>> {
-    // Determine which roles should receive this notification
     const targetRoles = this.getTargetRoles(type);
 
-    // Build query conditions
     const where: Prisma.UserWhereInput = {
       clinicId,
       role: { in: targetRoles },
     };
 
-    // For doctor-specific notifications, include the doctor
     if (doctorId && !targetRoles.includes('DOCTOR' as Role)) {
-      // Include both role-based staff AND the specific doctor
       const users = await this.prisma.user.findMany({
         where: {
           OR: [where, { id: doctorId, clinicId }],
@@ -169,12 +176,7 @@ export class StaffNotificationService {
     return users;
   }
 
-  /**
-   * Determine which roles should receive a notification type
-   */
   private getTargetRoles(type: StaffNotificationType): Role[] {
-    // Define notification routing by type (matching schema enum values)
-    // Valid roles: DOCTOR, RECEPTIONIST, ADMIN, SUPER_ADMIN, ADMIN_DOCTOR
     const routingMap: Partial<Record<StaffNotificationType, Role[]>> = {
       PATIENT_RESPONSE: ['RECEPTIONIST', 'ADMIN', 'ADMIN_DOCTOR'],
       APPOINTMENT_CANCEL: ['RECEPTIONIST', 'ADMIN', 'ADMIN_DOCTOR', 'DOCTOR'],
@@ -187,9 +189,6 @@ export class StaffNotificationService {
     return routingMap[type] || ['ADMIN', 'ADMIN_DOCTOR'];
   }
 
-  /**
-   * Create an in-app notification
-   */
   private async createInAppNotification(
     userId: string,
     clinicId: string,
@@ -220,9 +219,6 @@ export class StaffNotificationService {
     }
   }
 
-  /**
-   * Send WhatsApp notification to staff member
-   */
   private async sendWhatsAppNotification(
     phoneNumber: string,
     clinicId: string,
@@ -231,7 +227,6 @@ export class StaffNotificationService {
     templateVariables?: Record<string, string>,
   ): Promise<void> {
     try {
-      // Try to use template first
       if (templateVariables) {
         const resolved = await this.templatesService.resolveTemplate(
           'staff_notification',
@@ -254,7 +249,6 @@ export class StaffNotificationService {
         }
       }
 
-      // Fallback to simple message
       const formattedMessage = `*Staff Alert*\n\n*${title}*\n\n${message}`;
       await this.whatsappClient.sendMessage({
         to: phoneNumber,
@@ -268,9 +262,6 @@ export class StaffNotificationService {
     }
   }
 
-  /**
-   * Get unread notifications for a user
-   */
   async getUnreadNotifications(
     userId: string,
     limit = 20,
@@ -305,45 +296,34 @@ export class StaffNotificationService {
 
     return notifications.map((n) => ({
       ...n,
-      data: n.data ? JSON.parse(n.data as string) : {},
+      data: parseNotificationData(n.data),
     }));
   }
 
-  /**
-   * Mark notifications as read
-   */
-  async markAsRead(notificationIds: string[], userId: string): Promise<void> {
-    await this.prisma.staffNotification.updateMany({
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+  ): Promise<void> {
+    const result = await this.prisma.staffNotification.deleteMany({
       where: {
-        id: { in: notificationIds },
+        id: notificationId,
         userId,
       },
-      data: {
-        isRead: true,
-        readAt: new Date(),
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException('Notification not found');
+    }
+  }
+
+  async deleteAllNotifications(userId: string): Promise<void> {
+    await this.prisma.staffNotification.deleteMany({
+      where: {
+        userId,
       },
     });
   }
 
-  /**
-   * Mark all notifications as read for a user
-   */
-  async markAllAsRead(userId: string): Promise<void> {
-    await this.prisma.staffNotification.updateMany({
-      where: {
-        userId,
-        isRead: false,
-      },
-      data: {
-        isRead: true,
-        readAt: new Date(),
-      },
-    });
-  }
-
-  /**
-   * Get notification count for a user
-   */
   async getUnreadCount(userId: string): Promise<number> {
     return this.prisma.staffNotification.count({
       where: {
@@ -353,9 +333,6 @@ export class StaffNotificationService {
     });
   }
 
-  /**
-   * Send approval request notification
-   */
   async sendApprovalRequest(
     clinicId: string,
     type: 'prescription' | 'invoice',
@@ -387,9 +364,6 @@ export class StaffNotificationService {
     });
   }
 
-  /**
-   * Notify about successful prescription/invoice delivery
-   */
   async notifyDeliverySuccess(
     clinicId: string,
     type: 'prescription' | 'invoice',
@@ -409,7 +383,7 @@ export class StaffNotificationService {
         action: 'delivery_success',
       },
       priority: 'LOW',
-      sendWhatsApp: false, // Only in-app for delivery confirmations
+      sendWhatsApp: false,
     });
   }
 }

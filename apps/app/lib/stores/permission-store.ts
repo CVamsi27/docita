@@ -11,10 +11,8 @@ import {
 } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
 
-// Re-export for convenience
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
 
-// Facility type for CLINIC vs HOSPITAL distinction
 export type FacilityType = "CLINIC" | "HOSPITAL";
 
 interface PermissionState {
@@ -49,8 +47,8 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   currentTier: Tier.CAPTURE,
   hasIntelligence: false,
   userRole: null,
-  facilityType: "CLINIC", // Default to Clinic
-  clinicType: null, // Will be set when clinic data loads
+  facilityType: "CLINIC", 
+  clinicType: null, 
   featureOverrides: {},
 
   setTier: (tier) => {
@@ -73,7 +71,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
         case "ENTERPRISE":
           parsedTier = Tier.ENTERPRISE;
           break;
-        // Legacy mappings
+
         case "FREE":
           parsedTier = Tier.CAPTURE;
           break;
@@ -99,12 +97,12 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   setFacilityType: (type) => set({ facilityType: type }),
 
   setClinicType: (type) => {
-    // Accept string or ClinicType, null to clear
+
     if (type === null) {
       set({ clinicType: null });
       return;
     }
-    // Normalize to uppercase ClinicType
+
     const normalized = (
       typeof type === "string" ? type.toUpperCase() : type
     ) as ClinicType;
@@ -116,21 +114,18 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   canAccess: (feature, permission?) => {
     const { currentTier, hasIntelligence, featureOverrides, userRole } = get();
 
-    // Check role permission if provided
     if (permission && userRole) {
       if (!hasPermission(userRole as UserRole, permission)) {
         return false;
       }
     }
 
-    // Check custom override first
     if (featureOverrides[feature] !== undefined) {
       return featureOverrides[feature];
     }
 
     const requiredTier = FEATURE_TIER_MAP[feature];
 
-    // Intelligence features require the add-on
     if (requiredTier === Tier.INTELLIGENCE) {
       return hasIntelligence;
     }
@@ -148,32 +143,24 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     return currentTier >= tier;
   },
 
-  /**
-   * Check if a specialty feature is available for the current clinic type
-   * @param feature - The specialty feature name (e.g., "dentalChart", "growthChart")
-   * @returns true if the feature is available for this clinic type
-   */
+  
   canAccessClinicFeature: (feature) => {
     const { clinicType } = get();
 
-    // If no clinic type set, allow access (backward compatibility)
     if (!clinicType) {
       return true;
     }
 
-    // Get the feature matrix for this clinic type
     const typeFeatures = CLINIC_TYPE_FEATURES[clinicType];
     if (!typeFeatures) {
-      return true; // Unknown clinic type, allow access
+      return true; 
     }
 
-    // Check if the feature exists and is enabled for this clinic type
     const featureKey = feature as keyof typeof typeFeatures;
     if (featureKey in typeFeatures) {
       return typeFeatures[featureKey] === true;
     }
 
-    // Feature not in matrix means it's a core feature, allow access
     return true;
   },
 

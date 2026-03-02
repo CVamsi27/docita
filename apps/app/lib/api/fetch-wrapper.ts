@@ -11,6 +11,14 @@ export interface ApiError extends Error {
   data?: unknown;
 }
 
+function toRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return Object.fromEntries(Object.entries(value));
+}
+
 export async function apiFetch<T>(
   url: string,
   options: FetchOptions = {},
@@ -44,9 +52,9 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorObj = errorData as Record<string, unknown>;
+    const errorObj = toRecord(errorData);
     const message =
-      typeof errorObj.message === "string"
+      typeof errorObj?.message === "string"
         ? errorObj.message
         : `HTTP ${response.status}: ${response.statusText}`;
     const error = new Error(message) as ApiError;

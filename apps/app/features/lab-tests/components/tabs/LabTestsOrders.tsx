@@ -11,6 +11,14 @@ import { Input } from "@workspace/ui/components/input";
 import { FileText, Filter, FlaskConical, Search } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
 
 import { LabTestOrder } from "@workspace/types";
 
@@ -37,7 +45,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Search and Filter */}
+      {}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -54,7 +62,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
         </Button>
       </div>
 
-      {/* Lab Tests Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Lab Test Orders</CardTitle>
@@ -67,70 +75,67 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
             <LoadingState message="Loading lab tests..." />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
                       Patient
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead>
                       Test Name
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead>
                       Category
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead>
                       Ordered By
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead>
                       Order Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead>
                       Status
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                    </TableHead>
+                    <TableHead className="text-right">
                       Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filteredTests.map((test) => (
-                    <tr
-                      key={test.id}
-                      className="border-b hover:bg-muted/50 transition-colors"
-                    >
-                      <td className="py-3 px-4">
+                    <TableRow key={test.id}>
+                      <TableCell>
                         <div className="font-medium">
                           {test.patient
                             ? `${test.patient.firstName} ${test.patient.lastName}`
                             : "Unknown"}
                         </div>
-                      </td>
-                      <td className="py-3 px-4">{test.labTest?.name || "-"}</td>
-                      <td className="py-3 px-4 text-muted-foreground capitalize">
+                      </TableCell>
+                      <TableCell>{test.labTest?.name || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground capitalize">
                         {test.labTest?.category || "-"}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
                         {test.doctor?.name || "-"}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
                         {formatDate(test.createdAt)}
-                      </td>
-                      <td className="py-3 px-4">
+                      </TableCell>
+                      <TableCell>
                         <StatusBadge status={test.status} />
-                      </td>
-                      <td className="py-3 px-4 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Button variant="ghost" size="sm" className="gap-1">
                           <FileText className="h-4 w-4" />
                           {test.status === "completed"
                             ? "View Results"
                             : "Details"}
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
           {!isLoading && filteredTests.length === 0 && (

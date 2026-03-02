@@ -82,7 +82,6 @@ describe('AiService', () => {
 
       const result = await service.generateStructured({ user: 'test' }, Schema);
 
-      // Mock fallback returns empty object cast as T currently
       expect(result).toBeDefined();
     });
   });

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -59,13 +59,11 @@ describe('Idempotency (e2e)', () => {
       role: Role.ADMIN,
     });
 
-    // 1. Get CSRF token FIRST
     const getRes = await request(app.getHttpServer()).get('/');
     const cookies = getRes.get('Set-Cookie');
     csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='))!;
     csrfToken = csrfCookie.split(';')[0].split('=')[1];
 
-    // 2. Login with CSRF token
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .set('Cookie', [csrfCookie])
@@ -93,7 +91,6 @@ describe('Idempotency (e2e)', () => {
       clinicId: testClinicId,
     };
 
-    // 1. First request
     const res1 = await request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
@@ -105,7 +102,6 @@ describe('Idempotency (e2e)', () => {
 
     const firstId = res1.body.id;
 
-    // 2. Second request with same key
     const res2 = await request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
@@ -131,7 +127,6 @@ describe('Idempotency (e2e)', () => {
       clinicId: testClinicId,
     };
 
-    // Fire two requests almost simultaneously
     const p1 = request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
@@ -153,7 +148,6 @@ describe('Idempotency (e2e)', () => {
       r.status === 'fulfilled' ? r.value.status : r.reason.status,
     );
 
-    // One should be 201, the other might be 201 (if cached) or 409 (if overlap)
     expect(statuses).toContain(201);
   });
 });

@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> This document is retained for historical/extended AWS runbook details. For the current canonical phased strategy (Vercel + Railway/Neon first, then AWS ECR/EC2 + RDS), use [docs/deployment/DEPLOYMENT.md](./deployment/DEPLOYMENT.md).
+
 This guide covers the deployment of the Docita monorepo applications.
 
 ## Architecture Overview
@@ -12,7 +14,7 @@ This guide covers the deployment of the Docita monorepo applications.
 
 - **Backend API (Nest.js)**:
   - `apps/api`: REST API & WebSocket server.
-  - **Target**: AWS EC2
+  - **Target**: Railway (Phase 1), AWS EC2 via ECR (Phase 2)
 
 - **Database**:
   - **Current**: Neon (Serverless PostgreSQL)
@@ -267,7 +269,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRATION=7d
 PORT=3001
 NODE_ENV=production
-CORS_ORIGIN=https://your-app.vercel.app
+CORS_ORIGINS=https://your-app.vercel.app
 EOF
 ```
 
@@ -864,7 +866,7 @@ JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRATION=7d
 PORT=3001
 NODE_ENV=production
-CORS_ORIGIN=https://your-app.vercel.app
+CORS_ORIGINS=https://your-app.vercel.app
 EOF
 
 chmod 600 .env

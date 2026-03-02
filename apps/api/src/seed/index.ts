@@ -1,9 +1,8 @@
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { getEnv } from '../shared/modules/config/app-config';
+import { getEnv } from '@/shared/modules/config/app-config';
 
-// Seed Modules
 import { seedClinicUsers } from './seed-clinic-users';
 import { seedPatientsAndEncounters } from './seed-patients-encounters';
 import { seedStructuredMedicalHistory } from './seed-structured-medical-history';
@@ -30,9 +29,7 @@ async function main() {
         }
         connectionString = url.toString();
       }
-    } catch {
-      console.warn('Failed to parse DATABASE_URL for SSL adjustment');
-    }
+    } catch {}
   }
 
   const pool = new Pool({ connectionString });
@@ -40,43 +37,24 @@ async function main() {
   const prisma = new PrismaClient({ adapter });
 
   try {
-    console.log('🌱 Starting database seed...');
-    console.log(
-      'Using Database URL:',
-      connectionString ? connectionString.substring(0, 20) + '...' : 'None',
-    );
-
-    console.log('\n--- Seeding Clinic & Users ---');
     const { defaultClinic, doctor1, doctor2, doctor3 } =
       await seedClinicUsers(prisma);
-    console.log('✅ Clinic & Users seeded');
 
-    // 2. Patients & Encounters (Appointments, Vitals, Prescriptions, Invoices, Documents)
-    console.log('\n--- Seeding Patients & Encounters ---');
     const patients = await seedPatientsAndEncounters(prisma, {
       clinicId: defaultClinic.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
     });
-    console.log(`✅ ${patients.length} Patients & Encounters seeded`);
 
-    // 3. Structured Medical History (Conditions, Allergies, Family/Social History)
-    console.log('\n--- Seeding Medical History ---');
     await seedStructuredMedicalHistory(prisma, patients);
-    console.log('✅ Medical History seeded');
 
-    // 4. Schedules & Lab Tests
-    console.log('\n--- Seeding Schedules & Lab Tests ---');
     await seedSchedulesAndLabTests(prisma, {
       clinicId: defaultClinic.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       doctor3Id: doctor3.id,
     });
-    console.log('✅ Schedules & Lab Tests seeded');
 
-    // 5. Clinic Config & Templates (WhatsApp, Prescriptions)
-    console.log('\n--- Seeding Config & Templates ---');
     await seedClinicConfigTemplates(prisma, {
       clinicId: defaultClinic.id,
       doctor1Id: doctor1.id,
@@ -84,31 +62,9 @@ async function main() {
       doctor3Id: doctor3.id,
       patients,
     });
-    console.log('✅ Config & Templates seeded');
 
-    // 6. ICD-10 Codes (uses its own internal logic/files)
-    console.log('\n--- Seeding ICD-10 Codes ---');
     await seedIcdCodes(prisma);
-    console.log('✅ ICD-10 Codes seeded');
-
-    console.log('\n🎉 Database seed completed successfully!');
-    console.log('\nLogin credentials:');
-    console.log('   Main App (http://localhost:3000):');
-    console.log('   - clinic.admin@docita.work / password123 (Clinic Admin)');
-    console.log(
-      '   - doctor@docita.work / password123 (Dr. Vamsi - Cardiologist)',
-    );
-    console.log(
-      '   - dr.sharma@docita.work / password123 (Dr. Priya - Pediatrician)',
-    );
-    console.log(
-      '   - dr.dental@docita.work / password123 (Dr. Arun - Dentist)',
-    );
-    console.log('   - reception@docita.work / password123 (Receptionist)');
-    console.log('\n   Admin Console (http://localhost:3002):');
-    console.log('   - admin@docita.work / password123 (Super Admin)');
   } catch (error) {
-    console.error('❌ Seeding failed:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -117,6 +73,5 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(e);
   process.exit(1);
 });

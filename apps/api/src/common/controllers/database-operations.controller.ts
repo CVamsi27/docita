@@ -1,9 +1,3 @@
-/**
- * Database Operations Controller
- * Exposes database management endpoints for monitoring and maintenance
- * Restricted to SUPER_ADMIN role
- */
-
 import { Controller, Get, Post, Body, UseGuards, Logger } from '@nestjs/common';
 import {
   ApiOperation,
@@ -11,13 +5,13 @@ import {
   ApiTags,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { DatabaseBackupService } from '../../shared/modules/database/database-backup.service';
-import { SlowQueryLoggingService } from '../../shared/modules/database/slow-query-logging.service';
-import { DatabaseIndexOptimizationService } from '../../shared/modules/database/database-index-optimization.service';
-import { DatabasePoolingService } from '../../shared/modules/database/database-pooling.service';
-import { RolesGuard } from '../../shared/modules/auth/auth/roles.guard';
-import { Roles } from '../../shared/modules/auth/auth/roles.decorator';
-import { VerifyBackupRequestDto } from '../dto/database-operations.dto';
+import { DatabaseBackupService } from '@/shared/modules/database/database-backup.service';
+import { SlowQueryLoggingService } from '@/shared/modules/database/slow-query-logging.service';
+import { DatabaseIndexOptimizationService } from '@/shared/modules/database/database-index-optimization.service';
+import { DatabasePoolingService } from '@/shared/modules/database/database-pooling.service';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { VerifyBackupRequestDto } from '@/common/dto/database-operations.dto';
 
 @ApiTags('Database Operations')
 @ApiBearerAuth()

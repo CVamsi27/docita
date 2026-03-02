@@ -45,9 +45,6 @@ export default function PrescriptionsPage() {
   const filteredAndSortedPrescriptions = useMemo(() => {
     const result = [...prescriptions];
 
-    // Backend-driven filtering
-
-    // Sort
     result.sort((a, b) => {
       let aValue: string | number = "";
       let bValue: string | number = "";

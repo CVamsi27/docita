@@ -17,7 +17,7 @@ export function ConsultationLayoutUI({
 }: ConsultationLayoutUIProps) {
   return (
     <div className="flex-1 overflow-hidden flex overflow-x-hidden relative">
-      {/* Sidebar - Desktop only */}
+      {}
       <aside
         className={cn(
           "hidden md:block border-r overflow-y-auto shrink-0 transition-all duration-300 ease-in-out",
@@ -27,9 +27,9 @@ export function ConsultationLayoutUI({
         {Sidebar}
       </aside>
 
-      {/* Main Content */}
+      {}
       <div className="flex-1 overflow-hidden overflow-x-hidden flex flex-col relative h-full">
-        {/* Focus Mode Toggle (Floating if sidebar is closed) */}
+        {}
         {!isSidebarOpen && (
           <Button
             variant="ghost"

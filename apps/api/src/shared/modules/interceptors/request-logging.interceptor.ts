@@ -7,8 +7,26 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { MonitoringService } from '../monitoring/monitoring/monitoring.service';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
+
+function toNumberHeader(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const [first] = value;
+    return toNumberHeader(first);
+  }
+
+  return undefined;
+}
 
 interface RequestUser {
   id?: string;
@@ -28,12 +46,10 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     const startTime = Date.now();
 
-    // Extract user info from JWT if available
     const user = request.user as RequestUser | undefined;
     const userId = user?.id;
     const clinicId = user?.clinicId;
 
-    // Get request metadata
     const method = request.method;
     const path = request.path;
     const userAgent = request.headers['user-agent'];
@@ -42,7 +58,6 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       request.headers['x-forwarded-for']?.toString() ||
       request.socket.remoteAddress;
 
-    // Calculate request size
     const requestSize = request.headers['content-length']
       ? parseInt(request.headers['content-length'], 10)
       : undefined;
@@ -52,12 +67,10 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         const duration = Date.now() - startTime;
         const statusCode = response.statusCode;
 
-        // Get response size from headers if available
-        const responseSize = response.getHeader('content-length')
-          ? parseInt(response.getHeader('content-length') as string, 10)
-          : undefined;
+        const responseSize = toNumberHeader(
+          response.getHeader('content-length'),
+        );
 
-        // Log the request
         this.monitoringService.logRequest({
           clinicId,
           userId,
@@ -71,7 +84,6 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           ip,
         });
 
-        // Log slow requests
         if (duration > 3000) {
           this.logger.warn(
             `Slow request: ${method} ${path} took ${duration}ms`,
@@ -82,7 +94,6 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         const duration = Date.now() - startTime;
         const statusCode = error.status || 500;
 
-        // Log the failed request
         this.monitoringService.logRequest({
           clinicId,
           userId,
@@ -97,7 +108,6 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           errorStack: error.stack,
         });
 
-        // Re-throw the error to be handled by the exception filter
         throw error;
       }),
     );

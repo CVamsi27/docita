@@ -19,37 +19,37 @@ export const CODE_STATUS_LABELS: Record<CodeStatus, string> = {
 
 export const CODE_STATUS_COLORS: Record<
   CodeStatus,
-  { bg: string; border: string; text: string; icon: string }
+  { container: string; text: string; icon: string; badge: string }
 > = {
   FULL_CODE: {
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-800",
-    icon: "text-green-600",
+    container: "surface-success",
+    text: "text-success",
+    icon: "text-success",
+    badge: "badge-success",
   },
   DNR: {
-    bg: "bg-red-50",
-    border: "border-red-300",
-    text: "text-red-900",
-    icon: "text-red-600",
+    container: "surface-danger",
+    text: "text-destructive",
+    icon: "text-destructive",
+    badge: "badge-danger",
   },
   DNI: {
-    bg: "bg-orange-50",
-    border: "border-orange-300",
-    text: "text-orange-900",
-    icon: "text-orange-600",
+    container: "surface-warning",
+    text: "text-warning",
+    icon: "text-warning",
+    badge: "badge-warning",
   },
   DNR_DNI: {
-    bg: "bg-red-100",
-    border: "border-red-400",
-    text: "text-red-900",
-    icon: "text-red-700",
+    container: "surface-danger",
+    text: "text-destructive",
+    icon: "text-destructive",
+    badge: "badge-danger",
   },
   COMFORT_CARE: {
-    bg: "bg-purple-50",
-    border: "border-purple-300",
-    text: "text-purple-900",
-    icon: "text-purple-600",
+    container: "surface-info",
+    text: "text-info",
+    icon: "text-info",
+    badge: "badge-info",
   },
 };
 
@@ -79,9 +79,8 @@ export function CodeStatusAlertUI({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg border",
-        colors.bg,
-        colors.border,
+        "flex items-center gap-2 px-3 py-2 rounded-lg",
+        colors.container,
         colors.text,
         isCritical && "animate-pulse",
         className,
@@ -105,8 +104,8 @@ export function CodeStatusAlertUI({
         <Badge
           variant="outline"
           className={cn(
-            "text-xs font-bold border-current uppercase",
-            colors.text,
+            "text-xs font-bold uppercase",
+            colors.badge,
           )}
         >
           CRITICAL

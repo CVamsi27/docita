@@ -13,7 +13,7 @@ export default function InventoryError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Inventory route error:", error);
+
   }, [error]);
 
   return (

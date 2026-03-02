@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Prisma } from '@workspace/db';
 import type {
   WhatsappTemplateCategory,
   WhatsappButtonType,
@@ -18,23 +19,22 @@ interface TemplateVariable {
   defaultValue?: string;
 }
 
-/**
- * TemplateDataService - Handles all database operations for WhatsApp templates
- * Responsibilities:
- * - CRUD operations on WhatsApp templates
- * - Querying templates by clinic and ID
- * - Seeding default templates for new clinics
- * - Template status management
- */
+function toNullableJsonValue(
+  value: unknown,
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  if (value === null || value === undefined) {
+    return Prisma.JsonNull;
+  }
+
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
 @Injectable()
 export class TemplateDataService {
   private readonly logger = new Logger(TemplateDataService.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Get a custom template by ID and clinic
-   */
   async getCustomTemplate(templateId: string, clinicId: string) {
     return this.prisma.whatsappTemplate.findFirst({
       where: {
@@ -46,18 +46,12 @@ export class TemplateDataService {
     });
   }
 
-  /**
-   * Get a custom template by database ID
-   */
   async getTemplateById(id: string) {
     return this.prisma.whatsappTemplate.findUnique({
       where: { id },
     });
   }
 
-  /**
-   * List all templates for a clinic
-   */
   async listTemplates(clinicId: string) {
     return this.prisma.whatsappTemplate.findMany({
       where: { clinicId },
@@ -65,9 +59,6 @@ export class TemplateDataService {
     });
   }
 
-  /**
-   * Seed default templates for a clinic
-   */
   async seedDefaultTemplates(
     clinicId: string,
     defaultTemplates: Record<
@@ -119,9 +110,6 @@ export class TemplateDataService {
     );
   }
 
-  /**
-   * Update template status (for approval workflow)
-   */
   async updateTemplateStatus(
     templateId: string,
     status: WhatsappTemplateStatus,
@@ -137,9 +125,6 @@ export class TemplateDataService {
     });
   }
 
-  /**
-   * Create a new template
-   */
   async createTemplate(data: {
     clinicId: string;
     name: string;
@@ -155,15 +140,12 @@ export class TemplateDataService {
         status: 'DRAFT',
         isDefault: false,
         isActive: true,
-        variables: (data.variables as any) || null,
-        buttons: (data.buttons as any) || null,
+        variables: toNullableJsonValue(data.variables),
+        buttons: toNullableJsonValue(data.buttons),
       },
     });
   }
 
-  /**
-   * Update an existing template
-   */
   async updateTemplate(
     id: string,
     data: {
@@ -178,15 +160,18 @@ export class TemplateDataService {
       data: {
         ...data,
         updatedAt: new Date(),
-        variables: (data.variables as any) || undefined,
-        buttons: (data.buttons as any) || undefined,
+        variables:
+          data.variables === undefined
+            ? undefined
+            : toNullableJsonValue(data.variables),
+        buttons:
+          data.buttons === undefined
+            ? undefined
+            : toNullableJsonValue(data.buttons),
       },
     });
   }
 
-  /**
-   * Delete a template
-   */
   async deleteTemplate(id: string) {
     return this.prisma.whatsappTemplate.update({
       where: { id },

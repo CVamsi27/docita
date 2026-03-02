@@ -8,7 +8,7 @@
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",

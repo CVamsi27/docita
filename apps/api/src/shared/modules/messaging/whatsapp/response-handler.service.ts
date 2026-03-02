@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
@@ -11,7 +11,6 @@ import {
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
 
-// Define PatientResponseType locally since it's from the DB schema
 type PatientResponseType =
   | 'CONFIRM'
   | 'ON_THE_WAY'
@@ -20,26 +19,22 @@ type PatientResponseType =
   | 'CANCEL'
   | 'UNKNOWN';
 
-/**
- * Maps text/button responses to PatientResponseType
- */
 const RESPONSE_MAPPING: Record<string, string> = {
-  // Button IDs (prefix with btn_ to avoid conflicts)
   btn_confirm: 'CONFIRM',
   btn_on_the_way: 'ON_THE_WAY',
   btn_delay: 'DELAY',
   btn_reschedule: 'RESCHEDULE',
   btn_cancel: 'CANCEL',
-  // Button IDs without prefix (for direct button responses)
+
   confirm: 'CONFIRM',
   on_the_way: 'ON_THE_WAY',
   delay: 'DELAY',
-  // Text responses (numbers for sandbox mode)
-  '1': 'CONFIRM', // First option usually confirm/on-the-way
-  '2': 'DELAY', // Second option usually delay/reschedule
+
+  '1': 'CONFIRM',
+  '2': 'DELAY',
   '3': 'RESCHEDULE',
   '4': 'CANCEL',
-  // Common text responses
+
   yes: 'CONFIRM',
   ok: 'CONFIRM',
   okay: 'CONFIRM',
@@ -56,11 +51,6 @@ const RESPONSE_MAPPING: Record<string, string> = {
   no: 'CANCEL',
 };
 
-/**
- * Service to handle patient responses to WhatsApp appointment reminders
- * Maps button clicks and text responses to actions, updates appointment,
- * and notifies staff.
- */
 @Injectable()
 export class ResponseHandlerService {
   private readonly logger = new Logger(ResponseHandlerService.name);
@@ -72,9 +62,6 @@ export class ResponseHandlerService {
     private readonly staffNotification: StaffNotificationService,
   ) {}
 
-  /**
-   * Handle an incoming patient response
-   */
   async handlePatientResponse(
     appointmentId: string,
     responseText: string,
@@ -85,7 +72,6 @@ export class ResponseHandlerService {
       `Processing response for appointment ${appointmentId}: ${responseText}`,
     );
 
-    // Get appointment details
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
@@ -100,11 +86,9 @@ export class ResponseHandlerService {
       return;
     }
 
-    // Parse the response type
     const responseType = this.parseResponse(responseText);
     const delayMinutes = this.extractDelayMinutes(responseText);
 
-    // Create response record
     const response = await this.prisma.appointmentResponse.create({
       data: {
         appointmentId,
@@ -114,13 +98,10 @@ export class ResponseHandlerService {
       },
     });
 
-    // Update appointment status based on response
     await this.updateAppointmentStatus(appointment.id, responseType);
 
-    // Send confirmation message to patient
     await this.sendPatientConfirmation(appointment, responseType);
 
-    // Notify staff (WhatsApp + In-app)
     await this.notifyStaff(
       appointment,
       responseType,
@@ -133,40 +114,30 @@ export class ResponseHandlerService {
     );
   }
 
-  /**
-   * Parse response text to PatientResponseType
-   */
   private parseResponse(text: string): PatientResponseType {
     const normalized = text.toLowerCase().trim();
 
-    // Check exact matches first
     if (RESPONSE_MAPPING[normalized]) {
       return RESPONSE_MAPPING[normalized] as PatientResponseType;
     }
 
-    // Check if text contains keywords
     for (const [keyword, type] of Object.entries(RESPONSE_MAPPING)) {
       if (normalized.includes(keyword)) {
         return type as PatientResponseType;
       }
     }
 
-    // Default to UNKNOWN if can't parse
     return 'UNKNOWN';
   }
 
-  /**
-   * Extract delay minutes from response text
-   */
   private extractDelayMinutes(text: string): number | null {
     const normalized = text.toLowerCase();
 
-    // Check for specific delay patterns
     const patterns = [
-      /(\d+)\s*min/i, // "15 min", "15 minutes"
+      /(\d+)\s*min/i,
       /(\d+)\s*mins/i,
-      /running\s*(\d+)\s*late/i, // "running 10 late"
-      /late\s*by\s*(\d+)/i, // "late by 15"
+      /running\s*(\d+)\s*late/i,
+      /late\s*by\s*(\d+)/i,
     ];
 
     for (const pattern of patterns) {
@@ -176,17 +147,13 @@ export class ResponseHandlerService {
       }
     }
 
-    // Default delay estimates based on response
     if (this.parseResponse(text) === 'DELAY') {
-      return 15; // Default 15 minutes delay
+      return 15;
     }
 
     return null;
   }
 
-  /**
-   * Update appointment status based on patient response
-   */
   private async updateAppointmentStatus(
     appointmentId: string,
     responseType: PatientResponseType,
@@ -205,7 +172,6 @@ export class ResponseHandlerService {
         newStatus = AppointmentStatus.RESCHEDULING;
         break;
       case 'DELAY':
-        // Keep current status, just note the delay
         break;
     }
 
@@ -217,9 +183,6 @@ export class ResponseHandlerService {
     }
   }
 
-  /**
-   * Send confirmation message to patient based on their response
-   */
   private async sendPatientConfirmation(
     appointment: {
       id: string;
@@ -252,7 +215,6 @@ export class ResponseHandlerService {
         templateId = 'patient_response_delay';
         break;
       case 'RESCHEDULE':
-        // For reschedule, we'll send a custom message
         await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
           message: `*Reschedule Request* - ${appointment.clinic.name}\n\nThank you ${appointment.patient.firstName}. Our staff will contact you shortly to reschedule your appointment.\n\nFor urgent queries, please call us directly.`,
@@ -265,7 +227,6 @@ export class ResponseHandlerService {
         });
         return;
       default:
-        // Unknown response - acknowledge receipt
         await this.whatsappClient.sendMessage({
           to: appointment.patient.phoneNumber,
           message: `Thank you for your message. Our staff at ${appointment.clinic.name} will get back to you shortly.`,
@@ -288,9 +249,6 @@ export class ResponseHandlerService {
     }
   }
 
-  /**
-   * Notify clinic staff about patient response
-   */
   private async notifyStaff(
     appointment: {
       id: string;
@@ -316,10 +274,8 @@ export class ResponseHandlerService {
       message: originalMessage,
     };
 
-    // Determine notification priority
     const priority = this.getNotificationPriority(responseType);
 
-    // Send staff notifications (WhatsApp + In-app)
     await this.staffNotification.notifyStaff({
       clinicId: appointment.clinic.id,
       doctorId: appointment.doctor.id,
@@ -337,7 +293,6 @@ export class ResponseHandlerService {
       templateVariables: variables,
     });
 
-    // Update response record to mark staff notified
     await this.prisma.appointmentResponse.update({
       where: { id: responseId },
       data: {
@@ -347,9 +302,6 @@ export class ResponseHandlerService {
     });
   }
 
-  /**
-   * Get human-readable label for response type
-   */
   private getResponseLabel(responseType: PatientResponseType): string {
     const labels: Record<PatientResponseType, string> = {
       CONFIRM: 'Confirmed',
@@ -362,9 +314,6 @@ export class ResponseHandlerService {
     return labels[responseType] || responseType;
   }
 
-  /**
-   * Get notification priority based on response type
-   */
   private getNotificationPriority(
     responseType: PatientResponseType,
   ): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
@@ -383,9 +332,6 @@ export class ResponseHandlerService {
     }
   }
 
-  /**
-   * Get staff notification type based on response
-   */
   private getStaffNotificationType(
     responseType: PatientResponseType,
   ): 'PATIENT_RESPONSE' | 'APPOINTMENT_CANCEL' | 'APPOINTMENT_DELAY' {

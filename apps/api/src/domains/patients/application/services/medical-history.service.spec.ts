@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MedicalHistoryService } from './medical-history.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { MedicalHistoryFactory } from '../../core/factories/medical-history.factory';
-import { AiService } from '../../../../shared/modules/ai-core/ai.service';
-import { AiFactory } from '../../../../shared/modules/ai-core/factories/ai.factory';
+import { PrismaService } from '@/prisma/prisma.service';
+import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
+import { AiService } from '@/shared/modules/ai-core/ai.service';
+import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;
@@ -95,7 +95,7 @@ describe('MedicalHistoryService', () => {
 
       mockFactory.createCondition.mockReturnValue(validated);
 
-      await service.createCondition(patientId, input as any);
+      await service.createCondition(patientId, input as never);
 
       expect(factory.createCondition).toHaveBeenCalledWith(input);
       expect(

@@ -1,7 +1,4 @@
-/**
- * Core interfaces for the feature access control system
- * Following SOLID principles for loose coupling and extensibility
- */
+
 
 import {
   type ClinicType,
@@ -11,18 +8,11 @@ import {
 } from "@workspace/types";
 import type { Permission } from "@/lib/permissions";
 
-/**
- * Enum for add-on types
- */
 export enum AddOnType {
   WHATSAPP = "WHATSAPP",
   INTELLIGENCE = "INTELLIGENCE",
 }
 
-/**
- * Subscription interface
- * Represents the user's current subscription tier and status
- */
 export interface ISubscription {
   tier: Tier;
   status: "active" | "past_due" | "canceled" | "trialing";
@@ -32,10 +22,6 @@ export interface ISubscription {
   billingCycle: "monthly" | "yearly" | "custom";
 }
 
-/**
- * Add-on interface
- * Represents purchased add-ons with usage tracking
- */
 export interface IAddOn {
   type: AddOnType;
   status: "active" | "inactive" | "suspended";
@@ -46,10 +32,6 @@ export interface IAddOn {
   expiresAt?: Date;
 }
 
-/**
- * Feature override interface
- * For admin grants, trials, beta features, etc.
- */
 export interface IFeatureOverride {
   feature: Feature | string;
   granted: boolean;
@@ -59,10 +41,6 @@ export interface IFeatureOverride {
   createdAt: Date;
 }
 
-/**
- * Access context
- * Contains all information needed to make access control decisions
- */
 export interface IAccessContext {
   feature: Feature | string;
   userId: string;
@@ -72,21 +50,15 @@ export interface IAccessContext {
   overrides?: IFeatureOverride[];
   metadata?: Record<string, unknown>;
 
-  // Role-based access control
   userRole: UserRole;
   requiredPermission?: Permission;
 
-  // Clinic type-based access control
   clinicType?: ClinicType;
 }
 
-/**
- * Upgrade option interface
- * Provides upgrade paths when access is denied
- */
 export interface IUpgradeOption {
   type: "upgrade_tier" | "purchase_addon";
-  target: string; // Tier name or AddOn type
+  target: string; 
   currentPrice: number;
   newPrice: number;
   currency: string;
@@ -94,10 +66,6 @@ export interface IUpgradeOption {
   description: string;
 }
 
-/**
- * Access decision interface
- * Result of an access control evaluation
- */
 export interface IAccessDecision {
   granted: boolean;
   reason: string;
@@ -107,7 +75,7 @@ export interface IAccessDecision {
     | "addon_required"
     | "role_insufficient"
     | "subscription_inactive"
-    | "clinic_type_unsupported"; // NEW: Clinic type doesn't support feature
+    | "clinic_type_unsupported"; 
   upgradeOptions?: IUpgradeOption[];
   metadata?: {
     requiredTier?: Tier;
@@ -115,105 +83,61 @@ export interface IAccessDecision {
     expiresAt?: Date;
     currentRole?: UserRole;
     requiredRole?: UserRole;
-    unsupportedForClinicType?: ClinicType; // NEW: Which clinic type denied access
+    unsupportedForClinicType?: ClinicType; 
   };
 }
 
-/**
- * Base interface for access control rules
- * Each rule implements a specific access control strategy
- * Interface Segregation Principle: Minimal, focused interface
- */
 export interface IAccessRule {
-  /**
-   * Evaluate if access should be granted based on the context
-   */
+  
   canAccess(context: IAccessContext): boolean;
 
-  /**
-   * Get the name of this rule for debugging/logging
-   */
+  
   getRuleName(): string;
 
-  /**
-   * Optional: Priority of this rule (higher = evaluated first)
-   * Default: 0
-   */
+  
   getPriority?(): number;
 }
 
-/**
- * Access control service interface
- * High-level service for access control decisions
- * Dependency Inversion Principle: Depend on abstraction, not implementation
- */
 export interface IAccessControlService {
-  /**
-   * Check access with async subscription refresh
-   */
+  
   canAccess(context: IAccessContext): Promise<IAccessDecision>;
 
-  /**
-   * Check access synchronously (uses cached data)
-   */
+  
   canAccessSync(context: IAccessContext): IAccessDecision;
 
-  /**
-   * Get detailed reason for access denial
-   */
+  
   getReason(context: IAccessContext): string;
 
-  /**
-   * Get upgrade options for a denied feature
-   */
+  
   getUpgradeOptions(context: IAccessContext): IUpgradeOption[];
 }
 
-/**
- * Subscription repository interface
- * Single Responsibility: Data access and caching
- */
 export interface ISubscriptionRepository {
-  /**
-   * Get complete access context for a user
-   */
+  
   getContext(
     userId: string,
     clinicId?: string,
   ): Promise<Partial<IAccessContext>>;
 
-  /**
-   * Get subscription data
-   */
+  
   getSubscription(userId: string, clinicId?: string): Promise<ISubscription>;
 
-  /**
-   * Get active add-ons
-   */
+  
   getAddOns(userId: string, clinicId?: string): Promise<IAddOn[]>;
 
-  /**
-   * Get feature overrides
-   */
+  
   getOverrides(userId: string): Promise<IFeatureOverride[]>;
 
-  /**
-   * Invalidate cache for a user
-   */
+  
   invalidateCache(userId: string): void;
 
-  /**
-   * Subscribe to subscription changes (Observer Pattern)
-   */
+  
   onSubscriptionChange(
     userId: string,
     callback: (subscription: ISubscription) => void,
   ): () => void;
 }
 
-/**
- * Access control configuration
- */
 export interface IAccessControlConfig {
   enableLogging?: boolean;
   enableAnalytics?: boolean;
@@ -221,9 +145,6 @@ export interface IAccessControlConfig {
   apiBaseUrl?: string;
 }
 
-/**
- * Type guards
- */
 export function isFeatureEnum(feature: Feature | string): feature is Feature {
   return typeof feature === "string" && feature in Feature;
 }

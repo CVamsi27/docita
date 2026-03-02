@@ -33,7 +33,7 @@ export default function ExcelImportPage() {
   return (
     <FeatureGate feature={Feature.EXCEL_IMPORT}>
       <div className="flex-1 space-y-6 max-w-6xl mx-auto">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Excel Import</h1>
@@ -49,7 +49,7 @@ export default function ExcelImportPage() {
           )}
         </div>
 
-        {/* Progress Steps */}
+        {}
         <div className="flex items-center gap-2">
           {["upload", "mapping", "importing", "results"].map((s, i) => (
             <div key={s} className="flex items-center">
@@ -82,7 +82,7 @@ export default function ExcelImportPage() {
           ))}
         </div>
 
-        {/* Step 1: Upload */}
+        {}
         {step === "upload" && (
           <ExcelUploadStep
             file={file}
@@ -93,7 +93,7 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {/* Step 2: Column Mapping */}
+        {}
         {step === "mapping" && preview && (
           <ExcelMappingStep
             preview={preview}
@@ -106,7 +106,7 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {/* Step 3: Importing */}
+        {}
         {step === "importing" && (
           <ExcelImportingStep
             progress={importProgress}
@@ -114,7 +114,7 @@ export default function ExcelImportPage() {
           />
         )}
 
-        {/* Step 4: Results */}
+        {}
         {step === "results" && importResult && (
           <ExcelResultsStep result={importResult} onReset={handleReset} />
         )}

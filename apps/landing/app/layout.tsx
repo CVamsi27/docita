@@ -1,4 +1,4 @@
-import "@workspace/ui/globals.css";
+import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata = {

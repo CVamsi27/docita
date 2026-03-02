@@ -7,12 +7,12 @@ import {
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { tenantExtension } from '../common/extensions/tenant.extension';
-import { createEncryptionExtension } from '../common/extensions/encryption.extension';
-import { tenantStorage } from '../common/middleware/tenant.middleware';
-import { EncryptionService } from '../common/encryption.service';
-import { slowQueryExtension } from '../common/extensions/logging.extension';
-import { AppConfigService } from '../shared/modules/config/app-configuration.service';
+import { tenantExtension } from '@/common/extensions/tenant.extension';
+import { createEncryptionExtension } from '@/common/extensions/encryption.extension';
+import { tenantStorage } from '@/common/middleware/tenant.middleware';
+import { EncryptionService } from '@/common/encryption.service';
+import { slowQueryExtension } from '@/common/extensions/logging.extension';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class PrismaService
@@ -21,6 +21,10 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
   private readReplica?: PrismaClient;
+
+  private asPrismaClient(value: unknown): PrismaClient {
+    return value as PrismaClient;
+  }
 
   constructor(
     private encryptionService: EncryptionService,
@@ -48,9 +52,7 @@ export class PrismaService
           connectionString = url.toString();
         }
       }
-    } catch {
-      console.warn('Failed to parse DATABASE_URL for SSL mode adjustment');
-    }
+    } catch {}
 
     if (!connectionString) {
       connectionString = databaseUrl;
@@ -93,11 +95,7 @@ export class PrismaService
             readConnectionString = url.toString();
           }
         }
-      } catch {
-        console.warn(
-          'Failed to parse DATABASE_READ_URL for SSL mode adjustment',
-        );
-      }
+      } catch {}
 
       const readPool = new Pool({ connectionString: readConnectionString });
       const readAdapter = new PrismaPg(readPool);
@@ -107,9 +105,10 @@ export class PrismaService
         log: configService.isDevelopment() ? ['warn', 'error'] : ['error'],
       });
 
-      this.readReplica = rawReadClient
+      const extendedReadClient = rawReadClient
         .$extends(createEncryptionExtension(this.encryptionService))
-        .$extends(tenantExtension) as unknown as PrismaClient;
+        .$extends(tenantExtension);
+      this.readReplica = this.asPrismaClient(extendedReadClient);
       this.logger.log('Read replica client initialized');
     } else {
       this.logger.log('Read replica not configured, using primary for reads');

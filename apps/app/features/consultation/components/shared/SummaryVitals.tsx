@@ -3,7 +3,7 @@ import { Activity } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface VitalSign {
-  type: string; // e.g., 'BP', 'Pulse'
+  type: string; 
   value: string;
   unit: string;
   status?: "normal" | "elevated" | "low" | "critical";
@@ -17,10 +17,10 @@ interface SummaryVitalsProps {
 }
 
 const VITAL_STATUS_COLORS = {
-  normal: "text-green-600",
-  elevated: "text-orange-600",
-  low: "text-blue-600",
-  critical: "text-red-600 animate-pulse",
+  normal: "text-success",
+  elevated: "text-warning",
+  low: "text-info",
+  critical: "text-destructive animate-pulse",
 };
 
 export function SummaryVitals({

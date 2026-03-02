@@ -52,7 +52,7 @@ export function MobileFileUploader({
   }, [onFileSelect]);
 
   return (
-    <Card className="overflow-hidden shadow-sm border-slate-200 dark:border-slate-800">
+    <Card className="overflow-hidden shadow-sm border-border">
       <CardContent className="p-0">
         <div
           onDragEnter={handleDrag}
@@ -61,12 +61,12 @@ export function MobileFileUploader({
           onDrop={handleDrop}
           className={`relative transition-all duration-200 ${
             dragActive
-              ? "bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500 ring-inset"
-              : "bg-slate-50 dark:bg-slate-900/50"
+              ? "surface-info ring-2 ring-info ring-inset"
+              : "bg-muted/40"
           }`}
         >
           {previewUrl ? (
-            /* Preview Mode */
+            
             <div className="relative aspect-4/3">
               <Image
                 src={previewUrl}
@@ -74,7 +74,7 @@ export function MobileFileUploader({
                 fill
                 className="object-contain bg-black/5 dark:bg-white/5"
               />
-              {/* Clear Button */}
+              {}
               <button
                 onClick={clearFile}
                 className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg"
@@ -82,7 +82,7 @@ export function MobileFileUploader({
               >
                 <X className="h-4 w-4" />
               </button>
-              {/* Retake hint */}
+              {}
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg flex items-center justify-center gap-2">
                   <RotateCcw className="h-3 w-3" />
@@ -91,21 +91,21 @@ export function MobileFileUploader({
               </div>
             </div>
           ) : (
-            /* Upload Mode */
+            
             <label className="block cursor-pointer">
               <div className="aspect-4/3 flex flex-col items-center justify-center p-6 space-y-4">
                 <div
                   className={`p-4 rounded-2xl transition-colors ${
                     dragActive
-                      ? "bg-blue-100 dark:bg-blue-900/50"
-                      : "bg-slate-100 dark:bg-slate-800"
+                      ? "surface-info"
+                      : "bg-muted"
                   }`}
                 >
                   <Camera
                     className={`h-10 w-10 transition-colors ${
                       dragActive
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-slate-400 dark:text-slate-500"
+                        ? "text-info"
+                        : "text-muted-foreground"
                     }`}
                   />
                 </div>
@@ -117,7 +117,7 @@ export function MobileFileUploader({
                     or select from gallery
                   </p>
                 </div>
-                {/* File format hint */}
+                {}
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <ImageIcon className="h-3 w-3" />
                   <span>JPG, PNG supported</span>

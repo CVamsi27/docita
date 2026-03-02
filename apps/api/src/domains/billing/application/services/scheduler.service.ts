@@ -1,16 +1,16 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { PaymentsService } from './payments.service';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
-} from '../../core/repositories/invoice.repository';
+} from '@/domains/billing/core/repositories/invoice.repository';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
-} from '../../core/repositories/payment-session.repository';
+} from '@/domains/billing/core/repositories/payment-session.repository';
 
 interface PaymentReminderConfig {
   enabled: boolean;

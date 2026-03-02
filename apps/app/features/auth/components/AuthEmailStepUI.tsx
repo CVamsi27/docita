@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { FormField } from "@/components/common/form-field";
 import { Button } from "@workspace/ui/components/button";
-import type { FieldErrors } from "../types/auth";
+import type { FieldErrors } from "@/features/auth/types/auth";
 
 interface EmailStepProps {
   email: string;

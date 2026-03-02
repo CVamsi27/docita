@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PatientsController } from './patients.controller';
-import { PatientService as PatientsService } from '../../application/services/patient.service';
-import { RolesGuard } from '../../../../shared/modules/auth/auth/roles.guard';
+import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Role } from '@workspace/db';
 import { UnauthorizedException, ForbiddenException } from '@nestjs/common';
 
@@ -41,7 +41,6 @@ describe.skip('PatientsController (Authorization)', () => {
 
   describe('Authorization - Role-Based Access Control', () => {
     it('should verify @Roles decorator is applied to controller', () => {
-      // Verify that controller has Roles metadata
       const metadata = Reflect.getMetadata('roles', PatientsController);
       expect(metadata).toBeDefined();
       expect(metadata).toContain(Role.DOCTOR);
@@ -64,7 +63,7 @@ describe.skip('PatientsController (Authorization)', () => {
       });
 
       const result = await controller.findAll(
-        mockRequest as any,
+        mockRequest as never,
         '10',
         undefined,
         undefined,
@@ -93,9 +92,13 @@ describe.skip('PatientsController (Authorization)', () => {
         hasMore: false,
       });
 
-      await controller.findAll(mockRequest as any, '10', undefined, undefined);
+      await controller.findAll(
+        mockRequest as never,
+        '10',
+        undefined,
+        undefined,
+      );
 
-      // Verify service was called with user's clinicId, not a different clinic
       expect(mockPatientsService.findAll).toHaveBeenCalledWith(
         'clinic-1',
         expect.any(Object),
@@ -125,7 +128,7 @@ describe.skip('PatientsController (Authorization)', () => {
       mockPatientsService.findAll.mockResolvedValue(mockPatients);
 
       const result = await controller.findAll(
-        mockRequest as any,
+        mockRequest as never,
         '10',
         undefined,
         undefined,
@@ -145,7 +148,7 @@ describe.skip('PatientsController (Authorization)', () => {
         hasMore: false,
       });
 
-      await controller.findAll(mockRequest as any, '10', undefined, 'john');
+      await controller.findAll(mockRequest as never, '10', undefined, 'john');
 
       expect(mockPatientsService.findAll).toHaveBeenCalledWith(
         'clinic-1',
@@ -168,9 +171,13 @@ describe.skip('PatientsController (Authorization)', () => {
         hasMore: false,
       });
 
-      await controller.findAll(mockRequest as any, '100', undefined, undefined);
+      await controller.findAll(
+        mockRequest as never,
+        '100',
+        undefined,
+        undefined,
+      );
 
-      // Should parse limit correctly
       expect(mockPatientsService.findAll).toHaveBeenCalledWith(
         'clinic-1',
         expect.objectContaining({

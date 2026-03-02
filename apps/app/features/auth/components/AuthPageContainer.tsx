@@ -14,7 +14,7 @@ import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
-import type { AuthStep, FieldErrors } from "../types/auth";
+import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
 
 const STEP_TITLES: Record<AuthStep, string> = {
   email: "Welcome to Docita",

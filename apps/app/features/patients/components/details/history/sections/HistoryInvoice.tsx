@@ -15,7 +15,7 @@ export function HistoryInvoice({ invoice }: { invoice: InvoiceData }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Receipt className="h-4 w-4 text-orange-600" />
+        <Receipt className="h-4 w-4 text-warning" />
         Invoice
       </div>
       <div className="bg-muted/50 rounded-lg p-4">

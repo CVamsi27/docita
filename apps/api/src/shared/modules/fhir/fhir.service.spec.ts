@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FhirService } from './fhir.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { FhirPatientFactory } from './factories/fhir-patient.factory';
 import { FhirObservationFactory } from './factories/fhir-observation.factory';
 import { FhirMedicationFactory } from './factories/fhir-medication.factory';

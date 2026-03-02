@@ -1,29 +1,18 @@
 import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
-import { FeatureFlagGuard } from '../auth/guards/feature-flag.guard';
-import { PDFGeneratorService } from '../document-generation/pdf/pdf-generator.service';
-import { BasePdfService } from '../document-generation/pdf/base-pdf.service';
+import { FeatureFlagGuard } from '@/shared/modules/auth/guards/feature-flag.guard';
+import { PDFGeneratorService } from '@/shared/modules/document-generation/pdf/pdf-generator.service';
+import { BasePdfService } from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import { WhatsAppNotificationService } from './whatsapp-notification.service';
-import { ClinicScopedGuard } from '../auth/decorators/clinic-scoped.decorator';
-import { PrismaModule } from '../../../prisma/prisma.module';
-import { WhatsAppModule } from '../../../domains/whatsapp/whatsapp.module';
-import { EncryptionService } from '../../../common/encryption.service';
-import { DPDPComplianceService } from '../compliance/dpdp-compliance.service';
-import { AuditModule } from '../audit/audit/audit.module';
-import { ComplianceModule } from '../compliance/compliance.module';
-import { UsersModule } from '../../../domains/users/users.module';
+import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scoped.decorator';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
+import { EncryptionService } from '@/common/encryption.service';
+import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
+import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
+import { UsersModule } from '@/domains/users/users.module';
 
-/**
- * Common Services Module
- *
- * Provides shared services across the application:
- * - Feature Flag Service & Guard
- * - PDF Generator Service
- * - WhatsApp Notification Service
- * - Clinic Scoped Guard
- * - Encryption Service (DPDP Compliance)
- * - DPDP Compliance Service
- */
 @Global()
 @Module({
   imports: [

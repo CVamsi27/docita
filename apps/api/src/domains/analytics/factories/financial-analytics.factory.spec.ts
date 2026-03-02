@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AppConfigService } from '../../../shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('FinancialAnalyticsFactory', () => {

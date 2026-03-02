@@ -30,7 +30,7 @@ export function PatientTagManagerContainer({
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
     } catch (error) {
-      console.error("Failed to load tags:", error);
+
     }
   }, [patientId]);
 
@@ -56,7 +56,7 @@ export function PatientTagManagerContainer({
       setNewColor("#3b82f6");
       onTagsUpdated?.();
     } catch (error) {
-      console.error("Failed to add tag:", error);
+
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch (error) {
-      console.error("Failed to remove tag:", error);
+
       setTags(previousTags);
     }
   };
@@ -96,7 +96,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch (error) {
-      console.error("Failed to edit tag:", error);
+
       setTags(previousTags);
     }
   };

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckController } from './health-check.controller';
-import { ObservabilityService } from '../../shared/modules/services/observability.service';
+import { ObservabilityService } from '@/shared/modules/services/observability.service';
 
 describe.skip('HealthCheckController', () => {
   let controller: HealthCheckController;
@@ -334,23 +334,18 @@ describe.skip('HealthCheckController', () => {
       });
       mockObservabilityService.getMetricsSummary.mockReturnValue([]);
 
-      // Check liveness
       const liveness = await controller.liveness();
       expect(liveness.status).toBe('alive');
 
-      // Check readiness
       const readiness = await controller.readiness();
       expect(readiness.status).toBe('ready');
 
-      // Check database
       const dbHealth = await controller.dbHealth();
       expect(dbHealth.connected).toBe(true);
 
-      // Check system
       const systemHealth = controller.systemHealth();
       expect(systemHealth.uptime).toBe(12345);
 
-      // Check metrics
       const metrics = controller.metrics();
       expect(metrics.metrics).toEqual([]);
     });
@@ -359,7 +354,7 @@ describe.skip('HealthCheckController', () => {
       const mockHealth = {
         uptime: 7200,
         memory: {
-          heapUsed: 95000000, // 95% full
+          heapUsed: 95000000,
           heapTotal: 100000000,
           rss: 120000000,
         },
@@ -367,11 +362,11 @@ describe.skip('HealthCheckController', () => {
       mockObservabilityService.getSystemHealth.mockReturnValue(mockHealth);
       mockObservabilityService.getDatabaseHealth.mockResolvedValue({
         connected: true,
-        latency: 200, // Slow
+        latency: 200,
       });
 
       const readiness = await controller.readiness();
-      expect(readiness.status).toBe('ready'); // Still ready but slow
+      expect(readiness.status).toBe('ready');
 
       const systemHealth = await controller.systemHealth();
       expect(systemHealth.memory.percentage).toBeGreaterThan(90);

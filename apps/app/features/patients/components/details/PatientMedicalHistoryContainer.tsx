@@ -7,6 +7,7 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientMedicalHistoryUI } from "./PatientMedicalHistoryUI";
+import { PatientMetricsHistoryUI } from "./PatientMetricsHistoryUI";
 
 interface PatientMedicalHistoryContainerProps {
   patient: PatientWithMedicalHistory;
@@ -21,6 +22,16 @@ export function PatientMedicalHistoryContainer({
   className,
   variant,
 }: PatientMedicalHistoryContainerProps) {
+  if (variant !== "consultation") {
+    return (
+      <PatientMetricsHistoryUI
+        patientId={initialPatient.id || ""}
+        readOnly={readOnly}
+        className={className}
+      />
+    );
+  }
+
   const { operations, patient: freshPatient } = usePatientHistory(
     initialPatient.id || "",
   );

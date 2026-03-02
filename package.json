@@ -5,7 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "start": "pnpm --filter @docita/api run start:prod",
-    "dev": "turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
+    "dev": "node scripts/kill-ports.js && turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --filter=@docita/landing",
     "dev:app": "turbo dev --filter=@docita/app --filter=@docita/api",
     "dev:admin": "turbo dev --filter=@docita/admin --filter=@docita/api",
@@ -25,7 +25,10 @@
     "postinstall": "pnpm --filter @workspace/db run db:generate",
     "db:generate": "pnpm --filter @workspace/db run db:generate",
     "db:push": "pnpm --filter @workspace/db run db:push",
-    "db:migrate": "pnpm --filter @workspace/db run db:migrate"
+    "db:migrate": "pnpm --filter @workspace/db run db:migrate",
+    "verify:structure": "node scripts/verify-turborepo-structure.mjs",
+    "verify:contracts": "node scripts/verify-package-contracts.mjs",
+    "verify:standard": "pnpm verify:structure && pnpm verify:contracts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",

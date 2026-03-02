@@ -1,16 +1,21 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   Appointment,
-  CreateAppointmentInput,
+  CreateAppointmentRequest,
   Patient,
-  UpdateAppointmentInput,
+  UpdateAppointmentRequest,
 } from "@workspace/types";
 import {
   fetchAPI,
   PaginatedResponse,
   useAPIMutation,
   useAPIQuery,
-} from "../../lib/api-core";
+} from "@/lib/api-core";
+
+export type AppointmentWithRelations = Appointment & {
+  patient?: Patient;
+  doctor?: { id?: string; name?: string | null } | null;
+};
 
 export interface QueueItem {
   id: string;
@@ -58,7 +63,7 @@ export const useAppointments = (
   const queryString = params.toString();
   const url = queryString ? `/appointments?${queryString}` : "/appointments";
 
-  return useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
+  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     [
       "appointments",
       options?.date ?? "",
@@ -74,7 +79,7 @@ export const useAppointments = (
 
 export const useTodayAppointments = (enabled: boolean = true) => {
   const today = new Date().toISOString().split("T")[0] ?? "";
-  return useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
+  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     ["appointments", "today", today],
     `/appointments?date=${today}`,
     { enabled },
@@ -82,25 +87,29 @@ export const useTodayAppointments = (enabled: boolean = true) => {
 };
 
 export const useAppointment = (id: string) =>
-  useAPIQuery<Appointment & { patient?: Patient }>(
+  useAPIQuery<AppointmentWithRelations>(
     ["appointments", id],
     `/appointments/${id}`,
   );
 
 export const usePatientAppointments = (patientId: string) =>
-  useAPIQuery<PaginatedResponse<Appointment & { patient?: Patient }>>(
+  useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     ["appointments", "patient", patientId],
     `/appointments?patientId=${patientId}`,
     { enabled: !!patientId },
   );
 
 export const useCreateAppointment = () =>
-  useAPIMutation<Appointment, CreateAppointmentInput>("/appointments", "POST", {
-    invalidateKeys: [["appointments"]],
-  });
+  useAPIMutation<Appointment, CreateAppointmentRequest>(
+    "/appointments",
+    "POST",
+    {
+      invalidateKeys: [["appointments"]],
+    },
+  );
 
 export const useUpdateAppointment = (id: string) =>
-  useAPIMutation<Appointment, UpdateAppointmentInput>(
+  useAPIMutation<Appointment, UpdateAppointmentRequest>(
     `/appointments/${id}`,
     "PUT",
     {

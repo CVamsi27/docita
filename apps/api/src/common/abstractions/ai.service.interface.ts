@@ -1,18 +1,4 @@
-/**
- * AI Service Interface
- *
- * Defines the contract for AI/ML operations.
- * Supports multiple LLM providers (OpenAI, Anthropic, etc.)
- *
- * @interface IAIService
- */
 export interface IAIService {
-  /**
-   * Generate clinical notes from patient consultation
-   * @param consultationText - Raw consultation notes or transcript
-   * @param context - Additional context (patient history, etc.)
-   * @returns Promise with structured clinical notes
-   */
   generateClinicalNotes(
     consultationText: string,
     context?: {
@@ -27,12 +13,6 @@ export interface IAIService {
     confidence: number;
   }>;
 
-  /**
-   * Suggest ICD-10 codes for a diagnosis
-   * @param diagnosis - Diagnosis description
-   * @param confidenceThreshold - Minimum confidence to include (0-1)
-   * @returns Promise with suggested codes
-   */
   suggestICD10Codes(
     diagnosis: string,
     confidenceThreshold?: number,
@@ -44,11 +24,6 @@ export interface IAIService {
     }>;
   }>;
 
-  /**
-   * Check for drug interactions
-   * @param medications - List of medication names
-   * @returns Promise with interaction warnings
-   */
   checkDrugInteractions(medications: string[]): Promise<{
     interactions: Array<{
       medication1: string;
@@ -58,12 +33,6 @@ export interface IAIService {
     }>;
   }>;
 
-  /**
-   * Analyze medical documents via OCR + AI
-   * @param documentPath - Path to document file
-   * @param documentType - Type of document (prescription, report, etc.)
-   * @returns Promise with extracted and structured data
-   */
   analyzeDocument(
     documentPath: string,
     documentType: 'prescription' | 'lab_report' | 'radiology' | 'general',
@@ -74,11 +43,6 @@ export interface IAIService {
     warnings?: string[];
   }>;
 
-  /**
-   * Generate personalized health recommendations
-   * @param patientData - Patient medical and lifestyle data
-   * @returns Promise with recommendations
-   */
   generateHealthRecommendations(patientData: {
     age: number;
     gender: 'M' | 'F' | 'O';
@@ -91,26 +55,15 @@ export interface IAIService {
     evidenceLinks?: string[];
   }>;
 
-  /**
-   * Predict patient risk scores (readmission, complications, etc.)
-   * @param patientData - Patient clinical data
-   * @param riskType - Type of risk to predict
-   * @returns Promise with risk score
-   */
   predictRiskScore(
     patientData: Record<string, unknown>,
     riskType: 'readmission' | 'complication' | 'mortality',
   ): Promise<{
-    score: number; // 0-100
+    score: number;
     riskLevel: 'low' | 'medium' | 'high';
     factors: Array<{ factor: string; impact: number }>;
   }>;
 
-  /**
-   * Check text for medical correctness
-   * @param text - Text to validate
-   * @returns Promise with validation result
-   */
   validateMedicalText(text: string): Promise<{
     valid: boolean;
     suggestions?: string[];

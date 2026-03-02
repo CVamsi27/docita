@@ -1,4 +1,4 @@
-// Layout component exports
+
 export {
   Navbar,
   NavbarBrand,

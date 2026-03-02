@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useInfinitePatients } from "@/hooks/api/use-patients";
 import { getInitials } from "@/features/_shared/utils";
-import { getPatientAgeDisplay } from "../../rules/patientRules";
+import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
 import { InfinitePatientsListUI } from "./InfinitePatientsListUI";
 import type { Patient } from "@workspace/types";
 

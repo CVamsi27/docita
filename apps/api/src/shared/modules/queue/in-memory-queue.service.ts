@@ -32,7 +32,7 @@ export class InMemoryQueueService implements IQueueProvider {
     const job: InMemoryJob<Record<string, unknown>> = {
       id: jobId,
       name,
-      data: data as Record<string, unknown>,
+      data,
       progress: 0,
       attemptsMade: 0,
       timestamp: Date.now(),
@@ -59,12 +59,7 @@ export class InMemoryQueueService implements IQueueProvider {
       await this.processJob(job);
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch((err: unknown) => {
-          console.error(
-            `Scheduled job ${job.id} failed:`,
-            err instanceof Error ? err.message : 'Unknown error',
-          );
-        });
+        void this.processJob(job).catch((err: unknown) => {});
       }, options.delay);
     }
 
@@ -82,12 +77,9 @@ export class InMemoryQueueService implements IQueueProvider {
     name: string,
     handler: (job: QueueJob<T>) => Promise<void>,
   ): Promise<void> {
-    this.handlers.set(
-      name,
-      handler as unknown as (
-        job: QueueJob<Record<string, unknown>>,
-      ) => Promise<void>,
-    );
+    this.handlers.set(name, async (job) => {
+      await handler(job as QueueJob<T>);
+    });
     await Promise.resolve();
   }
 
@@ -97,7 +89,7 @@ export class InMemoryQueueService implements IQueueProvider {
     const job = this.jobs.get(jobId);
     if (!job) return null;
 
-    const data = job.data as unknown as T;
+    const data = job.data as T;
     const result: QueueJob<T> = {
       id: job.id,
       name: job.name,
@@ -156,12 +148,11 @@ export class InMemoryQueueService implements IQueueProvider {
     );
   }
 
-  private async processJob<T extends Record<string, unknown>>(
-    job: InMemoryJob<T>,
+  private async processJob(
+    job: InMemoryJob<Record<string, unknown>>,
   ): Promise<void> {
     const handler = this.handlers.get(job.name);
     if (!handler) {
-      console.warn(`No handler registered for queue: ${job.name}`);
       return;
     }
 
@@ -170,7 +161,7 @@ export class InMemoryQueueService implements IQueueProvider {
       const stats = this.stats.get(job.name);
       if (stats) stats.active++;
 
-      await handler(job as unknown as QueueJob<T>);
+      await handler(job);
 
       job.status = 'completed';
       if (stats) {
@@ -187,11 +178,6 @@ export class InMemoryQueueService implements IQueueProvider {
         stats.active--;
         stats.failed++;
       }
-
-      console.error(
-        `Job ${job.id} failed:`,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
     }
   }
 }

@@ -3,6 +3,7 @@ import { API_URL } from "@/lib/api-config";
 export interface ClientErrorPayload {
   type: string;
   message: string;
+  severity?: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
   stack?: string;
   path?: string;
   method?: string;

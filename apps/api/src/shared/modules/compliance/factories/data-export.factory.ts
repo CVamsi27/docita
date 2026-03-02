@@ -1,18 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 export interface ExportResult {
   exportDate: string;
   format: string;
   version: string;
-  patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email?: string | null;
-    phoneNumber: string;
-    [key: string]: unknown;
-  };
+  patient: Record<string, unknown> | null;
 }
 
 @Injectable()
@@ -21,9 +14,6 @@ export class DataExportFactory {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Export patient data in portable format
-   */
   async exportPatientData(patientId: string): Promise<ExportResult> {
     this.logger.log(`Exporting data for patient ${patientId}`);
 
@@ -56,7 +46,7 @@ export class DataExportFactory {
       exportDate: new Date().toISOString(),
       format: 'JSON',
       version: '1.0',
-      patient: patient as any,
+      patient,
     };
   }
 }

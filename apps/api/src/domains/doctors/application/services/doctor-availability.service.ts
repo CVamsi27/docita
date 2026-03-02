@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 
 type DayOfWeek =
@@ -199,10 +199,6 @@ export class DoctorAvailabilityService {
     });
   }
 
-  // ============================================================================
-  // Doctor Time Off
-  // ============================================================================
-
   async getTimeOffs(
     doctorId: string,
     options?: { clinicId?: string; upcoming?: boolean },
@@ -290,10 +286,6 @@ export class DoctorAvailabilityService {
     return { success: true };
   }
 
-  // ============================================================================
-  // Available Slots (for appointment booking)
-  // ============================================================================
-
   async getAvailableSlots(
     clinicId: string,
     date: Date | string,
@@ -302,7 +294,6 @@ export class DoctorAvailabilityService {
     const targetDate = new Date(date);
     const dayOfWeek = this.getDayOfWeek(targetDate);
 
-    // Build where clause for schedules
     const scheduleWhere: Prisma.DoctorScheduleWhereInput = {
       clinicId,
       dayOfWeek,
@@ -312,7 +303,6 @@ export class DoctorAvailabilityService {
       scheduleWhere.doctorId = doctorId;
     }
 
-    // Get schedules for the day
     const schedules = await this.prisma.doctorSchedule.findMany({
       where: scheduleWhere,
       include: {
@@ -326,10 +316,8 @@ export class DoctorAvailabilityService {
       return [];
     }
 
-    // Get doctor IDs from schedules
     const doctorIds = [...new Set(schedules.map((s) => s.doctorId))];
 
-    // Get time offs for the target date
     const startOfDay = new Date(targetDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(targetDate);
@@ -344,7 +332,6 @@ export class DoctorAvailabilityService {
       },
     });
 
-    // Get existing appointments for the target date
     const appointments = await this.prisma.appointment.findMany({
       where: {
         clinicId,
@@ -361,7 +348,6 @@ export class DoctorAvailabilityService {
       },
     });
 
-    // Generate available slots
     const slots: Array<{
       time: string;
       endTime: string;
@@ -380,13 +366,11 @@ export class DoctorAvailabilityService {
         (a) => a.doctorId === schedule.doctorId,
       );
 
-      // Check if doctor has full day off
       const hasFullDayOff = doctorTimeOffs.some((t) => t.isFullDay);
       if (hasFullDayOff) {
-        continue; // Skip this doctor for the day
+        continue;
       }
 
-      // Generate time slots
       let currentMinutes = this.timeToMinutes(schedule.startTime);
       const endMinutes = this.timeToMinutes(schedule.endTime);
 
@@ -396,7 +380,6 @@ export class DoctorAvailabilityService {
           currentMinutes + schedule.slotDuration,
         );
 
-        // Check if slot is during time off
         const isDuringTimeOff = doctorTimeOffs.some((t) => {
           if (t.isFullDay) return true;
           if (!t.startTime || !t.endTime) return false;
@@ -405,7 +388,6 @@ export class DoctorAvailabilityService {
           return currentMinutes >= offStart && currentMinutes < offEnd;
         });
 
-        // Check if slot overlaps with existing appointment
         const isBooked = doctorAppointments.some((a) => {
           const apptStart = new Date(a.startTime);
           const apptEnd = new Date(a.endTime);
@@ -427,7 +409,6 @@ export class DoctorAvailabilityService {
           return slotStartDate < apptEnd && slotEndDate > apptStart;
         });
 
-        // Check if slot is in the past (for today)
         const now = new Date();
         const slotDateTime = new Date(targetDate);
         slotDateTime.setHours(
@@ -451,7 +432,6 @@ export class DoctorAvailabilityService {
       }
     }
 
-    // Sort by time, then by doctor name
     slots.sort((a, b) => {
       const timeCompare = a.time.localeCompare(b.time);
       if (timeCompare !== 0) return timeCompare;
@@ -460,10 +440,6 @@ export class DoctorAvailabilityService {
 
     return slots;
   }
-
-  // ============================================================================
-  // Helper Methods
-  // ============================================================================
 
   private validateTimeFormat(time: string) {
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;

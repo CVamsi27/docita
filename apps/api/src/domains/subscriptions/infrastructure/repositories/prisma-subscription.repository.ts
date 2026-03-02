@@ -3,10 +3,10 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { Subscription } from '../../core/entities';
-import { ISubscriptionRepository } from '../../application/ports/subscription.repository.port';
-import { SubscriptionMapper } from '../mappers/subscription.mapper';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { Subscription } from '@/domains/subscriptions/core/entities';
+import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappers/subscription.mapper';
+import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionStatus, Prisma } from '@workspace/db';
 
 const SubscriptionPaymentStatus = {

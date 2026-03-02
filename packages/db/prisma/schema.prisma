@@ -19,11 +19,18 @@ model User {
   qualification      String?
   registrationNumber String?
   signatureUrl       String?
+  signatureUploadedAt DateTime?
   bio                String?
   consultationFee    Float?
   hospitalRole       HospitalRole?
   licenseExpiry      DateTime?
   licenseNumber      String?
+  verificationStatus    DoctorVerificationStatus @default(UNVERIFIED)
+  verificationSource    String?
+  verificationRef       String?
+  verificationReason    String?
+  verificationData      Json?
+  verificationCheckedAt DateTime?
   phoneNumber        String?
   profilePhotoUrl    String?
   specialization     Specialization?
@@ -52,9 +59,11 @@ model User {
   admissions                Admission[]
   refreshTokens             RefreshToken[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
+  uploadSessions            UploadSession[]
   
   // Patient Portal: Link to Patient record for PATIENT role users
   linkedPatient             Patient?
+  recordedMetricRecords     PatientMetricRecord[]
 
   @@index([clinicId])
   @@index([specialization])
@@ -224,6 +233,9 @@ model Patient {
   immunizations     Immunization[]
   consents          Consent[]
   admissions        Admission[]
+  metricDefinitions MetricDefinition[]
+  metricRecords     PatientMetricRecord[]
+  metricSelections  PatientMetricSelection[]
 
   @@index([mrn])
   @@index([phoneNumber])
@@ -444,8 +456,13 @@ model UploadSession {
   id        String   @id @default(cuid())
   status    String   @default("pending")
   fileUrl   String?
+  purpose   UploadSessionPurpose @default(GENERAL)
+  doctorId  String?
   createdAt DateTime @default(now())
   expiresAt DateTime
+  doctor    User?    @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([doctorId])
 }
 
 model Appointment {
@@ -498,6 +515,7 @@ model Appointment {
   vitalSign               VitalSign?
   priority                AppointmentPriority   @default(ROUTINE)
   responses               AppointmentResponse[]
+  metricRecords           PatientMetricRecord[]
 
   @@index([clinicId])
   @@index([createdAt])
@@ -827,11 +845,172 @@ model Clinic {
   usageEvents           UsageEvent[]
   wards                 Ward[]
   facilityType          FacilityType           @default(CLINIC)
+  metricCategories      MetricCategory[]
+  metricDefinitions     MetricDefinition[]
+  metricRecords         PatientMetricRecord[]
+  metricSelections      PatientMetricSelection[]
+}
+
+model MetricCategory {
+  id          String   @id @default(cuid())
+  clinicId    String
+  key         String
+  name        String
+  description String?
+  order       Int      @default(0)
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clinic            Clinic                 @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  metricDefinitions MetricDefinition[]
+
+  @@unique([clinicId, key])
+  @@index([clinicId, isActive, order])
+}
+
+model MetricDefinition {
+  id              String               @id @default(cuid())
+  clinicId        String
+  categoryId      String
+  key             String
+  label           String
+  description     String?
+  valueType       MetricValueType
+  unit            String?
+  cardinality     MetricCardinality   @default(SINGLE)
+  scope           MetricCaptureScope  @default(PROFILE)
+  isCustom        Boolean             @default(false)
+  isPatientScoped Boolean             @default(false)
+  patientId       String?
+  isTrackedByDefault Boolean          @default(false)
+  isActive        Boolean             @default(true)
+  order           Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  category         MetricCategory           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  clinic           Clinic                   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient          Patient?                 @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  metricOptions    MetricOption[]
+  metricRecords    PatientMetricRecord[]
+  metricSelections PatientMetricSelection[]
+
+  @@unique([clinicId, key])
+  @@index([clinicId, categoryId, isActive, order])
+  @@index([patientId, isActive])
+}
+
+model MetricOption {
+  id           String   @id @default(cuid())
+  definitionId String
+  value        String
+  label        String
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  definition    MetricDefinition   @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  metricValues  PatientMetricValue[]
+
+  @@unique([definitionId, value])
+  @@index([definitionId, isActive, order])
+}
+
+model PatientMetricRecord {
+  id            String   @id @default(cuid())
+  clinicId      String
+  patientId     String
+  definitionId  String
+  appointmentId String?
+  recordedAt    DateTime @default(now())
+  recordedById  String?
+  source        MetricRecordSource @default(MANUAL)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  clinic      Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient     Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  definition  MetricDefinition @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  appointment Appointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  recordedBy  User?            @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  values      PatientMetricValue[]
+
+  @@index([clinicId, patientId, recordedAt])
+  @@index([patientId, definitionId, recordedAt])
+  @@index([appointmentId])
+}
+
+model PatientMetricValue {
+  id            String   @id @default(cuid())
+  metricRecordId String
+  valueString   String?
+  valueNumber   Float?
+  valueBoolean  Boolean?
+  valueDate     DateTime?
+  valueJson     Json?
+  optionId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  metricRecord PatientMetricRecord @relation(fields: [metricRecordId], references: [id], onDelete: Cascade)
+  option       MetricOption?       @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@index([metricRecordId])
+  @@index([optionId])
+}
+
+model PatientMetricSelection {
+  id           String   @id @default(cuid())
+  clinicId     String
+  patientId    String
+  definitionId String
+  isTracked    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clinic     Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient    Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  definition MetricDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, definitionId])
+  @@index([clinicId, patientId, isTracked])
 }
 
 enum FacilityType {
   CLINIC
   HOSPITAL
+}
+
+enum MetricValueType {
+  STRING
+  NUMBER
+  BOOLEAN
+  DATE
+  JSON
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+enum MetricCardinality {
+  SINGLE
+  MULTIPLE
+}
+
+enum MetricCaptureScope {
+  PROFILE
+  ENCOUNTER
+}
+
+enum MetricRecordSource {
+  MANUAL
+  VITALS_FORM
+  OBSERVATION_FORM
+  IMPORT
+  SYSTEM
 }
 
 // ============================================================================
@@ -1462,6 +1641,19 @@ enum Gender {
   INTERSEX
   NON_BINARY
   PREFER_NOT_TO_SAY
+}
+
+enum UploadSessionPurpose {
+  GENERAL
+  DOCTOR_SIGNATURE
+}
+
+enum DoctorVerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+  FAILED
 }
 
 // ============================================================================

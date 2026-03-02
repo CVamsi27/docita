@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { settingsTabs } from "../constants";
+import { settingsTabs } from "@/features/settings/constants";
 import { useAuth } from "@/lib/auth-context";
 
 export const useSettingsLogic = () => {
@@ -9,11 +9,9 @@ export const useSettingsLogic = () => {
   const defaultTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter tabs based on search query and user role
   const filteredTabs = useMemo(() => {
     let tabs = settingsTabs;
 
-    // DOCTOR / RECEPTIONIST cannot manage Practice-level settings
     if (user?.role === "DOCTOR" || user?.role === "RECEPTIONIST") {
       tabs = tabs.filter((category) => category.category !== "Practice");
     }
@@ -33,7 +31,6 @@ export const useSettingsLogic = () => {
       .filter((category) => category.items.length > 0);
   }, [searchQuery, user]);
 
-  // Find the first matching tab when searching
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
 
   return {

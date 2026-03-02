@@ -23,9 +23,9 @@ const typeIcons = {
 };
 
 const typeColors = {
-  patient: "bg-blue-100 text-blue-700",
-  appointment: "bg-green-100 text-green-700",
-  prescription: "bg-purple-100 text-purple-700",
+  patient: "badge-info",
+  appointment: "badge-success",
+  prescription: "tier-intelligence",
 };
 
 export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
@@ -39,7 +39,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   const debouncedQuery = useDebounce(query, 300);
 
-  // Search API call
   const performSearch = useCallback(async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setResults([]);
@@ -56,26 +55,23 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
         setResults(data);
       }
     } catch (error) {
-      console.error("Search failed:", error);
+
       setResults([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Effect for debounced search
   useEffect(() => {
     performSearch(debouncedQuery);
   }, [debouncedQuery, performSearch]);
 
-  // Handle result click
   const handleResultClick = useCallback(
     (result: SearchResult) => {
       setIsOpen(false);
       setQuery("");
       onResultClick?.(result);
 
-      // Default navigation based on type
       const routes = {
         patient: `/patients/${result.id}`,
         appointment: `/appointments?id=${result.id}`,
@@ -86,7 +82,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     [onResultClick],
   );
 
-  // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
@@ -116,7 +111,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     [results, selectedIndex, handleResultClick],
   );
 
-  // Close on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -130,7 +124,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Global keyboard shortcut (Cmd/Ctrl + K)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -145,10 +138,10 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      {/* Search Input */}
+      {}
       <div className="relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
           aria-hidden="true"
         />
         <input
@@ -163,9 +156,9 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search patients, appointments... (⌘K)"
-          className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                     bg-gray-50 hover:bg-white transition-colors"
+          className="w-full pl-10 pr-10 py-2 border border-border rounded-lg
+                     focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
+                     bg-muted/40 hover:bg-background transition-colors"
           aria-label="Global search"
           aria-expanded={isOpen}
           aria-controls="search-results"
@@ -181,24 +174,24 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
               setResults([]);
               inputRef.current?.focus();
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 rounded"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
             aria-label="Clear search"
           >
-            <X className="h-4 w-4 text-gray-400" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
       </div>
 
-      {/* Results Dropdown */}
+      {}
       {isOpen && (query.length >= 2 || results.length > 0) && (
         <div
           id="search-results"
           role="listbox"
-          className="absolute top-full mt-2 w-full bg-white border border-gray-200 
+          className="absolute top-full mt-2 w-full bg-background border border-border
                      rounded-lg shadow-lg max-h-80 overflow-y-auto z-50"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center p-4 text-gray-500">
+            <div className="flex items-center justify-center p-4 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
               Searching...
             </div>
@@ -214,7 +207,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                     aria-selected={index === selectedIndex}
                     onClick={() => handleResultClick(result)}
                     className={`flex items-center gap-3 px-4 py-3 cursor-pointer
-                               ${index === selectedIndex ? "bg-indigo-50" : "hover:bg-gray-50"}`}
+                               ${index === selectedIndex ? "bg-info/10" : "hover:bg-muted/60"}`}
                   >
                     <div
                       className={`p-2 rounded-full ${typeColors[result.type]}`}
@@ -222,16 +215,16 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">
+                      <div className="font-medium text-foreground truncate">
                         {result.title}
                       </div>
                       {result.subtitle && (
-                        <div className="text-sm text-gray-500 truncate">
+                        <div className="text-sm text-muted-foreground truncate">
                           {result.subtitle}
                         </div>
                       )}
                     </div>
-                    <span className="text-xs text-gray-400 capitalize">
+                    <span className="text-xs text-muted-foreground capitalize">
                       {result.type}
                     </span>
                   </li>
@@ -239,7 +232,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
               })}
             </ul>
           ) : query.length >= 2 ? (
-            <div className="p-4 text-center text-gray-500">
+            <div className="p-4 text-center text-muted-foreground">
               No results found for &ldquo;{query}&rdquo;
             </div>
           ) : null}

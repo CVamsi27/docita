@@ -29,7 +29,7 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
       <DialogContent
         className="overflow-hidden p-0 shadow-lg"
         onCloseAutoFocus={(e) => {
-          // Prevent the default focus behavior to avoid aria-hidden focus issues
+
           e.preventDefault();
         }}
       >

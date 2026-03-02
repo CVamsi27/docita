@@ -24,7 +24,6 @@ specFiles.forEach((file) => {
 
       const baseName = path.basename(importPath);
 
-      // Determine search directory (try domain first, then src)
       const domainMatch = file.match(/^src\/domains\/[^/]+/);
       const searchDirs = domainMatch ? [domainMatch[0], 'src'] : ['src'];
 
@@ -56,6 +55,6 @@ specFiles.forEach((file) => {
 
   if (changed) {
     fs.writeFileSync(file, content);
-    console.log(`Updated imports in ${file}`);
+
   }
 });

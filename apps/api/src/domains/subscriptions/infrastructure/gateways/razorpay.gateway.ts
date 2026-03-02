@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
-import { AppConfigService } from '../../../../shared/modules/config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IPaymentGateway,
   CreateOrderRequest,
   CreateOrderResponse,
   VerifyPaymentRequest,
   VerifyPaymentResponse,
-} from '../../application/ports/payment-gateway.port';
+} from '@/domains/subscriptions/application/ports/payment-gateway.port';
 
 @Injectable()
 export class RazorpayGateway implements IPaymentGateway {
@@ -109,11 +109,20 @@ export class RazorpayGateway implements IPaymentGateway {
     totalCount: number,
   ): Promise<{ subscriptionId: string }> {
     try {
-      const subscription = (await this.razorpay.subscriptions.create({
+      const payload: Parameters<
+        typeof this.razorpay.subscriptions.create
+      >[0] & {
+        customer_id: string;
+      } = {
         plan_id: planId,
         customer_id: customerId,
         total_count: totalCount,
-      } as any)) as any;
+      };
+      const subscription = (await this.razorpay.subscriptions.create(
+        payload,
+      )) as {
+        id: string;
+      };
       return { subscriptionId: subscription.id };
     } catch (error: unknown) {
       this.logger.error(

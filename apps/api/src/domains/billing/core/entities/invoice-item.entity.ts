@@ -1,4 +1,4 @@
-import { Money } from '../value-objects/money.value-object';
+import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 
 export interface InvoiceItemProps {
   id: string;
@@ -6,8 +6,8 @@ export interface InvoiceItemProps {
   description: string;
   quantity: number;
   unitPrice: Money;
-  taxRate: number; // 0-100
-  discount?: number; // 0-100
+  taxRate: number;
+  discount?: number;
 }
 
 export class InvoiceItem {

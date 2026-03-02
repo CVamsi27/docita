@@ -12,7 +12,15 @@ import React, {
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { parseApiErrorResponse } from "@/lib/api-error";
-import type { UserRole } from "@workspace/types";
+import {
+  checkEmailResponseSchema,
+  checkEmailSchema,
+  loginResponseSchema,
+  loginSchema,
+  registerResponseSchema,
+  registerSchema,
+  type UserRole,
+} from "@workspace/types";
 
 export interface User {
   id: string;
@@ -108,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      const payload = loginSchema.parse({ email, password });
       const csrfToken = getCsrfToken();
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -116,14 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         throw await parseApiErrorResponse(response, "Login failed");
       }
 
-      const data = await response.json();
+      const data = loginResponseSchema.parse(await response.json());
       const { access_token, user: userData } = data;
 
       if (!userData) {
@@ -152,13 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.removeItem("redirectAfterLogin");
       router.push(redirectUrl);
     } catch (error) {
-      console.error(error);
+
       throw error;
     }
   };
 
   const checkEmail = async (email: string): Promise<boolean> => {
     try {
+      const payload = checkEmailSchema.parse({ email });
       const apiUrl =
         process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const csrfToken = getCsrfToken();
@@ -169,17 +179,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         throw await parseApiErrorResponse(response, "Email check failed");
       }
 
-      const data = await response.json();
+      const data = checkEmailResponseSchema.parse(await response.json());
       return data.exists;
     } catch (error) {
-      console.error(error);
+
       throw error;
     }
   };
@@ -192,6 +202,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clinicName?: string,
   ) => {
     try {
+      const payload = registerSchema.parse({
+        email,
+        password,
+        firstName,
+        lastName,
+        clinicName,
+      });
       const csrfToken = getCsrfToken();
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
@@ -200,20 +217,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-          firstName,
-          lastName,
-          clinicName,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         throw await parseApiErrorResponse(response, "Registration failed");
       }
 
-      const data = await response.json();
+      const data = registerResponseSchema.parse(await response.json());
       const { access_token, user: userData } = data;
 
       if (!userData) {
@@ -227,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       router.push("/dashboard");
     } catch (error) {
-      console.error(error);
+
       throw error;
     }
   };

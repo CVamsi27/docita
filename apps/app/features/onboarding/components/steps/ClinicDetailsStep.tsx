@@ -19,7 +19,7 @@ import {
 } from "@workspace/ui/components/card";
 import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
-import type { ClinicDetails } from "../types";
+import type { ClinicDetails } from "@/features/onboarding/components/types";
 
 interface ClinicDetailsStepProps {
   clinicForm: UseFormReturn<ClinicDetails>;

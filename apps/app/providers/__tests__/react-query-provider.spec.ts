@@ -1,37 +1,22 @@
-/**
- * React Query Retry Logic Tests (§9.3)
- *
- * Tests for the custom retry logic that:
- * - Retries on network errors (no statusCode) and 5xx errors
- * - Does NOT retry on 4xx errors (client errors)
- * - Uses exponential backoff with max 30s delay
- */
+
 
 import { describe, expect, it } from "vitest";
 import type { DefaultError } from "@tanstack/react-query";
 import { ApiError } from "@/lib/errors";
 
-/**
- * The retry logic from react-query-provider.tsx
- * We extract and test it independently here
- */
 const createRetryFunction = () => {
   return (failureCount: number, error: DefaultError) => {
     if (error instanceof ApiError) {
-      // Don't retry on 4xx errors (client errors)
+
       if (error.statusCode >= 400 && error.statusCode < 500) {
         return false;
       }
     }
-    // Retry up to 2 times for other errors (network or 5xx)
+
     return failureCount < 2;
   };
 };
 
-/**
- * Exponential backoff delay function
- * Used by React Query for retry delays
- */
 const createRetryDelayFunction = () => {
   return (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000);
 };
@@ -42,7 +27,7 @@ describe("React Query Retry Logic (§9.3)", () => {
 
   describe("retryFunction behavior", () => {
     it("should retry on network errors (first attempt)", () => {
-      // Network errors don't have statusCode
+
       const networkError = new Error("Network error") as DefaultError;
       const shouldRetry = retryFunc(0, networkError);
       expect(shouldRetry).toBe(true);
@@ -162,22 +147,18 @@ describe("React Query Retry Logic (§9.3)", () => {
     it("should retry network error with increasing delays", () => {
       const networkError = new Error("Network timeout") as DefaultError;
 
-      // First failure: should retry
       const shouldRetry1 = retryFunc(0, networkError);
       expect(shouldRetry1).toBe(true);
 
-      // Get delay for first retry
       const delay1 = retryDelayFunc(0);
       expect(delay1).toBe(1000);
 
-      // Second failure: should retry with longer delay
       const shouldRetry2 = retryFunc(1, networkError);
       expect(shouldRetry2).toBe(true);
 
       const delay2 = retryDelayFunc(1);
       expect(delay2).toBe(2000);
 
-      // Third failure: should NOT retry (already tried twice)
       const shouldRetry3 = retryFunc(2, networkError);
       expect(shouldRetry3).toBe(false);
     });
@@ -185,7 +166,6 @@ describe("React Query Retry Logic (§9.3)", () => {
     it("should NOT retry 400 even after first attempt", () => {
       const clientError = new ApiError("Invalid input", 400);
 
-      // First error: already no retry
       const shouldRetry = retryFunc(0, clientError as DefaultError);
       expect(shouldRetry).toBe(false);
     });
@@ -193,13 +173,10 @@ describe("React Query Retry Logic (§9.3)", () => {
     it("should retry 500 twice, then stop", () => {
       const serverError = new ApiError("Internal server error", 500);
 
-      // First attempt: retry
       expect(retryFunc(0, serverError as DefaultError)).toBe(true);
 
-      // Second attempt: retry
       expect(retryFunc(1, serverError as DefaultError)).toBe(true);
 
-      // Third attempt: stop
       expect(retryFunc(2, serverError as DefaultError)).toBe(false);
     });
 
@@ -208,15 +185,12 @@ describe("React Query Retry Logic (§9.3)", () => {
       const clientError = new ApiError("Bad request", 400);
       const serverError = new ApiError("Server error", 502);
 
-      // Network: retry both times
       expect(retryFunc(0, networkError)).toBe(true);
       expect(retryFunc(1, networkError)).toBe(true);
       expect(retryFunc(2, networkError)).toBe(false);
 
-      // Client error: never retry
       expect(retryFunc(0, clientError as DefaultError)).toBe(false);
 
-      // Server error: retry both times
       expect(retryFunc(0, serverError as DefaultError)).toBe(true);
       expect(retryFunc(1, serverError as DefaultError)).toBe(true);
       expect(retryFunc(2, serverError as DefaultError)).toBe(false);
@@ -228,7 +202,6 @@ describe("React Query Retry Logic (§9.3)", () => {
       const apiError = new ApiError("Custom error", 418, "TEAPOT");
       expect(apiError.statusCode).toBe(418);
 
-      // 418 is 4xx, so should NOT retry
       const shouldRetry = retryFunc(0, apiError as DefaultError);
       expect(shouldRetry).toBe(false);
     });
@@ -249,7 +222,6 @@ describe("React Query Retry Logic (§9.3)", () => {
         reason: "invalid format",
       });
 
-      // 422 is 4xx, so should NOT retry
       const shouldRetry = retryFunc(0, apiError as DefaultError);
       expect(shouldRetry).toBe(false);
     });

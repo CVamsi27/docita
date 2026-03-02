@@ -10,8 +10,8 @@ import {
   UsePipes,
   BadRequestException,
 } from '@nestjs/common';
-import { DoctorsService } from '../../application/services/doctors.service';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
+import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 
 import {
@@ -27,10 +27,10 @@ import {
   CreateCertificationSchema,
   AddSpecializationDto,
   AddSpecializationSchema,
-} from '../../application/dto/doctors.dto';
+} from '@/domains/doctors/application/dto/doctors.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ZodValidationPipe } from '../../../../common/pipes/zod-validation.pipe';
-import { RequestWithUser } from '../../../../common/types/common.types';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { RequestWithUser } from '@/common/types/common.types';
 import { Specialization } from '@workspace/db';
 
 @Controller('doctors')
@@ -91,6 +91,31 @@ export class DoctorsController {
   async remove(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.doctorsService.remove(id, req.user?.clinicId || undefined);
   }
+
+  @Post(':id/signature-upload-session')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  async createSignatureUploadSession(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    return this.doctorsService.createSignatureUploadSession(
+      id,
+      req.user?.clinicId || undefined,
+    );
+  }
+
+  @Post(':id/reverify-registration')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  async reverifyRegistration(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    return this.doctorsService.reverifyDoctor(
+      id,
+      req.user?.clinicId || undefined,
+    );
+  }
+
   async getEducation(@Param('id') id: string) {
     return this.doctorsService.getEducationHistory(id);
   }
@@ -114,10 +139,6 @@ export class DoctorsController {
   async removeEducation(@Param('educationId') educationId: string) {
     return this.doctorsService.removeEducation(educationId);
   }
-
-  // ============================================================================
-  // Certification Endpoints
-  // ============================================================================
 
   @Get(':id/certifications')
   async getCertifications(@Param('id') id: string) {
@@ -146,10 +167,6 @@ export class DoctorsController {
   async removeCertification(@Param('certificationId') certificationId: string) {
     return this.doctorsService.removeCertification(certificationId);
   }
-
-  // ============================================================================
-  // Additional Specializations Endpoints
-  // ============================================================================
 
   @Get(':id/specializations')
   async getSpecializations(@Param('id') id: string) {

@@ -4,17 +4,17 @@ import {
   NotFoundException,
   Inject,
 } from '@nestjs/common';
-import { ClinicTier } from '../../core/value-objects';
+import { ClinicTier } from '@/domains/subscriptions/core/value-objects';
 import {
   SubscriptionPricingService,
   SubscriptionValidationService,
   ProratingService,
-} from '../../core/services';
-import { UpgradeSubscriptionDto } from '../dto/subscription.dto';
+} from '@/domains/subscriptions/core/services';
+import { UpgradeSubscriptionDto } from '@/domains/subscriptions/application/dto/subscription.dto';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
-} from '../ports/subscription.repository.port';
+} from '@/domains/subscriptions/application/ports/subscription.repository.port';
 
 @Injectable()
 export class UpgradeSubscriptionUseCase {
