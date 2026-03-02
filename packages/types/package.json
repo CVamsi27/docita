@@ -24,10 +24,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*",
-    "@prisma/client": "^7.0.0",
-    "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0",
     "zod": "^3.25.76"
   }
 }

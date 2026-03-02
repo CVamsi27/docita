@@ -1,6 +1,10 @@
-import type { Prisma } from "@workspace/db";
+// Avoid importing database runtime types into the shared `types` package.
+// The `types` package must remain a lightweight, runtime-free source
+// of schema and inferred TypeScript types. Use conservative, framework-
+// agnostic shapes here so consumers can narrow as needed in their
+// implementation boundaries.
 
-export type PrismaTransaction = Prisma.TransactionClient;
+export type PrismaTransaction = unknown;
 
 export type PrismaWhereInput = Record<string, unknown>;
 
