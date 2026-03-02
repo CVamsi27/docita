@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   auditLogSchema,
   auditLogFilterSchema,
-  jsonValueSchema,
+  jsonObjectSchema,
 } from '@workspace/types';
 
 export class AuditLogFilterDto extends createZodDto(auditLogFilterSchema) {}
@@ -23,4 +23,4 @@ export class PaginatedAuditLogResponseDto extends createZodDto(
   paginatedAuditLogSchema,
 ) {}
 
-export class AnyAuditResponseDto extends createZodDto(jsonValueSchema) {}
+export class AnyAuditResponseDto extends createZodDto(jsonObjectSchema) {}

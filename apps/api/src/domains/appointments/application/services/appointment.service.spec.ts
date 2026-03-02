@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/prisma/prisma.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import {
   NotFoundException,
   ForbiddenException,
@@ -7,14 +8,46 @@ import {
 } from '@nestjs/common';
 
 describe('AppointmentService', () => {
+  type AppointmentLike = Record<string, unknown>;
+  type AppointmentListResult = {
+    data: AppointmentLike[];
+    total: number;
+    page?: number;
+    pageSize?: number;
+  };
   type MockAppointmentService = {
-    createAppointment: jest.Mock;
-    getAppointment: jest.Mock;
-    updateAppointment: jest.Mock;
-    listAppointments: jest.Mock;
-    cancelAppointment: jest.Mock;
-    getAvailableSlots: jest.Mock;
-    completeAppointment: jest.Mock;
+    createAppointment: jest.MockedFunction<
+      (dto: AppointmentLike) => Promise<AppointmentLike>
+    >;
+    getAppointment: jest.MockedFunction<
+      (id: string, clinicId: string) => Promise<AppointmentLike>
+    >;
+    updateAppointment: jest.MockedFunction<
+      (
+        id: string,
+        clinicId: string,
+        dto: AppointmentLike,
+      ) => Promise<AppointmentLike>
+    >;
+    listAppointments: jest.MockedFunction<
+      (
+        clinicId: string,
+        query: AppointmentLike,
+      ) => Promise<AppointmentListResult>
+    >;
+    cancelAppointment: jest.MockedFunction<
+      (id: string, clinicId: string, reason: string) => Promise<AppointmentLike>
+    >;
+    getAvailableSlots: jest.MockedFunction<
+      (
+        doctorId: string,
+        date: string | Date,
+        clinicId: string,
+      ) => Promise<AppointmentLike[]>
+    >;
+    completeAppointment: jest.MockedFunction<
+      (id: string, clinicId: string) => Promise<AppointmentLike>
+    >;
   };
 
   let service: MockAppointmentService;
@@ -383,11 +416,7 @@ describe('AppointmentService', () => {
         doctorId: 'doctor-1',
       });
 
-      expect(
-        result.data.every(
-          (a: { doctorId: string }) => a.doctorId === 'doctor-1',
-        ),
-      ).toBe(true);
+      expect(result.data.every((a) => a['doctorId'] === 'doctor-1')).toBe(true);
     });
 
     it('should filter by status', async () => {
@@ -408,9 +437,7 @@ describe('AppointmentService', () => {
         status: 'SCHEDULED',
       });
 
-      expect(
-        result.data.every((a: { status: string }) => a.status === 'SCHEDULED'),
-      ).toBe(true);
+      expect(result.data.every((a) => a['status'] === 'SCHEDULED')).toBe(true);
     });
 
     it('should support pagination', async () => {
@@ -455,9 +482,7 @@ describe('AppointmentService', () => {
       );
 
       expect(result).toHaveLength(3);
-      expect(result.every((s: { available: boolean }) => s.available)).toBe(
-        true,
-      );
+      expect(result.every((s) => Boolean(s['available']))).toBe(true);
     });
 
     it('should exclude booked slots', async () => {
@@ -475,9 +500,7 @@ describe('AppointmentService', () => {
         'clinic-1',
       );
 
-      expect(
-        result.filter((s: { available: boolean }) => s.available),
-      ).toHaveLength(2);
+      expect(result.filter((s) => Boolean(s['available']))).toHaveLength(2);
     });
 
     it('should respect doctor time-off', async () => {
@@ -494,9 +517,7 @@ describe('AppointmentService', () => {
         'clinic-1',
       );
 
-      expect(
-        result.filter((s: { available: boolean }) => s.available),
-      ).toHaveLength(0);
+      expect(result.filter((s) => Boolean(s['available']))).toHaveLength(0);
     });
   });
 
@@ -540,7 +561,7 @@ describe('AppointmentService', () => {
     });
 
     it('should list only clinic-specific appointments', async () => {
-      service.listAppointments.mockImplementation((clinicId: string) => {
+      service.listAppointments.mockImplementation(async (clinicId: string) => {
         return {
           data: [
             { id: 'appt-1', clinicId },
@@ -552,11 +573,7 @@ describe('AppointmentService', () => {
 
       const result = await service.listAppointments('clinic-1', {});
 
-      expect(
-        result.data.every(
-          (a: { clinicId: string }) => a.clinicId === 'clinic-1',
-        ),
-      ).toBe(true);
+      expect(result.data.every((a) => a['clinicId'] === 'clinic-1')).toBe(true);
     });
   });
 

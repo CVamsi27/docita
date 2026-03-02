@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { reportClientError } from "@/lib/client-error-reporting";
+import { toast } from "sonner";
 
 const getConsoleMessage = (args: unknown[]): string => {
   return args
@@ -103,6 +104,16 @@ export function ClientErrorReporter() {
       }
 
       const message = getConsoleMessage(args);
+
+      // Avoid showing toasts for internal logs or repeating logs
+      if (
+        !message.includes("react-query") &&
+        !message.includes("Next.js") &&
+        !message.includes("[HMR]")
+      ) {
+        toast(message);
+      }
+
       report(`console-log:${message}`, {
         type: "ConsoleLog",
         message,
@@ -116,6 +127,15 @@ export function ClientErrorReporter() {
       }
 
       const message = getConsoleMessage(args);
+
+      if (
+        !message.includes("react-query") &&
+        !message.includes("Next.js") &&
+        !message.includes("[HMR]")
+      ) {
+        toast.warning(message);
+      }
+
       const firstError = args.find((arg): arg is Error => arg instanceof Error);
       report(`console-warn:${message}`, {
         type: "ConsoleWarning",
@@ -131,6 +151,15 @@ export function ClientErrorReporter() {
       }
 
       const message = getConsoleMessage(args);
+
+      if (
+        !message.includes("react-query") &&
+        !message.includes("Next.js") &&
+        !message.includes("[HMR]")
+      ) {
+        toast.error(message);
+      }
+
       const firstError = args.find((arg): arg is Error => arg instanceof Error);
       report(`console-error:${message}`, {
         type: "ConsoleError",

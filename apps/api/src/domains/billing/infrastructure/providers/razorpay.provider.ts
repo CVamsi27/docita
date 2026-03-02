@@ -15,7 +15,7 @@ export const PAYMENT_PROVIDER_TOKEN = 'PAYMENT_PROVIDER_TOKEN';
 @Injectable()
 export class RazorpayPaymentProvider implements IPaymentProvider {
   private readonly logger = new Logger(RazorpayPaymentProvider.name);
-  private razorpay: Razorpay;
+  private razorpay: Razorpay | null = null;
 
   private toRecord(value: unknown): Record<string, unknown> {
     if (typeof value !== 'object' || value === null) {
@@ -26,17 +26,47 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
   }
 
   constructor(private configService: AppConfigService) {
+    this.initializeRazorpay();
+  }
+
+  private initializeRazorpay(): void {
+    const keyId = this.configService.getRazorpayKeyId();
+    const keySecret = this.configService.getRazorpayKeySecret();
+
+    if (!keyId || !keySecret) {
+      const message =
+        'Razorpay payment provider is disabled because key_id/secret are missing.';
+
+      if (this.configService.isProduction()) {
+        throw new Error(message);
+      }
+
+      this.logger.warn(message);
+      return;
+    }
+
     this.razorpay = new Razorpay({
-      key_id: this.configService.getRazorpayKeyId(),
-      key_secret: this.configService.getRazorpayKeySecret(),
+      key_id: keyId,
+      key_secret: keySecret,
     });
+  }
+
+  private getClient(): Razorpay {
+    if (!this.razorpay) {
+      throw new Error(
+        'Razorpay payment provider is not initialized. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
+      );
+    }
+
+    return this.razorpay;
   }
 
   async createPaymentLink(
     dto: CreatePaymentLinkDto,
   ): Promise<PaymentProviderLink> {
     try {
-      const link = await this.razorpay.paymentLink.create({
+      const razorpay = this.getClient();
+      const link = await razorpay.paymentLink.create({
         amount: Math.round(dto.amount * 100),
         currency: dto.currency,
         description: dto.description,
@@ -99,7 +129,8 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
     description: string,
   ): Promise<ChargeResult> {
     try {
-      const paymentLink = await this.razorpay.paymentLink.create({
+      const razorpay = this.getClient();
+      const paymentLink = await razorpay.paymentLink.create({
         amount: amountCents,
         currency,
         description,

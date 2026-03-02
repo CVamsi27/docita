@@ -3,8 +3,8 @@ import { usePatients } from "@/features/patients/hooks/usePatients";
 import { getInitials } from "@/features/_shared/utils";
 import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
 import {
-  VirtualizedPatientsListUI,
   type PatientListItem,
+  VirtualizedPatientsListUI,
 } from "./VirtualizedPatientsListUI";
 
 interface VirtualizedPatientsListContainerProps {

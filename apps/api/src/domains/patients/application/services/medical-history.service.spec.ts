@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;

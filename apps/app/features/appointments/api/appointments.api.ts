@@ -1,11 +1,11 @@
 import { api } from "@/lib/api-client";
 import {
-  appointmentResponseSchema,
-  createAppointmentRequestSchema,
-  updateAppointmentRequestSchema,
   type Appointment,
+  appointmentResponseSchema,
   type CreateAppointmentRequest,
+  createAppointmentRequestSchema,
   type UpdateAppointmentRequest,
+  updateAppointmentRequestSchema,
 } from "@workspace/types";
 import { z } from "zod";
 

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PushNotificationService } from './push-notification.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PushNotificationService', () => {
   let service: PushNotificationService;
@@ -157,7 +158,7 @@ describe('PushNotificationService', () => {
         750,
         'INV99999',
         'Medical Center',
-        'https://pay.example.com/xyz',
+        'https://docita.com/invoice/INV99999',
       );
 
       expect(sendToPatientSpy).toHaveBeenCalledWith(
@@ -166,7 +167,7 @@ describe('PushNotificationService', () => {
           title: 'Payment Reminder',
           body: expect.stringContaining('₹750.00 due'),
           data: expect.objectContaining({
-            paymentLink: 'https://pay.example.com/xyz',
+            paymentLink: 'https://docita.com/invoice/INV99999',
           }),
         }),
         'payment_reminder',
@@ -183,7 +184,7 @@ describe('PushNotificationService', () => {
         2000,
         'INV11111',
         'City Hospital',
-        'https://pay.example.com/abc',
+        'https://docita.com/invoice/INV11111',
       );
 
       expect(sendToPatientSpy).toHaveBeenCalledWith(
@@ -192,7 +193,7 @@ describe('PushNotificationService', () => {
           title: 'Invoice Ready',
           body: expect.stringContaining('₹2000.00'),
           data: expect.objectContaining({
-            paymentLink: 'https://pay.example.com/abc',
+            paymentLink: 'https://docita.com/invoice/INV11111',
           }),
         }),
         'invoice_ready',

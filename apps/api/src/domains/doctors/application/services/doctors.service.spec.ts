@@ -3,6 +3,7 @@ import { DoctorsService } from './doctors.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { NotFoundException } from '@nestjs/common';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DoctorsService', () => {
   let service: DoctorsService;

@@ -5,7 +5,7 @@ export const mockRazorpayGateway = {
   paymentLink: {
     create: jest.fn().mockResolvedValue({
       id: 'plink_1234567890',
-      short_url: 'https://rzp.io/i/1234567890',
+      short_url: 'https://rzp.io/i/plink_1234567890',
       status: 'created',
       amount: 10000,
       currency: 'INR',
@@ -13,7 +13,7 @@ export const mockRazorpayGateway = {
     }),
     fetch: jest.fn().mockResolvedValue({
       id: 'plink_1234567890',
-      short_url: 'https://rzp.io/i/1234567890',
+      short_url: 'https://rzp.io/i/plink_1234567890',
       status: 'created',
       amount: 10000,
       currency: 'INR',

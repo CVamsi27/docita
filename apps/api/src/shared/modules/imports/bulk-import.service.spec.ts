@@ -3,6 +3,7 @@ import { getQueueToken } from '@nestjs/bull';
 import { BulkImportService } from './bulk-import.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('BulkImportService', () => {
   let service: BulkImportService;

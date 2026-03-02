@@ -190,7 +190,7 @@ export class PDFGeneratorService {
             ctx.currentY += 10;
             this.renderWarningBox(
               doc,
-              `️ Known Allergies: ${data.patient.allergies.join(', ')}`,
+              `Known Allergies: ${data.patient.allergies.join(', ')}`,
               ctx,
             );
             ctx.currentY += 40;

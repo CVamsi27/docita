@@ -12,11 +12,12 @@ export class ResendEmailProvider implements IEmailProvider {
   private readonly logger = new Logger(ResendEmailProvider.name);
   private readonly apiKey: string;
   private readonly defaultFrom: string;
-  private readonly apiUrl = 'https://api.resend.com/emails';
+  private readonly apiUrl: string;
 
   constructor(private configService: AppConfigService) {
     this.apiKey = this.configService.getResendApiKey();
     this.defaultFrom = this.configService.getEmailFrom();
+    this.apiUrl = this.configService.getResendApiUrl();
 
     if (!this.apiKey) {
       this.logger.warn('RESEND_API_KEY not configured - emails will fail');
@@ -77,13 +78,31 @@ export class ResendEmailProvider implements IEmailProvider {
     }
   }
 
-  sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
-    this.logger.warn(
-      'Resend template sending not implemented - use pre-rendered HTML',
+  async sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
+    this.logger.log(
+      `Sending templated email to ${options.to} using template ${options.templateId}`,
     );
-    return Promise.resolve({
-      success: false,
-      error: 'Template sending not implemented for Resend',
+
+    const html = `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <h2>Docita Notification</h2>
+        <div style="margin-top: 20px;">
+          ${Object.entries(options.templateData)
+            .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+            .join('')}
+        </div>
+        <p style="margin-top: 30px; font-size: 0.8em; color: #666;">
+          This is an automated message from Docita.
+        </p>
+      </div>
+    `;
+
+    return this.send({
+      to: options.to,
+      subject: `Notification: ${options.templateId}`,
+      html,
+      from: options.from,
+      replyTo: options.replyTo,
     });
   }
 
@@ -94,7 +113,8 @@ export class ResendEmailProvider implements IEmailProvider {
     }
 
     try {
-      const response = await fetch('https://api.resend.com/domains', {
+      const verifyUrl = this.apiUrl.replace(/\/emails$/, '/api-keys');
+      const response = await fetch(verifyUrl, {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
         },

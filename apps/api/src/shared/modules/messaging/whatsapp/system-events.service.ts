@@ -55,7 +55,7 @@ export class SystemEventsService {
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
       clinicName: prescription.appointment?.clinic?.name || 'Clinic',
       doctorName: prescription.doctor.name,
-      link: `https://docita.work/p/${prescriptionId}`,
+      link: `https://docita.com/prescription/${prescription.id}`,
     };
 
     const resolved = await this.templatesService.resolveTemplate(
@@ -97,7 +97,7 @@ export class SystemEventsService {
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name || 'Clinic',
       amount: `₹${invoice.total}`,
-      link: `https://docita.work/i/${invoiceId}`,
+      link: `https://docita.com/invoice/${invoice.id}`,
     };
 
     const resolved = await this.templatesService.resolveTemplate(

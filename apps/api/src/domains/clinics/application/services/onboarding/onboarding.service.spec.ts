@@ -8,6 +8,14 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { BadRequestException, Logger } from '@nestjs/common';
 import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
+import {
   OnboardingStep,
   ClinicTier,
   BillingCycle,
@@ -23,8 +31,13 @@ describe('OnboardingService', () => {
   let complianceService: OnboardingComplianceService;
 
   const mockPrismaService = {
-    runUnrestricted: jest.fn((callback) => callback()),
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+    runUnrestricted: jest.fn((callback: () => unknown | Promise<unknown>) =>
+      callback(),
+    ),
+    $transaction: jest.fn(
+      (callback: (tx: unknown) => unknown | Promise<unknown>) =>
+        callback(mockPrismaService as unknown),
+    ),
     clinic: {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
@@ -103,25 +116,33 @@ describe('OnboardingService', () => {
     ),
   };
   const mockWorkflowService = {
-    createClinic: jest.fn().mockResolvedValue({ id: 'clinic_123' }),
-    createAdminUser: jest.fn().mockResolvedValue({
+    createClinic: jest
+      .fn()
+      .mockImplementation(async () => ({ id: 'clinic_123' })),
+    createAdminUser: jest.fn().mockImplementation(async () => ({
       id: 'user_123',
       email: 'admin@clinic.com',
       role: 'ADMIN',
       name: 'Admin User',
-    }),
-    createSubscription: jest.fn().mockResolvedValue({ id: 'sub_123' }),
-    createStaffMembers: jest.fn().mockResolvedValue(0),
-    initializeClinicSettings: jest.fn().mockResolvedValue(undefined),
+    })),
+    createSubscription: jest
+      .fn()
+      .mockImplementation(async () => ({ id: 'sub_123' })),
+    createStaffMembers: jest.fn().mockImplementation(async () => 0),
+    initializeClinicSettings: jest
+      .fn()
+      .mockImplementation(async () => undefined),
   };
   const mockComplianceService = {
-    recordSLAAgreement: jest.fn().mockResolvedValue(undefined),
-    configureConsentManagement: jest.fn().mockResolvedValue(undefined),
-    logOnboardingEvent: jest.fn().mockResolvedValue(undefined),
+    recordSLAAgreement: jest.fn().mockImplementation(async () => undefined),
+    configureConsentManagement: jest
+      .fn()
+      .mockImplementation(async () => undefined),
+    logOnboardingEvent: jest.fn().mockImplementation(async () => undefined),
   };
 
   beforeEach(async () => {
-    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -250,8 +271,8 @@ describe('OnboardingService', () => {
     it('should successfully complete onboarding', async () => {
       const { onboardingId } = service.initializeOnboarding();
 
-      mockPrismaService.clinic.findFirst.mockResolvedValue(null);
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.clinic.findFirst.mockImplementation(async () => null);
+      mockPrismaService.user.findUnique.mockImplementation(async () => null);
 
       const createdClinic = { id: 'clinic_123' };
       const createdUser = {
@@ -262,21 +283,29 @@ describe('OnboardingService', () => {
       };
       const createdSubscription = { id: 'sub_123' };
 
-      mockPrismaService.clinic.create.mockResolvedValue(createdClinic);
-      mockPrismaService.user.create.mockResolvedValue(createdUser);
-      mockPrismaService.subscription.create.mockResolvedValue(
-        createdSubscription,
+      mockPrismaService.clinic.create.mockImplementation(
+        async () => createdClinic,
       );
-      mockPrismaService.mrnSequence.create.mockResolvedValue({});
-      mockPrismaService.reminderSettings.create.mockResolvedValue({});
+      mockPrismaService.user.create.mockImplementation(async () => createdUser);
+      mockPrismaService.subscription.create.mockImplementation(
+        async () => createdSubscription,
+      );
+      mockPrismaService.mrnSequence.create.mockImplementation(async () => ({}));
+      mockPrismaService.reminderSettings.create.mockImplementation(
+        async () => ({}),
+      );
 
-      mockPrismaService.clinic.findUnique.mockResolvedValue(createdClinic);
-      mockPrismaService.clinic.update.mockResolvedValue(createdClinic);
+      mockPrismaService.clinic.findUnique.mockImplementation(
+        async () => createdClinic,
+      );
+      mockPrismaService.clinic.update.mockImplementation(
+        async () => createdClinic,
+      );
 
-      mockAuthService.login.mockResolvedValue({
+      mockAuthService.login.mockImplementation(async () => ({
         access_token: 'valid_token',
         user: createdUser,
-      });
+      }));
 
       const result = await service.completeOnboarding(
         onboardingId,
@@ -298,8 +327,8 @@ describe('OnboardingService', () => {
 
     it('should fail if clinic email exists', async () => {
       const { onboardingId } = service.initializeOnboarding();
-      mockWorkflowService.createClinic.mockRejectedValueOnce(
-        new Error('Clinic with this email already exists'),
+      mockWorkflowService.createClinic.mockImplementationOnce(async () =>
+        Promise.reject(new Error('Clinic with this email already exists')),
       );
 
       const result = await service.completeOnboarding(
@@ -320,7 +349,9 @@ describe('OnboardingService', () => {
 
       const result = await service.completeOnboarding(
         onboardingId,
-        incompleteData,
+        incompleteData as unknown as Parameters<
+          OnboardingService['completeOnboarding']
+        >[1],
       );
 
       expect(result.success).toBe(false);

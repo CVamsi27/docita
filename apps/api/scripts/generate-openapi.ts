@@ -3,8 +3,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import { AppModule } from '@/app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
+const logger = new Logger('GenerateOpenApi');
 
 type OpenApiPropertySchema = {
   type?: string;
@@ -24,6 +27,7 @@ function isSchemaObject(value: unknown): value is OpenApiSchemaObject {
 
 async function generateOpenAPI() {
   try {
+    logger.log('Generating OpenAPI documentation...');
 
     const app = await NestFactory.create(AppModule, {
       logger: ['error'], 
@@ -61,7 +65,7 @@ async function generateOpenAPI() {
     const docsDir = path.join(__dirname, '../../docs');
     if (!fs.existsSync(docsDir)) {
       fs.mkdirSync(docsDir, { recursive: true });
-
+      logger.log(`Created docs directory: ${docsDir}`);
     }
 
     const specPath = path.join(docsDir, 'openapi.json');
@@ -77,9 +81,14 @@ async function generateOpenAPI() {
     const endpoints = Object.keys(document.paths || {}).length;
     const schemas = Object.keys(document.components?.schemas || {}).length;
 
+    logger.log(`OpenAPI spec generated: ${specPath}`);
+    logger.log(`Generated ${endpoints} endpoints and ${schemas} schemas`);
+    logger.log(`TypeScript client types generated: ${clientTypesPath}`);
+
     await app.close();
     process.exit(0);
   } catch (error) {
+    logger.error('Error generating OpenAPI docs', error);
 
     process.exit(1);
   }
@@ -93,9 +102,10 @@ function generateClientTypes(document: unknown): string {
   };
 
   const types: string[] = [
+    '// Auto-generated API client types',
+    '// Generated from OpenAPI specification',
     '',
-    '',
-    '// API Request/Response Types',
+    '/* eslint-disable @typescript-eslint/no-explicit-any */',
     '',
   ];
 
@@ -143,7 +153,6 @@ function getTypeScriptType(schema: OpenApiPropertySchema): string {
     return schema.items ? `${getTypeScriptType(schema.items)}[]` : 'unknown[]';
   }
   if (schema.$ref) {
-
     const refName = schema.$ref.split('/').pop();
     return refName ?? 'unknown';
   }

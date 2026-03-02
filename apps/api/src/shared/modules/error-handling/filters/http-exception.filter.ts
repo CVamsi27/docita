@@ -285,6 +285,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
+    const logPayload = {
+      status,
+      method: request.method,
+      path: request.path,
+      errorType,
+      message,
+    };
+
+    if (status >= 500) {
+      this.logger.error(
+        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
+        errorStack,
+      );
+    } else {
+      this.logger.warn(logPayload);
+    }
+
     const isDevelopment = this.configService
       ? this.configService.isDevelopment()
       : true;

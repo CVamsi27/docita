@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import {
   EMAIL_PROVIDER,
   IEmailProvider,
@@ -11,12 +12,12 @@ describe('EmailService', () => {
   let emailProvider: jest.Mocked<IEmailProvider>;
 
   beforeEach(async () => {
+    const successResponse = { success: true, messageId: 'msg-1' };
+
     const emailProviderMock = {
-      send: jest.fn().mockResolvedValue({ success: true, messageId: 'msg-1' }),
-      sendTemplate: jest
-        .fn()
-        .mockResolvedValue({ success: true, messageId: 'msg-1' }),
-      verify: jest.fn().mockResolvedValue(true),
+      send: jest.fn().mockImplementation(async () => successResponse),
+      sendTemplate: jest.fn().mockImplementation(async () => successResponse),
+      verify: jest.fn().mockImplementation(async () => true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,7 +35,7 @@ describe('EmailService', () => {
             getEnvironment: jest.fn().mockReturnValue('test'),
             getFrontendAppUrl: jest
               .fn()
-              .mockReturnValue('http://localhost:3000'),
+              .mockReturnValue('http://localhost:3001'),
           },
         },
       ],
@@ -282,8 +283,8 @@ describe('EmailService', () => {
     it('should send templated email with variables', async () => {
       const options = {
         to: 'user@example.com',
-        template: 'welcome',
-        variables: { name: 'John', clinicName: 'Main Clinic' },
+        templateId: 'welcome',
+        templateData: { name: 'John', clinicName: 'Main Clinic' },
       };
 
       const result = await service.sendTemplate(options);
@@ -295,8 +296,8 @@ describe('EmailService', () => {
     it('should pass through template options to provider', async () => {
       const options = {
         to: 'user@example.com',
-        template: 'appointment-reminder',
-        variables: { patientName: 'John', doctorName: 'Dr. Smith' },
+        templateId: 'appointment-reminder',
+        templateData: { patientName: 'John', doctorName: 'Dr. Smith' },
         cc: 'admin@example.com',
       };
 
@@ -313,8 +314,8 @@ describe('EmailService', () => {
       await expect(
         service.sendTemplate({
           to: 'user@example.com',
-          template: 'nonexistent',
-          variables: {},
+          templateId: 'nonexistent',
+          templateData: {},
         }),
       ).rejects.toThrow('Template not found');
     });

@@ -7,10 +7,10 @@ export const jsonPrimitiveSchema = z.union([
   z.null(),
 ]);
 
-export type JsonPrimitive = z.infer<typeof jsonPrimitiveSchema>;
+export type JsonSchemaPrimitive = z.infer<typeof jsonPrimitiveSchema>;
 
 export type JsonValueSchemaType =
-  | JsonPrimitive
+  | JsonSchemaPrimitive
   | { [key: string]: JsonValueSchemaType }
   | JsonValueSchemaType[];
 

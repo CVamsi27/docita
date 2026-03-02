@@ -12,6 +12,8 @@ import React, {
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { parseApiErrorResponse } from "@/lib/api-error";
+import { API_URL } from "@/lib/api-config";
+import { isNetworkError } from "@/lib/network-error";
 import {
   checkEmailResponseSchema,
   checkEmailSchema,
@@ -50,9 +52,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_URL =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
 
 function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
@@ -169,10 +168,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkEmail = async (email: string): Promise<boolean> => {
     try {
       const payload = checkEmailSchema.parse({ email });
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const csrfToken = getCsrfToken();
-      const response = await fetch(`${apiUrl}/auth/check-email`, {
+      const response = await fetch(`${API_URL}/auth/check-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -189,6 +186,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = checkEmailResponseSchema.parse(await response.json());
       return data.exists;
     } catch (error) {
+      if (isNetworkError(error)) {
+        return false;
+      }
 
       throw error;
     }

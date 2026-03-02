@@ -3,6 +3,14 @@ import { RequestLogService } from './request-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
+import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
 describe('RequestLogService', () => {
   let service: RequestLogService;

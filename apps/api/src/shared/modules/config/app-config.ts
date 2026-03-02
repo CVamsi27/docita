@@ -24,6 +24,7 @@ export const EnvSchema = z.object({
   WHATSAPP_PRODUCTION_MODE: z.coerce.boolean().default(false),
   AI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
+  RESEND_API_URL: z.string().default('https://api.resend.com/emails'),
   EMAIL_FROM: z.string().default('Docita <noreply@docita.work>'),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_CREDENTIALS_JSON: z.string().optional(),
@@ -72,16 +73,19 @@ export function getCorsOrigins(): (string | RegExp)[] {
   }
 
   return [
-    'https://landing.docita.work',
+    'https://docita.work',
     'https://app.docita.work',
     'https://admin.docita.work',
-    /^https:\/\/.*\.vercel\.app$/,
+    'https://api.docita.work',
+    /^https:\/\/.*\.docita\.work$/,
     'http://localhost:3003',
     'http://localhost:3000',
     'http://localhost:3002',
+    'http://localhost:3001',
     'http://127.0.0.1:3003',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3002',
+    'http://127.0.0.1:3001',
   ];
 }
 
@@ -99,6 +103,9 @@ export function validateEnv(): EnvConfig {
   if (!result.success) {
     const formatted = result.error.format();
 
+    process.stderr.write('\nAPI environment validation failed.\n');
+    process.stderr.write('Please fix the following environment variables:\n');
+
     Object.entries(formatted).forEach(([key, value]) => {
       if (
         key !== '_errors' &&
@@ -107,9 +114,17 @@ export function validateEnv(): EnvConfig {
       ) {
         const errors = (value as { _errors: string[] })._errors;
         if (errors.length > 0) {
+          process.stderr.write(`  - ${key}: ${errors.join(', ')}\n`);
         }
       }
     });
+
+    const rootErrors = formatted._errors;
+    if (Array.isArray(rootErrors) && rootErrors.length > 0) {
+      process.stderr.write(`  - env: ${rootErrors.join(', ')}\n`);
+    }
+
+    process.stderr.write('\n');
 
     process.exit(1);
   }

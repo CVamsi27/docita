@@ -65,7 +65,7 @@ export class FhirMedicationFactory {
 
         if (med.rxNormCui && request.medicationCodeableConcept?.coding) {
           request.medicationCodeableConcept.coding.push({
-            system: 'http://www.nlm.nih.gov/research/umls/rxnorm',
+            system: 'http://www.nlm.nih.gov/research/mesh/rxnorm',
             code: med.rxNormCui,
             display: med.name,
           });

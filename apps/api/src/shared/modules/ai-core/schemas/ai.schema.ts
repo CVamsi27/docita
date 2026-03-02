@@ -1,10 +1,9 @@
 import { z } from 'zod';
-import { jsonObjectSchema } from '@workspace/types';
 
 export const AiPromptSchema = z.object({
   system: z.string().optional(),
   user: z.string(),
-  context: jsonObjectSchema.optional(),
+  context: z.record(z.unknown()).optional(),
 });
 
 export type AiPromptInput = z.infer<typeof AiPromptSchema>;

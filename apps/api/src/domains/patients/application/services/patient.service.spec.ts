@@ -1,13 +1,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PatientService', () => {
+  type PatientRecord = Record<string, unknown>;
+  type PatientListResult = {
+    data: PatientRecord[];
+    total: number;
+    page?: number;
+    pageSize?: number;
+  };
+
   let service: {
-    findAll: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    update: jest.Mock;
+    createPatient: jest.MockedFunction<
+      (dto: PatientRecord) => Promise<PatientRecord>
+    >;
+    getPatient: jest.MockedFunction<
+      (patientId: string, clinicId: string) => Promise<PatientRecord>
+    >;
+    updatePatient: jest.MockedFunction<
+      (
+        patientId: string,
+        clinicId: string,
+        dto: PatientRecord,
+      ) => Promise<PatientRecord>
+    >;
+    listPatients: jest.MockedFunction<
+      (clinicId: string, query: PatientRecord) => Promise<PatientListResult>
+    >;
+    deletePatient: jest.MockedFunction<
+      (patientId: string, clinicId: string) => Promise<PatientRecord>
+    >;
+    getPatientsByClinic: jest.MockedFunction<
+      (clinicId: string) => Promise<PatientRecord[]>
+    >;
   };
   let prisma: PrismaService;
 
@@ -43,7 +70,7 @@ describe('PatientService', () => {
       ],
     }).compile();
 
-    service = module.get('PatientService');
+    service = module.get<typeof service>('PatientService');
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -66,7 +93,6 @@ describe('PatientService', () => {
         updatedAt: new Date(),
       };
 
-      mockPrismaService.patient.create.mockResolvedValueOnce(createdPatient);
       service.createPatient.mockResolvedValueOnce(createdPatient);
 
       const result = await service.createPatient(createPatientDto);
@@ -183,9 +209,12 @@ describe('PatientService', () => {
 
       const result = await service.getPatient('patient-1', 'clinic-1');
 
-      expect(result.appointments).toBeDefined();
-      expect(result.prescriptions).toBeDefined();
-      expect(result.appointments.length).toBeGreaterThan(0);
+      const appointments = result['appointments'] as unknown[] | undefined;
+      const prescriptions = result['prescriptions'] as unknown[] | undefined;
+
+      expect(appointments).toBeDefined();
+      expect(prescriptions).toBeDefined();
+      expect(appointments?.length ?? 0).toBeGreaterThan(0);
     });
   });
 
@@ -354,11 +383,7 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      expect(
-        result.data.every(
-          (p: { clinicId: string }) => p.clinicId === 'clinic-1',
-        ),
-      ).toBe(true);
+      expect(result.data.every((p) => p['clinicId'] === 'clinic-1')).toBe(true);
     });
   });
 
@@ -420,16 +445,19 @@ describe('PatientService', () => {
         clinicId: 'clinic-a',
       };
 
-      service.getPatient.mockImplementation((patientId, clinicId) => {
-        if (clinicAPatient.clinicId !== clinicId) {
-          return Promise.reject(
-            new ForbiddenException(
-              'Cannot access patient from different clinic',
-            ),
-          );
-        }
-        return Promise.resolve(clinicAPatient);
-      });
+      service.getPatient.mockImplementation(
+        (patientId: string, clinicId: string) => {
+          void patientId;
+          if (clinicAPatient.clinicId !== clinicId) {
+            return Promise.reject(
+              new ForbiddenException(
+                'Cannot access patient from different clinic',
+              ),
+            );
+          }
+          return Promise.resolve(clinicAPatient);
+        },
+      );
 
       await expect(
         service.getPatient('patient-clinic-a', 'clinic-b'),
@@ -437,7 +465,7 @@ describe('PatientService', () => {
     });
 
     it('should list only clinic-specific patients', async () => {
-      service.listPatients.mockImplementation((clinicId) => {
+      service.listPatients.mockImplementation(async (clinicId: string) => {
         return {
           data: [
             { id: 'p1', clinicId },
@@ -449,11 +477,7 @@ describe('PatientService', () => {
 
       const result = await service.listPatients('clinic-1', {});
 
-      expect(
-        result.data.every(
-          (p: { clinicId: string }) => p.clinicId === 'clinic-1',
-        ),
-      ).toBe(true);
+      expect(result.data.every((p) => p['clinicId'] === 'clinic-1')).toBe(true);
     });
   });
 

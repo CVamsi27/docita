@@ -1,5 +1,3 @@
-
-
 import type { Config } from 'jest';
 
 const config: Config = {
@@ -7,14 +5,10 @@ const config: Config = {
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
   transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
-  collectCoverageFrom: [
-    'src*.(t|j)s',
-    '!src/main.ts',
-    '!src*.module.ts',
-  ],
+  collectCoverageFrom: ['src*.(t|j)s', '!src/main.ts', '!src*.module.ts'],
   coverageDirectory: './coverage',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],

@@ -1,4 +1,7 @@
-const base = process.env['DOCITA_API_BASE'] ?? 'http://localhost:3001/api/v1';
+import { Logger } from '@nestjs/common';
+
+const logger = new Logger('DefaulterFallbackSmoke');
+const base = process.env['DOCITA_API_BASE'] ?? 'http://localhost:3001';
 
 type ProbeResult = {
   endpoint: string;
@@ -31,7 +34,7 @@ async function main() {
 
   const failed = checks.filter((check) => check.required && !check.ok);
 
-  console.log(
+  logger.log(
     JSON.stringify(
       {
         ok: failed.length === 0,

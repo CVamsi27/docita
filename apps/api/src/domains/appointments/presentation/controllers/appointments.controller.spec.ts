@@ -1,22 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentsController } from './appointments.controller';
-import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
-import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
-import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { AppointmentService as AppointmentsService } from '../../application/services/appointment.service';
+import { JwtAuthGuard } from '../../../../shared/modules/auth/auth/jwt-auth.guard';
+import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
 
-describe.skip('AppointmentsController', () => {
+describe('AppointmentsController', () => {
   let controller: AppointmentsController;
-  let service: AppointmentsService;
 
   const mockAppointmentsService = {
-    listAppointments: jest.fn(),
-    getAppointment: jest.fn(),
-    createAppointment: jest.fn(),
-    updateAppointmentDetails: jest.fn(),
-    cancelAppointment: jest.fn(),
-    rescheduleAppointment: jest.fn(),
-    createVitals: jest.fn(),
-    updateVitals: jest.fn(),
+    listAppointments: jest.fn<(query?: unknown) => Promise<unknown>>(),
+    getAppointment: jest.fn<(id: string) => Promise<unknown>>(),
+    createAppointment: jest.fn<(dto: unknown) => Promise<unknown>>(),
+    updateAppointmentDetails:
+      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    cancelAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    rescheduleAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    createVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    updateVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockAppointment = {
@@ -53,7 +54,6 @@ describe.skip('AppointmentsController', () => {
       .compile();
 
     controller = module.get<AppointmentsController>(AppointmentsController);
-    service = module.get<AppointmentsService>(AppointmentsService);
 
     jest.clearAllMocks();
   });
@@ -113,7 +113,8 @@ describe.skip('AppointmentsController', () => {
         doctorId: 'doctor-123',
         startTime: new Date(),
         endTime: new Date(),
-        type: 'CONSULTATION' as const,
+        type: 'consultation' as const,
+        status: 'scheduled' as const,
       };
 
       mockAppointmentsService.createAppointment.mockResolvedValue(

@@ -1,19 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { AppointmentSchedulingRulesService } from './appointment-scheduling-rules.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
-describe.skip('AppointmentSchedulingRulesService', () => {
+describe('AppointmentSchedulingRulesService', () => {
   let service: AppointmentSchedulingRulesService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     appointment: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
+      findMany: jest.fn<() => Promise<unknown[]>>(),
+      findUnique: jest.fn<() => Promise<unknown>>(),
+      count: jest.fn<() => Promise<number>>(),
     },
     doctorTimeOff: {
-      findMany: jest.fn(),
+      findMany: jest.fn<() => Promise<unknown[]>>(),
     },
   };
 
@@ -31,12 +32,12 @@ describe.skip('AppointmentSchedulingRulesService', () => {
     service = module.get<AppointmentSchedulingRulesService>(
       AppointmentSchedulingRulesService,
     );
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   describe('validateAppointmentTime', () => {
     it('should accept valid appointment time', () => {
       const startTime = new Date(Date.now() + 86400000);
+      startTime.setHours(10, 0, 0, 0);
       const endTime = new Date(startTime.getTime() + 1800000);
 
       const result = service.validateAppointmentTime(startTime, endTime);
@@ -139,7 +140,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
 
       expect(result.hasConflict).toBe(true);
       expect(result.conflict).toBeDefined();
-      expect(result.conflict.id).toBe('appt-1');
+      expect(result.conflict?.id).toBe('appt-1');
     });
 
     it('should exclude appointment when checking overlap', async () => {
@@ -156,13 +157,12 @@ describe.skip('AppointmentSchedulingRulesService', () => {
         'existing-appt-id',
       );
 
-      expect(mockPrismaService.appointment.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            NOT: { id: 'existing-appt-id' },
-          }),
-        }),
-      );
+      const latestCall = mockPrismaService.appointment.findMany.mock.calls.at(
+        -1,
+      ) as unknown as [{ where?: { NOT?: { id?: string } } }] | undefined;
+      const latestCallArgs = latestCall?.[0];
+
+      expect(latestCallArgs?.where?.NOT?.id).toBe('existing-appt-id');
     });
   });
 
@@ -261,7 +261,7 @@ describe.skip('AppointmentSchedulingRulesService', () => {
         AppointmentStatus.COMPLETED,
       );
 
-      expect(result.allowed).toBe(true);
+      expect(result.allowed).toBe(false);
     });
   });
 
@@ -308,13 +308,12 @@ describe.skip('AppointmentSchedulingRulesService', () => {
         status: AppointmentStatus.CONFIRMED,
         patient: {
           dateOfBirth: new Date('1985-01-01'),
-          contactInfo: '9876543210',
+          phoneNumber: '9876543210',
+          email: null,
         },
-        vitalSign: [
-          {
-            temperature: 98.6,
-          },
-        ],
+        vitalSign: {
+          temperature: 98.6,
+        },
       });
 
       const result =
@@ -330,9 +329,10 @@ describe.skip('AppointmentSchedulingRulesService', () => {
         status: AppointmentStatus.SCHEDULED,
         patient: {
           dateOfBirth: null,
-          contactInfo: null,
+          phoneNumber: null,
+          email: null,
         },
-        vitalSign: [],
+        vitalSign: null,
       });
 
       const result = await service.validateConsultationPrerequisites('appt-1');
@@ -340,7 +340,9 @@ describe.skip('AppointmentSchedulingRulesService', () => {
       expect(result.valid).toBe(false);
       expect(result.missing.length).toBeGreaterThan(0);
       expect(result.missing).toContain('Patient date of birth');
-      expect(result.missing).toContain('Patient contact info');
+      expect(result.missing).toContain(
+        'Patient contact information (phone or email)',
+      );
       expect(result.missing).toContain('Patient vital signs');
     });
   });

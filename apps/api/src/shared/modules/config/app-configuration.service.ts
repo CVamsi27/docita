@@ -8,15 +8,17 @@ export class AppConfigService {
   }
 
   getAppUrl(): string {
-    return this.getConfig().APP_URL || 'http://localhost:3000';
+    return this.getConfig().APP_URL || 'https://app.docita.work';
   }
 
   getFrontendAppUrl(): string {
-    return this.getConfig().NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    return this.getConfig().NEXT_PUBLIC_APP_URL || 'https://app.docita.work';
   }
 
   getApiUrl(): string {
-    return this.getConfig().NEXT_PUBLIC_API_URL || '';
+    const apiUrl = this.getConfig().NEXT_PUBLIC_API_URL;
+    if (apiUrl) return apiUrl;
+    return 'https://api.docita.work';
   }
 
   getPaymentCallbackUrl(): string {
@@ -58,16 +60,19 @@ export class AppConfigService {
     }
 
     return [
-      'https://landing.docita.work',
+      'https://docita.work',
       'https://app.docita.work',
       'https://admin.docita.work',
+      'https://api.docita.work',
       /^https:\/\/.*\.vercel\.app$/,
       'http://localhost:3003',
       'http://localhost:3000',
       'http://localhost:3002',
+      'http://localhost:3001',
       'http://127.0.0.1:3003',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3002',
+      'http://127.0.0.1:3001',
     ];
   }
 
@@ -114,6 +119,10 @@ export class AppConfigService {
 
   getResendApiKey(): string {
     return this.getConfig().RESEND_API_KEY || '';
+  }
+
+  getResendApiUrl(): string {
+    return this.getConfig().RESEND_API_URL;
   }
 
   getEmailFrom(): string {

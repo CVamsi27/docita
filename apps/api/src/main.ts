@@ -62,7 +62,9 @@ async function bootstrap() {
     if (isSentryIntegration(profilingIntegration)) {
       integrations.push(profilingIntegration);
     }
-  } catch (error) {}
+  } catch (error) {
+    // Sentry profiling integration failure ignored
+  }
 
   Sentry.init({
     dsn: config.SENTRY_DSN,
@@ -234,6 +236,16 @@ async function bootstrap() {
   });
   process.on('SIGINT', () => {
     void gracefulShutdown('SIGINT');
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    Sentry.captureException(
+      reason instanceof Error ? reason : new Error(String(reason)),
+    );
+  });
+
+  process.on('uncaughtException', (error) => {
+    Sentry.captureException(error);
   });
 }
 bootstrap().catch((error: Error) => {

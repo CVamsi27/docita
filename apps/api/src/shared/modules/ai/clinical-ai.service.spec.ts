@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ClinicalAiService } from './clinical-ai.service';
 import { OpenaiService } from './openai.service';
 
@@ -13,7 +14,9 @@ describe('ClinicalAiService', () => {
         {
           provide: OpenaiService,
           useValue: {
-            callChatCompletion: jest.fn().mockResolvedValue({}),
+            callChatCompletion: jest
+              .fn<() => Promise<Record<string, unknown>>>()
+              .mockResolvedValue({}),
           },
         },
       ],
@@ -27,7 +30,7 @@ describe('ClinicalAiService', () => {
     expect(service).toBeDefined();
   });
 
-  describe.skip('analyzePrescription', () => {
+  describe('analyzePrescription', () => {
     const mockRequest = {
       medications: [
         { name: 'Aspirin', dosage: '500mg' },
@@ -84,7 +87,7 @@ describe('ClinicalAiService', () => {
     });
   });
 
-  describe.skip('suggestDiagnoses', () => {
+  describe('suggestDiagnoses', () => {
     const mockSymptoms = ['fever', 'cough', 'fatigue'];
 
     it('should suggest diagnoses based on symptoms', async () => {
@@ -115,9 +118,10 @@ describe('ClinicalAiService', () => {
 
       if (result.length > 1) {
         for (let i = 0; i < result.length - 1; i++) {
-          expect(result[i].confidence).toBeGreaterThanOrEqual(
-            result[i + 1].confidence,
-          );
+          const currentConfidence = result[i]?.confidence ?? 0;
+          const nextConfidence = result[i + 1]?.confidence ?? 0;
+
+          expect(currentConfidence).toBeGreaterThanOrEqual(nextConfidence);
         }
       }
     });
@@ -129,7 +133,7 @@ describe('ClinicalAiService', () => {
     });
   });
 
-  describe.skip('recommendMedications', () => {
+  describe('recommendMedications', () => {
     const mockDiagnosis = 'Hypertension';
 
     it('should recommend medications for diagnosis', async () => {
@@ -148,7 +152,7 @@ describe('ClinicalAiService', () => {
       const result = await service.recommendMedications(mockDiagnosis);
 
       if (result.length > 0) {
-        const med = result[0];
+        const med = result[0]!;
         expect(med.confidence).toBeGreaterThan(0);
         expect(med.medicationName).toBeTruthy();
         expect(med.strength).toBeTruthy();
@@ -180,7 +184,7 @@ describe('ClinicalAiService', () => {
     });
   });
 
-  describe.skip('caching behavior', () => {
+  describe('caching behavior', () => {
     it('should cache prescription analysis', async () => {
       const mockRequest = {
         medications: [{ name: 'Aspirin', dosage: '500mg' }],
@@ -202,7 +206,7 @@ describe('ClinicalAiService', () => {
     });
   });
 
-  describe.skip('error handling', () => {
+  describe('error handling', () => {
     it('should handle invalid request gracefully', async () => {
       try {
         await service.analyzePrescription(null as never);

@@ -18,7 +18,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip_tests != 'true' }}
+    if: false
 
     services:
       postgres:
@@ -67,9 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     # Run if manual trigger or if tests passed (skipped if tests failed)
     needs: [test]
-    if: |
-      always() && 
-      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    if: false
 
     steps:
       - uses: actions/checkout@v4

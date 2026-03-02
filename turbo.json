@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://v2-8-12.turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "JWT_SECRET"],
   "globalDependencies": ["API_URL", "APP_URL", "CI"],

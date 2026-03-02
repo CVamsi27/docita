@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardService } from './dashboard.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DashboardService', () => {
   let service: DashboardService;

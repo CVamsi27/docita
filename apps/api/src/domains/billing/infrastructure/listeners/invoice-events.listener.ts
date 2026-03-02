@@ -73,7 +73,7 @@ export class InvoiceEventsListener {
           patientName: invoice.patient.firstName,
           clinicName: clinic?.name || 'Clinic',
           amount: `₹${invoice.total.toFixed(2)}`,
-          link: paymentLink || `https://docita.work/i/${invoiceId}`,
+          link: paymentLink || `https://docita.com/invoice/${invoiceId}`,
         },
         text: message,
         metadata: { invoiceId },

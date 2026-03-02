@@ -103,7 +103,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
 
             {fallRisk && (
               <Badge className="px-2.5 py-0.5 badge-warning font-medium border">
-                ️ FALL RISK
+                FALL RISK
               </Badge>
             )}
 

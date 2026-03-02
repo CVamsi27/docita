@@ -3,6 +3,14 @@ import { MetricsService } from './metrics.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Logger } from '@nestjs/common';
 import { MetricType } from '@workspace/db';
+import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
 describe('MetricsService', () => {
   let service: MetricsService;

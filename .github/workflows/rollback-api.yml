@@ -20,7 +20,7 @@ jobs:
   rollback:
     name: Rollback Deployment
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.confirm == 'ROLLBACK' }}
+    if: false
     environment: production
 
     steps:
@@ -114,7 +114,7 @@ jobs:
   rejected:
     name: Rollback Rejected
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.confirm != 'ROLLBACK' }}
+    if: false
 
     steps:
       - name: Rejected

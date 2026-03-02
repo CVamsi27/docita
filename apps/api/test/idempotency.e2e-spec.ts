@@ -23,7 +23,7 @@ describe('Idempotency (e2e)', () => {
   const mockPaymentProvider = {
     createPaymentLink: jest.fn().mockResolvedValue({
       id: 'plink_test123',
-      shortUrl: 'https://rzp.io/i/test',
+      shortUrl: 'https://rzp.io/i/plink_test123',
       raw: {},
     }),
     verifySignature: jest.fn().mockReturnValue(true),

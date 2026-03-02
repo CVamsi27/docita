@@ -2,6 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
+import {
   ClinicTier,
   SubscriptionStatus,
   IntelligenceAddon,
@@ -26,7 +34,9 @@ describe('ClinicAuthCacheService', () => {
           provide: PrismaService,
           useValue: {
             clinic: {
-              findUnique: jest.fn().mockResolvedValue(mockClinicData),
+              findUnique: jest
+                .fn()
+                .mockImplementation(async () => mockClinicData),
             },
           },
         },

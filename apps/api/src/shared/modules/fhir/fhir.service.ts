@@ -272,7 +272,7 @@ export class FhirService {
       type: 'document',
       meta: {
         profile: [
-          'http://hl7.org/fhir/us/ccda/StructureDefinition/CCDA-on-FHIR-Continuity-of-Care-Document',
+          'http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient',
         ],
       },
       identifier: {
@@ -322,15 +322,13 @@ export class FhirService {
           resource: [
             {
               type: 'Patient',
-              profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient',
+              profile: 'http://hl7.org/fhir/StructureDefinition/Patient',
               interaction: [{ code: 'read' }],
               searchParam: [{ name: '_id', type: 'token' }],
             },
             {
               type: 'Observation',
-              profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs',
+              profile: 'http://hl7.org/fhir/StructureDefinition/Observation',
               interaction: [{ code: 'search-type' }],
               searchParam: [
                 { name: 'patient', type: 'reference' },
@@ -340,28 +338,26 @@ export class FhirService {
             {
               type: 'MedicationRequest',
               profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest',
+                'http://hl7.org/fhir/StructureDefinition/MedicationRequest',
               interaction: [{ code: 'search-type' }],
               searchParam: [{ name: 'patient', type: 'reference' }],
             },
             {
               type: 'Condition',
-              profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition',
+              profile: 'http://hl7.org/fhir/StructureDefinition/Condition',
               interaction: [{ code: 'search-type' }],
               searchParam: [{ name: 'patient', type: 'reference' }],
             },
             {
               type: 'AllergyIntolerance',
               profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance',
+                'http://hl7.org/fhir/StructureDefinition/AllergyIntolerance',
               interaction: [{ code: 'search-type' }],
               searchParam: [{ name: 'patient', type: 'reference' }],
             },
             {
               type: 'Immunization',
-              profile:
-                'http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization',
+              profile: 'http://hl7.org/fhir/StructureDefinition/Immunization',
               interaction: [{ code: 'search-type' }],
               searchParam: [{ name: 'patient', type: 'reference' }],
             },

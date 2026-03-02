@@ -7,9 +7,18 @@ import { FhirMedicationFactory } from './factories/fhir-medication.factory';
 import { FhirConditionFactory } from './factories/fhir-condition.factory';
 import { FhirAllergyFactory } from './factories/fhir-allergy.factory';
 import { FhirImmunizationFactory } from './factories/fhir-immunization.factory';
+import { FhirAppointmentFactory } from './factories/fhir-appointment.factory';
 import { NotFoundException } from '@nestjs/common';
+import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
-describe.skip('FhirService', () => {
+describe('FhirService', () => {
   let service: FhirService;
   let prisma: PrismaService;
   let patientFactory: FhirPatientFactory;
@@ -56,6 +65,7 @@ describe.skip('FhirService', () => {
         { provide: FhirConditionFactory, useValue: mockFactory },
         { provide: FhirAllergyFactory, useValue: mockFactory },
         { provide: FhirImmunizationFactory, useValue: mockFactory },
+        { provide: FhirAppointmentFactory, useValue: mockFactory },
       ],
     }).compile();
 
@@ -77,7 +87,9 @@ describe.skip('FhirService', () => {
       const mockPatient = { id: 'p1', firstName: 'John' };
       const mockFhirPatient = { resourceType: 'Patient', id: 'p1' };
 
-      mockPrismaService.patient.findFirst.mockResolvedValue(mockPatient);
+      mockPrismaService.patient.findFirst.mockImplementation(
+        async () => mockPatient,
+      );
       mockFactory.create.mockReturnValue(mockFhirPatient);
 
       const result = await service.getPatientResource('p1', 'c1');
@@ -85,12 +97,14 @@ describe.skip('FhirService', () => {
       expect(prisma.patient.findFirst).toHaveBeenCalledWith({
         where: { id: 'p1', clinicId: 'c1' },
       });
-      expect(patientFactory.create).toHaveBeenCalledWith(mockPatient);
+      expect(patientFactory.create).toHaveBeenCalledWith(
+        expect.objectContaining(mockPatient),
+      );
       expect(result).toEqual(mockFhirPatient);
     });
 
     it('should throw NotFoundException if patient not found', async () => {
-      mockPrismaService.patient.findFirst.mockResolvedValue(null);
+      mockPrismaService.patient.findFirst.mockImplementation(async () => null);
 
       await expect(service.getPatientResource('p1', 'c1')).rejects.toThrow(
         NotFoundException,
@@ -105,8 +119,8 @@ describe.skip('FhirService', () => {
         { resourceType: 'Immunization', id: 'i1' },
       ];
 
-      mockPrismaService.immunization.findMany.mockResolvedValue(
-        mockImmunizations,
+      mockPrismaService.immunization.findMany.mockImplementation(
+        async () => mockImmunizations,
       );
       mockFactory.createMany.mockReturnValue(mockFhirImmunizations);
 

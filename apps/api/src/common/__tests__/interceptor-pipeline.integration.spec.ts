@@ -1,29 +1,37 @@
 import { Controller, Get, INestApplication, Module } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
 import request from 'supertest';
 import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { NextFunction, Response } from 'express';
 import cookieParser from 'cookie-parser';
 
-import { CsrfInterceptor } from '@/common/interceptors/csrf.interceptor';
-import { RequestIdInterceptor } from '@/common/interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from '@/common/interceptors/request-context.interceptor';
-import { TimeoutInterceptor } from '@/common/interceptors/timeout.interceptor';
-import { TenantContextInterceptor } from '@/common/interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from '@/common/interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from '@/common/interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from '@/common/interceptors/emergency-access.interceptor';
-import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { CsrfInterceptor } from '../interceptors/csrf.interceptor';
+import { RequestIdInterceptor } from '../interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from '../interceptors/request-context.interceptor';
+import { TimeoutInterceptor } from '../interceptors/timeout.interceptor';
+import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from '../interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from '../interceptors/emergency-access.interceptor';
+import { RequestWithUser } from '../types/common.types';
+import { AuditService } from '../../shared/modules/audit/audit/audit.service';
+import { AppConfigService } from '../../shared/modules/config/app-configuration.service';
 
-@Controller('pipeline')
 class PipelineController {
-  @Get('health')
   getHealth() {
     return { ok: true };
   }
 }
+
+Controller('pipeline')(PipelineController);
+Get('health')(
+  PipelineController.prototype,
+  'getHealth',
+  Object.getOwnPropertyDescriptor(PipelineController.prototype, 'getHealth')!,
+);
 
 @Module({
   controllers: [PipelineController],
@@ -63,26 +71,28 @@ class PipelineController {
     {
       provide: ConfigService,
       useValue: {
-        get: jest.fn().mockImplementation((key: string) => {
-          if (key === 'NODE_ENV') {
-            return 'test';
-          }
+        get: jest
+          .fn<(key: string) => string | undefined>()
+          .mockImplementation((key) => {
+            if (key === 'NODE_ENV') {
+              return 'test';
+            }
 
-          return undefined;
-        }),
+            return undefined;
+          }),
       },
     },
     {
       provide: CACHE_MANAGER,
       useValue: {
-        get: jest.fn().mockResolvedValue(undefined),
-        set: jest.fn().mockResolvedValue(undefined),
+        get: jest.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
+        set: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       },
     },
     {
       provide: AuditService,
       useValue: {
-        logAction: jest.fn().mockResolvedValue(undefined),
+        logAction: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       },
     },
     {
@@ -98,13 +108,14 @@ class PipelineController {
         getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
         getEnvironment: jest.fn().mockReturnValue('test'),
         isProduction: jest.fn().mockReturnValue(false),
+        getRequestTimeoutMs: jest.fn().mockReturnValue(5000),
       },
     },
   ],
 })
 class InterceptorPipelineTestModule {}
 
-describe.skip('Interceptor Pipeline Integration', () => {
+describe('Interceptor Pipeline Integration', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -115,13 +126,12 @@ describe.skip('Interceptor Pipeline Integration', () => {
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
 
-    app.use((req, res, next) => {
-      req.user = {
+    app.use((req: RequestWithUser, _res: Response, next: NextFunction) => {
+      (req as unknown as { user: RequestWithUser['user'] }).user = {
         id: 'test-user-1',
         clinicId: 'test-clinic-1',
         role: 'ADMIN',
-      };
-      req.ip = '127.0.0.1';
+      } as RequestWithUser['user'];
       next();
     });
 
@@ -140,9 +150,6 @@ describe.skip('Interceptor Pipeline Integration', () => {
     const response = await request(app.getHttpServer())
       .get('/pipeline/health')
       .set('x-request-id', requestId);
-
-    if (response.status !== 200) {
-    }
 
     expect(response.status).toBe(200);
     const cookies = response.get('Set-Cookie') ?? [];

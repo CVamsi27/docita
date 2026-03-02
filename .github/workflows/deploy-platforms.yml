@@ -9,6 +9,7 @@ jobs:
   deploy-vercel:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Trigger App deploy hook
         env:
@@ -37,6 +38,7 @@ jobs:
   deploy-railway:
     name: Deploy API to Railway
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
 

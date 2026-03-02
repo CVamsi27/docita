@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { NotFoundException } from '@nestjs/common';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderHistoryService', () => {
   let service: ReminderHistoryService;

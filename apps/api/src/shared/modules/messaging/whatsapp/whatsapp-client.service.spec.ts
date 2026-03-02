@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ServiceUnavailableException, Logger } from '@nestjs/common';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('WhatsappClientService', () => {
   let service: WhatsappClientService;

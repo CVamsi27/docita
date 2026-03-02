@@ -12,7 +12,7 @@ const envSocketUrl =
     : process.env["NEXT_PUBLIC_SOCKET_URL"];
 
 export const getApiUrl = (): string =>
-  envApiUrl || "http://localhost:3001/api/v1";
+  envApiUrl || "/api/v1";
 
 export const getAppUrl = (): string => envAppUrl || "http://localhost:3000";
 

@@ -22,6 +22,8 @@ import {
   PlanPricing,
   TierConfigData,
 } from "./constants/tier-config";
+import { API_URL } from "./api-config";
+import { isNetworkError } from "./network-error";
 
 export type {
   PlanPricing,
@@ -64,9 +66,7 @@ export function TierConfigProvider({
       setIsLoading(true);
       setError(null);
 
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
-      const response = await fetch(`${apiUrl}/subscription/config`);
+      const response = await fetch(`${API_URL}/subscription/config`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch tier configuration");
@@ -75,9 +75,13 @@ export function TierConfigProvider({
       const data = await response.json();
       setConfig(data);
     } catch (err) {
+      if (isNetworkError(err)) {
+        setConfig(null);
+        setError(null);
+        return;
+      }
 
       setError(err instanceof Error ? err.message : "Unknown error");
-
     } finally {
       setIsLoading(false);
     }

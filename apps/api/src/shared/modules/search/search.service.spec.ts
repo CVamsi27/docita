@@ -2,14 +2,42 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SearchService } from './search.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
+import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
-describe.skip('SearchService', () => {
+describe('SearchService', () => {
   let service: SearchService;
-  let prisma: jest.Mocked<PrismaService>;
-  let cacheService: jest.Mocked<RedisCachingService>;
+  let prisma: {
+    $queryRaw: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    patient: {
+      findMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown[]>>;
+    };
+    appointment: {
+      findMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown[]>>;
+    };
+    prescription: {
+      findMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown[]>>;
+    };
+  };
+  let cacheService: {
+    get: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    set: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    invalidateTag: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    clear: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+  };
 
   const mockClinicId = 'clinic-123';
-  const mockPrismaQueryRaw = jest.fn();
+  const mockPrismaQueryRaw = jest
+    .fn<(...args: unknown[]) => Promise<unknown>>()
+    .mockImplementation(async () => []);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,31 +48,31 @@ describe.skip('SearchService', () => {
           useValue: {
             $queryRaw: mockPrismaQueryRaw,
             patient: {
-              findMany: jest.fn(),
+              findMany: jest.fn().mockImplementation(async () => []),
             },
             appointment: {
-              findMany: jest.fn(),
+              findMany: jest.fn().mockImplementation(async () => []),
             },
             prescription: {
-              findMany: jest.fn(),
+              findMany: jest.fn().mockImplementation(async () => []),
             },
           },
         },
         {
           provide: RedisCachingService,
           useValue: {
-            get: jest.fn(),
-            set: jest.fn(),
-            invalidateTag: jest.fn(),
-            clear: jest.fn(),
+            get: jest.fn().mockImplementation(async () => null),
+            set: jest.fn().mockImplementation(async () => undefined),
+            invalidateTag: jest.fn().mockImplementation(async () => undefined),
+            clear: jest.fn().mockImplementation(async () => undefined),
           },
         },
       ],
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    prisma = module.get(PrismaService);
-    cacheService = module.get(RedisCachingService);
+    prisma = module.get<typeof prisma>(PrismaService);
+    cacheService = module.get<typeof cacheService>(RedisCachingService);
   });
 
   afterEach(() => {

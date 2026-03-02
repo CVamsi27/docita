@@ -171,12 +171,10 @@ async function checkIntegrity() {
 
 checkIntegrity()
     .then(checks => {
-        console.log(JSON.stringify(checks, null, 2));
         const failed = checks.filter(c => !c.ok);
         process.exit(failed.length > 0 ? 1 : 0);
     })
     .catch(err => {
-        console.error(err);
         process.exit(1);
     });
 " 2>&1 | tee -a "$LOG_FILE"

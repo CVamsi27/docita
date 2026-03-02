@@ -34,7 +34,7 @@ export class FhirPatientFactory {
         type: {
           coding: [
             {
-              system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+              system: 'http://terminology.hl7.org/CodeSystem/v2-0003',
               code: 'MR',
               display: 'Medical Record Number',
             },

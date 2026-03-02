@@ -9,6 +9,7 @@ import { StaffManagementService } from './staff-management.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 jest.mock('bcrypt');
 
@@ -116,13 +117,27 @@ describe('ClinicsService', () => {
         {
           provide: ClinicFactory,
           useValue: {
-            create: jest.fn().mockImplementation((data) => ({
-              ...data,
-              phone: data.phone || '',
-              address: data.address || '',
-              tier: data.tier || 'CORE',
-              active: true,
-            })),
+            create: jest.fn().mockImplementation((data: unknown) => {
+              const clinicData =
+                typeof data === 'object' && data !== null
+                  ? (data as Record<string, unknown>)
+                  : {};
+
+              return {
+                ...clinicData,
+                phone:
+                  typeof clinicData.phone === 'string' ? clinicData.phone : '',
+                address:
+                  typeof clinicData.address === 'string'
+                    ? clinicData.address
+                    : '',
+                tier:
+                  typeof clinicData.tier === 'string'
+                    ? clinicData.tier
+                    : 'CORE',
+                active: true,
+              };
+            }),
           },
         },
         {
@@ -298,7 +313,7 @@ describe('ClinicsService', () => {
 
   describe('createDoctor', () => {
     it('should create a doctor and associate with clinic', async () => {
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashedPassword');
       jest
         .spyOn(prismaService.user, 'create')
         .mockResolvedValue(mockUser as never);
@@ -344,7 +359,7 @@ describe('ClinicsService', () => {
   describe('createReceptionist', () => {
     it('should create a receptionist', async () => {
       const mockReceptionist = { ...mockUser, role: 'RECEPTIONIST' };
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashedPassword');
       jest
         .spyOn(prismaService.user, 'create')
         .mockResolvedValue(mockReceptionist as never);

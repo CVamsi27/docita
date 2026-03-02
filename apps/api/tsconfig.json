@@ -16,6 +16,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "types": ["node", "jest"],
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,5 +26,6 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true
   },
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "test/**"]
+  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }

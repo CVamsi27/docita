@@ -2,12 +2,10 @@ import { nextJsConfig } from "@workspace/eslint-config/next-js";
 
 export default [
   {
-    ignores: [
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
+    ignores: [".next/**", "out/**", "build/**", "next-env.d.ts"],
+  },
+  ...nextJsConfig,
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
       "no-empty": "off",
@@ -17,5 +15,4 @@ export default [
       "react-hooks/rules-of-hooks": "off",
     },
   },
-  ...nextJsConfig,
 ];

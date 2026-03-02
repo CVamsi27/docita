@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
@@ -9,28 +8,41 @@ import { SystemEventsService } from './system-events.service';
 import { ApprovalService } from './approval.service';
 import { MessagingService } from './messaging.service';
 import { TemplateMessageService } from './template-message.service';
+import { StaffNotificationService } from './staff-notification.service';
+import {
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
 
-describe.skip('WhatsappService', () => {
+describe('WhatsappService', () => {
   let service: WhatsappService;
   let module: TestingModule;
 
+  const asyncMock = <T>(value: T) =>
+    jest.fn().mockImplementation(async () => value);
+
   const mockPrismaService = {
     whatsappLog: {
-      create: jest.fn().mockResolvedValue({}),
+      create: asyncMock({}),
     },
     clinic: {
-      findUnique: jest
-        .fn()
-        .mockResolvedValue({ id: 'clinic-123', name: 'Test Clinic' }),
+      findUnique: jest.fn().mockImplementation(async () => ({
+        id: 'clinic-123',
+        name: 'Test Clinic',
+      })),
     },
   };
 
   const mockTemplatesService = {
-    resolveTemplate: jest.fn().mockResolvedValue({
+    resolveTemplate: jest.fn().mockImplementation(async () => ({
       name: 'hello_world',
       language: 'en_US',
       components: [],
-    }),
+    })),
     getMessageForMode: jest
       .fn()
       .mockReturnValue('Hello World Template Message'),
@@ -38,32 +50,48 @@ describe.skip('WhatsappService', () => {
 
   beforeEach(async () => {
     const mockWhatsappClient = {
-      sendMessage: jest.fn().mockResolvedValue({ messageId: 'msg-123' }),
+      sendMessage: jest
+        .fn()
+        .mockImplementation(async () => ({ messageId: 'msg-123' })),
     };
 
     const mockResendService = {
-      createResend: jest.fn().mockResolvedValue({}),
-      removeResend: jest.fn().mockResolvedValue({}),
+      createResend: asyncMock({}),
+      removeResend: asyncMock({}),
     };
 
     const mockSystemEventsService = {
-      recordSystemEvent: jest.fn().mockResolvedValue({}),
+      recordSystemEvent: asyncMock({}),
     };
 
     const mockApprovalService = {
-      requestApproval: jest.fn().mockResolvedValue({}),
-      getApprovalStatus: jest.fn().mockResolvedValue({}),
+      requestApproval: asyncMock({}),
+      getApprovalStatus: asyncMock({}),
     };
 
     const mockMessagingService = {
-      sendMessage: jest.fn().mockResolvedValue({ success: true }),
+      sendMessage: jest
+        .fn()
+        .mockImplementation(async () => ({ success: true })),
     };
 
     const mockTemplateMessageService = {
-      sendTemplate: jest.fn().mockResolvedValue({ success: true }),
-      handleSendTemplate: jest
+      sendTemplate: jest
         .fn()
-        .mockImplementation(async (clinicId, userId, dto) => {
+        .mockImplementation(async () => ({ success: true })),
+      handleSendTemplate: jest
+        .fn<
+          (
+            clinicId: string,
+            userId: string,
+            dto: { phoneNumber: string; templateId: string },
+          ) => Promise<{
+            success: boolean;
+            messageId: string;
+            templateId: string;
+          }>
+        >()
+        .mockImplementation(async (_clinicId, _userId, dto) => {
           await mockWhatsappClient.sendMessage({
             to: dto.phoneNumber,
             message: 'Hello World Template Message',
@@ -74,6 +102,13 @@ describe.skip('WhatsappService', () => {
             templateId: dto.templateId,
           };
         }),
+    };
+
+    const mockStaffNotificationService = {
+      getUnreadCount: jest.fn().mockImplementation(async () => 0),
+      getUnreadNotifications: jest.fn().mockImplementation(async () => []),
+      deleteNotification: asyncMock({}),
+      deleteAllNotifications: asyncMock({}),
     };
 
     module = await Test.createTestingModule({
@@ -90,12 +125,16 @@ describe.skip('WhatsappService', () => {
           provide: TemplateMessageService,
           useValue: mockTemplateMessageService,
         },
+        {
+          provide: StaffNotificationService,
+          useValue: mockStaffNotificationService,
+        },
       ],
     }).compile();
 
     service = module.get<WhatsappService>(WhatsappService);
 
-    global.fetch = jest.fn();
+    global.fetch = jest.fn() as unknown as typeof fetch;
 
     process.env.META_PHONE_NUMBER_ID = '1234567890';
     process.env.META_ACCESS_TOKEN = 'test_token';
@@ -111,11 +150,11 @@ describe.skip('WhatsappService', () => {
 
   describe('handleSendTemplate', () => {
     it('should send a template message', async () => {
-      mockTemplatesService.resolveTemplate.mockResolvedValue({
+      mockTemplatesService.resolveTemplate.mockImplementation(async () => ({
         name: 'hello_world',
         language: 'en_US',
         components: [],
-      });
+      }));
       mockTemplatesService.getMessageForMode.mockReturnValue(
         'Hello World Template Message',
       );

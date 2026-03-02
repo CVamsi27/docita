@@ -4,12 +4,42 @@ import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderSchedulerService', () => {
   let service: ReminderSchedulerService;
-  let prisma: jest.Mocked<PrismaService>;
-  let settingsService: jest.Mocked<ReminderSettingsService>;
-  let notificationService: jest.Mocked<ReminderNotificationService>;
+  let prisma: {
+    appointment: {
+      findMany: jest.MockedFunction<
+        (args?: Record<string, unknown>) => Promise<unknown[]>
+      >;
+    };
+    appointmentReminder: {
+      findFirst: jest.MockedFunction<
+        (args?: Record<string, unknown>) => Promise<unknown>
+      >;
+    };
+    reminderSettings: {
+      findMany: jest.MockedFunction<
+        (args?: Record<string, unknown>) => Promise<unknown[]>
+      >;
+    };
+    runUnrestricted: jest.MockedFunction<(callback: () => unknown) => unknown>;
+  };
+  let settingsService: {
+    getSettings: jest.MockedFunction<(clinicId: string) => Promise<unknown>>;
+  };
+  let notificationService: {
+    sendEmailReminder: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    sendSmsReminder: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    sendWhatsappReminder: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
 
   const mockSettings = {
     enabled: true,
@@ -57,25 +87,25 @@ describe('ReminderSchedulerService', () => {
 
     const prismaMock = {
       appointment: {
-        findMany: jest.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockImplementation(async () => []),
       },
       appointmentReminder: {
-        findFirst: jest.fn().mockResolvedValue(null),
+        findFirst: jest.fn().mockImplementation(async () => null),
       },
       reminderSettings: {
-        findMany: jest.fn().mockResolvedValue([mockSettings]),
+        findMany: jest.fn().mockImplementation(async () => [mockSettings]),
       },
-      runUnrestricted: jest.fn((callback) => callback()),
+      runUnrestricted: jest.fn((callback: () => unknown) => callback()),
     };
 
     const settingsServiceMock = {
-      getSettings: jest.fn(),
+      getSettings: jest.fn().mockImplementation(async () => mockSettings),
     };
 
     const notificationServiceMock = {
-      sendEmailReminder: jest.fn(),
-      sendSmsReminder: jest.fn(),
-      sendWhatsappReminder: jest.fn(),
+      sendEmailReminder: jest.fn().mockImplementation(async () => undefined),
+      sendSmsReminder: jest.fn().mockImplementation(async () => undefined),
+      sendWhatsappReminder: jest.fn().mockImplementation(async () => undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -97,9 +127,13 @@ describe('ReminderSchedulerService', () => {
     }).compile();
 
     service = module.get<ReminderSchedulerService>(ReminderSchedulerService);
-    prisma = module.get(PrismaService);
-    settingsService = module.get(ReminderSettingsService);
-    notificationService = module.get(ReminderNotificationService);
+    prisma = module.get<typeof prisma>(PrismaService);
+    settingsService = module.get<typeof settingsService>(
+      ReminderSettingsService,
+    );
+    notificationService = module.get<typeof notificationService>(
+      ReminderNotificationService,
+    );
   });
 
   describe('checkAndSendReminders', () => {
@@ -256,10 +290,22 @@ describe('ReminderSchedulerService', () => {
 
       await service.checkAndSendReminders();
 
-      const call = prisma.appointment.findMany.mock.calls[0][0];
+      const call = prisma.appointment.findMany.mock.calls[0]?.[0] as
+        | {
+            where?: {
+              startTime?: Record<string, unknown>;
+              status?: unknown;
+            };
+          }
+        | undefined;
       expect(call?.where?.startTime).toHaveProperty('gte');
       expect(call?.where?.startTime).toHaveProperty('lte');
-      expect(call?.where?.status?.in).toContain(AppointmentStatus.SCHEDULED);
+      const statusFilter = (
+        call?.where?.status as unknown as {
+          in?: AppointmentStatus[];
+        }
+      )?.in;
+      expect(statusFilter).toContain(AppointmentStatus.SCHEDULED);
     });
 
     it('should include correct appointment details in query', async () => {
@@ -268,7 +314,15 @@ describe('ReminderSchedulerService', () => {
 
       await service.checkAndSendReminders();
 
-      const call = prisma.appointment.findMany.mock.calls[0][0];
+      const call = prisma.appointment.findMany.mock.calls[0]?.[0] as
+        | {
+            include?: {
+              patient?: unknown;
+              doctor?: unknown;
+              clinic?: unknown;
+            };
+          }
+        | undefined;
       expect(call?.include?.patient).toBeDefined();
       expect(call?.include?.doctor).toBeDefined();
       expect(call?.include?.clinic).toBeDefined();
@@ -316,7 +370,13 @@ describe('ReminderSchedulerService', () => {
 
       await service.checkAndSend30MinReminders();
 
-      const call = prisma.appointment.findMany.mock.calls[0][0];
+      const call = prisma.appointment.findMany.mock.calls[0]?.[0] as
+        | {
+            where?: {
+              startTime?: { gte?: Date; lt?: Date };
+            };
+          }
+        | undefined;
       expect(call?.where?.startTime?.gte).toBeDefined();
       expect(call?.where?.startTime?.lt).toBeDefined();
     });

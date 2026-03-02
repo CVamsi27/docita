@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PerformanceService } from './performance.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PerformanceService', () => {
   let service: PerformanceService;

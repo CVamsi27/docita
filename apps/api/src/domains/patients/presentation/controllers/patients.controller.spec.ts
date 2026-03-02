@@ -1,20 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import { PatientsController } from './patients.controller';
-import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
-import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { PatientService as PatientsService } from '../../application/services/patient.service';
+import { RolesGuard } from '../../../../shared/modules/auth/auth/roles.guard';
 import { Role } from '@workspace/db';
-import { UnauthorizedException, ForbiddenException } from '@nestjs/common';
 
-describe.skip('PatientsController (Authorization)', () => {
+describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
-  let patientsService: PatientsService;
 
   const mockPatientsService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
+    listPatients:
+      jest.fn<(query: Record<string, unknown>) => Promise<unknown>>(),
+    getPatient: jest.fn<() => Promise<unknown>>(),
+    createPatient: jest.fn<() => Promise<unknown>>(),
+    updatePatient: jest.fn<() => Promise<unknown>>(),
   };
 
   beforeEach(async () => {
@@ -28,11 +34,10 @@ describe.skip('PatientsController (Authorization)', () => {
       ],
     })
       .overrideGuard(RolesGuard)
-      .useValue({ canActivate: jest.fn((context) => true) })
+      .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
     controller = module.get<PatientsController>(PatientsController);
-    patientsService = module.get<PatientsService>(PatientsService);
   });
 
   afterEach(() => {
@@ -56,7 +61,7 @@ describe.skip('PatientsController (Authorization)', () => {
         },
       };
 
-      mockPatientsService.findAll.mockResolvedValue({
+      mockPatientsService.listPatients.mockResolvedValue({
         items: [],
         count: 0,
         hasMore: false,
@@ -64,17 +69,17 @@ describe.skip('PatientsController (Authorization)', () => {
 
       const result = await controller.findAll(
         mockRequest as never,
-        '10',
-        undefined,
-        undefined,
+        {
+          limit: 10,
+        } as never,
       );
 
       expect(result).toEqual({ items: [], count: 0, hasMore: false });
-      expect(mockPatientsService.findAll).toHaveBeenCalledWith('clinic-1', {
-        limit: 10,
-        cursor: undefined,
-        search: undefined,
-      });
+      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+
+      expect(firstCallQuery['clinicId']).toBe('clinic-1');
+      expect(firstCallQuery['limit']).toBe(10);
+      expect(firstCallQuery['page']).toBe(1);
     });
 
     it('should enforce clinic isolation - can only access own clinic patients', async () => {
@@ -86,23 +91,17 @@ describe.skip('PatientsController (Authorization)', () => {
         },
       };
 
-      mockPatientsService.findAll.mockResolvedValue({
+      mockPatientsService.listPatients.mockResolvedValue({
         items: [],
         count: 0,
         hasMore: false,
       });
 
-      await controller.findAll(
-        mockRequest as never,
-        '10',
-        undefined,
-        undefined,
-      );
+      await controller.findAll(mockRequest as never, { limit: 10 } as never);
 
-      expect(mockPatientsService.findAll).toHaveBeenCalledWith(
-        'clinic-1',
-        expect.any(Object),
-      );
+      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+
+      expect(firstCallQuery['clinicId']).toBe('clinic-1');
     });
   });
 
@@ -125,13 +124,13 @@ describe.skip('PatientsController (Authorization)', () => {
         hasMore: false,
       };
 
-      mockPatientsService.findAll.mockResolvedValue(mockPatients);
+      mockPatientsService.listPatients.mockResolvedValue(mockPatients);
 
       const result = await controller.findAll(
         mockRequest as never,
-        '10',
-        undefined,
-        undefined,
+        {
+          limit: 10,
+        } as never,
       );
 
       expect(result).toEqual(mockPatients);
@@ -142,20 +141,21 @@ describe.skip('PatientsController (Authorization)', () => {
         user: { clinicId: 'clinic-1' },
       };
 
-      mockPatientsService.findAll.mockResolvedValue({
+      mockPatientsService.listPatients.mockResolvedValue({
         items: [],
         count: 0,
         hasMore: false,
       });
 
-      await controller.findAll(mockRequest as never, '10', undefined, 'john');
-
-      expect(mockPatientsService.findAll).toHaveBeenCalledWith(
-        'clinic-1',
-        expect.objectContaining({
-          search: 'john',
-        }),
+      await controller.findAll(
+        mockRequest as never,
+        { limit: 10, search: 'john' } as never,
       );
+
+      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+
+      expect(firstCallQuery['clinicId']).toBe('clinic-1');
+      expect(firstCallQuery['search']).toBe('john');
     });
   });
 
@@ -165,25 +165,18 @@ describe.skip('PatientsController (Authorization)', () => {
         user: { clinicId: 'clinic-1' },
       };
 
-      mockPatientsService.findAll.mockResolvedValue({
+      mockPatientsService.listPatients.mockResolvedValue({
         items: [],
         count: 0,
         hasMore: false,
       });
 
-      await controller.findAll(
-        mockRequest as never,
-        '100',
-        undefined,
-        undefined,
-      );
+      await controller.findAll(mockRequest as never, { limit: 100 } as never);
 
-      expect(mockPatientsService.findAll).toHaveBeenCalledWith(
-        'clinic-1',
-        expect.objectContaining({
-          limit: 100,
-        }),
-      );
+      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+
+      expect(firstCallQuery['clinicId']).toBe('clinic-1');
+      expect(firstCallQuery['limit']).toBe(100);
     });
   });
 

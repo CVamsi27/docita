@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { MedicalHistoryFactory } from './medical-history.factory';
 import { ZodError } from 'zod';
-import { MedicalConditionType, ConditionStatus } from '@workspace/db';
 
-describe.skip('MedicalHistoryFactory', () => {
+describe('MedicalHistoryFactory', () => {
   let factory: MedicalHistoryFactory;
 
   beforeEach(async () => {
@@ -17,6 +17,7 @@ describe.skip('MedicalHistoryFactory', () => {
   describe('createCondition', () => {
     it('should validate and return condition data with defaults', () => {
       const data = {
+        patientId: 'patient-1',
         conditionName: 'Hypertension',
       };
 
@@ -25,8 +26,8 @@ describe.skip('MedicalHistoryFactory', () => {
       expect(result).toEqual(
         expect.objectContaining({
           ...data,
-          conditionType: MedicalConditionType.CHRONIC,
-          status: ConditionStatus.ACTIVE,
+          conditionType: 'CHRONIC',
+          status: 'ACTIVE',
         }),
       );
     });

@@ -6,7 +6,7 @@ import {
   ErrorStatsSchema,
   PerformanceMetricsSchema,
   WebVitalSchema,
-  jsonValueSchema,
+  jsonObjectSchema,
 } from '@workspace/types';
 
 export {
@@ -51,4 +51,4 @@ export class MonitoringDashboardResponseDto extends createZodDto(
   MonitoringDashboardSchema,
 ) {}
 
-export class AnyResponseDto extends createZodDto(jsonValueSchema) {}
+export class AnyResponseDto extends createZodDto(jsonObjectSchema) {}

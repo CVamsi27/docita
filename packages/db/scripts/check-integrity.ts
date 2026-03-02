@@ -235,7 +235,7 @@ export function formatIntegrityReport(report: IntegrityReport): string {
     lines.push(`${icon} ${check.name}`);
     lines.push(`   ${check.description}`);
     if (check.details) {
-      lines.push(`   ️  ${check.details}`);
+      lines.push(`     ${check.details}`);
     }
     lines.push("");
   }

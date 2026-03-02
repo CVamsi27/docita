@@ -4,7 +4,7 @@ export const mockRazorpay = {
       id: 'plink_mock_123',
       amount: 50000,
       currency: 'INR',
-      short_url: 'https://rzp.io/mock',
+      short_url: 'https://rzp.io/i/plink_mock_123',
       status: 'created',
     }),
     fetch: jest.fn().mockResolvedValue({
@@ -21,7 +21,7 @@ export const createMockRazorpay = () => {
         id: 'plink_mock_' + Date.now(),
         amount: 50000,
         currency: 'INR',
-        short_url: 'https://rzp.io/mock',
+        short_url: 'https://rzp.io/i/plink_mock_' + Date.now(),
         status: 'created',
       }),
       fetch: jest.fn().mockResolvedValue({

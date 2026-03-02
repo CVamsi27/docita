@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;

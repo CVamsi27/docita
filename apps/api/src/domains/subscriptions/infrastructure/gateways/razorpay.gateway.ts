@@ -13,13 +13,42 @@ import {
 @Injectable()
 export class RazorpayGateway implements IPaymentGateway {
   private readonly logger = new Logger(RazorpayGateway.name);
-  private razorpay: Razorpay;
+  private razorpay: Razorpay | null = null;
 
   constructor(private configService: AppConfigService) {
+    this.initializeRazorpay();
+  }
+
+  private initializeRazorpay(): void {
+    const keyId = this.configService.getRazorpayKeyId();
+    const keySecret = this.configService.getRazorpayKeySecret();
+
+    if (!keyId || !keySecret) {
+      const message =
+        'Razorpay credentials are missing. Subscription payment operations are disabled.';
+
+      if (this.configService.isProduction()) {
+        throw new Error(message);
+      }
+
+      this.logger.warn(message);
+      return;
+    }
+
     this.razorpay = new Razorpay({
-      key_id: this.configService.getRazorpayKeyId(),
-      key_secret: this.configService.getRazorpayKeySecret(),
+      key_id: keyId,
+      key_secret: keySecret,
     });
+  }
+
+  private getClient(): Razorpay {
+    if (!this.razorpay) {
+      throw new Error(
+        'Razorpay gateway is not initialized. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
+      );
+    }
+
+    return this.razorpay;
   }
 
   async createCustomer(request: {
@@ -29,7 +58,8 @@ export class RazorpayGateway implements IPaymentGateway {
     clinicId: string;
   }): Promise<string> {
     try {
-      const customer = await this.razorpay.customers.create({
+      const razorpay = this.getClient();
+      const customer = await razorpay.customers.create({
         email: request.email,
         name: request.name,
         contact: request.phone,
@@ -47,7 +77,8 @@ export class RazorpayGateway implements IPaymentGateway {
 
   async createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
     try {
-      const order = await this.razorpay.orders.create({
+      const razorpay = this.getClient();
+      const order = await razorpay.orders.create({
         amount: request.amountCents,
         currency: request.currency,
         receipt: request.orderId,
@@ -85,9 +116,8 @@ export class RazorpayGateway implements IPaymentGateway {
     }
 
     try {
-      const payment = await this.razorpay.payments.fetch(
-        request.razorpayPaymentId,
-      );
+      const razorpay = this.getClient();
+      const payment = await razorpay.payments.fetch(request.razorpayPaymentId);
       return {
         verified: true,
         paymentId: request.razorpayPaymentId,
@@ -109,18 +139,15 @@ export class RazorpayGateway implements IPaymentGateway {
     totalCount: number,
   ): Promise<{ subscriptionId: string }> {
     try {
-      const payload: Parameters<
-        typeof this.razorpay.subscriptions.create
-      >[0] & {
+      const razorpay = this.getClient();
+      const payload: Parameters<typeof razorpay.subscriptions.create>[0] & {
         customer_id: string;
       } = {
         plan_id: planId,
         customer_id: customerId,
         total_count: totalCount,
       };
-      const subscription = (await this.razorpay.subscriptions.create(
-        payload,
-      )) as {
+      const subscription = (await razorpay.subscriptions.create(payload)) as {
         id: string;
       };
       return { subscriptionId: subscription.id };
@@ -135,7 +162,8 @@ export class RazorpayGateway implements IPaymentGateway {
 
   async cancelSubscription(subscriptionId: string): Promise<void> {
     try {
-      await this.razorpay.subscriptions.cancel(subscriptionId);
+      const razorpay = this.getClient();
+      await razorpay.subscriptions.cancel(subscriptionId);
     } catch (error: unknown) {
       this.logger.error(
         'Failed to cancel Razorpay subscription',
@@ -147,7 +175,8 @@ export class RazorpayGateway implements IPaymentGateway {
 
   async refundPayment(paymentId: string, amountCents?: number): Promise<void> {
     try {
-      await this.razorpay.payments.refund(paymentId, {
+      const razorpay = this.getClient();
+      await razorpay.payments.refund(paymentId, {
         amount: amountCents,
       });
     } catch (error: unknown) {

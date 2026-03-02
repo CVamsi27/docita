@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnonymizationFactory } from './anonymization.factory';
 import { PrismaService } from '@/prisma/prisma.service';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('AnonymizationFactory', () => {
   let factory: AnonymizationFactory;

@@ -16,6 +16,8 @@ import {
   DefaultValues,
   FormOptions,
 } from "./constants/app-config";
+import { API_URL } from "./api-config";
+import { isNetworkError } from "./network-error";
 
 export type {
   SelectOption,
@@ -63,11 +65,9 @@ export function AppConfigProvider({
       setIsLoading(true);
       setError(null);
 
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api/v1";
       const url = clinicId
-        ? `${apiUrl}/config?clinicId=${clinicId}`
-        : `${apiUrl}/config`;
+        ? `${API_URL}/config?clinicId=${clinicId}`
+        : `${API_URL}/config`;
 
       const response = await fetch(url, {
         headers: {
@@ -82,9 +82,13 @@ export function AppConfigProvider({
       const data = await response.json();
       setConfig(data);
     } catch (err) {
+      if (isNetworkError(err)) {
+        setConfig(DEFAULT_CONFIG);
+        setError(null);
+        return;
+      }
 
       setError(err instanceof Error ? err : new Error("Unknown error"));
-
     } finally {
       setIsLoading(false);
     }

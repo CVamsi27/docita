@@ -10,10 +10,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
-import { Roles } from '../../../../shared/modules/auth/auth/roles.decorator';
-import { RequestWithUser } from '../../../../common/types/common.types';
-import { PatientService } from '../../application/services/patient.service';
-import { PatientMetricsService } from '../../application/services/patientMetrics.service';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
+import { PatientService } from '@/domains/patients/application/services/patient.service';
+import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
 import {
   CreateMetricCategoryDto,
   CreateMetricDefinitionDto,

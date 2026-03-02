@@ -3,6 +3,7 @@ import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('FinancialAnalyticsFactory', () => {
   let factory: FinancialAnalyticsFactory;
