@@ -127,10 +127,10 @@ packages/db             ← Prisma = storage only, mapped to domain types
 | Package                | Can Import From                        | CANNOT Import From             |
 | ---------------------- | -------------------------------------- | ------------------------------ |
 | `packages/types`       | `zod` only                             | anything else                  |
-| `packages/db`          | `@prisma/client`                       | `@docita/types` (optional)     |
-| `apps/api`             | `@docita/types`, `@docita/db`          | `@docita/data-access`          |
-| `packages/data-access` | `@docita/types`                        | `@docita/db`, `@prisma/client` |
-| `apps/app`             | `@docita/types`, `@docita/data-access` | `@docita/db`, `@prisma/client` |
+| `packages/db`          | `@prisma/client`                       | `@workspace/types` (optional)     |
+| `apps/api`             | `@workspace/types`, `@workspace/db`          | `@workspace/data-access`          |
+| `packages/data-access` | `@workspace/types`                        | `@workspace/db`, `@prisma/client` |
+| `apps/app`             | `@workspace/types`, `@workspace/data-access` | `@workspace/db`, `@prisma/client` |
 
 > 🚨 **Critical boundary**: `@prisma/client` must NEVER appear outside `packages/db` and `apps/api/infrastructure`.
 
@@ -167,7 +167,7 @@ packages/types/
 
 ```json
 {
-  "name": "@docita/types",
+  "name": "@workspace/types",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -326,8 +326,10 @@ pnpm add nestjs-zod
 
 ```ts
 // main.ts
-import { patchNestJsSwagger } from "nestjs-zod";
-patchNestJsSwagger(); // Swagger reads Zod schemas automatically
+import { cleanupOpenApiDoc } from "nestjs-zod";
+
+const document = SwaggerModule.createDocument(app, swaggerConfig);
+SwaggerModule.setup("docs", app, cleanupOpenApiDoc(document));
 ```
 
 ```ts
@@ -349,7 +351,7 @@ import {
   CreatePatientSchema,
   UpdatePatientSchema,
   PaginationQuerySchema,
-} from "@docita/types";
+} from "@workspace/types";
 
 class CreatePatientDto extends createZodDto(CreatePatientSchema) {}
 class UpdatePatientDto extends createZodDto(UpdatePatientSchema) {}
@@ -386,7 +388,7 @@ export class PatientsController {
 | `@IsString()`, `@MinLength()` decorators | Zod schema handles it                 |
 | Separate DTO file per operation          | One-liner `createZodDto()`            |
 | `class-transformer` quirks               | Zod `.parse()` handles transforms     |
-| Manual Swagger decorators                | `patchNestJsSwagger()` auto-generates |
+| Manual Swagger decorators                | `cleanupOpenApiDoc(document)` post-processes OpenAPI |
 | DTO ↔ frontend drift                     | Same schema validates both sides      |
 
 ---
@@ -412,8 +414,8 @@ apps/api/src/modules/patients/infrastructure/patient.mapper.ts
 
 ```ts
 import { Patient as PrismaPatient, Prisma } from "@prisma/client";
-import { PatientSchema, PatientResponseSchema } from "@docita/types";
-import type { Patient, CreatePatient, PatientResponse } from "@docita/types";
+import { PatientSchema, PatientResponseSchema } from "@workspace/types";
+import type { Patient, CreatePatient, PatientResponse } from "@workspace/types";
 
 export class PatientMapper {
   // DB row → validated domain object
@@ -505,12 +507,12 @@ import {
   PatientResponseSchema,
   PatientListResponseSchema,
   CreatePatientSchema,
-} from "@docita/types";
+} from "@workspace/types";
 import type {
   CreatePatient,
   PatientResponse,
   PatientListResponse,
-} from "@docita/types";
+} from "@workspace/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -561,9 +563,9 @@ export function createPatient(data: CreatePatient): Promise<PatientResponse> {
 ```tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreatePatientSchema } from "@docita/types";
-import type { CreatePatient } from "@docita/types";
-import { createPatient } from "@docita/data-access";
+import { CreatePatientSchema } from "@workspace/types";
+import type { CreatePatient } from "@workspace/types";
+import { createPatient } from "@workspace/data-access";
 
 export function CreatePatientForm() {
   const form = useForm<CreatePatient>({
@@ -716,7 +718,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
 Schemas double as test fixtures. Use `.safeParse()` to test boundaries without throwing.
 
 ```ts
-import { CreatePatientSchema } from "@docita/types";
+import { CreatePatientSchema } from "@workspace/types";
 
 const validPatient = {
   name: "John Doe",
@@ -823,10 +825,10 @@ describe("CreatePatientSchema", () => {
 
 ```
 packages/types          → zod
-packages/data-access    → @docita/types, zod
+packages/data-access    → @workspace/types, zod
 packages/db             → @prisma/client  (internal only)
-apps/api                → @docita/types, nestjs-zod, @docita/db
-apps/app                → @docita/types, @docita/data-access,
+apps/api                → @workspace/types, nestjs-zod, @workspace/db
+apps/app                → @workspace/types, @workspace/data-access,
                           react-hook-form, @hookform/resolvers
 ```
 
