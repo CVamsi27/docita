@@ -1,6 +1,39 @@
 
 
+import { z } from "zod";
 import type { JsonValue } from "./common";
+import type { loginResponseSchema } from "../contracts/auth";
+import type { appointmentResponseSchema } from "../contracts/appointments";
+import type { patientResponseSchema } from "../contracts/patients";
+import type { userSchema } from "./users";
+import type { clinicSchema } from "./clinics";
+
+export const UuidSchema = z.string().uuid("Invalid UUID format");
+export const TimestampSchema = z.coerce.date();
+
+export const BaseEntitySchema = z.object({
+  id: UuidSchema,
+  createdAt: TimestampSchema,
+  updatedAt: TimestampSchema,
+});
+
+export type BaseEntity = z.infer<typeof BaseEntitySchema>;
+
+export const PaginationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+
+export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+  z.object({
+    items: z.array(itemSchema),
+    total: z.number().int(),
+    page: z.number().int(),
+    limit: z.number().int(),
+    totalPages: z.number().int(),
+  });
 
 export type JsonPrimitive = string | number | boolean | null;
 export interface JsonObject {
@@ -48,72 +81,35 @@ export interface MockQueue<T = JsonValue> {
   on(event: string, callback: (...args: JsonValue[]) => void): void;
 }
 
-export interface AuthResponse {
-  access_token?: string;
-  accessToken?: string;
-  refresh_token?: string;
-  refreshToken?: string;
-  user: UserResponse;
-  clinic?: ClinicResponse;
-}
+/**
+ * @deprecated Use `LoginResponse` from `../contracts/auth` (z.infer<typeof loginResponseSchema>).
+ * Alias retained for backward compatibility.
+ */
+export type AuthResponse = z.infer<typeof loginResponseSchema>;
 
-export interface UserResponse {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: string;
-  clinicId?: string;
-  active?: boolean;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+/**
+ * @deprecated Use `User` from `../shared/users` (z.infer<typeof userSchema>).
+ * Alias retained for backward compatibility.
+ */
+export type UserResponse = z.infer<typeof userSchema>;
 
-export interface ClinicResponse {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  tier: string;
-  type?: string;
-  settings?: JsonObject;
-  subscriptionStatus?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+/**
+ * @deprecated Use `Clinic` from `../shared/clinics` (z.infer<typeof clinicSchema>).
+ * Alias retained for backward compatibility.
+ */
+export type ClinicResponse = z.infer<typeof clinicSchema>;
 
-export interface PatientResponse {
-  id: string;
-  clinicId: string;
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-  phoneNumber: string;
-  dateOfBirth?: string | Date | null;
-  gender?: string | null;
-  address?: string | null;
-  active: boolean;
-  mrn?: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
+/**
+ * @deprecated Use `z.infer<typeof patientResponseSchema>` from `../contracts/patients`.
+ * Alias retained for backward compatibility.
+ */
+export type PatientResponse = z.infer<typeof patientResponseSchema>;
 
-export interface AppointmentResponse {
-  id: string;
-  clinicId: string;
-  patientId: string;
-  doctorId: string;
-  scheduledAt: string | Date;
-  duration: number;
-  status: string;
-  type?: string;
-  notes?: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-  patient?: PatientResponse;
-  doctor?: UserResponse;
-}
+/**
+ * @deprecated Use `z.infer<typeof appointmentResponseSchema>` from `../contracts/appointments`.
+ * Alias retained for backward compatibility.
+ */
+export type AppointmentResponse = z.infer<typeof appointmentResponseSchema>;
 
 export interface AnalyticsSnapshot {
   timestamp: string | Date;
