@@ -18,10 +18,14 @@ import { PatientService } from '@/domains/patients/application/services/patient.
 
 import {
   CreateMedicalConditionDto,
+  UpdateMedicalConditionDto,
   CreateAllergyDto,
+  UpdateAllergyDto,
   CreateFamilyHistoryDto,
+  UpdateFamilyHistoryDto,
   CreateSocialHistoryDto,
   CreateSurgicalHistoryDto,
+  UpdateSurgicalHistoryDto,
 } from '@/domains/patients/application/dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
@@ -65,7 +69,7 @@ export class MedicalHistoryController {
   async updateCondition(
     @Param('patientId') patientId: string,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateMedicalConditionDto>,
+    @Body() dto: UpdateMedicalConditionDto,
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
@@ -103,7 +107,7 @@ export class MedicalHistoryController {
   async updateAllergy(
     @Param('patientId') patientId: string,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateAllergyDto>,
+    @Body() dto: UpdateAllergyDto,
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
@@ -143,7 +147,7 @@ export class MedicalHistoryController {
   async updateFamilyHistory(
     @Param('patientId') patientId: string,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateFamilyHistoryDto>,
+    @Body() dto: UpdateFamilyHistoryDto,
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
@@ -214,7 +218,7 @@ export class MedicalHistoryController {
   async updateSurgicalHistory(
     @Param('patientId') patientId: string,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateSurgicalHistoryDto>,
+    @Body() dto: UpdateSurgicalHistoryDto,
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);

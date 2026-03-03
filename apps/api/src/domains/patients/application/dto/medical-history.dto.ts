@@ -1,156 +1,48 @@
+import { createZodDto } from 'nestjs-zod';
 import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsEnum,
-  IsArray,
-  IsDate,
-} from 'class-validator';
+  createMedicalConditionSchema,
+  updateMedicalConditionSchema,
+  createPatientAllergySchema,
+  updatePatientAllergySchema,
+  createPatientFamilyHistorySchema,
+  updatePatientFamilyHistorySchema,
+  createPatientSocialHistorySchema,
+  createPatientSurgicalHistorySchema,
+  updatePatientSurgicalHistorySchema,
+} from '@workspace/types';
 
-export class CreateMedicalConditionDto {
-  @IsString()
-  @IsNotEmpty()
-  conditionName!: string;
+export class CreateMedicalConditionDto extends createZodDto(
+  createMedicalConditionSchema,
+) {}
 
-  @IsString()
-  @IsOptional()
-  icdCode?: string;
+export class UpdateMedicalConditionDto extends createZodDto(
+  updateMedicalConditionSchema,
+) {}
 
-  @IsString()
-  @IsOptional()
-  conditionType?: string;
+export class CreateAllergyDto extends createZodDto(
+  createPatientAllergySchema,
+) {}
 
-  @IsString()
-  @IsNotEmpty()
-  status!: string;
+export class UpdateAllergyDto extends createZodDto(
+  updatePatientAllergySchema,
+) {}
 
-  @IsString()
-  @IsOptional()
-  severity?: string;
+export class CreateFamilyHistoryDto extends createZodDto(
+  createPatientFamilyHistorySchema,
+) {}
 
-  @IsOptional()
-  diagnosedDate?: Date;
+export class UpdateFamilyHistoryDto extends createZodDto(
+  updatePatientFamilyHistorySchema,
+) {}
 
-  @IsOptional()
-  resolvedDate?: Date;
+export class CreateSocialHistoryDto extends createZodDto(
+  createPatientSocialHistorySchema,
+) {}
 
-  @IsString()
-  @IsOptional()
-  notes?: string;
+export class CreateSurgicalHistoryDto extends createZodDto(
+  createPatientSurgicalHistorySchema,
+) {}
 
-  @IsString()
-  @IsOptional()
-  diagnosedBy?: string;
-}
-
-export class CreateAllergyDto {
-  @IsString()
-  @IsNotEmpty()
-  allergen!: string;
-
-  @IsString()
-  @IsOptional()
-  allergyType?: string;
-
-  @IsString()
-  @IsOptional()
-  severity?: string;
-
-  @IsString()
-  @IsOptional()
-  reaction?: string;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
-
-  @IsOptional()
-  onsetDate?: Date;
-}
-
-export class CreateFamilyHistoryDto {
-  @IsString()
-  @IsNotEmpty()
-  relationship!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  condition!: string;
-
-  @IsOptional()
-  ageAtOnset?: number;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
-
-export class CreateSocialHistoryDto {
-  @IsString()
-  @IsOptional()
-  smokingStatus?: string;
-
-  @IsOptional()
-  @IsOptional()
-  smokingPackYears?: number;
-
-  @IsOptional()
-  smokingQuitDate?: Date;
-
-  @IsString()
-  @IsOptional()
-  alcoholUse?: string;
-
-  @IsString()
-  @IsOptional()
-  alcoholFrequency?: string;
-
-  @IsString()
-  @IsOptional()
-  substanceUse?: string;
-
-  @IsString()
-  @IsOptional()
-  occupation?: string;
-
-  @IsString()
-  @IsOptional()
-  occupationalHazards?: string;
-
-  @IsString()
-  @IsOptional()
-  exerciseFrequency?: string;
-
-  @IsString()
-  @IsOptional()
-  dietaryRestrictions?: string;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
-
-export class CreateSurgicalHistoryDto {
-  @IsString()
-  @IsNotEmpty()
-  procedureName!: string;
-
-  @IsOptional()
-  procedureDate?: Date;
-
-  @IsString()
-  @IsOptional()
-  hospital?: string;
-
-  @IsString()
-  @IsOptional()
-  surgeon?: string;
-
-  @IsString()
-  @IsOptional()
-  complications?: string;
-
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
+export class UpdateSurgicalHistoryDto extends createZodDto(
+  updatePatientSurgicalHistorySchema,
+) {}

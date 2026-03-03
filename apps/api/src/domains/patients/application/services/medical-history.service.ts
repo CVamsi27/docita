@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
 import {
-  MedicalConditionInput,
-  AllergyInput,
-  FamilyHistoryInput,
-  SocialHistoryInput,
-  SurgicalHistoryInput,
-} from '@/domains/patients/presentation/api-schemas/medical-history.schema';
+  CreateMedicalConditionInput,
+  UpdateMedicalConditionInput,
+  CreatePatientAllergyInput,
+  UpdatePatientAllergyInput,
+  CreatePatientFamilyHistoryInput,
+  UpdatePatientFamilyHistoryInput,
+  CreatePatientSocialHistoryInput,
+  CreatePatientSurgicalHistoryInput,
+  UpdatePatientSurgicalHistoryInput,
+} from '@workspace/types';
 import { AiService } from '@/shared/modules/ai-core/ai.service';
 import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 import {
@@ -78,7 +82,7 @@ export class MedicalHistoryService {
     });
   }
 
-  async createCondition(patientId: string, dto: MedicalConditionInput) {
+  async createCondition(patientId: string, dto: CreateMedicalConditionInput) {
     const validated = this.medicalHistoryFactory.createCondition(dto);
 
     return this.prisma.patientMedicalCondition.create({
@@ -101,7 +105,7 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateCondition(id: string, dto: Partial<MedicalConditionInput>) {
+  async updateCondition(id: string, dto: UpdateMedicalConditionInput) {
     const existing = await this.prisma.patientMedicalCondition.findUnique({
       where: { id },
     });
@@ -147,7 +151,7 @@ export class MedicalHistoryService {
     });
   }
 
-  async createAllergy(patientId: string, dto: AllergyInput) {
+  async createAllergy(patientId: string, dto: CreatePatientAllergyInput) {
     const validated = this.medicalHistoryFactory.createAllergy(dto);
 
     return this.prisma.patientAllergy.create({
@@ -163,7 +167,7 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateAllergy(id: string, dto: Partial<AllergyInput>) {
+  async updateAllergy(id: string, dto: UpdatePatientAllergyInput) {
     const existing = await this.prisma.patientAllergy.findUnique({
       where: { id },
     });
@@ -204,7 +208,10 @@ export class MedicalHistoryService {
     });
   }
 
-  async createFamilyHistory(patientId: string, dto: FamilyHistoryInput) {
+  async createFamilyHistory(
+    patientId: string,
+    dto: CreatePatientFamilyHistoryInput,
+  ) {
     const validated = this.medicalHistoryFactory.createFamilyHistory(dto);
 
     return this.prisma.patientFamilyHistory.create({
@@ -218,7 +225,7 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateFamilyHistory(id: string, dto: Partial<FamilyHistoryInput>) {
+  async updateFamilyHistory(id: string, dto: UpdatePatientFamilyHistoryInput) {
     const existing = await this.prisma.patientFamilyHistory.findUnique({
       where: { id },
     });
@@ -258,7 +265,7 @@ export class MedicalHistoryService {
 
   async createOrUpdateSocialHistory(
     patientId: string,
-    dto: SocialHistoryInput,
+    dto: CreatePatientSocialHistoryInput,
   ) {
     const validated = this.medicalHistoryFactory.createSocialHistory(dto);
 
@@ -320,7 +327,10 @@ export class MedicalHistoryService {
     });
   }
 
-  async createSurgicalHistory(patientId: string, dto: SurgicalHistoryInput) {
+  async createSurgicalHistory(
+    patientId: string,
+    dto: CreatePatientSurgicalHistoryInput,
+  ) {
     const validated = this.medicalHistoryFactory.createSurgicalHistory(dto);
 
     return this.prisma.patientSurgicalHistory.create({
@@ -338,7 +348,10 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateSurgicalHistory(id: string, dto: Partial<SurgicalHistoryInput>) {
+  async updateSurgicalHistory(
+    id: string,
+    dto: UpdatePatientSurgicalHistoryInput,
+  ) {
     const existing = await this.prisma.patientSurgicalHistory.findUnique({
       where: { id },
     });
