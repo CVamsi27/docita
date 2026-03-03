@@ -18,7 +18,7 @@ const workspaceDbPattern = /@workspace\/db/;
 const violations = [];
 
 for (const file of files) {
-  if (file.startsWith('node_modules/') || file.includes('/dist/') || file.includes('.next/') || file.endsWith('.tsbuildinfo') || file.endsWith('.js.map')) continue;
+  if (file.startsWith('node_modules/') || file.includes('/dist/') || file.includes('.next/') || file.endsWith('.tsbuildinfo') || file.endsWith('.js.map') || file.endsWith('.md') || file === 'pnpm-lock.yaml') continue;
   const full = path.join(repoRoot, file);
   let content;
   try {
