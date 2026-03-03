@@ -198,9 +198,11 @@ export function createAPIClient(config: APIClientConfig) {
             {
               status: response.status,
               statusText: response.statusText,
-              data: errorData || undefined,
               code: getErrorCode(response.status),
-              validationErrors: rfc7807?.validationErrors || undefined,
+              ...(errorData ? { data: errorData } : {}),
+              ...(rfc7807?.validationErrors
+                ? { validationErrors: rfc7807.validationErrors }
+                : {}),
             },
           );
 
@@ -334,18 +336,16 @@ export function createAPIClient(config: APIClientConfig) {
       const result = schema.safeParse(data);
 
       if (!result.success) {
-
-        if (process.env["NODE_ENV"] === "development") {
-          
-          throw new APIRequestError(
-            `Response validation failed: ${result.error.message}`,
-            {
-              code: ErrorCodes.VALIDATION_ERROR,
-              data: result.error.format(),
-            },
-          );
-        }
-        return data as T;
+        const isDev = process.env["NODE_ENV"] === "development";
+        throw new APIRequestError(
+          isDev
+            ? `Response validation failed: ${result.error.message}`
+            : "Response validation failed",
+          {
+            code: ErrorCodes.VALIDATION_ERROR,
+            ...(isDev ? { data: result.error.format() } : {}),
+          },
+        );
       }
 
       return result.data;

@@ -1,4 +1,4 @@
-import type { APIError } from "./types";
+import type { APIError } from "@/lib/types";
 
 export class APIRequestError extends Error implements APIError {
   status?: number;
