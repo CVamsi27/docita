@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import type { PrismaTransaction } from '@workspace/types';
+import type { Prisma } from '@workspace/db';
 import {
   SLAAgreementDto,
   ConsentManagementDto,
@@ -18,7 +18,7 @@ export class OnboardingComplianceService {
   ) {}
 
   async recordSLAAgreement(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicId: string,
     userId: string,
     slaData: SLAAgreementDto,
@@ -81,7 +81,7 @@ export class OnboardingComplianceService {
   }
 
   async configureConsentManagement(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicId: string,
     consentData: ConsentManagementDto,
   ): Promise<void> {

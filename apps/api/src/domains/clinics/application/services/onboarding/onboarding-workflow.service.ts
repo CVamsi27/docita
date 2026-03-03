@@ -12,9 +12,9 @@ import {
   Subscription,
   Specialization,
   Role,
+  Prisma,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
-import type { PrismaTransaction } from '@workspace/types';
 import {
   ClinicDetailsDto,
   AdminAccountDto,
@@ -52,7 +52,7 @@ export class OnboardingWorkflowService {
   ) {}
 
   async createClinic(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
   ): Promise<Clinic> {
@@ -97,7 +97,7 @@ export class OnboardingWorkflowService {
   }
 
   async createAdminUser(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     adminData: AdminAccountDto,
     clinicId: string,
     ipAddress?: string,
@@ -140,7 +140,7 @@ export class OnboardingWorkflowService {
   }
 
   async createSubscription(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicId: string,
     planData: PlanSelectionDto,
     paymentData?: OnboardingPaymentInput,
@@ -205,7 +205,7 @@ export class OnboardingWorkflowService {
   }
 
   async createStaffMembers(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicId: string,
     staffData: StaffSetupDto,
     ipAddress?: string,
@@ -265,7 +265,7 @@ export class OnboardingWorkflowService {
   }
 
   async initializeClinicSettings(
-    tx: PrismaTransaction,
+    tx: Prisma.TransactionClient,
     clinicId: string,
   ): Promise<void> {
     await tx.reminderSettings.create({
