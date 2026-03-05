@@ -23,8 +23,9 @@ import {
   SubscriptionCancelRequestDto,
   SubscriptionCheckoutRequestDto,
 } from '@/domains/subscriptions/application/dto/subscriptions-controller.dto';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 
-@Controller('subscriptions')
+@Controller(['subscriptions', 'subscription'])
 export class SubscriptionsController {
   constructor(
     private readonly createSubscriptionUseCase: CreateSubscriptionUseCase,
@@ -35,6 +36,8 @@ export class SubscriptionsController {
     private readonly queryService: SubscriptionsQueryService,
   ) {}
 
+  @Public()
+  @Get('config')
   getConfig() {
     return this.queryService.getTierConfig();
   }

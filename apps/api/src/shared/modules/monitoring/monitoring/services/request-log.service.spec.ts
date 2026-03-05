@@ -111,6 +111,35 @@ describe('RequestLogService', () => {
       await service.flushBuffer();
       expect(prismaService.apiRequest.createMany).not.toHaveBeenCalled();
     });
+
+    it('should disable persistence on database authentication failure', async () => {
+      const request: ApiRequestInput = {
+        method: 'GET',
+        path: '/test',
+        duration: 100,
+        statusCode: 200,
+        requestSize: 0,
+        responseSize: 0,
+      };
+
+      prismaService.apiRequest.createMany = jest.fn().mockRejectedValueOnce({
+        code: 'P1000',
+        message:
+          'Authentication failed against the database server, the provided database credentials are not valid',
+      });
+
+      service.logRequest(request);
+      await service.flushBuffer();
+
+      expect(service['persistenceDisabled']).toBe(true);
+      expect(service['requestBuffer']).toHaveLength(0);
+
+      prismaService.apiRequest.createMany = jest.fn();
+      service.logRequest(request);
+      await service.flushBuffer();
+
+      expect(prismaService.apiRequest.createMany).not.toHaveBeenCalled();
+    });
   });
 
   describe('getRequestStats', () => {

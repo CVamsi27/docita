@@ -32,6 +32,7 @@ import { SubscriptionsModule } from './domains/subscriptions/subscriptions.modul
 import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
 import { ClinicalModule } from './domains/clinical/clinical.module';
 import { AppConfigModule } from './shared/modules/config/config.module';
+import { ConfigModule as PublicConfigModule } from './modules/config/config.module';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
 import { GatewaysModule } from './gateways/gateways.module';
 import { MonitoringModule } from './shared/modules/monitoring/monitoring/monitoring.module';
@@ -69,6 +70,7 @@ const BullModule = MockBullModule;
       envFilePath: ['../../.env', '.env'],
     }),
     AppConfigModule,
+    PublicConfigModule,
     LoggerModule.forRootAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],

@@ -11,6 +11,7 @@ export class RequestLogService implements OnModuleDestroy {
   private readonly BATCH_SIZE = 100;
   private readonly FLUSH_INTERVAL = 5000;
   private flushTimer: NodeJS.Timeout | null = null;
+  private persistenceDisabled = false;
 
   constructor(
     private prisma: PrismaService,
@@ -37,6 +38,10 @@ export class RequestLogService implements OnModuleDestroy {
   }
 
   logRequest(data: ApiRequestInput): void {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     const validatedData = this.monitoringFactory.createApiRequest(data);
     this.requestBuffer.push(validatedData);
 
@@ -48,7 +53,7 @@ export class RequestLogService implements OnModuleDestroy {
   }
 
   async flushBuffer(): Promise<void> {
-    if (this.requestBuffer.length === 0) return;
+    if (this.persistenceDisabled || this.requestBuffer.length === 0) return;
 
     const requestsToFlush = this.requestBuffer.splice(0, this.BATCH_SIZE);
 
@@ -74,8 +79,40 @@ export class RequestLogService implements OnModuleDestroy {
 
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.persistenceDisabled = true;
+        this.requestBuffer = [];
+        this.logger.warn(
+          'Disabling request-log database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return;
+      }
+
       this.logger.error('Failed to write requests to database', error);
     }
+  }
+
+  private isDatabaseAuthError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { code?: unknown; message?: unknown };
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    if (code === 'P1000') {
+      return true;
+    }
+
+    return (
+      message.includes('authentication failed against the database server') ||
+      message.includes('database credentials') ||
+      message.includes('password authentication failed')
+    );
   }
 
   async getRequestStats(
