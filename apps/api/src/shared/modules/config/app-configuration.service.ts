@@ -1,6 +1,97 @@
 import { Injectable } from '@nestjs/common';
 import { EnvConfig, getEnv } from './app-config';
 
+const LOCALE_CURRENCY_MAP: Readonly<Record<string, string>> = {
+  'en-IN': 'INR',
+  'hi-IN': 'INR',
+  'en-US': 'USD',
+  'en-CA': 'CAD',
+  'en-GB': 'GBP',
+  'en-AU': 'AUD',
+  'en-NZ': 'NZD',
+  'en-SG': 'SGD',
+  'en-AE': 'AED',
+  'zh-CN': 'CNY',
+  'ja-JP': 'JPY',
+  'ko-KR': 'KRW',
+  'de-DE': 'EUR',
+  'fr-FR': 'EUR',
+  'es-ES': 'EUR',
+  'it-IT': 'EUR',
+  'pt-BR': 'BRL',
+  'ru-RU': 'RUB',
+  'ar-SA': 'SAR',
+  'tr-TR': 'TRY',
+};
+
+const COUNTRY_CURRENCY_MAP: Readonly<Record<string, string>> = {
+  IN: 'INR',
+  US: 'USD',
+  CA: 'CAD',
+  GB: 'GBP',
+  AU: 'AUD',
+  NZ: 'NZD',
+  SG: 'SGD',
+  AE: 'AED',
+  CN: 'CNY',
+  JP: 'JPY',
+  KR: 'KRW',
+  DE: 'EUR',
+  FR: 'EUR',
+  ES: 'EUR',
+  IT: 'EUR',
+  PT: 'EUR',
+  BR: 'BRL',
+  RU: 'RUB',
+  SA: 'SAR',
+  TR: 'TRY',
+};
+
+const DEFAULT_CURRENCY = 'INR';
+
+function resolveCurrencyFromLocale(acceptLanguage?: string): string {
+  if (!acceptLanguage) return DEFAULT_CURRENCY;
+
+  const parsed = acceptLanguage
+    .split(',')
+    .map((part) => part.trim().split(';')[0].trim())
+    .filter(Boolean);
+
+  for (const locale of parsed) {
+    if (LOCALE_CURRENCY_MAP[locale]) return LOCALE_CURRENCY_MAP[locale];
+
+    const country = locale.split('-')[1]?.toUpperCase();
+    if (country && COUNTRY_CURRENCY_MAP[country])
+      return COUNTRY_CURRENCY_MAP[country];
+  }
+
+  return DEFAULT_CURRENCY;
+}
+
+function detectManagedDatabaseProvider(databaseUrl: string): string | null {
+  const url = databaseUrl.toLowerCase();
+
+  const providers: Array<{ pattern: string; name: string }> = [
+    { pattern: 'rds.amazonaws.com', name: 'AWS RDS' },
+    { pattern: 'supabase.co', name: 'Supabase' },
+    { pattern: 'neon.tech', name: 'Neon' },
+    { pattern: 'psdb.cloud', name: 'PlanetScale' },
+    { pattern: 'planetscale.com', name: 'PlanetScale' },
+    { pattern: 'cloudsql.googleapis.com', name: 'Google Cloud SQL' },
+    { pattern: 'database.azure.com', name: 'Azure Database' },
+    { pattern: 'postgres.database.azure.com', name: 'Azure PostgreSQL' },
+    { pattern: 'cockroachlabs.cloud', name: 'CockroachDB Cloud' },
+    { pattern: 'railway.app', name: 'Railway' },
+    { pattern: 'render.com', name: 'Render' },
+  ];
+
+  for (const { pattern, name } of providers) {
+    if (url.includes(pattern)) return name;
+  }
+
+  return null;
+}
+
 @Injectable()
 export class AppConfigService {
   getConfig(): EnvConfig {
@@ -37,27 +128,6 @@ export class AppConfigService {
 
   getDatabaseUrl(): string {
     return this.getConfig().DATABASE_URL;
-  }
-
-  getDatabaseReadUrl(): string | undefined {
-    return this.getConfig().DATABASE_READ_URL;
-  }
-
-  getDatabaseConfig() {
-    return {
-      host: this.getConfig().DATABASE_HOST,
-      port: this.getConfig().DATABASE_PORT,
-      user: this.getConfig().DATABASE_USER,
-      password: this.getConfig().DATABASE_PASSWORD,
-      name: this.getConfig().DATABASE_NAME,
-    };
-  }
-
-  getBackupConfig() {
-    return {
-      directory: this.getConfig().BACKUP_DIR,
-      retentionDays: this.getConfig().BACKUP_RETENTION_DAYS,
-    };
   }
 
   getRazorpayKeyId(): string {
@@ -146,23 +216,19 @@ export class AppConfigService {
   }
 
   getLogLevel(): string {
-    const config = getEnv();
-    return config.LOG_LEVEL;
+    return this.getConfig().LOG_LEVEL;
   }
 
   getAppVersion(): string {
-    const config = getEnv();
-    return config.APP_VERSION;
+    return this.getConfig().APP_VERSION;
   }
 
   getPaymentLinkTtlMinutes(): number {
-    const config = getEnv();
-    return config.PAYMENT_LINK_TTL_MINUTES;
+    return this.getConfig().PAYMENT_LINK_TTL_MINUTES;
   }
 
   getRequestTimeoutMs(): number {
-    const config = getEnv();
-    return config.REQUEST_TIMEOUT_MS;
+    return this.getConfig().REQUEST_TIMEOUT_MS;
   }
 
   getSecretsProvider(): 'env' | 'aws' {
@@ -191,12 +257,8 @@ export class AppConfigService {
     };
   }
 
-  getEncryptionAtRestConfirmed(): boolean {
-    return this.getConfig().DB_ENCRYPTION_AT_REST_CONFIRMED === 'true';
-  }
-
-  getAiApiKey(): string | undefined {
-    return this.getConfig().AI_API_KEY;
+  detectManagedDatabaseProvider(): string | null {
+    return detectManagedDatabaseProvider(this.getDatabaseUrl());
   }
 
   getSentryConfig() {
@@ -232,22 +294,7 @@ export class AppConfigService {
     return this.getConfig().PORT;
   }
 
-  getCurrencyCode(): string {
-    return this.getConfig().CURRENCY_CODE;
-  }
-
-  getPgBouncerConfig() {
-    return {
-      host: this.getConfig().PGBOUNCER_HOST,
-      port: this.getConfig().PGBOUNCER_PORT,
-      enabled: this.getConfig().PGBOUNCER_ENABLED,
-    };
-  }
-
-  getPrismaAccelerateConfig() {
-    return {
-      key: this.getConfig().PRISMA_ACCELERATE_KEY,
-      enabled: this.getConfig().PRISMA_ACCELERATE_ENABLED,
-    };
+  getCurrencyCode(acceptLanguage?: string): string {
+    return resolveCurrencyFromLocale(acceptLanguage);
   }
 }

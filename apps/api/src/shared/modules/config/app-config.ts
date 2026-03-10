@@ -2,15 +2,6 @@ import { z } from 'zod';
 
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
-  DATABASE_HOST: z.string().default('localhost'),
-  DATABASE_PORT: z.coerce.number().default(5432),
-  DATABASE_USER: z.string().default('postgres'),
-  DATABASE_PASSWORD: z.string().default(''),
-  DATABASE_NAME: z.string().default('docita'),
-  DB_ENCRYPTION_AT_REST_CONFIRMED: z.enum(['true', 'false']).default('false'),
-  DATABASE_READ_URL: z.string().optional(),
-  BACKUP_DIR: z.string().default('/backups/postgresql'),
-  BACKUP_RETENTION_DAYS: z.coerce.number().default(30),
   CPU_COUNT: z.coerce.number().default(4),
   JWT_SECRET: z.string(),
   JWT_EXPIRATION: z.string().default('7d'),
@@ -32,7 +23,6 @@ export const EnvSchema = z.object({
   META_APP_SECRET: z.string().optional(),
   META_VERIFY_TOKEN: z.string().optional(),
   WHATSAPP_PRODUCTION_MODE: z.coerce.boolean().default(false),
-  AI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   RESEND_API_URL: z.string().default('https://api.resend.com/emails'),
   EMAIL_FROM: z.string().default('Docita <notifications@docita.work>'),
@@ -74,12 +64,6 @@ export const EnvSchema = z.object({
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
-  CURRENCY_CODE: z.string().optional().default('INR'),
-  PGBOUNCER_HOST: z.string().default('localhost'),
-  PGBOUNCER_PORT: z.coerce.number().default(6432),
-  PGBOUNCER_ENABLED: z.coerce.boolean().default(false),
-  PRISMA_ACCELERATE_KEY: z.string().optional(),
-  PRISMA_ACCELERATE_ENABLED: z.coerce.boolean().default(false),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
@@ -116,7 +100,6 @@ export function validateEnv(): EnvConfig {
     envToParse.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
     envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
     envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
-    envToParse.CURRENCY_CODE ??= 'INR';
   }
 
   const result = EnvSchema.safeParse(envToParse);

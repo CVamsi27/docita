@@ -35,6 +35,8 @@ build
 **/build
 .next
 **/.next
+.open-next
+**/.open-next
 out
 **/out
 
