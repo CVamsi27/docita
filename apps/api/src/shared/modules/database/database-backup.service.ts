@@ -19,16 +19,16 @@ export class DatabaseBackupService {
   private readonly databaseName: string;
 
   constructor(private configService: AppConfigService) {
-    const dbConfig = this.configService.getDatabaseConfig();
-    const backupConfig = this.configService.getBackupConfig();
+    const dbUrl = new URL(this.configService.getDatabaseUrl());
 
-    this.backupDir = backupConfig.directory;
-    this.retentionDays = backupConfig.retentionDays;
-    this.databasePassword = dbConfig.password;
-    this.databaseHost = dbConfig.host;
-    this.databasePort = dbConfig.port.toString();
-    this.databaseUser = dbConfig.user;
-    this.databaseName = dbConfig.name;
+    this.backupDir = '/backups/postgresql';
+    this.retentionDays = 30;
+
+    this.databasePassword = decodeURIComponent(dbUrl.password);
+    this.databaseHost = dbUrl.hostname;
+    this.databasePort = dbUrl.port || '5432';
+    this.databaseUser = decodeURIComponent(dbUrl.username);
+    this.databaseName = dbUrl.pathname.replace(/^\//, '');
 
     this.ensureBackupDirectory();
   }

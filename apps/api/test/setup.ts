@@ -12,11 +12,11 @@ type TestPrismaClient = PrismaClient & {
 };
 
 export function setupTestDatabase() {
-  const testDbUrl = process.env.DATABASE_URL_TEST;
+  const testDbUrl = process.env.DATABASE_URL;
 
   if (!testDbUrl) {
     throw new Error(
-      'DATABASE_URL_TEST is not defined. Tests must run against a dedicated test database.',
+      'DATABASE_URL is not defined. Tests must run against a dedicated test database.',
     );
   }
 

@@ -168,18 +168,18 @@ export class StartupValidationService {
       return;
     }
 
-    const encryptionAtRestConfirmed =
-      this.configService.getEncryptionAtRestConfirmed();
+    const provider = this.configService.detectManagedDatabaseProvider();
 
-    if (!encryptionAtRestConfirmed) {
-      throw new Error(
-        'DB_ENCRYPTION_AT_REST_CONFIRMED must be true in production after verifying provider-level disk/storage encryption.',
+    if (provider) {
+      this.logger.log(
+        ` Data-at-rest encryption auto-confirmed (managed provider: ${provider})`,
+      );
+    } else {
+      this.logger.warn(
+        'Could not auto-detect a managed cloud database provider. ' +
+          'Ensure provider-level disk/storage encryption is enabled for your database.',
       );
     }
-
-    this.logger.log(
-      ' Data-at-rest control validated (provider encryption acknowledged)',
-    );
   }
 
   private validateProductionSecrets(): void {

@@ -123,8 +123,6 @@ export class DatabaseOperationsController {
     const config = this.poolingService.getOptimalPoolConfig();
     return {
       config,
-      usePrismaAccelerate: this.poolingService.shouldUsePrismaAccelerate(),
-      tuningGuide: this.poolingService.getPoolTuningGuide(),
     };
   }
 
