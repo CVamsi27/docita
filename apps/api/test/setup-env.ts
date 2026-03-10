@@ -7,8 +7,6 @@ dotenv.config({
   path: path.join(__dirname, '../.env.test'),
 });
 
-// Use centralized validation as the single source of truth
-// Defaults for missing test variables are handled inside validateEnv()
 validateEnv();
 
 Logger.overrideLogger(false);
