@@ -12,6 +12,7 @@ import {
 } from '@/domains/billing/core/services';
 import { CreateInvoiceDto } from '@/domains/billing/application/dto/invoice.dto';
 import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 export class CreateInvoiceCommand {
   constructor(readonly createInvoiceDto: CreateInvoiceDto) {}
@@ -35,7 +36,7 @@ export class CreateInvoiceUseCase {
           invoiceId,
           description: item.description,
           quantity: item.quantity,
-          unitPrice: new Money(item.unitPrice, 'INR'),
+          unitPrice: new Money(item.unitPrice, DEFAULT_CURRENCY),
           taxRate: item.taxRate,
           discount: item.discount ?? 0,
         }),

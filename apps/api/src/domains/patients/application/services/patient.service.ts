@@ -50,8 +50,9 @@ export class PatientService {
   async updatePatient(
     id: string,
     data: PatientDomainUpdateInput,
+    clinicId?: string,
   ): Promise<void> {
-    const patient = await this.getPatient(id);
+    const patient = await this.getPatient(id, clinicId);
 
     if (data.email !== undefined || data.phoneNumber !== undefined) {
       patient.updateContactInfo(data.email, data.phoneNumber);

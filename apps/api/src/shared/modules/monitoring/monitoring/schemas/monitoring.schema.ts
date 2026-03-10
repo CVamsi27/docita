@@ -1,9 +1,15 @@
 import { z } from 'zod';
 import { ErrorSeverity } from '@workspace/db';
 
+const optionalNullableId = z
+  .string()
+  .nullable()
+  .optional()
+  .transform((value) => value ?? undefined);
+
 export const ApiRequestSchema = z.object({
-  clinicId: z.string().optional(),
-  userId: z.string().optional(),
+  clinicId: optionalNullableId,
+  userId: optionalNullableId,
   method: z.string().min(1),
   path: z.string().min(1),
   statusCode: z.number().int(),
@@ -18,8 +24,8 @@ export const ApiRequestSchema = z.object({
 });
 
 export const ErrorLogSchema = z.object({
-  clinicId: z.string().optional(),
-  userId: z.string().optional(),
+  clinicId: optionalNullableId,
+  userId: optionalNullableId,
   type: z.string().min(1),
   message: z.string().min(1),
   stack: z.string().optional(),

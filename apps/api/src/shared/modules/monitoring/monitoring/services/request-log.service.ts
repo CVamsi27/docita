@@ -42,7 +42,17 @@ export class RequestLogService implements OnModuleDestroy {
       return;
     }
 
-    const validatedData = this.monitoringFactory.createApiRequest(data);
+    let validatedData: ApiRequestInput;
+    try {
+      validatedData = this.monitoringFactory.createApiRequest(data);
+    } catch (error) {
+      this.logger.warn(
+        'Skipping malformed api-request payload in monitoring pipeline',
+        error instanceof Error ? error.message : String(error),
+      );
+      return;
+    }
+
     this.requestBuffer.push(validatedData);
 
     if (this.requestBuffer.length >= this.BATCH_SIZE) {

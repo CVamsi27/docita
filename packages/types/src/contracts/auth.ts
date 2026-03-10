@@ -1,6 +1,22 @@
 import { z } from "zod";
 import { userSchema } from "../shared/users";
 
+const authUserSchema = userSchema
+  .pick({
+    id: true,
+    email: true,
+    name: true,
+    role: true,
+    clinicId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    clinicId: z.string().nullable().optional(),
+    createdAt: z.string().or(z.date()).optional(),
+    updatedAt: z.string().or(z.date()).optional(),
+  });
+
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
@@ -28,6 +44,7 @@ export const registerSchema = z.object({
     .min(2, "Clinic name must be at least 2 characters")
     .optional()
     .or(z.literal("")),
+  role: z.enum(["ADMIN", "ADMIN_DOCTOR"]).optional(),
 });
 
 export const checkEmailSchema = z.object({
@@ -61,13 +78,13 @@ export const changePasswordSchema = z
 export const loginResponseSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
-  user: userSchema,
+  user: authUserSchema,
 });
 
 export const registerResponseSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
-  user: userSchema,
+  user: authUserSchema,
 });
 
 export const validateSessionResponseSchema = z.object({

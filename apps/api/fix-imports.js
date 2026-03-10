@@ -55,6 +55,5 @@ specFiles.forEach((file) => {
 
   if (changed) {
     fs.writeFileSync(file, content);
-
   }
 });

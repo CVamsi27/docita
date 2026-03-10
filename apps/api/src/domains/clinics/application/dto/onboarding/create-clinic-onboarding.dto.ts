@@ -53,7 +53,8 @@ export class ClinicDetailsDto extends createZodDto(clinicDetailsSchema) {}
 export const adminAccountSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
-  password: z.string().min(8).max(100),
+  password: z.string().min(8).max(100).optional(),
+  role: z.enum(['ADMIN', 'ADMIN_DOCTOR']).optional(),
   phoneNumber: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -91,6 +92,7 @@ export const slaAgreementSchema = z.object({
   acceptedSLA: z.boolean(),
   slaVersion: z.string(),
   acceptedBy: z.string(),
+  signatureSessionId: z.string().min(1, 'Signature upload is required'),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
   acceptedDataProcessingTerms: z.boolean(),
@@ -112,7 +114,7 @@ export const staffMemberSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(['DOCTOR', 'RECEPTIONIST']),
+  role: z.enum(['DOCTOR', 'RECEPTIONIST', 'ADMIN_DOCTOR']),
   phoneNumber: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -142,4 +144,27 @@ export const onboardingProgressSchema = z.object({
 });
 export class OnboardingProgressDto extends createZodDto(
   onboardingProgressSchema,
+) {}
+
+export const onboardingCheckoutSchema = z.object({
+  tier: clinicTierSchema,
+  billingCycle: billingCycleSchema,
+  customerEmail: z.string().email(),
+  customerName: z.string().min(2).max(100),
+  customerPhone: z.string().optional(),
+});
+
+export class OnboardingCheckoutDto extends createZodDto(
+  onboardingCheckoutSchema,
+) {}
+
+export const onboardingCheckoutResponseSchema = z.object({
+  orderId: z.string(),
+  amountCents: z.number().int(),
+  currency: z.string(),
+  razorpayKeyId: z.string(),
+});
+
+export class OnboardingCheckoutResponseDto extends createZodDto(
+  onboardingCheckoutResponseSchema,
 ) {}

@@ -1,6 +1,8 @@
+import { DEFAULT_CURRENCY } from '@workspace/utils';
+
 export class SubscriptionPrice {
   readonly paise: number;
-  readonly currency: string = 'INR';
+  readonly currency: string = DEFAULT_CURRENCY;
 
   constructor(paise: number) {
     if (paise < 0) {
@@ -45,7 +47,12 @@ export class SubscriptionPrice {
   }
 
   format(): string {
-    return `₹${this.getAmount().toFixed(2)}`;
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: this.currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(this.getAmount());
   }
 
   equals(other: SubscriptionPrice): boolean {

@@ -44,6 +44,7 @@ interface ChangePasswordData {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private emailLookupDisabled = false;
 
   constructor(
     private prisma: PrismaService,
@@ -54,14 +55,53 @@ export class AuthService {
     private observability: ObservabilityService,
   ) {}
 
+  private isDatabaseAuthError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { code?: unknown; message?: unknown };
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    if (code === 'P1000') {
+      return true;
+    }
+
+    return (
+      message.includes('authentication failed against the database server') ||
+      message.includes('database credentials') ||
+      message.includes('password authentication failed')
+    );
+  }
+
   async checkEmailExists(email: string): Promise<boolean> {
-    return this.prisma.runUnrestricted(async () => {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-        select: { id: true },
+    if (this.emailLookupDisabled) {
+      return false;
+    }
+
+    try {
+      return await this.prisma.runUnrestricted(async () => {
+        const user = await this.prisma.user.findUnique({
+          where: { email },
+          select: { id: true },
+        });
+        return !!user;
       });
-      return !!user;
-    });
+    } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.emailLookupDisabled = true;
+        this.logger.warn(
+          'Disabling email-exists database lookup due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return false;
+      }
+
+      throw error;
+    }
   }
 
   async validateUser(

@@ -125,6 +125,11 @@ export class SubscriptionPayment {
   }
 
   getDisplayAmount(): string {
-    return `₹${(this.amountCents / 100).toFixed(2)}`;
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: this.currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(this.amountCents / 100);
   }
 }

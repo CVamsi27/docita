@@ -18,32 +18,23 @@ interface ReminderSettingsData {
 @Injectable()
 export class ReminderSettingsService {
   private readonly logger = new Logger(ReminderSettingsService.name);
+  private databaseAccessDisabled = false;
 
   constructor(private prisma: PrismaService) {}
 
-  async getSettings(clinicId?: string): Promise<ReminderSettings> {
-    let settings: ReminderSettings | null = null;
-
-    if (clinicId) {
-      settings = await this.prisma.reminderSettings.findUnique({
-        where: { clinicId },
-      });
-    } else {
-      settings = await this.prisma.reminderSettings.findFirst();
-    }
-
-    if (!settings && clinicId) {
-      settings = await this.prisma.reminderSettings.create({
-        data: {
-          clinicId,
-          enabled: true,
-          smsEnabled: false,
-          emailEnabled: true,
-          whatsappEnabled: true,
-          hoursBeforeAppt: 24,
-          minutesBefore30: true,
-          emailSubject: 'Appointment Reminder - {clinicName}',
-          emailTemplate: `Dear {patientName},
+  private getFallbackSettings(clinicId?: string): ReminderSettings {
+    const now = new Date();
+    return {
+      id: 'local-fallback-reminder-settings',
+      clinicId: clinicId ?? '',
+      enabled: true,
+      smsEnabled: false,
+      emailEnabled: true,
+      whatsappEnabled: true,
+      hoursBeforeAppt: 24,
+      minutesBefore30: true,
+      emailSubject: 'Appointment Reminder - {clinicName}',
+      emailTemplate: `Dear {patientName},
 
 This is a friendly reminder about your upcoming appointment:
 
@@ -55,23 +46,128 @@ Please arrive 10 minutes early. If you need to reschedule, please contact us.
 
 Thank you,
 {clinicName}`,
-          smsTemplate:
-            'Reminder: You have an appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}. - {clinicName}',
-        },
-      });
+      smsTemplate:
+        'Reminder: You have an appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}. - {clinicName}',
+      whatsappTemplate:
+        'Reminder: You have an appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}. - {clinicName}',
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  private isDatabaseAuthError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
     }
 
-    return settings!;
+    const candidate = error as { code?: unknown; message?: unknown };
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    if (code === 'P1000') {
+      return true;
+    }
+
+    return (
+      message.includes('authentication failed against the database server') ||
+      message.includes('database credentials') ||
+      message.includes('password authentication failed')
+    );
+  }
+
+  async getSettings(clinicId?: string): Promise<ReminderSettings> {
+    if (this.databaseAccessDisabled) {
+      return this.getFallbackSettings(clinicId);
+    }
+
+    let settings: ReminderSettings | null = null;
+    try {
+      if (clinicId) {
+        settings = await this.prisma.reminderSettings.findUnique({
+          where: { clinicId },
+        });
+      } else {
+        settings = await this.prisma.reminderSettings.findFirst();
+      }
+
+      if (!settings && clinicId) {
+        settings = await this.prisma.reminderSettings.create({
+          data: {
+            clinicId,
+            enabled: true,
+            smsEnabled: false,
+            emailEnabled: true,
+            whatsappEnabled: true,
+            hoursBeforeAppt: 24,
+            minutesBefore30: true,
+            emailSubject: 'Appointment Reminder - {clinicName}',
+            emailTemplate: `Dear {patientName},
+
+This is a friendly reminder about your upcoming appointment:
+
+Date & Time: {appointmentDate} at {appointmentTime}
+Doctor: Dr. {doctorName}
+Type: {appointmentType}
+
+Please arrive 10 minutes early. If you need to reschedule, please contact us.
+
+Thank you,
+{clinicName}`,
+            smsTemplate:
+              'Reminder: You have an appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}. - {clinicName}',
+          },
+        });
+      }
+
+      return settings ?? this.getFallbackSettings(clinicId);
+    } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.databaseAccessDisabled = true;
+        this.logger.warn(
+          'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return this.getFallbackSettings(clinicId);
+      }
+
+      throw error;
+    }
   }
 
   async updateSettings(
     data: ReminderSettingsData,
     clinicId?: string,
   ): Promise<ReminderSettings> {
+    if (this.databaseAccessDisabled) {
+      return {
+        ...this.getFallbackSettings(clinicId),
+        ...data,
+        updatedAt: new Date(),
+      } as ReminderSettings;
+    }
+
     const existing = await this.getSettings(clinicId);
-    return this.prisma.reminderSettings.update({
-      where: { id: existing.id },
-      data,
-    });
+    try {
+      return await this.prisma.reminderSettings.update({
+        where: { id: existing.id },
+        data,
+      });
+    } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.databaseAccessDisabled = true;
+        this.logger.warn(
+          'Disabling reminder settings database access due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return {
+          ...this.getFallbackSettings(clinicId),
+          ...data,
+          updatedAt: new Date(),
+        } as ReminderSettings;
+      }
+
+      throw error;
+    }
   }
 }

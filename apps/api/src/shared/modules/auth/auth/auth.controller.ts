@@ -25,7 +25,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
 import { RequestWithUser } from '@/common/types/common.types';
-import { Role } from '@workspace/db';
+import { Prisma, Role } from '@workspace/db';
 import {
   LoginDto,
   RegisterDto,
@@ -163,12 +163,22 @@ export class AuthController {
         email: dto.email,
         password: dto.password,
         name: `${dto.firstName} ${dto.lastName}`,
+        role: dto.role,
         clinicName: dto.clinicName,
       });
       this.setAuthCookies(res, tokens);
       return tokens;
     } catch (error) {
-      this.logger.error('Register error:', error);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P1000'
+      ) {
+        this.logger.warn(
+          'Register unavailable due to database authentication failure.',
+        );
+      } else {
+        this.logger.error('Register error:', error);
+      }
       throw error;
     }
   }

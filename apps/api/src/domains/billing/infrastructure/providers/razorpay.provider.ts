@@ -130,14 +130,17 @@ export class RazorpayPaymentProvider implements IPaymentProvider {
   ): Promise<ChargeResult> {
     try {
       const razorpay = this.getClient();
+      const isEmail = customerId.includes('@');
       const paymentLink = await razorpay.paymentLink.create({
         amount: amountCents,
         currency,
         description,
         customer: {
-          name: '',
-          email: '',
-          contact: '',
+          name: customerId,
+          ...(isEmail ? { email: customerId } : { contact: customerId }),
+        },
+        notes: {
+          tokenId,
         },
       });
 

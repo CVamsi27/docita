@@ -94,7 +94,7 @@ describe('PushNotificationService', () => {
         'patient-1',
         expect.objectContaining({
           title: 'Payment Received',
-          body: expect.stringContaining('₹1500.50'),
+          body: expect.stringContaining('1500.50'),
           data: expect.objectContaining({
             invoiceNumber: 'INV12345',
             clinicName: 'Test Clinic',
@@ -117,7 +117,7 @@ describe('PushNotificationService', () => {
       expect(sendToPatientSpy).toHaveBeenCalledWith(
         'patient-1',
         expect.objectContaining({
-          body: expect.stringContaining('₹999.90'),
+          body: expect.stringContaining('999.90'),
         }),
         'payment_received',
       );
@@ -165,7 +165,7 @@ describe('PushNotificationService', () => {
         'patient-1',
         expect.objectContaining({
           title: 'Payment Reminder',
-          body: expect.stringContaining('₹750.00 due'),
+          body: expect.stringContaining('750.00 due'),
           data: expect.objectContaining({
             paymentLink: 'https://docita.com/invoice/INV99999',
           }),
@@ -191,7 +191,7 @@ describe('PushNotificationService', () => {
         'patient-1',
         expect.objectContaining({
           title: 'Invoice Ready',
-          body: expect.stringContaining('₹2000.00'),
+          body: expect.stringContaining('2000.00'),
           data: expect.objectContaining({
             paymentLink: 'https://docita.com/invoice/INV11111',
           }),

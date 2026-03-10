@@ -68,9 +68,9 @@ export class ResendService {
 
     const variables = {
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-      clinicName: prescription.appointment?.clinic?.name || 'Clinic',
+      clinicName: prescription.appointment?.clinic?.name ?? '',
       medications: medicationsList,
-      instructions: prescription.instructions || 'Follow as prescribed',
+      instructions: prescription.instructions ?? '',
       doctorName: prescription.doctor.name,
     };
 
@@ -166,8 +166,8 @@ export class ResendService {
 
     const variables = {
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-      clinicName: invoice.appointment?.clinic?.name || 'Clinic',
-      amount: `₹${invoice.total.toLocaleString('en-IN')}`,
+      clinicName: invoice.appointment?.clinic?.name ?? '',
+      amount: `${invoice.total.toLocaleString('en-IN')}`,
       invoiceNumber: id.slice(-8).toUpperCase(),
       date: new Date(invoice.createdAt).toLocaleDateString('en-IN'),
       paymentLink: paymentLink || '',

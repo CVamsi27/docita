@@ -8,17 +8,15 @@ export class AppConfigService {
   }
 
   getAppUrl(): string {
-    return this.getConfig().APP_URL || 'https://app.docita.work';
+    return this.getConfig().APP_URL;
   }
 
   getFrontendAppUrl(): string {
-    return this.getConfig().NEXT_PUBLIC_APP_URL || 'https://app.docita.work';
+    return this.getConfig().NEXT_PUBLIC_APP_URL;
   }
 
   getApiUrl(): string {
-    const apiUrl = this.getConfig().NEXT_PUBLIC_API_URL;
-    if (apiUrl) return apiUrl;
-    return 'https://api.docita.work';
+    return this.getConfig().NEXT_PUBLIC_API_URL;
   }
 
   getPaymentCallbackUrl(): string {
@@ -26,7 +24,7 @@ export class AppConfigService {
   }
 
   getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
-    return this.getConfig().NODE_ENV || 'development';
+    return this.getConfig().NODE_ENV;
   }
 
   isProduction(): boolean {
@@ -54,26 +52,10 @@ export class AppConfigService {
   }
 
   getCorsOrigins(): (string | RegExp)[] {
-    const envOrigins = this.getConfig().CORS_ORIGINS;
-    if (envOrigins) {
-      return envOrigins.split(',').map((origin) => origin.trim());
-    }
-
-    return [
-      'https://docita.work',
-      'https://app.docita.work',
-      'https://admin.docita.work',
-      'https://api.docita.work',
-      /^https:\/\/.*\.vercel\.app$/,
-      'http://localhost:3003',
-      'http://localhost:3000',
-      'http://localhost:3002',
-      'http://localhost:3001',
-      'http://127.0.0.1:3003',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3002',
-      'http://127.0.0.1:3001',
-    ];
+    return this.getConfig()
+      .CORS_ORIGINS.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
   }
 
   getSentryConfig() {
@@ -131,17 +113,6 @@ export class AppConfigService {
 
   getAnalyticsCacheTtl(): number {
     return this.getConfig().ANALYTICS_CACHE_TTL;
-  }
-
-  getClinicInfo() {
-    return {
-      name: this.getConfig().CLINIC_NAME,
-      address: this.getConfig().CLINIC_ADDRESS,
-      phone: this.getConfig().CLINIC_PHONE,
-      email: this.getConfig().CLINIC_EMAIL,
-      website: this.getConfig().CLINIC_WEBSITE,
-      gstin: this.getConfig().CLINIC_GSTIN,
-    };
   }
 
   getPaymentTtl(): number {
@@ -242,12 +213,12 @@ export class AppConfigService {
 
   getLogLevel(): string {
     const config = getEnv();
-    return config.LOG_LEVEL || 'info';
+    return config.LOG_LEVEL;
   }
 
   getPort(): number {
     const config = getEnv();
-    return config.PORT || 3001;
+    return config.PORT;
   }
 
   getSentryDsn(): string | undefined {
@@ -270,31 +241,6 @@ export class AppConfigService {
     return config.APP_VERSION;
   }
 
-  getClinicName(): string {
-    const config = getEnv();
-    return config.CLINIC_NAME;
-  }
-
-  getClinicAddress(): string | undefined {
-    const config = getEnv();
-    return config.CLINIC_ADDRESS;
-  }
-
-  getClinicPhone(): string | undefined {
-    const config = getEnv();
-    return config.CLINIC_PHONE;
-  }
-
-  getClinicEmail(): string | undefined {
-    const config = getEnv();
-    return config.CLINIC_EMAIL;
-  }
-
-  getClinicWebsite(): string | undefined {
-    const config = getEnv();
-    return config.CLINIC_WEBSITE;
-  }
-
   getPaymentLinkTtlMinutes(): number {
     const config = getEnv();
     return config.PAYMENT_LINK_TTL_MINUTES;
@@ -303,5 +249,10 @@ export class AppConfigService {
   getRequestTimeoutMs(): number {
     const config = getEnv();
     return config.REQUEST_TIMEOUT_MS;
+  }
+
+  getCurrencyCode(): string {
+    const config = getEnv();
+    return config.CURRENCY_CODE;
   }
 }

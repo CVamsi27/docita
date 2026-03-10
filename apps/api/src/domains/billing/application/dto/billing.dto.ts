@@ -9,6 +9,7 @@ import {
   paymentModeSchema,
   PaymentMode,
 } from '@workspace/types';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 export const CreateInvoiceSchema = invoiceSchema
   .omit({
@@ -83,7 +84,7 @@ export class PaginatedInvoiceResponseDto extends createZodDto(
 export const BillingCreatePaymentLinkSchema = z.object({
   invoiceId: z.string(),
   amount: z.number(),
-  currency: z.string().default('INR'),
+  currency: z.string().default(DEFAULT_CURRENCY),
   paymentMode: paymentModeSchema.optional().default(PaymentMode.ONLINE),
   patientId: z.string(),
   clinicId: z.string(),

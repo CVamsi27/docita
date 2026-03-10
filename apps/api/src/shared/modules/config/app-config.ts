@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
+  DB_ENCRYPTION_AT_REST_CONFIRMED: z.enum(['true', 'false']).default('false'),
   DATABASE_READ_URL: z.string().optional(),
   JWT_SECRET: z.string().min(1),
   ENCRYPTION_KEY: z.string().length(64),
@@ -10,10 +11,10 @@ export const EnvSchema = z.object({
     .default('development'),
   PORT: z.coerce.number().default(3001),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  APP_URL: z.string().optional(),
-  NEXT_PUBLIC_APP_URL: z.string().optional(),
-  NEXT_PUBLIC_API_URL: z.string().optional(),
-  CORS_ORIGINS: z.string().optional(),
+  APP_URL: z.string().min(1),
+  NEXT_PUBLIC_APP_URL: z.string().min(1),
+  NEXT_PUBLIC_API_URL: z.string().min(1),
+  CORS_ORIGINS: z.string().min(1),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -25,7 +26,7 @@ export const EnvSchema = z.object({
   AI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   RESEND_API_URL: z.string().default('https://api.resend.com/emails'),
-  EMAIL_FROM: z.string().default('Docita <noreply@docita.work>'),
+  EMAIL_FROM: z.string().default('Docita <notifications@docita.work>'),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_CREDENTIALS_JSON: z.string().optional(),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.75),
@@ -41,12 +42,6 @@ export const EnvSchema = z.object({
   SENTRY_PROFILES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
   APP_VERSION: z.string().default('1.0.0'),
   ANALYTICS_CACHE_TTL: z.coerce.number().default(300),
-  CLINIC_NAME: z.string().default('Docita Clinic'),
-  CLINIC_ADDRESS: z.string().optional(),
-  CLINIC_PHONE: z.string().optional(),
-  CLINIC_EMAIL: z.string().optional(),
-  CLINIC_WEBSITE: z.string().optional(),
-  CLINIC_GSTIN: z.string().optional(),
   PAYMENT_TTL: z.coerce.number().default(3600),
   PAYMENT_LINK_TTL_MINUTES: z.coerce.number().default(15),
   PAYMENT_RETRY_MAX_ATTEMPTS: z.coerce.number().default(3),
@@ -58,6 +53,7 @@ export const EnvSchema = z.object({
   BULK_IMPORT_RATE_LIMIT_INTERVAL: z.coerce.number().default(300),
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
+  CURRENCY_CODE: z.string().min(1),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
@@ -67,26 +63,10 @@ export function isDevelopment(): boolean {
 }
 
 export function getCorsOrigins(): (string | RegExp)[] {
-  const envOrigins = process.env.CORS_ORIGINS;
-  if (envOrigins) {
-    return envOrigins.split(',').map((origin) => origin.trim());
-  }
-
-  return [
-    'https://docita.work',
-    'https://app.docita.work',
-    'https://admin.docita.work',
-    'https://api.docita.work',
-    /^https:\/\/.*\.docita\.work$/,
-    'http://localhost:3003',
-    'http://localhost:3000',
-    'http://localhost:3002',
-    'http://localhost:3001',
-    'http://127.0.0.1:3003',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3002',
-    'http://127.0.0.1:3001',
-  ];
+  return validateEnv()
+    .CORS_ORIGINS.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 }
 
 export function getWebSocketCorsOrigins(): (string | RegExp)[] {

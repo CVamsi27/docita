@@ -1,5 +1,6 @@
 import { Money } from '@/domains/billing/core/value-objects/money.value-object';
 import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 export interface TaxConfiguration {
   rate: number;
@@ -65,7 +66,7 @@ export class BillingCalculatorService {
 
   calculateTotalTax(items: InvoiceItem[]): Money {
     if (items.length === 0) {
-      return new Money(0, 'INR');
+      return new Money(0, DEFAULT_CURRENCY);
     }
 
     return items
@@ -75,7 +76,7 @@ export class BillingCalculatorService {
 
   calculateTotalDiscount(items: InvoiceItem[]): Money {
     if (items.length === 0) {
-      return new Money(0, 'INR');
+      return new Money(0, DEFAULT_CURRENCY);
     }
 
     return items

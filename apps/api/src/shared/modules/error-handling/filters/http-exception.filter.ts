@@ -159,6 +159,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorType = 'PrismaClientKnownRequestError';
       errorStack = exception.stack;
       switch (exception.code) {
+        case 'P1000':
+          status = HttpStatus.SERVICE_UNAVAILABLE;
+          message =
+            'Database connection is unavailable. Please try again shortly.';
+          details = { code: 'P1000' };
+          break;
         case 'P2002': {
           status = HttpStatus.CONFLICT;
           const fields = toStringArray(exception.meta?.target);

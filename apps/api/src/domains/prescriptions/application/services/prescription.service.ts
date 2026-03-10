@@ -10,7 +10,6 @@ import {
   IPrescriptionRepository,
   PrescriptionDetail,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import {
@@ -32,7 +31,6 @@ export class PrescriptionsService {
     private readonly repository: IPrescriptionRepository,
     private pdfService: PrescriptionPdfService,
     private eventEmitter: EventEmitter2,
-    private configService: AppConfigService,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
@@ -204,16 +202,27 @@ export class PrescriptionsService {
     const patientAge = calculateAge(prescription.patient.dateOfBirth);
     const clinic = prescription.patient.clinic;
 
+    if (!clinic?.name) {
+      throw new BadRequestException(
+        'Clinic details are required to generate prescription PDF',
+      );
+    }
+    if (!prescription.doctorName) {
+      throw new BadRequestException(
+        'Doctor details are required to generate prescription PDF',
+      );
+    }
+
     return this.pdfService.generate({
       prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
       clinic: {
-        name: clinic?.name || this.configService.getClinicName(),
-        address: clinic?.address || this.configService.getClinicAddress(),
-        phone: clinic?.phoneNumber || this.configService.getClinicPhone(),
-        email: clinic?.email || this.configService.getClinicEmail(),
+        name: clinic.name,
+        address: clinic.address || undefined,
+        phone: clinic.phoneNumber || undefined,
+        email: clinic.email || undefined,
       },
       doctor: {
-        name: prescription.doctorName || 'Doctor',
+        name: prescription.doctorName,
         qualification: undefined,
         registrationNumber: prescription.doctorRegistrationNumber || undefined,
         signatureUrl: undefined,

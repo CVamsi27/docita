@@ -80,16 +80,21 @@ export class PatientsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get patient by ID' })
-  async findOne(@Param('id') id: string) {
-    return this.patientService.getPatient(id);
+  async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
+    return this.patientService.getPatient(id, req.user!.clinicId!);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update patient' })
-  async update(@Param('id') id: string, @Body() body: UpdatePatientDto) {
+  async update(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: UpdatePatientDto,
+  ) {
     return this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
+      req.user!.clinicId!,
     );
   }
 }

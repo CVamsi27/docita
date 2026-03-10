@@ -105,6 +105,11 @@ interface UpdateMemberData {
   registrationNumber?: string;
 }
 
+interface JoinClinicData {
+  clinicCode?: string;
+  clinicEmail?: string;
+}
+
 @Injectable()
 export class ClinicsService {
   constructor(
@@ -199,5 +204,9 @@ export class ClinicsService {
       memberId,
       actorUserId,
     );
+  }
+
+  async joinClinicForUser(userId: string, data: JoinClinicData) {
+    return this.clinicDataService.joinClinicForUser(userId, data);
   }
 }

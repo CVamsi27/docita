@@ -6,6 +6,9 @@ import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
+import { UploadsService } from '@/domains/documents/application/services/uploads.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import { BadRequestException, Logger } from '@nestjs/common';
 import {
   beforeEach,
@@ -140,6 +143,16 @@ describe('OnboardingService', () => {
       .mockImplementation(async () => undefined),
     logOnboardingEvent: jest.fn().mockImplementation(async () => undefined),
   };
+  const mockUploadsService = {
+    updateSession: jest.fn(),
+  };
+  const mockAppConfigService = {
+    getRazorpayKeyId: jest.fn(() => 'rzp_test_key'),
+  };
+  const mockPaymentGateway = {
+    createOrder: jest.fn(),
+    verifyPayment: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -159,6 +172,9 @@ describe('OnboardingService', () => {
           provide: OnboardingComplianceService,
           useValue: mockComplianceService,
         },
+        { provide: UploadsService, useValue: mockUploadsService },
+        { provide: AppConfigService, useValue: mockAppConfigService },
+        { provide: PAYMENT_GATEWAY_TOKEN, useValue: mockPaymentGateway },
       ],
     }).compile();
 

@@ -13,6 +13,7 @@ import {
   SupportedCurrency,
   type TierName,
 } from '@workspace/types';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 @Injectable()
 export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrategy {
@@ -31,7 +32,7 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
     currency?: string;
   }): Promise<PricingCalculationResult> {
     const currency = (params.currency?.toUpperCase() ||
-      'INR') as SupportedCurrency;
+      DEFAULT_CURRENCY) as SupportedCurrency;
     const tierPricing = TIER_PRICING_BY_CURRENCY[currency];
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency];

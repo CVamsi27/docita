@@ -20,6 +20,7 @@ import {
   Tier,
   FEATURE_TIER_MAP,
 } from '@/shared/modules/auth/auth/tier.decorator';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 @Injectable()
 export class SubscriptionsQueryService {
@@ -134,7 +135,7 @@ export class SubscriptionsQueryService {
     return {
       nextDate: subscription.currentPeriodEnd,
       amount: amount,
-      currency: 'INR',
+      currency: DEFAULT_CURRENCY,
       plan: subscription.getPlan().value,
     };
   }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier, Prisma } from '@workspace/db';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 interface UsageData {
   period: { start: Date; end: Date };
@@ -105,7 +106,7 @@ export class OverageCalculationService {
       period: usageData.period,
       totalOverageCharges,
       breakdown,
-      currency: 'INR',
+      currency: DEFAULT_CURRENCY,
     };
   }
 

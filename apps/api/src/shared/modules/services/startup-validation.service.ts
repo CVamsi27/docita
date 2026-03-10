@@ -13,6 +13,8 @@ export class StartupValidationService {
     this.validateEncryptionKey();
     this.validateJwtSecret();
     this.validateDatabaseConfiguration();
+    this.validateTransportSecurity();
+    this.validateDataAtRestControls();
     this.validateProductionSecrets();
 
     this.logger.log(' All startup validations passed');
@@ -119,10 +121,69 @@ export class StartupValidationService {
         );
       }
 
+      const normalizedUrl = databaseUrl.toLowerCase();
+      const hasDbTlsEnabled =
+        normalizedUrl.includes('sslmode=require') ||
+        normalizedUrl.includes('ssl=true') ||
+        normalizedUrl.includes('sslaccept=strict');
+
+      if (!hasDbTlsEnabled) {
+        throw new Error(
+          'DATABASE_URL must enforce TLS in production (for example add sslmode=require).',
+        );
+      }
+
       this.logger.log(' DATABASE_URL validated (production)');
     } else {
       this.logger.debug(' DATABASE_URL validated');
     }
+  }
+
+  private validateTransportSecurity(): void {
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    if (nodeEnv !== 'production') {
+      return;
+    }
+
+    const appUrl = this.configService.get<string>('APP_URL') || '';
+    const publicAppUrl =
+      this.configService.get<string>('NEXT_PUBLIC_APP_URL') || '';
+    const publicApiUrl =
+      this.configService.get<string>('NEXT_PUBLIC_API_URL') || '';
+
+    const urlsToValidate = [appUrl, publicAppUrl, publicApiUrl].filter(Boolean);
+
+    urlsToValidate.forEach((url) => {
+      if (!url.startsWith('https://')) {
+        throw new Error(
+          `All runtime URLs must use HTTPS in production. Invalid URL: ${url}`,
+        );
+      }
+    });
+
+    this.logger.log(' Transport security validated (HTTPS endpoints)');
+  }
+
+  private validateDataAtRestControls(): void {
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    if (nodeEnv !== 'production') {
+      return;
+    }
+
+    const encryptionAtRestConfirmed = this.configService.get<string>(
+      'DB_ENCRYPTION_AT_REST_CONFIRMED',
+      'false',
+    );
+
+    if (encryptionAtRestConfirmed !== 'true') {
+      throw new Error(
+        'DB_ENCRYPTION_AT_REST_CONFIRMED must be true in production after verifying provider-level disk/storage encryption.',
+      );
+    }
+
+    this.logger.log(
+      ' Data-at-rest control validated (provider encryption acknowledged)',
+    );
   }
 
   private validateProductionSecrets(): void {

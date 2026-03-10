@@ -53,9 +53,9 @@ export class InvoiceDocumentBuilder extends BaseDocumentBuilder {
       ]);
 
     this.addHeading('Totals', 2)
-      .addParagraph(`Subtotal: ₹${data.subtotal.toFixed(2)}`)
-      .addParagraph(`Tax: ₹${data.tax.toFixed(2)}`)
-      .addParagraph(`Total: ₹${data.total.toFixed(2)}`);
+      .addParagraph(`Subtotal: ${data.subtotal.toFixed(2)}`)
+      .addParagraph(`Tax: ${data.tax.toFixed(2)}`)
+      .addParagraph(`Total: ${data.total.toFixed(2)}`);
 
     if (data.notes) {
       this.addHeading('Notes', 2).addParagraph(data.notes);

@@ -51,3 +51,14 @@ export class ClinicCreateReceptionistDto extends createZodDto(
 export const UpdateMemberSchema = updateClinicMemberRequestSchema;
 
 export class ClinicUpdateMemberDto extends createZodDto(UpdateMemberSchema) {}
+
+export const JoinClinicSchema = z
+  .object({
+    clinicCode: z.string().trim().min(3).optional(),
+    clinicEmail: z.string().trim().email().optional(),
+  })
+  .refine((data) => Boolean(data.clinicCode || data.clinicEmail), {
+    message: 'clinicCode or clinicEmail is required',
+  });
+
+export class JoinClinicDto extends createZodDto(JoinClinicSchema) {}

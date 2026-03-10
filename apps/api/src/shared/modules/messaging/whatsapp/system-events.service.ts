@@ -53,7 +53,7 @@ export class SystemEventsService {
 
     const variables = {
       patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-      clinicName: prescription.appointment?.clinic?.name || 'Clinic',
+      clinicName: prescription.appointment?.clinic?.name ?? '',
       doctorName: prescription.doctor.name,
       link: `https://docita.com/prescription/${prescription.id}`,
     };
@@ -95,8 +95,8 @@ export class SystemEventsService {
 
     const variables = {
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-      clinicName: invoice.appointment?.clinic?.name || 'Clinic',
-      amount: `₹${invoice.total}`,
+      clinicName: invoice.appointment?.clinic?.name ?? '',
+      amount: `${invoice.total}`,
       link: `https://docita.com/invoice/${invoice.id}`,
     };
 
@@ -138,7 +138,7 @@ export class SystemEventsService {
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-      clinicName: appointment.clinic?.name || 'Clinic',
+      clinicName: appointment.clinic?.name ?? '',
       doctorName: appointment.doctor.name,
       date: appointment.startTime.toLocaleDateString(),
       time: appointment.startTime.toLocaleTimeString(),
@@ -190,7 +190,7 @@ export class SystemEventsService {
 
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-      clinicName: appointment.clinic?.name || 'Clinic',
+      clinicName: appointment.clinic?.name ?? '',
       date: appointment.startTime.toLocaleDateString(),
       time: appointment.startTime.toLocaleTimeString(),
     };

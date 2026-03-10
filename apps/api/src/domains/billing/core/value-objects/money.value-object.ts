@@ -1,7 +1,9 @@
+import { DEFAULT_CURRENCY } from '@workspace/utils';
+
 export class Money {
   constructor(
     readonly amount: number,
-    readonly currency: string = 'INR',
+    readonly currency: string = DEFAULT_CURRENCY,
   ) {
     if (amount < 0) {
       throw new Error('Amount cannot be negative');

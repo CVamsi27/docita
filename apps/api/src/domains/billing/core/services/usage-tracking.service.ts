@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Prisma } from '@workspace/db';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 @Injectable()
 export class UsageTrackingService {
@@ -318,7 +319,7 @@ export class UsageTrackingService {
       period: usage.period,
       totalOverageCharges,
       breakdown,
-      currency: 'INR',
+      currency: DEFAULT_CURRENCY,
     };
   }
 

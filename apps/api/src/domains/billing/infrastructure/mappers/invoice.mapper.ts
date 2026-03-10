@@ -10,6 +10,7 @@ import {
   InvoiceStatusEnum,
   BillingPeriod,
 } from '@/domains/billing/core/value-objects';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 interface InvoiceItemData {
   id: string;
@@ -81,7 +82,7 @@ export class InvoiceMapper {
           invoiceId: raw.id,
           description: item.description || '',
           quantity: item.quantity || 0,
-          unitPrice: new Money(item.unitPrice || 0, 'INR'),
+          unitPrice: new Money(item.unitPrice || 0, DEFAULT_CURRENCY),
           taxRate: item.taxRate || 0,
           discount: item.discount || 0,
         }),

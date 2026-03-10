@@ -29,6 +29,7 @@ interface AppointmentForReminder {
 @Injectable()
 export class ReminderSchedulerService {
   private readonly logger = new Logger(ReminderSchedulerService.name);
+  private databaseAccessDisabled = false;
 
   constructor(
     private prisma: PrismaService,
@@ -37,33 +38,177 @@ export class ReminderSchedulerService {
     private notificationService: ReminderNotificationService,
   ) {}
 
+  private isDatabaseAuthError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { code?: unknown; message?: unknown };
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    if (code === 'P1000') {
+      return true;
+    }
+
+    return (
+      message.includes('authentication failed against the database server') ||
+      message.includes('database credentials') ||
+      message.includes('password authentication failed')
+    );
+  }
+
   @Cron(CronExpression.EVERY_HOUR)
   async checkAndSendReminders(): Promise<void> {
+    if (this.databaseAccessDisabled) {
+      return;
+    }
+
     const now = new Date();
 
-    return this.prisma.runUnrestricted(async () => {
-      const allSettings = await this.prisma.reminderSettings.findMany({
-        where: { enabled: true, clinicId: { not: null } },
-      });
+    try {
+      return await this.prisma.runUnrestricted(async () => {
+        const allSettings = await this.prisma.reminderSettings.findMany({
+          where: { enabled: true, clinicId: { not: null } },
+        });
 
-      if (allSettings.length === 0) {
-        this.logger.log('No clinic reminder settings found or all disabled');
+        if (allSettings.length === 0) {
+          this.logger.log('No clinic reminder settings found or all disabled');
+          return;
+        }
+
+        for (const settings of allSettings) {
+          if (!settings.clinicId) continue;
+
+          const reminderTime = new Date(
+            now.getTime() + settings.hoursBeforeAppt * 60 * 60 * 1000,
+          );
+
+          const appointments = await this.prisma.appointment.findMany({
+            where: {
+              clinicId: settings.clinicId,
+              startTime: {
+                gte: now,
+                lte: reminderTime,
+              },
+              status: {
+                in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+              },
+            },
+            include: {
+              patient: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  phoneNumber: true,
+                  email: true,
+                },
+              },
+              doctor: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              clinic: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          });
+
+          this.logger.log(
+            `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
+          );
+
+          for (const appointment of appointments) {
+            const existingReminder =
+              await this.prisma.appointmentReminder.findFirst({
+                where: {
+                  appointmentId: appointment.id,
+                  status: 'sent',
+                },
+              });
+
+            if (existingReminder) {
+              continue;
+            }
+
+            if (settings.emailEnabled && appointment.patient.email) {
+              await this.notificationService.sendEmailReminder(
+                appointment as AppointmentForReminder,
+                settings,
+              );
+            }
+
+            if (settings.smsEnabled && appointment.patient.phoneNumber) {
+              await this.notificationService.sendSmsReminder(
+                appointment as AppointmentForReminder,
+                settings,
+              );
+            }
+
+            if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
+              const templateId =
+                settings.hoursBeforeAppt === 1
+                  ? 'appointment_reminder_1hr'
+                  : 'appointment_reminder_24hr';
+
+              await this.notificationService.sendWhatsappReminder(
+                appointment as AppointmentForReminder,
+                settings,
+                templateId,
+              );
+            }
+          }
+        }
+      });
+    } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.databaseAccessDisabled = true;
+        this.logger.warn(
+          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
         return;
       }
 
-      for (const settings of allSettings) {
-        if (!settings.clinicId) continue;
+      throw error;
+    }
+  }
 
-        const reminderTime = new Date(
-          now.getTime() + settings.hoursBeforeAppt * 60 * 60 * 1000,
-        );
+  @Cron('*/5 * * * *')
+  async checkAndSend30MinReminders(): Promise<void> {
+    if (this.databaseAccessDisabled) {
+      return;
+    }
+
+    try {
+      return await this.prisma.runUnrestricted(async () => {
+        const settings = await this.settingsService.getSettings();
+
+        if (
+          !settings?.enabled ||
+          !settings?.minutesBefore30 ||
+          !settings?.whatsappEnabled
+        ) {
+          return;
+        }
+
+        const now = new Date();
+        const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
+        const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
 
         const appointments = await this.prisma.appointment.findMany({
           where: {
-            clinicId: settings.clinicId,
             startTime: {
-              gte: now,
-              lte: reminderTime,
+              gte: thirtyMinFromNow,
+              lt: thirtyFiveMinFromNow,
             },
             status: {
               in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
@@ -95,7 +240,7 @@ export class ReminderSchedulerService {
         });
 
         this.logger.log(
-          `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
+          `Found ${appointments.length} appointments needing 30-min reminders`,
         );
 
         for (const appointment of appointments) {
@@ -103,6 +248,7 @@ export class ReminderSchedulerService {
             await this.prisma.appointmentReminder.findFirst({
               where: {
                 appointmentId: appointment.id,
+                type: 'whatsapp_30min',
                 status: 'sent',
               },
             });
@@ -111,116 +257,26 @@ export class ReminderSchedulerService {
             continue;
           }
 
-          if (settings.emailEnabled && appointment.patient.email) {
-            await this.notificationService.sendEmailReminder(
-              appointment as AppointmentForReminder,
-              settings,
-            );
-          }
-
-          if (settings.smsEnabled && appointment.patient.phoneNumber) {
-            await this.notificationService.sendSmsReminder(
-              appointment as AppointmentForReminder,
-              settings,
-            );
-          }
-
-          if (settings.whatsappEnabled && appointment.patient.phoneNumber) {
-            const templateId =
-              settings.hoursBeforeAppt === 1
-                ? 'appointment_reminder_1hr'
-                : 'appointment_reminder_24hr';
-
+          if (appointment.patient.phoneNumber) {
             await this.notificationService.sendWhatsappReminder(
               appointment as AppointmentForReminder,
               settings,
-              templateId,
+              'appointment_reminder_30min',
+              'whatsapp_30min',
             );
           }
         }
-      }
-    });
-  }
-
-  @Cron('*/5 * * * *')
-  async checkAndSend30MinReminders(): Promise<void> {
-    return this.prisma.runUnrestricted(async () => {
-      const settings = await this.settingsService.getSettings();
-
-      if (
-        !settings?.enabled ||
-        !settings?.minutesBefore30 ||
-        !settings?.whatsappEnabled
-      ) {
+      });
+    } catch (error) {
+      if (this.isDatabaseAuthError(error)) {
+        this.databaseAccessDisabled = true;
+        this.logger.warn(
+          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
         return;
       }
 
-      const now = new Date();
-      const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
-      const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
-
-      const appointments = await this.prisma.appointment.findMany({
-        where: {
-          startTime: {
-            gte: thirtyMinFromNow,
-            lt: thirtyFiveMinFromNow,
-          },
-          status: {
-            in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
-          },
-        },
-        include: {
-          patient: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              phoneNumber: true,
-              email: true,
-            },
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          clinic: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-      this.logger.log(
-        `Found ${appointments.length} appointments needing 30-min reminders`,
-      );
-
-      for (const appointment of appointments) {
-        const existingReminder =
-          await this.prisma.appointmentReminder.findFirst({
-            where: {
-              appointmentId: appointment.id,
-              type: 'whatsapp_30min',
-              status: 'sent',
-            },
-          });
-
-        if (existingReminder) {
-          continue;
-        }
-
-        if (appointment.patient.phoneNumber) {
-          await this.notificationService.sendWhatsappReminder(
-            appointment as AppointmentForReminder,
-            settings,
-            'appointment_reminder_30min',
-            'whatsapp_30min',
-          );
-        }
-      }
-    });
+      throw error;
+    }
   }
 }

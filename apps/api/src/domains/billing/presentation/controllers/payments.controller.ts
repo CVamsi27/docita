@@ -14,12 +14,16 @@ import { Idempotent } from '@/shared/modules/auth/decorators/idempotent.decorato
 import { IdempotencyInterceptor } from '@/common/interceptors/idempotency.interceptor';
 import { UseInterceptors } from '@nestjs/common';
 import { RequestWithUser } from '@/common/types/common.types';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Controller('payments')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 @UseInterceptors(IdempotencyInterceptor)
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   @Post('link')
   @Idempotent()
@@ -27,7 +31,7 @@ export class PaymentsController {
   async createPaymentLink(@Body() dto: CreatePaymentLinkDto) {
     return this.paymentsService.createPaymentLink({
       ...dto,
-      currency: dto.currency || 'INR',
+      currency: dto.currency || this.configService.getCurrencyCode(),
     });
   }
 

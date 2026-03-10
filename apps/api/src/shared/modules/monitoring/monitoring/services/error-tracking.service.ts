@@ -38,7 +38,17 @@ export class ErrorTrackingService implements OnModuleDestroy {
   }
 
   logError(data: ErrorLogInput): void {
-    const validatedData = this.monitoringFactory.createErrorLog(data);
+    let validatedData: ErrorLogInput;
+    try {
+      validatedData = this.monitoringFactory.createErrorLog(data);
+    } catch (error) {
+      this.logger.warn(
+        'Skipping malformed error-log payload in monitoring pipeline',
+        error instanceof Error ? error.message : String(error),
+      );
+      return;
+    }
+
     this.errorBuffer.push(validatedData);
 
     if (this.errorBuffer.length >= this.BATCH_SIZE) {
@@ -94,6 +104,19 @@ export class ErrorTrackingService implements OnModuleDestroy {
         );
         return;
       }
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P1000'
+      ) {
+        this.persistenceDisabled = true;
+        this.errorBuffer = [];
+        this.logger.warn(
+          'Disabling error persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return;
+      }
+
       this.logger.error('Failed to write errors to database', error);
     }
   }

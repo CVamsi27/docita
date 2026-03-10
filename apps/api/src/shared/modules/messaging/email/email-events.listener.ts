@@ -34,7 +34,7 @@ export class EmailEventsListener {
       await this.emailService.sendWelcomeEmail(
         payload.email,
         payload.name,
-        clinic?.name || 'Your Clinic',
+        clinic?.name ?? '',
       );
 
       this.logger.log(`Welcome email sent to ${payload.email}`);
@@ -72,9 +72,9 @@ export class EmailEventsListener {
         await this.emailService.sendAppointmentReminder(
           patient.email,
           `${patient.firstName} ${patient.lastName}`,
-          doctor?.name || 'Your Doctor',
+          doctor?.name ?? '',
           payload.startTime,
-          clinic?.name || 'The Clinic',
+          clinic?.name ?? '',
         );
 
         this.logger.log(`Appointment confirmation sent to ${patient.email}`);
@@ -104,7 +104,7 @@ export class EmailEventsListener {
         : null;
 
       this.logger.debug(
-        `Patient ${payload.firstName} created at ${clinic?.name || 'clinic'} - email available`,
+        `Patient ${payload.firstName} created at ${clinic?.name ?? ''} - email available`,
       );
     } catch (error) {
       this.logger.error('Failed to process patient creation for email', error);

@@ -15,6 +15,7 @@ import {
   Discount,
   DiscountType,
 } from '@/domains/subscriptions/core/value-objects';
+import { DEFAULT_CURRENCY } from '@workspace/utils';
 
 export class SubscriptionMapper {
   private static toInputJsonValue(value: unknown): Prisma.InputJsonValue {
@@ -65,7 +66,7 @@ export class SubscriptionMapper {
         .getBillingCycle()
         .toString() as PrismaBillingCycle,
       basePriceCents: subscription.getBasePrice().paise,
-      currency: 'INR',
+      currency: DEFAULT_CURRENCY,
       status: subscription.getStatus().toString() as PrismaSubscriptionStatus,
       discountsApplied: this.toInputJsonValue(discountsJson),
       totalDiscountPercent: subscription.getDiscounts().getTotalPercent(),

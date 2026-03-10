@@ -373,7 +373,7 @@ export class SuperAdminLogService {
         timestamp: inv.createdAt.toISOString(),
         level: inv.status === InvoiceStatus.CANCELLED ? 'WARNING' : 'INFO',
         module: 'Billing',
-        message: `Invoice ${inv.status}: ₹${inv.total}`,
+        message: `Invoice ${inv.status}: ${inv.total}`,
       });
     });
 

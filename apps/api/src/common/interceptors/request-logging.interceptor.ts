@@ -39,6 +39,15 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
   constructor(private monitoringService: MonitoringService) {}
 
+  private logAccess(
+    method: string,
+    path: string,
+    statusCode: number,
+    duration: number,
+  ) {
+    this.logger.log(`${method} ${path} ${statusCode} ${duration}ms`);
+  }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
@@ -84,6 +93,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           ip,
         });
 
+        this.logAccess(method, path, statusCode, duration);
+
         if (duration > 3000) {
           this.logger.warn(
             `Slow request: ${method} ${path} took ${duration}ms`,
@@ -107,6 +118,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           error: error.message,
           errorStack: error.stack,
         });
+
+        this.logAccess(method, path, statusCode, duration);
 
         throw error;
       }),

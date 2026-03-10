@@ -21,6 +21,7 @@ import {
   PlanSelectionDto,
   StaffSetupDto,
   BillingCycle,
+  ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
 
@@ -38,8 +39,10 @@ interface OnboardingPaymentInput {
   skipPayment?: boolean;
 }
 
-function toStaffRole(role: 'DOCTOR' | 'RECEPTIONIST'): Role {
-  return role === 'DOCTOR' ? Role.DOCTOR : Role.RECEPTIONIST;
+function toStaffRole(role: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN_DOCTOR'): Role {
+  if (role === 'DOCTOR') return Role.DOCTOR;
+  if (role === 'ADMIN_DOCTOR') return Role.ADMIN_DOCTOR;
+  return Role.RECEPTIONIST;
 }
 
 @Injectable()
@@ -106,8 +109,40 @@ export class OnboardingWorkflowService {
       where: { email: adminData.email },
     });
 
+    const resolvedRole =
+      adminData.role ||
+      (existingUser?.role === Role.ADMIN_DOCTOR
+        ? Role.ADMIN_DOCTOR
+        : Role.ADMIN);
+
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      if (existingUser.clinicId) {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      const updatedUser = await tx.user.update({
+        where: { id: existingUser.id },
+        data: {
+          name: adminData.name,
+          role: resolvedRole,
+          clinicId,
+          phoneNumber: adminData.phoneNumber,
+          qualification: adminData.qualification,
+          registrationNumber: adminData.registrationNumber,
+          specialization: this.validation.validateSpecialization(
+            adminData.specialization,
+          ),
+        },
+      });
+
+      this.logger.log(
+        `Linked existing user: ${updatedUser.id} as owner for clinic: ${clinicId}`,
+      );
+      return updatedUser;
+    }
+
+    if (!adminData.password) {
+      throw new BadRequestException('Owner password is required');
     }
 
     const passwordValidation = this.validation.validatePasswordStrength(
@@ -125,7 +160,7 @@ export class OnboardingWorkflowService {
         email: adminData.email,
         password: hashedPassword,
         phoneNumber: adminData.phoneNumber,
-        role: 'ADMIN',
+        role: resolvedRole,
         clinicId,
         qualification: adminData.qualification,
         registrationNumber: adminData.registrationNumber,
@@ -146,8 +181,11 @@ export class OnboardingWorkflowService {
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
     const now = new Date();
-    const periodEnd =
-      planData.billingCycle === BillingCycle.YEARLY
+    const isCoreTrial =
+      planData.tier === ClinicTier.CORE && paymentData?.skipPayment === true;
+    const periodEnd = isCoreTrial
+      ? new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+      : planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
         : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 

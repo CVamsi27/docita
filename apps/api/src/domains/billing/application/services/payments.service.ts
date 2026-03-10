@@ -77,14 +77,24 @@ export class PaymentsService {
       short_url: string;
       raw: Prisma.JsonValue;
     } | null = null;
+
+    const invoice = await this.invoiceRepository.findById(dto.invoiceId);
+    const patient = invoice?.patient;
+    const customerName = `${patient?.firstName || ''} ${
+      patient?.lastName || ''
+    }`.trim();
+    const customerContact = patient?.phoneNumber || '';
+    const customerEmail = patient?.email || undefined;
+
     try {
       const link = await this.paymentProvider.createPaymentLink({
         amount: dto.amount,
         currency: dto.currency,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,
         customer: {
-          name: 'Patient',
-          contact: '',
+          name: customerName || dto.patientId,
+          email: customerEmail,
+          contact: customerContact,
         },
         callbackUrl: `${this.configService.getFrontendAppUrl()}/payment/callback`,
       });
@@ -143,7 +153,7 @@ export class PaymentsService {
           patient_name: patientName,
           amount,
           payment_link: link,
-          clinic_name: 'Our Clinic',
+          clinic_name: session.clinicId,
         },
         clinicId: session.clinicId,
       });
@@ -215,13 +225,19 @@ export class PaymentsService {
       status: InvoiceStatus.PAID,
     });
 
+    if (!invoice.patientId) {
+      throw new BadRequestException(
+        'Cannot record manual payment: invoice is not linked to a patient',
+      );
+    }
+
     await this.repository.create({
       clinic: { connect: { id: data.clinicId } },
       invoice: { connect: { id: data.invoiceId } },
-      patient: { connect: { id: invoice.patientId || '' } },
+      patient: { connect: { id: invoice.patientId } },
       provider: 'manual',
       amount: Math.round(data.amount * 100),
-      currency: 'INR',
+      currency: this.configService.getCurrencyCode(),
       status: PaymentSessionStatus.CAPTURED,
       expiresAt: new Date(),
       meta: {

@@ -67,7 +67,7 @@ export class PushNotificationService {
       patientId,
       {
         title: 'Payment Received',
-        body: `₹${amount.toFixed(2)} received for Invoice #${invoiceNumber} at ${clinicName}`,
+        body: `${amount.toFixed(2)} received for Invoice #${invoiceNumber} at ${clinicName}`,
         data: {
           invoiceNumber,
           amount: amount.toString(),
@@ -88,7 +88,7 @@ export class PushNotificationService {
       patientId,
       {
         title: 'Payment Failed',
-        body: `Your payment of ₹${amount.toFixed(2)} for Invoice #${invoiceNumber} could not be processed`,
+        body: `Your payment of ${amount.toFixed(2)} for Invoice #${invoiceNumber} could not be processed`,
         data: {
           invoiceNumber,
           amount: amount.toString(),
@@ -110,7 +110,7 @@ export class PushNotificationService {
       patientId,
       {
         title: 'Payment Reminder',
-        body: `₹${amount.toFixed(2)} due for Invoice #${invoiceNumber} at ${clinicName}`,
+        body: `${amount.toFixed(2)} due for Invoice #${invoiceNumber} at ${clinicName}`,
         data: {
           invoiceNumber,
           amount: amount.toString(),
@@ -133,7 +133,7 @@ export class PushNotificationService {
       patientId,
       {
         title: 'Invoice Ready',
-        body: `Your invoice for ₹${amount.toFixed(2)} from ${clinicName} is ready`,
+        body: `Your invoice for ${amount.toFixed(2)} from ${clinicName} is ready`,
         data: {
           invoiceNumber,
           amount: amount.toString(),

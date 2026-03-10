@@ -4,6 +4,7 @@ import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/ev
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class InvoiceEventsListener {
@@ -13,6 +14,7 @@ export class InvoiceEventsListener {
     private readonly prisma: PrismaService,
     private readonly sendMessage: SendMessageUseCase,
     private readonly paymentsService: PaymentsService,
+    private readonly configService: AppConfigService,
   ) {}
 
   @OnEvent('invoice.generated')
@@ -39,7 +41,7 @@ export class InvoiceEventsListener {
       const paymentSession = await this.paymentsService.createPaymentSession({
         invoiceId: invoice.id,
         amount: invoice.total,
-        currency: 'INR',
+        currency: this.configService.getCurrencyCode(),
         patientId: invoice.patientId,
         clinicId,
         description: `Invoice #${invoice.id.slice(0, 8).toUpperCase()}`,
@@ -58,9 +60,15 @@ export class InvoiceEventsListener {
       select: { name: true },
     });
 
+    const currencyCode = this.configService.getCurrencyCode();
+    const formattedAmount = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(invoice.total);
+
     const message = this.buildFallbackMessage(
       invoice,
-      clinic?.name || 'Our Clinic',
+      clinic?.name || clinicId,
       paymentLink,
     );
 
@@ -71,9 +79,11 @@ export class InvoiceEventsListener {
         templateName: 'invoice_created',
         variables: {
           patientName: invoice.patient.firstName,
-          clinicName: clinic?.name || 'Clinic',
-          amount: `₹${invoice.total.toFixed(2)}`,
-          link: paymentLink || `https://docita.com/invoice/${invoiceId}`,
+          clinicName: clinic?.name || clinicId,
+          amount: formattedAmount,
+          link:
+            paymentLink ||
+            `${this.configService.getFrontendAppUrl()}/invoices/${invoiceId}`,
         },
         text: message,
         metadata: { invoiceId },
@@ -107,7 +117,12 @@ export class InvoiceEventsListener {
     message += `Your invoice from *${clinicName}* is ready!\n\n`;
     message += `Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
     message += `Date: ${date}\n`;
-    message += `Amount Due: ₹${invoice.total.toFixed(2)}\n\n`;
+    const currencyCode = this.configService.getCurrencyCode();
+    const formattedAmount = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(invoice.total);
+    message += `Amount Due: ${formattedAmount}\n\n`;
     if (paymentLink) {
       message += `Pay online: ${paymentLink}\n\n`;
     }

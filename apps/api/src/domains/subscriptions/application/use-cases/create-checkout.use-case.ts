@@ -67,10 +67,11 @@ export class CreateCheckoutUseCase {
     }
 
     const amountCents = this.pricingService.calculatePrice(tier, cycle, addOns);
+    const currencyCode = this.configService.getCurrencyCode();
 
     const order = await this.paymentGateway.createOrder({
       amountCents,
-      currency: 'INR',
+      currency: currencyCode,
       customerId,
       customerEmail: clinic.email,
       customerPhone: clinic.phone,
@@ -87,7 +88,7 @@ export class CreateCheckoutUseCase {
     await this.subscriptionRepo.savePayment({
       clinicId: request.clinicId,
       amountCents,
-      currency: 'INR',
+      currency: currencyCode,
       status: 'pending',
       razorpayOrderId: order.razorpayOrderId,
       description: `${tier.value} ${cycle.value} subscription`,

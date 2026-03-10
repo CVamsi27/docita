@@ -24,6 +24,8 @@ import {
   ClinicResponseDto,
   ClinicListResponseDto,
   CreateClinicSchema,
+  JoinClinicDto,
+  JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
@@ -231,5 +233,19 @@ export class ClinicSettingsController {
       throw new ForbiddenException('No clinic assigned to this user');
     }
     return this.clinicsService.updatePrescriptionDefaults(clinicId, dto);
+  }
+
+  @Post('join')
+  @UsePipes(new ZodValidationPipe(JoinClinicSchema))
+  async joinClinic(
+    @Request() req: RequestWithUser,
+    @Body() dto: JoinClinicDto,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new ForbiddenException('User not authenticated');
+    }
+
+    return this.clinicsService.joinClinicForUser(userId, dto);
   }
 }

@@ -152,7 +152,7 @@ export class ReminderNotificationService {
         return;
       }
 
-      const clinicName = appointment.clinic?.name || 'Docita';
+      const clinicName = appointment.clinic?.name ?? '';
 
       const variables = {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
@@ -237,6 +237,6 @@ export class ReminderNotificationService {
         }),
       )
       .replace(/{appointmentType}/g, appointment.type)
-      .replace(/{clinicName}/g, appointment.clinic?.name || 'Your Clinic');
+      .replace(/{clinicName}/g, appointment.clinic?.name ?? '');
   }
 }

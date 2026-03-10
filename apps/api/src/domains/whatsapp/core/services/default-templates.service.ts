@@ -174,7 +174,7 @@ export class DefaultTemplatesService {
     payment_reminder: {
       name: 'payment_reminder',
       category: 'PAYMENT',
-      content: `*Payment Due* - {{clinicName}}\n\nHi {{patientName}}, your invoice is ready!\n\nAmount: ₹{{amount}}\nDue by: {{dueDate}}\n\nView invoice: {{invoiceLink}}`,
+      content: `*Payment Due* - {{clinicName}}\n\nHi {{patientName}}, your invoice is ready!\n\nAmount: {{amount}}\nDue by: {{dueDate}}\n\nView invoice: {{invoiceLink}}`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
@@ -183,7 +183,7 @@ export class DefaultTemplatesService {
         { name: 'invoiceLink', required: false, defaultValue: 'Link' },
       ],
       buttonType: 'CALL_TO_ACTION',
-      textFallback: `*Payment Due* - {{clinicName}}\n\nHi {{patientName}}, your invoice is ready!\n\nAmount: ₹{{amount}}\nDue by: {{dueDate}}\n\nView invoice: {{invoiceLink}}`,
+      textFallback: `*Payment Due* - {{clinicName}}\n\nHi {{patientName}}, your invoice is ready!\n\nAmount: {{amount}}\nDue by: {{dueDate}}\n\nView invoice: {{invoiceLink}}`,
     },
 
     payment_confirmation: {

@@ -47,12 +47,16 @@ export class OnboardingValidationService {
     }
 
     if (data.planSelection && data.planSelection.tier !== ClinicTier.CAPTURE) {
+      const isCoreFreeTrial =
+        data.planSelection.tier === ClinicTier.CORE &&
+        data.paymentDetails?.skipPayment === true;
+
       const hasProcessedPayment =
         !!data.paymentDetails?.razorpayPaymentId ||
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment) {
+      if (!hasProcessedPayment && !isCoreFreeTrial) {
         errors.push('Payment details are required for paid plans');
       }
     }

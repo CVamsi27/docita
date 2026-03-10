@@ -73,7 +73,7 @@ export class PrismaService
 
     super({
       adapter,
-      log: configService.isDevelopment() ? ['warn', 'error'] : ['error'],
+      log: [],
     });
 
     if (databaseReadUrl) {
@@ -102,7 +102,7 @@ export class PrismaService
 
       const rawReadClient = new PrismaClient({
         adapter: readAdapter,
-        log: configService.isDevelopment() ? ['warn', 'error'] : ['error'],
+        log: [],
       });
 
       const extendedReadClient = rawReadClient

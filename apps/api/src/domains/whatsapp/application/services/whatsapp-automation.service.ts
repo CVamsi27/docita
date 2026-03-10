@@ -42,7 +42,7 @@ export class WhatsAppAutomationService {
       templateName: 'prescription_created',
       variables: {
         patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-        clinicName: prescription.appointment?.clinic?.name || 'Clinic',
+        clinicName: prescription.appointment?.clinic?.name ?? '',
         doctorName: prescription.doctor.name,
         link: `https://docita.work/p/${prescriptionId}`,
       },
@@ -70,8 +70,8 @@ export class WhatsAppAutomationService {
       templateName: 'invoice_created',
       variables: {
         patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-        clinicName: invoice.appointment?.clinic?.name || 'Clinic',
-        amount: `₹${invoice.total}`,
+        clinicName: invoice.appointment?.clinic?.name ?? '',
+        amount: `${invoice.total}`,
         link: `https://docita.work/i/${invoiceId}`,
       },
     });
@@ -102,7 +102,7 @@ export class WhatsAppAutomationService {
       templateName: 'appointment_confirmation',
       variables: {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-        clinicName: appointment.clinic?.name || 'Clinic',
+        clinicName: appointment.clinic?.name ?? '',
         doctorName: appointment.doctor.name,
         date: appointment.startTime.toLocaleDateString(),
         time: appointment.startTime.toLocaleTimeString(),
@@ -140,7 +140,7 @@ export class WhatsAppAutomationService {
       templateName,
       variables: {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-        clinicName: appointment.clinic?.name || 'Clinic',
+        clinicName: appointment.clinic?.name ?? '',
         date: appointment.startTime.toLocaleDateString(),
         time: appointment.startTime.toLocaleTimeString(),
       },

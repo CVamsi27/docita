@@ -1,11 +1,14 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuditService, AuditLogFilter } from './audit.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import {
-  AnyAuditResponseDto,
-  PaginatedAuditLogResponseDto,
-} from './dto/audit.dto';
+import { AnyAuditResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('audit-logs')
@@ -19,7 +22,10 @@ export class AuditController {
     @Req() req: Request & { user: { clinicId?: string; role?: string } },
     @Query() filter: AuditLogFilter,
   ) {
-    const userRole = req.user?.role || 'DOCTOR';
+    const userRole = req.user?.role;
+    if (!userRole) {
+      throw new UnauthorizedException('User role is required');
+    }
     const userClinicId = req.user?.clinicId;
 
     if (userRole !== 'SUPER_ADMIN' && userClinicId) {

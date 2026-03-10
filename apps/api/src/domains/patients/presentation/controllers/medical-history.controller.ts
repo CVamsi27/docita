@@ -8,6 +8,7 @@ import {
   Delete,
   Request,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { MedicalHistoryService } from '@/domains/patients/application/services/medical-history.service';
 import { Role } from '@workspace/db';
@@ -29,7 +30,7 @@ import {
 } from '@/domains/patients/application/dto/medical-history.dto';
 
 @Controller('patients/:patientId/medical-history')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.PATIENT)
 export class MedicalHistoryController {
   constructor(
     private readonly medicalHistoryService: MedicalHistoryService,
@@ -41,6 +42,13 @@ export class MedicalHistoryController {
     patientId: string,
     req: RequestWithUser,
   ): Promise<void> {
+    if (req.user?.role === Role.PATIENT) {
+      if (!req.user.patientId || req.user.patientId !== patientId) {
+        throw new ForbiddenException('You can only access your own records');
+      }
+      return;
+    }
+
     const clinicId = req.user?.clinicId;
     if (!clinicId) throw new NotFoundException('Clinic context required');
     await this.patientService.getPatient(patientId, clinicId);
@@ -240,6 +248,8 @@ export class MedicalHistoryController {
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
   ) {
+    await this.verifyPatientAccess(patientId, req);
+
     const userId = req.user?.id;
     const clinicId = req.user?.clinicId;
     const ipAddress = req.ip;

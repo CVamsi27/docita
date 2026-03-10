@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   Prisma,
   InvoiceStatus,
@@ -8,7 +13,6 @@ import {
 import { PDFService } from './pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { invoiceItemSchema, type InvoiceItem } from '@workspace/types';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -57,7 +61,6 @@ export class InvoicesService {
     private readonly repository: IInvoiceRepository,
     private readonly pdfService: PDFService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly configService: AppConfigService,
   ) {}
 
   async findAll(
@@ -157,16 +160,26 @@ export class InvoicesService {
     const items = parseInvoiceItems(invoice.items);
     const patient = invoice.patient;
     const clinic = patient?.clinic;
-    const defaultClinic = this.configService.getClinicInfo();
+    if (!clinic?.name) {
+      throw new BadRequestException(
+        'Clinic details are required to generate invoice PDF',
+      );
+    }
+    const doctorName = invoice.appointment?.doctor?.name || invoice.doctorName;
+    if (!doctorName) {
+      throw new BadRequestException(
+        'Doctor details are required to generate invoice PDF',
+      );
+    }
 
     return this.pdfService.generate({
       invoiceId: invoice.id.slice(0, 8).toUpperCase(),
       clinic: {
-        name: clinic?.name || defaultClinic.name,
-        address: clinic?.address || defaultClinic.address,
-        phone: clinic?.phone || defaultClinic.phone,
-        email: clinic?.email || defaultClinic.email,
-        gstin: clinic?.gstin || defaultClinic.gstin,
+        name: clinic.name,
+        address: clinic.address || undefined,
+        phone: clinic.phone || undefined,
+        email: clinic.email || undefined,
+        gstin: clinic.gstin || undefined,
       },
       patient: {
         name: `${patient?.firstName} ${patient?.lastName}`,
@@ -184,7 +197,7 @@ export class InvoicesService {
               invoice.appointment.doctor.registrationNumber || undefined,
           }
         : {
-            name: invoice.doctorName || 'Doctor',
+            name: doctorName,
             qualification: invoice.doctorSpecialization || undefined,
             registrationNumber: invoice.doctorRegistrationNumber || undefined,
           },

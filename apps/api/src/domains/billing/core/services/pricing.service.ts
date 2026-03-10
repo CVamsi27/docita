@@ -20,6 +20,24 @@ import {
 export class PricingService {
   constructor(private prisma: PrismaService) {}
 
+  private readonly supportedCurrencies = Object.keys(
+    PRICING_CURRENCY_CONFIG,
+  ) as SupportedCurrency[];
+
+  private resolveCurrency(currency?: string): SupportedCurrency {
+    const selectedCurrency = currency?.toUpperCase() as
+      | SupportedCurrency
+      | undefined;
+    if (
+      selectedCurrency &&
+      this.supportedCurrencies.includes(selectedCurrency)
+    ) {
+      return selectedCurrency;
+    }
+
+    return this.supportedCurrencies[0];
+  }
+
   private parseJsonValue(value: unknown): unknown {
     if (typeof value === 'string') {
       try {
@@ -39,13 +57,7 @@ export class PricingService {
   }
 
   async getPricingConfig(currency?: string) {
-    const selectedCurrency =
-      (currency?.toUpperCase() as SupportedCurrency) || 'INR';
-    const validCurrency = ['INR', 'USD', 'EUR', 'GBP', 'AUD'].includes(
-      selectedCurrency,
-    )
-      ? selectedCurrency
-      : 'INR';
+    const validCurrency = this.resolveCurrency(currency);
 
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
@@ -325,13 +337,7 @@ export class PricingService {
       aiCredits = 0,
     } = params;
 
-    const selectedCurrency =
-      (currency?.toUpperCase() as SupportedCurrency) || 'INR';
-    const validCurrency = ['INR', 'USD', 'EUR', 'GBP', 'AUD'].includes(
-      selectedCurrency,
-    )
-      ? selectedCurrency
-      : 'INR';
+    const validCurrency = this.resolveCurrency(currency);
 
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];

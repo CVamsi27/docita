@@ -1,9 +1,21 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { SubscriptionStatus } from '@workspace/db';
+import { UploadSessionPurpose } from '@workspace/db';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  PAYMENT_GATEWAY_TOKEN,
+  type IPaymentGateway,
+} from '@/domains/subscriptions/application/ports';
 import type {
   CompleteOnboardingDto,
+  OnboardingCheckoutDto,
   OnboardingProgressDto,
   OnboardingStep,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
@@ -12,6 +24,7 @@ import { OnboardingDataService } from './onboarding-data.service';
 import { OnboardingValidationService } from './onboarding-validation.service';
 import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
+import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 
 interface OnboardingResult {
   success: boolean;
@@ -41,7 +54,82 @@ export class OnboardingService {
     private validationService: OnboardingValidationService,
     private workflowService: OnboardingWorkflowService,
     private complianceService: OnboardingComplianceService,
+    private uploadsService: UploadsService,
+    private configService: AppConfigService,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
+    private paymentGateway: IPaymentGateway,
   ) {}
+
+  async createCheckout(onboardingId: string, data: OnboardingCheckoutDto) {
+    const sessionData = this.dataService.getSessionData(onboardingId);
+    if (!sessionData) {
+      throw new BadRequestException('Onboarding session not found or expired');
+    }
+
+    const amountCents = this.validationService.getTierPricing(
+      data.tier,
+      data.billingCycle,
+    );
+
+    if (amountCents <= 0) {
+      throw new BadRequestException(
+        'Selected plan does not support direct checkout',
+      );
+    }
+
+    const order = await this.paymentGateway.createOrder({
+      amountCents,
+      currency: this.configService.getCurrencyCode(),
+      customerId: `onboarding-${onboardingId}`,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
+      orderId: crypto.randomUUID(),
+      description: `Docita ${data.tier} - ${data.billingCycle}`,
+      notes: {
+        onboardingId,
+        tier: data.tier,
+        cycle: data.billingCycle,
+        customerName: data.customerName,
+      },
+    });
+
+    return {
+      orderId: order.razorpayOrderId,
+      amountCents: order.amountCents,
+      currency: order.currency,
+      razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+    };
+  }
+
+  async createSlaSignatureSession(onboardingId: string) {
+    const sessionData = this.dataService.getSessionData(onboardingId);
+    if (!sessionData) {
+      throw new BadRequestException('Onboarding session not found or expired');
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 20);
+
+    return this.prisma.uploadSession.create({
+      data: {
+        expiresAt,
+        purpose: UploadSessionPurpose.GENERAL,
+      },
+    });
+  }
+
+  async uploadSlaSignature(
+    onboardingId: string,
+    sessionId: string,
+    file: Express.Multer.File,
+  ) {
+    const sessionData = this.dataService.getSessionData(onboardingId);
+    if (!sessionData) {
+      throw new BadRequestException('Onboarding session not found or expired');
+    }
+
+    return this.uploadsService.updateSession(sessionId, file);
+  }
 
   initializeOnboarding(): { onboardingId: string } {
     return this.dataService.initializeOnboarding();
@@ -84,6 +172,38 @@ export class OnboardingService {
           message: 'Onboarding validation failed',
           errors: validation.errors,
         };
+      }
+
+      const hasRazorpayPayment =
+        !!completeData.paymentDetails?.razorpayPaymentId &&
+        !!completeData.paymentDetails?.razorpayOrderId &&
+        !!completeData.paymentDetails?.razorpaySignature;
+
+      if (
+        completeData.planSelection.tier !== ClinicTier.CAPTURE &&
+        !completeData.paymentDetails?.skipPayment &&
+        hasRazorpayPayment
+      ) {
+        const expectedAmountCents = this.validationService.getTierPricing(
+          completeData.planSelection.tier,
+          completeData.planSelection.billingCycle,
+        );
+
+        const verification = await this.paymentGateway.verifyPayment({
+          razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
+          razorpayOrderId: completeData.paymentDetails!.razorpayOrderId!,
+          razorpaySignature: completeData.paymentDetails!.razorpaySignature!,
+        });
+
+        if (!verification.verified) {
+          throw new BadRequestException('Unable to verify payment');
+        }
+
+        if (verification.amountCents !== expectedAmountCents) {
+          throw new BadRequestException(
+            'Payment amount does not match selected plan',
+          );
+        }
       }
 
       const result = await this.prisma.runUnrestricted(async () => {

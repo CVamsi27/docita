@@ -50,7 +50,7 @@ export class PrescriptionEventsListener {
 
     const message = this.composePrescriptionMessage(
       prescription,
-      clinic?.name || 'Clinic',
+      clinic?.name ?? '',
     );
 
     await this.sendMessage.execute({

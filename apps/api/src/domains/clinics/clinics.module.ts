@@ -21,6 +21,7 @@ import { BillingModule } from '@/domains/billing/billing.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { ClinicFactory } from './core/factories/clinic.factory';
 import { SettingsFactory } from './core/factories/settings.factory';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SettingsFactory } from './core/factories/settings.factory';
     SubscriptionsModule,
     forwardRef(() => BillingModule),
     WhatsAppModule,
+    DocumentsModule,
   ],
   controllers: [
     ClinicsController,

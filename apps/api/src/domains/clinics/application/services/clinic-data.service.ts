@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   ClinicTier,
   ClinicType,
   Prisma,
+  Role,
   SubscriptionStatus,
 } from '@workspace/db';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
@@ -29,6 +31,11 @@ interface UpdateClinicData {
   tier?: ClinicTier;
   type?: ClinicType;
   settings?: Prisma.InputJsonValue;
+}
+
+interface JoinClinicData {
+  clinicCode?: string;
+  clinicEmail?: string;
 }
 
 @Injectable()
@@ -234,6 +241,86 @@ export class ClinicDataService {
       totalPatients: patients,
       totalAppointments: appointments,
       todayAppointments,
+    };
+  }
+
+  async joinClinicForUser(userId: string, data: JoinClinicData) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, clinicId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.clinicId) {
+      throw new BadRequestException('User is already associated with a clinic');
+    }
+
+    const normalizedCode = data.clinicCode?.trim().toUpperCase();
+    const normalizedEmail = data.clinicEmail?.trim().toLowerCase();
+
+    if (!normalizedCode && !normalizedEmail) {
+      throw new BadRequestException('clinicCode or clinicEmail is required');
+    }
+
+    const clinic = await this.prisma.clinic.findFirst({
+      where: {
+        active: true,
+        ...(normalizedCode
+          ? { referralCode: normalizedCode }
+          : { email: normalizedEmail }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        referralCode: true,
+      },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException(
+        'No active clinic found for provided details',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: { clinicId: clinic.id },
+      });
+
+      if (user.role === Role.DOCTOR || user.role === Role.ADMIN_DOCTOR) {
+        await tx.doctorClinic.upsert({
+          where: {
+            doctorId_clinicId: {
+              doctorId: user.id,
+              clinicId: clinic.id,
+            },
+          },
+          create: {
+            doctorId: user.id,
+            clinicId: clinic.id,
+            role: user.role === Role.ADMIN_DOCTOR ? 'admin_doctor' : 'doctor',
+            active: true,
+          },
+          update: {
+            active: true,
+          },
+        });
+      }
+    });
+
+    return {
+      success: true,
+      clinic: {
+        id: clinic.id,
+        name: clinic.name,
+        email: clinic.email,
+        referralCode: clinic.referralCode,
+      },
     };
   }
 }

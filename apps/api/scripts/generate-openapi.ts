@@ -30,7 +30,7 @@ async function generateOpenAPI() {
     logger.log('Generating OpenAPI documentation...');
 
     const app = await NestFactory.create(AppModule, {
-      logger: ['error'], 
+      logger: ['error'],
     });
 
     const config = new DocumentBuilder()
@@ -116,13 +116,9 @@ function generateClientTypes(document: unknown): string {
       types.push(`export interface ${schemaName} {`);
 
       if (isSchemaObject(schema) && schema.properties) {
-        for (const [propName, prop] of Object.entries(
-          schema.properties,
-        )) {
+        for (const [propName, prop] of Object.entries(schema.properties)) {
           const propSchema = prop;
-          const required = schema.required?.includes(propName)
-            ? ''
-            : '?';
+          const required = schema.required?.includes(propName) ? '' : '?';
           const type = getTypeScriptType(propSchema);
           types.push(`  ${propName}${required}: ${type};`);
         }

@@ -76,6 +76,7 @@ import { BillingModule } from '@/domains/billing/billing.module';
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
     SubscriptionsQueryService,
+    PAYMENT_GATEWAY_TOKEN,
   ],
 })
 export class SubscriptionsModule {}

@@ -2,6 +2,9 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type { Prisma } from '@workspace/db';
+import PDFDocument from 'pdfkit';
+import { createHash } from 'crypto';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import {
   SLAAgreementDto,
   ConsentManagementDto,
@@ -15,7 +18,93 @@ export class OnboardingComplianceService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private storageProvider: StorageProvider,
   ) {}
+
+  private buildSlaProofPdfBuffer(params: {
+    clinicName: string;
+    clinicId: string;
+    acceptedBy: string;
+    userId: string;
+    acceptedAtIso: string;
+    slaVersion: string;
+    signatureUrl: string;
+    signatureAuthHash: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 48 });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk) => chunks.push(chunk as Buffer));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      doc.fontSize(18).text('Docita Service Level Agreement (SLA)', {
+        align: 'center',
+      });
+      doc.moveDown(0.5);
+      doc
+        .fontSize(10)
+        .text(`Version: ${params.slaVersion}`, { align: 'center' });
+      doc.moveDown(1);
+
+      doc
+        .fontSize(12)
+        .text('Scope')
+        .fontSize(10)
+        .text(
+          'This SLA governs platform uptime, support obligations, incident response, data security, privacy, backup/recovery, billing, and compliance responsibilities for the Docita clinic platform.',
+        );
+
+      doc.moveDown(0.75);
+      doc
+        .fontSize(12)
+        .text('Service Commitments')
+        .fontSize(10)
+        .list([
+          'Platform uptime target: 99.9% monthly.',
+          'Critical incident response target: within 4 hours.',
+          'High incident response target: within 8 business hours.',
+          'Business continuity with secure backups and recovery procedures.',
+          'DPDP-aligned handling of protected health and personal data.',
+          'Audit logging for sensitive operations and legal acceptance events.',
+        ]);
+
+      doc.moveDown(0.75);
+      doc
+        .fontSize(12)
+        .text('Compliance and Data Protection')
+        .fontSize(10)
+        .list([
+          'Data processing is limited to consented healthcare operations.',
+          'Access is role-based and tenant-scoped.',
+          'All legal acceptance actions are retained as immutable evidence.',
+          'This signed proof is retained as a non-repudiation artifact.',
+        ]);
+
+      doc.moveDown(0.75);
+      doc.fontSize(12).text('Acceptance Record').fontSize(10);
+      doc.text(`Clinic: ${params.clinicName} (${params.clinicId})`);
+      doc.text(`Accepted By: ${params.acceptedBy}`);
+      doc.text(`Accepted By User ID: ${params.userId}`);
+      doc.text(`Accepted At: ${params.acceptedAtIso}`);
+      doc.text(`IP Address: ${params.ipAddress || 'Not captured'}`);
+      doc.text(`User Agent: ${params.userAgent || 'Not captured'}`);
+      doc.text(`Signature URL: ${params.signatureUrl}`);
+      doc.text(`Signature Authentication Hash: ${params.signatureAuthHash}`);
+
+      doc.moveDown(0.75);
+      doc
+        .fontSize(10)
+        .text(
+          'By signing and accepting this SLA, the clinic confirms understanding of service scope, obligations, data processing terms, and operational governance under this agreement.',
+        );
+
+      doc.end();
+    });
+  }
 
   async recordSLAAgreement(
     tx: Prisma.TransactionClient,
@@ -36,6 +125,54 @@ export class OnboardingComplianceService {
       throw new BadRequestException('Privacy policy must be accepted');
     }
 
+    const signatureSession = await tx.uploadSession.findUnique({
+      where: { id: slaData.signatureSessionId },
+    });
+
+    if (
+      !signatureSession ||
+      signatureSession.status !== 'uploaded' ||
+      !signatureSession.fileUrl
+    ) {
+      throw new BadRequestException('Valid SLA signature upload is required');
+    }
+
+    const acceptedAtIso = new Date().toISOString();
+    const signatureAuthHash = createHash('sha256')
+      .update(
+        `${clinicId}:${userId}:${slaData.signatureSessionId}:${signatureSession.fileUrl}:${acceptedAtIso}`,
+      )
+      .digest('hex');
+
+    const clinicSnapshot = await tx.clinic.findUnique({
+      where: { id: clinicId },
+    });
+
+    const pdfBuffer = await this.buildSlaProofPdfBuffer({
+      clinicName: clinicSnapshot?.name ?? '',
+      clinicId,
+      acceptedBy: slaData.acceptedBy,
+      userId,
+      acceptedAtIso,
+      slaVersion: slaData.slaVersion,
+      signatureUrl: signatureSession.fileUrl,
+      signatureAuthHash,
+      ipAddress: ipAddress || slaData.ipAddress,
+      userAgent: slaData.userAgent,
+    });
+
+    const proofPdfUrl = await this.storageProvider.upload(
+      {
+        fieldname: 'file',
+        originalname: `sla-proof-${clinicId}.pdf`,
+        encoding: '7bit',
+        mimetype: 'application/pdf',
+        size: pdfBuffer.length,
+        buffer: pdfBuffer,
+      },
+      'legal',
+    );
+
     await tx.auditLog.create({
       data: {
         userId,
@@ -50,12 +187,16 @@ export class OnboardingComplianceService {
           acceptedPrivacyPolicy: slaData.acceptedPrivacyPolicy,
           ipAddress: ipAddress || slaData.ipAddress,
           userAgent: slaData.userAgent,
-          timestamp: new Date().toISOString(),
+          signatureSessionId: slaData.signatureSessionId,
+          signatureUrl: signatureSession.fileUrl,
+          signatureAuthHash,
+          proofPdfUrl,
+          timestamp: acceptedAtIso,
         },
       },
     });
 
-    const clinic = await tx.clinic.findUnique({ where: { id: clinicId } });
+    const clinic = clinicSnapshot;
     await tx.clinic.update({
       where: { id: clinicId },
       data: {
@@ -64,14 +205,18 @@ export class OnboardingComplianceService {
           sla: {
             accepted: true,
             version: slaData.slaVersion,
-            acceptedAt: new Date().toISOString(),
+            acceptedAt: acceptedAtIso,
             acceptedBy: slaData.acceptedBy,
             acceptedByUserId: userId,
+            signatureSessionId: slaData.signatureSessionId,
+            signatureUrl: signatureSession.fileUrl,
+            signatureAuthHash,
+            proofPdfUrl,
           },
           dataProcessing: {
             termsAccepted: true,
             privacyPolicyAccepted: true,
-            acceptedAt: new Date().toISOString(),
+            acceptedAt: acceptedAtIso,
           },
         },
       },

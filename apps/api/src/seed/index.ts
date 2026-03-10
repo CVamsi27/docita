@@ -10,6 +10,26 @@ import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
 import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
 import { seedIcdCodes } from './seed-icd-codes';
 
+async function assertSeedSchemaReady(pool: Pool): Promise<void> {
+  const result = await pool.query<{ exists: boolean }>(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'User'
+          AND column_name = 'verificationStatus'
+      ) AS exists
+    `,
+  );
+
+  if (!result.rows[0]?.exists) {
+    throw new Error(
+      'Database schema drift detected: public."User"."verificationStatus" is missing. Run `pnpm db:migrate` (or `pnpm db:push` for local-only dev DB) before seeding.',
+    );
+  }
+}
+
 async function main() {
   const env = getEnv();
   let connectionString = env.DATABASE_URL;
@@ -37,6 +57,8 @@ async function main() {
   const prisma = new PrismaClient({ adapter });
 
   try {
+    await assertSeedSchemaReady(pool);
+
     const { defaultClinic, doctor1, doctor2, doctor3 } =
       await seedClinicUsers(prisma);
 
@@ -72,6 +94,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+main().catch((error) => {
+  console.error('Seeding failed:', error);
   process.exit(1);
 });

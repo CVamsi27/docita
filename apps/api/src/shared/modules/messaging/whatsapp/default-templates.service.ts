@@ -281,7 +281,7 @@ View invoice: {{link}}`,
 
 Hi {{patientName}}, your invoice is ready!
 
-Amount: ₹{{amount}}
+Amount: {{amount}}
 Due by: {{dueDate}}
 
 View invoice: {{invoiceLink}}`,
@@ -297,7 +297,7 @@ View invoice: {{invoiceLink}}`,
 
 Hi {{patientName}}, your invoice is ready!
 
-Amount: ₹{{amount}}
+Amount: {{amount}}
 Due by: {{dueDate}}
 
 View invoice: {{invoiceLink}}`,

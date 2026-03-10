@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { VersioningType } from '@nestjs/common';
+import { LoggerService, VersioningType } from '@nestjs/common';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
@@ -22,6 +22,8 @@ import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
+import * as redis from 'redis';
+import { PrismaService } from './prisma/prisma.service';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -34,6 +36,153 @@ process.on('warning', (warning) => {
 });
 
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+
+const API_LOG_MODE = (process.env.API_LOG_MODE ?? 'access-and-errors')
+  .toLowerCase()
+  .trim();
+const ACCESS_AND_ERRORS_ONLY = API_LOG_MODE !== 'default';
+const ACCESS_LOG_CONTEXTS = new Set(['RequestLoggingInterceptor']);
+
+function extractLogContext(optionalParams: unknown[]): string | undefined {
+  const contextCandidates = optionalParams.filter(
+    (param): param is string => typeof param === 'string',
+  );
+
+  return contextCandidates.length > 0
+    ? contextCandidates[contextCandidates.length - 1]
+    : undefined;
+}
+
+function shouldEmitAccessLog(optionalParams: unknown[]): boolean {
+  const context = extractLogContext(optionalParams);
+  return Boolean(context && ACCESS_LOG_CONTEXTS.has(context));
+}
+
+function createFilteredBootstrapLogger(baseLogger: Logger): LoggerService {
+  return {
+    log(message: unknown, ...optionalParams: unknown[]) {
+      if (ACCESS_AND_ERRORS_ONLY && !shouldEmitAccessLog(optionalParams)) {
+        return;
+      }
+
+      baseLogger.log(message, ...optionalParams);
+    },
+    error(message: unknown, ...optionalParams: unknown[]) {
+      baseLogger.error(message, ...optionalParams);
+    },
+    warn(message: unknown, ...optionalParams: unknown[]) {
+      if (ACCESS_AND_ERRORS_ONLY) {
+        return;
+      }
+
+      baseLogger.warn(message, ...optionalParams);
+    },
+    debug(message: unknown, ...optionalParams: unknown[]) {
+      if (ACCESS_AND_ERRORS_ONLY) {
+        return;
+      }
+
+      baseLogger.debug?.(message, ...optionalParams);
+    },
+    verbose(message: unknown, ...optionalParams: unknown[]) {
+      if (ACCESS_AND_ERRORS_ONLY) {
+        return;
+      }
+
+      baseLogger.verbose?.(message, ...optionalParams);
+    },
+    fatal(message: unknown, ...optionalParams: unknown[]) {
+      baseLogger.fatal?.(message, ...optionalParams);
+    },
+  };
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error(`Timed out after ${timeoutMs}ms`)),
+        timeoutMs,
+      );
+    }),
+  ]);
+}
+
+async function logExternalDependencyStatus(
+  logger: Logger,
+  appConfigService: AppConfigService,
+  prisma: PrismaService,
+): Promise<void> {
+  if (!ACCESS_AND_ERRORS_ONLY) {
+    logger.log('Running external dependency checks...');
+  }
+
+  // Database connection check
+  try {
+    await withTimeout(prisma.$queryRaw`SELECT 1`, 5000);
+    if (!ACCESS_AND_ERRORS_ONLY) {
+      logger.log('Dependency check: database connected');
+    }
+  } catch (error) {
+    logger.error(
+      `Dependency check: database unavailable (${error instanceof Error ? error.message : String(error)})`,
+    );
+  }
+
+  // Redis connection check (required when redis cache/queue is configured)
+  const redisConfig = appConfigService.getRedisConfig();
+  const cacheProvider = appConfigService.getCacheProvider();
+  const queueProvider = appConfigService.getQueueProvider();
+  const redisConfigured =
+    Boolean(redisConfig.url) || Boolean(redisConfig.host && redisConfig.port);
+  const redisExpected = cacheProvider === 'redis' || queueProvider === 'bull';
+
+  if (!redisConfigured) {
+    if (redisExpected) {
+      logger.error(
+        'Dependency check: redis configuration missing while cache/queue expects redis',
+      );
+    } else if (!ACCESS_AND_ERRORS_ONLY) {
+      logger.warn(
+        'Dependency check: redis not configured (optional in current mode)',
+      );
+    }
+  } else {
+    const redisClient = redis.createClient(
+      redisConfig.url
+        ? { url: redisConfig.url }
+        : {
+            socket: {
+              host: redisConfig.host,
+              port: redisConfig.port,
+            },
+            username: redisConfig.username,
+            password: redisConfig.password,
+          },
+    );
+
+    try {
+      await withTimeout(redisClient.connect(), 4000);
+      await withTimeout(redisClient.ping(), 4000);
+      if (!ACCESS_AND_ERRORS_ONLY) {
+        logger.log('Dependency check: redis connected');
+      }
+    } catch (error) {
+      if (redisExpected) {
+        logger.error(
+          `Dependency check: redis unavailable (${error instanceof Error ? error.message : String(error)})`,
+        );
+      } else if (!ACCESS_AND_ERRORS_ONLY) {
+        logger.warn(
+          `Dependency check: redis unavailable (${error instanceof Error ? error.message : String(error)})`,
+        );
+      }
+    } finally {
+      await redisClient.quit().catch(() => undefined);
+    }
+  }
+}
 
 async function bootstrap() {
   interface SentryIntegration {
@@ -86,7 +235,8 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  app.useLogger(app.get(Logger));
+  const logger = app.get(Logger);
+  app.useLogger(createFilteredBootstrapLogger(logger));
 
   try {
     const { StartupValidationService } =
@@ -133,6 +283,9 @@ async function bootstrap() {
 
   const monitoringService = app.get(MonitoringService);
   const appConfigService = app.get(AppConfigService);
+  const prismaService = app.get(PrismaService);
+
+  await logExternalDependencyStatus(logger, appConfigService, prismaService);
 
   app.useGlobalFilters(
     new AllExceptionsFilter(monitoringService, appConfigService),

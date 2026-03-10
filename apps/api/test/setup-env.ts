@@ -6,6 +6,17 @@ dotenv.config({
   path: path.join(__dirname, '../.env.test'),
 });
 
+process.env.DATABASE_URL ??=
+  'postgresql://test:test@localhost:5432/docita_test';
+process.env.JWT_SECRET ??= 'test-jwt-secret';
+process.env.ENCRYPTION_KEY ??=
+  '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+process.env.APP_URL ??= 'http://localhost:3001';
+process.env.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
+process.env.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
+process.env.CORS_ORIGINS ??= 'http://localhost:3000';
+process.env.CURRENCY_CODE ??= 'INR';
+
 Logger.overrideLogger(false);
 
 const shouldSuppressTestErrorLog = (message: string): boolean =>

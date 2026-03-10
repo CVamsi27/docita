@@ -817,8 +817,8 @@ export class PDFGeneratorService {
       { header: 'Description', width: 200 },
       { header: 'HSN/SAC', width: 60 },
       { header: 'Qty', width: 40 },
-      { header: 'Rate (₹)', width: 70 },
-      { header: 'Amount (₹)', width: 80 },
+      { header: 'Rate', width: 70 },
+      { header: 'Amount', width: 80 },
     ];
 
     doc
@@ -829,7 +829,7 @@ export class PDFGeneratorService {
     doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold');
     let x = margin + 5;
     columns.forEach((col) => {
-      const align = ['Rate (₹)', 'Amount (₹)', 'Qty'].includes(col.header)
+      const align = ['Rate', 'Amount', 'Qty'].includes(col.header)
         ? 'right'
         : 'left';
       doc.text(col.header, x, y + 7, { width: col.width - 10, align });
@@ -910,7 +910,7 @@ export class PDFGeneratorService {
     doc.fontSize(10).font('Helvetica');
 
     doc.text('Subtotal:', rightX, y);
-    doc.text(`₹${totals.subtotal.toFixed(2)}`, valueX, y, {
+    doc.text(`${totals.subtotal.toFixed(2)}`, valueX, y, {
       align: 'right',
       width: 80,
     });
@@ -920,7 +920,7 @@ export class PDFGeneratorService {
       doc
         .fillColor('#22c55e')
         .text('Discount:', rightX, y)
-        .text(`-₹${totals.discount.toFixed(2)}`, valueX, y, {
+        .text(`-${totals.discount.toFixed(2)}`, valueX, y, {
           align: 'right',
           width: 80,
         })
@@ -930,7 +930,7 @@ export class PDFGeneratorService {
 
     if (totals.tax && totals.tax > 0) {
       doc.text('Tax (GST):', rightX, y);
-      doc.text(`₹${totals.tax.toFixed(2)}`, valueX, y, {
+      doc.text(`${totals.tax.toFixed(2)}`, valueX, y, {
         align: 'right',
         width: 80,
       });
@@ -950,7 +950,7 @@ export class PDFGeneratorService {
       .font('Helvetica-Bold')
       .fillColor('#1e3a5f')
       .text('TOTAL:', rightX, y)
-      .text(`₹${totals.total.toFixed(2)}`, valueX, y, {
+      .text(`${totals.total.toFixed(2)}`, valueX, y, {
         align: 'right',
         width: 80,
       })

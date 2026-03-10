@@ -45,10 +45,13 @@ export async function seedClinicConfigTemplates(
   });
 
   await Promise.all(
-    patients.map((patient, index) =>
+    patients.map((patient) =>
       prisma.patient.update({
         where: { id: patient.id },
-        data: { mrn: `DOC-${String(index + 1).padStart(5, '0')}` },
+        data: {
+          // Keep seeded MRNs deterministic and unique across reruns.
+          mrn: `DOC-${patient.id.slice(-8).toUpperCase()}`,
+        },
       }),
     ),
   );
@@ -112,7 +115,7 @@ export async function seedClinicConfigTemplates(
         name: 'invoice_payment',
         category: 'INVOICE',
         content:
-          'Hi {{patientName}}!\n\nYour invoice #{{invoiceNumber}} for ₹{{amount}} is ready.\n\nPay online:\n{{paymentUrl}}\n\nThank you for choosing Docita Health Clinic!',
+          'Hi {{patientName}}!\n\nYour invoice #{{invoiceNumber}} for {{amount}} is ready.\n\nPay online:\n{{paymentUrl}}\n\nThank you for choosing Docita Health Clinic!',
         variables: ['patientName', 'invoiceNumber', 'amount', 'paymentUrl'],
         buttonType: 'CALL_TO_ACTION',
         buttons: [{ type: 'URL', title: 'Pay Now', url: '{{paymentUrl}}' }],

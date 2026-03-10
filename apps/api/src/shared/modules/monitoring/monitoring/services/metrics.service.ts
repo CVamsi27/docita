@@ -17,8 +17,44 @@ function getMetadataPage(
 @Injectable()
 export class MetricsService {
   private readonly logger = new Logger(MetricsService.name);
+  private persistenceDisabled = false;
 
   constructor(private prisma: PrismaService) {}
+
+  private isDatabaseAuthError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { code?: unknown; message?: unknown };
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    if (code === 'P1000') {
+      return true;
+    }
+
+    return (
+      message.includes('authentication failed against the database server') ||
+      message.includes('database credentials') ||
+      message.includes('password authentication failed')
+    );
+  }
+
+  private handlePersistenceError(error: unknown, context: string): void {
+    if (this.isDatabaseAuthError(error)) {
+      this.persistenceDisabled = true;
+      this.logger.warn(
+        'Disabling metrics database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+      );
+      return;
+    }
+
+    this.logger.error(context, error);
+  }
 
   async recordMetric(
     metricType: MetricType,
@@ -26,6 +62,10 @@ export class MetricsService {
     unit?: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     try {
       await this.prisma.systemMetric.create({
         data: {
@@ -36,11 +76,15 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error('Failed to record metric', error);
+      this.handlePersistenceError(error, 'Failed to record metric');
     }
   }
 
   async recordSystemMetrics(): Promise<void> {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
     const uptime = process.uptime();
@@ -76,7 +120,7 @@ export class MetricsService {
         ],
       });
     } catch (error) {
-      this.logger.error('Failed to record system metrics', error);
+      this.handlePersistenceError(error, 'Failed to record system metrics');
     }
   }
 
@@ -86,6 +130,10 @@ export class MetricsService {
     userId?: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     try {
       await this.prisma.systemMetric.create({
         data: {
@@ -103,8 +151,9 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to record feature usage for ${featureName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      this.handlePersistenceError(
+        error,
+        `Failed to record feature usage for ${featureName}`,
       );
     }
   }
@@ -114,6 +163,10 @@ export class MetricsService {
     key: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     try {
       await this.prisma.systemMetric.create({
         data: {
@@ -129,9 +182,7 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to record cache metric: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.handlePersistenceError(error, 'Failed to record cache metric');
     }
   }
 
@@ -141,6 +192,10 @@ export class MetricsService {
     isError: boolean,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
+    if (this.persistenceDisabled) {
+      return;
+    }
+
     try {
       await this.prisma.systemMetric.create({
         data: {
@@ -157,9 +212,7 @@ export class MetricsService {
         },
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to record database metric: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.handlePersistenceError(error, 'Failed to record database metric');
     }
   }
 

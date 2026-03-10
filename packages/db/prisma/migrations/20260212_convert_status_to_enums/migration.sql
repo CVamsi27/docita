@@ -8,6 +8,7 @@ CREATE TYPE "WhatsappConversationStatus" AS ENUM ('OPEN', 'CLOSED', 'ARCHIVED');
 CREATE TYPE "WhatsappMessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ', 'FAILED', 'PENDING', 'QUEUED');
 
 -- Convert LabTestOrder.status from String to Enum
+ALTER TABLE "LabTestOrder" ALTER COLUMN "status" DROP DEFAULT;
 ALTER TABLE "LabTestOrder" 
 ALTER COLUMN "status" TYPE "LabTestOrderStatus" 
 USING CASE "status"
@@ -17,8 +18,10 @@ USING CASE "status"
   WHEN 'cancelled' THEN 'CANCELLED'::text
   ELSE 'ORDERED'::text
 END::"LabTestOrderStatus";
+ALTER TABLE "LabTestOrder" ALTER COLUMN "status" SET DEFAULT 'ORDERED';
 
 -- Convert WhatsappConversation.status from String to Enum
+ALTER TABLE "WhatsappConversation" ALTER COLUMN "status" DROP DEFAULT;
 ALTER TABLE "WhatsappConversation"
 ALTER COLUMN "status" TYPE "WhatsappConversationStatus"
 USING CASE "status"
@@ -27,8 +30,10 @@ USING CASE "status"
   WHEN 'archived' THEN 'ARCHIVED'::text
   ELSE 'OPEN'::text
 END::"WhatsappConversationStatus";
+ALTER TABLE "WhatsappConversation" ALTER COLUMN "status" SET DEFAULT 'OPEN';
 
 -- Convert WhatsappMessage.status from String to Enum
+ALTER TABLE "WhatsappMessage" ALTER COLUMN "status" DROP DEFAULT;
 ALTER TABLE "WhatsappMessage"
 ALTER COLUMN "status" TYPE "WhatsappMessageStatus"
 USING CASE "status"
@@ -40,3 +45,4 @@ USING CASE "status"
   WHEN 'queued' THEN 'QUEUED'::text
   ELSE 'SENT'::text
 END::"WhatsappMessageStatus";
+ALTER TABLE "WhatsappMessage" ALTER COLUMN "status" SET DEFAULT 'PENDING';

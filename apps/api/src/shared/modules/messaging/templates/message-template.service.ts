@@ -84,10 +84,10 @@ export class MessageTemplateService {
       name: 'Payment Reminder',
       channels: {
         whatsapp:
-          'Your invoice #{{invoiceId}} for ₹{{amount}} is due on {{dueDate}}. Click here to pay: {{paymentLink}}',
+          'Your invoice #{{invoiceId}} for {{amount}} is due on {{dueDate}}. Click here to pay: {{paymentLink}}',
         email:
-          '<p>Your invoice #{{invoiceId}} for ₹{{amount}} is due on {{dueDate}}.</p><p><a href="{{paymentLink}}">Pay Now</a></p>',
-        sms: 'Invoice #{{invoiceId}} for ₹{{amount}} due {{dueDate}}. Pay here: {{paymentLink}}',
+          '<p>Your invoice #{{invoiceId}} for {{amount}} is due on {{dueDate}}.</p><p><a href="{{paymentLink}}">Pay Now</a></p>',
+        sms: 'Invoice #{{invoiceId}} for {{amount}} due {{dueDate}}. Pay here: {{paymentLink}}',
       },
       variables: ['invoiceId', 'amount', 'dueDate', 'paymentLink'],
       description: 'Reminder for pending payment',

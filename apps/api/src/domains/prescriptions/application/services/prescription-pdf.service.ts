@@ -36,7 +36,7 @@ export class PrescriptionPdfService extends BasePdfService {
       doctor: data.doctor,
       date: data.date,
 
-      footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
+      footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes. Prescription support: support@docita.work.`,
     };
 
     const { doc, context } = this.createDocument(config);
