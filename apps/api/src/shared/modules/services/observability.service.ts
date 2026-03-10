@@ -50,26 +50,26 @@ export class ObservabilityService {
   }
 
   initializeSentry(options?: Sentry.NodeOptions): void {
-    const config = this.configService.getConfig();
-    const sentryDsn = config.SENTRY_DSN;
+    const sentryConfig = this.configService.getSentryConfig();
+    const nodeEnv = this.configService.getEnvironment();
 
-    if (!sentryDsn) {
+    if (!sentryConfig.dsn) {
       this.logger.warn('SENTRY_DSN not configured. Error tracking disabled.');
       return;
     }
 
     Sentry.init({
-      dsn: sentryDsn,
-      environment: config.NODE_ENV,
-      tracesSampleRate: config.SENTRY_TRACES_SAMPLE_RATE,
-      profilesSampleRate: config.SENTRY_PROFILES_SAMPLE_RATE,
+      dsn: sentryConfig.dsn,
+      environment: nodeEnv,
+      tracesSampleRate: sentryConfig.tracesSampleRate,
+      profilesSampleRate: sentryConfig.profilesSampleRate,
       maxBreadcrumbs: 50,
       attachStacktrace: true,
       integrations: [],
       initialScope: {
         tags: {
           service: 'docita-api',
-          version: config.APP_VERSION,
+          version: this.configService.getAppVersion(),
         },
       },
       ...options,

@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class StartupValidationService {
   private readonly logger = new Logger(StartupValidationService.name);
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: AppConfigService) {}
 
   validate(): void {
     this.logger.debug('Running startup validations...');
@@ -21,8 +21,8 @@ export class StartupValidationService {
   }
 
   private validateEncryptionKey(): void {
-    const encryptionKey = this.configService.get<string>('ENCRYPTION_KEY');
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const encryptionKey = this.configService.getEncryptionKey();
+    const nodeEnv = this.configService.getEnvironment();
 
     if (!encryptionKey) {
       throw new Error('ENCRYPTION_KEY is not set in environment variables');
@@ -63,8 +63,8 @@ export class StartupValidationService {
   }
 
   private validateJwtSecret(): void {
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const jwtSecret = this.configService.getJwtSecret();
+    const nodeEnv = this.configService.getEnvironment();
 
     if (!jwtSecret) {
       throw new Error('JWT_SECRET is not set in environment variables');
@@ -96,13 +96,13 @@ export class StartupValidationService {
   }
 
   private validateDatabaseConfiguration(): void {
-    const databaseUrl = this.configService.get<string>('DATABASE_URL');
+    const databaseUrl = this.configService.getDatabaseUrl();
 
     if (!databaseUrl) {
       throw new Error('DATABASE_URL is not set in environment variables');
     }
 
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const nodeEnv = this.configService.getEnvironment();
     if (nodeEnv === 'production') {
       if (
         databaseUrl.includes('localhost') ||
@@ -140,16 +140,14 @@ export class StartupValidationService {
   }
 
   private validateTransportSecurity(): void {
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const nodeEnv = this.configService.getEnvironment();
     if (nodeEnv !== 'production') {
       return;
     }
 
-    const appUrl = this.configService.get<string>('APP_URL') || '';
-    const publicAppUrl =
-      this.configService.get<string>('NEXT_PUBLIC_APP_URL') || '';
-    const publicApiUrl =
-      this.configService.get<string>('NEXT_PUBLIC_API_URL') || '';
+    const appUrl = this.configService.getAppUrl();
+    const publicAppUrl = this.configService.getFrontendAppUrl();
+    const publicApiUrl = this.configService.getApiUrl();
 
     const urlsToValidate = [appUrl, publicAppUrl, publicApiUrl].filter(Boolean);
 
@@ -165,17 +163,15 @@ export class StartupValidationService {
   }
 
   private validateDataAtRestControls(): void {
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const nodeEnv = this.configService.getEnvironment();
     if (nodeEnv !== 'production') {
       return;
     }
 
-    const encryptionAtRestConfirmed = this.configService.get<string>(
-      'DB_ENCRYPTION_AT_REST_CONFIRMED',
-      'false',
-    );
+    const encryptionAtRestConfirmed =
+      this.configService.getEncryptionAtRestConfirmed();
 
-    if (encryptionAtRestConfirmed !== 'true') {
+    if (!encryptionAtRestConfirmed) {
       throw new Error(
         'DB_ENCRYPTION_AT_REST_CONFIRMED must be true in production after verifying provider-level disk/storage encryption.',
       );
@@ -187,21 +183,17 @@ export class StartupValidationService {
   }
 
   private validateProductionSecrets(): void {
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const nodeEnv = this.configService.getEnvironment();
 
     if (nodeEnv !== 'production') {
       return;
     }
 
-    const requiredProduction = ['DATABASE_URL', 'JWT_SECRET', 'ENCRYPTION_KEY'];
     const missing: string[] = [];
 
-    requiredProduction.forEach((key) => {
-      const value = this.configService.get<string>(key);
-      if (!value || value.length === 0) {
-        missing.push(key);
-      }
-    });
+    if (!this.configService.getDatabaseUrl()) missing.push('DATABASE_URL');
+    if (!this.configService.getJwtSecret()) missing.push('JWT_SECRET');
+    if (!this.configService.getEncryptionKey()) missing.push('ENCRYPTION_KEY');
 
     if (missing.length > 0) {
       throw new Error(
@@ -218,7 +210,7 @@ export class StartupValidationService {
     length: number;
     lastChars: string;
   } {
-    const key = this.configService.get<string>('ENCRYPTION_KEY', '');
+    const key = this.configService.getEncryptionKey();
     return {
       isSet: !!key,
       length: key.length,

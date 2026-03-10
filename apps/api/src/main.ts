@@ -1,3 +1,9 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LoggerService, VersioningType } from '@nestjs/common';
@@ -15,8 +21,6 @@ import {
 } from './shared/modules/config/app-config';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -24,9 +28,8 @@ import { json, urlencoded } from 'express';
 import * as redis from 'redis';
 import { PrismaService } from './prisma/prisma.service';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
 const config = validateEnv();
+const appConfigService = new AppConfigService();
 
 process.on('warning', (warning) => {
   if (warning.name === 'TimeoutNegativeWarning') {
@@ -36,7 +39,7 @@ process.on('warning', (warning) => {
 
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
-const API_LOG_MODE = (process.env.API_LOG_MODE ?? 'access-and-errors')
+const API_LOG_MODE = (config.API_LOG_MODE ?? 'access-and-errors')
   .toLowerCase()
   .trim();
 const ACCESS_AND_ERRORS_ONLY = API_LOG_MODE !== 'default';
@@ -117,7 +120,6 @@ async function logExternalDependencyStatus(
     logger.log('Running external dependency checks...');
   }
 
-  // Database connection check
   try {
     await withTimeout(prisma.$queryRaw`SELECT 1`, 5000);
     if (!ACCESS_AND_ERRORS_ONLY) {
@@ -129,7 +131,6 @@ async function logExternalDependencyStatus(
     );
   }
 
-  // Redis connection check (required when redis cache/queue is configured)
   const redisConfig = appConfigService.getRedisConfig();
   const cacheProvider = appConfigService.getCacheProvider();
   const queueProvider = appConfigService.getQueueProvider();
@@ -210,25 +211,24 @@ async function bootstrap() {
     if (isSentryIntegration(profilingIntegration)) {
       integrations.push(profilingIntegration);
     }
-  } catch (_error) {
-    // Sentry profiling integration failure ignored
-  }
+  } catch (_error) {}
 
+  const sentryConfig = appConfigService.getSentryConfig();
   Sentry.init({
-    dsn: config.SENTRY_DSN,
-    environment: config.NODE_ENV,
+    dsn: sentryConfig.dsn,
+    environment: appConfigService.getEnvironment(),
     integrations,
-    tracesSampleRate: config.SENTRY_TRACES_SAMPLE_RATE,
+    tracesSampleRate: sentryConfig.tracesSampleRate,
     profilesSampleRate:
-      config.NODE_ENV === 'production'
-        ? config.SENTRY_PROFILES_SAMPLE_RATE
+      appConfigService.getEnvironment() === 'production'
+        ? sentryConfig.profilesSampleRate
         : 1.0,
     maxBreadcrumbs: 50,
     attachStacktrace: true,
     initialScope: {
       tags: {
         service: 'docita-api',
-        version: config.APP_VERSION,
+        version: appConfigService.getAppVersion(),
       },
     },
   });
@@ -249,8 +249,7 @@ async function bootstrap() {
   app.use(json({ limit: '1mb' }));
   app.use(urlencoded({ limit: '1mb', extended: true }));
 
-  const configService = app.get(AppConfigService);
-  const apiUrl = configService.getApiUrl();
+  const apiUrl = appConfigService.getApiUrl();
 
   app.use(
     helmet({
@@ -281,7 +280,6 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const monitoringService = app.get(MonitoringService);
-  const appConfigService = app.get(AppConfigService);
   const prismaService = app.get(PrismaService);
 
   await logExternalDependencyStatus(logger, appConfigService, prismaService);

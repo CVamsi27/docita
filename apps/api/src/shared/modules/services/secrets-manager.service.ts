@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class SecretsManagerService {
@@ -8,16 +8,13 @@ export class SecretsManagerService {
     new Map();
   private readonly CACHE_TTL_MS = 3600000;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: AppConfigService) {
     this.initializeSecretsProvider();
   }
 
   private initializeSecretsProvider(): void {
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
-    const secretsProvider = this.configService.get<string>(
-      'SECRETS_PROVIDER',
-      'env',
-    );
+    const nodeEnv = this.configService.getEnvironment();
+    const secretsProvider = this.configService.getSecretsProvider();
 
     if (nodeEnv === 'production' && secretsProvider !== 'env') {
       this.logger.log(
@@ -46,14 +43,19 @@ export class SecretsManagerService {
 
     let secretValue: string | undefined;
 
-    const provider = this.configService.get<string>('SECRETS_PROVIDER', 'env');
+    const provider = this.configService.getSecretsProvider();
 
-    if (provider === 'aws-secrets-manager') {
+    if (provider === 'aws') {
       secretValue = this.getFromAwsSecretsManager(secretName);
-    } else if (provider === 'vault') {
+    } else if ((provider as string) === 'vault') {
       secretValue = this.getFromHashiCorpVault(secretName);
     } else {
-      secretValue = this.configService.get<string>(secretName);
+      secretValue = (
+        this.configService.getConfig() as unknown as Record<
+          string,
+          string | undefined
+        >
+      )[secretName];
     }
 
     if (secretValue && cached) {
@@ -86,14 +88,24 @@ export class SecretsManagerService {
       this.logger.warn(
         `AWS Secrets Manager integration not yet implemented for ${secretName}`,
       );
-      return this.configService.get<string>(secretName);
+      return (
+        this.configService.getConfig() as unknown as Record<
+          string,
+          string | undefined
+        >
+      )[secretName];
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Failed to fetch secret from AWS Secrets Manager: ${errorMsg}`,
       );
 
-      return this.configService.get<string>(secretName);
+      return (
+        this.configService.getConfig() as unknown as Record<
+          string,
+          string | undefined
+        >
+      )[secretName];
     }
   }
 
@@ -102,14 +114,24 @@ export class SecretsManagerService {
       this.logger.warn(
         `HashiCorp Vault integration not yet implemented for ${secretName}`,
       );
-      return this.configService.get<string>(secretName);
+      return (
+        this.configService.getConfig() as unknown as Record<
+          string,
+          string | undefined
+        >
+      )[secretName];
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Failed to fetch secret from HashiCorp Vault: ${errorMsg}`,
       );
 
-      return this.configService.get<string>(secretName);
+      return (
+        this.configService.getConfig() as unknown as Record<
+          string,
+          string | undefined
+        >
+      )[secretName];
     }
   }
 
@@ -157,8 +179,7 @@ export class SecretsManagerService {
     cacheSize: number;
   } {
     return {
-      provider:
-        this.configService.get<string>('SECRETS_PROVIDER', 'env') || 'env',
+      provider: this.configService.getSecretsProvider(),
       cachedSecrets: this.secretsCache.size,
       cacheSize: this.calculateCacheSize(),
     };
