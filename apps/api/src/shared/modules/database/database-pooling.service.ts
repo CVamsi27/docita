@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface PoolConfig {
   min: number;
@@ -14,15 +14,11 @@ export interface PoolConfig {
 export class DatabasePoolingService {
   private readonly logger = new Logger(DatabasePoolingService.name);
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: AppConfigService) {}
 
   getOptimalPoolConfig(_nodeCount: number = 1): PoolConfig {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
-    const cpuCount = parseInt(
-      this.configService.get<string>('CPU_COUNT') || '4',
-      10,
-    );
+    const isProduction = this.configService.isProduction();
+    const cpuCount = this.configService.getCpuCount();
 
     if (isProduction) {
       return {
@@ -46,32 +42,23 @@ export class DatabasePoolingService {
   }
 
   getPgBouncerConnectionString(): string {
-    const pgBouncerHost =
-      this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
-    const pgBouncerPort =
-      this.configService.get<string>('PGBOUNCER_PORT') || '6432';
-    const user = this.configService.get<string>('DATABASE_USER');
-    const password = this.configService.get<string>('DATABASE_PASSWORD');
-    const database = this.configService.get<string>('DATABASE_NAME');
+    const pgConfig = this.configService.getPgBouncerConfig();
+    const dbConfig = this.configService.getDatabaseConfig();
 
-    return `postgresql://${user}:${password}@${pgBouncerHost}:${pgBouncerPort}/${database}`;
+    return `postgresql://${dbConfig.user}:${dbConfig.password}@${pgConfig.host}:${pgConfig.port}/${dbConfig.name}`;
   }
 
   getPrismaAccelerateUrl(): string {
-    const accelerateKey = this.configService.get<string>(
-      'PRISMA_ACCELERATE_KEY',
-    );
-    if (!accelerateKey) {
+    const accelerateConfig = this.configService.getPrismaAccelerateConfig();
+    if (!accelerateConfig.key) {
       throw new Error('PRISMA_ACCELERATE_KEY not set in environment');
     }
-    return `prisma://${accelerateKey}`;
+    return `prisma://${accelerateConfig.key}`;
   }
 
   shouldUsePrismaAccelerate(): boolean {
-    return (
-      this.configService.get<string>('USE_PRISMA_ACCELERATE') === 'true' &&
-      !!this.configService.get<string>('PRISMA_ACCELERATE_KEY')
-    );
+    const accelerateConfig = this.configService.getPrismaAccelerateConfig();
+    return accelerateConfig.enabled && !!accelerateConfig.key;
   }
 
   getPrismaPoolConfig() {
@@ -104,14 +91,13 @@ export class DatabasePoolingService {
     this.logger.log(`  Max uses per connection: ${config.maxUses}`);
     this.logger.log(`  Reap interval: ${config.reapIntervalMillis}ms`);
 
+    const accelerateConfig = this.configService.getPrismaAccelerateConfig();
+    const pgConfig = this.configService.getPgBouncerConfig();
+
     if (this.shouldUsePrismaAccelerate()) {
       this.logger.log(`  Using Prisma Accelerate for managed pooling`);
-    } else if (this.configService.get<string>('USE_PGBOUNCER') === 'true') {
-      const pgBouncerHost =
-        this.configService.get<string>('PGBOUNCER_HOST') || 'localhost';
-      const pgBouncerPort =
-        this.configService.get<string>('PGBOUNCER_PORT') || '6432';
-      this.logger.log(`  Using PgBouncer at ${pgBouncerHost}:${pgBouncerPort}`);
+    } else if (pgConfig.enabled) {
+      this.logger.log(`  Using PgBouncer at ${pgConfig.host}:${pgConfig.port}`);
     } else {
       this.logger.log(
         `  Using direct PostgreSQL connection with native pooling`,
@@ -120,13 +106,14 @@ export class DatabasePoolingService {
   }
 
   getPoolTuningGuide(): string {
+    const optConfig = this.getOptimalPoolConfig();
     return `
 ## Database Connection Pool Tuning Guide
 
 ### Current Configuration
-- Recommended Max Pool Size: ${this.getOptimalPoolConfig().max}
-- Idle Timeout: ${this.getOptimalPoolConfig().idleTimeoutMillis}ms
-- Connection Timeout: ${this.getOptimalPoolConfig().connectionTimeoutMillis}ms
+- Recommended Max Pool Size: ${optConfig.max}
+- Idle Timeout: ${optConfig.idleTimeoutMillis}ms
+- Connection Timeout: ${optConfig.connectionTimeoutMillis}ms
 
 ### Recommendations by Deployment
 1. **Serverless (AWS Lambda, Vercel Functions)**
@@ -162,16 +149,16 @@ SELECT schemaname, tablename, indexname, idx_scan FROM pg_stat_user_indexes
   ORDER BY idx_scan DESC LIMIT 20;
 \`\`\`
 
-### Environment Variables
+### Environment Variables (Managed by AppConfigService)
 - DATABASE_HOST: PostgreSQL host
-- DATABASE_PORT: PostgreSQL port (default: 5432)
+- DATABASE_PORT: PostgreSQL port
 - DATABASE_USER: Connection user
 - DATABASE_PASSWORD: Connection password
 - PGBOUNCER_HOST: PgBouncer proxy host
-- PGBOUNCER_PORT: PgBouncer proxy port (default: 6432)
-- USE_PRISMA_ACCELERATE: Set to 'true' to use Prisma Accelerate
+- PGBOUNCER_PORT: PgBouncer proxy port
+- USE_PRISMA_ACCELERATE: Use Prisma Accelerate
 - PRISMA_ACCELERATE_KEY: Prisma Accelerate API key
-- SLOW_QUERY_THRESHOLD_MS: Threshold for slow query alerts (default: 1000ms)
+- SLOW_QUERY_THRESHOLD_MS: Threshold for slow query alerts
 `;
   }
 }

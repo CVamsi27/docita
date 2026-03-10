@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -18,21 +18,17 @@ export class DatabaseBackupService {
   private readonly databaseUser: string;
   private readonly databaseName: string;
 
-  constructor(private configService: ConfigService) {
-    this.backupDir =
-      configService.get<string>('BACKUP_DIR') || '/backups/postgresql';
-    this.retentionDays = parseInt(
-      configService.get<string>('BACKUP_RETENTION_DAYS') || '30',
-      10,
-    );
-    this.databasePassword =
-      configService.get<string>('DATABASE_PASSWORD') || '';
-    this.databaseHost =
-      configService.get<string>('DATABASE_HOST') || 'localhost';
-    this.databasePort = configService.get<string>('DATABASE_PORT') || '5432';
-    this.databaseUser =
-      configService.get<string>('DATABASE_USER') || 'postgres';
-    this.databaseName = configService.get<string>('DATABASE_NAME') || 'docita';
+  constructor(private configService: AppConfigService) {
+    const dbConfig = this.configService.getDatabaseConfig();
+    const backupConfig = this.configService.getBackupConfig();
+
+    this.backupDir = backupConfig.directory;
+    this.retentionDays = backupConfig.retentionDays;
+    this.databasePassword = dbConfig.password;
+    this.databaseHost = dbConfig.host;
+    this.databasePort = dbConfig.port.toString();
+    this.databaseUser = dbConfig.user;
+    this.databaseName = dbConfig.name;
 
     this.ensureBackupDirectory();
   }

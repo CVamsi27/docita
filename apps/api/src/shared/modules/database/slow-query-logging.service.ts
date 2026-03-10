@@ -21,7 +21,6 @@ export class SlowQueryLoggingService {
   }
 
   private setupQueryLogging(): void {
-    const _threshold = this.configService.getSlowQueryThreshold();
     if (!this.prisma.$on) {
       this.logger.warn(
         'Prisma query event listener not available, slow query logging disabled',
