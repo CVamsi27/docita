@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '../config/app-configuration.service';
 import { AiService } from './ai.service';
 import { AiFactory } from './factories/ai.factory';
 import { z } from 'zod';
 
 describe('AiService', () => {
   let service: AiService;
-  let _configService: ConfigService;
-  let _aiFactory: AiFactory;
+  let configService: AppConfigService;
+  let aiFactory: AiFactory;
 
-  const mockConfigService = {
-    get: jest.fn(),
+  const mockAppConfigService = {
+    getAiApiKey: jest.fn(),
   };
 
   const mockAiFactory = {
@@ -22,8 +22,8 @@ describe('AiService', () => {
       providers: [
         AiService,
         {
-          provide: ConfigService,
-          useValue: mockConfigService,
+          provide: AppConfigService,
+          useValue: mockAppConfigService,
         },
         {
           provide: AiFactory,
@@ -33,7 +33,7 @@ describe('AiService', () => {
     }).compile();
 
     service = module.get<AiService>(AiService);
-    configService = module.get<ConfigService>(ConfigService);
+    configService = module.get<AppConfigService>(AppConfigService);
     aiFactory = module.get<AiFactory>(AiFactory);
   });
 
@@ -43,7 +43,7 @@ describe('AiService', () => {
 
   describe('generateText', () => {
     it('should return mock response when API key is missing', async () => {
-      mockConfigService.get.mockReturnValue(undefined);
+      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -51,7 +51,7 @@ describe('AiService', () => {
     });
 
     it('should use mock response even if API key exists (for now)', async () => {
-      mockConfigService.get.mockReturnValue('test-key');
+      mockAppConfigService.getAiApiKey.mockReturnValue('test-key');
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -61,7 +61,7 @@ describe('AiService', () => {
 
   describe('generateStructured', () => {
     it('should attempt validation via factory', async () => {
-      mockConfigService.get.mockReturnValue(undefined);
+      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockReturnValue({ foo: 'bar' });
@@ -73,7 +73,7 @@ describe('AiService', () => {
     });
 
     it('should fallback to mock schema generation if validation fails', async () => {
-      mockConfigService.get.mockReturnValue(undefined);
+      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockImplementation(() => {

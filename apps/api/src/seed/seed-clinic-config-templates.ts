@@ -49,7 +49,6 @@ export async function seedClinicConfigTemplates(
       prisma.patient.update({
         where: { id: patient.id },
         data: {
-          // Keep seeded MRNs deterministic and unique across reruns.
           mrn: `DOC-${patient.id.slice(-8).toUpperCase()}`,
         },
       }),
