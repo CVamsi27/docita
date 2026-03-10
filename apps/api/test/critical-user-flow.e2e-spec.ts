@@ -23,7 +23,7 @@ describe('Critical User Flow (e2e)', () => {
   let clinicId: string;
   let doctorId: string;
   let patientId: string;
-  let appointmentId: string;
+  let _appointmentId: string;
 
   beforeAll(async () => {
     setupTestDatabase();

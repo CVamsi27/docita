@@ -9,7 +9,7 @@ import {
   closeDatabase,
   getPrismaInstance,
 } from './setup';
-import { factories, setPrismaInstance } from './factories';
+import { _factories, setPrismaInstance } from './factories';
 import cookieParser from 'cookie-parser';
 
 describe('CSRF Protection (e2e)', () => {

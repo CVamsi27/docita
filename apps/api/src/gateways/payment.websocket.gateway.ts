@@ -6,13 +6,17 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Logger,
+  UseGuards,
+  BadRequestException as _BadRequestException,
+} from '@nestjs/common';
 import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
 import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import {
   ClinicTier,
   SubscriptionStatus,
-  InvoiceStatus,
+  InvoiceStatus as _InvoiceStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
 
@@ -83,7 +87,7 @@ export class PaymentWebSocketGateway
       this.logger.log(
         `Client connected and authenticated: ${client.id} (${payload.email})`,
       );
-    } catch (err) {
+    } catch (_err) {
       this.logger.warn(`Unauthorized connection attempt: ${client.id}`);
       client.disconnect(true);
     }

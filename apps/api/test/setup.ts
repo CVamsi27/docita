@@ -39,7 +39,7 @@ export function setupTestDatabase() {
       },
       stdio: 'pipe',
     });
-  } catch (e) {}
+  } catch (_e) {}
 
   return prisma;
 }
@@ -104,7 +104,7 @@ export async function resetDatabase() {
   for (const table of tables) {
     try {
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
-    } catch (e) {}
+    } catch (_e) {}
   }
 }
 

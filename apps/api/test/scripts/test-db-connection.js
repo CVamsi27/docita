@@ -18,7 +18,7 @@ if (!url) {
   process.exit(1);
 }
 
-const maskedUrl = url.replace(/:([^:@]+)@/, ':****@');
+const _maskedUrl = url.replace(/:([^:@]+)@/, ':****@');
 
 const client = new Client({
   connectionString: url,
@@ -29,11 +29,11 @@ const client = new Client({
   try {
     await client.connect();
 
-    const res = await client.query('SELECT NOW()');
+    const _res = await client.query('SELECT NOW()');
 
     await client.end();
     process.exit(0);
-  } catch (err) {
+  } catch (_err) {
     process.exit(1);
   }
 })();

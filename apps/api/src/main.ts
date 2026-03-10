@@ -5,14 +5,13 @@ import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './shared/modules/error-handling/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
-import { CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { CacheInterceptor as _CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { MonitoringService } from './shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from './shared/modules/services/observability.service';
 import {
   getCorsOrigins,
   validateEnv,
   isDevelopment,
-  getEnv,
 } from './shared/modules/config/app-config';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -211,7 +210,7 @@ async function bootstrap() {
     if (isSentryIntegration(profilingIntegration)) {
       integrations.push(profilingIntegration);
     }
-  } catch (error) {
+  } catch (_error) {
     // Sentry profiling integration failure ignored
   }
 
@@ -243,7 +242,7 @@ async function bootstrap() {
       await import('./shared/modules/services/startup-validation.service');
     const startupValidator = app.get(StartupValidationService);
     startupValidator.validate();
-  } catch (error) {
+  } catch (_error) {
     process.exit(1);
   }
 
@@ -370,7 +369,7 @@ async function bootstrap() {
 
   const observabilityService = app.get(ObservabilityService);
 
-  const gracefulShutdown = (signal: string) => {
+  const gracefulShutdown = (_signal: string) => {
     server.close(async () => {
       await observabilityService.flush(5000);
 

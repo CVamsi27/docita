@@ -31,8 +31,6 @@ import {
   BED_NUMBER_OPTIONS,
   TEETH_QUADRANTS,
   TOOTH_CONDITIONS,
-  getFormOptions,
-  getDefaults,
 } from '@workspace/utils';
 
 export {

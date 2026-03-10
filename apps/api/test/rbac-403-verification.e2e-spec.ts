@@ -10,7 +10,7 @@ import {
   closeDatabase,
   getPrismaInstance,
 } from './setup';
-import { factories, setPrismaInstance } from './factories';
+import { _factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';

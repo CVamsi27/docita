@@ -10,7 +10,7 @@ import {
   closeDatabase,
   getPrismaInstance,
 } from './setup';
-import { factories, setPrismaInstance } from './factories';
+import { _factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
@@ -22,39 +22,39 @@ describe('RBAC Authorization (e2e)', () => {
   let prisma: PrismaService;
 
   let adminClinic: { id: string; name: string };
-  let adminUser: {
+  let _adminUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let adminToken: string;
+  let _adminToken: string;
 
   let doctorClinic: { id: string; name: string };
-  let doctorUser: {
+  let _doctorUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let doctorToken: string;
+  let _doctorToken: string;
 
-  let staffClinic: { id: string; name: string };
-  let staffUser: {
+  let _staffClinic: { id: string; name: string };
+  let _staffUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let staffToken: string;
+  let _staffToken: string;
 
-  let otherClinicUser: {
+  let _otherClinicUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let otherClinicToken: string;
+  let _otherClinicToken: string;
 
   beforeAll(async () => {
     setupTestDatabase();

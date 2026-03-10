@@ -45,7 +45,7 @@ async function main() {
           if (result) {
           } else {
           }
-        } catch (err) {}
+        } catch (_err) {}
       },
     );
 
@@ -60,14 +60,14 @@ async function main() {
           if (result) {
           } else {
           }
-        } catch (err) {}
+        } catch (_err) {}
       },
     );
 
     await prismaRaw.patient.delete({ where: { id: patientA.id } });
     await prismaRaw.clinic.delete({ where: { id: clinicA.id } });
     await prismaRaw.clinic.delete({ where: { id: clinicB.id } });
-  } catch (e) {
+  } catch (_e) {
   } finally {
     await prismaRaw.$disconnect();
   }

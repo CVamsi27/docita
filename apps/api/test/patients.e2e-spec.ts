@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { _ThrottlerGuard } from '@nestjs/throttler';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
@@ -41,7 +41,7 @@ describe('Patients (e2e)', () => {
       .overrideProvider(APP_INTERCEPTOR)
       .useValue({
         intercept: (
-          context: { switchToHttp: () => { getRequest: () => unknown } },
+          _context: { switchToHttp: () => { getRequest: () => unknown } },
           next: { handle: () => unknown },
         ) => next.handle(),
       })
@@ -153,7 +153,7 @@ describe('Patients (e2e)', () => {
     });
 
     it('should search patients', async () => {
-      const patient = await factories.patient(clinicId, {
+      const _patient = await factories.patient(clinicId, {
         firstName: 'SearchMe',
       });
 

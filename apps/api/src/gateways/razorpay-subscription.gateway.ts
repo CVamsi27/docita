@@ -87,7 +87,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const customer = await razorpay.customers.fetch(customerId);
       return this.toRecord(customer);
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       this.logger.warn(`Customer ${customerId} not found`);
       return null;
     }
@@ -125,7 +125,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const plan = await razorpay.plans.fetch(planId);
       return this.toRecord(plan);
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       this.logger.warn(`Plan ${planId} not found`);
       return null;
     }
@@ -200,7 +200,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
       const razorpay = this.ensureRazorpayInitialized();
       const subscription = await razorpay.subscriptions.fetch(subscriptionId);
       return this.toRecord(subscription);
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       this.logger.warn(`Subscription ${subscriptionId} not found`);
       return null;
     }
@@ -284,7 +284,7 @@ export class RazorpaySubscriptionGateway implements IPaymentGateway {
 
   async chargeWithToken(
     customerId: string,
-    tokenId: string,
+    _tokenId: string,
     amountCents: number,
     currency: string,
     description?: string,

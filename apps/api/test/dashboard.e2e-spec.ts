@@ -39,7 +39,7 @@ describe('Dashboard (e2e)', () => {
       .overrideProvider(APP_INTERCEPTOR)
       .useValue({
         intercept: (
-          context: { switchToHttp: () => { getRequest: () => unknown } },
+          _context: { switchToHttp: () => { getRequest: () => unknown } },
           next: { handle: () => unknown },
         ) => next.handle(),
       })

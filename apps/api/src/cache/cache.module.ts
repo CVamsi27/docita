@@ -33,7 +33,7 @@ import { ConfigService } from '@nestjs/config';
             ttl: 300000,
             isGlobal: true,
           };
-        } catch (error) {
+        } catch {
           return {
             isGlobal: true,
             ttl: 300000,
