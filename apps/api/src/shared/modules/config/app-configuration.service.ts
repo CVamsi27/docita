@@ -19,10 +19,6 @@ export class AppConfigService {
     return this.getConfig().NEXT_PUBLIC_API_URL;
   }
 
-  getPaymentCallbackUrl(): string {
-    return `${this.getAppUrl()}/api/payment/callback`;
-  }
-
   getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
     return this.getConfig().NODE_ENV;
   }
@@ -41,40 +37,6 @@ export class AppConfigService {
 
   getDatabaseReadUrl(): string | undefined {
     return this.getConfig().DATABASE_READ_URL;
-  }
-
-  getJwtSecret(): string {
-    return this.getConfig().JWT_SECRET;
-  }
-
-  getEncryptionKey(): string {
-    return this.getConfig().ENCRYPTION_KEY;
-  }
-
-  getCorsOrigins(): (string | RegExp)[] {
-    return this.getConfig()
-      .CORS_ORIGINS.split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean);
-  }
-
-  getSentryConfig() {
-    return {
-      dsn: this.getConfig().SENTRY_DSN,
-      tracesSampleRate: this.getConfig().SENTRY_TRACES_SAMPLE_RATE,
-      profilesSampleRate: this.getConfig().SENTRY_PROFILES_SAMPLE_RATE,
-      logLevel: this.getConfig().LOG_LEVEL,
-      environment: this.getEnvironment(),
-      release: this.getConfig().APP_VERSION,
-    };
-  }
-
-  getRazorpayConfig() {
-    return {
-      keyId: this.getRazorpayKeyId(),
-      keySecret: this.getRazorpayKeySecret(),
-      webhookSecret: this.getRazorpayWebhookSecret(),
-    };
   }
 
   getRazorpayKeyId(): string {
@@ -115,17 +77,6 @@ export class AppConfigService {
     return this.getConfig().ANALYTICS_CACHE_TTL;
   }
 
-  getPaymentTtl(): number {
-    return this.getConfig().PAYMENT_TTL;
-  }
-
-  getPaymentRetryConfig() {
-    return {
-      maxAttempts: this.getConfig().PAYMENT_RETRY_MAX_ATTEMPTS,
-      backoffMultiplier: this.getConfig().PAYMENT_RETRY_BACKOFF_MULTIPLIER,
-    };
-  }
-
   getRedisConfig() {
     return {
       host: this.getConfig().REDIS_HOST,
@@ -156,84 +107,9 @@ export class AppConfigService {
     return this.getConfig().SLOW_QUERY_THRESHOLD_MS;
   }
 
-  getMetaVerifyToken(): string {
-    const config = getEnv();
-    return config.META_VERIFY_TOKEN || '';
-  }
-
-  getGoogleCloudProjectId(): string | undefined {
-    const config = getEnv();
-    return config.GOOGLE_CLOUD_PROJECT_ID;
-  }
-
-  getGoogleCloudCredentialsJson(): string | undefined {
-    const config = getEnv();
-    return config.GOOGLE_CLOUD_CREDENTIALS_JSON;
-  }
-
-  getOcrConfidenceThreshold(): number {
-    const config = getEnv();
-    return config.OCR_CONFIDENCE_THRESHOLD || 0.75;
-  }
-
-  getOcrMedicalFieldThreshold(): number {
-    const config = getEnv();
-    return config.OCR_MEDICAL_FIELD_THRESHOLD || 0.8;
-  }
-
-  getOcrContactFieldThreshold(): number {
-    const config = getEnv();
-    return config.OCR_CONTACT_FIELD_THRESHOLD || 0.65;
-  }
-
-  getRedisUrl(): string | undefined {
-    const config = getEnv();
-    return config.REDIS_URL;
-  }
-
-  getRedisHost(): string {
-    const config = getEnv();
-    return config.REDIS_HOST;
-  }
-
-  getRedisPort(): number {
-    const config = getEnv();
-    return config.REDIS_PORT;
-  }
-
-  getRedisPassword(): string | undefined {
-    const config = getEnv();
-    return config.REDIS_PASSWORD;
-  }
-
-  getRedisUsername(): string | undefined {
-    const config = getEnv();
-    return config.REDIS_USERNAME;
-  }
-
   getLogLevel(): string {
     const config = getEnv();
     return config.LOG_LEVEL;
-  }
-
-  getPort(): number {
-    const config = getEnv();
-    return config.PORT;
-  }
-
-  getSentryDsn(): string | undefined {
-    const config = getEnv();
-    return config.SENTRY_DSN;
-  }
-
-  getSentryTracesSampleRate(): number {
-    const config = getEnv();
-    return config.SENTRY_TRACES_SAMPLE_RATE;
-  }
-
-  getSentryProfilesSampleRate(): number {
-    const config = getEnv();
-    return config.SENTRY_PROFILES_SAMPLE_RATE;
   }
 
   getAppVersion(): string {

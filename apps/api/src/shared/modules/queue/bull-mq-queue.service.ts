@@ -55,7 +55,7 @@ export class BullMQQueueService
     for (const queue of this.queues.values()) {
       try {
         await queue.close();
-      } catch (error) {}
+      } catch (_error) {}
     }
   }
 
@@ -63,11 +63,12 @@ export class BullMQQueueService
     if (!this.queues.has(name)) {
       try {
         const Queue = require('bull');
+        const redisConfig = this.configService.getRedisConfig();
         const queue = new Queue(name, {
           redis: {
-            host: this.configService.getRedisHost(),
-            port: this.configService.getRedisPort(),
-            password: this.configService.getRedisPassword(),
+            host: redisConfig.host,
+            port: redisConfig.port,
+            password: redisConfig.password,
           },
         });
 
@@ -164,13 +165,13 @@ export class BullMQQueueService
   }
 
   async getJob<T extends Record<string, unknown>>(
-    jobId: string,
+    _jobId: string,
   ): Promise<QueueJob<T> | null> {
     await Promise.resolve();
     return null;
   }
 
-  removeJob(jobId: string): Promise<void> {
+  removeJob(_jobId: string): Promise<void> {
     return Promise.resolve();
   }
 

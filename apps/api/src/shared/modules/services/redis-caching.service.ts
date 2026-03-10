@@ -14,12 +14,13 @@ export class RedisCachingService implements OnModuleInit {
   private isConnected = false;
 
   constructor(private configService: AppConfigService) {
+    const redisConfig = this.configService.getRedisConfig();
     this.client = redis.createClient({
-      password: this.configService.getRedisPassword(),
-      username: this.configService.getRedisUsername(),
+      password: redisConfig.password,
+      username: redisConfig.username,
       socket: {
-        host: this.configService.getRedisHost(),
-        port: this.configService.getRedisPort(),
+        host: redisConfig.host,
+        port: redisConfig.port,
         reconnectStrategy: (retries: number) => {
           return Math.min(retries * 50, 500);
         },
