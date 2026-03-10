@@ -43,7 +43,7 @@ import {
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000;
@@ -56,11 +56,11 @@ export class AuthController {
 
   constructor(
     private authService: AuthService,
-    private configService: ConfigService,
+    private configService: AppConfigService,
   ) {}
 
   private getCookieOptions() {
-    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const isProduction = this.configService.isProduction();
     return {
       httpOnly: true,
       secure: isProduction,

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
@@ -19,11 +19,8 @@ describe('AuthController', () => {
     changePassword: jest.fn(),
   };
 
-  const mockConfigService = {
-    get: jest.fn((key: string) => {
-      if (key === 'NODE_ENV') return 'test';
-      return 'mock-value';
-    }),
+  const mockAppConfigService = {
+    isProduction: jest.fn(() => false),
   };
 
   beforeEach(async () => {
@@ -37,8 +34,8 @@ describe('AuthController', () => {
           useValue: mockAuthService,
         },
         {
-          provide: ConfigService,
-          useValue: mockConfigService,
+          provide: AppConfigService,
+          useValue: mockAppConfigService,
         },
       ],
     })
@@ -49,7 +46,7 @@ describe('AuthController', () => {
       .compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
+    _authService = module.get<AuthService>(AuthService);
   });
 
   it('should be defined', () => {

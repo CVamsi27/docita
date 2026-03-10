@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role } from '@workspace/db';
@@ -10,18 +10,26 @@ describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let prisma: typeof mockPrisma;
 
-  const mockPrisma = {
-    user: {
-      findUnique: jest.fn(),
-    },
-    runUnrestricted: jest.fn((callback) => callback()),
+  type MockUser = {
+    id: string;
+    email: string;
+    role: string;
+    name: string;
+    clinicId: string | null;
   };
 
-  const mockConfigService = {
-    get: jest.fn((key: string) => {
-      if (key === 'JWT_SECRET') return 'test-secret-key';
-      return undefined;
-    }),
+  const mockPrisma = {
+    user: {
+      findUnique: jest.fn() as jest.MockedFunction<
+        () => Promise<MockUser | null>
+      >,
+    },
+    runUnrestricted: jest.fn(<T>(callback: () => T): T => callback()),
+  };
+
+  const mockAppConfigService = {
+    getJwtSecret: jest.fn(() => 'test-secret-key'),
+    getJwtExpiration: jest.fn(() => '7d'),
   };
 
   beforeEach(async () => {
@@ -31,12 +39,14 @@ describe('JwtStrategy', () => {
       providers: [
         JwtStrategy,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: ConfigService, useValue: mockConfigService },
+        { provide: AppConfigService, useValue: mockAppConfigService },
       ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
-    prisma = module.get(PrismaService);
+    prisma = module.get<PrismaService>(
+      PrismaService,
+    ) as unknown as typeof mockPrisma;
   });
 
   const validPayload = {
@@ -122,7 +132,7 @@ describe('JwtStrategy', () => {
   describe('constructor', () => {
     it('should throw if JWT_SECRET is not set', async () => {
       const noSecretConfig = {
-        get: jest.fn(() => undefined),
+        getJwtSecret: jest.fn(() => undefined),
       };
 
       await expect(
@@ -130,7 +140,7 @@ describe('JwtStrategy', () => {
           providers: [
             JwtStrategy,
             { provide: PrismaService, useValue: mockPrisma },
-            { provide: ConfigService, useValue: noSecretConfig },
+            { provide: AppConfigService, useValue: noSecretConfig },
           ],
         }).compile(),
       ).rejects.toThrow('CRITICAL: JWT_SECRET is not set');

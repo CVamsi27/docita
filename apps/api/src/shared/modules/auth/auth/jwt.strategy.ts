@@ -4,8 +4,7 @@ import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
-
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 interface JwtPayload {
   sub: string;
@@ -29,9 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService,
+    private configService: AppConfigService,
   ) {
-    const jwtSecret = configService.get<string>('JWT_SECRET');
+    const jwtSecret = configService.getJwtSecret();
     if (!jwtSecret) {
       throw new Error(
         'CRITICAL: JWT_SECRET is not set in environment. Authentication is non-functional.',

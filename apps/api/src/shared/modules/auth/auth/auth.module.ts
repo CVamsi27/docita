@@ -12,7 +12,8 @@ import { CombinedAuthGuard } from './combined-auth.guard';
 import { UsersModule } from '@/domains/users/users.module';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppConfigModule } from '@/shared/modules/config/config.module';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DefaultPasswordPolicy } from './policies/password.policy';
 
 type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
@@ -24,11 +25,11 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
     UsersModule,
     forwardRef(() => ClinicsModule),
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const secret = configService.get<string>('JWT_SECRET');
-        const expiration = configService.get<string>('JWT_EXPIRATION') || '7d';
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (configService: AppConfigService) => {
+        const secret = configService.getJwtSecret();
+        const expiration = configService.getJwtExpiration();
         const expiresIn = /^\d+$/.test(expiration)
           ? Number(expiration)
           : (expiration as JwtDuration);
