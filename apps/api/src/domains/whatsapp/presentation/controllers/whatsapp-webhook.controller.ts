@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   HandleWhatsAppWebhookDto,
   VerifyWhatsAppWebhookQueryDto,
@@ -24,13 +24,13 @@ export class WhatsAppWebhookController {
 
   constructor(
     private readonly handleWebhookUseCase: HandleWebhookUseCase,
-    private readonly configService: ConfigService,
+    private readonly configService: AppConfigService,
   ) {}
 
   @Public()
   @Get()
   verifyWebhook(@Query() query: VerifyWhatsAppWebhookQueryDto) {
-    const verifyToken = this.configService.get<string>('META_VERIFY_TOKEN');
+    const verifyToken = this.configService.getMetaConfig().verifyToken;
     if (
       query['hub.mode'] === 'subscribe' &&
       query['hub.verify_token'] === verifyToken

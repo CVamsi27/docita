@@ -9,7 +9,7 @@ import {
   SendMessageResponse,
   SendInteractiveRequest,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
 export class WhatsAppApiAdapter implements IWhatsAppClient {
@@ -19,11 +19,10 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   private readonly phoneNumberId: string;
   private readonly accessToken: string;
 
-  constructor(private readonly configService: ConfigService) {
-    this.phoneNumberId =
-      this.configService.get<string>('META_PHONE_NUMBER_ID') || '';
-    this.accessToken =
-      this.configService.get<string>('META_ACCESS_TOKEN') || '';
+  constructor(private readonly configService: AppConfigService) {
+    const metaConfig = this.configService.getMetaConfig();
+    this.phoneNumberId = metaConfig.phoneNumberId;
+    this.accessToken = metaConfig.accessToken;
 
     if (!this.phoneNumberId || !this.accessToken) {
       this.logger.warn('WhatsApp API credentials not fully configured');

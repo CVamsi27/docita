@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Module({
   imports: [
     NestCacheModule.registerAsync({
       isGlobal: true,
-      inject: [ConfigService],
+      inject: [AppConfigService],
       useFactory: (
-        configService: ConfigService,
+        configService: AppConfigService,
       ): {
         isGlobal: boolean;
         ttl: number;
         store?: unknown;
         url?: string;
       } => {
-        const redisUrl = configService.get<string>('REDIS_URL');
+        const redisUrl = configService.getRedisConfig().url;
 
         if (!redisUrl) {
           return {

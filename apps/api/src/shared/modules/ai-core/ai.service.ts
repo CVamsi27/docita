@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { AiFactory } from './factories/ai.factory';
 import { AiPromptInput } from './schemas/ai.schema';
 import { z } from 'zod';
@@ -11,10 +11,10 @@ export class AiService {
   private openai: OpenAI | null = null;
 
   constructor(
-    private configService: ConfigService,
+    private configService: AppConfigService,
     private aiFactory: AiFactory,
   ) {
-    const apiKey = this.configService.get<string>('AI_API_KEY');
+    const apiKey = this.configService.getAiApiKey();
     if (apiKey) {
       this.openai = new OpenAI({
         apiKey,

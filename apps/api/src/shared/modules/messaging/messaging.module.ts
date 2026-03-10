@@ -1,48 +1,52 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppConfigModule } from '../config/config.module';
+import { AppConfigService } from '../config/app-configuration.service';
 import { MessageTemplateService } from './templates';
 import { NotificationOrchestrator } from './notification-orchestrator.service';
 import { WhatsAppChannel, EmailChannel, SmsChannel } from './channels';
 import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [ConfigModule, NotificationsModule],
+  imports: [AppConfigModule, NotificationsModule],
   providers: [
     MessageTemplateService,
     NotificationOrchestrator,
 
     {
       provide: WhatsAppChannel,
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: AppConfigService) => {
+        const metaConfig = configService.getMetaConfig();
         return new WhatsAppChannel(
-          configService.get<string>('META_PHONE_NUMBER_ID', ''),
-          configService.get<string>('META_ACCESS_TOKEN', ''),
-          configService.get<string>('META_BUSINESS_ACCOUNT_ID', ''),
+          metaConfig.phoneNumberId,
+          metaConfig.accessToken,
+          metaConfig.businessAccountId,
         );
       },
-      inject: [ConfigService],
+      inject: [AppConfigService],
     },
     {
       provide: EmailChannel,
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: AppConfigService) => {
+        const smtpConfig = configService.getSmtpConfig();
         return new EmailChannel({
-          host: configService.get<string>('SMTP_HOST', 'localhost'),
-          port: configService.get<number>('SMTP_PORT', 587),
-          user: configService.get<string>('SMTP_USER', ''),
-          pass: configService.get<string>('SMTP_PASS', ''),
+          host: smtpConfig.host,
+          port: smtpConfig.port,
+          user: smtpConfig.user,
+          pass: smtpConfig.pass,
         });
       },
-      inject: [ConfigService],
+      inject: [AppConfigService],
     },
     {
       provide: SmsChannel,
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: AppConfigService) => {
+        const smsConfig = configService.getSmsConfig();
         return new SmsChannel({
-          apiKey: configService.get<string>('SMS_API_KEY', ''),
-          senderId: configService.get<string>('SMS_SENDER_ID', ''),
+          apiKey: smsConfig.apiKey,
+          senderId: smsConfig.senderId,
         });
       },
-      inject: [ConfigService],
+      inject: [AppConfigService],
     },
   ],
   exports: [

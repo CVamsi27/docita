@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   WHATSAPP_REPOSITORY_TOKEN,
   IWhatsAppRepository,
@@ -35,10 +35,9 @@ export class SendMessageUseCase {
     @Inject(WHATSAPP_CLIENT_TOKEN)
     private readonly client: IWhatsAppClient,
     private readonly templateResolver: TemplateResolverService,
-    private readonly configService: ConfigService,
+    private readonly configService: AppConfigService,
   ) {
-    this.useProductionMode =
-      this.configService.get<string>('WHATSAPP_PRODUCTION_MODE') === 'true';
+    this.useProductionMode = this.configService.getMetaConfig().productionMode;
   }
 
   async execute(request: SendMessageRequest): Promise<{ messageId: string }> {

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32;
@@ -13,8 +13,8 @@ export class EncryptionService {
   private keyVersions: Map<string, Buffer> = new Map();
   private currentKeyVersion: string = 'v1';
 
-  constructor(private configService: ConfigService) {
-    const key = this.configService.get<string>('ENCRYPTION_KEY');
+  constructor(private configService: AppConfigService) {
+    const key = this.configService.getEncryptionKey();
 
     if (!key) {
       throw new Error(
@@ -35,28 +35,25 @@ export class EncryptionService {
       throw new Error('CRITICAL: ENCRYPTION_KEY must be a valid hex string.');
     }
 
-    const historicalKeys = ['v2', 'v3', 'v4', 'v5'];
-    for (const version of historicalKeys) {
-      const historicalKey = this.configService.get<string>(
-        `ENCRYPTION_KEY_${version.toUpperCase()}`,
-      );
+    const historicalKeys = this.configService.getHistoricalEncryptionKeys();
+    for (const [version, historicalKey] of Object.entries(historicalKeys)) {
       if (historicalKey && historicalKey.length === 64) {
         try {
           const keyBuffer = Buffer.from(historicalKey, 'hex');
           this.keyVersions.set(version, keyBuffer);
-          this.currentKeyVersion = version;
-          this.encryptionKey = keyBuffer;
-          this.logger.log(`Loaded encryption key version: ${version}`);
+          this.logger.log(
+            `Loaded historical encryption key version: ${version}`,
+          );
         } catch {
           this.logger.warn(
-            `Invalid format for ENCRYPTION_KEY_${version.toUpperCase()}, skipping`,
+            `Invalid format for historical encryption key version ${version}, skipping`,
           );
         }
       }
     }
 
     this.logger.log(
-      `EncryptionService initialized with key version: ${this.currentKeyVersion} (${this.keyVersions.size} versions available)`,
+      `EncryptionService initialized with current key version: ${this.currentKeyVersion} (${this.keyVersions.size} total versions available)`,
     );
   }
 

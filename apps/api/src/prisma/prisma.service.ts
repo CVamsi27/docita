@@ -56,8 +56,6 @@ export class PrismaService
 
     if (!connectionString) {
       connectionString = databaseUrl;
-    } else {
-      process.env.DATABASE_URL = connectionString;
     }
 
     const poolMax = isProduction ? 20 : 5;

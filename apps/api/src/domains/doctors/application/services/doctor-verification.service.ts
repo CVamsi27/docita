@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 type VerificationResult = {
   status: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'FAILED';
@@ -32,7 +33,10 @@ export class DoctorVerificationService {
     updatedAt: true,
   } as const;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   async verifyAndPersistDoctorVerification(doctorId: string) {
     const doctor = await this.prisma.user.findUnique({
@@ -132,9 +136,9 @@ export class DoctorVerificationService {
     registrationNumber: string;
     licenseNumber?: string;
   }): Promise<VerificationResult> {
-    const endpoint = process.env.DOCTOR_VERIFICATION_API_URL;
+    const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
-    if (!endpoint) {
+    if (!apiUrl) {
       return {
         status: 'FAILED',
         source: 'NMC',
@@ -147,13 +151,13 @@ export class DoctorVerificationService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(process.env.DOCTOR_VERIFICATION_API_KEY
+          ...(apiKey
             ? {
-                Authorization: `Bearer ${process.env.DOCTOR_VERIFICATION_API_KEY}`,
+                Authorization: `Bearer ${apiKey}`,
               }
             : {}),
         },

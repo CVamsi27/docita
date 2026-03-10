@@ -6,7 +6,7 @@ import {
   ServiceUnavailableException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import OpenAI from 'openai';
@@ -21,21 +21,19 @@ export class OpenaiService {
   private readonly cacheTTL: number;
 
   constructor(
-    private configService: ConfigService,
+    private configService: AppConfigService,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) {
-    this.modelType = this.configService.get('OPENAI_MODEL') || 'gpt-4-turbo';
-    this.requestTimeout = parseInt(
-      this.configService.get('AI_REQUEST_TIMEOUT') || '5000',
-    );
-    this.cacheEnabled = this.configService.get('AI_CACHE_ENABLED') !== 'false';
-    this.cacheTTL = parseInt(this.configService.get('AI_CACHE_TTL') || '86400');
+    const aiConfig = this.configService.getOpenAiConfig();
+    this.modelType = aiConfig.model;
+    this.requestTimeout = aiConfig.requestTimeout;
+    this.cacheEnabled = aiConfig.cacheEnabled;
+    this.cacheTTL = aiConfig.cacheTtl;
 
-    const apiKey = this.configService.get('OPENAI_API_KEY');
-    if (!apiKey) {
+    if (!aiConfig.apiKey) {
       this.logger.warn('OpenAI API key not configured.');
     } else {
-      this.openai = new OpenAI({ apiKey });
+      this.openai = new OpenAI({ apiKey: aiConfig.apiKey });
     }
   }
 
