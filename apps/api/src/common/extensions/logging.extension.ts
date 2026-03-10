@@ -1,8 +1,8 @@
 import { Prisma } from '@workspace/db';
 import { Logger } from '@nestjs/common';
+import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 const logger = new Logger('SlowQueryLogger');
-const SLOW_QUERY_THRESHOLD = 500;
 
 export const slowQueryExtension = Prisma.defineExtension({
   name: 'slow-query-logging',
@@ -13,7 +13,7 @@ export const slowQueryExtension = Prisma.defineExtension({
       const end = performance.now();
       const duration = end - start;
 
-      if (duration > SLOW_QUERY_THRESHOLD) {
+      if (duration > DATABASE_CONSTANTS.SLOW_QUERY_THRESHOLD_MS) {
         logger.warn(
           `Slow query detected: ${model}.${operation} took ${duration.toFixed(2)}ms`,
         );

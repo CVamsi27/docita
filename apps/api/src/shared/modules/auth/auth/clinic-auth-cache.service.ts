@@ -5,6 +5,7 @@ import {
   SubscriptionStatus,
   IntelligenceAddon,
 } from '@workspace/db';
+import { CACHE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 interface ClinicAuthCache {
   clinicId: string;
@@ -14,10 +15,6 @@ interface ClinicAuthCache {
   features: Record<string, boolean>;
   cachedAt: number;
 }
-
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
-const MAX_CACHE_SIZE = 1000;
 
 @Injectable()
 export class ClinicAuthCacheService {
@@ -86,15 +83,16 @@ export class ClinicAuthCacheService {
   } {
     return {
       size: this.cache.size,
-      maxSize: MAX_CACHE_SIZE,
-      ttlMs: CACHE_TTL_MS,
-      utilizationPercent: (this.cache.size / MAX_CACHE_SIZE) * 100,
+      maxSize: CACHE_CONSTANTS.MAX_CLINIC_AUTH_CACHE_SIZE,
+      ttlMs: CACHE_CONSTANTS.CLINIC_AUTH_TTL_MS,
+      utilizationPercent:
+        (this.cache.size / CACHE_CONSTANTS.MAX_CLINIC_AUTH_CACHE_SIZE) * 100,
     };
   }
 
   private isCacheFresh(cached: ClinicAuthCache): boolean {
     const age = Date.now() - cached.cachedAt;
-    return age < CACHE_TTL_MS;
+    return age < CACHE_CONSTANTS.CLINIC_AUTH_TTL_MS;
   }
 
   private setCache(
@@ -106,7 +104,7 @@ export class ClinicAuthCacheService {
       features: Record<string, boolean>;
     },
   ): void {
-    if (this.cache.size >= MAX_CACHE_SIZE) {
+    if (this.cache.size >= CACHE_CONSTANTS.MAX_CLINIC_AUTH_CACHE_SIZE) {
       const oldestKey = this.findOldestCacheKey();
       if (oldestKey) {
         this.cache.delete(oldestKey);

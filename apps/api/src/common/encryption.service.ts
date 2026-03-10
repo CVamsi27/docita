@@ -1,10 +1,7 @@
 import * as crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-
-const ALGORITHM = 'aes-256-gcm';
-const KEY_LENGTH = 32;
-const IV_LENGTH = 16;
+import { ENCRYPTION_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 @Injectable()
 export class EncryptionService {
@@ -58,14 +55,18 @@ export class EncryptionService {
   }
 
   private generateKey(): string {
-    return crypto.randomBytes(KEY_LENGTH).toString('hex');
+    return crypto.randomBytes(ENCRYPTION_CONSTANTS.KEY_LENGTH).toString('hex');
   }
 
   encrypt(plaintext: string): string {
     if (!plaintext) return plaintext;
 
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, this.encryptionKey, iv);
+    const iv = crypto.randomBytes(ENCRYPTION_CONSTANTS.IV_LENGTH);
+    const cipher = crypto.createCipheriv(
+      ENCRYPTION_CONSTANTS.ALGORITHM,
+      this.encryptionKey,
+      iv,
+    );
 
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -123,7 +124,11 @@ export class EncryptionService {
     const iv = Buffer.from(ivHex, 'hex');
     const authTag = Buffer.from(authTagHex, 'hex');
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    const decipher = crypto.createDecipheriv(
+      ENCRYPTION_CONSTANTS.ALGORITHM,
+      key,
+      iv,
+    );
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');

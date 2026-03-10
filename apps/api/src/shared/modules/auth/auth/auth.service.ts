@@ -14,6 +14,7 @@ import { IPasswordPolicy } from './policies/password.policy';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
+import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { nanoid } from 'nanoid';
 
 interface UserWithoutPassword {
@@ -163,17 +164,15 @@ export class AuthService {
       }
 
       const newFailedAttempts = user.failedLoginAttempts + 1;
-      const MAX_FAILED_ATTEMPTS = 5;
-      const LOCKOUT_DURATION_MINUTES = 15;
 
       const updateData: Record<string, unknown> = {
         failedLoginAttempts: newFailedAttempts,
         lastFailedLoginAt: new Date(),
       };
 
-      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+      if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
         updateData.accountLockedUntil = new Date(
-          Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000,
+          Date.now() + AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60 * 1000,
         );
       }
 
@@ -189,23 +188,24 @@ export class AuthService {
           userId: user.id,
           email: user.email,
           attempt: newFailedAttempts,
-          maxAttempts: MAX_FAILED_ATTEMPTS,
-          accountLocked: newFailedAttempts >= MAX_FAILED_ATTEMPTS,
+          maxAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS,
+          accountLocked:
+            newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS,
           accountLockedUntilMinutes:
-            newFailedAttempts >= MAX_FAILED_ATTEMPTS
-              ? LOCKOUT_DURATION_MINUTES
+            newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS
+              ? AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES
               : null,
         },
       );
 
-      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+      if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
         this.observability.captureMessage(
-          `Account locked: ${user.email} due to ${MAX_FAILED_ATTEMPTS} failed login attempts`,
+          `Account locked: ${user.email} due to ${AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS} failed login attempts`,
           {
             userId: user.id,
             email: user.email,
             failedAttempts: newFailedAttempts,
-            lockoutDuration: `${LOCKOUT_DURATION_MINUTES} minutes`,
+            lockoutDuration: `${AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES} minutes`,
           },
           'warning',
         );
@@ -216,9 +216,9 @@ export class AuthService {
         });
       }
 
-      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+      if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
         throw new UnauthorizedException(
-          `Account locked due to ${MAX_FAILED_ATTEMPTS} failed login attempts. Please try again in ${LOCKOUT_DURATION_MINUTES} minutes.`,
+          `Account locked due to ${AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS} failed login attempts. Please try again in ${AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES} minutes.`,
         );
       }
 

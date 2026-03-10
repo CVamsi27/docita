@@ -45,9 +45,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-
-const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000;
-const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -76,11 +74,11 @@ export class AuthController {
     const cookieOptions = this.getCookieOptions();
     res.cookie('access_token', tokens.access_token, {
       ...cookieOptions,
-      maxAge: ACCESS_TOKEN_MAX_AGE,
+      maxAge: AUTH_CONSTANTS.ACCESS_TOKEN_MAX_AGE_MS,
     });
     res.cookie('refresh_token', tokens.refresh_token, {
       ...cookieOptions,
-      maxAge: REFRESH_TOKEN_MAX_AGE,
+      maxAge: AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS,
       path: '/api/v1/auth',
     });
   }
