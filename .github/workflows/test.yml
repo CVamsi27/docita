@@ -68,7 +68,6 @@ jobs:
       - name: Run backend E2E tests
         env:
           DATABASE_URL: postgresql://docita:docita@localhost:5432/docita_test
-          DATABASE_URL_TEST: postgresql://docita:docita@localhost:5432/docita_test
           JWT_SECRET: test-secret-key
           NODE_ENV: test
         run: pnpm --filter api test:e2e

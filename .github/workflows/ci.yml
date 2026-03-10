@@ -213,7 +213,6 @@ jobs:
         run: pnpm db:generate
       - name: Run API E2E Tests
         env:
-          DATABASE_URL_TEST: postgresql://docita:password@localhost:5432/docita_test
           DATABASE_URL: postgresql://docita:password@localhost:5432/docita_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
