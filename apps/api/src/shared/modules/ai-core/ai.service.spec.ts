@@ -10,7 +10,13 @@ describe('AiService', () => {
   let aiFactory: AiFactory;
 
   const mockAppConfigService = {
-    getAiApiKey: jest.fn(),
+    getOpenAiConfig: jest.fn().mockReturnValue({
+      apiKey: undefined,
+      model: 'gpt-4o',
+      requestTimeout: 5000,
+      cacheEnabled: true,
+      cacheTtl: 86400,
+    }),
   };
 
   const mockAiFactory = {
@@ -43,7 +49,13 @@ describe('AiService', () => {
 
   describe('generateText', () => {
     it('should return mock response when API key is missing', async () => {
-      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
+      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+        apiKey: undefined,
+        model: 'gpt-4o',
+        requestTimeout: 5000,
+        cacheEnabled: true,
+        cacheTtl: 86400,
+      });
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -51,7 +63,13 @@ describe('AiService', () => {
     });
 
     it('should use mock response even if API key exists (for now)', async () => {
-      mockAppConfigService.getAiApiKey.mockReturnValue('test-key');
+      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+        apiKey: 'test-key',
+        model: 'gpt-4o',
+        requestTimeout: 5000,
+        cacheEnabled: true,
+        cacheTtl: 86400,
+      });
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -61,7 +79,13 @@ describe('AiService', () => {
 
   describe('generateStructured', () => {
     it('should attempt validation via factory', async () => {
-      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
+      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+        apiKey: undefined,
+        model: 'gpt-4o',
+        requestTimeout: 5000,
+        cacheEnabled: true,
+        cacheTtl: 86400,
+      });
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockReturnValue({ foo: 'bar' });
@@ -73,7 +97,13 @@ describe('AiService', () => {
     });
 
     it('should fallback to mock schema generation if validation fails', async () => {
-      mockAppConfigService.getAiApiKey.mockReturnValue(undefined);
+      mockAppConfigService.getOpenAiConfig.mockReturnValue({
+        apiKey: undefined,
+        model: 'gpt-4o',
+        requestTimeout: 5000,
+        cacheEnabled: true,
+        cacheTtl: 86400,
+      });
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockImplementation(() => {

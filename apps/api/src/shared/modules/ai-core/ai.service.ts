@@ -14,14 +14,14 @@ export class AiService {
     private configService: AppConfigService,
     private aiFactory: AiFactory,
   ) {
-    const apiKey = this.configService.getAiApiKey();
+    const apiKey = this.configService.getOpenAiConfig().apiKey;
     if (apiKey) {
       this.openai = new OpenAI({
         apiKey,
       });
     } else {
       this.logger.warn(
-        'AI_API_KEY not found. AI features will mimic responses.',
+        'OPENAI_API_KEY not found. AI features will mimic responses.',
       );
     }
   }
