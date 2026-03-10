@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 

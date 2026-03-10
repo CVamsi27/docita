@@ -8,7 +8,7 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 
 export const RATE_LIMIT_KEY = 'rate_limit';
 

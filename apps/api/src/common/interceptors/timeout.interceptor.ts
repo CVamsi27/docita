@@ -13,7 +13,10 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 export class TimeoutInterceptor implements NestInterceptor {
   constructor(private configService: AppConfigService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+  intercept(
+    _context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<unknown> {
     const timeoutMs = this.configService.getRequestTimeoutMs();
 
     return next.handle().pipe(

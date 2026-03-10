@@ -55,9 +55,7 @@ export class RequestContextInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(
-        () => {
-          const duration = Date.now();
-        },
+        () => {},
         (error) => {
           Sentry.captureException(error, {
             tags: { correlationId },

@@ -48,12 +48,12 @@ export class MockBullModule {
       provide: getQueueToken(getQueueName(option.name)),
       useValue: {
         add: () => {
-          const queueName = getQueueName(option.name);
+          const _queueName = getQueueName(option.name);
 
           return Promise.resolve({ id: 'mock-job-id' });
         },
         process: () => {
-          const queueName = getQueueName(option.name);
+          const _queueName = getQueueName(option.name);
 
           return Promise.resolve();
         },

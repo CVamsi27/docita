@@ -1,5 +1,5 @@
 import { format, addDays, subDays, isAfter, isBefore, isValid } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { toZonedTime as _toZonedTime } from 'date-fns-tz';
 
 export class DateUtils {
   private static readonly DEFAULT_TIMEZONE = 'UTC';

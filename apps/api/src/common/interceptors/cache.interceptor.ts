@@ -9,7 +9,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Observable, of } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -133,8 +133,8 @@ export class CacheInterceptor implements NestInterceptor {
 
 export const CacheDuration = (seconds: number | 'no-cache') => {
   return (
-    target: object,
-    propertyKey: string,
+    _target: object,
+    _propertyKey: string,
     descriptor: PropertyDescriptor,
   ) => {
     Reflect.defineMetadata('cache-duration', seconds, descriptor.value);

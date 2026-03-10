@@ -4,7 +4,6 @@ import { nanoid } from 'nanoid';
 import {
   DomainEvent,
   DomainEvents,
-  EventMetadata,
   EventPayloadMap,
   createEvent,
 } from './domain-events';

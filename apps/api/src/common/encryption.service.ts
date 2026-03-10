@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32;
 const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
 
 @Injectable()
 export class EncryptionService {
@@ -32,7 +31,7 @@ export class EncryptionService {
     try {
       this.encryptionKey = Buffer.from(key, 'hex');
       this.keyVersions.set(this.currentKeyVersion, this.encryptionKey);
-    } catch (error) {
+    } catch {
       throw new Error('CRITICAL: ENCRYPTION_KEY must be a valid hex string.');
     }
 
@@ -48,7 +47,7 @@ export class EncryptionService {
           this.currentKeyVersion = version;
           this.encryptionKey = keyBuffer;
           this.logger.log(`Loaded encryption key version: ${version}`);
-        } catch (error) {
+        } catch {
           this.logger.warn(
             `Invalid format for ENCRYPTION_KEY_${version.toUpperCase()}, skipping`,
           );
@@ -101,7 +100,7 @@ export class EncryptionService {
       const decryptionKey = this.keyVersions.get(keyVersion);
 
       if (!decryptionKey) {
-        for (const [version, key] of this.keyVersions) {
+        for (const [, key] of this.keyVersions) {
           try {
             return this.decryptWithKey(ivHex, authTagHex, encrypted, key);
           } catch {
