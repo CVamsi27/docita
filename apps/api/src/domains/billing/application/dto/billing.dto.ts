@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   invoiceSchema,
   stripHtmlTags,
-  createPaymentLinkSchema as baseCreatePaymentLinkSchema,
+  createPaymentLinkSchema as _baseCreatePaymentLinkSchema,
   paymentLinkResponseSchema,
   paymentSessionSchema,
   paymentModeSchema,

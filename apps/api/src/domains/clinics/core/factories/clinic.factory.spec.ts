@@ -5,7 +5,7 @@ import { ClinicTier } from '@workspace/db';
 
 describe('ClinicFactory', () => {
   let factory: ClinicFactory;
-  let settingsFactory: SettingsFactory;
+  let _settingsFactory: SettingsFactory;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

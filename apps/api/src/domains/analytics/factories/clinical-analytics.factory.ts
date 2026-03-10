@@ -7,7 +7,7 @@ import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   DiseaseTrendPoint,
   TopCondition,
-  ComplianceMetrics,
+  ComplianceMetrics as _ComplianceMetrics,
 } from '@workspace/types';
 
 @Injectable()

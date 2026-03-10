@@ -5,7 +5,7 @@ import {
   Body,
   UseGuards,
   Request,
-  BadRequestException,
+  BadRequestException as _BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';

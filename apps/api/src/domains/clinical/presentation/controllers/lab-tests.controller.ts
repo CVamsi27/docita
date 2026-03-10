@@ -6,7 +6,7 @@ import {
   Param,
   Query,
   Put,
-  Delete,
+  Delete as _Delete,
 } from '@nestjs/common';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';

@@ -36,7 +36,7 @@ describe('PatientService', () => {
       (clinicId: string) => Promise<PatientRecord[]>
     >;
   };
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrismaService = {
     patient: {

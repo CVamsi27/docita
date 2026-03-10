@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Invoice } from '@/domains/billing/core/entities';
 import { IInvoiceRepository } from '@/domains/billing/application/ports/invoice.repository.port';
-import { InvoiceMapper } from '@/domains/billing/infrastructure/mappers/invoice.mapper';
+import { InvoiceMapper as _InvoiceMapper } from '@/domains/billing/infrastructure/mappers/invoice.mapper';
 
 @Injectable()
 export class InMemoryInvoiceRepository implements IInvoiceRepository {

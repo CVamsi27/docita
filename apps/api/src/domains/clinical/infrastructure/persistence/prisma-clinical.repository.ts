@@ -333,7 +333,7 @@ export class PrismaClinicalRepository
 
   private mapToLabOrder(
     prismaOrder: PrismaLabTestOrder,
-    patient?: PatientSubset | null,
+    _patient?: PatientSubset | null,
   ): LabOrder {
     const normalizedResult =
       prismaOrder.result &&

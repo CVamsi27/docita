@@ -32,7 +32,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
-interface AuthRequest {
+interface _AuthRequest {
   user: {
     userId: string;
   };

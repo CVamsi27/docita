@@ -9,16 +9,6 @@ import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappe
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionStatus, Prisma } from '@workspace/db';
 
-const SubscriptionPaymentStatus = {
-  PENDING: 'pending',
-  PAID: 'paid',
-  FAILED: 'failed',
-  REFUNDED: 'refunded',
-} as const;
-
-type SubscriptionPaymentStatus =
-  (typeof SubscriptionPaymentStatus)[keyof typeof SubscriptionPaymentStatus];
-
 @Injectable()
 export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}

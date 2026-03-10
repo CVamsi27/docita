@@ -1,4 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException as _NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ReminderSettings, WhatsappLogStatus } from '@workspace/db';
 import {
@@ -139,7 +143,7 @@ export class ReminderNotificationService {
 
   async sendWhatsappReminder(
     appointment: AppointmentForReminder,
-    settings: ReminderSettings,
+    _settings: ReminderSettings,
     templateId: string,
     reminderType: string = 'whatsapp',
   ): Promise<void> {
@@ -168,7 +172,7 @@ export class ReminderNotificationService {
         appointmentId: appointment.id,
       };
 
-      const { messageId } = await this.sendMessage.execute({
+      const { messageId: _messageId } = await this.sendMessage.execute({
         clinicId: clinicId || '',
         recipientPhone: appointment.patient.phoneNumber,
         templateName: templateId,

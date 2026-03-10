@@ -9,8 +9,8 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;
   let factory: MedicalHistoryFactory;
-  let aiService: AiService;
-  let aiFactory: AiFactory;
+  let _aiService: AiService;
+  let _aiFactory: AiFactory;
 
   const mockPrismaService = {
     patientMedicalCondition: {

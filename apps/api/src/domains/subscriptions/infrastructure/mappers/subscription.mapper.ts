@@ -110,7 +110,7 @@ export class SubscriptionMapper {
           description: d.description || '',
         });
         aggregate.addDiscount(discount);
-      } catch (error) {}
+      } catch (_error) {}
     });
 
     return aggregate;

@@ -29,7 +29,7 @@ export class DoctorClinicsService {
           where: { id: doctorId },
           data: { clinicId },
         });
-      } catch (e) {}
+      } catch (_e) {}
       return updated;
     }
 
@@ -62,7 +62,7 @@ export class DoctorClinicsService {
         where: { id: doctorId },
         data: { clinicId },
       });
-    } catch (e) {}
+    } catch (_e) {}
 
     return created;
   }

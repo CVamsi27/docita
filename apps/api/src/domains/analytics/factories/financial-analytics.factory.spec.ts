@@ -8,7 +8,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 describe('FinancialAnalyticsFactory', () => {
   let factory: FinancialAnalyticsFactory;
   let prisma: PrismaService;
-  let cacheManager: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
+  let _cacheManager: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
 
   const mockPrismaService = {
     getReadClient: jest.fn().mockReturnValue({

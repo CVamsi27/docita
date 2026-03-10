@@ -14,13 +14,13 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import {
   calculateAge,
-  DEFAULT_TIMEZONE,
+  DEFAULT_TIMEZONE as _DEFAULT_TIMEZONE,
   DEFAULT_LOCALE,
   checkPrescriptionAllergies,
   validateDosage,
 } from '@workspace/utils';
 import { Specialization, HospitalRole } from '@workspace/types';
-import { Prescription } from '@workspace/db';
+import { Prescription as _Prescription } from '@workspace/db';
 
 @Injectable()
 export class PrescriptionsService {
@@ -193,7 +193,7 @@ export class PrescriptionsService {
   async generatePDF(
     id: string,
     clinicIdOrTimezone?: string,
-    locale: string = DEFAULT_LOCALE,
+    _locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
     const isClinicId = clinicIdOrTimezone && !clinicIdOrTimezone.includes('/');
     const clinicId = isClinicId ? clinicIdOrTimezone : undefined;

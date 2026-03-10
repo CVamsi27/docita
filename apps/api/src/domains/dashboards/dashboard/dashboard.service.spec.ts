@@ -6,7 +6,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DashboardService', () => {
   let service: DashboardService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrismaService = {
     patient: {

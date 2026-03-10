@@ -26,11 +26,11 @@ import {
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
-  let prismaService: PrismaService;
-  let authService: AuthService;
-  let dataService: OnboardingDataService;
-  let validationService: OnboardingValidationService;
-  let workflowService: OnboardingWorkflowService;
+  let _prismaService: PrismaService;
+  let _authService: AuthService;
+  let _dataService: OnboardingDataService;
+  let _validationService: OnboardingValidationService;
+  let _workflowService: OnboardingWorkflowService;
   let complianceService: OnboardingComplianceService;
 
   const mockPrismaService = {

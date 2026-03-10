@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
+  UseGuards as _UseGuards,
   ParseIntPipe,
   Request,
   UsePipes,

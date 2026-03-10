@@ -5,7 +5,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PricingService', () => {
   let service: PricingService;
-  let prismaService: PrismaService;
+  let _prismaService: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

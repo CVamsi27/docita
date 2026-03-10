@@ -104,7 +104,7 @@ export class OnboardingController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: MAX_FILE_SIZE },
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         const allowedMimes = [
           'image/jpeg',
           'image/jpg',

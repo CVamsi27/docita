@@ -1,7 +1,10 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { AppointmentStatus, ReminderSettings } from '@workspace/db';
+import {
+  AppointmentStatus,
+  ReminderSettings as _ReminderSettings,
+} from '@workspace/db';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 

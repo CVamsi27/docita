@@ -7,7 +7,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DoctorsService', () => {
   let service: DoctorsService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockDoctor = {
     id: 'doctor-123',

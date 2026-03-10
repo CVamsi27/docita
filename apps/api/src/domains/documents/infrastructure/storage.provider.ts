@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable as _Injectable } from '@nestjs/common';
 
 export interface StorageFile {
   fieldname: string;

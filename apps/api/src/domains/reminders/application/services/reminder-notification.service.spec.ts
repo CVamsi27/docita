@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { WhatsappLogStatus } from '@workspace/db';
+import { WhatsappLogStatus as _WhatsappLogStatus } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderNotificationService', () => {

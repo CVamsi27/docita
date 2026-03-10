@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException as _NotFoundException,
+  Inject,
+} from '@nestjs/common';
 import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,

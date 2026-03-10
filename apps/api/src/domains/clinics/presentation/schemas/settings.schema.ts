@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ClinicType } from '@workspace/db';
+import { ClinicType as _ClinicType } from '@workspace/db';
 
 const BankAccountSchema = z.object({
   accountHolderName: z.string().optional(),

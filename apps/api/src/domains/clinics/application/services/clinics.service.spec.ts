@@ -17,7 +17,7 @@ describe('ClinicsService', () => {
   let service: ClinicsService;
   let prismaService: PrismaService;
   let clinicFactory: ClinicFactory;
-  let settingsFactory: SettingsFactory;
+  let _settingsFactory: SettingsFactory;
 
   const mockClinic = {
     id: 'clinic-123',

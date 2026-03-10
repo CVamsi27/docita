@@ -96,7 +96,7 @@ describe('ReminderSettingsService', () => {
       prisma.reminderSettings.findUnique.mockResolvedValueOnce(null);
       prisma.reminderSettings.create.mockResolvedValue(defaultSettings);
 
-      const result = await service.getSettings('clinic-456');
+      const _result = await service.getSettings('clinic-456');
       expect(prisma.reminderSettings.findUnique).toHaveBeenCalledTimes(1);
       expect(prisma.reminderSettings.create).toHaveBeenCalledWith({
         data: expect.objectContaining({

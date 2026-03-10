@@ -51,7 +51,7 @@ describe('AppointmentService', () => {
   };
 
   let service: MockAppointmentService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrismaService = {
     appointment: {

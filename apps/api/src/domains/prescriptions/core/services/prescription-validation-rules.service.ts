@@ -1,4 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException as _BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 
 export interface PrescriptionValidationRulesInterface {
@@ -50,7 +53,7 @@ interface MedicationDosageLimits {
   pediatricAdjustment?: boolean;
 }
 
-interface DrugInfo {
+interface _DrugInfo {
   id: string;
   name: string;
   category: string;

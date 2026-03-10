@@ -10,7 +10,7 @@ import {
   User,
   Clinic,
   Subscription,
-  Specialization,
+  Specialization as _Specialization,
   Role,
   Prisma,
 } from '@workspace/db';
@@ -103,7 +103,7 @@ export class OnboardingWorkflowService {
     tx: Prisma.TransactionClient,
     adminData: AdminAccountDto,
     clinicId: string,
-    ipAddress?: string,
+    _ipAddress?: string,
   ): Promise<User> {
     const existingUser = await tx.user.findUnique({
       where: { email: adminData.email },

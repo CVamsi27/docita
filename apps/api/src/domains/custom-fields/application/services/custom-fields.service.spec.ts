@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomFieldsService } from './custom-fields.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException as _NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('CustomFieldsService', () => {

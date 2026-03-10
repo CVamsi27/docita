@@ -1,7 +1,7 @@
 import {
   Injectable,
-  ConflictException,
-  BadRequestException,
+  ConflictException as _ConflictException,
+  BadRequestException as _BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';

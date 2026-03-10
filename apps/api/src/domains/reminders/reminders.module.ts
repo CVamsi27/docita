@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module, forwardRef as _forwardRef } from '@nestjs/common';
 import { RemindersController } from './presentation/controllers/reminders.controller';
 import { RemindersService } from './application/services/reminders.service';
 import { ReminderSettingsService } from './application/services/reminder-settings.service';

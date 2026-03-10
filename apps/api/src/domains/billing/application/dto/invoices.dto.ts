@@ -7,7 +7,7 @@ import {
   stripHtmlTags,
   updateInvoiceRequestSchema,
 } from '@workspace/types';
-import { InvoiceStatus } from '@workspace/db';
+import { InvoiceStatus as _InvoiceStatus } from '@workspace/db';
 
 export const CreateInvoiceSchema = createInvoiceRequestSchema
   .omit({
