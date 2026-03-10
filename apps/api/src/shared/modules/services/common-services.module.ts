@@ -8,7 +8,7 @@ import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scope
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { EncryptionService } from '@/common/encryption.service';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { DPDPComplianceService as _DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { UsersModule } from '@/domains/users/users.module';

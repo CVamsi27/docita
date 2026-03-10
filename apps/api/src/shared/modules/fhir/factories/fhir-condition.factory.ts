@@ -113,7 +113,7 @@ export class FhirConditionFactory {
     for (const diagnosis of diagnoses) {
       if (!diagnosis.icdCode) continue;
 
-      const patientId = diagnosis.appointment.patientId;
+      const _patientId = diagnosis.appointment.patientId;
       const patientRef = `Patient/${diagnosis.appointment.patientId}`;
       const patientDisplay = `${diagnosis.appointment.patient.firstName} ${diagnosis.appointment.patient.lastName}`;
 

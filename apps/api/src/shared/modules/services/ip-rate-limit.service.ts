@@ -1,4 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException as _BadRequestException,
+} from '@nestjs/common';
 import { Request } from 'express';
 
 function getForwardedForHeader(req: Request): string | undefined {

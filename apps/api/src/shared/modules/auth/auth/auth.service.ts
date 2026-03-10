@@ -158,7 +158,7 @@ export class AuthService {
           );
         }
 
-        const { password, ...result } = user;
+        const { password: _password, ...result } = user;
         return result;
       }
 
@@ -307,7 +307,7 @@ export class AuthService {
       );
     }
 
-    const { password, ...userWithoutPassword } = storedToken.user;
+    const { password: _password, ...userWithoutPassword } = storedToken.user;
     const newTokens = await this.login(
       userWithoutPassword,
       storedToken.tokenFamily ?? undefined,

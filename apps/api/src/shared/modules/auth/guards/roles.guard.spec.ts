@@ -6,7 +6,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
-  let reflector: Reflector;
+  let _reflector: Reflector;
 
   const mockReflector = {
     getAllAndOverride: jest.fn(),

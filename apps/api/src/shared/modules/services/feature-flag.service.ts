@@ -130,7 +130,7 @@ export class FeatureFlagService implements OnModuleInit {
           this.logger.debug(`Initialized feature flag: ${flag.key}`);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn('FeatureFlag model not available, using defaults');
     }
   }
@@ -169,7 +169,7 @@ export class FeatureFlagService implements OnModuleInit {
         this.cacheExpiry = new Date(Date.now() + this.CACHE_TTL_MS);
         return globalFlag.value as T;
       }
-    } catch (error) {}
+    } catch (_error) {}
 
     const configDefault = DEFAULT_FEATURE_FLAGS.find(
       (f) => f.key === key,
@@ -239,7 +239,7 @@ export class FeatureFlagService implements OnModuleInit {
       for (const flag of clinicFlags) {
         result[flag.key] = flag.value as FeatureFlagValue;
       }
-    } catch (error) {}
+    } catch (_error) {}
 
     return result;
   }

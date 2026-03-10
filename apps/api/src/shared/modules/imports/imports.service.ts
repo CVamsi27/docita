@@ -21,7 +21,7 @@ import {
   ColumnMapping,
   ImportPreview,
   ImportResult,
-  PatientFieldKey,
+  PatientFieldKey as _PatientFieldKey,
 } from '@workspace/utils';
 
 export {

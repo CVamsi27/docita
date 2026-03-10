@@ -8,7 +8,7 @@ export class BusinessRulesService {
   validateAppointmentTimeRange(
     startTime: Date,
     endTime: Date,
-    appointmentId?: string,
+    _appointmentId?: string,
   ): void {
     if (endTime <= startTime) {
       throw new BadRequestException('End time must be after start time');

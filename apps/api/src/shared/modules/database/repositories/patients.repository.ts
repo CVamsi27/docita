@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Patient } from '@workspace/types';
-import { Gender, AppointmentStatus, InvoiceStatus } from '@workspace/db';
+import {
+  Gender,
+  AppointmentStatus,
+  InvoiceStatus as _InvoiceStatus,
+} from '@workspace/db';
 import {
   BaseRepository,
   PaginationOptions,
@@ -175,7 +179,7 @@ export class PatientsRepository extends BaseRepository<
     const rawData = this.toRecord(data);
 
     const {
-      tags,
+      _tags,
       medicalConditions,
       patientAllergies,
       familyHistory,
@@ -229,7 +233,7 @@ export class PatientsRepository extends BaseRepository<
       updateData.medicalConditions = {
         deleteMany: {},
         create: medicalConditionsList.map(
-          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
+          ({ _id, _patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
@@ -238,7 +242,7 @@ export class PatientsRepository extends BaseRepository<
       updateData.patientAllergies = {
         deleteMany: {},
         create: patientAllergiesList.map(
-          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
+          ({ _id, _patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
@@ -247,7 +251,7 @@ export class PatientsRepository extends BaseRepository<
       updateData.familyHistory = {
         deleteMany: {},
         create: familyHistoryList.map(
-          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
+          ({ _id, _patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
@@ -256,13 +260,13 @@ export class PatientsRepository extends BaseRepository<
       updateData.surgicalHistory = {
         deleteMany: {},
         create: surgicalHistoryList.map(
-          ({ id, patientId, ...item }: StructuredHistoryItem) => item,
+          ({ _id, _patientId, ...item }: StructuredHistoryItem) => item,
         ),
       };
     }
 
     if (socialHistoryRecord) {
-      const { id, patientId, ...socialData } = socialHistoryRecord;
+      const { _id, _patientId, ...socialData } = socialHistoryRecord;
       updateData.socialHistory = {
         upsert: {
           create: socialData,

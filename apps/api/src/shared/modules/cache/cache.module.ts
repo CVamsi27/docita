@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ICacheProvider } from './cache.interface';
+import { ICacheProvider as _ICacheProvider } from './cache.interface';
 import { InMemoryCacheService } from './in-memory-cache.service';
 import { RedisCacheService } from './redis-cache.service';
 import { AppConfigModule } from '@/shared/modules/config/config.module';

@@ -5,7 +5,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PushNotificationService', () => {
   let service: PushNotificationService;
-  let prismaService: jest.Mocked<PrismaService>;
+  let _prismaService: jest.Mocked<PrismaService>;
 
   beforeEach(async () => {
     jest.clearAllMocks();

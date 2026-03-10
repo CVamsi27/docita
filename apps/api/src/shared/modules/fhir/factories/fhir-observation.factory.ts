@@ -28,9 +28,9 @@ export class FhirObservationFactory {
     const observations: FhirObservation[] = [];
 
     for (const vital of vitals) {
-      const patientId = vital.appointment.patientId;
+      const _patientId = vital.appointment.patientId;
 
-      const patientRef = `Patient/${vital.appointment.patientId}`;
+      const _patientRef = `Patient/${vital.appointment.patientId}`;
 
       const effectiveDateTime = vital.appointment.startTime.toISOString();
       const patientDisplay = `${vital.appointment.patient.firstName} ${vital.appointment.patient.lastName}`;

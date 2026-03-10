@@ -63,7 +63,7 @@ export class TextParserService {
 
     for (const line of lines) {
       const lowerLine = line.toLowerCase();
-      const trimmedLine = line.trim();
+      const _trimmedLine = line.trim();
 
       const clinicMatch = line.match(
         /(?:hospital|clinic|center)[:\s]+([a-z\s.]+)/i,

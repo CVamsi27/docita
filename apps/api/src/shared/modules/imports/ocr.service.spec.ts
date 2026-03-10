@@ -5,7 +5,7 @@ import { TextExtractorService } from './text-extractor.service';
 import { DocumentClassifierService } from './document-classifier.service';
 import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
-import { Logger } from '@nestjs/common';
+import { Logger as _Logger } from '@nestjs/common';
 
 const mockWorker = {
   recognize: jest.fn(),

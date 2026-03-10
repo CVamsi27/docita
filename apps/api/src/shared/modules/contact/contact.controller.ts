@@ -2,7 +2,7 @@ import {
   Controller,
   Post,
   Body,
-  BadRequestException,
+  BadRequestException as _BadRequestException,
   UsePipes,
 } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';

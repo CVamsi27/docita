@@ -11,7 +11,7 @@ export const FEATURE_FLAG_KEY = 'featureFlag';
 
 export const RequireFeatureFlag =
   (flagKey: string) =>
-  (target: object, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+  (target: object, _propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata(FEATURE_FLAG_KEY, flagKey, descriptor.value);
     } else {

@@ -5,7 +5,7 @@ import { OpenaiService } from './openai.service';
 
 describe('ClinicalAiService', () => {
   let service: ClinicalAiService;
-  let openaiService: OpenaiService;
+  let _openaiService: OpenaiService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

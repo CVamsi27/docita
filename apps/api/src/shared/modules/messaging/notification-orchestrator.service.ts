@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IMessageChannel, MessageContent, SendMessageResult } from './channels';
+import { IMessageChannel, SendMessageResult } from './channels';
 import { MessageTemplateService } from './templates';
 
 export interface NotificationRequest {
@@ -51,7 +51,7 @@ export class NotificationOrchestrator {
           continue;
         }
 
-        const message = this.templateService.processTemplate(
+        const _message = this.templateService.processTemplate(
           request.templateKey,
           channelName.toLowerCase(),
           request.variables || {},
@@ -111,7 +111,7 @@ export class NotificationOrchestrator {
           templateKey: request.templateKey,
           variables: request.variables,
         });
-      } catch (error) {
+      } catch (_error) {
         this.logger.warn(`Channel ${channelName} failed, trying fallback`);
         continue;
       }

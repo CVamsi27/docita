@@ -4,7 +4,7 @@ import {
   PDFClinicInfo,
   PDFDoctorInfo,
   PDFPatientInfo,
-  TableColumn,
+  TableColumn as _TableColumn,
 } from '@workspace/types';
 
 export interface PDFContext {
@@ -158,7 +158,7 @@ export class BasePdfService {
     context: PDFContext,
     currentY: number,
   ): number {
-    const boxTop = currentY;
+    const _boxTop = currentY;
     const halfWidth = context.contentWidth / 2;
 
     doc.fontSize(10).font('Helvetica-Bold');

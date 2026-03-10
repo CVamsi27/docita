@@ -6,7 +6,7 @@ export class ConfidenceScorerService {
   private readonly logger = new Logger(ConfidenceScorerService.name);
 
   generateConfidenceScores(
-    extractedText: string,
+    _extractedText: string,
     fields: ParsedMedicalFields,
   ): Record<string, number> {
     const scores: Record<string, number> = {};

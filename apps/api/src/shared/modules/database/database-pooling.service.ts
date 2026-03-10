@@ -16,7 +16,7 @@ export class DatabasePoolingService {
 
   constructor(private configService: ConfigService) {}
 
-  getOptimalPoolConfig(nodeCount: number = 1): PoolConfig {
+  getOptimalPoolConfig(_nodeCount: number = 1): PoolConfig {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
     const cpuCount = parseInt(

@@ -143,7 +143,7 @@ describe('PerformanceService', () => {
     });
 
     it('should format uptime with days when uptime is high', () => {
-      const originalUptime = process.uptime;
+      const _originalUptime = process.uptime;
       jest.spyOn(process, 'uptime').mockReturnValue(90000);
 
       const result = service.getMetrics();
@@ -154,7 +154,7 @@ describe('PerformanceService', () => {
     });
 
     it('should format uptime with hours and minutes', () => {
-      const originalUptime = process.uptime;
+      const _originalUptime = process.uptime;
       jest.spyOn(process, 'uptime').mockReturnValue(3665);
 
       const result = service.getMetrics();
@@ -167,7 +167,7 @@ describe('PerformanceService', () => {
     });
 
     it('should format uptime with only seconds when uptime is low', () => {
-      const originalUptime = process.uptime;
+      const _originalUptime = process.uptime;
       jest.spyOn(process, 'uptime').mockReturnValue(30);
 
       const result = service.getMetrics();
@@ -180,7 +180,7 @@ describe('PerformanceService', () => {
     });
 
     it('should show 0s for zero uptime', () => {
-      const originalUptime = process.uptime;
+      const _originalUptime = process.uptime;
       jest.spyOn(process, 'uptime').mockReturnValue(0);
 
       const result = service.getMetrics();

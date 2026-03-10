@@ -134,8 +134,14 @@ export class BulkImportService {
 
   async processImport(jobData: BulkImportJobData): Promise<void> {
     try {
-      const { jobId, clinicId, userId, entityType, fileBuffer, totalRows } =
-        jobData;
+      const {
+        jobId,
+        clinicId,
+        userId: _userId,
+        entityType,
+        fileBuffer,
+        totalRows,
+      } = jobData;
 
       this.logger.log(
         `Processing import job ${jobId} for ${entityType} (${totalRows} rows)`,
@@ -366,7 +372,7 @@ export class BulkImportService {
 
   private async importPrescription(
     row: BulkImportRow,
-    clinicId: string,
+    _clinicId: string,
   ): Promise<void> {
     const patientId = this.getString(row, 'patientId');
     const doctorId = this.getString(row, 'doctorId');
@@ -418,11 +424,11 @@ export class BulkImportService {
     });
   }
 
-  private importLabTest(row: BulkImportRow, clinicId: string): void {
+  private importLabTest(row: BulkImportRow, _clinicId: string): void {
     this.logger.debug(`Importing lab test: ${row.testName}`);
   }
 
-  private importInventory(row: BulkImportRow, clinicId: string): void {
+  private importInventory(row: BulkImportRow, _clinicId: string): void {
     this.logger.debug(`Importing inventory item: ${row.itemName}`);
   }
 

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  UnauthorizedException,
+  BadRequestException as _BadRequestException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
@@ -34,7 +37,7 @@ describe('AuthService', () => {
   };
   let jwtService: JwtService;
   let userFactory: UserFactory;
-  let clinicFactory: ClinicFactory;
+  let _clinicFactory: ClinicFactory;
   let passwordPolicy: { validate: jest.Mock };
 
   const mockUser = {

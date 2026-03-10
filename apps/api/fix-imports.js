@@ -46,7 +46,7 @@ specFiles.forEach((file) => {
             changed = true;
             return `from '${relPath}'`;
           }
-        } catch (e) {}
+        } catch {}
       }
 
       return match;

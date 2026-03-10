@@ -1,4 +1,9 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject as _Inject,
+  forwardRef as _forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
@@ -65,8 +70,8 @@ export class ResponseHandlerService {
   async handlePatientResponse(
     appointmentId: string,
     responseText: string,
-    phoneNumber: string,
-    messageSid: string,
+    _phoneNumber: string,
+    _messageSid: string,
   ): Promise<void> {
     this.logger.log(
       `Processing response for appointment ${appointmentId}: ${responseText}`,

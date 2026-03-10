@@ -6,8 +6,8 @@ import { z } from 'zod';
 
 describe('AiService', () => {
   let service: AiService;
-  let configService: ConfigService;
-  let aiFactory: AiFactory;
+  let _configService: ConfigService;
+  let _aiFactory: AiFactory;
 
   const mockConfigService = {
     get: jest.fn(),

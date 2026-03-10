@@ -53,7 +53,7 @@ export class AuditLoggerService implements IAuditLogger {
           errorMessage: entry.failureReason,
         },
       });
-    } catch (error) {}
+    } catch (_error) {}
   }
 
   async getLogsForResource(

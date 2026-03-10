@@ -24,7 +24,7 @@ export class DocumentGenerationService {
   }
 
   generateReportPdf(
-    data: Record<string, string | number | boolean>,
+    _data: Record<string, string | number | boolean>,
   ): Promise<Buffer> {
     return Promise.resolve(Buffer.from('Report PDF would go here'));
   }

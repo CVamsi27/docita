@@ -1,5 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { z as _z } from 'zod';
 import {
   DatabaseStatsSchema,
   AppPerformanceMetricsSchema,

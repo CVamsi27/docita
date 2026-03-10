@@ -124,13 +124,13 @@ export class SuperAdminAnalyticsService {
 
       await this.cacheManager.set(cacheKey, result, 300 * 1000);
       return result;
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException('Failed to fetch global stats');
     }
   }
 
   async getAnalytics(
-    period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly',
+    _period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly',
     startDate?: string,
     endDate?: string,
   ) {
@@ -310,7 +310,7 @@ export class SuperAdminAnalyticsService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException(
         'Failed to fetch performance metrics',
       );

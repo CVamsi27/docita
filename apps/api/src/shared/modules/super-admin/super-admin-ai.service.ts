@@ -1,7 +1,7 @@
 import {
   Injectable,
   BadRequestException,
-  InternalServerErrorException,
+  InternalServerErrorException as _InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { UpdateClinicAIFeaturesDto } from '@workspace/types';

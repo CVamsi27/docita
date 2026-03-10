@@ -1,6 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { contactInquirySchema, contactResponseSchema } from '@workspace/types';
+import {
+  contactInquirySchema as _contactInquirySchema,
+  contactResponseSchema,
+} from '@workspace/types';
 
 export const ContactInquirySchema = z.object({
   name: z.string().min(1),

@@ -3,7 +3,7 @@ import {
   Post,
   Body,
   UseGuards,
-  Req,
+  Req as _Req,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
@@ -73,7 +73,7 @@ export class AIController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/temp',
-        filename: (req, file, cb) => {
+        filename: (_req, file, cb) => {
           const randomName = Array(32)
             .fill(null)
             .map(() => Math.round(Math.random() * 16).toString(16))
@@ -81,7 +81,7 @@ export class AIController {
           cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
           return cb(
             new BadRequestException('Only image files are allowed!'),

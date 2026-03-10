@@ -23,7 +23,7 @@ export class WsJwtAuthGuard implements CanActivate {
       client.data.user = payload;
 
       return true;
-    } catch (err) {
+    } catch (_err) {
       throw new WsException('Unauthorized');
     }
   }

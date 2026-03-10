@@ -9,7 +9,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: AuthService;
+  let _authService: AuthService;
 
   const mockAuthService = {
     checkEmailExists: jest.fn(),

@@ -6,7 +6,7 @@ import {
   Body,
   Param,
   Patch,
-  UseGuards,
+  UseGuards as _UseGuards,
   Query,
 } from '@nestjs/common';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -27,7 +27,7 @@ import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
 import { ProcessPaymentDto } from './dto/payment.dto';
 import {
   SuperAdminClinicListQueryDto,
-  SuperAdminGlobalStatsResponseDto,
+  SuperAdminGlobalStatsResponseDto as _SuperAdminGlobalStatsResponseDto,
   SuperAdminAnalyticsResponseDto,
   SuperAdminPerformanceMetricsResponseDto,
   SuperAdminAIFeatureCatalogResponseDto,

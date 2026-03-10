@@ -1,6 +1,6 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module, forwardRef as _forwardRef } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
-import { TemplatesService } from './templates.service';
+import { TemplatesService as _TemplatesService } from './templates.service';
 import { TemplatesFacadeService } from './templates-facade.service';
 import { DefaultTemplatesService } from './default-templates.service';
 import { TemplateDataService } from './template-data.service';

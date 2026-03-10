@@ -41,7 +41,7 @@ function toStringList(value: unknown): string[] {
 
 @Injectable()
 export class PdfRendererService {
-  renderToPdf(content: DocumentContent): Buffer {
+  renderToPdf(_content: DocumentContent): Buffer {
     return Buffer.from('PDF content would go here');
   }
 

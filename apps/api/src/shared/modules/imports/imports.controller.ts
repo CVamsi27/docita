@@ -68,7 +68,7 @@ export class ImportsController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/temp',
-        filename: (req, file, cb) => {
+        filename: (_req, file, cb) => {
           const randomName = Array(32)
             .fill(null)
             .map(() => Math.round(Math.random() * 16).toString(16))
@@ -76,7 +76,7 @@ export class ImportsController {
           cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
           return cb(
             new BadRequestException(
@@ -135,7 +135,7 @@ export class ImportsController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/temp',
-        filename: (req, file, cb) => {
+        filename: (_req, file, cb) => {
           const randomName = Array(32)
             .fill(null)
             .map(() => Math.round(Math.random() * 16).toString(16))
@@ -143,7 +143,7 @@ export class ImportsController {
           cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
           return cb(
             new BadRequestException(
@@ -177,7 +177,7 @@ export class ImportsController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/temp',
-        filename: (req, file, cb) => {
+        filename: (_req, file, cb) => {
           const randomName = Array(32)
             .fill(null)
             .map(() => Math.round(Math.random() * 16).toString(16))
@@ -185,7 +185,7 @@ export class ImportsController {
           cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
           return cb(
             new BadRequestException('Only image files are allowed!'),
@@ -202,7 +202,7 @@ export class ImportsController {
   @ZodSerializerDto(OcrResultResponseDto)
   async processOCR(
     @UploadedFile() file: Express.Multer.File,
-    @Request() req: AuthRequest,
+    @Request() _req: AuthRequest,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');

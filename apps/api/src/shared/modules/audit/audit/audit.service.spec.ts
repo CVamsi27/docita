@@ -165,7 +165,7 @@ describe('AuditService', () => {
 
   describe('getAuditLogs', () => {
     it('should retrieve audit logs with filters', async () => {
-      const mockLogs = [
+      const _mockLogs = [
         {
           id: '1',
           clinicId: 'clinic-1',
@@ -190,7 +190,7 @@ describe('AuditService', () => {
     });
 
     it('should filter logs by action type', async () => {
-      const mockLogs = [
+      const _mockLogs = [
         {
           id: '1',
           actionType: 'PRESCRIPTION_CREATED',
@@ -305,7 +305,7 @@ describe('AuditService', () => {
     });
 
     it('should handle archive errors gracefully', async () => {
-      const loggerErrorSpy = jest.spyOn(service['logger'], 'error');
+      const _loggerErrorSpy = jest.spyOn(service['logger'], 'error');
 
       jest
         .spyOn(

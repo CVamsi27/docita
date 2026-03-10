@@ -310,10 +310,10 @@ describe('SearchService', () => {
         limit: 20,
       });
 
-      const exactMatchIndex = result.findIndex((r) =>
+      const _exactMatchIndex = result.findIndex((r) =>
         r.title.toLowerCase().includes(query),
       );
-      const partialMatchIndex = result.findIndex(
+      const _partialMatchIndex = result.findIndex(
         (r) =>
           r.title.toLowerCase().includes(query) &&
           r.title.toLowerCase() !== 'john doe',

@@ -63,7 +63,7 @@ export class AiService {
       }
 
       return this.aiFactory.validateResponse(schema, responseText);
-    } catch (e) {
+    } catch (_e) {
       this.logger.warn(
         'Response validation failed. Generating mock data from schema fallback.',
       );
@@ -75,7 +75,7 @@ export class AiService {
     return `[AI Generated Response to: "${prompt.user}"]\n\nBased on the context provided, here is a summary...`;
   }
 
-  private mockSchemaGeneration<T>(schema: z.ZodSchema<T>): T {
+  private mockSchemaGeneration<T>(_schema: z.ZodSchema<T>): T {
     return {} as T;
   }
 }

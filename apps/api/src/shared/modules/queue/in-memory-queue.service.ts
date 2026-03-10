@@ -59,7 +59,7 @@ export class InMemoryQueueService implements IQueueProvider {
       await this.processJob(job);
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch((err: unknown) => {});
+        void this.processJob(job).catch((_err: unknown) => {});
       }, options.delay);
     }
 

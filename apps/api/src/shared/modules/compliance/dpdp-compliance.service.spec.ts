@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import {
   DPDPComplianceService,
-  DataSubjectRight,
+  DataSubjectRight as _DataSubjectRight,
 } from './dpdp-compliance.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';

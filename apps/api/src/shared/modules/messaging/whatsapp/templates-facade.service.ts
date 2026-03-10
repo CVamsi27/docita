@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
-  WhatsappTemplateCategory,
-  WhatsappButtonType,
+  WhatsappTemplateCategory as _WhatsappTemplateCategory,
+  WhatsappButtonType as _WhatsappButtonType,
   WhatsappTemplateStatus,
 } from '@workspace/db';
 import { DefaultTemplatesService } from './default-templates.service';

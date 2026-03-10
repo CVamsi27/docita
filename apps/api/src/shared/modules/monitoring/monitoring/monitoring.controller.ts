@@ -9,7 +9,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { MonitoringService } from './monitoring.service';
-import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { JwtAuthGuard as _JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';

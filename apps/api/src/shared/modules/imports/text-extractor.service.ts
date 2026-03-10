@@ -61,7 +61,7 @@ export class TextExtractorService {
 
       this.Tesseract = moduleCandidate;
       this.tesseractAvailable = true;
-    } catch (e) {
+    } catch (_e) {
       this.logger.warn('Tesseract.js not found, OCR will use fallback mode');
       this.tesseractAvailable = false;
     }

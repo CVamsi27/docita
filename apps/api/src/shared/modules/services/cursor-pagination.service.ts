@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as crypto from 'crypto';
+import * as _crypto from 'crypto';
 
 export interface CursorPage<T> {
   items: T[];

@@ -26,7 +26,7 @@ export class TemplateMessageService {
 
   async handleSendTemplate(
     clinicId: string,
-    userId: string,
+    _userId: string,
     dto: SendTemplateDto,
   ) {
     const clinic = await this.prisma.clinic.findUnique({

@@ -5,7 +5,7 @@ import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';
 import { BulkImportService } from './bulk-import.service';
-import { OCRService } from './ocr.service';
+import { OCRService as _OCRService } from './ocr.service';
 import { OCRFacadeService } from './ocr-facade.service';
 import { ImagePreprocessorService } from './image-preprocessor.service';
 import { TextExtractorService } from './text-extractor.service';

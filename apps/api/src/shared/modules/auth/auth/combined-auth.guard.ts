@@ -39,7 +39,7 @@ export class CombinedAuthGuard implements CanActivate {
       if (!canActivateJwt) {
         throw new UnauthorizedException('Authentication required');
       }
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException(
         'Invalid or expired authentication token',
       );

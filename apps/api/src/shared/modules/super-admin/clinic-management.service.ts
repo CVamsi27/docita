@@ -45,7 +45,7 @@ export class ClinicManagementService {
         orderBy: { createdAt: 'desc' },
         select: CLINIC_CARD_SELECT,
       });
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException('Failed to fetch clinics');
     }
   }
