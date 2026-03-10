@@ -127,7 +127,7 @@ export const useOCR = () => {
 
       setScanned(true);
       toast.success("Document scanned successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to scan document");
     }
   };
