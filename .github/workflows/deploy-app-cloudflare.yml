@@ -1,0 +1,66 @@
+name: Deploy App to Cloudflare
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/app/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "package.json"
+      - ".github/workflows/deploy-app-cloudflare.yml"
+
+concurrency:
+  group: deploy-app-cloudflare-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-app:
+    name: Build and Deploy App (Cloudflare)
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Cloudflare secrets
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "Missing CLOUDFLARE_API_TOKEN secret"
+            exit 1
+          fi
+
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Missing CLOUDFLARE_ACCOUNT_ID secret"
+            exit 1
+          fi
+
+      - name: Build app for Cloudflare
+        run: pnpm build:app:cloudflare
+
+      - name: Deploy app to Cloudflare
+        run: pnpm deploy:app:cloudflare

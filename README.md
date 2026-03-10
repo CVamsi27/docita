@@ -46,11 +46,11 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ```
 ┌─────────────────┐
+│ Frontend Edge   │
+│ - App:          │
+│   Cloudflare    │
+│ - Landing/Admin │
 │   Vercel        │
-│  (Frontend)     │
-│  - Landing      │
-│  - App          │
-│  - Admin        │
 └────────┬────────┘
          │ HTTPS
          │
@@ -76,7 +76,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 - **Database**: Neon Serverless PostgreSQL (migrating to AWS RDS later)
 - **Backend**: AWS EC2 with Docker
-- **Frontend**: Vercel (auto-deploy from Git)
+- **Frontend**: Cloudflare Pages (`apps/app`) + Vercel (`apps/landing`, `apps/admin`)
 
 ## 🛠️ Tech Stack
 
@@ -86,7 +86,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 - **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
 - **Data Fetching**: TanStack React Query
-- **Hosting**: Vercel
+- **Hosting**: Cloudflare Pages (`apps/app`) and Vercel (`apps/landing`, `apps/admin`)
 
 ### Backend
 
@@ -176,7 +176,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 1. **Database**: Create Neon project → Get connection string
 2. **Backend**: Deploy to EC2 with Docker
-3. **Frontend**: Connect to Vercel → Auto-deploy from Git
+3. **Frontend**: Deploy `apps/app` to Cloudflare Pages, keep `apps/landing` and `apps/admin` on Vercel
 
 See [Deployment Guide](docs/DEPLOYMENT.md) for step-by-step instructions.
 
@@ -184,8 +184,9 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for step-by-step instructions.
 
 - Neon: $0-19/month
 - EC2 t3.medium: ~$30/month
-- Vercel: $0-20/month
-- **Total: ~$30-70/month**
+- Cloudflare Pages (app): $0-10/month
+- Vercel (landing/admin): $0-20/month
+- **Total: ~$30-79/month**
 
 ## 📄 License
 
