@@ -98,7 +98,7 @@ export default function SystemMonitoringPage() {
         setPerformanceData(perfJson);
       }
       setHealth(healthData);
-    } catch (error) {
+    } catch {
 
     } finally {
       setLoading(false);

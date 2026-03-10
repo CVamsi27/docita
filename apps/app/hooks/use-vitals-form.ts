@@ -138,7 +138,7 @@ export function useVitalsForm({
         await onSuccess();
       }
       toast.success("Vitals saved successfully");
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to save vitals");
     }

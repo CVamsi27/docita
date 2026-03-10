@@ -1,4 +1,6 @@
 
+import { DEFAULT_CURRENCY } from "@workspace/utils";
+
 export interface SelectOption {
   value: string;
   label: string;
@@ -165,7 +167,7 @@ export const DEFAULT_FORM_OPTIONS: FormOptions = {
 export const DEFAULT_VALUES: DefaultValues = {
   appointmentDuration: 30,
   consultationFee: 800,
-  currency: "INR",
+  currency: DEFAULT_CURRENCY,
   timezone: "Asia/Kolkata",
   invoiceItems: [{ description: "Consultation Fee", quantity: 1, price: 800 }],
 };

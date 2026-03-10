@@ -31,6 +31,7 @@ import { type CreateInvoiceFormValues, useInvoiceCreateLogic } from "@/features/
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export const InvoiceCreateUI: FC = () => {
   const {
@@ -52,7 +53,7 @@ export const InvoiceCreateUI: FC = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
+      currency: DEFAULT_CURRENCY,
     }).format(amount);
   };
 

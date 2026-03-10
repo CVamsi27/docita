@@ -50,7 +50,7 @@ export const useDocumentsLogic = () => {
         a.click();
         window.URL.revokeObjectURL(url);
         window.document.body.removeChild(a);
-      } catch (error) {
+      } catch {
 
       }
     }

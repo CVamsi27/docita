@@ -114,7 +114,7 @@ export default function FeedbackPage() {
         setFeedbacks(Array.isArray(data) ? data : []);
       }
       if (statsRes.ok) setStats(await statsRes.json());
-    } catch (error) {
+    } catch {
 
     } finally {
       setLoading(false);
@@ -135,7 +135,7 @@ export default function FeedbackPage() {
       setFeedbacks(feedbacks.map((f) => (f.id === id ? updated : f)));
       setSelectedFeedback(updated);
       setAdminNotes("");
-    } catch (error) {
+    } catch {
 
     } finally {
       setUpdatingStatus(false);
@@ -148,7 +148,7 @@ export default function FeedbackPage() {
       await feedbackAPI.delete(id);
       setFeedbacks(feedbacks.filter((f) => f.id !== id));
       setSelectedFeedback(null);
-    } catch (error) {
+    } catch {
 
     }
   };

@@ -5,6 +5,13 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import {
   BackEmailField,
   fieldClass,
   getFieldError,
@@ -18,6 +25,7 @@ interface SignupStepProps {
   firstName: string;
   lastName: string;
   password: string;
+  ownerRole: "ADMIN" | "ADMIN_DOCTOR";
   showPassword: boolean;
   fieldErrors: FieldErrors;
   loading: boolean;
@@ -26,6 +34,7 @@ interface SignupStepProps {
   onChangeFirstName: (value: string) => void;
   onChangeLastName: (value: string) => void;
   onChangePassword: (value: string) => void;
+  onChangeOwnerRole: (value: "ADMIN" | "ADMIN_DOCTOR") => void;
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
 }
@@ -35,6 +44,7 @@ export function AuthSignupStepUI({
   firstName,
   lastName,
   password,
+  ownerRole,
   showPassword,
   fieldErrors,
   loading,
@@ -43,6 +53,7 @@ export function AuthSignupStepUI({
   onChangeFirstName,
   onChangeLastName,
   onChangePassword,
+  onChangeOwnerRole,
   onTogglePassword,
   onSubmit,
 }: SignupStepProps) {
@@ -87,6 +98,37 @@ export function AuthSignupStepUI({
         </a>{" "}
         to accept SLA, choose plan/add-ons, and configure billing.
       </p>
+
+      <div className="space-y-2">
+        <Label htmlFor="signup-owner-role">Owner Role</Label>
+        <Select
+          value={ownerRole}
+          onValueChange={(value) =>
+            onChangeOwnerRole(value as "ADMIN" | "ADMIN_DOCTOR")
+          }
+        >
+          <SelectTrigger id="signup-owner-role" className="h-11 bg-background/50">
+            <SelectValue placeholder="Select owner role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+            <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {ownerRole === "ADMIN_DOCTOR"
+            ? "Admin Doctor can run clinical workflows and manage team permissions."
+            : "Admin can manage clinic setup, members, and permissions."}
+        </p>
+        <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+          <p className="font-medium text-foreground">Role suggestion</p>
+          <p>
+            If you are a practicing doctor running a small clinic, choose
+            <span className="font-medium"> Admin Doctor </span>
+            for faster day-to-day clinical and admin operations.
+          </p>
+        </div>
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="signup-password">Password</Label>

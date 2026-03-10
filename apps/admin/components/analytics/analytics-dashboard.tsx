@@ -83,7 +83,7 @@ export function AnalyticsDashboard() {
       } else {
 
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load analytics data");
     } finally {
@@ -124,7 +124,7 @@ export function AnalyticsDashboard() {
       } else {
         toast.error("Failed to export report");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to export report");
     }

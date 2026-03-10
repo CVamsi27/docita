@@ -70,9 +70,6 @@ export function getErrorMessage(error: unknown): string {
 }
 
 export function handleError(error: unknown, context?: string): void {
-  const message = getErrorMessage(error);
-  const parsed = parseError(error);
-
-  
-
+  void error;
+  void context;
 }

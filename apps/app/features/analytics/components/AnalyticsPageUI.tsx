@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import React, { FC } from "react";
 import {
   Tabs,
@@ -53,6 +54,13 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
     );
   }
 
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: DEFAULT_CURRENCY,
+      maximumFractionDigits: 0,
+    }).format(amount);
+
   return (
     <FeatureGate
       feature={Feature.ADVANCED_ANALYTICS}
@@ -82,7 +90,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           />
           <OverviewCard
             title="Revenue"
-            value={`₹${overview?.revenueThisMonth?.toLocaleString() || 0}`}
+            value={formatCurrency(overview?.revenueThisMonth || 0)}
             growth={overview?.revenueGrowth || 0}
             icon={DollarSign}
           />

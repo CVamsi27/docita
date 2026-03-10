@@ -73,7 +73,7 @@ export const useInvoiceCreateLogic = () => {
       requestAnimationFrame(() => {
         router.push(`/invoices/${result.id}`);
       });
-    } catch (error) {
+    } catch {
       toast.error("Failed to create invoice");
 
     } finally {

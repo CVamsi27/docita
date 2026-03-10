@@ -1,4 +1,6 @@
 
+import { DEFAULT_CURRENCY } from "@workspace/utils";
+
 
 export function formatDate(
   date: Date | string,
@@ -19,7 +21,7 @@ export function formatDateTime(
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "INR",
+    currency: DEFAULT_CURRENCY,
   }).format(amount);
 }
 

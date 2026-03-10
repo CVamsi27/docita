@@ -52,6 +52,18 @@ export interface TierConfigData {
   };
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: "₹",
+  USD: "$",
+  GBP: "£",
+  EUR: "€",
+  AUD: "A$",
+  CAD: "C$",
+  SGD: "S$",
+  AED: "AED",
+  ZAR: "R",
+};
+
 const DEFAULT_CONFIG: TierConfigData = {
   tiers: [
     {
@@ -61,7 +73,7 @@ const DEFAULT_CONFIG: TierConfigData = {
       description: "Perfect for getting started with digitization",
       tagline: "Free forever",
       color: "gray",
-      pricing: { monthly: 0, yearly: 0, currency: "₹" },
+      pricing: { monthly: 0, yearly: 0, currency: CURRENCY_SYMBOLS.INR },
       limits: { patients: 100, doctors: 1, storageGB: 1, branches: 1 },
       features: [
         "Up to 100 patients",
@@ -77,7 +89,7 @@ const DEFAULT_CONFIG: TierConfigData = {
       description: "Essential features for small clinics",
       tagline: "Solo Clinic Essentials",
       color: "blue",
-      pricing: { monthly: 999, yearly: 10790, currency: "₹" }, 
+      pricing: { monthly: 999, yearly: 10790, currency: CURRENCY_SYMBOLS.INR }, 
       limits: { patients: 500, doctors: 1, storageGB: 2, branches: 1 },
       features: [
         "500 patients",
@@ -95,7 +107,7 @@ const DEFAULT_CONFIG: TierConfigData = {
       description: "Advanced features for growing clinics",
       tagline: "WhatsApp Automation",
       color: "green",
-      pricing: { monthly: 2499, yearly: 26990, currency: "₹" }, 
+      pricing: { monthly: 2499, yearly: 26990, currency: CURRENCY_SYMBOLS.INR }, 
       limits: { patients: 2000, doctors: 3, storageGB: 5, branches: 1 },
       features: [
         "2,000 patients",
@@ -113,7 +125,7 @@ const DEFAULT_CONFIG: TierConfigData = {
       description: "Full-featured solution for professional clinics",
       tagline: "Multi-Doctor Clinics",
       color: "purple",
-      pricing: { monthly: 4999, yearly: 53990, currency: "₹" }, 
+      pricing: { monthly: 4999, yearly: 53990, currency: CURRENCY_SYMBOLS.INR }, 
       limits: { patients: 10000, doctors: 999, storageGB: 20, branches: 3 },
       features: [
         "10,000 patients",
@@ -131,7 +143,11 @@ const DEFAULT_CONFIG: TierConfigData = {
       description: "Hospital-grade solution with full customization",
       tagline: "Hospital-Grade System",
       color: "orange",
-      pricing: { monthly: "custom", yearly: "custom", currency: "₹" },
+      pricing: {
+        monthly: "custom",
+        yearly: "custom",
+        currency: CURRENCY_SYMBOLS.INR,
+      },
       limits: { patients: 999999, doctors: 999, storageGB: 100, branches: 999 },
       features: [
         "Unlimited patients",
@@ -174,7 +190,7 @@ const DEFAULT_CONFIG: TierConfigData = {
     description: "AI-powered features to enhance your clinic",
     tagline: "AI-Powered Add-on",
     color: "pink",
-    pricing: { monthly: 2999, yearly: 32390, currency: "₹" }, 
+    pricing: { monthly: 2999, yearly: 32390, currency: CURRENCY_SYMBOLS.INR }, 
     features: [
       "AI-assisted clinical notes",
       "Smart prescription suggestions",
@@ -198,18 +214,6 @@ const CURRENCY_MULTIPLIERS: Record<string, number> = {
   SGD: 0.045,
   AED: 0.13,
   ZAR: 0.6,
-};
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  INR: "₹",
-  USD: "$",
-  GBP: "£",
-  EUR: "€",
-  AUD: "A$",
-  CAD: "C$",
-  SGD: "S$",
-  AED: "AED",
-  ZAR: "R",
 };
 
 async function fetchTierConfig(): Promise<TierConfigData> {
@@ -254,7 +258,7 @@ export function useTierConfig() {
   }, [config]);
 
   const getCurrencySymbol = useCallback((currency: string): string => {
-    return CURRENCY_SYMBOLS[currency] || "₹";
+    return CURRENCY_SYMBOLS[currency] || CURRENCY_SYMBOLS.INR;
   }, []);
 
   const getPricing = useCallback(

@@ -165,7 +165,7 @@ test.describe("Prescriptions", () => {
       if (!prescriptionEndpointAvailable) {
         
       }
-    } catch (error) {
+    } catch {
 
       prescriptionEndpointAvailable = false;
     }

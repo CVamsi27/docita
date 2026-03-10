@@ -6,6 +6,8 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@workspace/ui", "@workspace/db", "@workspace/types"],
@@ -57,7 +59,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3001/api/:path*",
+        destination: `${API_PROXY_TARGET}/api/:path*`,
       },
     ];
   },

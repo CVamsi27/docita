@@ -24,7 +24,7 @@ export async function fetchPatientByApi(
       return null;
     }
     return await res.json();
-  } catch (err) {
+  } catch {
 
     return null;
   }
@@ -99,7 +99,7 @@ export async function setupTestUser(
         }
       }
     }
-  } catch (err) {
+  } catch {
 
     throw err;
   }

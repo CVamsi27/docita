@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans bg-background text-foreground antialiased">
+      <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <SentryInitializer />
         <Providers>{children}</Providers>
       </body>

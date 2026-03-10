@@ -58,7 +58,7 @@ export default function PerformancePage() {
       if (res.ok) {
         setData(await res.json());
       }
-    } catch (error) {
+    } catch {
 
     } finally {
       setLoading(false);

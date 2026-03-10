@@ -61,7 +61,7 @@ export const useInvoicesLogic = () => {
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
-    } catch (error) {
+    } catch {
       toast.error("Failed to download PDF");
 
     }

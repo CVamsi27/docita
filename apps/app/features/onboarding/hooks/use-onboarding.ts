@@ -20,11 +20,10 @@ interface UseOnboardingReturn {
   reset: () => void;
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 const initialData: Partial<OnboardingData> = {
   clinicDetails: undefined,
-  adminAccount: undefined,
   planSelection: {
     tier: "CAPTURE",
     billingCycle: "MONTHLY",

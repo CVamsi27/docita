@@ -28,12 +28,28 @@ const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
   signup: "Get started with Docita",
 };
 
+function sanitizeAuthErrorMessage(message: string): string {
+  const trimmed = message.trim();
+  if (trimmed.startsWith("[") && trimmed.includes('"code"')) {
+    const zodMessageMatch = trimmed.match(/"message"\s*:\s*"([^"]+)"/);
+    if (zodMessageMatch?.[1]) {
+      return zodMessageMatch[1];
+    }
+
+    return "Please check the highlighted fields and try again.";
+  }
+  return message;
+}
+
 export function AuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR">(
+    "ADMIN",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -53,7 +69,7 @@ export function AuthPageContainer() {
     }
 
     if (err instanceof Error) {
-      setError(err.message);
+      setError(sanitizeAuthErrorMessage(err.message));
       return;
     }
 
@@ -95,7 +111,14 @@ export function AuthPageContainer() {
     setLoading(true);
 
     try {
-      await register(email, password, firstName, lastName, undefined);
+      await register(
+        email,
+        password,
+        firstName,
+        lastName,
+        ownerRole,
+        undefined,
+      );
     } catch (err) {
       handleCatchError(err, "An error occurred during registration");
     } finally {
@@ -108,6 +131,7 @@ export function AuthPageContainer() {
     setPassword("");
     setFirstName("");
     setLastName("");
+    setOwnerRole("ADMIN");
     resetErrors();
   };
 
@@ -162,6 +186,7 @@ export function AuthPageContainer() {
               firstName={firstName}
               lastName={lastName}
               password={password}
+              ownerRole={ownerRole}
               showPassword={showPassword}
               fieldErrors={fieldErrors}
               loading={loading}
@@ -170,6 +195,7 @@ export function AuthPageContainer() {
               onChangeFirstName={setFirstName}
               onChangeLastName={setLastName}
               onChangePassword={setPassword}
+              onChangeOwnerRole={setOwnerRole}
               onTogglePassword={() => setShowPassword((prev) => !prev)}
               onSubmit={handleSignupSubmit}
             />

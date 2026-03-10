@@ -54,7 +54,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
         const data = await response.json();
         setResults(data);
       }
-    } catch (error) {
+    } catch {
 
       setResults([]);
     } finally {

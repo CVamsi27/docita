@@ -4,11 +4,12 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
+import { usePathname } from "next/navigation";
 import { Tier, TIER_INFO } from "@workspace/types";
 import { Feature, FEATURE_TIER_MAP } from "./stores/permission-store";
 
@@ -56,10 +57,19 @@ export function TierConfigProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const [config, setConfig] = useState<TierConfigData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedRef = useRef(false);
+
+  const shouldSkipTierFetch =
+    pathname === "/login" ||
+    pathname.startsWith("/login/") ||
+    pathname === "/onboarding" ||
+    pathname.startsWith("/onboarding/") ||
+    pathname === "/clinic-selection" ||
+    pathname.startsWith("/clinic-selection/");
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -87,17 +97,19 @@ export function TierConfigProvider({
     }
   }, []);
 
-  useSyncExternalStore(
-    useCallback(() => {
-      if (!hasFetchedRef.current) {
-        hasFetchedRef.current = true;
-        fetchConfig();
-      }
-      return () => {};
-    }, [fetchConfig]),
-    () => config,
-    () => null,
-  );
+  useEffect(() => {
+    if (shouldSkipTierFetch) {
+      setConfig(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      void fetchConfig();
+    }
+  }, [fetchConfig, shouldSkipTierFetch]);
 
   const getPlanPricing = useCallback(
     (tier: Tier): PlanPricing => {

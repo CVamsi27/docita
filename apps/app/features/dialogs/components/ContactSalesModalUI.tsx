@@ -201,16 +201,21 @@ export function ContactSalesModalUI({
                   )}
                 />
 
-                <div className="flex gap-2 justify-end">
+                <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={onClose}
                     disabled={isSubmitting}
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full sm:w-auto"
+                  >
                     {isSubmitting ? "Sending..." : "Send Inquiry"}
                   </Button>
                 </div>

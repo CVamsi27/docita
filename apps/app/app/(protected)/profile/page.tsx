@@ -18,7 +18,7 @@ import { ChangePasswordSettings } from "@/features/settings/components";
 export default function ProfilePage() {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    name: user?.name || "Doctor",
+    name: user?.name ?? "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const updateProfileMutation = useUpdateProfile();

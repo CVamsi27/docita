@@ -5,6 +5,7 @@ import { useInvoice } from "@/hooks/api/use-billing";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -39,7 +40,7 @@ export const useInvoiceDetailsLogic = (
       setTimeout(() => {
         toast.success("PDF Downloaded successfully");
       }, 1500);
-    } catch (err) {
+    } catch {
       toast.error("Failed to download PDF");
 
     }
@@ -51,7 +52,8 @@ export const useInvoiceDetailsLogic = (
       return;
     }
 
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.id} for ${formatCurrency(invoice.totalAmount ?? 0)}. Thank you for visiting Dr. Vamsi's Clone Clinic.`;
+    const clinicName = clinic?.name?.trim() || "our clinic";
+    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.id} for ${formatCurrency(invoice.totalAmount ?? 0)}. Thank you for visiting ${clinicName}.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
 
@@ -65,7 +67,7 @@ export const useInvoiceDetailsLogic = (
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
+      currency: DEFAULT_CURRENCY,
     }).format(amount);
   };
 

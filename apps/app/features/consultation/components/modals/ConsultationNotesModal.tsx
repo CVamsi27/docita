@@ -42,7 +42,7 @@ export function ConsultationNotesModal({
       if (onSaved) await onSaved();
       onOpenChange?.(false);
       setNotes("");
-    } catch (error) {
+    } catch {
       toast.error("Failed to save notes");
 
     }

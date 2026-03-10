@@ -61,7 +61,7 @@ export function TierChangeDialog({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currency: SupportedCurrency = "INR"; 
+  const currency: SupportedCurrency = "INR";
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
 
   const { pricingConfig, isLoading: pricingLoading } =
@@ -179,9 +179,7 @@ export function TierChangeDialog({
           </div>
         ) : (
           <>
-            {}
             <div className="flex items-center justify-center gap-4 py-6">
-              {}
               <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50 min-w-[120px]">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
                   <CurrentIcon className="h-5 w-5" />
@@ -194,7 +192,6 @@ export function TierChangeDialog({
                 </span>
               </div>
 
-              {}
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",
@@ -210,7 +207,6 @@ export function TierChangeDialog({
                 )}
               </div>
 
-              {}
               <div
                 className={cn(
                   "flex flex-col items-center gap-2 p-4 rounded-lg min-w-[120px]",
@@ -245,7 +241,6 @@ export function TierChangeDialog({
               </div>
             </div>
 
-            {}
             {priceDiff !== null && priceDiff !== 0 && (
               <div
                 className={cn(
@@ -264,7 +259,6 @@ export function TierChangeDialog({
               </div>
             )}
 
-            {}
             {isDowngrade && (
               <Alert className="surface-warning">
                 <AlertTriangle className="h-4 w-4 text-warning" />
@@ -276,7 +270,6 @@ export function TierChangeDialog({
               </Alert>
             )}
 
-            {}
             {error && (
               <Alert className="surface-danger">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -286,7 +279,6 @@ export function TierChangeDialog({
               </Alert>
             )}
 
-            {}
             {selectedTier === "ENTERPRISE" && (
               <Alert className="surface-info">
                 <Building2 className="h-4 w-4 text-info" />

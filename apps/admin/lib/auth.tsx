@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         return true;
-      } catch (error) {
+      } catch {
 
         return false;
       }
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             deleteCookie(COOKIE_KEY);
           }
         }
-      } catch (error) {
+      } catch {
 
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);

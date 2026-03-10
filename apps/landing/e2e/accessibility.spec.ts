@@ -69,7 +69,7 @@ test.describe("Accessibility Audit - Landing App", () => {
         };
 
         
-      } catch (error) {
+      } catch {
 
       }
     });

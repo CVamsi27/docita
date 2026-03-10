@@ -16,7 +16,7 @@ export const metadata = {
 
 export default function OnboardingPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-background py-8 md:py-10">
       <ClinicOnboardingWizard />
     </main>
   );

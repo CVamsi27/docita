@@ -13,7 +13,7 @@ export const isCriticalStock = (
 
 export const calculateReorderQuantity = (
   current: number,
-  min: number,
+  _min: number,
   max: number,
 ): number => {
   return max - current;

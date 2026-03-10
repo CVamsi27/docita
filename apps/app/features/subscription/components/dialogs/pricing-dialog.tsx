@@ -111,6 +111,13 @@ export function PricingDialog({
     return tierData?.pricing ?? { monthly: 0, yearly: 0 };
   };
 
+  const getTierFeatures = (tierName: TierName) => {
+    const tierData = pricingConfig?.tiers.find(
+      (t: TierPricing) => t.id === tierName,
+    );
+    return tierData?.features?.slice(0, 4) ?? [];
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-background via-background to-muted/30">
@@ -192,6 +199,7 @@ export function PricingDialog({
             const isCurrentTier = tierNumeric === currentTier;
             const isUpgrade = tierNumeric > currentTier;
             const isDowngrade = tierNumeric < currentTier;
+            const tierFeatures = getTierFeatures(tierName);
 
             const price = isYearly ? tierPricing.yearly : tierPricing.monthly;
             const monthlyEquivalent =
@@ -323,6 +331,21 @@ export function PricingDialog({
                       </span>
                     </div>
                   )}
+
+                  {tierFeatures.length > 0 && (
+                    <div className="pt-2">
+                      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Highlights
+                      </p>
+                      <ul className="space-y-1 text-xs text-muted-foreground">
+                        {tierFeatures.map((feature) => (
+                          <li key={`${tierName}-${feature}`} className="truncate">
+                            • {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {}
@@ -362,7 +385,6 @@ export function PricingDialog({
           />
         </div>
 
-        {}
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">
           {isLoadingAny && <p className="mb-2">Updating usage estimates...</p>}
           <p>
@@ -375,7 +397,7 @@ export function PricingDialog({
               className="text-primary hover:underline font-medium"
               onClick={() => onOpenChange(false)}
             >
-              Contact our sales team
+              Contact sales
             </button>
           </p>
         </div>

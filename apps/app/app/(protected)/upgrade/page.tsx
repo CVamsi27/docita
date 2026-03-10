@@ -36,6 +36,7 @@ import { usePricingConfig } from "@/hooks/api/use-pricing";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { BILLING_ROLES } from "@/lib/permissions";
+import { Loader2 } from "lucide-react";
 
 export default function UpgradePage() {
   const { currentTier, hasIntelligence, canAccess } = usePermissionStore();
@@ -135,8 +136,13 @@ export default function UpgradePage() {
 
   if (!user || !canAccessPage) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading subscription workspace...
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -144,7 +150,6 @@ export default function UpgradePage() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        {}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">
@@ -156,7 +161,6 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {}
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={currentTier}
@@ -166,13 +170,10 @@ export default function UpgradePage() {
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
         />
 
-        {}
         <TrustSection />
 
-        {}
         <LockedFeatures lockedFeatures={lockedFeatures} />
 
-        {}
         {nextTier !== null && (
           <NextTierPromotion
             nextTier={nextTier}
@@ -181,7 +182,6 @@ export default function UpgradePage() {
           />
         )}
 
-        {}
         <AddonsSection
           hasIntelligence={hasIntelligence}
           intelligenceFeatures={intelligenceFeatures}
@@ -202,7 +202,6 @@ export default function UpgradePage() {
           currency="INR"
         />
 
-        {}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -228,10 +227,8 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {}
         <ComparisonTable currentTier={currentTier} />
 
-        {}
         <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
             <div>
@@ -254,10 +251,10 @@ export default function UpgradePage() {
           </CardContent>
         </Card>
 
-        {}
         <ContactSalesModal
           open={showContactSalesModal}
           onOpenChange={setShowContactSalesModal}
+          source="upgrade_page"
         />
         <PricingDialog
           open={showPricingDialog}
@@ -282,7 +279,6 @@ export default function UpgradePage() {
           onOpenChange={setShowInvoiceHistory}
         />
 
-        {}
         <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
           <p>
             By upgrading, you agree to our{" "}
@@ -298,7 +294,6 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        {}
         <div className="pb-10">
           <FaqSection />
         </div>

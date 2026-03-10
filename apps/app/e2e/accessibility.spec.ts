@@ -62,7 +62,7 @@ test.describe("Accessibility Audit - Main App", () => {
 
         
 
-      } catch (error) {
+      } catch {
 
       }
     });

@@ -37,7 +37,7 @@ export function PrescriptionDocument({
   clinicInfo,
 }: PrescriptionDocumentProps) {
   const doctorInfo = prescription.doctor as DoctorInfo;
-  const doctorName = doctorInfo?.name || "Doctor";
+  const doctorName = doctorInfo?.name ?? "";
 
   const patientName = prescription.patient
     ? `${prescription.patient.firstName} ${prescription.patient.lastName}`
@@ -66,7 +66,7 @@ export function PrescriptionDocument({
             ) : null}
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-bold text-primary leading-tight">
-                {clinicInfo?.name || "Medical Clinic"}
+                {clinicInfo?.name ?? ""}
               </h1>
               {clinicInfo?.address && (
                 <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -84,6 +84,12 @@ export function PrescriptionDocument({
                   <span className="flex items-center gap-1">
                     <span className="opacity-70">Email:</span>{" "}
                     {clinicInfo.email}
+                  </span>
+                )}
+                {!clinicInfo?.email && (
+                  <span className="flex items-center gap-1">
+                    <span className="opacity-70">Support:</span>{" "}
+                    support@docita.work
                   </span>
                 )}
               </div>
@@ -228,6 +234,7 @@ export function PrescriptionDocument({
           <p className="font-medium">
             This is a digitally generated prescription
           </p>
+          <p>Prescription support: support@docita.work</p>
           <p>
             Valid for dispensing within 30 days from the date of issue unless
             otherwise specified

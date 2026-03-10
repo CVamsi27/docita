@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 
 import {
   AppConfig,
@@ -56,9 +57,18 @@ export function AppConfigProvider({
   children,
   clinicId,
 }: AppConfigProviderProps) {
+  const pathname = usePathname();
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const shouldSkipConfigFetch =
+    pathname === "/login" ||
+    pathname.startsWith("/login/") ||
+    pathname === "/onboarding" ||
+    pathname.startsWith("/onboarding/") ||
+    pathname === "/clinic-selection" ||
+    pathname.startsWith("/clinic-selection/");
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -95,8 +105,15 @@ export function AppConfigProvider({
   }, [clinicId]);
 
   useEffect(() => {
+    if (shouldSkipConfigFetch) {
+      setConfig(DEFAULT_CONFIG);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     fetchConfig();
-  }, [fetchConfig]);
+  }, [fetchConfig, shouldSkipConfigFetch]);
 
   const getFormOptions = useCallback(
     <K extends keyof FormOptions>(key: K): FormOptions[K] => {

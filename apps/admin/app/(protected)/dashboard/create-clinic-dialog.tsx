@@ -203,7 +203,7 @@ export function CreateClinicDialog({
           const error = await res.json();
           toast.error(error.message || "Failed to create clinic");
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Error creating clinic");
       } finally {

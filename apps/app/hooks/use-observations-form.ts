@@ -51,7 +51,7 @@ export function useObservationsForm({
         await onSuccess();
       }
       toast.success("Notes saved successfully");
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to save notes");
     }

@@ -53,7 +53,7 @@ export function DoctorSelector({
               ) : (
                 doctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
-                    {doctor.name || "Doctor"}
+                    {doctor.name ?? ""}
                   </SelectItem>
                 ))
               )}

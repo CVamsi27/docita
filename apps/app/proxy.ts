@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 const ACCESS_TOKEN_COOKIE = "access_token";
 
 const PROTECTED_ROUTE_PREFIXES = [
+  "/clinic-selection",
+  "/onboarding",
   "/dashboard",
   "/patients",
   "/appointments",

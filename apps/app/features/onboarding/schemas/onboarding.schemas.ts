@@ -10,18 +10,6 @@ export const clinicDetailsSchema = z.object({
   facilityType: z.enum(["CLINIC", "HOSPITAL"]).default("CLINIC"),
 });
 
-export const adminAccountSchema = z
-  .object({
-    name: z.string().min(2, "Name is required"),
-    email: z.string().email("Invalid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
 export const planSelectionSchema = z.object({
   tier: z.enum(["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"]),
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
@@ -59,14 +47,12 @@ export const complianceSchema = z.object({
 
 export const onboardingDataSchema = z.object({
   clinicDetails: clinicDetailsSchema,
-  adminAccount: adminAccountSchema,
   planSelection: planSelectionSchema,
   teamInvites: teamInviteSchema,
   compliance: complianceSchema,
 });
 
 export type ClinicDetails = z.infer<typeof clinicDetailsSchema>;
-export type AdminAccount = z.infer<typeof adminAccountSchema>;
 export type PlanSelection = z.infer<typeof planSelectionSchema>;
 export type TeamInvites = z.infer<typeof teamInviteSchema>;
 export type Compliance = z.infer<typeof complianceSchema>;

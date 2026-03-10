@@ -51,6 +51,7 @@ export function PricingSection() {
 
   const captureTierFeatures = [
     "50 patients",
+    "2 GB secure storage",
     "Basic patient records",
     "Excel/PDF import",
     "Manual WhatsApp share",
@@ -58,6 +59,7 @@ export function PricingSection() {
 
   const coreTierFeatures = [
     "300 patients included",
+    "10 GB secure storage",
     "500 appointments/mo",
     "Calendar & scheduling",
     "Digital prescriptions",
@@ -67,6 +69,7 @@ export function PricingSection() {
 
   const plusTierFeatures = [
     "1,000 patients included",
+    "50 GB secure storage",
     "2,000 appointments/mo",
     "Everything in Core",
     "Prescription templates",
@@ -76,6 +79,7 @@ export function PricingSection() {
 
   const proTierFeatures = [
     "5,000 patients included",
+    "200 GB secure storage",
     "8,000 appointments/mo",
     "Everything in Plus",
     "Up to 5 doctors",
@@ -85,6 +89,7 @@ export function PricingSection() {
 
   const enterpriseTierFeatures = [
     "Unlimited patients",
+    "1 TB+ secure storage",
     "Everything in Pro",
     "Unlimited doctors",
     "Multi-branch support",
@@ -95,13 +100,12 @@ export function PricingSection() {
   return (
     <section className="px-6 py-24 relative overflow-hidden" id="pricing">
       <div className="mx-auto max-w-7xl">
-        {}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Simple, Transparent Pricing
+            Pricing That Scales With Your Clinic
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Start for free, upgrade as you grow
+            Start lean, add capabilities as your team and patient volume grow.
           </p>
           {isHydrated && !isLoading && (
             <p className="mt-2 text-sm text-muted-foreground">
@@ -109,7 +113,6 @@ export function PricingSection() {
             </p>
           )}
 
-          {}
           <div className="mt-6 inline-flex items-center gap-3 rounded-full bg-muted p-1">
             <button
               onClick={() => setBillingPeriod("monthly")}
@@ -137,7 +140,6 @@ export function PricingSection() {
           </div>
         </div>
 
-        {}
         <div className="grid gap-6 lg:grid-cols-5 items-start">
           <PricingTierCard
             tier="Tier 0"
@@ -147,13 +149,13 @@ export function PricingSection() {
             pricePerMonth="/mo"
             badgeColor="slate"
             features={captureTierFeatures}
-            buttonText="Start 7 Day Free Trial"
+            buttonText="Start Free"
           />
 
           <PricingTierCard
             tier="Tier 1"
             title="Core"
-            description="Full-function EHR"
+            description="Most clinics start here"
             price={formatPrice("CORE")}
             pricePerMonth="/mo"
             billingNote={
@@ -165,7 +167,7 @@ export function PricingSection() {
             isPopular
             features={coreTierFeatures}
             isPrimary
-            buttonText="Start 7 Day Free Trial"
+            buttonText="Start Free"
             buttonVariant="default"
           />
 
@@ -182,7 +184,7 @@ export function PricingSection() {
             }
             badgeColor="green"
             features={plusTierFeatures}
-            buttonText="Start 7 Day Free Trial"
+            buttonText="Start Free"
           />
 
           <PricingTierCard
@@ -198,7 +200,7 @@ export function PricingSection() {
             }
             badgeColor="purple"
             features={proTierFeatures}
-            buttonText="Start 7 Day Free Trial"
+            buttonText="Start Free"
           />
 
           <PricingTierCard
@@ -214,7 +216,6 @@ export function PricingSection() {
           />
         </div>
 
-        {}
         <div className="mt-12 space-y-6">
           <div className="text-center mb-8">
             <h3 className="text-xl font-bold">Powerful Add-ons</h3>
@@ -288,7 +289,6 @@ export function PricingSection() {
           </div>
         </div>
 
-        {}
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>All plans include a 7 day free trial. No credit card required.</p>
           <p>

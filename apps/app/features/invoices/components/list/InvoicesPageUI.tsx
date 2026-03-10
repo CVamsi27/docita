@@ -52,6 +52,7 @@ import Link from "next/link";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { Invoice, Patient } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 type InvoiceWithPatient = Invoice & { 
   patient?: Pick<Patient, "firstName" | "lastName">;
@@ -83,7 +84,7 @@ export const InvoicesPageUI: FC = () => {
   const formatCurrency = (amount: number | undefined) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
+      currency: DEFAULT_CURRENCY,
     }).format(amount || 0);
   };
 

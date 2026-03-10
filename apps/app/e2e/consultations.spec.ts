@@ -126,7 +126,7 @@ test.describe("Consultation Flow", () => {
       await expect(
         page.getByRole("heading", { name: patientName, level: 1 }),
       ).toBeVisible({ timeout: 10000 });
-    } catch (e) {
+    } catch {
 
       
       

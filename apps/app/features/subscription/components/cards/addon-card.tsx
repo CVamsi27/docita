@@ -12,6 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { Feature } from "@/lib/tier-config";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
+import { CURRENCY_OPTIONS } from "@workspace/utils";
 
 export interface AddonPricing {
   monthly: number;
@@ -127,7 +128,8 @@ export function AddonCard({
 
   const price = billingCycle === "MONTHLY" ? pricing?.monthly : pricing?.yearly;
   const currencySymbol =
-    currency === "USD" ? "$" : currency === "EUR" ? "€" : "₹";
+    CURRENCY_OPTIONS.find((option) => option.value === currency)?.symbol ??
+    currency;
 
   return (
     <Card

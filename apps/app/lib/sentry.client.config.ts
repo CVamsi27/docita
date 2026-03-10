@@ -35,7 +35,7 @@ export function initializeSentryClient() {
     });
 
     (window as WindowWithSentryReady).__sentryReady = true;
-  } catch (error) {
+  } catch {
 
   }
 }
@@ -54,7 +54,7 @@ function getUserContextFromStorage(): {
     }
 
     return null;
-  } catch (error) {
+  } catch {
 
     return null;
   }
@@ -76,7 +76,7 @@ export function captureException(
         contexts: context ? { custom: context } : undefined,
       },
     );
-  } catch (err) {
+  } catch {
 
   }
 }
@@ -92,7 +92,7 @@ export function captureMessage(
 
   try {
     Sentry.captureMessage(message, level);
-  } catch (err) {
+  } catch {
 
   }
 }
@@ -110,7 +110,7 @@ export function addBreadcrumb(
       data,
       timestamp: Date.now() / 1000,
     });
-  } catch (err) {
+  } catch {
 
   }
 }

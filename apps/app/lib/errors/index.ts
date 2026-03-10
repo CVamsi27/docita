@@ -91,6 +91,7 @@ export const errorHandler = {
     error: Error | unknown,
     context?: T,
   ) => {
-    
+    void error;
+    void context;
   },
 };

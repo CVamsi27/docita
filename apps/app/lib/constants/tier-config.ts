@@ -1,4 +1,9 @@
 import { Tier, TIER_INFO, TIER_LIMITS, TIER_PRICING } from "@workspace/types";
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
+
+const DEFAULT_CURRENCY_SYMBOL =
+  CURRENCY_OPTIONS.find((option) => option.value === DEFAULT_CURRENCY)?.symbol ??
+  DEFAULT_CURRENCY;
 
 export interface PlanPricing {
   monthly: number | "custom";
@@ -58,32 +63,32 @@ export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
   [Tier.CAPTURE]: {
     monthly: TIER_PRICING.CAPTURE.monthly,
     yearly: TIER_PRICING.CAPTURE.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.CORE]: {
     monthly: TIER_PRICING.CORE.monthly,
     yearly: TIER_PRICING.CORE.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.PLUS]: {
     monthly: TIER_PRICING.PLUS.monthly,
     yearly: TIER_PRICING.PLUS.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.PRO]: {
     monthly: TIER_PRICING.PRO.monthly,
     yearly: TIER_PRICING.PRO.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.ENTERPRISE]: {
     monthly: TIER_PRICING.ENTERPRISE.monthly,
     yearly: TIER_PRICING.ENTERPRISE.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.INTELLIGENCE]: {
     monthly: TIER_PRICING.INTELLIGENCE.monthly,
     yearly: TIER_PRICING.INTELLIGENCE.yearly,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY_SYMBOL,
   },
 };
 

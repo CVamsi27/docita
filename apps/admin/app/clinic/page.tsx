@@ -69,7 +69,7 @@ export default function ClinicDashboard() {
             receptionists,
           });
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to load clinic details");
       } finally {

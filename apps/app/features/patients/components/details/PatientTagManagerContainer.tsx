@@ -29,7 +29,7 @@ export function PatientTagManagerContainer({
     try {
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
-    } catch (error) {
+    } catch {
 
     }
   }, [patientId]);
@@ -55,7 +55,7 @@ export function PatientTagManagerContainer({
       setNewTag("");
       setNewColor("#3b82f6");
       onTagsUpdated?.();
-    } catch (error) {
+    } catch {
 
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export function PatientTagManagerContainer({
         method: "DELETE",
       });
       onTagsUpdated?.();
-    } catch (error) {
+    } catch {
 
       setTags(previousTags);
     }
@@ -95,7 +95,7 @@ export function PatientTagManagerContainer({
         body: JSON.stringify({ tag: newName, color: newTagColor }),
       });
       onTagsUpdated?.();
-    } catch (error) {
+    } catch {
 
       setTags(previousTags);
     }

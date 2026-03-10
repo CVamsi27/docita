@@ -27,6 +27,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
 interface RevenueMetricsPoint {
@@ -262,10 +263,18 @@ export function AdvancedMetricsCharts({
                         {doctor.completionRate}%
                       </TableCell>
                       <TableCell className="text-right">
-                        ₹{doctor.revenue.toLocaleString()}
+                        {new Intl.NumberFormat("en-IN", {
+                          style: "currency",
+                          currency: DEFAULT_CURRENCY,
+                          maximumFractionDigits: 0,
+                        }).format(doctor.revenue)}
                       </TableCell>
                       <TableCell className="text-right">
-                        ₹{doctor.avgRevenuePerAppointment.toLocaleString()}
+                        {new Intl.NumberFormat("en-IN", {
+                          style: "currency",
+                          currency: DEFAULT_CURRENCY,
+                          maximumFractionDigits: 0,
+                        }).format(doctor.avgRevenuePerAppointment)}
                       </TableCell>
                     </TableRow>
                   ))}

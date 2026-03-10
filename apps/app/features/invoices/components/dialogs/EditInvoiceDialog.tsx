@@ -17,6 +17,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 
@@ -97,7 +98,7 @@ export function EditInvoiceDialog({
       toast.success("Invoice updated successfully");
       onInvoiceUpdated();
       setTimeout(() => onOpenChange(false), 100);
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to update invoice");
     } finally {
@@ -218,7 +219,10 @@ export function EditInvoiceDialog({
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
           <span className="text-2xl font-bold text-primary">
-            ₹{calculateTotal().toFixed(2)}
+            {new Intl.NumberFormat("en-IN", {
+              style: "currency",
+              currency: DEFAULT_CURRENCY,
+            }).format(calculateTotal())}
           </span>
         </div>
       </div>

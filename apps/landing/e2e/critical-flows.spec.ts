@@ -155,7 +155,7 @@ test.describe("Landing Page - Critical Flows", () => {
       expect(descriptionContent).toBeTruthy();
 
       const ogTitle = await page.locator('meta[property="og:title"]');
-      const hasOgTitle = (await ogTitle.count()) > 0;
+      await ogTitle.count();
 
       
     }
@@ -266,7 +266,7 @@ test.describe("Landing Page - Critical Flows", () => {
       )
       .first();
     if ((await ctaButton.count()) > 0) {
-      const href = await ctaButton.getAttribute("href");
+      await ctaButton.getAttribute("href");
 
     }
 

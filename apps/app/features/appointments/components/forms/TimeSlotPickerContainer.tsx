@@ -35,7 +35,7 @@ export function TimeSlotPickerContainer({
           `/appointments/time-slots?${queryParams.toString()}`,
         );
         setTimeSlots(response);
-      } catch (error) {
+      } catch {
 
         setTimeSlots([]);
       } finally {

@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { Bed, CheckCircle2, Search, Users } from "lucide-react";
 import {
   Card,
@@ -153,7 +154,12 @@ export function BedManagementUI({
                         Room {room.roomNumber}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        ₹{room.charges}/day
+                          {new Intl.NumberFormat("en-IN", {
+                            style: "currency",
+                            currency: DEFAULT_CURRENCY,
+                            maximumFractionDigits: 0,
+                          }).format(room.charges)}
+                          /day
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">

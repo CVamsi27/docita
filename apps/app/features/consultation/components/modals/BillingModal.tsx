@@ -115,7 +115,7 @@ export function BillingModal({
       setItems([{ description: "Consultation Fee", quantity: 1, price: 50 }]);
       setTaxRate(0);
       setDiscountValue(0);
-    } catch (err) {
+    } catch {
       toast.error("Failed to create invoice");
 
     }

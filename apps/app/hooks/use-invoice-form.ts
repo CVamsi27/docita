@@ -171,7 +171,7 @@ export function useInvoiceForm({
         await onSuccess();
       }
       toast.success("Invoice created successfully");
-    } catch (error: unknown) {
+    } catch {
 
       toast.error("Failed to create invoice");
     } finally {

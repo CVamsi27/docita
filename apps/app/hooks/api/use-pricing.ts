@@ -2,9 +2,19 @@
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import type { PricingEstimateRequest } from "@workspace/types";
+import { API_URL } from "@/lib/api-config";
 
-const API_URL =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+function getVersionedApiBaseUrl(baseUrl: string): string {
+  const normalized = baseUrl.replace(/\/+$/, "");
+
+  if (/\/api$/i.test(normalized)) {
+    return `${normalized}/v1`;
+  }
+
+  return normalized;
+}
+
+const PRICING_API_BASE_URL = getVersionedApiBaseUrl(API_URL);
 
 interface TierPricing {
   id: string;
@@ -23,6 +33,7 @@ interface TierPricing {
     storage: number;
     users: number;
   };
+  features?: string[];
 }
 
 interface AddOnInfo {
@@ -98,7 +109,8 @@ const fetcher = async (url: string) => {
 export function usePricingConfig(currency: string = "INR") {
   const { data, error, isLoading, refetch } = useQuery<PricingConfig>({
     queryKey: ["pricing-config", currency],
-    queryFn: () => fetcher(`${API_URL}/pricing/config?currency=${currency}`),
+    queryFn: () =>
+      fetcher(`${PRICING_API_BASE_URL}/pricing/config?currency=${currency}`),
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -139,7 +151,8 @@ export function useEstimate(params: EstimateRequest | null) {
 
   const { data, error, isLoading } = useQuery<EstimateResponse>({
     queryKey: ["price-estimate", queryParams],
-    queryFn: () => fetcher(`${API_URL}/pricing/estimate?${queryParams}`),
+    queryFn: () =>
+      fetcher(`${PRICING_API_BASE_URL}/pricing/estimate?${queryParams}`),
     enabled: !!queryParams,
     refetchOnWindowFocus: false,
   });
@@ -176,7 +189,8 @@ export function useTierEstimates(params: {
 
       return {
         queryKey: ["price-estimate", tier, queryString],
-        queryFn: () => fetcher(`${API_URL}/pricing/estimate?${queryString}`),
+        queryFn: () =>
+          fetcher(`${PRICING_API_BASE_URL}/pricing/estimate?${queryString}`),
         staleTime: 30000,
         refetchOnWindowFocus: false,
       };

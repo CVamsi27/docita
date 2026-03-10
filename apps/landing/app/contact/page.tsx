@@ -123,34 +123,45 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      General Inquiries
-                    </p>
+                    <p className="text-sm text-muted-foreground">Government, paperwork</p>
                     <a
-                      href="mailto:hello@docita.work"
+                      href="mailto:admin@docita.work"
                       className="text-primary hover:underline"
                     >
-                      hello@docita.work
+                      admin@docita.work
                     </a>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Technical Support
+                      Stripe, Razorpay, AWS, Kuberns invoices & receipts
+                    </p>
+                    <a
+                      href="mailto:billing@docita.work"
+                      className="text-primary hover:underline"
+                    >
+                      billing@docita.work
+                    </a>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Automated transactional emails (order confirmations, password resets, etc.)
+                    </p>
+                    <a
+                      href="mailto:notifications@docita.work"
+                      className="text-primary hover:underline"
+                    >
+                      notifications@docita.work
+                    </a>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Customer inquiries, support tickets
                     </p>
                     <a
                       href="mailto:support@docita.work"
                       className="text-primary hover:underline"
                     >
                       support@docita.work
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Sales</p>
-                    <a
-                      href="mailto:sales@docita.work"
-                      className="text-primary hover:underline"
-                    >
-                      sales@docita.work
                     </a>
                   </div>
                 </CardContent>
@@ -204,11 +215,11 @@ export default function ContactPage() {
                     Technical Support
                   </a>
                   <a
-                    href="mailto:sales@docita.work?subject=Partnership Inquiry"
+                    href="mailto:admin@docita.work?subject=Government%20or%20Paperwork%20Inquiry"
                     className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
                   >
                     <Building2 className="h-4 w-4" />
-                    Partnership Inquiries
+                    Government & Paperwork
                   </a>
                 </CardContent>
               </Card>

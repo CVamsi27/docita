@@ -64,7 +64,7 @@ export function AuditLogViewer() {
 
       const data = await response.json();
       setLogs(Array.isArray(data) ? data : data.logs || []);
-    } catch (error) {
+    } catch {
 
       alert("Failed to load audit logs");
     } finally {

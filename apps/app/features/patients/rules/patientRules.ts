@@ -22,7 +22,7 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
   return isPatientMinor(patient);
 };
 
-export const canDeletePatient = (patient: Patient, user: User): boolean => {
+export const canDeletePatient = (_patient: Patient, user: User): boolean => {
 
   if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
     return false;

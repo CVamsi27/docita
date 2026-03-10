@@ -31,6 +31,7 @@ import { type InvoiceFormValues, useInvoiceEditLogic } from "@/features/invoices
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -52,7 +53,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
+      currency: DEFAULT_CURRENCY,
     }).format(amount);
   };
 

@@ -1,21 +1,22 @@
 "use client";
 
 import { useAuth } from "@workspace/auth";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      redirect("/login?returnTo=/portal");
+      router.replace("/login?returnTo=/portal");
     }
     if (!isLoading && user && user.role !== "PATIENT") {
-      redirect("/dashboard"); 
+      router.replace("/dashboard");
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (

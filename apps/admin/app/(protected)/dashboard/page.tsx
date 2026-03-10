@@ -91,7 +91,7 @@ export default function SuperAdminDashboard() {
         );
       }
       if (statsRes.ok) setStats(await statsRes.json());
-    } catch (error) {
+    } catch {
 
     } finally {
       setLoading(false);

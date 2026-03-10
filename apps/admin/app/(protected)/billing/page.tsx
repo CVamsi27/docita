@@ -141,7 +141,7 @@ export default function BillingDashboard() {
 
         setPayments([]);
       }
-    } catch (error) {
+    } catch {
 
       setMetrics(null);
       setSubscriptions([]);
@@ -166,7 +166,7 @@ export default function BillingDashboard() {
     try {
       await billingAPI.sendReminder(subscription.id);
 
-    } catch (error) {
+    } catch {
 
     } finally {
       setSending(false);
@@ -185,7 +185,7 @@ export default function BillingDashboard() {
       setExtendGraceDialog({ open: false });
       setExtendDays(3);
       fetchData();
-    } catch (error) {
+    } catch {
 
     } finally {
       setSending(false);

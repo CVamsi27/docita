@@ -69,7 +69,7 @@ export function PricingTierCard({
         </div>
       )}
 
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-4 border-b">
         <div
           className={`inline-flex items-center gap-2 rounded-full ${badgeColorMap[badgeColor]} px-3 py-1 text-xs mb-2 w-fit`}
         >
@@ -92,6 +92,9 @@ export function PricingTierCard({
       </CardHeader>
 
       <CardContent className="flex-1 pt-0">
+        <p className="mb-3 mt-4 text-xs uppercase tracking-wide text-muted-foreground">
+          Includes
+        </p>
         <ul className="space-y-2 text-sm">
           {features.map((feature, idx) => (
             <li key={idx} className="flex items-center gap-2">

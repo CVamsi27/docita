@@ -248,8 +248,7 @@ test.describe("Critical Business Flows", () => {
     });
 
     if (metricsRes.ok()) {
-      const metrics = toRecord(await metricsRes.json());
-      
+      toRecord(await metricsRes.json());
     } else {
 
     }
@@ -475,8 +474,7 @@ test.describe("Critical Business Flows", () => {
     );
 
     if (analyticsRes.ok()) {
-      const analytics = toRecord(await analyticsRes.json());
-      
+      toRecord(await analyticsRes.json());
     } else {
 
     }

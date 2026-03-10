@@ -73,6 +73,19 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("XSRF-TOKEN="))
+    ?.split("=")[1];
+
+  return token ? decodeURIComponent(token) : null;
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,10 +146,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
+      const csrfToken = getCsrfToken();
       await fetch("/api/v1/auth/logout", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        },
+        body: JSON.stringify({}),
       });
     } catch (err) {
 

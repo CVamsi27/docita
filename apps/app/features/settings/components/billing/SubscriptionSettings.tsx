@@ -28,6 +28,7 @@ import {
 } from "@workspace/ui/components/table";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface Invoice {
   id: string;
@@ -79,7 +80,7 @@ function BillingHistory() {
         '""',
       );
       const amount = (invoice.amountCents / 100).toFixed(2);
-      const currency = invoice.currency || "INR";
+      const currency = invoice.currency || DEFAULT_CURRENCY;
       const status = invoice.status;
       const receipt = invoice.invoiceUrl || "";
 
@@ -163,7 +164,7 @@ function BillingHistory() {
               <TableCell>
                 {new Intl.NumberFormat("en-IN", {
                   style: "currency",
-                  currency: invoice.currency || "INR",
+                  currency: invoice.currency || DEFAULT_CURRENCY,
                 }).format(invoice.amountCents / 100)}
               </TableCell>
               <TableCell>
@@ -227,7 +228,7 @@ export function SubscriptionSettings() {
   const tierName = subscription?.tierName || "Free Plan";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
   const billingCycle = subscription?.billingCycle || "monthly";
-  const currency = subscription?.currency || "INR";
+  const currency = subscription?.currency || DEFAULT_CURRENCY;
   const basePrice = (subscription?.basePriceCents ?? 0) / 100;
   const periodEnd = subscription?.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN")

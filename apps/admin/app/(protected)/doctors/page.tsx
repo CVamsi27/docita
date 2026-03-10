@@ -47,6 +47,7 @@ import {
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
   SPECIALIZATION_LABELS,
   HOSPITAL_ROLE_LABELS,
@@ -181,13 +182,13 @@ export default function DoctorsPage() {
               const doctorsData = await doctorsRes.json();
               setDoctors(doctorsData);
             }
-          } catch (error) {
+          } catch {
 
             toast.error("Failed to load doctors");
           }
         }
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load clinics");
     } finally {
@@ -213,7 +214,7 @@ export default function DoctorsPage() {
           const data = await res.json();
           setDoctors(Array.isArray(data) ? data : []);
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to load doctors");
       } finally {
@@ -253,7 +254,7 @@ export default function DoctorsPage() {
           const allDoctorsArrays = await Promise.all(allDoctorsPromises);
           const allDoctors = allDoctorsArrays.flat();
           setDoctors(allDoctors);
-        } catch (error) {
+        } catch {
 
           toast.error("Failed to load doctors");
         } finally {
@@ -281,7 +282,7 @@ export default function DoctorsPage() {
         const data = await res.json();
         setSelectedDoctor(data);
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load doctor details");
     }
@@ -570,7 +571,11 @@ export default function DoctorsPage() {
                   </Label>
                   <p className="font-medium">
                     {selectedDoctor.consultationFee
-                      ? `₹${selectedDoctor.consultationFee}`
+                      ? new Intl.NumberFormat("en-IN", {
+                          style: "currency",
+                          currency: DEFAULT_CURRENCY,
+                          maximumFractionDigits: 0,
+                        }).format(selectedDoctor.consultationFee)
                       : "-"}
                   </p>
                 </div>

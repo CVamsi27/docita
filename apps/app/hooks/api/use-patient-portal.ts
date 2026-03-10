@@ -128,3 +128,18 @@ export const useRequestDataDeletion = () =>
     Record<string, unknown>,
     { reason: string; confirmDeletion?: boolean }
   >("/patient-portal/profile/delete-request", "POST");
+
+export const usePatientMedicalHistory = (patientId?: string) =>
+  useAPIQuery<{
+    conditions: Record<string, unknown>[];
+    allergies: Record<string, unknown>[];
+    familyHistory: Record<string, unknown>[];
+    socialHistory: Record<string, unknown> | null;
+    surgicalHistory: Record<string, unknown>[];
+  }>(
+    ["patient-portal", "medical-history", patientId || ""],
+    `/patients/${patientId}/medical-history`,
+    {
+      enabled: !!patientId,
+    },
+  );

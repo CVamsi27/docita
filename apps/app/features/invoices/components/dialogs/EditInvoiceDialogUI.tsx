@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import type { InvoiceItem } from "@workspace/types";
 
 export interface EditInvoiceDialogUIProps {
@@ -156,7 +157,10 @@ export function EditInvoiceDialogUI({
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
           <span className="text-2xl font-bold text-primary">
-            ₹{calculateTotal().toFixed(2)}
+                {new Intl.NumberFormat("en-IN", {
+                  style: "currency",
+                  currency: DEFAULT_CURRENCY,
+                }).format(calculateTotal())}
           </span>
         </div>
       </div>

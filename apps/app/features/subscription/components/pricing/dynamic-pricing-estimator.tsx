@@ -21,6 +21,7 @@ import { Switch } from "@workspace/ui/components/switch";
 import { Badge } from "@workspace/ui/components/badge";
 import { useDebounce } from "@workspace/hooks";
 import type { SupportedCurrency, TierName } from "@workspace/types";
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
 import {
   DEFAULT_PRICING_SCALE_PRESET,
   PRICING_ESTIMATE_DEBOUNCE_MS,
@@ -253,7 +254,17 @@ export function DynamicPricingEstimator({
                 </SelectTrigger>
                 <SelectContent>
                   {(pricingConfig?.supportedCurrencies || [
-                    { code: "INR", symbol: "₹", name: "Indian Rupee" },
+                    {
+                      code: DEFAULT_CURRENCY,
+                      symbol:
+                        CURRENCY_OPTIONS.find(
+                          (option) => option.value === DEFAULT_CURRENCY,
+                        )?.symbol ?? DEFAULT_CURRENCY,
+                      name:
+                        CURRENCY_OPTIONS.find(
+                          (option) => option.value === DEFAULT_CURRENCY,
+                        )?.label ?? DEFAULT_CURRENCY,
+                    },
                   ]).map((item) => (
                     <SelectItem key={item.code} value={item.code}>
                       {item.symbol} {item.code}
@@ -373,10 +384,10 @@ export function DynamicPricingEstimator({
               <Badge>
                 {estimate.currency.symbol}
                 {shownTotal.toLocaleString()}
-                {effectiveBillingCycle === "yearly" ? "/yr" : "/mo"}
+                {effectiveBillingCycle === "yearly" ? "/year" : "/month"}
               </Badge>
             ) : (
-              <Badge variant="outline">Contact Sales</Badge>
+              <Badge variant="outline">Contact sales</Badge>
             )}
           </div>
 

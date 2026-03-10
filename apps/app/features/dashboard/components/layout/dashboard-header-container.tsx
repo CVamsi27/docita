@@ -21,7 +21,7 @@ export function DashboardHeaderContainer() {
 
   return (
     <DashboardHeaderUI
-      userName={user?.name || "Doctor"}
+      userName={user?.name ?? ""}
       greeting={getGreeting()}
       onSearchClick={handleSearchClick}
     />

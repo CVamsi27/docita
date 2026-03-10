@@ -77,12 +77,14 @@ export default function PrescriptionViewPage() {
       : "Patient";
 
     const doctorInfo = prescription.doctor as DoctorInfo;
-    const doctorName = doctorInfo?.name || "Doctor";
+    const doctorName = doctorInfo?.name?.trim() ?? "";
     const date = format(new Date(prescription.createdAt), "dd/MM/yyyy");
 
     let message = `*Prescription for ${patientName}*\n\n`;
     message += `Date: ${date}\n`;
-    message += `Doctor: Dr. ${doctorName}\n`;
+    if (doctorName) {
+      message += `Doctor: Dr. ${doctorName}\n`;
+    }
     if (doctorInfo?.registrationNumber) {
       message += `Reg. No: ${doctorInfo.registrationNumber}\n`;
     }

@@ -18,6 +18,7 @@ import {
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { ArrowDownLeft, ArrowUpRight, History, Package } from "lucide-react";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export interface InventoryMovement {
   id: string;
@@ -98,14 +99,24 @@ export function InventoryItemDetailsUI({
                     Purchase Price
                   </span>
                   <span className="font-medium">
-                    ₹{item.purchasePrice || 0}
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: DEFAULT_CURRENCY,
+                      maximumFractionDigits: 0,
+                    }).format(item.purchasePrice || 0)}
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">
                     Selling Price
                   </span>
-                  <span className="font-medium">₹{item.sellingPrice || 0}</span>
+                  <span className="font-medium">
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: DEFAULT_CURRENCY,
+                      maximumFractionDigits: 0,
+                    }).format(item.sellingPrice || 0)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">

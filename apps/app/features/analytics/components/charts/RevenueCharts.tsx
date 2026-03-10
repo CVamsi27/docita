@@ -44,7 +44,7 @@ export const RevenueBarChart = ({ data, loading }: RevenueChartProps) => (
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="revenue" fill="#00C49F" name="Revenue (₹)" />
+            <Bar dataKey="revenue" fill="#00C49F" name="Revenue" />
           </BarChart>
         </ResponsiveContainer>
       ) : (

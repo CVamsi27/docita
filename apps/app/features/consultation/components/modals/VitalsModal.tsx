@@ -76,7 +76,7 @@ export function VitalsModal({
         spo2: "",
         respiratoryRate: "",
       });
-    } catch (err) {
+    } catch {
       toast.error("Failed to record vitals");
 
     }

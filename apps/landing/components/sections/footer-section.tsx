@@ -154,6 +154,9 @@ export function FooterSection() {
             <Link href="/terms" className="hover:text-primary">
               Terms of Service
             </Link>
+            <Link href="/refund-policy" className="hover:text-primary">
+              Refund Policy
+            </Link>
             <Link href="/cookies" className="hover:text-primary">
               Cookie Policy
             </Link>

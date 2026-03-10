@@ -7,6 +7,7 @@ import {
   Tier,
   TIER_PRICING,
 } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
   AddOnType,
   type IAccessContext,
@@ -157,7 +158,7 @@ export class AccessControlService implements IAccessControlService {
           target: requiredTierName,
           currentPrice,
           newPrice,
-          currency: "₹",
+          currency: DEFAULT_CURRENCY,
           savings:
             context.subscription.billingCycle === "yearly"
               ? Math.round(newPrice * 12 * 0.1)
@@ -190,7 +191,7 @@ export class AccessControlService implements IAccessControlService {
         target: addOnType,
         currentPrice: 0,
         newPrice: addOnPrice,
-        currency: "₹",
+        currency: DEFAULT_CURRENCY,
         description: `Add ${addOnName} to your plan`,
       });
     }

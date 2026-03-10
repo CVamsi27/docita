@@ -99,7 +99,7 @@ export default function CreateDoctorPage() {
         const error = await res.json();
         toast.error(error.message || "Failed to create doctor");
       }
-    } catch (err) {
+    } catch {
 
       toast.error("Error creating doctor");
     } finally {

@@ -135,7 +135,7 @@ export default function TeamPage() {
         }
 
         setMembers(allMembers);
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to load team members");
       } finally {
@@ -307,7 +307,7 @@ export default function TeamPage() {
           toast.error(error.message || "Failed to create team member");
         }
       }
-    } catch (err) {
+    } catch {
 
       toast.error("Error saving team member");
     } finally {

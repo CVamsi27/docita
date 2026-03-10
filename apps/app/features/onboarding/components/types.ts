@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { clinicTypeSchema } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export const clinicDetailsSchema = z.object({
   name: z.string().min(2, "Clinic name must be at least 2 characters"),
@@ -8,18 +9,6 @@ export const clinicDetailsSchema = z.object({
   address: z.string().min(5, "Address is required"),
   type: clinicTypeSchema,
   website: z.string().url().optional().or(z.literal("")),
-});
-
-export const adminAccountSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Must contain at least one number"),
-  phoneNumber: z.string().min(10, "Phone number is required"),
 });
 
 export const complianceSchema = z.object({
@@ -37,10 +26,12 @@ export const complianceSchema = z.object({
     ),
   enableWhatsApp: z.boolean(),
   requireConsent: z.boolean(),
+  slaSignatureSessionId: z
+    .string()
+    .min(1, "SLA signature upload is required"),
 });
 
 export type ClinicDetails = z.infer<typeof clinicDetailsSchema>;
-export type AdminAccount = z.infer<typeof adminAccountSchema>;
 export type ComplianceSettings = z.infer<typeof complianceSchema>;
 
 export const defaultComplianceValues: ComplianceSettings = {
@@ -49,11 +40,17 @@ export const defaultComplianceValues: ComplianceSettings = {
   acceptedDataProcessing: false,
   enableWhatsApp: false,
   requireConsent: true,
+  slaSignatureSessionId: "",
 };
 
 export interface PaymentDetails {
-  cardNumber: string;
-  autoPay: boolean;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  cardNumber?: string;
+  cardLast4?: string;
+  autoPay?: boolean;
+  skipPayment?: boolean;
   addons: {
     intelligence: boolean;
   };
@@ -70,11 +67,11 @@ export interface PlanSelection {
   billingCycle: "MONTHLY" | "YEARLY";
   price: number;
   currency: string;
+  isCoreTrial?: boolean;
 }
 
 export interface ClinicRegistrationData {
   clinicDetails: Partial<ClinicDetails>;
-  adminAccount: Partial<AdminAccount>;
   compliance: Partial<ComplianceSettings>;
   planSelection: PlanSelection;
   paymentDetails: Partial<PaymentDetails>;
@@ -83,13 +80,12 @@ export interface ClinicRegistrationData {
 
 export const defaultClinicRegistrationData: ClinicRegistrationData = {
   clinicDetails: {},
-  adminAccount: {},
   compliance: {},
   planSelection: {
     tier: "CORE",
     billingCycle: "MONTHLY",
     price: 0,
-    currency: "₹",
+    currency: DEFAULT_CURRENCY,
   },
   paymentDetails: {},
   teamMembers: [],

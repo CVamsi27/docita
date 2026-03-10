@@ -6,6 +6,7 @@ import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
+import { CURRENCY_OPTIONS } from "@workspace/utils";
 
 interface IntelligenceAddonCardProps {
   currency?: string;
@@ -47,7 +48,9 @@ export function IntelligenceAddonCard({
       ? 1999
       : 29; 
 
-  const currencySymbol = currency === "INR" ? "₹" : "$";
+  const currencySymbol =
+    CURRENCY_OPTIONS.find((option) => option.value === currency)?.symbol ??
+    currency;
 
   if (isLoading) {
     return (

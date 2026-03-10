@@ -1,5 +1,6 @@
 import { Receipt } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 import { InvoiceItem } from "@workspace/types";
 
@@ -27,7 +28,12 @@ export function HistoryInvoice({ invoice }: { invoice: InvoiceData }) {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold">₹{invoice.total?.toFixed(2)}</p>
+            <p className="text-lg font-bold">
+              {new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: DEFAULT_CURRENCY,
+              }).format(invoice.total ?? 0)}
+            </p>
             <Badge
               variant={invoice.status === "paid" ? "default" : "secondary"}
             >

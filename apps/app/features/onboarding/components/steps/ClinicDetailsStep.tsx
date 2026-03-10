@@ -1,4 +1,3 @@
-import PhoneInput from "react-phone-number-input";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -124,23 +123,25 @@ export function ClinicDetailsStep({
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <PhoneInput
+            <Input
               id="phone"
-              defaultCountry="IN"
-              international
-              countryCallingCodeEditable={false}
-              value={clinicForm.watch("phone")}
-              onChange={(value) =>
-                clinicForm.setValue("phone", value || "", {
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+91 9876543210"
+              value={clinicForm.watch("phone") ?? ""}
+              onChange={(event) =>
+                clinicForm.setValue("phone", event.target.value, {
                   shouldDirty: true,
                   shouldTouch: true,
                   shouldValidate: true,
                 })
               }
               className={cn(
-                "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background [&>input]:outline-none [&>input]:bg-transparent",
                 clinicForm.formState.errors.phone &&
-                  "border-destructive focus-within:ring-2 focus-within:ring-destructive/30",
+                  "border-destructive focus-visible:ring-destructive/30",
+                clinicForm.formState.errors.phone &&
+                  "focus-visible:ring-2",
               )}
               aria-invalid={!!clinicForm.formState.errors.phone}
               aria-describedby={
@@ -199,7 +200,7 @@ export function ClinicDetailsStep({
       </CardContent>
       <CardFooter>
         <Button className="w-full" form="step1" type="submit">
-          Next: Admin Account
+          Next: Choose Plan
         </Button>
       </CardFooter>
     </Card>

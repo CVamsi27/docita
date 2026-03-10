@@ -88,6 +88,7 @@ interface MemberManagementUIProps {
   isLoading: boolean;
   error: Error | null;
   clinicId?: string;
+  clinicReferralCode?: string | null;
 }
 
 export const MemberManagementUI: FC<MemberManagementUIProps> = ({
@@ -95,6 +96,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   isLoading,
   error,
   clinicId,
+  clinicReferralCode,
 }) => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
@@ -251,6 +253,20 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     }
   };
 
+  const handleCopyClinicCode = async () => {
+    if (!clinicReferralCode) {
+      toast.error("Clinic code is not available");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(clinicReferralCode);
+      toast.success("Clinic code copied");
+    } catch {
+      toast.error("Unable to copy clinic code");
+    }
+  };
+
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
@@ -362,19 +378,41 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   return (
     <Card className="border-none shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>Manage clinic staff and permissions</CardDescription>
         </div>
-        <Button
-          size="sm"
-          onClick={() => setIsInviteOpen(true)}
-          disabled={!canInvite}
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite Member
-        </Button>
+        <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">Clinic code</span>
+            <code className="rounded bg-muted px-2 py-1 text-xs font-semibold tracking-wide">
+              {clinicReferralCode || "Not available"}
+            </code>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyClinicCode}
+              disabled={!clinicReferralCode}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground md:text-right">
+            Share this code so staff can join from the clinic selection page.
+          </p>
+          <Button
+            size="sm"
+            onClick={() => setIsInviteOpen(true)}
+            disabled={!canInvite}
+            className="w-full md:w-auto"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite Member
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {sortedMembers.length === 0 ? (
@@ -441,7 +479,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
             <DialogDescription>
-              Add a doctor or receptionist to your clinic.
+              Add a doctor or receptionist to your clinic team.
             </DialogDescription>
           </DialogHeader>
 
@@ -577,15 +615,20 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 </div>
               )}
 
-              <DialogFooter>
+              <DialogFooter className="flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsInviteOpen(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={!canInvite || isSaving}>
+                <Button
+                  type="submit"
+                  disabled={!canInvite || isSaving}
+                  className="w-full sm:w-auto"
+                >
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Invite Member
                 </Button>
@@ -772,30 +815,34 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedMember(null)}
+              disabled={isManaging}
+              className="w-full sm:w-auto"
+            >
+              Close
+            </Button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+              <Button onClick={handleSaveMember} disabled={isManaging} className="w-full sm:w-auto">
+                {isUpdatingMember && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save Changes
+              </Button>
             <Button
               variant="destructive"
               onClick={handleRemoveMember}
               disabled={isManaging}
+              className="w-full sm:w-auto"
             >
               {isDeletingMember && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Remove
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedMember(null)}
-              disabled={isManaging}
-            >
-              Close
-            </Button>
-            <Button onClick={handleSaveMember} disabled={isManaging}>
-              {isUpdatingMember && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Save Changes
-            </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -846,6 +893,7 @@ export const MemberManagementSettings: FC = () => {
       isLoading={isLoading}
       error={error}
       clinicId={clinic?.id}
+      clinicReferralCode={clinic?.referralCode}
     />
   );
 };

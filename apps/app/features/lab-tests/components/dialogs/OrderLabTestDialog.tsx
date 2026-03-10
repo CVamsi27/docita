@@ -29,6 +29,7 @@ import {
 } from "@workspace/ui/components/command";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import { LabTest, Patient } from "@workspace/types";
@@ -267,7 +268,12 @@ export function OrderLabTestDialog({
                                       <span>{test.name}</span>
                                       <span className="text-xs text-muted-foreground">
                                         {test.category}
-                                        {test.price && ` • ₹${test.price}`}
+                                        {test.price &&
+                                          ` • ${new Intl.NumberFormat("en-IN", {
+                                            style: "currency",
+                                            currency: DEFAULT_CURRENCY,
+                                            maximumFractionDigits: 0,
+                                          }).format(test.price)}`}
                                       </span>
                                     </div>
                                   </div>

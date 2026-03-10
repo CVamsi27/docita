@@ -214,7 +214,7 @@ export function EditClinicDialog({
           const error = await res.json();
           toast.error(error.message || "Failed to update clinic");
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Error updating clinic");
       } finally {

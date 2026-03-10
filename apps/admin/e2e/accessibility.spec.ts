@@ -69,7 +69,7 @@ test.describe("Accessibility Audit - Admin App", () => {
         };
 
         
-      } catch (error) {
+      } catch {
 
       }
     });

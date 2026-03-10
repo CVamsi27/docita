@@ -13,6 +13,7 @@ import { Button } from "@workspace/ui/components/button";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface PaymentSuccessModalProps {
   open: boolean;
@@ -91,7 +92,13 @@ export function PaymentSuccessModal({
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Amount Paid</span>
             <span className="font-semibold text-lg">
-              {amount ? `₹${amount.toLocaleString("en-IN")}` : "Paid"}
+              {amount
+                ? new Intl.NumberFormat("en-IN", {
+                    style: "currency",
+                    currency: DEFAULT_CURRENCY,
+                    maximumFractionDigits: 0,
+                  }).format(amount)
+                : "Paid"}
             </span>
           </div>
           {transactionId && (
@@ -113,7 +120,10 @@ export function PaymentSuccessModal({
         <DialogFooter className="flex-col gap-2 sm:flex-col mt-4">
           <Button
             className="w-full bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/20"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+              router.push("/dashboard");
+            }}
           >
             Continue to Dashboard
           </Button>

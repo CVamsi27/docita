@@ -115,7 +115,7 @@ export default function UsersPage() {
       } else {
         setLoading(false);
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load clinics");
       setLoading(false);
@@ -177,7 +177,7 @@ export default function UsersPage() {
           ];
           setUsers(combinedUsers);
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to load users");
         setUsers([]);

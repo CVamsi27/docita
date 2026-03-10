@@ -112,7 +112,7 @@ export default function AdminsPage() {
           setSelectedClinic(clinicsArray[0].id);
         }
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load clinics");
     }
@@ -136,7 +136,7 @@ export default function AdminsPage() {
           const data = await res.json();
           setAdmins(Array.isArray(data) ? data : []);
         }
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to load admins");
       } finally {
@@ -199,7 +199,7 @@ export default function AdminsPage() {
         const error = await res.json();
         toast.error(error.message || "Failed to create admin");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Error creating admin");
     } finally {
@@ -260,7 +260,7 @@ export default function AdminsPage() {
         const error = await res.json();
         toast.error(error.message || "Failed to update admin");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Error updating admin");
     } finally {
@@ -296,7 +296,7 @@ export default function AdminsPage() {
       } else {
         toast.error("Failed to delete admin");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Error deleting admin");
     }

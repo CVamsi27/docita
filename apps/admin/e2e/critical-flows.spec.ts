@@ -71,8 +71,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (dashboardRes.ok()) {
-      const dashboard = toRecord(await dashboardRes.json());
-      
+      toRecord(await dashboardRes.json());
     } else {
 
     }
@@ -82,8 +81,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (systemRes.ok()) {
-      const system = toRecord(await systemRes.json());
-      
+      toRecord(await systemRes.json());
     }
 
   });
@@ -97,7 +95,6 @@ test.describe("Admin App - Critical Flows", () => {
     expect(usersRes.ok()).toBeTruthy();
     const users = (await usersRes.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(users)).toBeTruthy();
-    const initialUserCount = users.length;
 
     const newUserEmail = `managed-user-${Date.now()}@test.com`;
     const createUserRes = await request.post(`${API_URL}/admin/users`, {
@@ -183,11 +180,7 @@ test.describe("Admin App - Critical Flows", () => {
       );
 
       if (clinicDetailsRes.ok()) {
-        const clinicDetails = (await clinicDetailsRes.json()) as Record<
-          string,
-          unknown
-        >;
-        
+        await clinicDetailsRes.json();
       }
     }
 
@@ -227,8 +220,7 @@ test.describe("Admin App - Critical Flows", () => {
       );
 
       if (statsRes.ok()) {
-        const stats = toRecord(await statsRes.json());
-        
+        toRecord(await statsRes.json());
       }
     } else {
       
@@ -243,8 +235,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (statsRes.ok()) {
-      const stats = toRecord(await statsRes.json());
-      
+      toRecord(await statsRes.json());
     } else {
 
     }
@@ -302,8 +293,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (healthRes.ok()) {
-      const health = toRecord(await healthRes.json());
-      
+      toRecord(await healthRes.json());
     }
 
     const dbStatusRes = await request.get(`${API_URL}/admin/system/database`, {
@@ -338,8 +328,7 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     if (logsRes.ok()) {
-      const logs = toRecord(await logsRes.json());
-      
+      toRecord(await logsRes.json());
     }
 
   });

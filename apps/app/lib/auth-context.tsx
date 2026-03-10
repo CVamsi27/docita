@@ -24,12 +24,16 @@ import {
   type UserRole,
 } from "@workspace/types";
 
+const AUTH_RESPONSE_ERROR_MESSAGE =
+  "We could not process the sign-in response. Please try again.";
+const CLINIC_SELECTION_ROUTE = "/clinic-selection";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
-  clinicId?: string;
+  clinicId?: string | null;
 }
 
 interface AuthContextType {
@@ -44,11 +48,17 @@ interface AuthContextType {
     password: string,
     firstName: string,
     lastName: string,
+    role?: "ADMIN" | "ADMIN_DOCTOR",
     clinicName?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
   logout: () => void;
   token: string | null;
+}
+
+interface AuthPayload {
+  access_token?: string;
+  user: User;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,6 +82,45 @@ function getStoredUser(): User | null {
   } catch {
     localStorage.removeItem("docita_user");
   }
+  return null;
+}
+
+function extractAuthPayload(raw: unknown): AuthPayload | null {
+  const directLogin = loginResponseSchema.safeParse(raw);
+  if (directLogin.success) {
+    return {
+      access_token: directLogin.data.access_token,
+      user: directLogin.data.user,
+    };
+  }
+
+  const directRegister = registerResponseSchema.safeParse(raw);
+  if (directRegister.success) {
+    return {
+      access_token: directRegister.data.access_token,
+      user: directRegister.data.user,
+    };
+  }
+
+  if (raw && typeof raw === "object" && "data" in raw) {
+    const nested = (raw as { data?: unknown }).data;
+    const nestedLogin = loginResponseSchema.safeParse(nested);
+    if (nestedLogin.success) {
+      return {
+        access_token: nestedLogin.data.access_token,
+        user: nestedLogin.data.user,
+      };
+    }
+
+    const nestedRegister = registerResponseSchema.safeParse(nested);
+    if (nestedRegister.success) {
+      return {
+        access_token: nestedRegister.data.access_token,
+        user: nestedRegister.data.user,
+      };
+    }
+  }
+
   return null;
 }
 
@@ -131,11 +180,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw await parseApiErrorResponse(response, "Login failed");
       }
 
-      const data = loginResponseSchema.parse(await response.json());
-      const { access_token, user: userData } = data;
+      const authPayload = extractAuthPayload(await response.json());
+      const accessToken = authPayload?.access_token ?? null;
+      let userData = authPayload?.user ?? null;
 
       if (!userData) {
-        throw new Error("Invalid login response: user data missing");
+        const validateResponse = await fetch(`${API_URL}/auth/validate`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+          },
+        });
+
+        if (validateResponse.ok) {
+          const validateData = (await validateResponse.json()) as {
+            user?: User;
+          };
+          userData = validateData.user ?? null;
+        }
+      }
+
+      if (!userData) {
+        throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
       }
 
       if (userData.role === "SUPER_ADMIN") {
@@ -144,16 +212,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      if (!userData.clinicId) {
-        throw new Error(
-          "Your account is not associated with any clinic. Please contact support.",
-        );
-      }
-
-      setToken(access_token);
+      setToken(accessToken);
       setUser(userData);
       setUserRole(userData.role);
       localStorage.setItem("docita_user", JSON.stringify(userData));
+
+      if (!userData.clinicId) {
+        router.push(CLINIC_SELECTION_ROUTE);
+        return;
+      }
 
       const redirectUrl =
         sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
@@ -199,6 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     firstName: string,
     lastName: string,
+    role: "ADMIN" | "ADMIN_DOCTOR" = "ADMIN",
     clinicName?: string,
   ) => {
     try {
@@ -207,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         firstName,
         lastName,
+        role,
         clinicName,
       });
       const csrfToken = getCsrfToken();
@@ -224,19 +293,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw await parseApiErrorResponse(response, "Registration failed");
       }
 
-      const data = registerResponseSchema.parse(await response.json());
-      const { access_token, user: userData } = data;
+      const authPayload = extractAuthPayload(await response.json());
+      const accessToken = authPayload?.access_token ?? null;
+      let userData = authPayload?.user ?? null;
 
       if (!userData) {
-        throw new Error("Invalid registration response: user data missing");
+        const validateResponse = await fetch(`${API_URL}/auth/validate`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+          },
+        });
+
+        if (validateResponse.ok) {
+          const validateData = (await validateResponse.json()) as {
+            user?: User;
+          };
+          userData = validateData.user ?? null;
+        }
       }
 
-      setToken(access_token);
+      if (!userData) {
+        throw new Error(
+          "We could not process the registration response. Please try again.",
+        );
+      }
+
+      setToken(accessToken);
       setUser(userData);
       setUserRole(userData.role);
       localStorage.setItem("docita_user", JSON.stringify(userData));
 
-      router.push("/dashboard");
+      const postRegisterRedirect = userData.clinicId
+        ? "/dashboard"
+        : CLINIC_SELECTION_ROUTE;
+
+      router.push(postRegisterRedirect);
     } catch (error) {
 
       throw error;

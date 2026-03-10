@@ -17,6 +17,11 @@ type AppointmentWithPortalRelations = AppointmentWithRelations & {
   id: string;
   startTime: string;
   status?: string;
+  clinicName?: string;
+  clinic?: {
+    id?: string;
+    name?: string | null;
+  } | null;
   prescription?: {
     id: string;
     createdAt?: string;
@@ -105,8 +110,8 @@ export function usePatientPortalData(patientId?: string | null) {
       .slice(0, 10)
       .map((item) => ({
         id: item.id,
-        doctorName: item.doctor?.name || "Assigned Doctor",
-        clinicName: "Your Clinic",
+        doctorName: item.doctor?.name ?? "",
+        clinicName: item.clinicName ?? item.clinic?.name ?? "",
         scheduledAt: item.startTime,
         status: mapAppointmentStatus(item.status),
       }));
@@ -124,7 +129,7 @@ export function usePatientPortalData(patientId?: string | null) {
         return {
           id: item.prescription?.id || item.id,
           title: medicationName,
-          prescribedBy: item.doctor?.name || "Assigned Doctor",
+          prescribedBy: item.doctor?.name ?? "",
           issuedAt: item.prescription?.createdAt || item.startTime,
           status: prescriptionStatus,
         };

@@ -88,7 +88,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       await updateInvoice.mutateAsync(data);
       toast.success("Invoice updated successfully");
       router.push(`/invoices/${invoiceId}`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update invoice");
 
     } finally {

@@ -10,6 +10,8 @@ import { useCreateContactInquiry } from "@/hooks/api/use-contact";
 interface ContactSalesModalContainerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  source?: string;
+  defaultValues?: Partial<ContactSalesFormData>;
 }
 const initialFormData: ContactSalesFormData = {
   name: "",
@@ -20,6 +22,8 @@ const initialFormData: ContactSalesFormData = {
 export function ContactSalesModalContainer({
   open,
   onOpenChange,
+  source,
+  defaultValues,
 }: ContactSalesModalContainerProps) {
   const { mutate: createInquiry, isPending: isSubmitting } =
     useCreateContactInquiry();
@@ -28,7 +32,14 @@ export function ContactSalesModalContainer({
 
   const handleSubmit = (data: ContactSalesFormData) => {
     setError(null);
-    createInquiry(data, {
+    const normalizedMessage = data.message.trim();
+    const sourceSuffix = source ? `\n\n[lead_source:${source}]` : "";
+    const payload = {
+      ...data,
+      message: `${normalizedMessage}${sourceSuffix}`,
+    };
+
+    createInquiry(payload, {
       onSuccess: () => {
         setSubmitted(true);
         toast.success("Thank you! Our sales team will contact you soon.");
@@ -50,7 +61,10 @@ export function ContactSalesModalContainer({
   return (
     <ContactSalesModalUI
       open={open}
-      defaultValues={initialFormData}
+      defaultValues={{
+        ...initialFormData,
+        ...defaultValues,
+      }}
       isSubmitting={isSubmitting}
       submitted={submitted}
       error={error}

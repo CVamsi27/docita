@@ -46,6 +46,7 @@ import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface Clinic {
   id: string;
@@ -86,6 +87,13 @@ export default function PaymentProcessingPage() {
   const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
   const [tierPricing, setTierPricing] = useState<TierPricing[]>([]);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: DEFAULT_CURRENCY,
+      maximumFractionDigits: 0,
+    }).format(amount);
   const [processingPayment, setProcessingPayment] = useState(false);
   const { token, isSuperAdmin } = useAuth();
   const form = useForm<PaymentFormData>();
@@ -113,7 +121,7 @@ export default function PaymentProcessingPage() {
 
         toast.error("Failed to load clinics");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load clinics");
     } finally {
@@ -182,7 +190,7 @@ export default function PaymentProcessingPage() {
 
         setTierPricing(defaultTiers);
       }
-    } catch (error) {
+    } catch {
 
       setTierPricing(defaultTiers);
     }
@@ -218,7 +226,7 @@ export default function PaymentProcessingPage() {
           amount: data.pricing.toString(),
         });
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to load tier information");
     }
@@ -240,7 +248,7 @@ export default function PaymentProcessingPage() {
           body: JSON.stringify({
             paymentId: `PAY_${Date.now()}`,
             amount: parseFloat(data.amount),
-            currency: "INR",
+            currency: DEFAULT_CURRENCY,
             newTier: data.newTier,
             paymentMethod: data.paymentMethod,
             notes: data.paymentNotes,
@@ -257,7 +265,7 @@ export default function PaymentProcessingPage() {
         const error = await res.json();
         toast.error(error.message || "Failed to process payment");
       }
-    } catch (error) {
+    } catch {
 
       toast.error("Failed to process payment");
     } finally {
@@ -314,10 +322,7 @@ export default function PaymentProcessingPage() {
                   <CardContent>
                     <div className="space-y-2">
                       <p className="text-2xl font-bold">
-                        ₹
-                        {tier.price === 0
-                          ? "Free"
-                          : tier.price.toLocaleString()}
+                        {tier.price === 0 ? "Free" : formatCurrency(tier.price)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {tier.billingCycle}
@@ -444,7 +449,7 @@ export default function PaymentProcessingPage() {
                     Current Price
                   </p>
                   <p className="text-lg font-semibold">
-                    ₹{tierInfo.pricing.toLocaleString()}
+                    {formatCurrency(tierInfo.pricing)}
                   </p>
                 </div>
               </div>
@@ -475,7 +480,7 @@ export default function PaymentProcessingPage() {
                       <SelectContent>
                         {tierPricing.map((tier) => (
                           <SelectItem key={tier.tier} value={tier.tier}>
-                            {tier.tier} - ₹{tier.price.toLocaleString()}/
+                            {tier.tier} - {formatCurrency(tier.price)}/
                             {tier.billingCycle}
                           </SelectItem>
                         ))}
@@ -494,7 +499,7 @@ export default function PaymentProcessingPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount (INR)</FormLabel>
+                    <FormLabel>Amount ({DEFAULT_CURRENCY})</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

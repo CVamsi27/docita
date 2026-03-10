@@ -18,6 +18,23 @@ function extractErrorCode(value: unknown): AppErrorCode | undefined {
   return typeof code === "string" ? (code as AppErrorCode) : undefined;
 }
 
+function shouldSuppressDevToast(message: string): boolean {
+  if (process.env.NODE_ENV !== "development") {
+    return false;
+  }
+
+  const lowered = message.toLowerCase();
+  return (
+    lowered.includes("fast refresh") ||
+    lowered.includes("next dev") ||
+    lowered.includes("pnpm") ||
+    lowered.includes("cache bypass, force executing") ||
+    lowered.includes("prisma:error") ||
+    lowered.includes("invalid `this.prisma") ||
+    message.includes("\n")
+  );
+}
+
 const client = getAPIClient({
   baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
   getToken: () => {
@@ -33,7 +50,9 @@ const client = getAPIClient({
       error.message ||
       "An unexpected error occurred";
 
-    toast.error(message);
+    if (!shouldSuppressDevToast(message)) {
+      toast.error(message);
+    }
 
     if (error.status === 401) {
 

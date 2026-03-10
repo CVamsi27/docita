@@ -18,6 +18,7 @@ import {
 import { FlaskConical } from "lucide-react";
 
 import { LabTest } from "@workspace/types";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface LabTestsCatalogProps {
   testCatalog: LabTest[];
@@ -66,7 +67,13 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
                       {test.category}
                     </TableCell>
                     <TableCell className="py-3 px-4">
-                      {test.price ? `₹${test.price}` : "-"}
+                      {test.price
+                        ? new Intl.NumberFormat("en-IN", {
+                            style: "currency",
+                            currency: DEFAULT_CURRENCY,
+                            maximumFractionDigits: 0,
+                          }).format(test.price)
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}

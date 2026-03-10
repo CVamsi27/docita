@@ -150,7 +150,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
         },
         {
           label: "Contact Support",
-          action: () => (window.location.href = "mailto:support@docita.com"),
+              action: () => (window.location.href = "mailto:support@docita.work"),
           variant: "outline",
           icon: <Mail className="h-4 w-4" />,
         },

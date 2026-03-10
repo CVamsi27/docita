@@ -11,17 +11,25 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { FileText } from "lucide-react";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
+
+const formatPrice = (amount: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: DEFAULT_CURRENCY,
+    maximumFractionDigits: 0,
+  }).format(amount);
 
 export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
   const plans = [
     {
       name: "Basic",
-      price: "₹999/mo",
+      price: `${formatPrice(999)}/mo`,
       features: ["Up to 100 patients", "Basic reports", "Email support"],
     },
     {
       name: "Pro",
-      price: "₹2,499/mo",
+      price: `${formatPrice(2499)}/mo`,
       features: [
         "Unlimited patients",
         "Advanced analytics",
@@ -54,7 +62,7 @@ export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
             <div>
               <p className="font-bold text-lg">Pro Plan</p>
               <p className="text-sm text-muted-foreground">
-                ₹2,499/month • Billed monthly
+                {formatPrice(2499)}/month • Billed monthly
               </p>
             </div>
             <Badge className="bg-primary">Active</Badge>

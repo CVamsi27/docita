@@ -79,7 +79,7 @@ export function EditInvoiceDialogContainer({
         toast.success("Invoice updated successfully");
         onInvoiceUpdated();
         setTimeout(() => onOpenChange(false), 100);
-      } catch (error) {
+      } catch {
 
         toast.error("Failed to update invoice");
       } finally {

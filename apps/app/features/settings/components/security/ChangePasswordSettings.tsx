@@ -49,7 +49,7 @@ export function ChangePasswordSettings() {
       });
       toast.success("Password updated successfully");
       form.reset();
-    } catch (error) {
+    } catch {
 
     }
   };

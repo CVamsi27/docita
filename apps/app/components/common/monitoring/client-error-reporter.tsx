@@ -28,6 +28,24 @@ export function ClientErrorReporter() {
     const reportedKeys = new Map<string, number>();
     const shouldReport = true;
     const shouldPrintToConsole = false;
+    const showConsoleToasts =
+      process.env.NODE_ENV !== "production" &&
+      process.env.NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS === "true";
+
+    const isInternalRuntimeMessage = (message: string): boolean => {
+      const normalized = message.toLowerCase();
+      return (
+        normalized.includes("fast refresh") ||
+        normalized.includes("rebuild") ||
+        normalized.includes("[hmr]") ||
+        normalized.includes("next.js") ||
+        normalized.includes("turbopack") ||
+        normalized.includes("react-query") ||
+        normalized.includes("cache bypass, force executing") ||
+        normalized.includes("pnpm") ||
+        normalized.includes("next dev")
+      );
+    };
 
     const dedupe = (key: string): boolean => {
       const now = Date.now();
@@ -105,12 +123,7 @@ export function ClientErrorReporter() {
 
       const message = getConsoleMessage(args);
 
-      // Avoid showing toasts for internal logs or repeating logs
-      if (
-        !message.includes("react-query") &&
-        !message.includes("Next.js") &&
-        !message.includes("[HMR]")
-      ) {
+      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
         toast(message);
       }
 
@@ -128,11 +141,7 @@ export function ClientErrorReporter() {
 
       const message = getConsoleMessage(args);
 
-      if (
-        !message.includes("react-query") &&
-        !message.includes("Next.js") &&
-        !message.includes("[HMR]")
-      ) {
+      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
         toast.warning(message);
       }
 
@@ -152,11 +161,7 @@ export function ClientErrorReporter() {
 
       const message = getConsoleMessage(args);
 
-      if (
-        !message.includes("react-query") &&
-        !message.includes("Next.js") &&
-        !message.includes("[HMR]")
-      ) {
+      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
         toast.error(message);
       }
 

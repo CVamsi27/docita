@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
@@ -21,6 +22,7 @@ import { Download, FileText, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@workspace/ui/lib/utils";
+import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 interface InvoiceHistoryDialogProps {
   open: boolean;
@@ -76,13 +78,14 @@ export function InvoiceHistoryDialog({
 
         <div className="flex-1 overflow-auto min-h-[300px]">
           {isLoading ? (
-            <div className="flex h-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="text-sm">Loading billing history...</p>
             </div>
           ) : !invoices || invoices.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground gap-2">
               <FileText className="h-12 w-12 opacity-20" />
-              <p>No invoices found</p>
+              <p>No billing records found yet.</p>
             </div>
           ) : (
             <Table>
@@ -107,7 +110,7 @@ export function InvoiceHistoryDialog({
                     <TableCell>
                       {new Intl.NumberFormat("en-IN", {
                         style: "currency",
-                        currency: invoice.currency || "INR",
+                        currency: invoice.currency || DEFAULT_CURRENCY,
                       }).format(invoice.amountCents / 100)}
                     </TableCell>
                     <TableCell>
@@ -143,6 +146,12 @@ export function InvoiceHistoryDialog({
             </Table>
           )}
         </div>
+
+        <DialogFooter className="border-t pt-3">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

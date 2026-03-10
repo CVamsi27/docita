@@ -102,7 +102,7 @@ test.describe("Invoices", () => {
       if (!invoiceEndpointAvailable) {
         
       }
-    } catch (error) {
+    } catch {
 
       invoiceEndpointAvailable = false;
     }

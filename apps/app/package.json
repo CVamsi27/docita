@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
     "build:analyze": "ANALYZE=true next build",
+    "preview:cloudflare": "opennextjs-cloudflare preview",
+    "deploy:cloudflare": "opennextjs-cloudflare deploy",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
@@ -55,6 +58,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
+    "@opennextjs/cloudflare": "^1.17.1",
     "@playwright/test": "^1.48.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -73,6 +77,7 @@
     "jsdom": "^27.4.0",
     "require-in-the-middle": "^8.0.1",
     "typescript": "^5.9.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "wrangler": "^4.71.0"
   }
 }

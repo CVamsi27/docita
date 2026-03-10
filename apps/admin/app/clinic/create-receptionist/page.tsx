@@ -81,7 +81,7 @@ export default function CreateReceptionistPage() {
         const error = await res.json();
         toast.error(error.message || "Failed to create receptionist");
       }
-    } catch (err) {
+    } catch {
 
       toast.error("Error creating receptionist");
     } finally {

@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
-import { Calendar, FileText, LogOut, Receipt, Shield, User } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  FileText,
+  LogOut,
+  Receipt,
+  Shield,
+  User,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { useAuth } from "@workspace/auth";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
@@ -12,6 +20,7 @@ const navigation = [
   { name: "Dashboard", href: "/portal", icon: User },
   { name: "Appointments", href: "/portal/appointments", icon: Calendar },
   { name: "Prescriptions", href: "/portal/prescriptions", icon: FileText },
+  { name: "Medical History", href: "/portal/history", icon: Activity },
   { name: "Billing", href: "/portal/billing", icon: Receipt },
   { name: "Consent", href: "/portal/profile/consent-form", icon: Shield },
   { name: "Profile", href: "/portal/profile", icon: User },
