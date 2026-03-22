@@ -1,3 +1,0 @@
-module.exports=[683311,a=>{"use strict";var b=a.i(138426),c=a.i(671844),d=a.i(53398);function e(){let{data:a,isLoading:e}=(0,c.usePatientPortalPrescriptions)();return(0,b.jsxs)("div",{children:[(0,b.jsx)("h1",{className:"mb-6 text-3xl font-bold",children:"My Prescriptions"}),e?(0,b.jsx)("div",{children:"Loading..."}):(0,b.jsx)(d.Card,{children:(0,b.jsx)(d.CardContent,{className:"p-6",children:(0,b.jsxs)("p",{className:"text-muted-foreground",children:[a?.prescriptions.length||0," prescriptions found"]})})})]})}a.s(["default",()=>e])}];
-
-//# sourceMappingURL=apps_app_app_portal_prescriptions_page_tsx_32f8291c._.js.map
