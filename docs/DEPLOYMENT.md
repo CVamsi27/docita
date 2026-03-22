@@ -497,7 +497,7 @@ Recommended workflow for API-only deployment:
 
 ### GitHub Actions Deployment Workflow
 
-The workflow is located at `.github/workflows/deploy-api.yml` and includes:
+The API deploys via Railway using Docker. The CI workflow at `.github/workflows/ci.yml` includes:
 
 1. **Test Job**: Runs E2E tests (can be skipped for emergencies)
 2. **Build Job**: Builds Docker image and pushes to AWS ECR
@@ -528,7 +528,7 @@ on:
       - 'packages/types/**'
       - 'packages/db/**'
       - 'apps/api/Dockerfile'
-      - '.github/workflows/deploy-api.yml'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
     inputs:
       skip_tests:
@@ -1077,7 +1077,7 @@ unexpected status from HEAD request to https://<account-id>.dkr.ecr.us-west-1.am
 
 2. **Wrong AWS Region**
    - Workflow pushes to `us-west-1` but credentials configured for different region
-   - Check `AWS_REGION` in `.github/workflows/deploy-api.yml` (should be `us-west-1`)
+   - Check AWS_REGION environment variable in Railway deployment settings (should be `us-west-1`)
    - Ensure ECR repository is created in same region
 
 3. **Insufficient IAM Permissions**
@@ -1148,7 +1148,7 @@ aws ecr create-repository \
   --repository-name docita-api \
   --region us-west-1
 
-# Note: If you need a different region, update AWS_REGION in .github/workflows/deploy-api.yml
+# Note: If you need a different region, update AWS_REGION in Railway deployment settings
 ```
 
 **Common Issues:**
@@ -1384,7 +1384,7 @@ If you add a new domain, update this list and redeploy the API.
 
 ### 2. Deployment Workflow
 
-A dedicated workflow file exists at `.github/workflows/deploy-app-runner.yml`.
+App Runner deployment was a previous deployment target and has been replaced by Railway.
 
 - **Status**: Disabled (Manual Trigger Only)
 - **To Enable**:
