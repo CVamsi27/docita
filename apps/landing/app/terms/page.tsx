@@ -41,10 +41,12 @@ export default function TermsOfServicePage() {
                 1. Acceptance of Terms
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using Docita&apos;s clinic management software
-                and related services (the &quot;Service&quot;), you agree to be
-                bound by these Terms of Service (&quot;Terms&quot;). If you do
-                not agree to these Terms, you may not use the Service.
+                This service is provided by{" "}
+                <strong>CHANDALURI VAMSI KRISHNA</strong> under the brand name
+                Docita. By accessing or using Docita&apos;s clinic management
+                software and related services (the &quot;Service&quot;), you
+                agree to be bound by these Terms of Service (&quot;Terms&quot;).
+                If you do not agree to these Terms, you may not use the Service.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-4">
                 These Terms apply to all users of the Service, including
@@ -153,9 +155,10 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-medium mt-6 mb-3">4.3 Free Trial</h3>
               <p className="text-muted-foreground leading-relaxed">
-                We may offer free trials for certain subscription plans. At the
-                end of the trial period, you will be automatically charged
-                unless you cancel before the trial ends.
+                New paid subscriptions include a 14-day free trial period. No
+                credit card is required to start your trial. At the end of the
+                trial period, you will be automatically charged unless you
+                cancel before the trial ends.
               </p>
             </section>
 
@@ -406,7 +409,7 @@ export default function TermsOfServicePage() {
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium">Docita</p>
                 <p className="text-muted-foreground">
-                  Email: legal@docita.work
+                  Email: admin@docita.work
                 </p>
                 <p className="text-muted-foreground">
                   Support: support@docita.work
@@ -438,14 +441,14 @@ export default function TermsOfServicePage() {
                 Terms of Service
               </Link>
               <Link
-                href="/#contact"
+                href="/contact"
                 className="hover:text-foreground transition-colors"
               >
                 Contact
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 Docita. All rights reserved.
+              © {new Date().getFullYear()} Docita. All rights reserved.
             </p>
           </div>
         </div>

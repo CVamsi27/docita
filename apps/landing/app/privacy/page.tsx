@@ -40,10 +40,11 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Docita (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is
-                committed to protecting your privacy. This Privacy Policy
-                explains how we collect, use, disclose, and safeguard your
-                information when you use our clinic management software and
-                related services (the &quot;Service&quot;).
+                committed to protecting your privacy. This service is provided
+                by <strong>CHANDALURI VAMSI KRISHNA</strong> under the brand
+                name Docita. This Privacy Policy explains how we collect, use,
+                disclose, and safeguard your information when you use our clinic
+                management software and related services (the &quot;Service&quot;).
               </p>
               <p className="text-muted-foreground leading-relaxed mt-4">
                 Please read this privacy policy carefully. By using our Service,
@@ -219,7 +220,7 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p className="text-muted-foreground leading-relaxed mt-4">
                 To exercise these rights, please contact us at
-                privacy@docita.work.
+                admin@docita.work.
               </p>
             </section>
 
@@ -302,15 +303,9 @@ export default function PrivacyPolicyPage() {
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium">Docita Data Protection Team</p>
                 <p className="text-muted-foreground mt-2">
-                  <strong>Data Protection Officer (DPO)</strong>
+                  <strong>Data Protection Officer (DPO) &amp; Privacy Inquiries</strong>
                 </p>
-                <p className="text-muted-foreground">Email: dpo@docita.work</p>
-                <p className="text-muted-foreground mt-2">
-                  <strong>General Privacy Inquiries</strong>
-                </p>
-                <p className="text-muted-foreground">
-                  Email: privacy@docita.work
-                </p>
+                <p className="text-muted-foreground">Email: admin@docita.work</p>
                 <p className="text-muted-foreground">
                   Address: Docita HQ, Hyderabad, India
                 </p>
@@ -341,7 +336,7 @@ export default function PrivacyPolicyPage() {
                 Terms of Service
               </Link>
               <Link
-                href="/#contact"
+                href="/contact"
                 className="hover:text-foreground transition-colors"
               >
                 Contact

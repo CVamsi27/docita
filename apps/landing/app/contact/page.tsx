@@ -21,6 +21,7 @@ import {
   MessageSquare,
   HelpCircle,
   Building2,
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -123,6 +124,15 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
+                    <p className="text-sm text-muted-foreground">CEO, Founder</p>
+                    <a
+                      href="mailto:vkc@docita.work"
+                      className="text-primary hover:underline"
+                    >
+                      vkc@docita.work
+                    </a>
+                  </div>
+                  <div>
                     <p className="text-sm text-muted-foreground">Government, paperwork</p>
                     <a
                       href="mailto:admin@docita.work"
@@ -133,24 +143,13 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Stripe, Razorpay, AWS, Kuberns invoices & receipts
+                      Stripe, Razorpay, AWS, Kuberns invoices &amp; receipts
                     </p>
                     <a
                       href="mailto:billing@docita.work"
                       className="text-primary hover:underline"
                     >
                       billing@docita.work
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Automated transactional emails (order confirmations, password resets, etc.)
-                    </p>
-                    <a
-                      href="mailto:notifications@docita.work"
-                      className="text-primary hover:underline"
-                    >
-                      notifications@docita.work
                     </a>
                   </div>
                   <div>
@@ -221,6 +220,23 @@ export default function ContactPage() {
                     <Building2 className="h-4 w-4" />
                     Government & Paperwork
                   </a>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Our Address
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">CHANDALURI VAMSI KRISHNA</p>
+                  <p>Sole Proprietor, Docita</p>
+                  <p>GSTIN: 36CJPPC6222C1ZI</p>
+                  <p>Aparna Cyberscape, Nalagandla</p>
+                  <p>Hyderabad, Telangana 500019</p>
+                  <p>India</p>
                 </CardContent>
               </Card>
             </div>
