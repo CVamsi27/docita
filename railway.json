@@ -5,6 +5,7 @@
     "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @workspace/db build && pnpm --filter @workspace/types build && pnpm --filter @docita/api build"
   },
   "deploy": {
+    "region": "asia-southeast1",
     "startCommand": "pnpm --filter @docita/api start:prod",
     "healthcheckPath": "/api/v1/health/live",
     "healthcheckTimeout": 300,
