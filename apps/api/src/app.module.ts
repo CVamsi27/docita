@@ -11,6 +11,7 @@ import { AppointmentsModule } from './domains/appointments/appointments.module';
 import { AuthModule } from './shared/modules/auth/auth/auth.module';
 import { PrescriptionsModule } from './domains/prescriptions/prescriptions.module';
 import { BillingModule } from './domains/billing/billing.module';
+import { PaymentsModule } from './domains/payments/payments.module';
 import { ImportsModule } from './shared/modules/imports/imports.module';
 import { ConfigModule } from '@nestjs/config';
 
@@ -52,6 +53,7 @@ import { RequestIdInterceptor } from './common/interceptors/request-id.intercept
 import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
+import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscription-status.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
@@ -60,6 +62,11 @@ import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
 import { MockBullModule } from './common/mocks/mock-bull.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
+import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
+import { PublicModule } from './shared/modules/public/public.module';
+import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
+import { InventoryModule } from './domains/inventory/inventory.module';
+import { LeaveModule } from './domains/leave/leave.module';
 
 const BullModule = MockBullModule;
 
@@ -103,17 +110,17 @@ const BullModule = MockBullModule;
           {
             name: 'short',
             ttl: 1000,
-            limit: 10,
+            limit: config.isProduction() ? 10 : 100,
           },
           {
             name: 'medium',
             ttl: 60000,
-            limit: 100,
+            limit: config.isProduction() ? 100 : 1000,
           },
           {
             name: 'long',
             ttl: 3600000,
-            limit: 1000,
+            limit: config.isProduction() ? 1000 : 10000,
           },
         ],
         skipIf: () => config.getEnvironment() === 'test',
@@ -146,11 +153,11 @@ const BullModule = MockBullModule;
     DoctorsModule,
     WhatsAppModule,
     SuperAdminModule,
+    PaymentsModule,
     SubscriptionsModule,
     BillingModule,
     PrescriptionTemplatesModule,
     ClinicalModule,
-    AppConfigModule,
     FeedbackModule,
     FhirModule,
     UsersModule,
@@ -160,6 +167,11 @@ const BullModule = MockBullModule;
     PerformanceModule,
     ComplianceModule,
     GatewaysModule,
+    PatientPortalModule,
+    PublicModule,
+    MedicalDocumentsModule,
+    InventoryModule,
+    LeaveModule,
   ],
   controllers: [AppController],
   providers: [
@@ -176,6 +188,10 @@ const BullModule = MockBullModule;
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: SubscriptionStatusGuard,
     },
 
     {
@@ -221,11 +237,6 @@ const BullModule = MockBullModule;
     {
       provide: APP_INTERCEPTOR,
       useClass: BreakTheGlassInterceptor,
-    },
-
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: RateLimitInterceptor,
     },
   ],
   exports: [GatewaysModule],

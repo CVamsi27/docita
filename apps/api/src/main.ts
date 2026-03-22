@@ -111,6 +111,43 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   ]);
 }
 
+async function waitForDatabase(
+  prisma: PrismaService,
+  logger: Logger,
+): Promise<void> {
+  const MAX_ATTEMPTS = 8;
+  const BASE_DELAY_MS = 500;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      await withTimeout(prisma.$queryRaw`SELECT 1`, 5000);
+      if (!ACCESS_AND_ERRORS_ONLY) {
+        logger.log(
+          attempt === 1
+            ? 'Dependency check: database connected'
+            : `Dependency check: database connected (attempt ${attempt})`,
+        );
+      }
+      return;
+    } catch (error) {
+      if (attempt === MAX_ATTEMPTS) {
+        logger.error(
+          `Dependency check: database unavailable after ${MAX_ATTEMPTS} attempts (${error instanceof Error ? error.message : String(error)})`,
+        );
+        return;
+      }
+
+      // Exponential backoff capped at 8s — keeps sending connections which
+      // is exactly what wakes a Neon free-plan compute from cold start.
+      const delay = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), 8_000);
+      logger.warn(
+        `Dependency check: database not ready (attempt ${attempt}/${MAX_ATTEMPTS}), retrying in ${delay}ms...`,
+      );
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
+
 async function logExternalDependencyStatus(
   logger: Logger,
   appConfigService: AppConfigService,
@@ -120,16 +157,7 @@ async function logExternalDependencyStatus(
     logger.log('Running external dependency checks...');
   }
 
-  try {
-    await withTimeout(prisma.$queryRaw`SELECT 1`, 5000);
-    if (!ACCESS_AND_ERRORS_ONLY) {
-      logger.log('Dependency check: database connected');
-    }
-  } catch (error) {
-    logger.error(
-      `Dependency check: database unavailable (${error instanceof Error ? error.message : String(error)})`,
-    );
-  }
+  await waitForDatabase(prisma, logger);
 
   const redisConfig = appConfigService.getRedisConfig();
   const cacheProvider = appConfigService.getCacheProvider();
@@ -162,6 +190,8 @@ async function logExternalDependencyStatus(
           },
     );
 
+    redisClient.on('error', () => undefined);
+
     try {
       await withTimeout(redisClient.connect(), 4000);
       await withTimeout(redisClient.ping(), 4000);
@@ -179,7 +209,7 @@ async function logExternalDependencyStatus(
         );
       }
     } finally {
-      await redisClient.quit().catch(() => undefined);
+      redisClient.disconnect();
     }
   }
 }
@@ -242,7 +272,10 @@ async function bootstrap() {
       await import('./shared/modules/services/startup-validation.service');
     const startupValidator = app.get(StartupValidationService);
     startupValidator.validate();
-  } catch (_error) {
+  } catch (error) {
+    logger.error(
+      `Startup validation failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 
@@ -251,15 +284,17 @@ async function bootstrap() {
 
   const apiUrl = appConfigService.getApiUrl();
 
+  const swaggerCdnSrc = isDevelopment() ? ['https://cdn.jsdelivr.net'] : [];
+
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
+          styleSrc: ["'self'", "'unsafe-inline'", ...swaggerCdnSrc],
           imgSrc: ["'self'", 'data:', 'https:'],
-          fontSrc: ["'self'", 'data:'],
+          fontSrc: ["'self'", 'data:', ...swaggerCdnSrc],
           connectSrc: ["'self'", apiUrl],
           frameSrc: ["'none'"],
           objectSrc: ["'none'"],
@@ -399,6 +434,9 @@ async function bootstrap() {
   });
 }
 bootstrap().catch((error: Error) => {
+  process.stderr.write(
+    `Fatal bootstrap error: ${error?.message ?? String(error)}\n${error?.stack ?? ''}\n`,
+  );
   Sentry.captureException(error);
   process.exit(1);
 });

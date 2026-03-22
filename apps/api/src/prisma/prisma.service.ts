@@ -43,7 +43,7 @@ export class PrismaService
         ) {
           url.searchParams.set('sslmode', 'verify-full');
           if (!url.port) {
-            url.port = '5432';
+            url.port = '5434';
           }
           connectionString = url.toString();
         }
