@@ -50,7 +50,7 @@ export function validateRenalDosage(
     };
   }
 
-  const adjustmentPercent = adjustments[renalFunction];
+  const adjustmentPercent = adjustments[renalFunction] ?? 100;
   const dosageMatch = dosage.match(/(\d+(?:\.\d+)?)/);
   const value = dosageMatch?.[1] ? parseFloat(dosageMatch[1]) : 0;
   const adjustedValue = (value * adjustmentPercent) / 100;

@@ -1,4 +1,5 @@
 export * from "./accordion";
+export * from "./docita-logo";
 export * from "./alert";
 export * from "./avatar";
 export * from "./badge";
@@ -15,6 +16,7 @@ export * from "./date-time-picker";
 export * from "./dialog";
 export * from "./dropdown-menu";
 export * from "./empty-state";
+export * from "./error-state";
 export * from "./form-dialog";
 export * from "./form-field-group";
 export * from "./form-grid";

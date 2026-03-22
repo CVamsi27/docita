@@ -9,41 +9,31 @@ interface GradientStatCardProps {
   value: string | number;
   subtitle?: string;
   icon: LucideIcon;
-  color: "blue" | "purple" | "green" | "orange" | "red" | "primary";
+  variant?: "primary" | "success" | "info" | "warning";
   badge?: React.ReactNode;
   className?: string;
 }
 
 const colorStyles = {
-  blue: {
-    gradient: "from-blue-500/10 to-blue-500/5",
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600",
-  },
-  purple: {
-    gradient: "from-purple-500/10 to-purple-500/5",
-    iconBg: "bg-purple-500/10",
-    iconColor: "text-purple-600",
-  },
-  green: {
-    gradient: "from-green-500/10 to-green-500/5",
-    iconBg: "bg-green-500/10",
-    iconColor: "text-green-600",
-  },
-  orange: {
-    gradient: "from-orange-500/10 to-orange-500/5",
-    iconBg: "bg-orange-500/10",
-    iconColor: "text-orange-600",
-  },
-  red: {
-    gradient: "from-red-500/10 to-red-500/5",
-    iconBg: "bg-red-500/10",
-    iconColor: "text-red-600",
-  },
   primary: {
-    gradient: "from-primary/10 to-primary/5",
+    gradient: "from-primary/20 to-primary/5",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
+  },
+  success: {
+    gradient: "from-success/20 to-success/5",
+    iconBg: "bg-success/10",
+    iconColor: "text-success",
+  },
+  info: {
+    gradient: "from-info/20 to-info/5",
+    iconBg: "bg-info/10",
+    iconColor: "text-info",
+  },
+  warning: {
+    gradient: "from-warning/20 to-warning/5",
+    iconBg: "bg-warning/10",
+    iconColor: "text-warning",
   },
 };
 
@@ -52,11 +42,11 @@ export function GradientStatCard({
   value,
   subtitle,
   icon: Icon,
-  color,
+  variant = "primary",
   badge,
   className,
 }: GradientStatCardProps) {
-  const styles = colorStyles[color];
+  const styles = colorStyles[variant];
 
   return (
     <Card
@@ -98,38 +88,38 @@ export function GradientStatCard({
 interface QuickActionCardProps {
   icon: LucideIcon;
   label: string;
-  color: "blue" | "purple" | "green" | "orange";
+  variant?: "primary" | "success" | "info" | "warning";
   badge?: string | number;
   className?: string;
 }
 
 const actionColorStyles = {
-  blue: {
-    bg: "bg-blue-100 dark:bg-blue-900/30",
-    text: "text-blue-600 dark:text-blue-400",
+  primary: {
+    bg: "bg-primary/10",
+    text: "text-primary",
   },
-  purple: {
-    bg: "bg-purple-100 dark:bg-purple-900/30",
-    text: "text-purple-600 dark:text-purple-400",
+  success: {
+    bg: "bg-success/10",
+    text: "text-success",
   },
-  green: {
-    bg: "bg-green-100 dark:bg-green-900/30",
-    text: "text-green-600 dark:text-green-400",
+  info: {
+    bg: "bg-info/10",
+    text: "text-info",
   },
-  orange: {
-    bg: "bg-orange-100 dark:bg-orange-900/30",
-    text: "text-orange-600 dark:text-orange-400",
+  warning: {
+    bg: "bg-warning/10",
+    text: "text-warning",
   },
 };
 
 export function QuickActionCard({
   icon: Icon,
   label,
-  color,
+  variant = "primary",
   badge,
   className,
 }: QuickActionCardProps) {
-  const styles = actionColorStyles[color];
+  const styles = actionColorStyles[variant];
 
   return (
     <Card
@@ -163,24 +153,22 @@ interface ProgressStatProps {
   value: string | number;
   progress: number;
   description?: string;
-  color?: "primary" | "green" | "orange" | "yellow" | "purple";
+  variant?: "primary" | "success" | "info" | "warning";
   className?: string;
 }
 
 const progressColors = {
   primary: "bg-primary",
-  green: "bg-green-500",
-  orange: "bg-orange-500",
-  yellow: "bg-yellow-500",
-  purple: "bg-purple-500",
+  success: "bg-success",
+  info: "bg-info",
+  warning: "bg-warning",
 };
 
 const progressTextColors = {
   primary: "text-primary",
-  green: "text-green-600",
-  orange: "text-orange-600",
-  yellow: "text-yellow-600",
-  purple: "text-purple-600",
+  success: "text-success",
+  info: "text-info",
+  warning: "text-warning",
 };
 
 export function ProgressStat({
@@ -188,14 +176,14 @@ export function ProgressStat({
   value,
   progress,
   description,
-  color = "primary",
+  variant = "primary",
   className,
 }: ProgressStatProps) {
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className={cn("font-semibold", progressTextColors[color])}>
+        <span className={cn("font-semibold", progressTextColors[variant])}>
           {value}
         </span>
       </div>
@@ -203,7 +191,7 @@ export function ProgressStat({
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            progressColors[color],
+            progressColors[variant],
           )}
           style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
         />

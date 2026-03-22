@@ -38,43 +38,27 @@ export interface StatusBadgeProps {
 }
 
 const statusStyles: Record<StatusType, string> = {
-
-  completed:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  scheduled:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  pending:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-
-  waiting:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  "no-show": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-
-  processing:
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  ordered: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-  "sample-collected":
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-
-  "in-progress":
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  active:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  inactive: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-  draft: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-
-  paid: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  unpaid: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  overdue: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-
-  success:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  warning:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  error: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  info: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  completed: "badge-completed",
+  confirmed: "badge-info",
+  scheduled: "badge-processing",
+  cancelled: "badge-cancelled",
+  pending: "badge-pending",
+  waiting: "badge-pending",
+  "no-show": "badge-cancelled",
+  processing: "badge-processing",
+  ordered: "badge-muted",
+  "sample-collected": "badge-processing",
+  "in-progress": "badge-processing",
+  active: "badge-active",
+  inactive: "badge-inactive",
+  draft: "badge-muted",
+  paid: "badge-success",
+  unpaid: "badge-cancelled",
+  overdue: "badge-cancelled",
+  success: "badge-success",
+  warning: "badge-warning",
+  error: "badge-danger",
+  info: "badge-info",
 };
 
 const statusLabels: Partial<Record<StatusType, string>> = {
@@ -126,24 +110,24 @@ export interface PriorityBadgeProps {
 
 const priorityStyles: Record<PriorityType, { bg: string; dot: string }> = {
   low: {
-    bg: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-    dot: "bg-gray-500",
+    bg: "badge-muted",
+    dot: "bg-muted-foreground",
   },
   medium: {
-    bg: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    dot: "bg-blue-500",
+    bg: "badge-info",
+    dot: "bg-info",
   },
   high: {
-    bg: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    dot: "bg-orange-500",
+    bg: "badge-warning",
+    dot: "bg-warning",
   },
   urgent: {
-    bg: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    dot: "bg-red-500",
+    bg: "badge-danger",
+    dot: "bg-destructive",
   },
   critical: {
-    bg: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 animate-pulse",
-    dot: "bg-red-500 animate-pulse",
+    bg: "badge-danger animate-pulse",
+    dot: "bg-destructive animate-pulse",
   },
 };
 
@@ -191,7 +175,7 @@ export function OnlineStatus({
       <span
         className={cn(
           "h-2 w-2 rounded-full",
-          online ? "bg-green-500" : "bg-gray-400",
+          online ? "bg-success" : "bg-muted-foreground",
         )}
       />
       {label !== undefined && (

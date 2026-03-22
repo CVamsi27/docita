@@ -98,10 +98,18 @@ export function createAPIClient(config: APIClientConfig) {
     const normalizedEndpoint = endpoint.startsWith("/")
       ? endpoint.substring(1)
       : endpoint;
-    const url = new URL(
-      normalizedEndpoint,
-      baseURL.endsWith("/") ? baseURL : `${baseURL}/`,
-    );
+    const resolvedBase = (() => {
+      const base = baseURL.endsWith("/") ? baseURL : `${baseURL}/`;
+      if (base.startsWith("http://") || base.startsWith("https://")) {
+        return base;
+      }
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost:3000";
+      return `${origin}${base.startsWith("/") ? "" : "/"}${base}`;
+    })();
+    const url = new URL(normalizedEndpoint, resolvedBase);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {

@@ -16,7 +16,6 @@ const preview: Preview = {
     theme: {
       brandTitle: "Docita Design System",
       brandUrl: "https://docita.io",
-      brandImage: "/logo.png",
     },
   },
   globalTypes: {
