@@ -1,0 +1,81 @@
+name: Design System Compliance
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  check-hardcoded-colors:
+    name: Check for Hardcoded Colors
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Run hardcoded color detection
+        run: pnpm check:colors
+        continue-on-error: true
+        id: color_check
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ⚠️ Hardcoded Color Violations Detected
+
+            The design system compliance check found hardcoded Tailwind colors in your code.
+
+            **How to fix:**
+            - Replace hardcoded colors with semantic design tokens
+            - See \`packages/ui/docs/color-system.md\` for migration guide
+
+            **Examples:**
+            - ❌ \`bg-green-100 text-green-700\` → ✅ \`badge-success\`
+            - ❌ \`bg-red-500\` → ✅ \`bg-destructive\`
+            - ❌ \`text-blue-600\` → ✅ \`text-info\`
+
+            Run \`pnpm check:colors\` locally to see the full report.
+            `
+            })
+
+  lint-check:
+    name: ESLint Design System Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint

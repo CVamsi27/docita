@@ -87,7 +87,7 @@ GET /patients
       "lastName": "Kumar",
       "dateOfBirth": "1985-03-15T00:00:00.000Z",
       "gender": "MALE",
-      "phoneNumber": "9876543210",
+      "phoneNumber": "9876543410",
       "email": "rajesh.kumar@email.com",
       "bloodGroup": "O+",
       "allergies": "Penicillin",
@@ -117,7 +117,7 @@ GET /patients/:id
   "lastName": "Kumar",
   "dateOfBirth": "1985-03-15T00:00:00.000Z",
   "gender": "MALE",
-  "phoneNumber": "9876543210",
+  "phoneNumber": "9876543410",
   "email": "rajesh.kumar@email.com",
   "address": "123 MG Road, Bangalore",
   "bloodGroup": "O+",
@@ -146,7 +146,7 @@ POST /patients
   "lastName": "Sharma",
   "dateOfBirth": "1990-07-22",
   "gender": "FEMALE",
-  "phoneNumber": "9876543211",
+  "phoneNumber": "9876543411",
   "email": "priya.sharma@email.com",
   "address": "456 Brigade Road, Bangalore",
   "bloodGroup": "A+",
@@ -573,7 +573,7 @@ POST /clinics
 {
   "name": "New Clinic",
   "address": "456 Medical Ave, Mumbai",
-  "phone": "+91 22 9876 5432",
+  "phone": "+91 22 9876 5434",
   "email": "newclinic@example.com",
   "settings": {
     "timezone": "Asia/Kolkata",
@@ -773,4 +773,4 @@ curl http://localhost:3001/api/patients \
 
 ---
 
-**For API support or bug reports, contact: api-support@docita.work**
+**For API support or bug reports, contact: support@docita.work**

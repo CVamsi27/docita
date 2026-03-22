@@ -86,7 +86,7 @@ pnpm --filter @docita/app exec playwright install --with-deps
 
 ```bash
 # Option 1: Using existing PostgreSQL
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/docita_test
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
 pnpm --filter db exec npx prisma migrate deploy
 
 # Option 2: Using Docker
@@ -94,7 +94,7 @@ docker run -d \
   --name docita_test_db \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=docita_test \
-  -p 5432:5432 \
+  -p 5434:5434 \
   postgres:16-alpine
 ```
 
@@ -268,7 +268,7 @@ const mockTwilio = {
 ### Backend (.env.test)
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/docita_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
 JWT_SECRET=test-secret-key-change-in-prod
 NODE_ENV=test
 REDIS_URL=redis://localhost:6379/1
@@ -389,7 +389,7 @@ lsof -ti:3001 | xargs kill -9
 1. **Start services**:
 
    ```bash
-   docker run -d --name docita_test_db -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16
+   docker run -d --name docita_test_db -e POSTGRES_PASSWORD=postgres -p 5434:5434 postgres:16
    ```
 
 2. **Run tests**:

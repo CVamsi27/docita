@@ -5,10 +5,10 @@
   "scripts": {
     "build": "turbo build",
     "start": "pnpm --filter @docita/api run start:prod",
-    "dev": "node scripts/kill-ports.js && turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
+    "dev": "node scripts/kill-ports.js && node scripts/db-check.mjs && turbo dev --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --filter=@docita/landing",
-    "dev:app": "turbo dev --filter=@docita/app --filter=@docita/api",
-    "dev:admin": "turbo dev --filter=@docita/admin --filter=@docita/api",
+    "dev:app": "node scripts/db-check.mjs && turbo dev --filter=@docita/app --filter=@docita/api",
+    "dev:admin": "node scripts/db-check.mjs && turbo dev --filter=@docita/admin --filter=@docita/api",
     "build:landing": "turbo build --filter=@docita/landing",
     "build:app": "turbo build --filter=@docita/app",
     "build:app:cloudflare": "pnpm --filter @docita/app run build:cloudflare",
@@ -27,13 +27,17 @@
     "audit:landing": "pnpm --filter @docita/landing run audit:accessibility",
     "postinstall": "pnpm --filter @workspace/db run db:generate",
     "db:generate": "pnpm --filter @workspace/db run db:generate",
-    "db:push": "pnpm --filter @workspace/db run db:push",
     "db:migrate": "pnpm --filter @workspace/db run db:migrate",
+    "db:deploy": "pnpm --filter @workspace/db run db:migrate:deploy",
+    "db:diff": "pnpm --filter @workspace/db run db:diff",
     "db:seed:sample": "pnpm --filter @docita/api run seed",
+    "db:check": "node scripts/db-check.mjs",
+    "db:up": "node scripts/db-check.mjs",
     "verify:structure": "node scripts/verify-turborepo-structure.mjs",
     "verify:contracts": "node scripts/verify-package-contracts.mjs",
     "verify:standard": "pnpm verify:structure && pnpm verify:contracts",
-    "check:prisma-boundary": "node scripts/check-prisma-boundary.js"
+    "check:prisma-boundary": "node scripts/check-prisma-boundary.js",
+    "check:colors": "node scripts/detect-hardcoded-colors.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
@@ -57,9 +61,6 @@
     "node": ">=20"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@prisma/engines",
-      "prisma"
-    ]
+    "ignoredBuiltDependencies": []
   }
 }

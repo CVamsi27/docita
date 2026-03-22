@@ -722,7 +722,7 @@ import { CreatePatientSchema } from "@workspace/types";
 
 const validPatient = {
   name: "John Doe",
-  phone: "9876543210",
+  phone: "9876543410",
   age: 30,
 };
 

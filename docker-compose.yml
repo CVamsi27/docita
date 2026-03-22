@@ -31,7 +31,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://docita:docita@db:5432/docita?schema=public&sslmode=disable
+      - DATABASE_URL=postgresql://docita:docita@db:5434/docita?schema=public&sslmode=disable
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
     volumes:
@@ -57,7 +57,7 @@ services:
   db:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - "5434:5434"
     environment:
       - POSTGRES_USER=docita
       - POSTGRES_PASSWORD=docita
@@ -79,7 +79,7 @@ services:
   db_test:
     image: postgres:15-alpine
     ports:
-      - "5433:5432"
+      - "5433:5434"
     environment:
       - POSTGRES_USER=docita
       - POSTGRES_PASSWORD=docita
