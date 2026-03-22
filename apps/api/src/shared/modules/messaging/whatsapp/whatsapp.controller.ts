@@ -195,7 +195,7 @@ export class WhatsappController {
   }
 
   @Post('approve-prescription/:id')
-  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(SuccessResponseDto)
   async approvePrescription(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; clinicId: string };
@@ -203,7 +203,7 @@ export class WhatsappController {
   }
 
   @Post('approve-invoice/:id')
-  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { id: string; clinicId: string };

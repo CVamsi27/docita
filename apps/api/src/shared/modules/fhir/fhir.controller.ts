@@ -19,7 +19,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import type { AuthenticatedRequest } from '@workspace/types';
 
 @Controller('fhir')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
 export class FhirController {
   constructor(private readonly fhirService: FhirService) {}
 

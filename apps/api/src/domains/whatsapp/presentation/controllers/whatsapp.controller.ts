@@ -20,9 +20,9 @@ import {
 } from '@/domains/whatsapp/application/dto/whatsapp.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
-@Controller('whatsapp')
+@Controller('whatsapp-v2')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.RECEPTIONIST)
 export class WhatsAppController {
   constructor(
     private readonly sendMessageUseCase: SendMessageUseCase,

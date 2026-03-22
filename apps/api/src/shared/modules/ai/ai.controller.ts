@@ -32,13 +32,14 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('ai')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
 @UseGuards(TierGuard)
 export class AIController {
   constructor(private readonly aiService: AIService) {}
 
   @Post('prescription-analysis')
   @RateLimit({ limit: 20, window: 60000 })
+  @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
   @ZodSerializerDto(AIAnalysisResponseDto)
   async analyzePrescription(
     @Body()
@@ -49,6 +50,7 @@ export class AIController {
 
   @Post('diagnosis-suggestions')
   @RateLimit({ limit: 20, window: 60000 })
+  @RequireFeature(Feature.AI_DIAGNOSIS_HINTS)
   @ZodSerializerDto(DiagnosisSuggestionListResponseDto)
   async suggestDiagnoses(@Body() dto: DiagnosisSuggestionRequestDto) {
     return this.aiService.suggestDiagnoses(dto.symptoms, dto.findingsNotes);
@@ -56,6 +58,7 @@ export class AIController {
 
   @Post('medication-recommendations')
   @RateLimit({ limit: 20, window: 60000 })
+  @RequireFeature(Feature.AI_PRESCRIPTION_ASSISTANT)
   @ZodSerializerDto(MedicationRecommendationListResponseDto)
   async recommendMedications(@Body() dto: MedicationRecommendationRequestDto) {
     return this.aiService.recommendMedications(

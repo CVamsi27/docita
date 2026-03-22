@@ -7,8 +7,6 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
-import { OptimizedTierGuard } from './optimized-tier.guard';
-import { CombinedAuthGuard } from './combined-auth.guard';
 import { UsersModule } from '@/domains/users/users.module';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
@@ -52,8 +50,6 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
     ClinicTypeGuard,
     FacilityTypeGuard,
     ClinicAuthCacheService,
-    OptimizedTierGuard,
-    CombinedAuthGuard,
     {
       provide: 'IPasswordPolicy',
       useClass: DefaultPasswordPolicy,
@@ -69,8 +65,6 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
     ClinicTypeGuard,
     FacilityTypeGuard,
     ClinicAuthCacheService,
-    OptimizedTierGuard,
-    CombinedAuthGuard,
   ],
 })
 export class AuthModule {}

@@ -55,7 +55,7 @@ export class ConsentController {
   constructor(private readonly dpdpService: DPDPComplianceService) {}
 
   @Post()
-  @Roles(Role.DOCTOR, Role.ADMIN)
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   @HttpCode(201)
   async recordConsent(
     @Body(new ZodValidationPipe(recordConsentSchema)) data: RecordConsentDto,
@@ -66,7 +66,7 @@ export class ConsentController {
   }
 
   @Get('history')
-  @Roles(Role.DOCTOR, Role.ADMIN)
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async getConsentHistory(
     @Query('patientId') patientId: string,
     @Query('clinicId') clinicId: string,
@@ -75,7 +75,7 @@ export class ConsentController {
   }
 
   @Post(':consentId/withdraw')
-  @Roles(Role.DOCTOR, Role.ADMIN)
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async withdrawConsent(
     @Param('consentId') consentId: string,
     @Body(new ZodValidationPipe(withdrawConsentSchema))
@@ -92,7 +92,7 @@ export class ConsentController {
   }
 
   @Post('patients/:patientId/delete')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @HttpCode(200)
   async deletePatientData(
     @Param('patientId') patientId: string,
