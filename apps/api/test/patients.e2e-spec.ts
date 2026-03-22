@@ -101,7 +101,7 @@ describe('Patients (e2e)', () => {
         .send({
           firstName: 'Jane',
           lastName: 'Doe',
-          phoneNumber: '9876543210',
+          phoneNumber: '9876543410',
           gender: 'FEMALE',
           dateOfBirth: '1990-05-15',
           email: 'jane@test.com',
@@ -119,7 +119,7 @@ describe('Patients (e2e)', () => {
         .send({
           firstName: 'Jane',
           lastName: 'Doe',
-          phoneNumber: '9876543210',
+          phoneNumber: '9876543410',
           gender: 'FEMALE',
           dateOfBirth: '1990-05-15',
         })

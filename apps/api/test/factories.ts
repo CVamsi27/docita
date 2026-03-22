@@ -33,7 +33,7 @@ export const factories = {
         address: '123 Main St',
         phone: `987654${String(Date.now()).slice(-4)}`,
         email: `clinic${Date.now()}@test.com`,
-        tier: 'CORE',
+        tier: 'ESSENTIAL',
         type: 'GENERAL',
         ...overrides,
       },

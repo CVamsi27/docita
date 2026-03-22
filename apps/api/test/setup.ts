@@ -1,4 +1,4 @@
-import { PrismaClient } from '@workspace/db';
+import { PrismaClient, Prisma } from '@workspace/db';
 import { execSync } from 'child_process';
 import path from 'path';
 
@@ -103,7 +103,9 @@ export async function resetDatabase() {
 
   for (const table of tables) {
     try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
+      await prisma.$executeRaw(
+        Prisma.sql`TRUNCATE TABLE ${Prisma.raw(`"${table}"`)} CASCADE`,
+      );
     } catch (_e) {}
   }
 }

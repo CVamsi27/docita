@@ -189,7 +189,7 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
           firstName: 'New',
           lastName: 'Patient',
           email: 'new@test.com',
-          phone: '9876543210',
+          phone: '9876543410',
         });
 
       expect(response.status).toBe(403);
