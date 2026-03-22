@@ -2,6 +2,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AddPatientDialog } from "./PatientDialogs";
 
+vi.mock("@/hooks/api/use-patients", () => ({
+  useCreatePatient: () => ({
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+  useUpdatePatient: () => ({
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}));
+
 describe("AddPatientDialog", () => {
   it("does not render when closed", () => {
     render(<AddPatientDialog open={false} />);
@@ -15,9 +26,9 @@ describe("AddPatientDialog", () => {
     expect(screen.getByText("Add New Patient")).toBeInTheDocument();
     expect(screen.getByLabelText("First Name *")).toBeInTheDocument();
     expect(screen.getByLabelText("Last Name *")).toBeInTheDocument();
-    expect(screen.getByLabelText("Phone *")).toBeInTheDocument();
+    expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
-    expect(screen.getByLabelText("Gender")).toBeInTheDocument();
+    expect(screen.getByLabelText("Gender *")).toBeInTheDocument();
     expect(screen.getByLabelText("Date of Birth")).toBeInTheDocument();
   });
 
