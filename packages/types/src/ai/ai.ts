@@ -1,12 +1,12 @@
 import {
+  DiagnosisSuggestion,
+  FieldConfidenceConfig,
+  MedicationRecommendation,
   OcrExtractedFields,
   OcrExtractionResult,
-  FieldConfidenceConfig,
   OcrRawData,
   PrescriptionAnalysisRequest,
   PrescriptionAnalysisResponse,
-  DiagnosisSuggestion,
-  MedicationRecommendation,
 } from "./ai-types";
 
 export type {

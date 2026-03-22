@@ -142,8 +142,10 @@ export interface TestAppointmentData {
 }
 
 declare global {
+  // This test-only augmentation intentionally mirrors Jest's namespace shape.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
-    interface Mock<T = unknown, Y extends unknown[] = unknown[]> {
+    interface Mock<T = unknown, _Y extends unknown[] = unknown[]> {
       mockResolvedValueOnce(value: T): this;
       mockResolvedValue(value: T): this;
       mockRejectedValueOnce(value: Error | string): this;

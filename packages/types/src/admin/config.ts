@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
-  genderSchema,
-  bloodGroupSchema,
   appointmentTypeSchema,
+  bloodGroupSchema,
+  genderSchema,
   specializationSchema,
 } from "../shared/users";
 

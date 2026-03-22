@@ -1,4 +1,4 @@
-import { OcrRawData, FieldConfidenceConfig } from "./ai-types";
+import { FieldConfidenceConfig, OcrRawData } from "./ai-types";
 
 export interface ExtractedText {
   text: string;

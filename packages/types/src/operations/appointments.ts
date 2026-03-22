@@ -3,17 +3,17 @@ import {
   appointmentStatusSchema,
   appointmentTypeSchema,
 } from "../shared/users";
-import { Patient, patientSchema } from "../patient/patients";
+import { patientSchema } from "../patient/patients";
 import { vitalSignSchema } from "../clinical/vitals";
 import { invoiceSchema } from "../billing/invoices";
 import { prescriptionSchema } from "../clinical/medications";
 import {
-  generalExaminationSchema,
-  systemicExaminationSchema,
   clinicalInvestigationSchema,
   clinicalNoteSchema,
+  generalExaminationSchema,
+  systemicExaminationSchema,
 } from "../clinical/clinical";
-import { icdCodeSchema, cptCodeSchema } from "../shared/medical-coding";
+import { cptCodeSchema, icdCodeSchema } from "../shared/medical-coding";
 import { stripHtmlTags } from "../api/sanitization";
 export const appointmentPrioritySchema = z.enum([
   "ROUTINE",

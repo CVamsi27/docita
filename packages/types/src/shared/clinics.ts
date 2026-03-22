@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { clinicTypeSchema, ClinicType } from "./users";
+import { clinicTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
 
 export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tierSchema, featureSchema } from "./tier";
+import { featureSchema } from "./tier";
 
 export const SubscriptionTierConfigSchema = z.object({
   id: z.string(),
