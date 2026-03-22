@@ -15,11 +15,11 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "lint": "echo 'Skipping lint for types package'",
+    "lint": "eslint src",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
+    "eslint": "^9",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
