@@ -3,7 +3,6 @@ import type { UserRole } from "../shared/users";
 export interface AuthenticatedRequest {
   user: {
     id: string;
-    userId: string;
     sub: string;
     name: string;
     clinicId: string;

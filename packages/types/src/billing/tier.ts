@@ -1,22 +1,20 @@
 import { z } from "zod";
 
 export const tierSchema = z.enum([
-  "CAPTURE",
-  "CORE",
-  "PLUS",
-  "PRO",
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
   "ENTERPRISE",
   "INTELLIGENCE",
 ]);
 export type TierName = z.infer<typeof tierSchema>;
 
 export enum Tier {
-  CAPTURE = 0,
-  CORE = 1,
-  PLUS = 2,
-  PRO = 3,
-  ENTERPRISE = 4,
-  INTELLIGENCE = 5,
+  STARTER = 0,
+  ESSENTIAL = 1,
+  PROFESSIONAL = 2,
+  ENTERPRISE = 3,
+  INTELLIGENCE = 4,
 }
 
 export enum Feature {
@@ -28,15 +26,14 @@ export enum Feature {
   DOCUMENT_ARCHIVAL = "DOCUMENT_ARCHIVAL",
   EXPORT_CSV = "EXPORT_CSV",
   OCR_BASIC = "OCR_BASIC",
-
   CALENDAR_SLOTS = "CALENDAR_SLOTS",
   VISIT_HISTORY = "VISIT_HISTORY",
   MEDICINES_LIST = "MEDICINES_LIST",
-  INVOICING = "INVOICING",
   DIGITAL_PRESCRIPTIONS = "DIGITAL_PRESCRIPTIONS",
+
+  INVOICING = "INVOICING",
   BASIC_ANALYTICS = "BASIC_ANALYTICS",
   MEDICAL_CODING = "MEDICAL_CODING",
-
   AUTO_REMINDERS = "AUTO_REMINDERS",
   PAYMENT_LINKS = "PAYMENT_LINKS",
   PRESCRIPTION_TEMPLATES = "PRESCRIPTION_TEMPLATES",
@@ -77,41 +74,40 @@ export const featureSchema = z.nativeEnum(Feature);
 
 export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
 
-  [Feature.PAPER_SCANNING]: Tier.CAPTURE,
-  [Feature.EXCEL_IMPORT]: Tier.CAPTURE,
-  [Feature.PATIENT_DEDUPLICATION]: Tier.CAPTURE,
-  [Feature.BASIC_PATIENT_MANAGEMENT]: Tier.CAPTURE,
-  [Feature.DOCUMENT_ARCHIVAL]: Tier.CAPTURE,
-  [Feature.EXPORT_CSV]: Tier.CAPTURE,
-  [Feature.OCR_BASIC]: Tier.CAPTURE,
+  [Feature.PAPER_SCANNING]: Tier.STARTER,
+  [Feature.EXCEL_IMPORT]: Tier.STARTER,
+  [Feature.PATIENT_DEDUPLICATION]: Tier.STARTER,
+  [Feature.BASIC_PATIENT_MANAGEMENT]: Tier.STARTER,
+  [Feature.DOCUMENT_ARCHIVAL]: Tier.STARTER,
+  [Feature.EXPORT_CSV]: Tier.STARTER,
+  [Feature.OCR_BASIC]: Tier.STARTER,
+  [Feature.CALENDAR_SLOTS]: Tier.STARTER,
+  [Feature.VISIT_HISTORY]: Tier.STARTER,
+  [Feature.MEDICINES_LIST]: Tier.STARTER,
+  [Feature.DIGITAL_PRESCRIPTIONS]: Tier.STARTER,
 
-  [Feature.CALENDAR_SLOTS]: Tier.CORE,
-  [Feature.VISIT_HISTORY]: Tier.CORE,
-  [Feature.MEDICINES_LIST]: Tier.CORE,
-  [Feature.INVOICING]: Tier.CORE,
-  [Feature.DIGITAL_PRESCRIPTIONS]: Tier.CORE,
-  [Feature.BASIC_ANALYTICS]: Tier.CORE,
-  [Feature.MEDICAL_CODING]: Tier.CORE,
-  [Feature.ROLE_MANAGEMENT]: Tier.CORE,
+  [Feature.INVOICING]: Tier.ESSENTIAL,
+  [Feature.BASIC_ANALYTICS]: Tier.ESSENTIAL,
+  [Feature.MEDICAL_CODING]: Tier.ESSENTIAL,
+  [Feature.ROLE_MANAGEMENT]: Tier.ESSENTIAL,
+  [Feature.AUTO_REMINDERS]: Tier.ESSENTIAL,
+  [Feature.PAYMENT_LINKS]: Tier.ESSENTIAL,
+  [Feature.PRESCRIPTION_TEMPLATES]: Tier.ESSENTIAL,
+  [Feature.MULTI_DEVICE]: Tier.ESSENTIAL,
+  [Feature.CONSENT_MANAGEMENT]: Tier.ESSENTIAL,
+  [Feature.DOCTOR_SIGNATURE]: Tier.ESSENTIAL,
 
-  [Feature.AUTO_REMINDERS]: Tier.CORE,
-  [Feature.PAYMENT_LINKS]: Tier.CORE,
-  [Feature.PRESCRIPTION_TEMPLATES]: Tier.PLUS,
-  [Feature.MULTI_DEVICE]: Tier.PLUS,
-  [Feature.CONSENT_MANAGEMENT]: Tier.PLUS,
-  [Feature.DOCTOR_SIGNATURE]: Tier.PLUS,
-
-  [Feature.MULTI_DOCTOR]: Tier.PRO,
-  [Feature.MULTI_CLINIC]: Tier.PRO,
-  [Feature.LAB_TESTS]: Tier.PRO,
-  [Feature.INVENTORY]: Tier.PRO,
-  [Feature.QUEUE_MANAGEMENT]: Tier.PRO,
-  [Feature.AUDIT_LOGS]: Tier.PRO,
-  [Feature.INSURANCE_BILLING]: Tier.PRO,
-  [Feature.DIGITAL_INTAKE_FORMS]: Tier.PRO,
-  [Feature.BROADCAST_CAMPAIGNS]: Tier.PRO,
-  [Feature.OCR_ADVANCED]: Tier.PRO,
-  [Feature.ADVANCED_ANALYTICS]: Tier.PRO,
+  [Feature.MULTI_DOCTOR]: Tier.PROFESSIONAL,
+  [Feature.MULTI_CLINIC]: Tier.PROFESSIONAL,
+  [Feature.LAB_TESTS]: Tier.PROFESSIONAL,
+  [Feature.INVENTORY]: Tier.PROFESSIONAL,
+  [Feature.QUEUE_MANAGEMENT]: Tier.PROFESSIONAL,
+  [Feature.AUDIT_LOGS]: Tier.PROFESSIONAL,
+  [Feature.INSURANCE_BILLING]: Tier.PROFESSIONAL,
+  [Feature.DIGITAL_INTAKE_FORMS]: Tier.PROFESSIONAL,
+  [Feature.BROADCAST_CAMPAIGNS]: Tier.PROFESSIONAL,
+  [Feature.OCR_ADVANCED]: Tier.PROFESSIONAL,
+  [Feature.ADVANCED_ANALYTICS]: Tier.PROFESSIONAL,
 
   [Feature.FULL_EHR]: Tier.ENTERPRISE,
   [Feature.API_ACCESS]: Tier.ENTERPRISE,
@@ -183,56 +179,50 @@ export const TIER_PRICING_BY_CURRENCY: Record<
 > = {
 
   INR: {
-    CAPTURE: { monthly: 0, yearly: 0 },
-    CORE: { monthly: 799, yearly: 8629 },
-    PLUS: { monthly: 1999, yearly: 21589 },
-    PRO: { monthly: 3999, yearly: 43189 },
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 999, yearly: 10789 },
+    PROFESSIONAL: { monthly: 3999, yearly: 43189 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
     INTELLIGENCE: { monthly: 1999, yearly: 21589 },
   },
 
   USD: {
-    CAPTURE: { monthly: 0, yearly: 0 },
-    CORE: { monthly: 19, yearly: 205 }, 
-    PLUS: { monthly: 39, yearly: 421 }, 
-    PRO: { monthly: 79, yearly: 853 }, 
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 19, yearly: 205 },
+    PROFESSIONAL: { monthly: 79, yearly: 853 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
     INTELLIGENCE: { monthly: 29, yearly: 313 },
   },
 
   EUR: {
-    CAPTURE: { monthly: 0, yearly: 0 },
-    CORE: { monthly: 17, yearly: 184 }, 
-    PLUS: { monthly: 35, yearly: 378 }, 
-    PRO: { monthly: 69, yearly: 745 }, 
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 17, yearly: 184 },
+    PROFESSIONAL: { monthly: 69, yearly: 745 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
     INTELLIGENCE: { monthly: 25, yearly: 270 },
   },
 
   GBP: {
-    CAPTURE: { monthly: 0, yearly: 0 },
-    CORE: { monthly: 15, yearly: 162 }, 
-    PLUS: { monthly: 29, yearly: 313 }, 
-    PRO: { monthly: 59, yearly: 637 }, 
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 15, yearly: 162 },
+    PROFESSIONAL: { monthly: 59, yearly: 637 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
     INTELLIGENCE: { monthly: 22, yearly: 238 },
   },
 
   AUD: {
-    CAPTURE: { monthly: 0, yearly: 0 },
-    CORE: { monthly: 29, yearly: 313 }, 
-    PLUS: { monthly: 59, yearly: 637 }, 
-    PRO: { monthly: 119, yearly: 1285 }, 
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 29, yearly: 313 },
+    PROFESSIONAL: { monthly: 119, yearly: 1285 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
     INTELLIGENCE: { monthly: 45, yearly: 486 },
   },
 };
 
 export const TIER_PRICING: Record<TierName, TierPricing> = {
-  CAPTURE: { monthly: 0, yearly: 0, currency: "₹" },
-  CORE: { monthly: 799, yearly: 8629, currency: "₹" },
-  PLUS: { monthly: 1999, yearly: 21589, currency: "₹" },
-  PRO: { monthly: 3999, yearly: 43189, currency: "₹" },
+  STARTER: { monthly: 0, yearly: 0, currency: "₹" },
+  ESSENTIAL: { monthly: 999, yearly: 10789, currency: "₹" },
+  PROFESSIONAL: { monthly: 3999, yearly: 43189, currency: "₹" },
   ENTERPRISE: { monthly: "custom", yearly: "custom", currency: "₹" },
   INTELLIGENCE: { monthly: 1999, yearly: 21589, currency: "₹" },
 };
@@ -250,41 +240,49 @@ export const tierLimitsSchema = z.object({
   branches: z.number(),
   appointments: z.number().optional(),
   users: z.number().optional(),
+  prescriptions: z.number().optional(),
+  invoices: z.number().optional(),
+  ocrPages: z.number().optional(),
+  apiCallsPerDay: z.number().optional(),
 });
 export type TierLimits = z.infer<typeof tierLimitsSchema>;
 
 export const TIER_LIMITS: Record<TierName, TierLimits> = {
-  CAPTURE: {
+  STARTER: {
     patients: 50,
     doctors: 1,
     storageGB: 1,
     branches: 1,
     appointments: 100,
     users: 1,
+    prescriptions: 50,
+    invoices: 0,
+    ocrPages: 50,
+    apiCallsPerDay: 0,
   },
-  CORE: {
-    patients: 300,
+  ESSENTIAL: {
+    patients: 500,
     doctors: 1,
-    storageGB: 5,
+    storageGB: 10,
     branches: 1,
-    appointments: 500,
-    users: 2,
+    appointments: 1000,
+    users: 3,
+    prescriptions: 500,
+    invoices: 300,
+    ocrPages: 200,
+    apiCallsPerDay: 0,
   },
-  PLUS: {
-    patients: 1000,
-    doctors: 3,
-    storageGB: 20,
-    branches: 1,
-    appointments: 2000,
-    users: 2,
-  },
-  PRO: {
-    patients: 5000,
+  PROFESSIONAL: {
+    patients: 10000,
     doctors: 999,
     storageGB: 100,
-    branches: 3,
-    appointments: 8000,
-    users: 5,
+    branches: 5,
+    appointments: 20000,
+    users: 15,
+    prescriptions: 5000,
+    invoices: 4000,
+    ocrPages: 2000,
+    apiCallsPerDay: 0,
   },
   ENTERPRISE: {
     patients: 999999,
@@ -293,6 +291,10 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     branches: 999,
     appointments: 999999,
     users: 999,
+    prescriptions: 999999,
+    invoices: 999999,
+    ocrPages: 10000,
+    apiCallsPerDay: 10000,
   },
   INTELLIGENCE: {
     patients: 999999,
@@ -301,7 +303,77 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     branches: 999,
     appointments: 999999,
     users: 999,
+    prescriptions: 999999,
+    invoices: 999999,
+    ocrPages: 10000,
+    apiCallsPerDay: 0,
   },
+};
+
+const FLAT_OVERAGE_RATES = {
+  patientRate: 1.5,
+  appointmentRate: 0.75,
+  storageRate: 40,
+  userRate: 399,
+  prescriptionRate: 0.75,
+  invoiceRate: 0.4,
+  ocrPageRate: 1.5,
+  apiCallRate: 0,
+};
+
+const FLAT_OVERAGE_RATES_USD = {
+  patientRate: 0.04,
+  appointmentRate: 0.02,
+  storageRate: 1.2,
+  userRate: 12,
+  prescriptionRate: 0.02,
+  invoiceRate: 0.01,
+  ocrPageRate: 0.04,
+  apiCallRate: 0,
+};
+
+const FLAT_OVERAGE_RATES_EUR = {
+  patientRate: 0.035,
+  appointmentRate: 0.018,
+  storageRate: 1.0,
+  userRate: 10,
+  prescriptionRate: 0.017,
+  invoiceRate: 0.009,
+  ocrPageRate: 0.035,
+  apiCallRate: 0,
+};
+
+const FLAT_OVERAGE_RATES_GBP = {
+  patientRate: 0.03,
+  appointmentRate: 0.015,
+  storageRate: 0.85,
+  userRate: 9,
+  prescriptionRate: 0.015,
+  invoiceRate: 0.008,
+  ocrPageRate: 0.03,
+  apiCallRate: 0,
+};
+
+const FLAT_OVERAGE_RATES_AUD = {
+  patientRate: 0.06,
+  appointmentRate: 0.03,
+  storageRate: 1.8,
+  userRate: 18,
+  prescriptionRate: 0.03,
+  invoiceRate: 0.015,
+  ocrPageRate: 0.06,
+  apiCallRate: 0,
+};
+
+const ZERO_OVERAGE = {
+  patientRate: 0,
+  appointmentRate: 0,
+  storageRate: 0,
+  userRate: 0,
+  prescriptionRate: 0,
+  invoiceRate: 0,
+  ocrPageRate: 0,
+  apiCallRate: 0,
 };
 
 export const TIER_OVERAGE_RATES: Record<
@@ -311,29 +383,17 @@ export const TIER_OVERAGE_RATES: Record<
     appointmentRate: number;
     storageRate: number;
     userRate: number;
+    prescriptionRate: number;
+    invoiceRate: number;
+    ocrPageRate: number;
+    apiCallRate: number;
   }
 > = {
-  CAPTURE: { patientRate: 0, appointmentRate: 0, storageRate: 0, userRate: 0 }, 
-  CORE: { patientRate: 2, appointmentRate: 1, storageRate: 50, userRate: 299 },
-  PLUS: {
-    patientRate: 1.5,
-    appointmentRate: 0.75,
-    storageRate: 40,
-    userRate: 299,
-  },
-  PRO: { patientRate: 1, appointmentRate: 0.5, storageRate: 30, userRate: 499 },
-  ENTERPRISE: {
-    patientRate: 0,
-    appointmentRate: 0,
-    storageRate: 0,
-    userRate: 0,
-  }, 
-  INTELLIGENCE: {
-    patientRate: 0,
-    appointmentRate: 0,
-    storageRate: 0,
-    userRate: 0,
-  },
+  STARTER: ZERO_OVERAGE,
+  ESSENTIAL: FLAT_OVERAGE_RATES,
+  PROFESSIONAL: FLAT_OVERAGE_RATES,
+  ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.01 },
+  INTELLIGENCE: ZERO_OVERAGE,
 };
 
 export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
@@ -345,165 +405,45 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
       appointmentRate: number;
       storageRate: number;
       userRate: number;
+      prescriptionRate: number;
+      invoiceRate: number;
+      ocrPageRate: number;
+      apiCallRate: number;
     }
   >
 > = {
   INR: TIER_OVERAGE_RATES,
 
   USD: {
-    CAPTURE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    CORE: {
-      patientRate: 0.05,
-      appointmentRate: 0.025,
-      storageRate: 1.5,
-      userRate: 9,
-    },
-    PLUS: {
-      patientRate: 0.04,
-      appointmentRate: 0.02,
-      storageRate: 1.2,
-      userRate: 9,
-    },
-    PRO: {
-      patientRate: 0.03,
-      appointmentRate: 0.015,
-      storageRate: 0.9,
-      userRate: 15,
-    },
-    ENTERPRISE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    INTELLIGENCE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
+    STARTER: ZERO_OVERAGE,
+    ESSENTIAL: FLAT_OVERAGE_RATES_USD,
+    PROFESSIONAL: FLAT_OVERAGE_RATES_USD,
+    ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0003 },
+    INTELLIGENCE: ZERO_OVERAGE,
   },
 
   EUR: {
-    CAPTURE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    CORE: {
-      patientRate: 0.045,
-      appointmentRate: 0.022,
-      storageRate: 1.3,
-      userRate: 8,
-    },
-    PLUS: {
-      patientRate: 0.035,
-      appointmentRate: 0.018,
-      storageRate: 1.0,
-      userRate: 8,
-    },
-    PRO: {
-      patientRate: 0.025,
-      appointmentRate: 0.012,
-      storageRate: 0.75,
-      userRate: 13,
-    },
-    ENTERPRISE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    INTELLIGENCE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
+    STARTER: ZERO_OVERAGE,
+    ESSENTIAL: FLAT_OVERAGE_RATES_EUR,
+    PROFESSIONAL: FLAT_OVERAGE_RATES_EUR,
+    ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00025 },
+    INTELLIGENCE: ZERO_OVERAGE,
   },
 
   GBP: {
-    CAPTURE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    CORE: {
-      patientRate: 0.04,
-      appointmentRate: 0.02,
-      storageRate: 1.1,
-      userRate: 7,
-    },
-    PLUS: {
-      patientRate: 0.03,
-      appointmentRate: 0.015,
-      storageRate: 0.85,
-      userRate: 7,
-    },
-    PRO: {
-      patientRate: 0.02,
-      appointmentRate: 0.01,
-      storageRate: 0.65,
-      userRate: 11,
-    },
-    ENTERPRISE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    INTELLIGENCE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
+    STARTER: ZERO_OVERAGE,
+    ESSENTIAL: FLAT_OVERAGE_RATES_GBP,
+    PROFESSIONAL: FLAT_OVERAGE_RATES_GBP,
+    ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0002 },
+    INTELLIGENCE: ZERO_OVERAGE,
   },
 
   AUD: {
-    CAPTURE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    CORE: {
-      patientRate: 0.08,
-      appointmentRate: 0.04,
-      storageRate: 2.2,
-      userRate: 14,
-    },
-    PLUS: {
-      patientRate: 0.06,
-      appointmentRate: 0.03,
-      storageRate: 1.8,
-      userRate: 14,
-    },
-    PRO: {
-      patientRate: 0.045,
-      appointmentRate: 0.022,
-      storageRate: 1.35,
-      userRate: 22,
-    },
-    ENTERPRISE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
-    INTELLIGENCE: {
-      patientRate: 0,
-      appointmentRate: 0,
-      storageRate: 0,
-      userRate: 0,
-    },
+    STARTER: ZERO_OVERAGE,
+    ESSENTIAL: FLAT_OVERAGE_RATES_AUD,
+    PROFESSIONAL: FLAT_OVERAGE_RATES_AUD,
+    ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
+    INTELLIGENCE: ZERO_OVERAGE,
   },
 };
 
@@ -514,123 +454,81 @@ export interface AddOnPricing {
 }
 
 export const WHATSAPP_ADDON_PRICING: Record<
-  Exclude<TierName, "CAPTURE" | "INTELLIGENCE">,
+  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
-  CORE: { basePrice: 499, includedQuota: 500, overageRate: 0.5 },
-  PLUS: { basePrice: 799, includedQuota: 1500, overageRate: 0.4 },
-  PRO: { basePrice: 1499, includedQuota: 5000, overageRate: 0.3 },
+  ESSENTIAL: { basePrice: 499, includedQuota: 500, overageRate: 0.5 },
+  PROFESSIONAL: { basePrice: 1499, includedQuota: 5000, overageRate: 0.3 },
   ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.2 },
 };
 
 export const INTELLIGENCE_ADDON_PRICING: Record<
-  Exclude<TierName, "CAPTURE" | "INTELLIGENCE">,
+  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
-  CORE: { basePrice: 1999, includedQuota: 500, overageRate: 3 },
-  PLUS: { basePrice: 2499, includedQuota: 1500, overageRate: 2.5 },
-  PRO: { basePrice: 3499, includedQuota: 5000, overageRate: 2 },
+  ESSENTIAL: { basePrice: 1999, includedQuota: 500, overageRate: 3 },
+  PROFESSIONAL: { basePrice: 3499, includedQuota: 5000, overageRate: 2 },
   ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 1.5 },
 };
 
 export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
-  Record<Exclude<TierName, "CAPTURE" | "INTELLIGENCE">, AddOnPricing>
+  Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
 > = {
   INR: WHATSAPP_ADDON_PRICING,
   USD: {
-    CORE: { basePrice: 9, includedQuota: 500, overageRate: 0.015 },
-    PLUS: { basePrice: 15, includedQuota: 1500, overageRate: 0.012 },
-    PRO: { basePrice: 25, includedQuota: 5000, overageRate: 0.008 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.005,
-    },
+    ESSENTIAL: { basePrice: 9, includedQuota: 500, overageRate: 0.015 },
+    PROFESSIONAL: { basePrice: 25, includedQuota: 5000, overageRate: 0.008 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.005 },
   },
   EUR: {
-    CORE: { basePrice: 8, includedQuota: 500, overageRate: 0.013 },
-    PLUS: { basePrice: 13, includedQuota: 1500, overageRate: 0.01 },
-    PRO: { basePrice: 22, includedQuota: 5000, overageRate: 0.007 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.004,
-    },
+    ESSENTIAL: { basePrice: 8, includedQuota: 500, overageRate: 0.013 },
+    PROFESSIONAL: { basePrice: 22, includedQuota: 5000, overageRate: 0.007 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.004 },
   },
   GBP: {
-    CORE: { basePrice: 7, includedQuota: 500, overageRate: 0.012 },
-    PLUS: { basePrice: 11, includedQuota: 1500, overageRate: 0.009 },
-    PRO: { basePrice: 19, includedQuota: 5000, overageRate: 0.006 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.004,
-    },
+    ESSENTIAL: { basePrice: 7, includedQuota: 500, overageRate: 0.012 },
+    PROFESSIONAL: { basePrice: 19, includedQuota: 5000, overageRate: 0.006 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.004 },
   },
   AUD: {
-    CORE: { basePrice: 15, includedQuota: 500, overageRate: 0.022 },
-    PLUS: { basePrice: 22, includedQuota: 1500, overageRate: 0.018 },
-    PRO: { basePrice: 35, includedQuota: 5000, overageRate: 0.012 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.008,
-    },
+    ESSENTIAL: { basePrice: 15, includedQuota: 500, overageRate: 0.022 },
+    PROFESSIONAL: { basePrice: 35, includedQuota: 5000, overageRate: 0.012 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.008 },
   },
 };
 
 export const INTELLIGENCE_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
-  Record<Exclude<TierName, "CAPTURE" | "INTELLIGENCE">, AddOnPricing>
+  Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
 > = {
   INR: INTELLIGENCE_ADDON_PRICING,
   USD: {
-    CORE: { basePrice: 29, includedQuota: 500, overageRate: 0.05 },
-    PLUS: { basePrice: 39, includedQuota: 1500, overageRate: 0.04 },
-    PRO: { basePrice: 55, includedQuota: 5000, overageRate: 0.03 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.02,
-    },
+    ESSENTIAL: { basePrice: 29, includedQuota: 500, overageRate: 0.05 },
+    PROFESSIONAL: { basePrice: 55, includedQuota: 5000, overageRate: 0.03 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.02 },
   },
   EUR: {
-    CORE: { basePrice: 25, includedQuota: 500, overageRate: 0.045 },
-    PLUS: { basePrice: 35, includedQuota: 1500, overageRate: 0.035 },
-    PRO: { basePrice: 49, includedQuota: 5000, overageRate: 0.025 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.018,
-    },
+    ESSENTIAL: { basePrice: 25, includedQuota: 500, overageRate: 0.045 },
+    PROFESSIONAL: { basePrice: 49, includedQuota: 5000, overageRate: 0.025 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.018 },
   },
   GBP: {
-    CORE: { basePrice: 22, includedQuota: 500, overageRate: 0.04 },
-    PLUS: { basePrice: 29, includedQuota: 1500, overageRate: 0.03 },
-    PRO: { basePrice: 42, includedQuota: 5000, overageRate: 0.022 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.015,
-    },
+    ESSENTIAL: { basePrice: 22, includedQuota: 500, overageRate: 0.04 },
+    PROFESSIONAL: { basePrice: 42, includedQuota: 5000, overageRate: 0.022 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.015 },
   },
   AUD: {
-    CORE: { basePrice: 45, includedQuota: 500, overageRate: 0.075 },
-    PLUS: { basePrice: 59, includedQuota: 1500, overageRate: 0.06 },
-    PRO: { basePrice: 85, includedQuota: 5000, overageRate: 0.045 },
-    ENTERPRISE: {
-      basePrice: "custom",
-      includedQuota: 15000,
-      overageRate: 0.03,
-    },
+    ESSENTIAL: { basePrice: 45, includedQuota: 500, overageRate: 0.075 },
+    PROFESSIONAL: { basePrice: 85, includedQuota: 5000, overageRate: 0.045 },
+    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.03 },
   },
 };
 
 export const AI_CREDIT_COSTS = {
   clinicalNote: 5,
   prescriptionSuggestion: 2,
-  voiceToText: 1, 
+  voiceToText: 1,
   noShowPrediction: 1,
   riskSegmentation: 3,
   anomalyDetection: 2,
@@ -672,7 +570,7 @@ export const DISCOUNT_CONFIG: Record<
     percentOff: 100,
     maxCombined: 100,
     appliesToAddOns: true,
-  }, 
+  },
   GOVERNMENT: { percentOff: 30, maxCombined: 30, appliesToAddOns: true },
   NGO: { percentOff: 40, maxCombined: 40, appliesToAddOns: true },
   MEDICAL_COLLEGE: { percentOff: 50, maxCombined: 50, appliesToAddOns: true },
@@ -681,10 +579,9 @@ export const DISCOUNT_CONFIG: Record<
 };
 
 export const REFERRAL_REWARDS: Record<TierName, number> = {
-  CAPTURE: 0,
-  CORE: 500,
-  PLUS: 1000,
-  PRO: 2500,
+  STARTER: 0,
+  ESSENTIAL: 500,
+  PROFESSIONAL: 2500,
   ENTERPRISE: 5000,
   INTELLIGENCE: 0,
 };
@@ -695,34 +592,30 @@ export const REFERRAL_REWARDS_BY_CURRENCY: Record<
 > = {
   INR: REFERRAL_REWARDS,
   USD: {
-    CAPTURE: 0,
-    CORE: 15,
-    PLUS: 30,
-    PRO: 60,
+    STARTER: 0,
+    ESSENTIAL: 15,
+    PROFESSIONAL: 60,
     ENTERPRISE: 100,
     INTELLIGENCE: 0,
   },
   EUR: {
-    CAPTURE: 0,
-    CORE: 12,
-    PLUS: 25,
-    PRO: 50,
+    STARTER: 0,
+    ESSENTIAL: 12,
+    PROFESSIONAL: 50,
     ENTERPRISE: 85,
     INTELLIGENCE: 0,
   },
   GBP: {
-    CAPTURE: 0,
-    CORE: 10,
-    PLUS: 22,
-    PRO: 45,
+    STARTER: 0,
+    ESSENTIAL: 10,
+    PROFESSIONAL: 45,
     ENTERPRISE: 75,
     INTELLIGENCE: 0,
   },
   AUD: {
-    CAPTURE: 0,
-    CORE: 22,
-    PLUS: 45,
-    PRO: 90,
+    STARTER: 0,
+    ESSENTIAL: 22,
+    PROFESSIONAL: 90,
     ENTERPRISE: 150,
     INTELLIGENCE: 0,
   },
@@ -743,14 +636,14 @@ export function getOverageRatesByCurrency(
 }
 
 export function getWhatsAppAddonPricingByCurrency(
-  tier: Exclude<TierName, "CAPTURE" | "INTELLIGENCE">,
+  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   currency: SupportedCurrency = "INR",
 ): AddOnPricing {
   return WHATSAPP_ADDON_PRICING_BY_CURRENCY[currency][tier];
 }
 
 export function getIntelligenceAddonPricingByCurrency(
-  tier: Exclude<TierName, "CAPTURE" | "INTELLIGENCE">,
+  tier: Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   currency: SupportedCurrency = "INR",
 ): AddOnPricing {
   return INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency][tier];
@@ -786,27 +679,21 @@ export const tierInfoSchema = z.object({
 export type TierInfo = z.infer<typeof tierInfoSchema>;
 
 export const TIER_INFO: Record<TierName, TierInfo> = {
-  CAPTURE: {
-    name: "Docita Capture",
-    description: "Perfect for getting started with digitization",
+  STARTER: {
+    name: "Docita Starter",
+    description: "Basic clinical workflow for free — appointments, prescriptions, and patient records",
     tagline: "Free forever",
     color: "gray",
   },
-  CORE: {
-    name: "Docita Core",
-    description: "Essential features for small clinics",
-    tagline: "Solo Clinic Essentials",
+  ESSENTIAL: {
+    name: "Docita Essential",
+    description: "Professional practice management for solo clinics",
+    tagline: "Solo Clinic Pro",
     color: "blue",
   },
-  PLUS: {
-    name: "Docita Plus",
-    description: "Advanced features for growing clinics",
-    tagline: "WhatsApp Automation",
-    color: "green",
-  },
-  PRO: {
-    name: "Docita Pro",
-    description: "Full-featured solution for professional clinics",
+  PROFESSIONAL: {
+    name: "Docita Professional",
+    description: "Full-featured solution for multi-doctor clinics",
     tagline: "Multi-Doctor Clinics",
     color: "purple",
   },
@@ -860,7 +747,6 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     name: "Basic OCR",
     description: "Extract text from images",
   },
-
   [Feature.CALENDAR_SLOTS]: {
     name: "Appointments",
     description: "Schedule and manage appointments",
@@ -873,13 +759,14 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     name: "Medicine Database",
     description: "Search and add medicines",
   },
-  [Feature.INVOICING]: {
-    name: "Invoicing",
-    description: "Create and manage invoices",
-  },
   [Feature.DIGITAL_PRESCRIPTIONS]: {
     name: "Digital Prescriptions",
     description: "Create digital prescriptions",
+  },
+
+  [Feature.INVOICING]: {
+    name: "Invoicing",
+    description: "Create and manage invoices",
   },
   [Feature.BASIC_ANALYTICS]: {
     name: "Basic Analytics",
@@ -889,7 +776,6 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     name: "Medical Coding",
     description: "ICD/CPT code management",
   },
-
   [Feature.AUTO_REMINDERS]: {
     name: "Auto Reminders",
     description: "Automated appointment reminders",
@@ -900,60 +786,60 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   },
   [Feature.PRESCRIPTION_TEMPLATES]: {
     name: "Prescription Templates",
-    description: "Save and reuse templates",
+    description: "Reusable prescription templates",
   },
   [Feature.MULTI_DEVICE]: {
-    name: "Multi-Device",
-    description: "Access from multiple devices",
+    name: "Multi-Device Login",
+    description: "Staff can log in from multiple devices",
   },
   [Feature.ROLE_MANAGEMENT]: {
     name: "Role Management",
-    description: "Manage staff roles and permissions",
+    description: "Assign roles to staff members",
   },
   [Feature.CONSENT_MANAGEMENT]: {
     name: "Consent Management",
-    description: "Digital consent forms",
+    description: "Digital patient consent forms",
   },
   [Feature.DOCTOR_SIGNATURE]: {
-    name: "Digital Signature",
-    description: "Add signature to prescriptions",
+    name: "Doctor Signature",
+    description: "Digital signature on prescriptions",
   },
 
   [Feature.MULTI_DOCTOR]: {
     name: "Multi-Doctor",
-    description: "Support for multiple doctors",
+    description: "Manage multiple doctors",
   },
   [Feature.MULTI_CLINIC]: {
-    name: "Multi-Clinic",
-    description: "Manage multiple clinic locations",
+    name: "Multi-Branch",
+    description: "Manage multiple clinic branches",
   },
   [Feature.LAB_TESTS]: {
-    name: "Lab Integration",
-    description: "Order and track lab tests",
+    name: "Lab Tests",
+    description: "Lab test catalog and tracking",
   },
   [Feature.INVENTORY]: {
     name: "Inventory",
-    description: "Manage medicine inventory",
+    description: "Medicine and supplies inventory",
   },
   [Feature.QUEUE_MANAGEMENT]: {
     name: "Queue Management",
-    description: "Digital token system",
+    description: "Token queue system",
   },
   [Feature.AUDIT_LOGS]: {
     name: "Audit Logs",
-    description: "Track all system activities",
+    description: "Complete audit trail",
   },
   [Feature.INSURANCE_BILLING]: {
     name: "Insurance Billing",
     description: "Insurance claim management",
   },
   [Feature.DIGITAL_INTAKE_FORMS]: {
-    name: "Intake Forms",
-    description: "Digital patient intake forms",
+    name: "Digital Intake Forms",
+    description: "Patient intake forms online",
   },
   [Feature.BROADCAST_CAMPAIGNS]: {
     name: "Broadcast Campaigns",
-    description: "Send bulk messages",
+    description: "WhatsApp bulk messaging",
   },
   [Feature.OCR_ADVANCED]: {
     name: "Advanced OCR",
@@ -961,7 +847,7 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   },
   [Feature.ADVANCED_ANALYTICS]: {
     name: "Advanced Analytics",
-    description: "Detailed reports and insights",
+    description: "Deep clinic performance analytics",
   },
 
   [Feature.FULL_EHR]: {
@@ -970,18 +856,18 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   },
   [Feature.API_ACCESS]: {
     name: "API Access",
-    description: "Access to Docita API",
+    description: "REST API for integrations",
   },
   [Feature.MULTI_LOCATION_ANALYTICS]: {
     name: "Multi-Location Analytics",
-    description: "Analytics across branches",
+    description: "Analytics across all branches",
   },
   [Feature.CUSTOM_BRANDING]: {
     name: "Custom Branding",
     description: "White-label with your brand",
   },
   [Feature.DATA_WAREHOUSE_EXPORT]: {
-    name: "Data Export",
+    name: "Data Warehouse Export",
     description: "Export to data warehouse",
   },
   [Feature.SSO]: {
@@ -1052,49 +938,41 @@ export const INTELLIGENCE_ADDONS: IntelligenceAddon[] = [
   },
 ];
 
-export const INTELLIGENCE_BUNDLE_DISCOUNT = 0.4; 
+export const INTELLIGENCE_BUNDLE_DISCOUNT = 0.4;
 
 export const TIER_FEATURES: Record<TierName, string[]> = {
-  CAPTURE: [
-    "Up to 100 patients",
+  STARTER: [
+    "Up to 50 patients",
+    "Calendar & appointment scheduling",
+    "Digital prescriptions with PDF",
+    "Patient profiles & visit history",
     "Paper record scanning & archival",
     "Excel import with column mapping",
-    "Patient deduplication",
-    "Document storage",
+    "Basic OCR for document scanning",
     "Export to CSV/Excel",
     "Single doctor",
   ],
-  CORE: [
-    "Everything in Capture",
+  ESSENTIAL: [
+    "Everything in Starter",
     "Up to 500 patients",
-    "Calendar & appointment scheduling",
-    "Patient profiles & visit history",
-    "Digital prescriptions with PDF",
     "Invoicing & billing",
-    "Team member management (roles & permissions)",
-    "2 users included",
-    "Core WhatsApp workflow (prescriptions, invoices, reminders, payments)",
     "Basic analytics dashboard",
+    "ICD-10/CPT medical coding",
+    "Prescription templates",
+    "Digital consent management",
+    "Doctor signature on prescriptions",
+    "Multi-device staff login",
+    "Team management (3 users, roles & permissions)",
+    "Automated appointment reminders",
+    "Payment links",
     "Email support",
   ],
-  PLUS: [
-    "Everything in Core",
-    "Up to 2,000 patients",
-    "Full WhatsApp Business API",
-    "Automated appointment reminders",
-    "Payment links via WhatsApp",
-    "Two-way WhatsApp flows",
-    "Prescription templates",
-    "Multi-device staff login",
-    "Basic OCR for documents",
-    "Medical coding (ICD-10/CPT)",
-    "Phone support",
-  ],
-  PRO: [
-    "Everything in Plus",
+  PROFESSIONAL: [
+    "Everything in Essential",
     "Up to 10,000 patients",
+    "Unlimited doctors",
     "Multi-doctor calendar",
-    "Multi-clinic branching",
+    "Multi-clinic branching (up to 5 branches)",
     "Lab tests catalog & tracking",
     "Inventory & pharmacy module",
     "Token queue management",
@@ -1102,11 +980,13 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Digital intake forms",
     "WhatsApp broadcast campaigns",
     "Advanced OCR with AI",
-    "Advanced medical coding",
+    "Advanced analytics dashboard",
+    "Insurance billing",
+    "15 users included",
     "Priority support",
   ],
   ENTERPRISE: [
-    "Everything in Pro",
+    "Everything in Professional",
     "Unlimited patients & doctors",
     "Full EHR capabilities",
     "API access for integrations",
@@ -1114,9 +994,7 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Custom branding & white-label",
     "Data warehouse export",
     "SSO & advanced security",
-    "WhatsApp chatbots",
     "Bulk import suite",
-    "ABDM integration ready",
     "Dedicated account manager",
     "SLA guarantee",
   ],

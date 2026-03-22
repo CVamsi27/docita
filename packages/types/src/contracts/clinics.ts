@@ -104,6 +104,7 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   id: z.string(),
   active: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]).optional(),
+  referralCode: z.string().optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);
@@ -123,3 +124,28 @@ export type CreateClinicReceptionistRequest = z.infer<
 export type UpdateClinicMemberRequest = z.infer<
   typeof updateClinicMemberRequestSchema
 >;
+
+// Join Request schemas
+export const createJoinRequestSchema = z.object({
+  clinicId: z.string().cuid(),
+  requestedRole: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+  message: z.string().max(500).optional(),
+});
+
+export const approveJoinRequestSchema = z.object({
+  assignedRole: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  welcomeMessage: z.string().max(500).optional(),
+});
+
+export const rejectJoinRequestSchema = z.object({
+  reason: z.string().min(10).max(500),
+});
+
+export const searchClinicsQuerySchema = z.object({
+  query: z.string().min(1),
+});
+
+export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
+export type ApproveJoinRequest = z.infer<typeof approveJoinRequestSchema>;
+export type RejectJoinRequest = z.infer<typeof rejectJoinRequestSchema>;
+export type SearchClinicsQuery = z.infer<typeof searchClinicsQuerySchema>;

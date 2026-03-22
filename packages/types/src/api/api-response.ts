@@ -185,6 +185,20 @@ export const API_ROUTES = {
   clinics: {
     get: (id: string) => `/clinics/${id}`,
     update: (id: string) => `/clinics/${id}`,
+    searchForJoin: "/clinics/search-for-join",
+    joinRequests: {
+      create: "/clinics/join-requests",
+      list: "/clinics/join-requests",
+      mine: "/clinics/join-requests/mine",
+      count: "/clinics/join-requests/count",
+      approve: (id: string) => `/clinics/join-requests/${id}/approve`,
+      reject: (id: string) => `/clinics/join-requests/${id}/reject`,
+      withdraw: (id: string) => `/clinics/join-requests/${id}/withdraw`,
+    },
+  },
+
+  onboarding: {
+    choosePath: "/onboarding/choose-path",
   },
 
   queue: {
