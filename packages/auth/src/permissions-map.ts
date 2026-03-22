@@ -109,17 +109,17 @@ export const PERMISSIONS_BY_ROLE: Record<UserRole, Permission[]> = {
   PATIENT: ["VIEW_PATIENTS"],
 };
 
-export function hasPermission(role: string, permission: Permission): boolean {
+export function hasPermission(role: UserRole, permission: Permission): boolean {
   const rolePermissions = PERMISSIONS_BY_ROLE[role] || [];
   return rolePermissions.includes(permission);
 }
 
-export function getPermissionsForRole(role: string): Permission[] {
+export function getPermissionsForRole(role: UserRole): Permission[] {
   return PERMISSIONS_BY_ROLE[role] || [];
 }
 
 export function canPerformActions(
-  role: string,
+  role: UserRole,
   permissions: Permission[],
 ): boolean {
   return permissions.every((perm) => hasPermission(role, perm));
