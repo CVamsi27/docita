@@ -19,6 +19,7 @@ export * from "./billing/SubscriptionSettings";
 export * from "./ui/AppearanceSettings";
 export * from "./ui/SettingsModals";
 
+export * from "./leave/LeaveManagementSettings";
 export * from "./notifications/NotificationSettings";
 export * from "./notifications/NotificationFeed";
 export * from "./notifications/ReminderSettingsUI";

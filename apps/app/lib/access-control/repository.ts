@@ -204,7 +204,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
   private parseTier(value?: string): Tier {
     if (!value) {
-      return Tier.CAPTURE;
+      return Tier.STARTER;
     }
 
     const numericTier = Number(value);
@@ -219,7 +219,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       }
     }
 
-    return Tier.CAPTURE;
+    return Tier.STARTER;
   }
 
   private isValidFeature(value: string): value is Feature {
@@ -266,7 +266,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
   private createDefaultSubscription(): ISubscription {
     return {
-      tier: Tier.CAPTURE,
+      tier: Tier.STARTER,
       status: "active",
       features: [],
       startDate: new Date(),

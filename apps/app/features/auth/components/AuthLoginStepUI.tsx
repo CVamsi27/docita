@@ -23,6 +23,7 @@ interface LoginStepProps {
   onChangePassword: (value: string) => void;
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
+  onForgotPassword: () => void;
 }
 
 export function AuthLoginStepUI({
@@ -36,6 +37,7 @@ export function AuthLoginStepUI({
   onChangePassword,
   onTogglePassword,
   onSubmit,
+  onForgotPassword,
 }: LoginStepProps) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
@@ -55,6 +57,7 @@ export function AuthLoginStepUI({
             className="px-0 h-auto text-xs font-normal"
             tabIndex={-1}
             type="button"
+            onClick={onForgotPassword}
           >
             Forgot password?
           </Button>
@@ -107,7 +110,7 @@ export function AuthLoginStepUI({
 
       <Button
         type="submit"
-        className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+        className="w-full h-11 text-base shadow-md hover:shadow-lg transition-shadow"
         disabled={loading}
       >
         {loading ? (

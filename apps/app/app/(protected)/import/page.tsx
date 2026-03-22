@@ -45,7 +45,7 @@ export default function ImportPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-info/15">
                 <FileSpreadsheet className="h-6 w-6 text-info" />
               </div>
-              <TierBadge tier={Tier.CAPTURE} />
+              <TierBadge tier={Tier.STARTER} />
             </div>
             <CardTitle className="mt-4">Excel Import</CardTitle>
             <CardDescription>
@@ -144,7 +144,7 @@ export default function ImportPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-info/20">
               <Database className="h-6 w-6 text-info" />
             </div>
-            <TierBadge tier={Tier.PRO} />
+            <TierBadge tier={Tier.PROFESSIONAL} />
           </div>
           <CardTitle className="mt-4">Bulk Entity Import</CardTitle>
           <CardDescription>

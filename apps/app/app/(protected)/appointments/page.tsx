@@ -33,6 +33,7 @@ function AppointmentsContent() {
     canViewAllDoctors,
     doctorsList,
     loading,
+    isError,
     filteredAppointments,
     currentTimeSlot,
     isToday,
@@ -40,6 +41,8 @@ function AppointmentsContent() {
     preselectedPatientId,
     user,
     isPendingMutation,
+    activeStartHour,
+    activeEndHour,
   } = state;
 
   const {
@@ -95,6 +98,8 @@ function AppointmentsContent() {
           <AppointmentsListUI
             date={date}
             loading={loading}
+            isError={isError}
+            onRetry={refetch}
             doctorsList={doctorsList}
             selectedDoctorId={selectedDoctorId}
             filteredAppointments={filteredAppointments}
@@ -113,6 +118,8 @@ function AppointmentsContent() {
               setNoShowDialogOpen(true);
             }}
             userRole={user?.role}
+            activeStartHour={activeStartHour}
+            activeEndHour={activeEndHour}
           />
         </div>
       </div>

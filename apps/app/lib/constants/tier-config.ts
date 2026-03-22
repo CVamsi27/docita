@@ -60,24 +60,19 @@ export interface TierConfigData {
 }
 
 export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
-  [Tier.CAPTURE]: {
-    monthly: TIER_PRICING.CAPTURE.monthly,
-    yearly: TIER_PRICING.CAPTURE.yearly,
+  [Tier.STARTER]: {
+    monthly: TIER_PRICING.STARTER.monthly,
+    yearly: TIER_PRICING.STARTER.yearly,
     currency: DEFAULT_CURRENCY_SYMBOL,
   },
-  [Tier.CORE]: {
-    monthly: TIER_PRICING.CORE.monthly,
-    yearly: TIER_PRICING.CORE.yearly,
+  [Tier.ESSENTIAL]: {
+    monthly: TIER_PRICING.ESSENTIAL.monthly,
+    yearly: TIER_PRICING.ESSENTIAL.yearly,
     currency: DEFAULT_CURRENCY_SYMBOL,
   },
-  [Tier.PLUS]: {
-    monthly: TIER_PRICING.PLUS.monthly,
-    yearly: TIER_PRICING.PLUS.yearly,
-    currency: DEFAULT_CURRENCY_SYMBOL,
-  },
-  [Tier.PRO]: {
-    monthly: TIER_PRICING.PRO.monthly,
-    yearly: TIER_PRICING.PRO.yearly,
+  [Tier.PROFESSIONAL]: {
+    monthly: TIER_PRICING.PROFESSIONAL.monthly,
+    yearly: TIER_PRICING.PROFESSIONAL.yearly,
     currency: DEFAULT_CURRENCY_SYMBOL,
   },
   [Tier.ENTERPRISE]: {
@@ -93,10 +88,9 @@ export const DEFAULT_PRICING: Record<Tier, PlanPricing> = {
 };
 
 export const DEFAULT_LIMITS: Record<Tier, PlanLimits> = {
-  [Tier.CAPTURE]: TIER_LIMITS.CAPTURE,
-  [Tier.CORE]: TIER_LIMITS.CORE,
-  [Tier.PLUS]: TIER_LIMITS.PLUS,
-  [Tier.PRO]: TIER_LIMITS.PRO,
+  [Tier.STARTER]: TIER_LIMITS.STARTER,
+  [Tier.ESSENTIAL]: TIER_LIMITS.ESSENTIAL,
+  [Tier.PROFESSIONAL]: TIER_LIMITS.PROFESSIONAL,
   [Tier.ENTERPRISE]: TIER_LIMITS.ENTERPRISE,
   [Tier.INTELLIGENCE]: TIER_LIMITS.INTELLIGENCE,
 };
@@ -105,21 +99,17 @@ export const DEFAULT_DESCRIPTIONS: Record<
   Tier,
   { tagline: string; description: string }
 > = {
-  [Tier.CAPTURE]: {
-    tagline: TIER_INFO.CAPTURE.tagline,
-    description: TIER_INFO.CAPTURE.description,
+  [Tier.STARTER]: {
+    tagline: TIER_INFO.STARTER.tagline,
+    description: TIER_INFO.STARTER.description,
   },
-  [Tier.CORE]: {
-    tagline: TIER_INFO.CORE.tagline,
-    description: TIER_INFO.CORE.description,
+  [Tier.ESSENTIAL]: {
+    tagline: TIER_INFO.ESSENTIAL.tagline,
+    description: TIER_INFO.ESSENTIAL.description,
   },
-  [Tier.PLUS]: {
-    tagline: TIER_INFO.PLUS.tagline,
-    description: TIER_INFO.PLUS.description,
-  },
-  [Tier.PRO]: {
-    tagline: TIER_INFO.PRO.tagline,
-    description: TIER_INFO.PRO.description,
+  [Tier.PROFESSIONAL]: {
+    tagline: TIER_INFO.PROFESSIONAL.tagline,
+    description: TIER_INFO.PROFESSIONAL.description,
   },
   [Tier.ENTERPRISE]: {
     tagline: TIER_INFO.ENTERPRISE.tagline,

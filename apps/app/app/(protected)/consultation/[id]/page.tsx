@@ -2,10 +2,11 @@
 
 import { useParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
+import { ErrorState } from "@workspace/ui/components/error-state";
 import {
   ClinicalDocumentationDynamic,
-  ConsultationSidebarUI as ConsultationSidebar,
 } from "@/features/consultation/components";
+import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationLayoutUI } from "@/features/consultation/components/ConsultationLayoutUI";
@@ -19,8 +20,8 @@ export default function ConsultationPage() {
   const {
     appointmentData,
     loading,
+    isError,
     clinic,
-    pastAppointments,
     isSidebarOpen,
     defaultTab,
   } = state;
@@ -38,6 +39,17 @@ export default function ConsultationPage() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <ErrorState
+          message="Failed to load consultation data."
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
   if (!appointmentData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
@@ -51,28 +63,33 @@ export default function ConsultationPage() {
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
     : "Patient";
 
-  const sidebarProps = {
-    appointment: appointmentData,
-    pastAppointments: pastAppointments,
-  };
-
   const DesktopSidebar = (
-    <ConsultationSidebar {...sidebarProps} onClose={toggleSidebar} />
+    <ConsultationSidebarContainer
+      appointmentData={appointmentData}
+      onClose={toggleSidebar}
+    />
   );
 
-  const MobileSidebar = <ConsultationSidebar {...sidebarProps} />;
+  const MobileSidebar = (
+    <ConsultationSidebarContainer
+      appointmentData={appointmentData}
+    />
+  );
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {}
       <ConsultationPageHeaderUI
         patientName={patientName}
         appointmentDate={appointmentData.startTime}
+        appointmentId={appointmentId}
+        patientId={appointmentData.patientId}
+        appointmentType={appointmentData.type}
+        appointmentStatus={appointmentData.status}
+        chiefComplaint={appointmentData.chiefComplaint ?? undefined}
         onBack={handleBack}
         MobileSidebarContent={MobileSidebar}
       />
 
-      {}
       <ConsultationLayoutUI
         Sidebar={DesktopSidebar}
         isSidebarOpen={isSidebarOpen}

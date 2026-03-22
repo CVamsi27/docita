@@ -21,7 +21,7 @@ import {
   usePatientSelectedMetrics,
   useRecordPatientMetricValue,
   useUpdatePatientSelectedMetrics,
-} from "../../hooks/usePatients";
+} from "@/features/patients/hooks/usePatients";
 
 type MetricValueType =
   | "STRING"

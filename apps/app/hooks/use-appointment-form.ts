@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
-import { useDoctors } from "@/hooks/api/use-settings";
+import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
   CreateAppointmentInput,
@@ -21,6 +21,7 @@ interface UseAppointmentFormProps {
   preselectedPatientId?: string;
   startHour?: number;
   endHour?: number;
+  open?: boolean;
 }
 
 export function useAppointmentForm({
@@ -29,6 +30,7 @@ export function useAppointmentForm({
   preselectedPatientId,
   startHour = 9,
   endHour = 17,
+  open,
 }: UseAppointmentFormProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const { data: searchedPatientsResponse, isLoading: patientsLoading } =
@@ -134,6 +136,79 @@ export function useAppointmentForm({
     ) as Resolver<CreateAppointmentInput>,
     defaultValues,
   });
+
+  const watchedDoctorId = form.watch("doctorId");
+  const { data: doctorSchedules = [] } = useDoctorSchedules(
+    watchedDoctorId || undefined,
+  );
+  const hasAutoSelectedTimeRef = useRef(false);
+
+  useEffect(() => {
+    if (!open) {
+      hasAutoSelectedTimeRef.current = false;
+      return;
+    }
+    if (hasAutoSelectedTimeRef.current || selectedDate) return;
+    if (!watchedDoctorId || doctorSchedules.length === 0) return;
+
+    const days = [
+      "SUNDAY",
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+    ];
+
+    const tryDate = new Date();
+    for (let attempt = 0; attempt < 7; attempt++) {
+      const dayName = days[tryDate.getDay()];
+      const schedule = doctorSchedules.find(
+        (s) => s.dayOfWeek === dayName && s.isActive,
+      );
+      if (schedule) {
+        const scheduleStartHour = parseInt(
+          schedule.startTime.split(":")[0] ?? "9",
+          10,
+        );
+        const scheduleEndHour = parseInt(
+          schedule.endTime.split(":")[0] ?? "18",
+          10,
+        );
+        const now = new Date();
+        const candidate = new Date(tryDate);
+        if (
+          attempt === 0 &&
+          now.getHours() >= scheduleStartHour &&
+          now.getHours() < scheduleEndHour
+        ) {
+          const remainder = 30 - (now.getMinutes() % 30);
+          candidate.setHours(
+            now.getHours(),
+            now.getMinutes() + (remainder === 30 ? 0 : remainder),
+            0,
+            0,
+          );
+          if (candidate.getHours() < scheduleEndHour) {
+            const offsetMs = candidate.getTimezoneOffset() * 60 * 1000;
+            const localDate = new Date(candidate.getTime() - offsetMs);
+            form.setValue("startTime", localDate.toISOString().slice(0, 16));
+            hasAutoSelectedTimeRef.current = true;
+            return;
+          }
+        } else if (attempt > 0 || now.getHours() < scheduleStartHour) {
+          candidate.setHours(scheduleStartHour, 0, 0, 0);
+          const offsetMs = candidate.getTimezoneOffset() * 60 * 1000;
+          const localDate = new Date(candidate.getTime() - offsetMs);
+          form.setValue("startTime", localDate.toISOString().slice(0, 16));
+          hasAutoSelectedTimeRef.current = true;
+          return;
+        }
+      }
+      tryDate.setDate(tryDate.getDate() + 1);
+    }
+  }, [open, watchedDoctorId, doctorSchedules, selectedDate, form]);
 
   const lastSelectedDateRef = useRef<Date | undefined>(undefined);
   const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);

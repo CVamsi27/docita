@@ -66,6 +66,7 @@ export function AddAppointmentDialogContainer({
     preselectedPatientId,
     startHour,
     endHour,
+    open,
   });
 
   return (

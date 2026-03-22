@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TimeSlotPickerUI } from "./TimeSlotPickerUI";
 import { api } from "@/lib/api-client";
+import { logger } from "@/lib/logger";
 
 interface TimeSlotPickerContainerProps {
   date: Date;
@@ -14,6 +15,15 @@ interface TimeSlot {
   available: boolean;
 }
 
+interface AvailableSlotResponse {
+  time: string;
+  endTime: string;
+  doctorId: string;
+  doctorName: string;
+  specialization?: string;
+  isAvailable: boolean;
+}
+
 export function TimeSlotPickerContainer({
   date,
   doctorId,
@@ -22,21 +32,28 @@ export function TimeSlotPickerContainer({
 }: TimeSlotPickerContainerProps) {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTimeSlots = async () => {
       setLoading(true);
+      setError(null);
       try {
         const queryParams = new URLSearchParams({
           date: date.toISOString(),
           doctorId,
         });
-        const response = await api.get<TimeSlot[]>(
-          `/appointments/time-slots?${queryParams.toString()}`,
+        const response = await api.get<AvailableSlotResponse[]>(
+          `/doctor-availability/slots?${queryParams.toString()}`,
         );
-        setTimeSlots(response);
-      } catch {
-
+        const mapped: TimeSlot[] = response.map((slot) => ({
+          time: slot.time,
+          available: slot.isAvailable,
+        }));
+        setTimeSlots(mapped);
+      } catch (err) {
+        logger.error("Failed to fetch time slots", { error: err });
+        setError("Failed to load available time slots. Please try again.");
         setTimeSlots([]);
       } finally {
         setLoading(false);
@@ -45,6 +62,14 @@ export function TimeSlotPickerContainer({
 
     fetchTimeSlots();
   }, [date, doctorId]);
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-destructive">
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <TimeSlotPickerUI

@@ -1,5 +1,6 @@
 import { Badge } from "@workspace/ui/components/badge";
-import { AlertTriangle, Building2, Phone, ShieldAlert } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { AlertTriangle, Building2, ChevronLeft, Phone, ShieldAlert } from "lucide-react";
 
 interface PatientFaceSheetHeaderUIProps {
   firstName: string;
@@ -25,6 +26,9 @@ interface PatientFaceSheetHeaderUIProps {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
+
+  onBack?: () => void;
+  actions?: React.ReactNode;
 }
 
 export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
@@ -48,12 +52,20 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
     emergencyContactName,
     emergencyContactPhone,
     emergencyContactRelation,
+    onBack,
+    actions,
   } = props;
 
   return (
     <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b -mx-6 px-6 py-4 shadow-sm">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
+          {onBack && (
+            <Button variant="ghost" size="icon" onClick={onBack}
+              className="h-9 w-9 shrink-0 -ml-2 text-muted-foreground hover:text-foreground">
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
           <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary border border-primary/10">
             {initials}
           </div>
@@ -149,6 +161,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               )}
             </div>
           )}
+          {actions && <div className="flex items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
         </div>
       </div>
 

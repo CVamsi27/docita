@@ -20,7 +20,7 @@ export interface Clinic {
   phone?: string;
   email?: string;
   logo?: string;
-  tier?: "CAPTURE" | "CORE" | "PLUS" | "PRO" | "ENTERPRISE" | string;
+  tier?: "STARTER" | "ESSENTIAL" | "PROFESSIONAL" | "ENTERPRISE" | string;
   type?:
     | "GENERAL"
     | "DENTAL"
@@ -40,8 +40,10 @@ export interface Clinic {
   trialEndsAt?: string;
   subscriptionStatus?: string;
   whatsappAutomation?: { enabled: boolean };
-  openingTime?: string; 
-  closingTime?: string; 
+  openingTime?: string;
+  closingTime?: string;
+  slotDuration?: number;
+  referralCode?: string | null;
 }
 
 interface ClinicContextType {
@@ -108,17 +110,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const updatePermissionsFromClinic = useCallback(
     (clinicData: Clinic) => {
       if (clinicData.tier) {
-
-        let mappedTier = clinicData.tier;
-
-        if (
-          clinicData.tier === "code subscription" ||
-          clinicData.tier === "CODE_SUBSCRIPTION"
-        ) {
-          mappedTier = "CAPTURE"; 
-        }
-
-        setTier(mappedTier);
+        setTier(clinicData.tier);
       }
       if (clinicData.intelligenceAddon) {
         setIntelligence(clinicData.intelligenceAddon === "ACTIVE");

@@ -45,12 +45,11 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       setLoading(true);
       setError(null);
 
-      const [patientData, appointmentsData, documentsData, statisticsData] =
+      const [patientData, appointmentsData, documentsData] =
         await Promise.all([
           apiFetch<PatientWithMedicalHistory>(`/patients/${patientId}`),
-          apiFetch<Appointment[]>(`/patients/${patientId}/appointments`),
-          apiFetch<Document[]>(`/patients/${patientId}/documents`),
-          apiFetch<PatientStatistics>(`/patients/${patientId}/statistics`),
+          apiFetch<{ items: Appointment[] }>(`/appointments?patientId=${patientId}&limit=100`),
+          apiFetch<Document[]>(`/medical-documents?patientId=${patientId}`),
         ]);
 
       if (
@@ -65,44 +64,37 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
         setError("Failed to load patient details");
       }
 
-      if (Array.isArray(appointmentsData)) {
-        const uniqueAppointments = Array.from(
-          new Map(appointmentsData.map((item) => [item.id, item])).values(),
-        );
-        setAppointments(uniqueAppointments);
-      } else {
-
-        setAppointments([]);
-      }
+      const apptItems = appointmentsData && typeof appointmentsData === "object" && "items" in appointmentsData
+        ? (appointmentsData as { items: Appointment[] }).items
+        : Array.isArray(appointmentsData) ? appointmentsData : [];
+      const uniqueAppointments = Array.from(
+        new Map(apptItems.map((item) => [item.id, item])).values(),
+      );
+      setAppointments(uniqueAppointments);
 
       if (Array.isArray(documentsData)) {
         setDocuments(documentsData);
       } else {
-
         setDocuments([]);
       }
 
-      if (
-        statisticsData &&
-        typeof statisticsData === "object" &&
-        !("error" in statisticsData) &&
-        !("statusCode" in statisticsData) &&
-        "totalVisits" in statisticsData
-      ) {
-        setStatistics(statisticsData);
-      } else {
-
-        setStatistics({
-          totalVisits: 0,
-          lastVisit: null,
-          nextVisit: null,
-          adherenceRate: 0,
-          totalAppointments: 0,
-          scheduledAppointments: 0,
-          noShowCount: 0,
-          cancelledCount: 0,
-        });
-      }
+      const totalVisits = uniqueAppointments.filter((a) => a.status === "completed").length;
+      const lastVisitDate = uniqueAppointments
+        .filter((a) => a.status === "completed")
+        .sort((a, b) => new Date(b.startTime ?? 0).getTime() - new Date(a.startTime ?? 0).getTime())[0]?.startTime ?? null;
+      const nextVisitDate = uniqueAppointments
+        .filter((a) => a.status === "scheduled" && new Date(a.startTime ?? 0) > new Date())
+        .sort((a, b) => new Date(a.startTime ?? 0).getTime() - new Date(b.startTime ?? 0).getTime())[0]?.startTime ?? null;
+      setStatistics({
+        totalVisits,
+        lastVisit: lastVisitDate ? String(lastVisitDate) : null,
+        nextVisit: nextVisitDate ? String(nextVisitDate) : null,
+        adherenceRate: 0,
+        totalAppointments: uniqueAppointments.length,
+        scheduledAppointments: uniqueAppointments.filter((a) => a.status === "scheduled").length,
+        noShowCount: uniqueAppointments.filter((a) => a.status === "no-show").length,
+        cancelledCount: uniqueAppointments.filter((a) => a.status === "cancelled").length,
+      });
     } catch (err) {
 
       const errorMessage =

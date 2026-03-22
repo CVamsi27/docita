@@ -1,17 +1,14 @@
 import { ImageResponse } from "next/og";
 
-export const size = {
-  width: 32,
-  height: 32,
-};
+export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
+
+const ECG_PATH = "M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28";
 
 export default function Icon() {
   return new ImageResponse(
     <div
       style={{
-        fontSize: 24,
-        background: "transparent",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -26,34 +23,22 @@ export default function Icon() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {}
-        <rect width="32" height="32" rx="8" fill="url(#docita_logo_gradient)" />
-
-        {}
-        <path d="M9 7H13V25H9V7Z" fill="white" />
+        <rect width="32" height="32" rx="8" fill="url(#g)" />
         <path
-          d="M13 7H17C21.4183 7 25 10.5817 25 15V17C25 21.4183 21.4183 25 17 25H13V20H17C18.6569 20 20 18.6569 20 17V15C20 13.3431 18.6569 12 17 12H13V7Z"
-          fill="white"
+          d={ECG_PATH}
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <path d="M6 13.5H13V18.5H6V13.5Z" fill="white" />
-
         <defs>
-          <linearGradient
-            id="docita_logo_gradient"
-            x1="0"
-            y1="0"
-            x2="32"
-            y2="32"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#6366f1" />
-            <stop offset="1" stopColor="#4338ca" />
+          <linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#4F46E5" />
+            <stop offset="1" stopColor="#06B6D4" />
           </linearGradient>
         </defs>
       </svg>
     </div>,
-    {
-      ...size,
-    },
+    { ...size },
   );
 }

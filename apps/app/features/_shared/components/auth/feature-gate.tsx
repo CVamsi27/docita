@@ -132,10 +132,9 @@ export function FeatureTierBadge({
   const tierInfo = TIER_INFO[tierName];
 
   const tierColors: Record<Tier, string> = {
-    [Tier.CAPTURE]: "tier-capture",
-    [Tier.CORE]: "tier-core",
-    [Tier.PLUS]: "tier-plus",
-    [Tier.PRO]: "tier-pro",
+    [Tier.STARTER]: "tier-capture",
+    [Tier.ESSENTIAL]: "tier-core",
+    [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
   };
@@ -154,10 +153,9 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
   if (tier === undefined || tier === null) return null;
 
   const tierColors: Record<Tier, string> = {
-    [Tier.CAPTURE]: "tier-capture",
-    [Tier.CORE]: "tier-core",
-    [Tier.PLUS]: "tier-plus",
-    [Tier.PRO]: "tier-pro",
+    [Tier.STARTER]: "tier-capture",
+    [Tier.ESSENTIAL]: "tier-core",
+    [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
   };

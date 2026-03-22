@@ -11,10 +11,6 @@ const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001"
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@workspace/ui", "@workspace/db", "@workspace/types"],
-  typescript: {
-    ignoreBuildErrors: true, 
-  },
-
   turbopack: {},
 
   compress: true,

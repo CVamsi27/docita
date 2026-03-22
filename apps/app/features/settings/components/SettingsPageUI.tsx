@@ -15,8 +15,8 @@ import {
   ClinicGeneralSettings,
   CustomFieldsSettings,
   DoctorAvailabilitySettings,
+  LeaveManagementSettings,
   MemberManagementSettings,
-  NotificationFeed,
   NotificationSettings,
   ReminderSettings,
   SecuritySettings,
@@ -196,16 +196,16 @@ export function SettingsPageUI({
             <NotificationSettings />
           </TabsContent>
 
-          <TabsContent value="notification-feed" className="mt-0">
-            <NotificationFeed />
-          </TabsContent>
-
           <TabsContent value="security" className="mt-0">
             <SecuritySettings />
           </TabsContent>
 
           <TabsContent value="appearance" className="mt-0">
             <AppearanceSettings />
+          </TabsContent>
+
+          <TabsContent value="leave" className="mt-0 space-y-6">
+            <LeaveManagementSettings />
           </TabsContent>
         </div>
       </Tabs>

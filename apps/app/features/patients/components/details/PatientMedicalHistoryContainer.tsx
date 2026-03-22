@@ -22,21 +22,9 @@ export function PatientMedicalHistoryContainer({
   className,
   variant,
 }: PatientMedicalHistoryContainerProps) {
-  if (variant !== "consultation") {
-    return (
-      <PatientMetricsHistoryUI
-        patientId={initialPatient.id || ""}
-        readOnly={readOnly}
-        className={className}
-      />
-    );
-  }
-
   const { operations, patient: freshPatient } = usePatientHistory(
     initialPatient.id || "",
   );
-
-  const patient = freshPatient || initialPatient;
 
   const [editingAllergy, setEditingAllergy] = useState<PatientAllergy | null>(
     null,
@@ -50,6 +38,18 @@ export function PatientMedicalHistoryContainer({
   const [newFamilyRelation, setNewFamilyRelation] = useState("");
 
   const { data: clinic } = useClinicSettings();
+
+  if (variant !== "consultation") {
+    return (
+      <PatientMetricsHistoryUI
+        patientId={initialPatient.id || ""}
+        readOnly={readOnly}
+        className={className}
+      />
+    );
+  }
+
+  const patient = freshPatient || initialPatient;
 
   const addCondition = () => {
     if (!newCondition.trim()) return;

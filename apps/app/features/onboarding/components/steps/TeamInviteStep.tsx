@@ -66,6 +66,7 @@ export function TeamInviteStep({
   const [members, setMembers] = useState<TeamMember[]>([
     { email: "", role: "DOCTOR", name: "" },
   ]);
+  const [emailErrors, setEmailErrors] = useState<Record<number, string>>({});
 
   const addMember = () => {
     if (members.length < maxMembers) {
@@ -87,11 +88,30 @@ export function TeamInviteStep({
     const updated = [...members];
     updated[index] = { ...updated[index], [field]: value };
     setMembers(updated);
+
+    if (field === "email") {
+      const newErrors = { ...emailErrors };
+      delete newErrors[index];
+
+      if (value && value.includes("@")) {
+        const isDuplicate = updated.some(
+          (m, i) => i !== index && m.email.toLowerCase() === value.toLowerCase(),
+        );
+        const isOwner = ownerEmail?.toLowerCase() === value.toLowerCase();
+
+        if (isDuplicate) {
+          newErrors[index] = "This email is already added";
+        } else if (isOwner) {
+          newErrors[index] = "This is the clinic owner's email";
+        }
+      }
+      setEmailErrors(newErrors);
+    }
   };
 
   const handleSubmit = () => {
     const validMembers = members.filter(
-      (m) => m.email.trim() !== "" && m.email.includes("@"),
+      (m) => m.email.trim() !== "" && m.email.includes("@") && !emailErrors[members.indexOf(m)],
     );
     onComplete(validMembers);
   };
@@ -162,7 +182,12 @@ export function TeamInviteStep({
                   placeholder="colleague@clinic.com"
                   value={member.email}
                   onChange={(e) => updateMember(index, "email", e.target.value)}
+                  className={emailErrors[index] ? "border-destructive" : ""}
+                  aria-invalid={!!emailErrors[index]}
                 />
+                {emailErrors[index] && (
+                  <p className="text-xs text-destructive">{emailErrors[index]}</p>
+                )}
               </div>
 
               <div className="space-y-2">

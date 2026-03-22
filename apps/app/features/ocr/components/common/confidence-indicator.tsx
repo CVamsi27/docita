@@ -19,7 +19,7 @@ export const ConfidenceIndicator = ({ score }: { score?: number }) => {
   return (
     <div className="flex items-center gap-1 text-xs">
       {icon}
-      <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
         <div
           className={`h-full ${color}`}
           style={{ width: `${percentage}%` }}

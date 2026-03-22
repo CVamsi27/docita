@@ -3,6 +3,7 @@ import { apiFetch } from "@/lib/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
+import { toast } from "sonner";
 import type { ClinicType } from "@workspace/types";
 
 interface PatientTagManagerContainerProps {
@@ -30,7 +31,7 @@ export function PatientTagManagerContainer({
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
     } catch {
-
+      toast.error("Failed to load tags");
     }
   }, [patientId]);
 
@@ -56,7 +57,7 @@ export function PatientTagManagerContainer({
       setNewColor("#3b82f6");
       onTagsUpdated?.();
     } catch {
-
+      toast.error("Failed to add tag");
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch {
-
+      toast.error("Failed to remove tag");
       setTags(previousTags);
     }
   };
@@ -96,7 +97,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch {
-
+      toast.error("Failed to update tag");
       setTags(previousTags);
     }
   };

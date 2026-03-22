@@ -1,19 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Lock, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ApiValidationError } from "@/lib/api-error";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
+import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
 
 const STEP_TITLES: Record<AuthStep, string> = {
@@ -54,6 +51,7 @@ export function AuthPageContainer() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const { login, register, checkEmail } = useAuth();
 
   const resetErrors = () => {
@@ -126,6 +124,10 @@ export function AuthPageContainer() {
     }
   };
 
+  const handleForgotPassword = () => {
+    router.push("/forgot-password");
+  };
+
   const handleBack = () => {
     setStep("email");
     setPassword("");
@@ -136,72 +138,104 @@ export function AuthPageContainer() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-background via-muted/50 to-background px-4">
-      <div className="absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02]" />
-      <Card className="z-10 w-full max-w-md border-0 shadow-2xl bg-card/80 backdrop-blur-xl">
-        <CardHeader className="space-y-1 px-8 pt-8 pb-6">
-          <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 flex items-center justify-center">
-              <DocitaIcon className="h-12 w-12" />
+    <div className="flex min-h-screen bg-background">
+      <AuthBrandingPanel />
+
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-8 relative">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)",
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
+        <div className="w-full max-w-md space-y-6 relative z-10">
+          <div className="lg:hidden flex justify-center mb-2">
+            <DocitaLogo />
+          </div>
+
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
+            <h1 className="text-2xl font-bold tracking-tight">
+              {STEP_TITLES[step]}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {STEP_DESCRIPTIONS[step]}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+            <div
+              key={step}
+              className="animate-in fade-in slide-in-from-right-4 duration-500"
+            >
+              {step === "email" && (
+                <AuthEmailStepUI
+                  email={email}
+                  fieldErrors={fieldErrors}
+                  loading={loading}
+                  error={error}
+                  onChangeEmail={setEmail}
+                  onSubmit={handleEmailSubmit}
+                />
+              )}
+
+              {step === "login" && (
+                <AuthLoginStepUI
+                  email={email}
+                  password={password}
+                  showPassword={showPassword}
+                  fieldErrors={fieldErrors}
+                  loading={loading}
+                  error={error}
+                  onBack={handleBack}
+                  onChangePassword={setPassword}
+                  onTogglePassword={() => setShowPassword((prev) => !prev)}
+                  onSubmit={handleLoginSubmit}
+                  onForgotPassword={handleForgotPassword}
+                />
+              )}
+
+              {step === "signup" && (
+                <AuthSignupStepUI
+                  email={email}
+                  firstName={firstName}
+                  lastName={lastName}
+                  password={password}
+                  ownerRole={ownerRole}
+                  showPassword={showPassword}
+                  fieldErrors={fieldErrors}
+                  loading={loading}
+                  error={error}
+                  onBack={handleBack}
+                  onChangeFirstName={setFirstName}
+                  onChangeLastName={setLastName}
+                  onChangePassword={setPassword}
+                  onChangeOwnerRole={setOwnerRole}
+                  onTogglePassword={() => setShowPassword((prev) => !prev)}
+                  onSubmit={handleSignupSubmit}
+                />
+              )}
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center tracking-tight">
-            {STEP_TITLES[step]}
-          </CardTitle>
-          <CardDescription className="text-center text-muted-foreground/80 text-base">
-            {STEP_DESCRIPTIONS[step]}
-          </CardDescription>
-        </CardHeader>
 
-        <CardContent className="px-8 pb-8">
-          {step === "email" && (
-            <AuthEmailStepUI
-              email={email}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              onChangeEmail={setEmail}
-              onSubmit={handleEmailSubmit}
-            />
-          )}
-
-          {step === "login" && (
-            <AuthLoginStepUI
-              email={email}
-              password={password}
-              showPassword={showPassword}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              onBack={handleBack}
-              onChangePassword={setPassword}
-              onTogglePassword={() => setShowPassword((prev) => !prev)}
-              onSubmit={handleLoginSubmit}
-            />
-          )}
-
-          {step === "signup" && (
-            <AuthSignupStepUI
-              email={email}
-              firstName={firstName}
-              lastName={lastName}
-              password={password}
-              ownerRole={ownerRole}
-              showPassword={showPassword}
-              fieldErrors={fieldErrors}
-              loading={loading}
-              error={error}
-              onBack={handleBack}
-              onChangeFirstName={setFirstName}
-              onChangeLastName={setLastName}
-              onChangePassword={setPassword}
-              onChangeOwnerRole={setOwnerRole}
-              onTogglePassword={() => setShowPassword((prev) => !prev)}
-              onSubmit={handleSignupSubmit}
-            />
-          )}
-        </CardContent>
-      </Card>
+          <div className="lg:hidden flex justify-center gap-6 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Shield className="h-3 w-3" />
+              Data Encrypted
+            </span>
+            <span className="flex items-center gap-1">
+              <Lock className="h-3 w-3" />
+              HIPAA Ready
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

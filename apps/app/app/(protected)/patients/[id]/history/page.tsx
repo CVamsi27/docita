@@ -2,17 +2,10 @@
 
 import { use } from "react";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
-import { ArrowLeft, FileText, History } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { usePatientAppointments } from "@/hooks/api/use-appointments";
 import { usePatient } from "@/hooks/api/use-patients";
-import { DetailedHistoryList } from "@/features/patients/components";
+import { UnifiedTimelineContainer } from "@/features/patients/components/timeline/UnifiedTimelineContainer";
 
 interface PatientHistoryPageProps {
   params: Promise<{ id: string }>;
@@ -24,20 +17,10 @@ export default function PatientHistoryPage({
   const resolvedParams = use(params);
   const patientId = resolvedParams.id;
 
-  const { data: patient, isLoading: patientLoading } = usePatient(patientId);
-  const { data: appointmentsResponse, isLoading: appointmentsLoading } =
-    usePatientAppointments(patientId);
-
-  const appointments = appointmentsResponse?.items || [];
-
-  const loading = patientLoading || appointmentsLoading;
+  const { data: patient, isLoading } = usePatient(patientId);
   const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "";
 
-  const sortedAppointments = [...appointments].sort(
-    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
-  );
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex-1 space-y-6">
         <div className="animate-pulse space-y-4">
@@ -65,28 +48,7 @@ export default function PatientHistoryPage({
         </div>
       </div>
 
-      <Tabs defaultValue="timeline" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="timeline" className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            Timeline View
-          </TabsTrigger>
-          <TabsTrigger value="detailed" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Detailed View
-          </TabsTrigger>
-        </TabsList>
-
-        {}
-        <TabsContent value="timeline">
-          <DetailedHistoryList appointments={sortedAppointments} />
-        </TabsContent>
-
-        {}
-        <TabsContent value="detailed">
-          <DetailedHistoryList appointments={sortedAppointments} />
-        </TabsContent>
-      </Tabs>
+      <UnifiedTimelineContainer patientId={patientId} />
     </div>
   );
 }

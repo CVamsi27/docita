@@ -6,8 +6,6 @@ export { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 export { ConsultationProgressUI } from "./ConsultationProgressUI";
 export type { ConsultationStep } from "./ConsultationProgressUI";
 
-export { ConsultationModalContainer } from "./ConsultationModalContainer";
-
 export {
   PrescriptionModal,
   VitalsModal,

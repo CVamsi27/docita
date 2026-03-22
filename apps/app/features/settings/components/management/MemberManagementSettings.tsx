@@ -145,7 +145,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     if (!value) return "-";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString("en-IN");
+    return date.toLocaleDateString();
   };
   const openMemberDialog = (member: User) => {
     setSelectedMember(member);
@@ -346,7 +346,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Team Members</CardTitle>
-            <CardDescription>Loading team members...</CardDescription>
+            <CardDescription>Manage your clinic staff</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -809,7 +809,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 <p className="text-muted-foreground">Created</p>
                 <p className="font-medium">
                   {selectedMember.createdAt
-                    ? new Date(selectedMember.createdAt).toLocaleDateString("en-IN")
+                    ? new Date(selectedMember.createdAt).toLocaleDateString()
                     : "-"}
                 </p>
               </div>

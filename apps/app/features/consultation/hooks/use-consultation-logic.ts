@@ -1,15 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useAppointment,
-  usePatientAppointments,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
-import { Appointment, UpdateAppointmentInput } from "@workspace/types";
+import { UpdateAppointmentInput } from "@workspace/types";
 
 const TAB_MAPPING: Record<string, string> = {
   observations: "chief-complaint",
@@ -26,38 +25,13 @@ export const useConsultationLogic = (appointmentId: string) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { canGoBack } = useNavigationStore();
 
-  const { data: appointmentData, isLoading: loading } =
-    useAppointment(appointmentId);
+  const {
+    data: appointmentData,
+    isLoading: loading,
+    isError,
+  } = useAppointment(appointmentId);
 
   const { data: clinic } = useClinicSettings();
-
-  const { data: patientAppointmentsResponse } = usePatientAppointments(
-    appointmentData?.patientId || "",
-  );
-  const patientAppointments = useMemo(
-    () => patientAppointmentsResponse?.items || [],
-    [patientAppointmentsResponse?.items],
-  );
-
-  const pastAppointments = useMemo(() => {
-    return patientAppointments
-      .filter(
-        (apt: Appointment) =>
-          apt.id !== appointmentId && apt.status === "completed",
-      )
-      .map((apt: Appointment) => ({
-        id: apt.id || "",
-        date: apt.startTime,
-        chiefComplaint: apt.chiefComplaint,
-        finalDiagnosis: apt.finalDiagnosis,
-        diagnoses: apt.diagnoses,
-      }))
-      .sort(
-        (a: { date: Date | string }, b: { date: Date | string }) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
-      )
-      .slice(0, 10);
-  }, [patientAppointments, appointmentId]);
 
   const fromPage = searchParams.get("from");
   const fallbackRoute = useMemo(() => {
@@ -82,6 +56,25 @@ export const useConsultationLogic = (appointmentId: string) => {
   }, [canGoBack, goBack, router, fallbackRoute]);
 
   const updateAppointment = useUpdateAppointment(appointmentId);
+
+  const markedInProgressRef = useRef(false);
+  useEffect(() => {
+    if (
+      !markedInProgressRef.current &&
+      appointmentData &&
+      ["scheduled", "confirmed", "checked-in"].includes(appointmentData.status)
+    ) {
+      markedInProgressRef.current = true;
+      updateAppointment.mutate(
+        { status: "in-progress" },
+        {
+          onError: () => {
+            markedInProgressRef.current = false;
+          },
+        },
+      );
+    }
+  }, [appointmentData, updateAppointment]);
 
   const handleSave = useCallback(
     async (data: UpdateAppointmentInput) => {
@@ -115,9 +108,9 @@ export const useConsultationLogic = (appointmentId: string) => {
     state: {
       appointmentData,
       loading,
+      isError,
       clinic,
       clinicType: clinic?.type,
-      pastAppointments,
       isSidebarOpen,
       defaultTab,
     },

@@ -39,7 +39,7 @@ export const BedMap: FC<BedMapProps> = ({ ward, beds = [] }) => {
       case "reserved":
         return "bg-info text-info";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-muted text-muted-foreground";
     }
   };
 

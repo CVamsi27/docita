@@ -60,21 +60,17 @@ export const PLAN_DESCRIPTIONS: Record<
   Tier,
   { tagline: string; description: string }
 > = {
-  [Tier.CAPTURE]: {
+  [Tier.STARTER]: {
     tagline: "Free forever",
-    description: "Perfect for getting started with digitization",
+    description: "Basic clinical workflow for free",
   },
-  [Tier.CORE]: {
-    tagline: "Solo Clinic Essentials",
-    description: "Essential features for small clinics",
+  [Tier.ESSENTIAL]: {
+    tagline: "Solo Clinic Pro",
+    description: "Professional practice management for solo clinics",
   },
-  [Tier.PLUS]: {
-    tagline: "WhatsApp Automation",
-    description: "Advanced features for growing clinics",
-  },
-  [Tier.PRO]: {
+  [Tier.PROFESSIONAL]: {
     tagline: "Multi-Doctor Clinics",
-    description: "Full-featured solution for professional clinics",
+    description: "Full-featured solution for multi-doctor clinics",
   },
   [Tier.ENTERPRISE]: {
     tagline: "Hospital-Grade System",
@@ -93,7 +89,7 @@ export interface FeatureComparisonRow {
 }
 
 export function getFeatureComparisonData(): FeatureComparisonRow[] {
-  const tiers = [Tier.CAPTURE, Tier.CORE, Tier.PLUS, Tier.PRO, Tier.ENTERPRISE];
+  const tiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
 
   const rows: FeatureComparisonRow[] = [
 
@@ -266,7 +262,7 @@ export function getPlanHighlights(
     });
   });
 
-  if (tier > Tier.CAPTURE) {
+  if (tier > Tier.STARTER) {
     const prevTierName = Tier[tier - 1] as keyof typeof PLAN_LIMITS;
     const previousFeatures = getAllFeaturesUpToTier(prevTierName);
     previousFeatures.slice(0, 2).forEach((feature) => {

@@ -20,7 +20,6 @@ import {
 import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
-import { useDebounce } from "@workspace/hooks";
 import { Check } from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
@@ -31,7 +30,6 @@ import {
   type TierName,
 } from "@workspace/types";
 import {
-  type EstimateUsageInputs,
   type TierPricing,
   usePricingConfig,
   useTierEstimates,
@@ -42,15 +40,14 @@ import {
   PRICING_DIALOG_TIER_GRADIENTS,
   PRICING_DIALOG_TIER_ICONS,
   PRICING_DIALOG_TIERS,
-  PRICING_ESTIMATE_DEBOUNCE_MS,
 } from "@/features/subscription/config/pricing-config";
-import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 
 interface PricingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTier: Tier;
   onSelectTier: (tier: TierName, cycle: "MONTHLY" | "YEARLY") => void;
+  initialCurrency?: SupportedCurrency;
 }
 
 export function PricingDialog({
@@ -58,25 +55,20 @@ export function PricingDialog({
   onOpenChange,
   currentTier,
   onSelectTier,
+  initialCurrency,
 }: PricingDialogProps) {
   const TIER_ICON_CLASSES: Record<TierName, string> = {
-    CAPTURE: "tier-capture",
-    CORE: "tier-core",
-    PLUS: "tier-plus",
-    PRO: "tier-pro",
+    STARTER: "tier-capture",
+    ESSENTIAL: "tier-core",
+    PROFESSIONAL: "tier-pro",
     ENTERPRISE: "tier-enterprise",
     INTELLIGENCE: "tier-intelligence",
   };
 
-  const [currency, setCurrency] = useState<SupportedCurrency>("INR");
+  const [currency, setCurrency] = useState<SupportedCurrency>(
+    initialCurrency ?? "INR",
+  );
   const [isYearly, setIsYearly] = useState(false);
-  const [usageInputs, setUsageInputs] = useState<EstimateUsageInputs>(
-    DEFAULT_PRICING_USAGE_INPUTS,
-  );
-  const debouncedUsageInputs = useDebounce(
-    usageInputs,
-    PRICING_ESTIMATE_DEBOUNCE_MS,
-  );
 
   const { pricingConfig } = usePricingConfig(currency);
 
@@ -87,7 +79,7 @@ export function PricingDialog({
     tiers,
     currency,
     billingCycle: isYearly ? "yearly" : "monthly",
-    usage: debouncedUsageInputs,
+    usage: DEFAULT_PRICING_USAGE_INPUTS,
   });
 
   const formatPrice = (price: number | "custom") => {
@@ -372,17 +364,6 @@ export function PricingDialog({
               </div>
             );
           })}
-        </div>
-
-        <div className="pt-2 border-t border-border/50">
-          <DynamicPricingEstimator
-            defaultTier={currentTierName}
-            currency={currency}
-            billingCycle={isYearly ? "yearly" : "monthly"}
-            showCurrencySelector={false}
-            showBillingSelector={false}
-            onUsageChange={setUsageInputs}
-          />
         </div>
 
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">

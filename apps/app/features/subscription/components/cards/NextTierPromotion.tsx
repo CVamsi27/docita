@@ -34,7 +34,7 @@ export function NextTierPromotion({
   if (!nextTierInfo) return null;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary/30 bg-linear-to-br from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50">
+    <Card className="relative overflow-hidden border-2 border-primary/30 bg-linear-to-br from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-background/50">
       {}
       <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 dark:bg-primary/20" />
 
@@ -75,7 +75,7 @@ export function NextTierPromotion({
               return (
                 <div
                   key={feature}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-background/50 dark:bg-slate-800/50 border border-border/50"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-background/50 dark:bg-muted/50 border border-border/50"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
                     <Icon className="h-4 w-4 text-primary" />

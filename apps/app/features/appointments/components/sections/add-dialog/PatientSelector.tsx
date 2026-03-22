@@ -103,6 +103,7 @@ export function PatientSelector<T extends FieldValues>({
                       <CommandItem
                         key={patient.id}
                         value={patient.id}
+                        onPointerDown={(e) => e.preventDefault()}
                         onSelect={() => {
                           if (patient.id) {
                             form.setValue(

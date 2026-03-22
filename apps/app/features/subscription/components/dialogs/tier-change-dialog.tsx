@@ -42,10 +42,9 @@ interface TierChangeDialogProps {
 }
 
 const TIER_ICONS: Record<TierName, React.ElementType> = {
-  CAPTURE: Zap,
-  CORE: Rocket,
-  PLUS: Sparkles,
-  PRO: Crown,
+  STARTER: Zap,
+  ESSENTIAL: Rocket,
+  PROFESSIONAL: Crown,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
 };

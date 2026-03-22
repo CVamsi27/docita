@@ -23,7 +23,6 @@ import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@workspace/ui/components/avatar";
 
 export const ConsultationDashboardUI: FC = () => {
@@ -55,7 +54,6 @@ export const ConsultationDashboardUI: FC = () => {
         </Button>
       </div>
 
-      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -98,7 +96,6 @@ export const ConsultationDashboardUI: FC = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {}
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>In Progress</CardTitle>
@@ -119,8 +116,6 @@ export const ConsultationDashboardUI: FC = () => {
                   >
                     <div className="flex items-center gap-4">
                       <Avatar>
-                        <AvatarImage src="" />{" "}
-                        {}
                         <AvatarFallback>
                           {item.patient?.firstName?.[0]}
                           {item.patient?.lastName?.[0]}
@@ -160,7 +155,6 @@ export const ConsultationDashboardUI: FC = () => {
           </CardContent>
         </Card>
 
-        {}
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Waiting Room</CardTitle>

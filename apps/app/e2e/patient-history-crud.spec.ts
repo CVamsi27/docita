@@ -19,7 +19,7 @@ test.describe("Patient Medical History - CRUD", () => {
       data: {
         firstName: "Medical",
         lastName: "History",
-        phoneNumber: "9876543210",
+        phoneNumber: "9876543410",
         gender: "MALE",
         dateOfBirth: "1980-01-01",
         medicalHistory: ["Hypertension", "Type 2 Diabetes", "Asthma"],
@@ -204,7 +204,7 @@ test.describe("Patient Medical History - CRUD", () => {
       data: {
         firstName: "Remove",
         lastName: "Test",
-        phoneNumber: "9876543211",
+        phoneNumber: "9876543411",
         gender: "FEMALE",
         dateOfBirth: "1985-05-15",
         medicalHistory: ["Condition1", "Condition2", "Condition3"],
@@ -260,7 +260,7 @@ test.describe("Patient Medical History - CRUD", () => {
       data: {
         firstName: "Empty",
         lastName: "History",
-        phoneNumber: "9876543212",
+        phoneNumber: "9876543412",
         gender: "MALE",
         dateOfBirth: "1975-03-10",
       },

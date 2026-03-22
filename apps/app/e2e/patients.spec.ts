@@ -121,7 +121,7 @@ test.describe("Patient Management", () => {
 
       await page.fill('input[placeholder*="First"]', "John");
       await page.fill('input[placeholder*="Last"]', "Doe");
-      await page.fill('input[placeholder*="Phone"]', "9996543210");
+      await page.fill('input[placeholder*="Phone"]', "9996543410");
       await page.selectOption('select[name="gender"]', "MALE");
       await page.fill('input[type="date"]', "1990-01-01");
 
@@ -148,7 +148,7 @@ test.describe("Patient Management", () => {
       data: {
         firstName: "Jane",
         lastName: "Doe",
-        phoneNumber: "9996543211",
+        phoneNumber: "9996543411",
         gender: "FEMALE",
         dateOfBirth: "1990-05-15",
         clinicId,
@@ -184,7 +184,7 @@ test.describe("Patient Management", () => {
       data: {
         firstName: "SearchablePatient",
         lastName: "Test",
-        phoneNumber: "9996543212",
+        phoneNumber: "9996543412",
         gender: "MALE",
         dateOfBirth: "1990-01-01",
         clinicId,

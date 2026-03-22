@@ -1,39 +1,34 @@
-
-
 "use client";
 
 import { FC } from "react";
 import { usePatientHistoryReadOnly } from "@/hooks/api/use-patient-history";
+import { usePatientTimeline, usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 import { Appointment } from "@workspace/types";
 import { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
-interface PastAppointmentItem {
-  id?: string;
-  startTime?: string | Date;
-  date?: string | Date;
-  chiefComplaint?: string;
-  finalDiagnosis?: string;
-  status?: string;
-}
-
 interface ConsultationSidebarContainerProps {
   appointmentData?: Appointment;
-  pastAppointments?: PastAppointmentItem[];
+  pastAppointments?: unknown[];
   onClose?: () => void;
 }
 
 export const ConsultationSidebarContainer: FC<
   ConsultationSidebarContainerProps
-> = ({ appointmentData, pastAppointments = [], onClose }) => {
-
+> = ({ appointmentData, onClose }) => {
   const patientId = appointmentData?.patientId || "";
+
   const { historyData, patient, isLoading } =
     usePatientHistoryReadOnly(patientId);
+
+  const { data: timelineData } = usePatientTimeline(patientId, {
+    limit: 20,
+  });
+
+  const { data: snapshot } = usePatientSnapshot(patientId);
 
   const enrichedPatient = patient
     ? {
         ...patient,
-
         medicalConditions: historyData.medicalConditions.map((c) => ({
           id: c.id || "",
           conditionName: c.conditionName,
@@ -63,12 +58,11 @@ export const ConsultationSidebarContainer: FC<
   return (
     <ConsultationSidebarUI
       appointmentData={enrichedAppointmentData}
-      pastAppointments={pastAppointments}
-
-      patientAllergies={historyData.patientAllergies}
       surgicalHistory={historyData.surgicalHistory}
       familyHistory={historyData.familyHistory}
       socialHistory={historyData.socialHistory}
+      timelineData={timelineData}
+      snapshot={snapshot}
       onClose={onClose}
     />
   );

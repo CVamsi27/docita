@@ -1,13 +1,41 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { getTierInfo } from "@/lib/tier-config";
+import {
+  Feature,
+  FEATURE_TIER_MAP,
+  getTierInfo,
+  getTierName,
+  Tier,
+  TIER_LIMITS,
+} from "@/lib/tier-config";
+import {
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  type TierName,
+} from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useSubscription } from "@/hooks/api/use-settings";
+import { usePricingConfig } from "@/hooks/api/use-pricing";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import {
+  type CheckoutSuccessData,
+  useSubscriptionCheckout,
+} from "@/hooks/use-subscription-checkout";
 import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
+import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
+import { AddonsSection } from "@/features/subscription/components/sections/addons-section";
+import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
+import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
+import { TierCard } from "@/features/subscription/components/cards/tier-card";
+import {
+  PricingDialog,
+  PaymentSuccessModal,
+} from "@/features/subscription/components";
+import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -19,6 +47,11 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible";
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,9 +59,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Clock, Download, FileText, Loader2, XCircle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 
 interface Invoice {
   id: string;
@@ -156,13 +190,13 @@ function BillingHistory() {
           {invoices.map((invoice) => (
             <TableRow key={invoice.id}>
               <TableCell>
-                {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
+                {new Date(invoice.createdAt).toLocaleDateString()}
               </TableCell>
               <TableCell className="max-w-[200px] truncate text-muted-foreground">
                 {invoice.description || "Subscription Payment"}
               </TableCell>
               <TableCell>
-                {new Intl.NumberFormat("en-IN", {
+                {new Intl.NumberFormat(undefined, {
                   style: "currency",
                   currency: invoice.currency || DEFAULT_CURRENCY,
                 }).format(invoice.amountCents / 100)}
@@ -203,12 +237,48 @@ function BillingHistory() {
   );
 }
 
+interface UsageBarProps {
+  label: string;
+  included: number;
+  unlimited?: boolean;
+}
+
+function UsageBar({ label, included, unlimited }: UsageBarProps) {
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{label}</span>
+        <span>{unlimited ? "Unlimited" : `up to ${included.toLocaleString()} included`}</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-muted">
+        <div
+          className="h-1.5 rounded-full bg-primary/60"
+          style={{ width: unlimited ? "100%" : "20%" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function SubscriptionSettings() {
   const router = useRouter();
   const { isAdmin } = useAuth();
   const { currentTier, hasIntelligence } = usePermissionStore();
   const { data: subscription, isLoading } = useSubscription();
   const billingHistoryRef = useRef<HTMLDivElement>(null);
+  const [showPricingDialog, setShowPricingDialog] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<CheckoutSuccessData>({
+    planName: "",
+  });
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+
+  const { currency } = useLocaleCurrency();
+  const { pricingConfig } = usePricingConfig(currency);
+  const { checkoutAddon, processingId } = useSubscriptionCheckout((data) => {
+    setSuccessData(data);
+    setShowSuccessModal(true);
+  });
 
   if (isLoading) {
     return (
@@ -228,12 +298,13 @@ export function SubscriptionSettings() {
   const tierName = subscription?.tierName || "Free Plan";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
   const billingCycle = subscription?.billingCycle || "monthly";
-  const currency = subscription?.currency || DEFAULT_CURRENCY;
+  const subscriptionCurrency = subscription?.currency || DEFAULT_CURRENCY;
   const basePrice = (subscription?.basePriceCents ?? 0) / 100;
   const periodEnd = subscription?.currentPeriodEnd
-    ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN")
+    ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
     : "-";
   const currentTierInfo = getTierInfo(currentTier);
+  const currentTierName = getTierName(currentTier) as TierName;
 
   if (!isAdmin) {
     return (
@@ -257,8 +328,125 @@ export function SubscriptionSettings() {
     );
   }
 
+  const intelligenceFeatures = Object.entries(FEATURE_TIER_MAP)
+    .filter(([, requiredTier]) => requiredTier === Tier.INTELLIGENCE)
+    .map(([feature]) => ({
+      feature: feature as Feature,
+      details: getFeatureDetails(feature as Feature),
+    }));
+
+  const intelligenceAddOn = pricingConfig?.addOns.find(
+    (addOn) => addOn.id === "INTELLIGENCE",
+  );
+  const pricingByTier = intelligenceAddOn?.pricingByTier?.[currentTierName];
+  const dynamicIntelligencePricing =
+    pricingByTier &&
+    typeof pricingByTier.monthly === "number" &&
+    typeof pricingByTier.yearly === "number"
+      ? { monthly: pricingByTier.monthly, yearly: pricingByTier.yearly }
+      : undefined;
+
+  const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
+    .filter(([, requiredTier]) => requiredTier > currentTier && requiredTier !== Tier.INTELLIGENCE)
+    .map(([feature, requiredTier]) => ({
+      feature: feature as Feature,
+      requiredTier,
+      details: getFeatureDetails(feature as Feature),
+    }));
+
+  const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
+  const featuresByTier = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE].map(
+    (tier) => ({
+      tier,
+      features: Object.entries(FEATURE_TIER_MAP)
+        .filter(([, rt]) => rt === tier)
+        .map(([feature]) => ({
+          feature: feature as Feature,
+          details: getFeatureDetails(feature as Feature),
+        })),
+    }),
+  );
+
+  const currencyKey = (currency || "INR") as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
+  const currencySymbol = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
+  const overageRates =
+    (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[currentTierName];
+
+  // Mini plan grid: current tier + next two tiers
+  const allTiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
+  const currentTierIndex = allTiers.indexOf(currentTier);
+  const miniGridTiers = allTiers.slice(
+    Math.min(currentTierIndex, allTiers.length - 3),
+    Math.min(currentTierIndex, allTiers.length - 3) + 3,
+  );
+
+  const tierLimits = TIER_LIMITS[currentTierName];
+  const unlimitedPatients = tierLimits.patients >= 999999;
+  const unlimitedAppointments = (tierLimits.appointments ?? 0) >= 999999;
+
+  const trialDaysLeft =
+    subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24),
+          ),
+        )
+      : null;
+
+  const isPaymentDue =
+    subscriptionStatus === "PAYMENT_DUE" ||
+    subscriptionStatus === "PAST_DUE";
+
+  const isExpired = subscriptionStatus === "EXPIRED";
+
   return (
     <div className="space-y-8">
+      {trialDaysLeft !== null && (
+        <Alert className="border-info/40 bg-info/10">
+          <Clock className="h-4 w-4 text-info" />
+          <AlertTitle>Free Trial Active</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
+                : "Your free trial ends today."}
+              {" "}Add payment details to keep your CORE features.
+            </span>
+            <Button size="sm" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4">
+              Add Payment
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isPaymentDue && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Payment Due</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Your payment is overdue. Update your payment method to avoid service interruption.</span>
+            <Button size="sm" variant="outline" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10">
+              Update Payment
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isExpired && (
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertTitle>Trial Expired</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>Your free trial has ended. Choose a plan to continue using Docita.</span>
+            <Button size="sm" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90">
+              Choose a Plan
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card className="border-none shadow-lg overflow-hidden">
         <div className="h-2 bg-linear-to-r from-info to-primary" />
         <CardHeader className="pb-2">
@@ -298,9 +486,9 @@ export function SubscriptionSettings() {
                   <div>
                     <p className="text-muted-foreground">Base price</p>
                     <p className="font-medium">
-                      {new Intl.NumberFormat("en-IN", {
+                      {new Intl.NumberFormat(undefined, {
                         style: "currency",
-                        currency,
+                        currency: subscriptionCurrency,
                       }).format(basePrice)}
                     </p>
                   </div>
@@ -311,9 +499,26 @@ export function SubscriptionSettings() {
                 </div>
               </div>
 
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Current period usage
+                </p>
+                <UsageBar
+                  label="Patients"
+                  included={tierLimits.patients}
+                  unlimited={unlimitedPatients}
+                />
+                <UsageBar
+                  label="Appointments"
+                  included={tierLimits.appointments ?? 0}
+                  unlimited={unlimitedAppointments}
+                />
+              </div>
+
               <div className="flex gap-3">
                 <Button
-                  className="flex-1 bg-black hover:bg-black/90 text-white"
+                  variant="default"
+                  className="flex-1"
                   onClick={() => router.push("/upgrade")}
                 >
                   Open Upgrade &amp; Billing
@@ -329,6 +534,140 @@ export function SubscriptionSettings() {
         </CardContent>
       </Card>
 
+      <AddonsSection
+        hasIntelligence={hasIntelligence}
+        intelligenceFeatures={intelligenceFeatures}
+        purchasingId={processingId}
+        currency={currency}
+        intelligencePricing={dynamicIntelligencePricing}
+        onPurchaseIntelligence={(cycle) =>
+          checkoutAddon({
+            addonId: "INTELLIGENCE",
+            billingCycle: cycle,
+            currentTier,
+          })
+        }
+      />
+
+      {lockedFeatures.length > 0 && (
+        <LockedFeatures lockedFeatures={lockedFeatures} />
+      )}
+
+      {nextTier !== null && (
+        <NextTierPromotion
+          nextTier={nextTier}
+          featuresByTier={featuresByTier}
+          onContactSales={() => router.push("/upgrade")}
+        />
+      )}
+
+      {overageRates && (overageRates.patientRate > 0 || overageRates.userRate > 0) && (
+        <Card className="border-none shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Overage Rates</CardTitle>
+            <CardDescription>Charges applied when you exceed plan limits</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {overageRates.patientRate > 0 && (
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.patientRate}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra patient</p>
+                </div>
+              )}
+              {overageRates.appointmentRate > 0 && (
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.appointmentRate}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra appointment</p>
+                </div>
+              )}
+              {overageRates.userRate > 0 && (
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.userRate}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra user/mo</p>
+                </div>
+              )}
+              {overageRates.storageRate > 0 && (
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.storageRate}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra GB/mo</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold">Compare Plans</h3>
+          <Button
+            variant="link"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={() => setShowPricingDialog(true)}
+          >
+            View all plans →
+          </Button>
+        </div>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          {miniGridTiers.map((tier) => {
+            const info = getTierInfo(tier);
+            const thisTierName = getTierName(tier) as TierName;
+            const tierPricingData = pricingConfig?.tiers.find(
+              (t) => t.id === thisTierName,
+            );
+            const features = Object.entries(FEATURE_TIER_MAP)
+              .filter(([, requiredTier]) => requiredTier === tier)
+              .map(([feature]) => ({
+                feature: feature as Feature,
+                details: getFeatureDetails(feature as Feature),
+                hasAccess: tier <= currentTier,
+              }));
+            const sym = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
+            return (
+              <TierCard
+                key={tier}
+                tier={tier}
+                info={info}
+                features={features}
+                isCurrentTier={tier === currentTier}
+                isLocked={tier > currentTier}
+                currentTierValue={currentTier}
+                pricing={tierPricingData?.pricing}
+                billingCycle="MONTHLY"
+                currencySymbol={sym}
+                onSelect={
+                  tier !== currentTier
+                    ? () => router.push("/upgrade")
+                    : undefined
+                }
+              />
+            );
+          })}
+        </div>
+
+        <Collapsible open={comparisonOpen} onOpenChange={setComparisonOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between border border-border/50 rounded-lg px-4 py-3 h-auto"
+            >
+              <span className="text-sm font-medium">Show full feature comparison</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                  comparisonOpen && "rotate-180",
+                )}
+              />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <ComparisonTable currentTier={currentTier} keyFeaturesOnly />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
       <Card ref={billingHistoryRef} className="border-none shadow-lg">
         <CardHeader>
           <div>
@@ -342,6 +681,22 @@ export function SubscriptionSettings() {
           <BillingHistory />
         </CardContent>
       </Card>
+
+      <PricingDialog
+        open={showPricingDialog}
+        onOpenChange={setShowPricingDialog}
+        currentTier={currentTier}
+        initialCurrency={currency}
+        onSelectTier={(tier, cycle) => {
+          setShowPricingDialog(false);
+          router.push(`/upgrade?tier=${tier}&cycle=${cycle}`);
+        }}
+      />
+      <PaymentSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        {...successData}
+      />
     </div>
   );
 }

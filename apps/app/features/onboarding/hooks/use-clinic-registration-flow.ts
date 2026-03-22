@@ -49,15 +49,51 @@ function buildJsonHeaders(): Record<string, string> {
   };
 }
 
+const SESSION_KEY = "docita_onboarding_step";
+const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
+
+function getPersistedStep(): number {
+  if (typeof sessionStorage === "undefined") return 1;
+  try {
+    const v = sessionStorage.getItem(SESSION_KEY);
+    const n = v ? parseInt(v, 10) : 1;
+    return isNaN(n) ? 1 : Math.max(1, Math.min(n, 4));
+  } catch {
+    return 1;
+  }
+}
+
+function getPersistedOnboardingId(): string | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    return sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export function useClinicRegistrationFlow() {
-  const { user } = useAuth();
-  const [step, setStep] = useState(1);
-  const [onboardingId, setOnboardingId] = useState<string | null>(null);
+  const { user, refreshUser } = useAuth();
+  const [step, setStepState] = useState<number>(() => getPersistedStep());
+  const [onboardingId, setOnboardingIdState] = useState<string | null>(() => getPersistedOnboardingId());
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { openCheckout } = useRazorpay();
   const [formData, setFormData] = useState<ClinicRegistrationData>(
     defaultClinicRegistrationData,
   );
+
+  const setStep = useCallback((n: number) => {
+    setStepState(n);
+    try { sessionStorage.setItem(SESSION_KEY, String(n)); } catch { /* ignore */ }
+  }, []);
+
+  const setOnboardingId = useCallback((id: string | null) => {
+    setOnboardingIdState(id);
+    try {
+      if (id) sessionStorage.setItem(SESSION_ONBOARDING_ID_KEY, id);
+      else sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+    } catch { /* ignore */ }
+  }, []);
 
   const ensureOnboardingId = useCallback(async (): Promise<string> => {
     if (onboardingId) {
@@ -78,7 +114,7 @@ export function useClinicRegistrationFlow() {
     const initData = (await initRes.json()) as { onboardingId: string };
     setOnboardingId(initData.onboardingId);
     return initData.onboardingId;
-  }, [onboardingId]);
+  }, [onboardingId, setOnboardingId]);
 
   const uploadSlaSignature = useCallback(
     async (file: File): Promise<string> => {
@@ -128,7 +164,7 @@ export function useClinicRegistrationFlow() {
   const setClinicDetails = useCallback((data: ClinicDetails) => {
     setFormData((prev) => ({ ...prev, clinicDetails: data }));
     setStep(2);
-  }, []);
+  }, [setStep]);
 
   const setPlanSelection = useCallback(
     async (
@@ -141,7 +177,7 @@ export function useClinicRegistrationFlow() {
         billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
 
       const isCoreTrial =
-        tier === "CORE" && options?.isCoreTrial === true;
+        tier === "ESSENTIAL" && options?.isCoreTrial === true;
 
       setFormData((prev) => ({
         ...prev,
@@ -159,7 +195,7 @@ export function useClinicRegistrationFlow() {
         return;
       }
 
-      if (tier === "CAPTURE" || isCoreTrial) {
+      if (tier === "STARTER" || isCoreTrial) {
         setFormData((prev) => ({
           ...prev,
           paymentDetails: {
@@ -252,17 +288,17 @@ export function useClinicRegistrationFlow() {
         setIsProcessingPayment(false);
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, openCheckout, user],
+    [ensureOnboardingId, formData.clinicDetails, openCheckout, user, setStep],
   );
 
   const setTeamMembers = useCallback((members: TeamMember[]) => {
     setFormData((prev) => ({ ...prev, teamMembers: members }));
     setStep(4);
-  }, []);
+  }, [setStep]);
 
   const goBackFromCompliance = useCallback(() => {
     setStep(3);
-  }, []);
+  }, [setStep]);
 
   const submitRegistration = useCallback(
     async (complianceData: ComplianceSettings, onSuccess: () => void) => {
@@ -343,11 +379,24 @@ export function useClinicRegistrationFlow() {
             "docita_user",
             JSON.stringify(responseData.user),
           );
+
+          // Refresh in-memory auth state so pages using `useAuth` update immediately
+          try {
+            await refreshUser();
+          } catch {
+            // fallback: noop
+          }
         }
 
         toast.success("Registration Successful", {
           description: "Your clinic has been registered. Redirecting...",
         });
+
+        // Clear session persistence on successful completion
+        try {
+          sessionStorage.removeItem(SESSION_KEY);
+          sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+        } catch { /* ignore */ }
 
         onSuccess();
       } catch (error) {
@@ -356,13 +405,14 @@ export function useClinicRegistrationFlow() {
         });
       }
     },
-    [ensureOnboardingId, formData, user],
+    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.addons, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
   );
 
   return {
     step,
     setStep,
     formData,
+    onboardingId,
     setClinicDetails,
     setPlanSelection,
     isProcessingPayment,

@@ -17,6 +17,7 @@ import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 import { settingsApi } from "@/features/settings/api/settings.api";
+import { PasswordStrengthIndicator } from "@/features/auth/components/AuthSharedFields";
 
 const changePasswordSchema = z
   .object({
@@ -40,6 +41,8 @@ export function ChangePasswordSettings() {
       confirmPassword: "",
     },
   });
+
+  const newPassword = form.watch("newPassword");
 
   const handleSubmit = async (data: ChangePasswordFormValues) => {
     try {
@@ -103,6 +106,7 @@ export function ChangePasswordSettings() {
                       {...field}
                     />
                   </FormControl>
+                  <PasswordStrengthIndicator password={newPassword} />
                 </FormFieldGroup>
               )}
             />

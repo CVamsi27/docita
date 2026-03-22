@@ -511,7 +511,7 @@ test.describe("Critical Business Flows", () => {
         data: {
           name: `Other Clinic ${Date.now()}`,
           email: `other-clinic-${Date.now()}@test.com`,
-          phone: "9876543210",
+          phone: "9876543410",
           address: "456 Other St",
           tier: "ENTERPRISE",
         },

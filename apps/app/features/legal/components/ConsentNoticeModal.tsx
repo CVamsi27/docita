@@ -85,7 +85,7 @@ const CONSENT_CONTENT: Record<
       "Withdraw this consent via 'Privacy Settings' in your profile",
     ],
     dpoContact:
-      "For grievances, contact our Data Protection Officer at dpo@docita.work",
+      "For grievances, contact our Data Protection Officer at admin@docita.work",
     agreeButton: "I Agree",
     declineButton: "Decline",
   },
@@ -127,7 +127,7 @@ const CONSENT_CONTENT: Record<
       "अपनी प्रोफ़ाइल में 'गोपनीयता सेटिंग्स' के माध्यम से इस सहमति को वापस लें",
     ],
     dpoContact:
-      "शिकायतों के लिए, हमारे डेटा सुरक्षा अधिकारी से dpo@docita.work पर संपर्क करें",
+      "शिकायतों के लिए, हमारे डेटा सुरक्षा अधिकारी से admin@docita.work पर संपर्क करें",
     agreeButton: "मैं सहमत हूं",
     declineButton: "अस्वीकार करें",
   },

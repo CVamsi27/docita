@@ -9,10 +9,14 @@ import {
 
 interface PatientFaceSheetHeaderContainerProps {
   patient: Patient;
+  onBack?: () => void;
+  actions?: React.ReactNode;
 }
 
 export function PatientFaceSheetHeaderContainer({
   patient,
+  onBack,
+  actions,
 }: PatientFaceSheetHeaderContainerProps) {
   const initials = getInitials(patient.firstName, patient.lastName);
   const age = getPatientAgeDisplay(patient);
@@ -52,6 +56,8 @@ export function PatientFaceSheetHeaderContainer({
       emergencyContactName={patient.emergencyContactName ?? undefined}
       emergencyContactPhone={patient.emergencyContactPhone ?? undefined}
       emergencyContactRelation={patient.emergencyContactRelation ?? undefined}
+      onBack={onBack}
+      actions={actions}
     />
   );
 }

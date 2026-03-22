@@ -1,7 +1,13 @@
 "use client";
 
-import { Check, Info, Lock } from "lucide-react";
-import { FEATURE_TIER_MAP, getTierInfo, Tier } from "@/lib/tier-config";
+import { Check, Info, Minus } from "lucide-react";
+import {
+  FEATURE_TIER_MAP,
+  getTierInfo,
+  Tier,
+  getFeatureComparisonData,
+  type FeatureComparisonRow,
+} from "@/lib/tier-config";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   Table,
@@ -23,22 +29,118 @@ import { Feature } from "@workspace/types";
 
 interface ComparisonTableProps {
   currentTier: number;
+  keyFeaturesOnly?: boolean;
 }
 
-export function ComparisonTable({ currentTier }: ComparisonTableProps) {
+const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
+  {
+    label: "Patient Records",
+    features: [
+      Feature.BASIC_PATIENT_MANAGEMENT,
+      Feature.PATIENT_DEDUPLICATION,
+      Feature.PAPER_SCANNING,
+      Feature.EXCEL_IMPORT,
+      Feature.EXPORT_CSV,
+      Feature.DOCUMENT_ARCHIVAL,
+      Feature.VISIT_HISTORY,
+    ],
+  },
+  {
+    label: "Clinical Workflows",
+    features: [
+      Feature.DIGITAL_PRESCRIPTIONS,
+      Feature.MEDICINES_LIST,
+      Feature.MEDICAL_CODING,
+      Feature.PRESCRIPTION_TEMPLATES,
+      Feature.DIGITAL_INTAKE_FORMS,
+      Feature.FULL_EHR,
+      Feature.LAB_TESTS,
+      Feature.CONSENT_MANAGEMENT,
+      Feature.DOCTOR_SIGNATURE,
+    ],
+  },
+  {
+    label: "Scheduling & Queues",
+    features: [
+      Feature.CALENDAR_SLOTS,
+      Feature.AUTO_REMINDERS,
+      Feature.QUEUE_MANAGEMENT,
+    ],
+  },
+  {
+    label: "Scanning",
+    features: [Feature.OCR_BASIC, Feature.OCR_ADVANCED],
+  },
+  {
+    label: "Billing & Payments",
+    features: [
+      Feature.INVOICING,
+      Feature.PAYMENT_LINKS,
+      Feature.INSURANCE_BILLING,
+    ],
+  },
+  {
+    label: "Communication",
+    features: [Feature.BROADCAST_CAMPAIGNS],
+  },
+  {
+    label: "Team & Access Control",
+    features: [
+      Feature.MULTI_DEVICE,
+      Feature.ROLE_MANAGEMENT,
+      Feature.AUDIT_LOGS,
+      Feature.SSO,
+    ],
+  },
+  {
+    label: "Analytics",
+    features: [
+      Feature.BASIC_ANALYTICS,
+      Feature.ADVANCED_ANALYTICS,
+      Feature.MULTI_LOCATION_ANALYTICS,
+    ],
+  },
+  {
+    label: "Scale & Integrations",
+    features: [
+      Feature.MULTI_DOCTOR,
+      Feature.MULTI_CLINIC,
+      Feature.INVENTORY,
+      Feature.API_ACCESS,
+      Feature.CUSTOM_BRANDING,
+      Feature.DATA_WAREHOUSE_EXPORT,
+      Feature.BULK_IMPORT_SUITE,
+    ],
+  },
+  {
+    label: "AI Add-ons (Intelligence)",
+    features: [
+      Feature.AI_PRESCRIPTION_ASSISTANT,
+      Feature.AI_DIAGNOSIS_HINTS,
+      Feature.SMART_TASK_ENGINE,
+      Feature.PREDICTIVE_NO_SHOW,
+      Feature.PATIENT_SEGMENTATION,
+      Feature.ANOMALY_DETECTION,
+    ],
+  },
+];
+
+const KEY_FEATURE_CATEGORIES = FEATURE_CATEGORIES.slice(0, 4);
+
+export function ComparisonTable({
+  currentTier,
+  keyFeaturesOnly,
+}: ComparisonTableProps) {
   const tiers = Object.values(Tier)
-    .filter(
-      (t): t is number => typeof t === "number" && t !== Tier.INTELLIGENCE,
-    )
+    .filter((t): t is number => typeof t === "number" && t !== Tier.INTELLIGENCE)
     .sort((a, b) => a - b);
 
-  const features = Object.entries(FEATURE_TIER_MAP).map(
-    ([feature, requiredTier]) => ({
-      feature: feature as Feature,
-      requiredTier,
-      details: getFeatureDetails(feature as Feature),
-    }),
+  const limitRows = getFeatureComparisonData().filter(
+    (r: FeatureComparisonRow) => r.category === "limit",
   );
+  const categories = keyFeaturesOnly
+    ? KEY_FEATURE_CATEGORIES
+    : FEATURE_CATEGORIES;
 
   return (
     <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
@@ -49,80 +151,161 @@ export function ComparisonTable({ currentTier }: ComparisonTableProps) {
         </p>
       </div>
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[300px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
-                <span className="sr-only">Features</span>
-              </TableHead>
-              {tiers.map((tier) => {
-                const info = getTierInfo(tier);
-                const isCurrent = currentTier === tier;
-                return (
-                  <TableHead
-                    key={tier}
-                    className={cn(
-                      "text-center min-w-[140px] px-4 py-6 align-top",
-                      isCurrent && "bg-primary/5",
-                    )}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="font-bold text-lg">{info.name}</span>
-                      {isCurrent && (
-                        <Badge variant="secondary" className="text-xs">
-                          Current Plan
-                        </Badge>
-                      )}
-                    </div>
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {features.map(({ feature, requiredTier, details }) => (
-              <TableRow key={feature} className="hover:bg-muted/50">
-                <TableCell className="font-medium sticky left-0 z-10 bg-card border-r w-[300px] min-w-[200px] hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate" title={details.name}>
-                      {details.name}
-                    </span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-muted-foreground cursor-help shrink-0" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-[300px]">
-                          <p>{details.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </TableCell>
+        <TooltipProvider>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[260px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
+                  <span className="sr-only">Features</span>
+                </TableHead>
                 {tiers.map((tier) => {
-                  const hasAccess = tier >= requiredTier;
+                  const info = getTierInfo(tier);
                   const isCurrent = currentTier === tier;
                   return (
-                    <TableCell
+                    <TableHead
                       key={tier}
                       className={cn(
-                        "text-center align-middle border-l first:border-l-0",
+                        "text-center min-w-[110px] px-3 py-5 align-top",
                         isCurrent && "bg-primary/5",
                       )}
                     >
-                      {hasAccess ? (
-                        <Check className="h-5 w-5 text-success mx-auto" />
-                      ) : (
-                        <Lock className="h-4 w-4 text-muted-foreground/30 mx-auto" />
-                      )}
-                    </TableCell>
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span className="font-bold text-sm">{info.name}</span>
+                        {isCurrent && (
+                          <Badge variant="secondary" className="text-xs">
+                            Current
+                          </Badge>
+                        )}
+                      </div>
+                    </TableHead>
                   );
                 })}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              <SectionHeader label="Plan Limits" colSpan={tiers.length + 1} />
+              {limitRows.map((row: FeatureComparisonRow) => (
+                <TableRow key={row.name} className="hover:bg-muted/50">
+                  <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] text-sm font-medium py-2.5 hover:bg-muted/50 transition-colors">
+                    {row.name}
+                  </TableCell>
+                  {tiers.map((tier) => (
+                    <TableCell
+                      key={tier}
+                      className={cn(
+                        "text-center align-middle border-l py-2.5",
+                        currentTier === tier && "bg-primary/5",
+                      )}
+                    >
+                      <span className="text-sm font-medium">
+                        {String(row.values[tier as Tier])}
+                      </span>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+
+              {categories.map((category) => {
+                const validFeatures = category.features.filter(
+                  (f) => f in FEATURE_TIER_MAP,
+                );
+                if (validFeatures.length === 0) return null;
+                return (
+                  <FeatureCategoryRows
+                    key={category.label}
+                    label={category.label}
+                    features={validFeatures}
+                    tiers={tiers}
+                    currentTier={currentTier}
+                  />
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TooltipProvider>
       </div>
     </div>
+  );
+}
+
+function SectionHeader({
+  label,
+  colSpan,
+}: {
+  label: string;
+  colSpan: number;
+}) {
+  return (
+    <TableRow className="bg-muted/40 hover:bg-muted/40">
+      <TableCell
+        colSpan={colSpan}
+        className="py-1.5 px-4 sticky left-0 border-r"
+      >
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function FeatureCategoryRows({
+  label,
+  features,
+  tiers,
+  currentTier,
+}: {
+  label: string;
+  features: Feature[];
+  tiers: number[];
+  currentTier: number;
+}) {
+  return (
+    <>
+      <SectionHeader label={label} colSpan={tiers.length + 1} />
+      {features.map((feature) => {
+        const requiredTier = FEATURE_TIER_MAP[feature];
+        const details = getFeatureDetails(feature);
+        return (
+          <TableRow key={feature} className="hover:bg-muted/50">
+            <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] hover:bg-muted/50 transition-colors py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm truncate" title={details.name}>
+                  {details.name}
+                </span>
+                {details.description && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[280px]" side="right">
+                      <p className="text-xs">{details.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            </TableCell>
+            {tiers.map((tier) => {
+              const hasAccess = tier >= requiredTier;
+              return (
+                <TableCell
+                  key={tier}
+                  className={cn(
+                    "text-center align-middle border-l py-2.5",
+                    currentTier === tier && "bg-primary/5",
+                  )}
+                >
+                  {hasAccess ? (
+                    <Check className="h-4 w-4 text-success mx-auto" />
+                  ) : (
+                    <Minus className="h-3.5 w-3.5 text-muted-foreground/20 mx-auto" />
+                  )}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        );
+      })}
+    </>
   );
 }

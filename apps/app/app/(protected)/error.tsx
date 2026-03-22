@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import { captureException } from "@/lib/sentry.client.config";
 
 export default function Error({
   error,
@@ -12,7 +13,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-
+    captureException(error, { digest: error.digest });
   }, [error]);
 
   return (

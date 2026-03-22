@@ -48,7 +48,7 @@ export function ConsultationTimerUI({
   const getTimeColor = () => {
     if (seconds < 600) return "text-success";
     if (seconds < 1200) return "text-warning";
-    return "text-warning";
+    return "text-destructive";
   };
 
   return (

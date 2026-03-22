@@ -29,6 +29,12 @@ interface PermissionState {
   setFacilityType: (type: FacilityType) => void;
   setClinicType: (type: ClinicType | string | null) => void;
   setFeatureOverrides: (overrides: Record<string, boolean>) => void;
+  syncFromClinic: (clinic: {
+    tier: string;
+    intelligenceAddon?: string | null;
+    features?: Record<string, boolean> | null;
+    type?: string | null;
+  }, userRole?: string) => void;
 
   canAccess: (feature: Feature, permission?: Permission) => boolean;
   canAccessTier: (tier: Tier) => boolean;
@@ -44,7 +50,7 @@ interface PermissionState {
 }
 
 export const usePermissionStore = create<PermissionState>((set, get) => ({
-  currentTier: Tier.CAPTURE,
+  currentTier: Tier.STARTER,
   hasIntelligence: false,
   userRole: null,
   facilityType: "CLINIC", 
@@ -52,38 +58,16 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   featureOverrides: {},
 
   setTier: (tier) => {
-    let parsedTier = Tier.CAPTURE;
+    let parsedTier = Tier.STARTER;
 
     if (typeof tier === "string") {
-      switch (tier) {
-        case "CAPTURE":
-          parsedTier = Tier.CAPTURE;
-          break;
-        case "CORE":
-          parsedTier = Tier.CORE;
-          break;
-        case "PLUS":
-          parsedTier = Tier.PLUS;
-          break;
-        case "PRO":
-          parsedTier = Tier.PRO;
-          break;
-        case "ENTERPRISE":
-          parsedTier = Tier.ENTERPRISE;
-          break;
-
-        case "FREE":
-          parsedTier = Tier.CAPTURE;
-          break;
-        case "STARTER":
-          parsedTier = Tier.CORE;
-          break;
-        case "PROFESSIONAL":
-          parsedTier = Tier.PRO;
-          break;
-        default:
-          parsedTier = Tier.CAPTURE;
-      }
+      const dbToTier: Record<string, Tier> = {
+        STARTER: Tier.STARTER,
+        ESSENTIAL: Tier.ESSENTIAL,
+        PROFESSIONAL: Tier.PROFESSIONAL,
+        ENTERPRISE: Tier.ENTERPRISE,
+      };
+      parsedTier = dbToTier[tier] ?? Tier.STARTER;
     } else {
       parsedTier = tier;
     }
@@ -110,6 +94,22 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   setFeatureOverrides: (overrides) => set({ featureOverrides: overrides }),
+
+  syncFromClinic: (clinic, userRole) => {
+    const { setTier, setIntelligence, setUserRole, setClinicType, setFeatureOverrides } = get();
+
+    setTier(clinic.tier);
+    setIntelligence(clinic.intelligenceAddon === 'ACTIVE');
+    setFeatureOverrides(clinic.features || {});
+
+    if (clinic.type) {
+      setClinicType(clinic.type);
+    }
+
+    if (userRole) {
+      setUserRole(userRole);
+    }
+  },
 
   canAccess: (feature, permission?) => {
     const { currentTier, hasIntelligence, featureOverrides, userRole } = get();

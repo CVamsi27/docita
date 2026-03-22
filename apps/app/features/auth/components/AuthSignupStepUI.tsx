@@ -17,6 +17,7 @@ import {
   getFieldError,
   hasFieldError,
   InlineFieldError,
+  PasswordStrengthIndicator,
 } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
@@ -91,14 +92,6 @@ export function AuthSignupStepUI({
         />
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Registering a new clinic? Complete onboarding at{" "}
-        <a href="/onboarding" className="underline">
-          /onboarding
-        </a>{" "}
-        to accept SLA, choose plan/add-ons, and configure billing.
-      </p>
-
       <div className="space-y-2">
         <Label htmlFor="signup-owner-role">Owner Role</Label>
         <Select
@@ -171,6 +164,7 @@ export function AuthSignupStepUI({
             message={getFieldError(fieldErrors, "password")}
           />
         )}
+        <PasswordStrengthIndicator password={password} />
         {!hasFieldError(fieldErrors, "password") && (
           <p className="text-xs text-muted-foreground">
             Must be 8+ characters with uppercase, lowercase, number, and special

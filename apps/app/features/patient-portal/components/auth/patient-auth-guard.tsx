@@ -11,7 +11,7 @@ export function PatientAuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace("/login?returnTo=/portal");
+      router.replace("/portal/login");
     }
     if (!isLoading && user && user.role !== "PATIENT") {
       router.replace("/dashboard");

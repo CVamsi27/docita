@@ -8,8 +8,10 @@ import {
   Calendar,
   FileText,
   LogOut,
+  Pill,
   Receipt,
   Shield,
+  TrendingUp,
   User,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
@@ -20,7 +22,9 @@ const navigation = [
   { name: "Dashboard", href: "/portal", icon: User },
   { name: "Appointments", href: "/portal/appointments", icon: Calendar },
   { name: "Prescriptions", href: "/portal/prescriptions", icon: FileText },
+  { name: "Medications", href: "/portal/medications", icon: Pill },
   { name: "Medical History", href: "/portal/history", icon: Activity },
+  { name: "My Metrics", href: "/portal/metrics", icon: TrendingUp },
   { name: "Billing", href: "/portal/billing", icon: Receipt },
   { name: "Consent", href: "/portal/profile/consent-form", icon: Shield },
   { name: "Profile", href: "/portal/profile", icon: User },

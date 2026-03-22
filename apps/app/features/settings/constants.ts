@@ -2,6 +2,7 @@ import {
   Bell,
   Building2,
   Calendar,
+  CalendarOff,
   Crown,
   FileText,
   Layers,
@@ -44,6 +45,12 @@ export const settingsTabs = [
         label: "Availability",
         icon: Calendar,
         description: "Doctor schedules",
+      },
+      {
+        value: "leave",
+        label: "Leave Management",
+        icon: CalendarOff,
+        description: "Leave plans & requests",
       },
       {
         value: "queue",
@@ -96,12 +103,6 @@ export const settingsTabs = [
         label: "Notifications",
         icon: Bell,
         description: "Alert preferences",
-      },
-      {
-        value: "notification-feed",
-        label: "Notification Feed",
-        icon: Bell,
-        description: "Recent notification events",
       },
       {
         value: "security",

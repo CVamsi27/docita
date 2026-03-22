@@ -8,7 +8,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 
 export const usePatientDetailLogic = (patientId: string) => {
   const router = useRouter();
-  const { patient, appointments, documents, statistics, loading, refetch } =
+  const { patient, appointments, documents, statistics, loading, error, refetch } =
     usePatientData(patientId);
   const { user } = useAuth();
   const goBack = useSmartBack("/");
@@ -50,6 +50,7 @@ export const usePatientDetailLogic = (patientId: string) => {
       documents,
       statistics,
       loading,
+      error,
       canAccessPatient,
       isEditDialogOpen,
       setIsEditDialogOpen,

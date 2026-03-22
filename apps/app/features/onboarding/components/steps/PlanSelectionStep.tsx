@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,11 +11,28 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Checkbox } from "@workspace/ui/components/checkbox";
-import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@workspace/ui/components/collapsible";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
+import { TierCard } from "@/features/subscription/components/cards/tier-card";
+import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
+import { getFeatureDetails } from "@/features/subscription/config/feature-config";
+import {
+  getAllFeaturesUpToTier,
+  PLAN_LIMITS,
+  getTierInfo,
+  Tier,
+} from "@/lib/tier-config";
+import {
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  type TierName,
+} from "@workspace/types";
 
 interface PlanSelectionProps {
   onSelect: (
@@ -30,19 +47,18 @@ interface PlanSelectionProps {
   currency?: string;
 }
 
-const DISPLAY_TIERS = ["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"];
+const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
 const PLAN_AUDIENCE: Record<string, string> = {
-  CAPTURE: "Best for clinics moving from paper to digital",
-  CORE: "Best for small clinics running daily OPD",
-  PLUS: "Best for growing clinics with multiple workflows",
-  PRO: "Best for multi-doctor clinics needing advanced controls",
+  STARTER: "Best for solo doctors wanting to digitize their practice",
+  ESSENTIAL: "Best for small clinics needing professional billing and analytics",
+  PROFESSIONAL: "Best for multi-doctor clinics and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
 export function PlanSelectionStep({
   onSelect,
-  defaultTier = "CAPTURE",
+  defaultTier = "STARTER",
   defaultBillingCycle = "MONTHLY",
   defaultIsCoreTrial = false,
   currency = "INR",
@@ -51,25 +67,58 @@ export function PlanSelectionStep({
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
   );
-  const [isCoreTrial, setIsCoreTrial] = useState(defaultIsCoreTrial);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const { pricingConfig, isLoading, error } = usePricingConfig(currency);
 
-  const handleSelect = async () => {
-    const tierData = pricingConfig?.tiers.find(
-      (t: TierPricing) => t.id === selectedTier,
+  const featuresByTier = Object.values(Tier)
+    .filter((t): t is Tier => typeof t === "number" && t !== Tier.INTELLIGENCE)
+    .map((tier) => ({
+      tier,
+      info: {
+        ...getTierInfo(tier),
+        tagline: PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
+      },
+      features: getAllFeaturesUpToTier(Tier[tier] as TierName).map((feature) => ({
+        feature,
+        details: getFeatureDetails(feature),
+        hasAccess: true,
+      })),
+    }));
+
+  const handleSelectTier = async (tier: string) => {
+    if (tier === "ENTERPRISE") {
+      setShowContactSalesModal(true);
+      return;
+    }
+    const tierPricingData = pricingConfig?.tiers.find(
+      (t: TierPricing) => t.id === tier,
     );
-    if (tierData) {
-      setIsSubmitting(true);
-      try {
-        await onSelect(selectedTier, billingCycle, tierData.pricing, {
-          isCoreTrial,
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
+    if (!tierPricingData) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSelect(tier, billingCycle, tierPricingData.pricing);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleStartEssentialTrial = async () => {
+    const tierPricingData = pricingConfig?.tiers.find(
+      (t: TierPricing) => t.id === "ESSENTIAL",
+    );
+    if (!tierPricingData) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSelect("ESSENTIAL", billingCycle, tierPricingData.pricing, {
+        isCoreTrial: true,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,35 +145,13 @@ export function PlanSelectionStep({
     );
   }
 
-  const { tiers, currency: currencyInfo, discounts } = pricingConfig;
-
-  const displayTiers = tiers.filter((t) => DISPLAY_TIERS.includes(t.id));
-  const selectedTierData = displayTiers.find((t) => t.id === selectedTier);
-  const isEnterpriseSelected = selectedTier === "ENTERPRISE";
-
-  const hasCoreTrialOption = selectedTier === "CORE";
-  const effectivePriceLabel =
-    isEnterpriseSelected
-      ? "Contact Sales to Continue"
-      : hasCoreTrialOption && isCoreTrial
-        ? "Start 14-day free trial"
-        : `Continue with ${selectedTierData?.name || "Selected"} Plan`;
-  const selectedPrice =
-    billingCycle === "YEARLY"
-      ? selectedTierData?.pricing.yearly
-      : selectedTierData?.pricing.monthly;
-  const selectedPriceLabel =
-    selectedPrice === undefined
-      ? "-"
-      : selectedPrice === "custom"
-        ? "Custom"
-        : `${currencyInfo.symbol}${selectedPrice.toLocaleString()}/${billingCycle === "YEARLY" ? "year" : "month"}`;
+  const { discounts } = pricingConfig;
 
   const enterpriseContactMessage = `Hi Docita Sales Team,
 
 I am interested in the Enterprise plan from onboarding.
 
-Selected tier: ${selectedTierData?.name || "Enterprise"}
+Selected tier: Enterprise
 Billing preference: ${billingCycle}
 
 Please contact me with deployment and commercial details.`;
@@ -139,14 +166,6 @@ Please contact me with deployment and commercial details.`;
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-sm font-medium text-foreground">Plan Selection Guide</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose a tier based on expected patient volume, team size, and
-            required automation. You can upgrade anytime from billing.
-          </p>
-        </div>
-
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -169,162 +188,114 @@ Please contact me with deployment and commercial details.`;
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr] lg:items-start">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {displayTiers.map((tier: TierPricing) => {
-              const isSelected = selectedTier === tier.id;
-              const isFree = tier.id === "CAPTURE";
-              const isCustom =
-                tier.pricing.monthly === "custom" ||
-                tier.pricing.yearly === "custom";
-
-              const displayPrice =
-                billingCycle === "YEARLY"
-                  ? tier.pricing.yearly
-                  : tier.pricing.monthly;
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {featuresByTier
+            .filter((t) => DISPLAY_TIERS.includes(Tier[t.tier] as string))
+            .map(({ tier, info, features }) => {
+              const tierName = Tier[tier] as TierName;
+              const tierPricingData = pricingConfig.tiers.find(
+                (t: TierPricing) => t.id === tierName,
+              );
+              const currencyKey = currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
+              const currencySymbol = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
+              const overageRates =
+                (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
+              const overageHint =
+                overageRates?.patientRate > 0
+                  ? `then ${currencySymbol}${overageRates.patientRate}/extra patient`
+                  : undefined;
 
               return (
-                <button
-                  key={tier.id}
-                  type="button"
-                  onClick={() => setSelectedTier(tier.id)}
+                <div
+                  key={tier}
                   className={cn(
-                    "relative rounded-xl border-2 p-4 text-left transition-all hover:shadow-md",
-                    isSelected
-                      ? "border-primary bg-primary/10 shadow-md"
-                      : "border-muted bg-card hover:border-muted-foreground/30",
+                    "relative flex flex-col",
+                    tierName === "ESSENTIAL" && "order-first md:order-none",
                   )}
                 >
-                  {tier.id === "PLUS" && (
-                    <Badge className="absolute -top-2 left-3 bg-linear-to-r from-success to-success">
+                  {tierName === "ESSENTIAL" && (
+                    <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
                       Popular
                     </Badge>
                   )}
-
-                  <div className="mb-3 flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{tier.name}</h3>
-                      <p className="text-sm text-muted-foreground">{PLAN_AUDIENCE[tier.id]}</p>
-                    </div>
-                    {isSelected && (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Check className="h-4 w-4" />
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    {isFree ? (
-                      <span className="text-2xl font-bold">Free</span>
-                    ) : isCustom ? (
-                      <span className="text-2xl font-bold">Custom</span>
-                    ) : (
-                      <>
-                        <span className="text-2xl font-bold">
-                          {currencyInfo.symbol}
-                          {typeof displayPrice === "number"
-                            ? displayPrice.toLocaleString()
-                            : displayPrice}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          /{billingCycle === "YEARLY" ? "year" : "month"}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  <p className="mb-2 text-xs text-muted-foreground">
-                    {tier.limits?.storage ?? "-"} GB storage included
-                  </p>
-
-                  {Array.isArray(tier.features) && tier.features.length > 0 && (
-                    <ul className="space-y-1 text-xs text-muted-foreground">
-                      {tier.features.slice(0, 4).map((feature) => (
-                        <li key={`${tier.id}-${feature}`}>• {feature}</li>
-                      ))}
-                    </ul>
-                  )}
-                </button>
+                  <TierCard
+                    tier={tier}
+                    info={info}
+                    features={features}
+                    isCurrentTier={false}
+                    isLocked={false}
+                    className={cn("h-full", selectedTier === tierName && "border-primary ring-2 ring-primary/20 shadow-lg")}
+                    pricing={tierPricingData?.pricing}
+                    billingCycle={billingCycle}
+                    currencySymbol={currencySymbol}
+                    overageHint={overageHint}
+                    buttonLabel="Select Plan"
+                    maxDisplay={8}
+                    usageHints={PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS] ? {
+                      patients: PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS].patients,
+                      users: PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS].users,
+                    } : undefined}
+                    onSelect={
+                      isSubmitting
+                        ? undefined
+                        : () => {
+                            setSelectedTier(tierName);
+                            handleSelectTier(tierName);
+                          }
+                    }
+                  />
+                </div>
               );
             })}
-          </div>
+        </div>
 
-          <div className="rounded-xl border bg-card p-4 lg:sticky lg:top-4">
-            <h4 className="text-sm font-semibold">Selected Plan</h4>
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              {selectedTierData?.name || selectedTier}
-            </p>
-            <p className="text-sm text-muted-foreground">{selectedPriceLabel}</p>
-
-            <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <p>
-                Patients: <span className="font-medium text-foreground">{selectedTierData?.limits?.patients ?? "-"}</span>
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-sm">
+                Not ready to pay yet? Try Essential free for 14 days
               </p>
-              <p>
-                Users: <span className="font-medium text-foreground">{selectedTierData?.limits?.users ?? "-"}</span>
-              </p>
-              <p>
-                Storage: <span className="font-medium text-foreground">{selectedTierData?.limits?.storage ?? "-"} GB</span>
-              </p>
-              <p>
-                Appointments/mo: <span className="font-medium text-foreground">{selectedTierData?.limits?.appointments ?? "-"}</span>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                No payment required. Get full Essential access and add a payment method later.
               </p>
             </div>
-
-            {hasCoreTrialOption && (
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
-                <div className="flex items-start gap-2">
-                  <Checkbox
-                    id="core-trial"
-                    checked={isCoreTrial}
-                    onCheckedChange={(checked) => setIsCoreTrial(Boolean(checked))}
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor="core-trial" className="font-medium">
-                      14-day free trial for Core
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Start now and add payment later.
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="ml-auto">
-                    <Sparkles className="mr-1 h-3 w-3" /> 14 Days
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {isEnterpriseSelected && (
-              <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-                <p>Enterprise plans are provisioned via sales.</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-3 w-full border-amber-400 bg-white text-amber-900 hover:bg-amber-100"
-                  onClick={() => setShowContactSalesModal(true)}
-                >
-                  Contact Sales
-                </Button>
-              </div>
-            )}
-
             <Button
-              onClick={handleSelect}
-              className="mt-4 w-full"
-              size="lg"
-              disabled={isSubmitting || isEnterpriseSelected}
+              type="button"
+              size="sm"
+              variant="outline"
+              className="shrink-0"
+              disabled={isSubmitting}
+              onClick={handleStartEssentialTrial}
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Redirecting to Razorpay...
-                </>
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                effectivePriceLabel
+                "Skip – Start Free Trial"
               )}
             </Button>
           </div>
         </div>
+
+        <Collapsible open={comparisonOpen} onOpenChange={setComparisonOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between border border-border/50 rounded-lg px-4 py-3 h-auto"
+            >
+              <span className="text-sm font-medium">Compare all plans</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                  comparisonOpen && "rotate-180",
+                )}
+              />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <ComparisonTable currentTier={0} />
+          </CollapsibleContent>
+        </Collapsible>
 
         <ContactSalesModal
           open={showContactSalesModal}

@@ -11,6 +11,12 @@ import {
 } from "@/lib/tier-config";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import {
   AddonsSection,
@@ -33,9 +39,14 @@ import {
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import type { TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { BILLING_ROLES } from "@/lib/permissions";
+import {
+  PRICING_CURRENCY_SYMBOLS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+} from "@workspace/types";
 import { Loader2 } from "lucide-react";
 
 export default function UpgradePage() {
@@ -65,7 +76,8 @@ export default function UpgradePage() {
   );
 
   const canAccessPage = !!user && BILLING_ROLES.has(user.role);
-  const { pricingConfig } = usePricingConfig("INR");
+  const { currency } = useLocaleCurrency();
+  const { pricingConfig } = usePricingConfig(currency);
 
   useEffect(() => {
     if (user && !canAccessPage) {
@@ -161,6 +173,7 @@ export default function UpgradePage() {
           </div>
         </div>
 
+        {/* Hero zone */}
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={currentTier}
@@ -170,64 +183,150 @@ export default function UpgradePage() {
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
         />
 
-        <TrustSection />
-
-        <LockedFeatures lockedFeatures={lockedFeatures} />
-
-        {nextTier !== null && (
-          <NextTierPromotion
-            nextTier={nextTier}
-            featuresByTier={featuresByTier}
-            onContactSales={() => setShowContactSalesModal(true)}
-          />
-        )}
-
-        <AddonsSection
-          hasIntelligence={hasIntelligence}
-          intelligenceFeatures={intelligenceFeatures}
-          purchasingId={processingId}
-          currency="INR"
-          intelligencePricing={dynamicIntelligencePricing}
-          onPurchaseIntelligence={(cycle) =>
-            checkoutAddon({
-              addonId: "INTELLIGENCE",
-              billingCycle: cycle,
-              currentTier,
-            })
-          }
-        />
-
-        <DynamicPricingEstimator
-          defaultTier={currentTierName}
-          currency="INR"
-        />
-
+        {/* All Plans grid */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
+            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-lg self-start sm:self-auto">
+              <Button
+                variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedCycle("MONTHLY")}
+              >
+                Monthly
+              </Button>
+              <Button
+                variant={selectedCycle === "YEARLY" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedCycle("YEARLY")}
+              >
+                Yearly
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {featuresByTier
               .filter((t) => t.tier !== Tier.INTELLIGENCE)
-              .map(({ tier, info, features }) => (
-                <TierCard
-                  key={tier}
-                  tier={tier}
-                  info={info}
-                  features={features}
-                  isCurrentTier={tier === currentTier}
-                  isLocked={tier > currentTier}
-                  currentTierValue={currentTier}
-                  onSelect={
-                    canAccessPage
-                      ? () =>
-                          handleSelectTier(Tier[tier] as TierName, "MONTHLY")
-                      : undefined
-                  }
-                />
-              ))}
+              .map(({ tier, info, features }) => {
+                const tierName = Tier[tier] as TierName;
+                const tierPricingData = pricingConfig?.tiers.find(
+                  (t) => t.id === tierName,
+                );
+                const overageRates =
+                  TIER_OVERAGE_RATES_BY_CURRENCY[
+                    currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+                  ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+                const currencySymbol = PRICING_CURRENCY_SYMBOLS[
+                  currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+                ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+                const overageHint =
+                  overageRates?.patientRate > 0
+                    ? `then ${currencySymbol}${overageRates.patientRate}/extra patient`
+                    : undefined;
+                return (
+                  <TierCard
+                    key={tier}
+                    tier={tier}
+                    info={info}
+                    features={features}
+                    isCurrentTier={tier === currentTier}
+                    isLocked={tier > currentTier}
+                    currentTierValue={currentTier}
+                    pricing={tierPricingData?.pricing}
+                    billingCycle={selectedCycle}
+                    currencySymbol={currencySymbol}
+                    overageHint={overageHint}
+                    onSelect={
+                      canAccessPage
+                        ? () => handleSelectTier(tierName, selectedCycle)
+                        : undefined
+                    }
+                  />
+                );
+              })}
           </div>
         </div>
 
-        <ComparisonTable currentTier={currentTier} />
+        {/* Detail zone – tabbed */}
+        <Tabs defaultValue="estimator" className="w-full">
+          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1">
+            <TabsTrigger
+              value="estimator"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+            >
+              Price Estimator
+            </TabsTrigger>
+            <TabsTrigger
+              value="compare"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+            >
+              Compare Plans
+            </TabsTrigger>
+            <TabsTrigger
+              value="addons"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+            >
+              Add-ons
+            </TabsTrigger>
+            <TabsTrigger
+              value="missing"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+            >
+              What You&apos;re Missing
+            </TabsTrigger>
+            <TabsTrigger
+              value="faq"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
+            >
+              FAQ
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="estimator" className="pt-4">
+            <DynamicPricingEstimator
+              defaultTier={currentTierName}
+              currency={currency}
+            />
+          </TabsContent>
+
+          <TabsContent value="compare" className="pt-4">
+            <ComparisonTable currentTier={currentTier} />
+          </TabsContent>
+
+          <TabsContent value="addons" className="pt-4">
+            <AddonsSection
+              hasIntelligence={hasIntelligence}
+              intelligenceFeatures={intelligenceFeatures}
+              purchasingId={processingId}
+              currency={currency}
+              intelligencePricing={dynamicIntelligencePricing}
+              onPurchaseIntelligence={(cycle) =>
+                checkoutAddon({
+                  addonId: "INTELLIGENCE",
+                  billingCycle: cycle,
+                  currentTier,
+                })
+              }
+            />
+          </TabsContent>
+
+          <TabsContent value="missing" className="pt-4 space-y-6">
+            <LockedFeatures lockedFeatures={lockedFeatures} />
+            {nextTier !== null && (
+              <NextTierPromotion
+                nextTier={nextTier}
+                featuresByTier={featuresByTier}
+                onContactSales={() => setShowContactSalesModal(true)}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="faq" className="pt-4">
+            <FaqSection />
+          </TabsContent>
+        </Tabs>
+
+        <TrustSection />
 
         <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
@@ -251,6 +350,20 @@ export default function UpgradePage() {
           </CardContent>
         </Card>
 
+        <div className="text-center text-xs text-muted-foreground pt-2 pb-10">
+          <p>
+            By upgrading, you agree to our{" "}
+            <a href="#" className="underline hover:text-foreground">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="underline hover:text-foreground">
+              Privacy Policy
+            </a>
+            . All prices are inclusive of GST and applicable taxes.
+          </p>
+        </div>
+
         <ContactSalesModal
           open={showContactSalesModal}
           onOpenChange={setShowContactSalesModal}
@@ -261,6 +374,7 @@ export default function UpgradePage() {
           onOpenChange={setShowPricingDialog}
           currentTier={currentTier}
           onSelectTier={handleSelectTier}
+          initialCurrency={currency}
         />
         <TierChangeDialog
           open={showTierChangeDialog}
@@ -278,25 +392,6 @@ export default function UpgradePage() {
           open={showInvoiceHistory}
           onOpenChange={setShowInvoiceHistory}
         />
-
-        <div className="max-w-4xl mx-auto text-center text-xs text-muted-foreground pt-4 pb-2">
-          <p>
-            By upgrading, you agree to our{" "}
-            <a href="#" className="underline hover:text-foreground">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="underline hover:text-foreground">
-              Privacy Policy
-            </a>
-            .<br />
-            All prices are inclusive of GST and applicable taxes.
-          </p>
-        </div>
-
-        <div className="pb-10">
-          <FaqSection />
-        </div>
       </div>
     </div>
   );

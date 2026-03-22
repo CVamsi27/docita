@@ -21,7 +21,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  
   const reconnectSocket = (newToken: string) => {
     if (socketRef.current) {
       socketRef.current.auth = { token: newToken };
@@ -29,7 +28,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  
   const reconnect = () => {
     if (token && socketRef.current) {
       reconnectSocket(token);
@@ -37,16 +35,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-
     if (!isAuthenticated || !token) {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -72,15 +60,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
-
     });
 
     socketInstance.on("disconnect", (reason) => {
       setIsConnected(false);
 
       if (reason === "io server disconnect") {
-        
-
         reconnectTimeoutRef.current = setTimeout(() => {
           if (token && socketRef.current) {
             reconnectSocket(token);
@@ -90,7 +75,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     socketInstance.on("connect_error", (err) => {
-
       setIsConnected(false);
 
       const errorPayload =
@@ -102,22 +86,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         err.message === "Unauthorized" ||
         errorPayload?.content?.message === "Unauthorized"
       ) {
-
         logout();
         socketInstance.disconnect();
       }
     });
 
-    
     socketInstance.on("unauthorized", () => {
-
       logout();
       socketInstance.disconnect();
     });
 
-    
     socketInstance.on("token_refresh", () => {
-
       if (token) {
         reconnectSocket(token);
       }

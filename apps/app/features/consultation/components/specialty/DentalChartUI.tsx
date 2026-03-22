@@ -92,7 +92,7 @@ export function DentalChartUI({
         )}
         title={`Tooth ${toothId}: ${condition.label}`}
       >
-        <span className="text-[10px] text-slate-500">{toothId}</span>
+        <span className="text-[10px] text-muted-foreground">{toothId}</span>
         <div
           className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
         />
@@ -113,15 +113,15 @@ export function DentalChartUI({
       case "IMPLANT":
         return "bg-success";
       case "MISSING":
-        return "bg-slate-400";
+        return "bg-muted-foreground/50";
       default:
-        return "bg-slate-200";
+        return "bg-muted";
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 items-center p-6 bg-slate-50 rounded-xl border border-slate-100">
+      <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-xl border border-muted">
         {}
         <div className="flex gap-8">
           <div className="flex gap-1">
@@ -133,8 +133,8 @@ export function DentalChartUI({
         </div>
 
         {}
-        <div className="w-full h-px bg-slate-200 relative">
-          <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-slate-50 px-2 text-xs text-slate-400 font-medium tracking-widest">
+        <div className="w-full h-px bg-border relative">
+          <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-muted/50 px-2 text-xs text-muted-foreground font-medium tracking-widest">
             FDI CHART
           </span>
         </div>

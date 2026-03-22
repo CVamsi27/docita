@@ -179,10 +179,10 @@ export class AccessControlService implements IAccessControlService {
 
       const addOnPrice =
         addOnType === AddOnType.WHATSAPP
-          ? currentTier >= Tier.PRO
+          ? currentTier >= Tier.PROFESSIONAL
             ? 1499
             : 799
-          : currentTier >= Tier.PRO
+          : currentTier >= Tier.PROFESSIONAL
             ? 3499
             : 1999;
 

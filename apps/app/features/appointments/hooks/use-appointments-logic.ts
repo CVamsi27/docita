@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { useDoctors } from "@/hooks/api/use-settings";
+import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import {
   useAppointments,
   useCheckInAppointment,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { Appointment } from "@workspace/types";
 
@@ -48,6 +49,7 @@ export const useAppointmentsLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
+  const { clinic } = useClinic();
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
@@ -62,12 +64,56 @@ export const useAppointmentsLogic = () => {
   );
 
   const { data: doctors = [] } = useDoctors();
+  const { data: doctorSchedules = [] } = useDoctorSchedules(
+    selectedDoctorId || undefined,
+  );
 
   const doctorsList = doctors;
+
+  const clinicStartHour = useMemo(() => {
+    const t = clinic?.openingTime;
+    return t ? parseInt(t.split(":")[0] ?? "9", 10) : 9;
+  }, [clinic?.openingTime]);
+
+  const clinicEndHour = useMemo(() => {
+    const t = clinic?.closingTime;
+    return t ? parseInt(t.split(":")[0] ?? "18", 10) : 18;
+  }, [clinic?.closingTime]);
+
+  const { activeStartHour, activeEndHour } = useMemo(() => {
+    if (selectedDoctorId && doctorSchedules.length > 0 && date) {
+      const days = [
+        "SUNDAY",
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+      ];
+      const dayName = days[date.getDay()];
+      const schedule = doctorSchedules.find(
+        (s) => s.dayOfWeek === dayName && s.isActive,
+      );
+      if (schedule) {
+        const start = parseInt(schedule.startTime.split(":")[0] ?? "9", 10);
+        const end = parseInt(schedule.endTime.split(":")[0] ?? "18", 10);
+        return { activeStartHour: start, activeEndHour: end };
+      }
+    }
+    return { activeStartHour: clinicStartHour, activeEndHour: clinicEndHour };
+  }, [
+    selectedDoctorId,
+    doctorSchedules,
+    date,
+    clinicStartHour,
+    clinicEndHour,
+  ]);
 
   const {
     data: appointmentsResponse,
     isLoading: loading,
+    isError,
     refetch,
   } = useAppointments({
     ...(selectedDateStr ? { date: selectedDateStr } : {}),
@@ -223,6 +269,7 @@ export const useAppointmentsLogic = () => {
       canViewAllDoctors,
       doctorsList,
       loading,
+      isError,
       filteredAppointments,
       appointments: uniqueAppointments,
       currentTimeSlot,
@@ -231,6 +278,8 @@ export const useAppointmentsLogic = () => {
       preselectedPatientId,
       user,
       isPendingMutation: updateAppointmentMutation.isPending,
+      activeStartHour,
+      activeEndHour,
     },
     handlers: {
       handleCheckIn,

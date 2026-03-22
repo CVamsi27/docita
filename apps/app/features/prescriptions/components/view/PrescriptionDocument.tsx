@@ -49,12 +49,12 @@ export function PrescriptionDocument({
     : null;
 
   return (
-    <Card className="print:shadow-none print:border-2 print:border-gray-300">
+    <Card className="print:shadow-none print:border-2 print:border-muted-foreground/30">
       <CardHeader className="space-y-4 pb-4">
         <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-primary pb-6 gap-4">
           <div className="flex items-start gap-4 max-w-[70%]">
             {clinicInfo?.logo ? (
-              <div className="item-start pt-1">
+              <div className="items-start pt-1">
                 <Image
                   src={clinicInfo.logo}
                   alt="Clinic Logo"
@@ -110,7 +110,6 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {}
         <div className="grid grid-cols-2 gap-4 pt-2">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -140,7 +139,6 @@ export function PrescriptionDocument({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-4xl font-serif font-bold text-primary italic">
@@ -154,7 +152,7 @@ export function PrescriptionDocument({
             {prescription.medications?.map((med: Medication, index: number) => (
               <div
                 key={index}
-                className="p-3 bg-muted/30 rounded-lg print:bg-transparent print:border print:border-gray-200"
+                className="p-3 bg-muted/30 rounded-lg print:bg-transparent print:border print:border-muted-foreground/20"
               >
                 <div className="flex items-start gap-2">
                   <span className="font-bold text-primary">{index + 1}.</span>
@@ -185,7 +183,6 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {}
         {prescription.instructions && (
           <div>
             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
@@ -197,7 +194,6 @@ export function PrescriptionDocument({
           </div>
         )}
 
-        {}
         <div className="pt-8 mt-8 border-t">
           <div className="flex justify-end">
             <div className="text-center min-w-[200px]">
@@ -212,7 +208,7 @@ export function PrescriptionDocument({
                   />
                 </div>
               ) : (
-                <div className="h-[60px] border-b-2 border-gray-400 mb-2" />
+                <div className="h-[60px] border-b-2 border-muted-foreground/50 mb-2" />
               )}
               <p className="font-bold">Dr. {doctorName}</p>
               {doctorInfo?.qualification && (
@@ -229,7 +225,6 @@ export function PrescriptionDocument({
           </div>
         </div>
 
-        {}
         <div className="pt-4 border-t text-center text-xs text-muted-foreground space-y-1">
           <p className="font-medium">
             This is a digitally generated prescription

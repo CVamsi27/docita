@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import type { PricingEstimateRequest } from "@workspace/types";
 import { API_URL } from "@/lib/api-config";
@@ -210,6 +211,76 @@ export function useTierEstimates(params: {
     estimateByTier,
     isLoadingAny: results.some((result) => result.isLoading),
   };
+}
+
+const CURRENCY_CACHE_KEY = "docita_currency_detected";
+const CURRENCY_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface CachedCurrency {
+  code: string;
+  timestamp: number;
+}
+
+const IP_TO_CURRENCY_MAP: Record<string, string> = {
+  IN: "INR",
+  US: "USD",
+  CA: "USD",
+  GB: "GBP",
+  AU: "AUD",
+  NZ: "AUD",
+  DE: "EUR",
+  FR: "EUR",
+  IT: "EUR",
+  ES: "EUR",
+  NL: "EUR",
+  BE: "EUR",
+  AT: "EUR",
+  PT: "EUR",
+  IE: "EUR",
+  FI: "EUR",
+  GR: "EUR",
+};
+
+async function detectCurrencyFromIP(): Promise<string> {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (!res.ok) return "INR";
+    const data = await res.json();
+    return IP_TO_CURRENCY_MAP[data.country_code] ?? "INR";
+  } catch {
+    return "INR";
+  }
+}
+
+export function useDetectedCurrency(): string {
+  const [currency, setCurrency] = useState<string>("INR");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed: CachedCurrency = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp < CURRENCY_CACHE_TTL_MS) {
+          setCurrency(parsed.code);
+          return;
+        }
+      } catch {
+        // ignore corrupt cache
+      }
+    }
+
+    detectCurrencyFromIP().then((code) => {
+      setCurrency(code);
+      localStorage.setItem(
+        CURRENCY_CACHE_KEY,
+        JSON.stringify({ code, timestamp: Date.now() } satisfies CachedCurrency),
+      );
+    });
+  }, []);
+
+  return currency;
 }
 
 export type {

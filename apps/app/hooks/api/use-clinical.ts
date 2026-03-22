@@ -126,20 +126,20 @@ export const useDownloadPrescriptionPDF = () => {
 export const useLabTests = () =>
   useAPIQuery<{ id: string; status: string; createdAt: Date }[]>(
     ["lab-tests"],
-    "/lab-tests/orders",
+    "/clinical/lab-tests/orders",
   );
 
 export const useLabTestsStats = () =>
   useAPIQuery<{ totalOrders: number; pendingOrders: number }>(
     ["lab-tests", "stats"],
-    "/lab-tests/orders/stats",
+    "/clinical/lab-tests/stats",
   );
 
 export const useCreateLabTestOrder = () =>
   useAPIMutation<
     { id: string; status: string },
     CreateLabTestOrderRequest
-  >("/lab-tests/orders", "POST", {
+  >("/clinical/lab-tests/orders", "POST", {
     invalidateKeys: [["lab-tests"], ["lab-test-orders"]],
   });
 
@@ -147,7 +147,7 @@ export const useUpdateLabTestOrder = (id: string) =>
   useAPIMutation<
     { id: string; status: string },
     UpdateLabTestOrderRequest
-  >(`/lab-tests/orders/${id}`, "PATCH", {
+  >(`/clinical/lab-tests/orders/${id}/status`, "PUT", {
     invalidateKeys: [["lab-tests"], ["lab-test-orders"]],
   });
 
@@ -158,7 +158,7 @@ export const useLabTestOrders = (filters?: {
 }) =>
   useAPIQuery<LabTestOrder[]>(
     ["lab-test-orders", filters || {}],
-    `/lab-tests/orders${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    `/clinical/lab-tests/orders${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
 export const useLabTestStats = () =>
@@ -168,32 +168,32 @@ export const useLabTestStats = () =>
     completed: number;
     urgent: number;
     total: number;
-  }>(["lab-test-stats"], "/lab-tests/orders/stats");
+  }>(["lab-test-stats"], "/clinical/lab-tests/stats");
 
 export const useLabTestCatalog = () =>
-  useAPIQuery<LabTest[]>(["lab-test-catalog"], "/lab-tests/catalog");
+  useAPIQuery<LabTest[]>(["lab-test-catalog"], "/clinical/lab-tests");
 
 export const useDocuments = (filters?: ListDocumentsContractQuery) =>
   useAPIQuery<DocumentContractResponse[]>(
     ["documents", filters || {}],
-    `/documents${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    `/medical-documents${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
 export const useDocument = (id: string) =>
-  useAPIQuery<Document>(["documents", id], `/documents/${id}`);
+  useAPIQuery<Document>(["documents", id], `/medical-documents/${id}`);
 
 export const useTemplates = (filters?: ListTemplatesContractQuery) =>
   useAPIQuery<TemplateContractResponse[]>(
     ["templates", filters || {}],
-    `/clinical/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    `/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
   );
 
 export const useTemplate = (id: string) =>
-  useAPIQuery<TemplateContractResponse>(["templates", id], `/clinical/templates/${id}`);
+  useAPIQuery<TemplateContractResponse>(["templates", id], `/templates/${id}`);
 
 export const useCreateTemplate = () =>
   useAPIMutation<TemplateContractResponse, CreateTemplateRequest>(
-    "/clinical/templates",
+    "/templates",
     "POST",
     {
       invalidateKeys: [["templates"]],
@@ -202,7 +202,7 @@ export const useCreateTemplate = () =>
 
 export const useUpdateTemplate = () =>
   useAPIMutation<TemplateContractResponse, UpdateTemplateRequest & { id: string }>(
-    (template) => `/clinical/templates/${template.id}`,
+    (template) => `/templates/${template.id}`,
     "PATCH",
     {
       invalidateKeys: [["templates"]],
@@ -211,7 +211,7 @@ export const useUpdateTemplate = () =>
 
 export const useDeleteTemplate = () =>
   useAPIMutation<void, { id: string }>(
-    (variables) => `/clinical/templates/${variables.id}`,
+    (variables) => `/templates/${variables.id}`,
     "DELETE",
     {
       invalidateKeys: [["templates"]],

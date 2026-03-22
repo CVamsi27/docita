@@ -9,6 +9,7 @@ import {
   useClinicSettings,
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Card,
   CardContent,
@@ -24,6 +25,8 @@ import {
   phoneSchema,
   requiredStringSchema,
 } from "@/features/_shared/schemas/common.schemas";
+import { Copy, Check } from "lucide-react";
+import { useState } from "react";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Clinic Name"),
@@ -36,6 +39,16 @@ type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
 export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = () => {
+    const code = (clinic as Record<string, unknown> | undefined)?.referralCode as string | undefined;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const form = useForm<ClinicSettingsFormValues>({
     resolver: zodResolver(clinicSettingsSchema),
@@ -68,7 +81,19 @@ export function ClinicGeneralSettings() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Card className="border-none shadow-lg">
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-64 mt-1" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -78,6 +103,29 @@ export function ClinicGeneralSettings() {
         <CardDescription>Basic clinic settings and information</CardDescription>
       </CardHeader>
       <CardContent>
+        {!!(clinic as Record<string, unknown> | undefined)?.referralCode && (
+          <div className="mb-4 rounded-lg border bg-muted/30 p-4">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Clinic Join Code</p>
+            <div className="flex items-center gap-2">
+              <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
+                {String((clinic as Record<string, unknown>).referralCode)}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={handleCopyCode}
+                title="Copy clinic code"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Share this code with team members so they can find and join your clinic
+            </p>
+          </div>
+        )}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}

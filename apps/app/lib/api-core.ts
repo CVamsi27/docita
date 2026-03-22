@@ -153,6 +153,21 @@ export async function fetchAPI<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
+  // Add CSRF token from cookie for cookie-based CSRF protection
+  const csrfToken =
+    typeof document !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("XSRF-TOKEN="))
+          ?.split("=")[1]
+      : null;
+
+  if (csrfToken) {
+    (headers as Record<string, string>)["X-XSRF-TOKEN"] = decodeURIComponent(
+      csrfToken,
+    );
+  }
+
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
@@ -178,11 +193,19 @@ export async function fetchAPI<T>(
       }
 
       const errObj = toRecord(errorData) ?? {};
-      const message = typeof errObj.message === "string" 
-        ? errObj.message 
+      const message = typeof errObj.message === "string"
+        ? errObj.message
         : `HTTP error! status: ${response.status}`;
       const code = typeof errObj.code === "string" ? errObj.code : undefined;
       const details = toRecord(errObj.details) ?? undefined;
+
+      if (response.status === 403 && typeof window !== "undefined") {
+        if (code === "SUBSCRIPTION_INACTIVE" || code === "INSUFFICIENT_TIER") {
+          window.location.href = "/settings/billing";
+        } else if (code === "NO_CLINIC") {
+          window.location.href = "/choose-path";
+        }
+      }
 
       throw new ApiError(
         message,

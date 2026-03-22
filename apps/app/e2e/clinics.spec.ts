@@ -41,7 +41,7 @@ test.describe("Clinics Management", () => {
       data: {
         name: "New Test Clinic",
         email: `clinic${Date.now()}@test.com`,
-        phone: "9876543210",
+        phone: "9876543410",
         address: "321 Clinic St",
         city: "Clinic City",
         state: "CC",

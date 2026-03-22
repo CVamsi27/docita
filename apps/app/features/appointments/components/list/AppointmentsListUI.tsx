@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { EmptyState } from "@workspace/ui/components/empty-state";
+import { ErrorState } from "@workspace/ui/components/error-state";
 import { Appointment, Patient } from "@workspace/types";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic";
@@ -14,6 +16,8 @@ import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic
 interface AppointmentsListUIProps {
   date: Date | undefined;
   loading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   doctorsList: { id: string; name: string }[];
   selectedDoctorId: string | undefined;
   filteredAppointments: (Appointment & { patient?: Patient })[];
@@ -26,11 +30,15 @@ interface AppointmentsListUIProps {
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
   userRole?: string;
+  activeStartHour?: number;
+  activeEndHour?: number;
 }
 
 export function AppointmentsListUI({
   date,
   loading,
+  isError,
+  onRetry,
   doctorsList,
   selectedDoctorId,
   filteredAppointments,
@@ -43,7 +51,47 @@ export function AppointmentsListUI({
   onCancelClick,
   onNoShowClick,
   userRole,
+  activeStartHour = 9,
+  activeEndHour = 18,
 }: AppointmentsListUIProps) {
+  const [showEarlierHours, setShowEarlierHours] = useState(false);
+  const [showLaterHours, setShowLaterHours] = useState(false);
+
+  const earlierSlots = TIME_SLOTS.filter((slot) => {
+    const hour = parseInt(slot.split(":")[0] ?? "0", 10);
+    return hour < activeStartHour;
+  });
+
+  const activeSlots = TIME_SLOTS.filter((slot) => {
+    const hour = parseInt(slot.split(":")[0] ?? "0", 10);
+    return hour >= activeStartHour && hour < activeEndHour;
+  });
+
+  const laterSlots = TIME_SLOTS.filter((slot) => {
+    const hour = parseInt(slot.split(":")[0] ?? "0", 10);
+    return hour >= activeEndHour;
+  });
+
+  const renderSlot = (slotTime: string) => {
+    const isCurrentSlot = isToday && slotTime === currentTimeSlot;
+    return (
+      <div key={slotTime} ref={isCurrentSlot ? currentTimeSlotRef : null}>
+        <TimeSlotRow
+          slotTime={slotTime}
+          appointments={filteredAppointments}
+          selectedDate={date || new Date()}
+          isCurrentSlot={isCurrentSlot}
+          checkingIn={checkingIn}
+          onCheckIn={onCheckIn}
+          onStartConsultation={onStartConsultation}
+          onCancelClick={onCancelClick}
+          onNoShowClick={onNoShowClick}
+          {...(userRole && { userRole: userRole })}
+        />
+      </div>
+    );
+  };
+
   return (
     <Card className="border-border shadow-sm bg-card">
       <CardHeader className="border-b border-border bg-muted/30 dark:bg-muted/10">
@@ -63,8 +111,15 @@ export function AppointmentsListUI({
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-primary" />
             <p>Loading appointments...</p>
           </div>
+        ) : isError ? (
+          <div className="p-6">
+            <ErrorState
+              message="Failed to load appointments."
+              onRetry={onRetry}
+            />
+          </div>
         ) : (
-          <div className="h-[calc(100vh-300px)] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {filteredAppointments.length === 0 && (
               <div className="p-6">
                 <EmptyState
@@ -75,28 +130,48 @@ export function AppointmentsListUI({
                 />
               </div>
             )}
-            {TIME_SLOTS.map((slotTime) => {
-              const isCurrentSlot = isToday && slotTime === currentTimeSlot;
-              return (
-                <div
-                  key={slotTime}
-                  ref={isCurrentSlot ? currentTimeSlotRef : null}
+
+            {earlierSlots.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowEarlierHours((v) => !v)}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors border-b border-border"
                 >
-                  <TimeSlotRow
-                    slotTime={slotTime}
-                    appointments={filteredAppointments}
-                    selectedDate={date || new Date()}
-                    isCurrentSlot={isCurrentSlot}
-                    checkingIn={checkingIn}
-                    onCheckIn={onCheckIn}
-                    onStartConsultation={onStartConsultation}
-                    onCancelClick={onCancelClick}
-                    onNoShowClick={onNoShowClick}
-                    {...(userRole && { userRole: userRole })}
-                  />
-                </div>
-              );
-            })}
+                  {showEarlierHours ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                  {showEarlierHours
+                    ? "Hide earlier hours"
+                    : `Show earlier hours (before ${activeStartHour}:00)`}
+                </button>
+                {showEarlierHours && earlierSlots.map(renderSlot)}
+              </>
+            )}
+
+            {activeSlots.map(renderSlot)}
+
+            {laterSlots.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowLaterHours((v) => !v)}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors border-t border-border"
+                >
+                  {showLaterHours ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                  {showLaterHours
+                    ? "Hide later hours"
+                    : `Show later hours (after ${activeEndHour}:00)`}
+                </button>
+                {showLaterHours && laterSlots.map(renderSlot)}
+              </>
+            )}
           </div>
         )}
       </CardContent>

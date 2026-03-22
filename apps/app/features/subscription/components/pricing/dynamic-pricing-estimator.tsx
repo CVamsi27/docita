@@ -19,21 +19,45 @@ import {
 } from "@workspace/ui/components/select";
 import { Switch } from "@workspace/ui/components/switch";
 import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
 import type { SupportedCurrency, TierName } from "@workspace/types";
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
 import {
-  DEFAULT_PRICING_SCALE_PRESET,
+  DEFAULT_PRICING_USAGE_INPUTS,
   PRICING_ESTIMATE_DEBOUNCE_MS,
   PRICING_ESTIMATOR_TIERS,
-  PRICING_SCALE_PRESETS,
-  type PricingScalePresetKey,
 } from "@/features/subscription/config/pricing-config";
 import {
   type EstimateUsageInputs,
   useEstimate,
   usePricingConfig,
 } from "@/hooks/api/use-pricing";
+
+function EstimateRow({
+  label,
+  value,
+  indent,
+  sublabel,
+}: {
+  label: string;
+  value: string;
+  indent?: boolean;
+  sublabel?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between px-5 py-2.5 text-sm",
+        indent && "pl-9 text-muted-foreground",
+        sublabel && "text-muted-foreground font-medium",
+      )}
+    >
+      <span>{label}</span>
+      <span className={cn(!indent && !sublabel && "font-medium")}>{value}</span>
+    </div>
+  );
+}
 
 interface DynamicPricingEstimatorProps {
   defaultTier?: TierName;
@@ -45,7 +69,7 @@ interface DynamicPricingEstimatorProps {
 }
 
 export function DynamicPricingEstimator({
-  defaultTier = "CORE",
+  defaultTier = "ESSENTIAL",
   currency = "INR",
   billingCycle: controlledBillingCycle,
   showCurrencySelector = true,
@@ -57,38 +81,16 @@ export function DynamicPricingEstimator({
     useState<SupportedCurrency>(currency);
   const [localBillingCycle, setLocalBillingCycle] = useState<
     "monthly" | "yearly"
-  >(
-    "monthly",
-  );
-  const [scalePreset, setScalePreset] =
-    useState<PricingScalePresetKey>(DEFAULT_PRICING_SCALE_PRESET);
-  const [patients, setPatients] =
-    useState(PRICING_SCALE_PRESETS[DEFAULT_PRICING_SCALE_PRESET].patients);
-  const [appointments, setAppointments] = useState(
-    PRICING_SCALE_PRESETS[DEFAULT_PRICING_SCALE_PRESET].appointments,
-  );
-  const [users, setUsers] = useState(
-    PRICING_SCALE_PRESETS[DEFAULT_PRICING_SCALE_PRESET].users,
-  );
-  const [whatsappEnabled, setWhatsappEnabled] = useState(true);
-  const [whatsappMessages, setWhatsappMessages] = useState(
-    PRICING_SCALE_PRESETS[DEFAULT_PRICING_SCALE_PRESET].whatsappMessages,
-  );
-  const [intelligence, setIntelligence] = useState(false);
-  const [aiCredits, setAiCredits] = useState(
-    PRICING_SCALE_PRESETS[DEFAULT_PRICING_SCALE_PRESET].aiCredits,
-  );
+  >("monthly");
+  const [patients, setPatients] = useState(DEFAULT_PRICING_USAGE_INPUTS.patients);
+  const [appointments, setAppointments] = useState(DEFAULT_PRICING_USAGE_INPUTS.appointments);
+  const [users, setUsers] = useState(DEFAULT_PRICING_USAGE_INPUTS.users);
+  const [whatsappEnabled, setWhatsappEnabled] = useState(DEFAULT_PRICING_USAGE_INPUTS.whatsapp);
+  const [whatsappMessages, setWhatsappMessages] = useState(DEFAULT_PRICING_USAGE_INPUTS.whatsappMessages);
+  const [intelligence, setIntelligence] = useState(DEFAULT_PRICING_USAGE_INPUTS.intelligence);
+  const [aiCredits, setAiCredits] = useState(DEFAULT_PRICING_USAGE_INPUTS.aiCredits);
 
   const { pricingConfig } = usePricingConfig(selectedCurrency);
-
-  useEffect(() => {
-    const preset = PRICING_SCALE_PRESETS[scalePreset];
-    setPatients(preset.patients);
-    setAppointments(preset.appointments);
-    setUsers(preset.users);
-    setWhatsappMessages(preset.whatsappMessages);
-    setAiCredits(preset.aiCredits);
-  }, [scalePreset]);
 
   useEffect(() => {
     setTier(defaultTier);
@@ -198,14 +200,13 @@ export function DynamicPricingEstimator({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dynamic Price Estimator</CardTitle>
+        <CardTitle>Estimate My Cost</CardTitle>
         <CardDescription>
-          Base plan + usage overage by patients, appointments, team size,
-          WhatsApp volume, and AI credits.
+          Enter your expected usage to calculate your monthly cost including any overage.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Plan</Label>
             <Select value={tier} onValueChange={(value) => setTier(value as TierName)}>
@@ -235,7 +236,7 @@ export function DynamicPricingEstimator({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
+                  <SelectItem value="yearly">Yearly (save 10%)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -274,26 +275,6 @@ export function DynamicPricingEstimator({
               </Select>
             </div>
           )}
-          <div className="space-y-2">
-            <Label>Scale preset</Label>
-            <Select
-              value={scalePreset}
-              onValueChange={(value) =>
-                setScalePreset(value as PricingScalePresetKey)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRICING_SCALE_PRESETS).map(([key, preset]) => (
-                  <SelectItem key={key} value={key}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -307,7 +288,7 @@ export function DynamicPricingEstimator({
             />
           </div>
           <div className="space-y-2">
-            <Label>Expected Appointments / Month</Label>
+            <Label>Appointments / Month</Label>
             <Input
               type="number"
               min={0}
@@ -316,7 +297,7 @@ export function DynamicPricingEstimator({
             />
           </div>
           <div className="space-y-2">
-            <Label>Expected Team Members</Label>
+            <Label>Team Members</Label>
             <Input
               type="number"
               min={1}
@@ -329,9 +310,9 @@ export function DynamicPricingEstimator({
         <div className="space-y-3 border rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">WhatsApp usage</p>
+              <p className="font-medium">WhatsApp Add-on</p>
               <p className="text-xs text-muted-foreground">
-                Estimate overage for outbound messages at your expected scale
+                Estimate overage for outbound messages
               </p>
             </div>
             <Switch
@@ -341,7 +322,7 @@ export function DynamicPricingEstimator({
           </div>
           {whatsappEnabled && (
             <div className="space-y-2">
-              <Label>Projected WhatsApp messages / Month</Label>
+              <Label>WhatsApp messages / Month</Label>
               <Input
                 type="number"
                 min={0}
@@ -355,16 +336,16 @@ export function DynamicPricingEstimator({
         <div className="space-y-3 border rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Include Docita Intelligence</p>
+              <p className="font-medium">Docita Intelligence Add-on</p>
               <p className="text-xs text-muted-foreground">
-                Optional AI credits for coding and automation
+                AI credits for prescriptions, coding, and automation
               </p>
             </div>
             <Switch checked={intelligence} onCheckedChange={setIntelligence} />
           </div>
           {intelligence && (
             <div className="space-y-2">
-              <Label>Projected AI Credits / Month</Label>
+              <Label>AI Credits / Month</Label>
               <Input
                 type="number"
                 min={0}
@@ -375,98 +356,118 @@ export function DynamicPricingEstimator({
           )}
         </div>
 
-        <div className="border rounded-lg p-4 bg-muted/20 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Your estimate</span>
+        <div className="rounded-xl border overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 bg-card border-b">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your Estimate
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {effectiveBillingCycle === "yearly" ? "Billed annually" : "Billed monthly"}
+              </p>
+            </div>
             {isLoading ? (
-              <Badge variant="outline">Calculating...</Badge>
-            ) : shownTotal !== null && estimate ? (
-              <Badge>
-                {estimate.currency.symbol}
-                {shownTotal.toLocaleString()}
-                {effectiveBillingCycle === "yearly" ? "/year" : "/month"}
+              <Badge variant="outline" className="animate-pulse">
+                Calculating...
               </Badge>
+            ) : shownTotal !== null && estimate ? (
+              <div className="text-right">
+                <span className="text-2xl font-bold text-foreground">
+                  {estimate.currency.symbol}
+                  {shownTotal.toLocaleString()}
+                </span>
+                <span className="text-sm text-muted-foreground ml-1">
+                  /{effectiveBillingCycle === "yearly" ? "yr" : "mo"}
+                </span>
+              </div>
             ) : (
               <Badge variant="outline">Contact sales</Badge>
             )}
           </div>
 
           {!isLoading && hasDetailedEstimate && estimate && (
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>
-                Base: {estimate.currency.symbol}
-                {estimate.breakdown.basePrice.toLocaleString()}
-              </p>
-              <p>
-                Add-ons (base): {estimate.currency.symbol}
-                {estimate.breakdown.addOnTotal.toLocaleString()}
-              </p>
+            <div className="divide-y bg-muted/10">
+              <EstimateRow
+                label="Base plan"
+                value={`${estimate.currency.symbol}${estimate.breakdown.basePrice.toLocaleString()}`}
+              />
+              {estimate.breakdown.addOnTotal > 0 && (
+                <EstimateRow
+                  label="Add-ons"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.addOnTotal.toLocaleString()}`}
+                />
+              )}
               {intelligenceBase > 0 && (
-                <p>
-                  Intelligence base: {estimate.currency.symbol}
-                  {intelligenceBase.toLocaleString()}
-                </p>
+                <EstimateRow
+                  label="Intelligence (base)"
+                  value={`${estimate.currency.symbol}${intelligenceBase.toLocaleString()}`}
+                />
               )}
-              <p>
-                Usage overage: {estimate.currency.symbol}
-                {estimate.breakdown.overageTotal.toLocaleString()}
-              </p>
-              {(estimate.breakdown.overages.patients.charge > 0 ||
-                estimate.breakdown.overages.appointments.charge > 0 ||
-                estimate.breakdown.overages.users.charge > 0 ||
-                whatsappOverage > 0 ||
-                intelligenceOverage > 0) && (
-                <div className="pt-1 space-y-1">
-                  {estimate.breakdown.overages.patients.charge > 0 && (
-                    <p>
-                      Patients overage: {estimate.currency.symbol}
-                      {estimate.breakdown.overages.patients.charge.toLocaleString()}
-                    </p>
-                  )}
-                  {estimate.breakdown.overages.appointments.charge > 0 && (
-                    <p>
-                      Appointments overage: {estimate.currency.symbol}
-                      {estimate.breakdown.overages.appointments.charge.toLocaleString()}
-                    </p>
-                  )}
-                  {estimate.breakdown.overages.users.charge > 0 && (
-                    <p>
-                      Team overage: {estimate.currency.symbol}
-                      {estimate.breakdown.overages.users.charge.toLocaleString()}
-                    </p>
-                  )}
-                  {whatsappOverage > 0 && (
-                    <p>
-                      WhatsApp overage: {estimate.currency.symbol}
-                      {whatsappOverage.toLocaleString()}
-                    </p>
-                  )}
-                  {intelligenceOverage > 0 && (
-                    <p>
-                      AI credit overage: {estimate.currency.symbol}
-                      {intelligenceOverage.toLocaleString()}
-                    </p>
-                  )}
+              {estimate.breakdown.overageTotal > 0 && (
+                <EstimateRow
+                  label="Usage overage"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overageTotal.toLocaleString()}`}
+                  sublabel
+                />
+              )}
+              {estimate.breakdown.overages.patients.charge > 0 && (
+                <EstimateRow
+                  label="Patients overage"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.patients.charge.toLocaleString()}`}
+                  indent
+                />
+              )}
+              {estimate.breakdown.overages.appointments.charge > 0 && (
+                <EstimateRow
+                  label="Appointments overage"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.appointments.charge.toLocaleString()}`}
+                  indent
+                />
+              )}
+              {estimate.breakdown.overages.users.charge > 0 && (
+                <EstimateRow
+                  label="Team overage"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.users.charge.toLocaleString()}`}
+                  indent
+                />
+              )}
+              {whatsappOverage > 0 && (
+                <EstimateRow
+                  label="WhatsApp overage"
+                  value={`${estimate.currency.symbol}${whatsappOverage.toLocaleString()}`}
+                  indent
+                />
+              )}
+              {intelligenceOverage > 0 && (
+                <EstimateRow
+                  label="AI credit overage"
+                  value={`${estimate.currency.symbol}${intelligenceOverage.toLocaleString()}`}
+                  indent
+                />
+              )}
+              <div className="px-5 py-3 bg-card">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Monthly total</span>
+                  <span className="font-semibold">
+                    {estimate.currency.symbol}
+                    {estimate.totalMonthly.toLocaleString()}
+                  </span>
                 </div>
-              )}
-              <div className="pt-2 space-y-1 border-t">
-                <p className="font-medium text-foreground">
-                  Total (monthly): {estimate.currency.symbol}
-                  {estimate.totalMonthly.toLocaleString()}
-                </p>
-                <p className="font-medium text-foreground">
-                  Total (yearly): {estimate.currency.symbol}
-                  {estimate.totalYearly.toLocaleString()}
-                </p>
+                <div className="flex items-center justify-between text-sm mt-1.5">
+                  <span className="text-muted-foreground">Yearly total (10% off)</span>
+                  <span className="font-semibold">
+                    {estimate.currency.symbol}
+                    {estimate.totalYearly.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
           )}
 
           {!isLoading && !hasDetailedEstimate && estimate && (
-            <p className="text-xs text-muted-foreground">
-              Enterprise pricing is custom. Use this section to model usage and
-              contact sales for final commercial terms.
-            </p>
+            <div className="px-5 py-4 text-sm text-muted-foreground bg-muted/10">
+              Enterprise pricing is custom. Contact sales for commercial terms.
+            </div>
           )}
         </div>
       </CardContent>

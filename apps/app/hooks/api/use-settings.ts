@@ -302,7 +302,7 @@ export const useUpdateMedicalCodingSettings = () =>
   >("/clinical/medical-coding/settings", "PUT");
 
 export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
-  const res = useAPIQuery<Subscription>(["clinic", "subscription"], "/clinic/subscription", queryOptions);
+  const res = useAPIQuery<Subscription>(["clinic", "subscription"], "/subscription/current", queryOptions);
 
   const normalized = {
     ...res,

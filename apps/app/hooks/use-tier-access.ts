@@ -11,23 +11,26 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const TIER_NAMES: Record<number, string> = {
-  [Tier.CAPTURE]: "Capture",
-  [Tier.CORE]: "Core",
-  [Tier.PLUS]: "Plus",
-  [Tier.PRO]: "Pro",
+  [Tier.STARTER]: "Starter",
+  [Tier.ESSENTIAL]: "Essential",
+  [Tier.PROFESSIONAL]: "Professional",
   [Tier.ENTERPRISE]: "Enterprise",
   [Tier.INTELLIGENCE]: "Intelligence",
 };
 
 const TIER_FROM_DB: Record<string, Tier> = {
-  CAPTURE: Tier.CAPTURE,
-  CORE: Tier.CORE,
-  PLUS: Tier.PLUS,
-  PRO: Tier.PRO,
+  // New tier names
+  STARTER: Tier.STARTER,
+  ESSENTIAL: Tier.ESSENTIAL,
+  PROFESSIONAL: Tier.PROFESSIONAL,
   ENTERPRISE: Tier.ENTERPRISE,
-  FREE: Tier.CAPTURE,
-  STARTER: Tier.CORE,
-  PROFESSIONAL: Tier.PRO,
+  // Legacy DB values
+  CAPTURE: Tier.STARTER,
+  CORE: Tier.ESSENTIAL,
+  PLUS: Tier.ESSENTIAL,
+  PRO: Tier.PROFESSIONAL,
+  CLINIC: Tier.PROFESSIONAL,
+  FREE: Tier.STARTER,
 };
 
 interface ClinicSubscription {
@@ -48,19 +51,19 @@ export function useTierAccess() {
     queryFn: async () => {
       if (!token || !user?.clinicId) {
         return {
-          tier: "CAPTURE" as TierName,
+          tier: "STARTER" as TierName,
           subscriptionStatus: "INACTIVE",
           hasIntelligence: false,
         };
       }
 
-      const response = await fetch(`${API_URL}/clinics/subscription`, {
+      const response = await fetch(`${API_URL}/subscription/current`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
         return {
-          tier: "CAPTURE" as TierName,
+          tier: "STARTER" as TierName,
           subscriptionStatus: "INACTIVE",
           hasIntelligence: false,
         };
@@ -74,8 +77,8 @@ export function useTierAccess() {
   });
 
   const currentTierValue = useMemo(() => {
-    if (!subscription?.tier) return Tier.CAPTURE;
-    return TIER_FROM_DB[subscription.tier] ?? Tier.CAPTURE;
+    if (!subscription?.tier) return Tier.STARTER;
+    return TIER_FROM_DB[subscription.tier] ?? Tier.STARTER;
   }, [subscription?.tier]);
 
   const hasIntelligence = subscription?.hasIntelligence ?? false;
@@ -118,9 +121,9 @@ export function useTierAccess() {
   }, [subscription?.subscriptionStatus]);
 
   return {
-    currentTier: subscription?.tier ?? ("CAPTURE" as TierName),
+    currentTier: subscription?.tier ?? ("STARTER" as TierName),
     currentTierValue,
-    currentTierName: TIER_NAMES[currentTierValue] || "Capture",
+    currentTierName: TIER_NAMES[currentTierValue] || "Starter",
     hasIntelligence,
     isSubscriptionActive,
     hasTier,

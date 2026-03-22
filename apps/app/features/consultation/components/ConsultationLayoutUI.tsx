@@ -27,22 +27,22 @@ export function ConsultationLayoutUI({
         {Sidebar}
       </aside>
 
-      {}
-      <div className="flex-1 overflow-hidden overflow-x-hidden flex flex-col relative h-full">
-        {}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col relative">
         {!isSidebarOpen && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
             className="absolute left-4 top-4 z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
-            title="Show Sidebar"
+            title="Show Patient Sidebar"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
         )}
 
-        {MainContent}
+        <div className="p-4 md:p-6">
+          {MainContent}
+        </div>
       </div>
     </div>
   );

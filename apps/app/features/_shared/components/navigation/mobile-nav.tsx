@@ -3,46 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Calendar,
-  FileText,
-  Home,
-  Menu,
-  Package,
-  Receipt,
-  Settings,
-  Stethoscope,
-  Users,
-  X,
-} from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { useUnreadNotificationCount } from "@/hooks/api/use-whatsapp";
-
-const navItems = [
-  { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/patients", icon: Users, label: "Patients" },
-  { href: "/appointments", icon: Calendar, label: "Appointments" },
-  { href: "/consultation", icon: Stethoscope, label: "Today's Queue" },
-  { href: "/invoices", icon: Receipt, label: "Invoices" },
-  { href: "/inventory", icon: Package, label: "Inventory" },
-  { href: "/documents", icon: FileText, label: "Documents" },
-  {
-    href: "/settings?tab=notification-feed",
-    icon: Bell,
-    label: "Notifications",
-  },
-  { href: "/settings", icon: Settings, label: "Settings" },
-];
+import { useUnreadNotificationCount } from "@/hooks/api/use-notifications";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import {
+  navItems,
+  mobileOnlyNavItems,
+  type NavItem,
+} from "./nav-config";
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { data: unreadNotificationCount } = useUnreadNotificationCount();
+  const { canAccess } = usePermissionStore();
   const notificationCount = unreadNotificationCount?.count ?? 0;
+
+  const filteredNavItems = navItems.filter((item: NavItem) => {
+    if (item.feature && !canAccess(item.feature)) {
+      return false;
+    }
+    return true;
+  });
+
+  const allMobileItems = [...filteredNavItems, ...mobileOnlyNavItems];
 
   return (
     <div className="lg:hidden">
@@ -56,12 +44,10 @@ export function MobileNav() {
       </Button>
       {isOpen && (
         <>
-          {}
           <div
             className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setIsOpen(false)}
           />
-          {}
           <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
               <Link href="/dashboard" onClick={() => setIsOpen(false)}>
@@ -77,12 +63,15 @@ export function MobileNav() {
               </Button>
             </div>
             <nav className="flex flex-col gap-1 p-4">
-              {navItems.map((item) => {
-                const isActive =
-                  (item.href.startsWith("/settings?") &&
-                    pathname === "/settings") ||
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
+              {allMobileItems.map((item: NavItem) => {
+                const isSettingsItem = item.href === "/settings";
+                const isNotificationItem = item.href.startsWith("/settings?tab=notification-feed");
+                const isActive = isSettingsItem
+                  ? pathname.startsWith("/settings")
+                  : isNotificationItem
+                    ? pathname === "/settings"
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
                 return (
                   <Link
                     key={item.href}
@@ -97,15 +86,14 @@ export function MobileNav() {
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
-                    {item.href.startsWith("/settings?tab=notification-feed") &&
-                      notificationCount > 0 && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
-                        >
-                          {notificationCount > 9 ? "9+" : notificationCount}
-                        </Badge>
-                      )}
+                    {isNotificationItem && notificationCount > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                      >
+                        {notificationCount > 9 ? "9+" : notificationCount}
+                      </Badge>
+                    )}
                   </Link>
                 );
               })}

@@ -19,13 +19,19 @@ interface TierCardProps {
   isCurrentTier: boolean;
   isLocked: boolean;
   className?: string;
+  pricing?: { monthly: number | "custom"; yearly: number | "custom" };
+  billingCycle?: "MONTHLY" | "YEARLY";
+  currencySymbol?: string;
+  overageHint?: string;
+  buttonLabel?: string;
+  maxDisplay?: number;
+  usageHints?: { patients?: number; users?: number; whatsappMsgs?: number };
 }
 
 const TIER_ICONS: Record<string, React.ElementType> = {
-  CAPTURE: Zap,
-  CORE: Rocket,
-  PLUS: Sparkles,
-  PRO: Crown,
+  STARTER: Zap,
+  ESSENTIAL: Rocket,
+  PROFESSIONAL: Crown,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
 };
@@ -34,22 +40,17 @@ const TIER_GRADIENTS: Record<
   string,
   { card: string; icon: string; badge: string }
 > = {
-  CAPTURE: {
+  STARTER: {
     card: "from-background to-muted/40",
     icon: "tier-capture",
     badge: "tier-capture",
   },
-  CORE: {
+  ESSENTIAL: {
     card: "from-background to-info/10",
     icon: "tier-core",
     badge: "tier-core",
   },
-  PLUS: {
-    card: "from-background to-success/10",
-    icon: "tier-plus",
-    badge: "tier-plus",
-  },
-  PRO: {
+  PROFESSIONAL: {
     card: "from-background to-primary/10",
     icon: "tier-pro",
     badge: "tier-pro",
@@ -66,6 +67,22 @@ const TIER_GRADIENTS: Record<
   },
 };
 
+function formatTierPrice(
+  pricing: { monthly: number | "custom"; yearly: number | "custom" },
+  billingCycle: "MONTHLY" | "YEARLY",
+  sym = "₹",
+): string {
+  if (pricing.monthly === 0) return "Free forever";
+  if (pricing.monthly === "custom") return "Custom pricing";
+  if (billingCycle === "YEARLY" && typeof pricing.yearly === "number") {
+    return `${sym}${pricing.yearly.toLocaleString()}/yr`;
+  }
+  if (typeof pricing.monthly === "number") {
+    return `From ${sym}${pricing.monthly.toLocaleString()}/mo`;
+  }
+  return "Custom pricing";
+}
+
 export function TierCard({
   tier,
   info,
@@ -75,10 +92,17 @@ export function TierCard({
   className,
   currentTierValue,
   onSelect,
+  pricing,
+  billingCycle = "MONTHLY",
+  currencySymbol,
+  overageHint,
+  buttonLabel,
+  maxDisplay = 5,
+  usageHints,
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
   const Icon = TIER_ICONS[tierName] || Zap;
-  const gradient = TIER_GRADIENTS[tierName] || TIER_GRADIENTS.CAPTURE;
+  const gradient = TIER_GRADIENTS[tierName] || TIER_GRADIENTS.STARTER;
 
   const isUpgrade = currentTierValue !== undefined && tier > currentTierValue;
   const isDowngrade = currentTierValue !== undefined && tier < currentTierValue;
@@ -119,9 +143,44 @@ export function TierCard({
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-2">{info.description}</p>
+        {pricing && (
+          <div className="mt-2">
+            <p className="text-sm font-semibold text-foreground">
+              {formatTierPrice(pricing, billingCycle, currencySymbol)}
+            </p>
+            {overageHint && (
+              <p className="text-xs text-muted-foreground">{overageHint}</p>
+            )}
+            {usageHints && (
+              <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                {usageHints.patients !== undefined && (
+                  <span className="text-xs text-muted-foreground">
+                    {usageHints.patients >= 999999
+                      ? "Unlimited patients"
+                      : `${usageHints.patients.toLocaleString()} patients`}
+                  </span>
+                )}
+                {usageHints.users !== undefined && (
+                  <span className="text-xs text-muted-foreground">
+                    {usageHints.users >= 999
+                      ? "Unlimited users"
+                      : `Up to ${usageHints.users} users`}
+                  </span>
+                )}
+                {usageHints.whatsappMsgs !== undefined && (
+                  <span className="text-xs text-muted-foreground">
+                    {usageHints.whatsappMsgs >= 999999
+                      ? "Unlimited WA msgs"
+                      : `${usageHints.whatsappMsgs.toLocaleString()} WA msgs/mo`}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-0 flex-1">
-        <PlanFeatures features={features} maxDisplay={5} />
+        <PlanFeatures features={features} maxDisplay={maxDisplay} />
       </CardContent>
       {onSelect && (
         <div className="p-4 pt-0 mt-auto">
@@ -130,18 +189,22 @@ export function TierCard({
               "w-full",
               isCurrentTier && "bg-muted text-muted-foreground",
               isUpgrade &&
-                "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-              isDowngrade && "bg-background hover:bg-muted border-primary/20",
+                "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold shadow-md shadow-primary/25",
+              isDowngrade && "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70 opacity-70",
             )}
             variant={isDowngrade ? "outline" : "default"}
             disabled={isCurrentTier}
             onClick={onSelect}
           >
-            {isCurrentTier
-              ? "Current Plan"
-              : isUpgrade
-                ? "Upgrade"
-                : "Downgrade"}
+            {buttonLabel
+              ? buttonLabel
+              : isCurrentTier
+                ? "Current Plan"
+                : isUpgrade
+                  ? "Upgrade"
+                  : isDowngrade
+                    ? "Downgrade"
+                    : "Select Plan"}
           </Button>
         </div>
       )}

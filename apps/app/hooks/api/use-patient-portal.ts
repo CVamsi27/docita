@@ -1,4 +1,5 @@
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import type { PatientTimelineResponse, PatientSnapshot, ActiveMedication, MedicationAdherenceSummary } from "@workspace/types";
 
 interface UpdatePatientProfileBodyDto {
   phoneNumber?: string;
@@ -143,3 +144,187 @@ export const usePatientMedicalHistory = (patientId?: string) =>
       enabled: !!patientId,
     },
   );
+
+export const usePortalMetricCategories = () =>
+  useAPIQuery<Record<string, unknown>[]>(
+    ["patient-portal", "metrics", "categories"],
+    "/patient-portal/metrics/categories",
+  );
+
+export const usePortalMetricHistory = (filters?: {
+  definitionId?: string;
+  categoryId?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}) => {
+  const params = new URLSearchParams();
+  if (filters?.definitionId) params.set("definitionId", filters.definitionId);
+  if (filters?.categoryId) params.set("categoryId", filters.categoryId);
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  const query = params.toString();
+  return useAPIQuery<{
+    total: number;
+    timeline: Record<string, unknown>[];
+    byCategory: Record<string, Record<string, unknown>[]>;
+  }>(
+    ["patient-portal", "metrics", "history", filters || {}],
+    `/patient-portal/metrics/history${query ? `?${query}` : ""}`,
+  );
+};
+
+export const usePortalSelectedMetrics = () =>
+  useAPIQuery<Record<string, unknown>[]>(
+    ["patient-portal", "metrics", "selected"],
+    "/patient-portal/metrics/selected",
+  );
+
+export const useUpdatePortalSelectedMetrics = () =>
+  useAPIMutation<
+    Record<string, unknown>[],
+    { items: Array<{ definitionId: string; isTracked: boolean }> }
+  >("/patient-portal/metrics/selected", "PUT", {
+    invalidateKeys: [["patient-portal", "metrics", "selected"]],
+  });
+
+export const useRecordPortalMetricValue = () =>
+  useAPIMutation<
+    Record<string, unknown>,
+    {
+      definitionId: string;
+      valueString?: string;
+      valueNumber?: number;
+      valueBoolean?: boolean;
+      valueDate?: string;
+      optionId?: string;
+      optionIds?: string[];
+      recordedAt?: string;
+      notes?: string;
+    }
+  >("/patient-portal/metrics/values", "POST", {
+    invalidateKeys: [["patient-portal", "metrics", "history"]],
+  });
+
+export const useCreatePortalMetricDefinition = () =>
+  useAPIMutation<
+    Record<string, unknown>,
+    {
+      categoryId: string;
+      key: string;
+      label: string;
+      valueType: string;
+      unit?: string;
+      isTrackedByDefault?: boolean;
+    }
+  >("/patient-portal/metrics/definitions", "POST", {
+    invalidateKeys: [["patient-portal", "metrics", "categories"]],
+  });
+
+export const usePortalVitalsHistory = (filters?: {
+  categoryId?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}) => {
+  const params = new URLSearchParams();
+  if (filters?.categoryId) params.set("categoryId", filters.categoryId);
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  const query = params.toString();
+  return useAPIQuery<{
+    total: number;
+    timeline: Record<string, unknown>[];
+    byCategory: Record<string, Record<string, unknown>[]>;
+  }>(
+    ["patient-portal", "metrics", "vitals-history", filters || {}],
+    `/patient-portal/metrics/vitals-history${query ? `?${query}` : ""}`,
+  );
+};
+
+export const usePortalTimeline = (filters?: {
+  eventTypes?: string[];
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  const params = new URLSearchParams();
+  if (filters?.eventTypes?.length)
+    params.set("eventTypes", filters.eventTypes.join(","));
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  if (filters?.offset) params.set("offset", String(filters.offset));
+  const query = params.toString();
+  return useAPIQuery<PatientTimelineResponse>(
+    ["patient-portal", "timeline", filters || {}],
+    `/patient-portal/timeline${query ? `?${query}` : ""}`,
+  );
+};
+
+export const usePortalSnapshot = () =>
+  useAPIQuery<PatientSnapshot>(
+    ["patient-portal", "timeline", "snapshot"],
+    "/patient-portal/timeline/snapshot",
+  );
+
+export const usePortalActiveMedications = () =>
+  useAPIQuery<ActiveMedication[]>(
+    ["patient-portal", "medications", "active"],
+    "/patient-portal/medications/active",
+  );
+
+export const usePortalDoseHistory = (filters?: {
+  prescriptionId?: string;
+  from?: string;
+  to?: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  const params = new URLSearchParams();
+  if (filters?.prescriptionId) params.set("prescriptionId", filters.prescriptionId);
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  if (filters?.offset) params.set("offset", String(filters.offset));
+  const query = params.toString();
+  return useAPIQuery<{
+    doses: Record<string, unknown>[];
+    total: number;
+    limit: number;
+    offset: number;
+  }>(
+    ["patient-portal", "medications", "doses", filters || {}],
+    `/patient-portal/medications/doses${query ? `?${query}` : ""}`,
+  );
+};
+
+export const useRecordPortalDose = () =>
+  useAPIMutation<
+    Record<string, unknown>,
+    {
+      medicationId: string;
+      takenAt?: string;
+      status: "TAKEN" | "MISSED" | "SKIPPED";
+      doseAmount?: string;
+      notes?: string;
+    }
+  >("/patient-portal/medications/doses", "POST", {
+    invalidateKeys: [
+      ["patient-portal", "medications", "doses"],
+      ["patient-portal", "medications", "active"],
+    ],
+  });
+
+export const usePortalAdherence = (prescriptionId?: string) => {
+  const query = prescriptionId ? `?prescriptionId=${prescriptionId}` : "";
+  return useAPIQuery<MedicationAdherenceSummary>(
+    ["patient-portal", "medications", "adherence", prescriptionId || ""],
+    `/patient-portal/medications/adherence${query}`,
+  );
+};

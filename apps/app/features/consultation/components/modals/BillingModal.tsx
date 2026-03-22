@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
 import { useCreateInvoice } from "@/hooks/api/use-billing";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 
@@ -35,7 +36,7 @@ export function BillingModal({
   onSaved,
 }: ModalProps) {
   const [items, setItems] = useState<LineItem[]>([
-    { description: "Consultation Fee", quantity: 1, price: 50 },
+    { description: "Consultation Fee", quantity: 1, price: 0 },
   ]);
   const [dueDate, setDueDate] = useState<string>(
     new Date().toISOString().split("T")[0],
@@ -49,6 +50,15 @@ export function BillingModal({
   const [paymentMode, setPaymentMode] = useState<string>("CASH");
 
   const createInvoice = useCreateInvoice();
+  const { currency } = useLocaleCurrency();
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(n);
 
   const calculations = useMemo(() => {
     const subtotal = items.reduce(
@@ -78,6 +88,11 @@ export function BillingModal({
 
       if (validItems.length === 0) {
         toast.error("Please add at least one line item");
+        return;
+      }
+
+      if (calculations.discountAmount > calculations.subtotal) {
+        toast.error("Discount cannot exceed the subtotal");
         return;
       }
 
@@ -112,7 +127,7 @@ export function BillingModal({
       onSaved?.();
       onOpenChange?.(false);
 
-      setItems([{ description: "Consultation Fee", quantity: 1, price: 50 }]);
+      setItems([{ description: "Consultation Fee", quantity: 1, price: 0 }]);
       setTaxRate(0);
       setDiscountValue(0);
     } catch {
@@ -242,9 +257,7 @@ export function BillingModal({
             </Button>
           </div>
 
-          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -315,28 +328,27 @@ export function BillingModal({
               </div>
             </div>
 
-            {}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-5 space-y-3">
+            <div className="bg-muted/50 rounded-lg p-5 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${calculations.subtotal.toFixed(2)}</span>
+                <span>{fmt(calculations.subtotal)}</span>
               </div>
               {calculations.taxAmount > 0 && (
                 <div className="flex justify-between text-sm text-warning">
                   <span>Tax ({taxRate}%)</span>
-                  <span>+${calculations.taxAmount.toFixed(2)}</span>
+                  <span>+{fmt(calculations.taxAmount)}</span>
                 </div>
               )}
               {calculations.discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-success">
                   <span>Discount</span>
-                  <span>-${calculations.discountAmount.toFixed(2)}</span>
+                  <span>-{fmt(calculations.discountAmount)}</span>
                 </div>
               )}
               <div className="border-t pt-3 mt-2 flex justify-between items-center">
                 <span className="font-semibold">Grand Total</span>
                 <span className="text-2xl font-bold">
-                  ${calculations.total.toFixed(2)}
+                  {fmt(calculations.total)}
                 </span>
               </div>
             </div>

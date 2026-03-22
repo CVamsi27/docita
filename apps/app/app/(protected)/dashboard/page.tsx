@@ -2,9 +2,11 @@
 
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { DashboardUI } from "@/features/dashboard/components";
+import { useClinic } from "@/lib/clinic-context";
 
 export default function DashboardPage() {
   const { state } = useDashboardLogic();
+  const { clinic } = useClinic();
 
   const {
     stats,
@@ -16,6 +18,8 @@ export default function DashboardPage() {
     nextPatients,
     waitingCount,
     isLoading,
+    isError,
+    refetch,
     canAccess,
   } = state;
 
@@ -29,7 +33,10 @@ export default function DashboardPage() {
       currentPatient={currentPatient}
       nextPatients={nextPatients}
       waitingCount={waitingCount}
+      slotDurationMinutes={clinic?.slotDuration ?? 15}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={refetch}
       canAccess={canAccess}
     />
   );

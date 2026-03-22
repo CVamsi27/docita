@@ -1,19 +1,18 @@
 "use client";
 
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useMemo } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import {
   Activity,
   Baby,
-  Clock,
   Eye,
   FileText,
+  MessageSquare,
   Pill,
   Smile,
   Stethoscope,
@@ -36,6 +35,10 @@ import {
   OphthalmologyExamData,
   Patient,
 } from "@workspace/types";
+import {
+  ConsultationProgressUI,
+  ConsultationStep,
+} from "./ConsultationProgressUI";
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") {
@@ -59,6 +62,31 @@ function getPrescriptionComplianceErrorMessage(error: unknown): string | null {
   }
 
   return null;
+}
+
+function isExaminationComplete(exam: ExaminationData): boolean {
+  const gen = exam.general;
+  if (
+    gen.pallor ||
+    gen.icterus ||
+    gen.cyanosis ||
+    gen.clubbing ||
+    gen.lymphadenopathy ||
+    gen.edema
+  )
+    return true;
+  if (gen.notes?.trim()) return true;
+  const sys = exam.systemic;
+  if (
+    sys.cvs?.trim() ||
+    sys.rs?.trim() ||
+    sys.pa?.trim() ||
+    sys.cns?.trim() ||
+    sys.musculoskeletal?.trim() ||
+    sys.notes?.trim()
+  )
+    return true;
+  return false;
 }
 
 interface ClinicalDocumentationDynamicProps {
@@ -101,6 +129,8 @@ interface ConsultationSaveData {
   dentalChart?: DentalChartValue;
   ophthalmologyExam?: OphthalmologyExamData;
   growthData?: GrowthChartData;
+  status?: "scheduled" | "confirmed" | "checked-in" | "in-progress" | "completed" | "cancelled" | "no-show";
+
 }
 
 export const ClinicalDocumentationDynamic: FC<
@@ -116,12 +146,18 @@ export const ClinicalDocumentationDynamic: FC<
   clinicType = "GENERAL",
 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [viewMode, setViewMode] = useState<"tabs" | "scroll">("tabs");
   const [isSaving, setIsSaving] = useState(false);
 
-  const [chiefComplaint, setChiefComplaint] = useState<ChiefComplaintItem[]>(
-    [],
-  );
+  const [chiefComplaint, setChiefComplaint] = useState<ChiefComplaintItem[]>([
+    {
+      id: crypto.randomUUID(),
+      complaint: "",
+      durationValue: "",
+      durationUnit: "days",
+      severity: "moderate",
+      notes: "",
+    },
+  ]);
   const [history, setHistory] = useState<string | null>(null);
   const [examination, setExamination] = useState<ExaminationData>({
     general: {
@@ -163,7 +199,7 @@ export const ClinicalDocumentationDynamic: FC<
 
   useEffect(() => {
     if (appointmentData) {
-      if (appointmentData.chiefComplaintStructured) {
+      if (appointmentData.chiefComplaintStructured?.length) {
         setChiefComplaint(appointmentData.chiefComplaintStructured);
       } else if (appointmentData.chiefComplaint) {
         setChiefComplaint([
@@ -261,6 +297,7 @@ export const ClinicalDocumentationDynamic: FC<
     if (!onSave) return;
     setIsSaving(true);
     try {
+      const isComplete = progress.isMinimumMet;
       const saveData: ConsultationSaveData = {
         chiefComplaint: chiefComplaint.map((c) => c.complaint).join(", "),
         chiefComplaintStructured: chiefComplaint,
@@ -271,6 +308,7 @@ export const ClinicalDocumentationDynamic: FC<
         dentalChart: clinicType === "DENTAL" ? dentalChart : undefined,
         ophthalmologyExam: clinicType === "OPHTHALMOLOGY" ? eyeExam : undefined,
         growthData: clinicType === "PEDIATRIC" ? growthData : undefined,
+        ...(isComplete ? { status: "completed" as const } : {}),
       };
 
       await onSave(saveData);
@@ -299,7 +337,6 @@ export const ClinicalDocumentationDynamic: FC<
 
       toast.success("Consultation saved successfully");
     } catch (error: unknown) {
-
       const complianceMessage = getPrescriptionComplianceErrorMessage(error);
       toast.error(complianceMessage || "Failed to save consultation");
     } finally {
@@ -311,176 +348,221 @@ export const ClinicalDocumentationDynamic: FC<
     {
       id: "chief-complaint",
       label: "Chief Complaint",
+      shortLabel: "Complaint",
       icon: <Activity className="h-4 w-4" />,
     },
     {
       id: "history",
       label: "History",
-      icon: <Clock className="h-4 w-4" />,
+      shortLabel: "History",
+      icon: <FileText className="h-4 w-4" />,
     },
     {
       id: "examination",
       label: "Examination",
+      shortLabel: "Exam",
       icon: <Stethoscope className="h-4 w-4" />,
     },
     ...(clinicType === "DENTAL"
-      ? [{ id: "dental-chart", label: "Dental Chart", icon: <Smile className="h-4 w-4" /> }]
+      ? [{ id: "dental-chart", label: "Dental Chart", shortLabel: "Dental", icon: <Smile className="h-4 w-4" /> }]
       : []),
     ...(clinicType === "OPHTHALMOLOGY"
-      ? [{ id: "vision-exam", label: "Vision Exam", icon: <Eye className="h-4 w-4" /> }]
+      ? [{ id: "vision-exam", label: "Vision Exam", shortLabel: "Vision", icon: <Eye className="h-4 w-4" /> }]
       : []),
     ...(clinicType === "PEDIATRIC"
-      ? [{ id: "growth-chart", label: "Growth Chart", icon: <Baby className="h-4 w-4" /> }]
+      ? [{ id: "growth-chart", label: "Growth Chart", shortLabel: "Growth", icon: <Baby className="h-4 w-4" /> }]
       : []),
     {
       id: "diagnosis",
       label: "Diagnosis",
+      shortLabel: "Diagnosis",
       icon: <FileText className="h-4 w-4" />,
     },
     {
       id: "treatment",
       label: "Treatment",
+      shortLabel: "Treatment",
       icon: <Pill className="h-4 w-4" />,
     },
   ];
 
+  const steps: ConsultationStep[] = useMemo(() => [
+    {
+      id: "chief-complaint",
+      label: "Chief Complaint",
+      shortLabel: "Complaint",
+      isRequired: true,
+      isComplete:
+        chiefComplaint.length > 0 &&
+        chiefComplaint.some((c) => c.complaint.trim().length > 0),
+    },
+    {
+      id: "history",
+      label: "History",
+      shortLabel: "History",
+      isRequired: false,
+      isComplete: !!history && history.trim().length > 0,
+    },
+    {
+      id: "examination",
+      label: "Examination",
+      shortLabel: "Exam",
+      isRequired: false,
+      isComplete: isExaminationComplete(examination),
+    },
+    ...(clinicType === "DENTAL"
+      ? [
+          {
+            id: "dental-chart",
+            label: "Dental Chart",
+            shortLabel: "Dental",
+            isRequired: false,
+            isComplete: Object.keys(dentalChart).length > 0,
+          },
+        ]
+      : []),
+    ...(clinicType === "OPHTHALMOLOGY"
+      ? [
+          {
+            id: "vision-exam",
+            label: "Vision Exam",
+            shortLabel: "Vision",
+            isRequired: false,
+            isComplete: Object.keys(eyeExam).length > 0,
+          },
+        ]
+      : []),
+    ...(clinicType === "PEDIATRIC"
+      ? [
+          {
+            id: "growth-chart",
+            label: "Growth Chart",
+            shortLabel: "Growth",
+            isRequired: false,
+            isComplete: growthData.measurements.length > 0,
+          },
+        ]
+      : []),
+    {
+      id: "diagnosis",
+      label: "Diagnosis",
+      shortLabel: "Diagnosis",
+      isRequired: true,
+      isComplete:
+        diagnosis.length > 0 &&
+        diagnosis.some((d) => d.condition.trim().length > 0),
+    },
+    {
+      id: "treatment",
+      label: "Treatment",
+      shortLabel: "Treatment",
+      isRequired: false,
+      isComplete: treatment.trim().length > 0 || prescriptions.length > 0,
+    },
+  ], [chiefComplaint, history, examination, diagnosis, treatment, prescriptions, dentalChart, eyeExam, growthData, clinicType]);
+
+  const progress = useMemo(() => {
+    const completedCount = steps.filter((s) => s.isComplete).length;
+    const requiredSteps = steps.filter((s) => s.isRequired);
+    const requiredComplete = requiredSteps.filter((s) => s.isComplete).length;
+    const isMinimumMet = requiredComplete === requiredSteps.length && requiredSteps.length > 0;
+    const percentage =
+      steps.length > 0 ? Math.round((completedCount / steps.length) * 100) : 0;
+    return {
+      percentage,
+      completedCount,
+      totalCount: steps.length,
+      requiredComplete,
+      requiredCount: requiredSteps.length,
+      isMinimumMet,
+    };
+  }, [steps]);
+
+  const saveLabel = isSaving
+    ? "Saving..."
+    : progress.isMinimumMet
+      ? "Complete Consultation"
+      : "Save Draft";
+
   return (
     <div className={`space-y-4 ${isFocusMode ? "max-w-4xl mx-auto" : ""}`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="whatsapp-summary"
-              checked={sendToWhatsapp}
-              onCheckedChange={setSendToWhatsapp}
-            />
-            <Label htmlFor="whatsapp-summary" className="text-sm">
-              Send Summary to WhatsApp
-            </Label>
-          </div>
+      <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MessageSquare className="h-4 w-4 shrink-0" />
+          <Label htmlFor="whatsapp-summary" className="cursor-pointer">
+            Send to WhatsApp
+          </Label>
+          <Switch
+            id="whatsapp-summary"
+            checked={sendToWhatsapp}
+            onCheckedChange={setSendToWhatsapp}
+          />
         </div>
-        <div className="flex items-center gap-2">
-          {viewMode === "tabs" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode("scroll")}
-            >
-              Scroll View
-            </Button>
-          )}
-          {viewMode === "scroll" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode("tabs")}
-            >
-              Tab View
-            </Button>
-          )}
-          <Button
-            size="sm"
-            onClick={handleSaveData}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save Consultation"}
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          onClick={handleSaveData}
+          disabled={isSaving}
+          variant={progress.isMinimumMet ? "default" : "outline"}
+        >
+          {saveLabel}
+        </Button>
       </div>
 
-      {viewMode === "tabs" ? (
-        <Card className="border-none shadow-sm">
-          <CardHeader className="p-0 border-b">
-            <div className="flex overflow-x-auto no-scrollbar">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "border-primary text-primary bg-primary/5"
-                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <ConsultationFormRenderer
-              tabId={activeTab}
-              data={{
-                chiefComplaint,
-                history,
-                examination,
-                diagnosis,
-                treatment,
-                prescriptions,
-                dentalChart,
-                eyeExam,
-                growthData,
-              }}
-              handlers={{
-                setChiefComplaint,
-                setHistory,
-                setExamination,
-                setDiagnosis,
-                setTreatment,
-                setPrescriptions,
-                setDentalChart,
-                setEyeExam,
-                setGrowthData,
-              }}
-              patient={patient}
-              isLoading={isPatientLoading}
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {tabs.map((tab) => (
-            <Card key={tab.id} id={tab.id} className="border-none shadow-sm">
-              <CardHeader className="bg-muted/30 py-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  {tab.icon}
-                  {tab.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <ConsultationFormRenderer
-                  tabId={tab.id}
-                  data={{
-                    chiefComplaint,
-                    history,
-                    examination,
-                    diagnosis,
-                    treatment,
-                    prescriptions,
-                    dentalChart,
-                    eyeExam,
-                    growthData,
-                  }}
-                  handlers={{
-                    setChiefComplaint,
-                    setHistory,
-                    setExamination,
-                    setDiagnosis,
-                    setTreatment,
-                    setPrescriptions,
-                    setDentalChart,
-                    setEyeExam,
-                    setGrowthData,
-                  }}
-                  patient={patient}
-                  isLoading={isPatientLoading}
-                />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="p-4 pb-0 border-b space-y-3">
+          <ConsultationProgressUI
+            steps={steps}
+            currentStepId={activeTab}
+            progress={progress}
+            onStepClick={setActiveTab}
+          />
+          <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <ConsultationFormRenderer
+            tabId={activeTab}
+            data={{
+              chiefComplaint,
+              history,
+              examination,
+              diagnosis,
+              treatment,
+              prescriptions,
+              dentalChart,
+              eyeExam,
+              growthData,
+            }}
+            handlers={{
+              setChiefComplaint,
+              setHistory,
+              setExamination,
+              setDiagnosis,
+              setTreatment,
+              setPrescriptions,
+              setDentalChart,
+              setEyeExam,
+              setGrowthData,
+            }}
+            patient={patient}
+            isLoading={isPatientLoading}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

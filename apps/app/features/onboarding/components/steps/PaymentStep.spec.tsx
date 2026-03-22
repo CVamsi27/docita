@@ -16,89 +16,57 @@ if (!globalThis.ResizeObserver) {
   ).ResizeObserver = ResizeObserverMock;
 }
 
+vi.mock("@/lib/api-client", () => ({
+  api: {
+    post: vi.fn().mockRejectedValue(new Error("no backend in test")),
+  },
+}));
+
 describe("PaymentStep", () => {
-  it("shows red field validation messages on submit for all invalid required fields", () => {
+  it("calls onComplete immediately for free plans", () => {
     const onComplete = vi.fn();
 
     render(
       <PaymentStep
         onComplete={onComplete}
         onBack={vi.fn()}
-        selectedPlanPrice={1000}
+        selectedPlanPrice={0}
         billingCycle="MONTHLY"
         currencySymbol="₹"
       />,
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Complete Payment & Continue" }),
-    );
-
-    expect(screen.getByText("Name on card is required")).toBeInTheDocument();
-    expect(screen.getByText("Enter a valid card number")).toBeInTheDocument();
-    expect(screen.getByText("Use MM/YY format")).toBeInTheDocument();
-    expect(screen.getByText("Enter a valid CVC")).toBeInTheDocument();
-
-    expect(screen.getByLabelText("Name on Card")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
-    expect(screen.getByLabelText("Card Number")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
-    expect(screen.getByLabelText("Expiry")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
-    expect(screen.getByLabelText("CVC")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
-
-    expect(onComplete).not.toHaveBeenCalled();
-  });
-
-  it("submits when all fields are valid", () => {
-    const onComplete = vi.fn();
-
-    render(
-      <PaymentStep
-        onComplete={onComplete}
-        onBack={vi.fn()}
-        selectedPlanPrice={1000}
-        billingCycle="MONTHLY"
-        currencySymbol="₹"
-      />,
-    );
-
-    fireEvent.change(screen.getByLabelText("Name on Card"), {
-      target: { value: "Dr John" },
-    });
-    fireEvent.change(screen.getByLabelText("Card Number"), {
-      target: { value: "4242424242424242" },
-    });
-    fireEvent.change(screen.getByLabelText("Expiry"), {
-      target: { value: "12/30" },
-    });
-    fireEvent.change(screen.getByLabelText("CVC"), {
-      target: { value: "123" },
-    });
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Complete Payment & Continue" }),
+      screen.getByRole("button", { name: /Continue \(No Payment Required\)/i }),
     );
 
     expect(onComplete).toHaveBeenCalledWith({
-      cardNumber: "4242",
       autoPay: true,
-      addons: {
-        intelligence: false,
-      },
+      addons: { intelligence: false },
     });
   });
 
-  it("clears field error when the user edits that field after submit", () => {
+  it("calls onBack when Back button is clicked", () => {
+    const onBack = vi.fn();
+
+    render(
+      <PaymentStep
+        onComplete={vi.fn()}
+        onBack={onBack}
+        selectedPlanPrice={1000}
+        billingCycle="MONTHLY"
+        currencySymbol="₹"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it("shows and triggers the free trial button for CORE tier", () => {
+    const onStartTrial = vi.fn();
+
     render(
       <PaymentStep
         onComplete={vi.fn()}
@@ -106,20 +74,17 @@ describe("PaymentStep", () => {
         selectedPlanPrice={1000}
         billingCycle="MONTHLY"
         currencySymbol="₹"
+        tier="CORE"
+        onStartTrial={onStartTrial}
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Complete Payment & Continue" }),
-    );
-    expect(screen.getByText("Name on card is required")).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText("Name on Card"), {
-      target: { value: "Dr Jane" },
+    const trialBtn = screen.getByRole("button", {
+      name: /Start 14-day free trial instead/i,
     });
+    expect(trialBtn).toBeInTheDocument();
 
-    expect(
-      screen.queryByText("Name on card is required"),
-    ).not.toBeInTheDocument();
+    fireEvent.click(trialBtn);
+    expect(onStartTrial).toHaveBeenCalled();
   });
 });

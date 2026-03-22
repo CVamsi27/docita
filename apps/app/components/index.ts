@@ -13,5 +13,3 @@ export * from "./common/monitoring/client-error-reporter";
 export * from "./common/monitoring/sentry-initializer";
 export * from "./common/i18n/language-switcher";
 export * from "./common/pwa/pwa-register";
-
-export * from "./layout";

@@ -1,85 +1,183 @@
-import { ArrowLeft, PanelLeft, User } from "lucide-react";
+import { ArrowLeft, CreditCard, HeartPulse, PanelLeft, Clock, User } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
+import { cn } from "@workspace/ui/lib/utils";
+import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
+import { VitalsModal } from "./modals/VitalsModal";
+import { BillingModal } from "./modals/BillingModal";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+const STATUS_STYLES: Record<string, string> = {
+  scheduled: "bg-info/10 text-info border-info/20",
+  in_progress: "bg-success/10 text-success border-success/20",
+  completed: "bg-muted/50 text-muted-foreground border-muted",
+  cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+  no_show: "bg-warning/10 text-warning border-warning/20",
+};
 
 interface ConsultationPageHeaderUIProps {
   patientName: string;
   appointmentDate: string | Date;
+  appointmentId: string;
+  patientId?: string;
+  appointmentType?: string;
+  appointmentStatus?: string;
+  chiefComplaint?: string;
   onBack: () => void;
-
   MobileSidebarContent?: React.ReactNode;
 }
 
 export function ConsultationPageHeaderUI({
   patientName,
   appointmentDate,
+  appointmentId,
+  patientId,
+  appointmentType,
+  appointmentStatus,
+  chiefComplaint,
   onBack,
   MobileSidebarContent,
 }: ConsultationPageHeaderUIProps) {
+  const [vitalsOpen, setVitalsOpen] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleVitalsSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({ queryKey: ["patient-snapshot"] });
+  };
+
+  const handleBillingSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({ queryKey: ["billing"] });
+  };
+
+  const statusKey = (appointmentStatus ?? "").toLowerCase().replace(/-/g, "_");
+  const statusStyle = STATUS_STYLES[statusKey] ?? "bg-muted/50 text-muted-foreground border-muted";
+  const statusLabel = appointmentStatus
+    ? appointmentStatus.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+    : null;
+
+  const typeLabel = appointmentType
+    ? appointmentType.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+    : null;
+
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="h-9 w-9 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+    <>
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
+        <div className="flex items-center gap-3 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="h-9 w-9 shrink-0 -ml-1 rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
 
-        {}
-        {MobileSidebarContent && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden hover:bg-accent"
-              >
-                <PanelLeft className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
-              {MobileSidebarContent}
-            </SheetContent>
-          </Sheet>
-        )}
+          {MobileSidebarContent && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 shrink-0">
+                  <PanelLeft className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0">
+                {MobileSidebarContent}
+              </SheetContent>
+            </Sheet>
+          )}
 
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/10">
-            <User className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-foreground leading-tight">
-              {patientName}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {new Date(appointmentDate).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center border border-primary/10">
+              <User className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-sm font-bold leading-tight truncate">{patientName}</h1>
+                {statusLabel && (
+                  <Badge
+                    variant="outline"
+                    className={cn("text-xs h-5 px-1.5 font-medium hidden sm:inline-flex", statusStyle)}
+                  >
+                    {statusLabel}
+                  </Badge>
+                )}
+                {typeLabel && (
+                  <Badge variant="outline" className="text-xs h-5 px-1.5 hidden md:inline-flex">
+                    {typeLabel}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                <Clock className="h-3 w-3 shrink-0" />
+                <span>
+                  {new Date(appointmentDate).toLocaleDateString("en-IN", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  &middot;{" "}
+                  {new Date(appointmentDate).toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                {chiefComplaint && (
+                  <span className="hidden md:inline truncate max-w-[200px]">
+                    &middot; {chiefComplaint}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onBack}
-          className="hidden sm:flex gap-2 h-9"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to List
-        </Button>
-      </div>
-    </header>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <ConsultationTimerContainer appointmentId={appointmentId} className="hidden sm:flex" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden sm:flex gap-1.5 h-8"
+            onClick={() => setVitalsOpen(true)}
+            title="Record vital signs"
+          >
+            <HeartPulse className="h-3.5 w-3.5 text-destructive" />
+            <span className="hidden md:inline">Vitals</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden sm:flex gap-1.5 h-8"
+            onClick={() => setBillingOpen(true)}
+            title="Create invoice"
+          >
+            <CreditCard className="h-3.5 w-3.5 text-success" />
+            <span className="hidden md:inline">Invoice</span>
+          </Button>
+        </div>
+      </header>
+
+      <VitalsModal
+        open={vitalsOpen}
+        onOpenChange={setVitalsOpen}
+        appointmentId={appointmentId}
+        patientName={patientName}
+        onSaved={handleVitalsSaved}
+      />
+      <BillingModal
+        open={billingOpen}
+        onOpenChange={setBillingOpen}
+        appointmentId={appointmentId}
+        patientId={patientId ?? ""}
+        onSaved={handleBillingSaved}
+      />
+    </>
   );
 }

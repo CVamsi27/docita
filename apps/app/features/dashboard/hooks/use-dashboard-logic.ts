@@ -11,7 +11,12 @@ import {
 export const useDashboardLogic = () => {
   const { canAccess } = usePermissionStore();
 
-  const { data, isLoading: loadingStats } = useDashboardStats();
+  const {
+    data,
+    isLoading: loadingStats,
+    isError,
+    refetch,
+  } = useDashboardStats();
   const { data: rawAppointmentsResponse, isLoading: loadingAppointments } =
     useTodayAppointments();
   const { data: recentPatientsResponse, isLoading: loadingPatients } =
@@ -83,6 +88,8 @@ export const useDashboardLogic = () => {
       nextPatients,
       waitingCount,
       isLoading,
+      isError,
+      refetch,
       canAccess,
     },
     permissions: {

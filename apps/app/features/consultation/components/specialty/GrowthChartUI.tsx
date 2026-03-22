@@ -134,11 +134,11 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
           </div>
         </div>
 
-        <div className="mt-8 p-4 border rounded-lg bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+        <div className="mt-8 p-4 border rounded-lg bg-muted/50 flex flex-col items-center justify-center text-muted-foreground">
           <p className="text-sm">Interactive Growth Chart Visualization</p>
           <p className="text-xs mt-1">WHO (0-2y) / CDC (2-19y)</p>
           {}
-          <div className="w-full h-40 mt-4 border-2 border-dashed border-slate-200 rounded flex items-center justify-center">
+          <div className="w-full h-40 mt-4 border-2 border-dashed border-muted rounded flex items-center justify-center">
             Chart Placeholder
           </div>
         </div>

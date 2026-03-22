@@ -34,6 +34,15 @@ export interface User {
   email: string;
   role: UserRole;
   clinicId?: string | null;
+  onboardingStep?:
+    | 'NOT_STARTED'
+    | 'CHOOSE_PATH'
+    | 'CREATING_CLINIC'
+    | 'JOINING_CLINIC'
+    | 'COMPLETED';
+  signatureUrl?: string | null;
+  registrationNumber?: string | null;
+  verificationStatus?: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'FAILED';
 }
 
 interface AuthContextType {
@@ -42,6 +51,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   isDoctor: boolean;
+  refreshUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (
     email: string,
@@ -144,23 +154,138 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    fetch(`${API_URL}/auth/validate`, { credentials: "include" })
-      .then(async (res) => {
+    const validateSession = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/validate`, {
+          credentials: "include",
+        });
+
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
           setUserRole(data.user.role);
           hasSetRoleRef.current = true;
           localStorage.setItem("docita_user", JSON.stringify(data.user));
-        } else {
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem("docita_user");
+          return;
         }
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
+
+        // Access token expired — try refreshing with the refresh token cookie
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+
+        if (refreshRes.ok) {
+          const retryRes = await fetch(`${API_URL}/auth/validate`, {
+            credentials: "include",
+          });
+          if (retryRes.ok) {
+            const data = await retryRes.json();
+            setUser(data.user);
+            setUserRole(data.user.role);
+            hasSetRoleRef.current = true;
+            localStorage.setItem("docita_user", JSON.stringify(data.user));
+            return;
+          }
+        }
+
+        // Both validate and refresh failed — clear session
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("docita_user");
+      } catch {
+        // Network error — keep user logged in from cache
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    validateSession();
   }, [setUserRole]);
+
+  // Listen for auth changes in other tabs/windows and update in-memory state
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handler = (e: StorageEvent) => {
+      try {
+        if (e.key === "docita_user") {
+          if (e.newValue) {
+            const parsed = JSON.parse(e.newValue);
+            setUser(parsed);
+            if (parsed?.role) setUserRole(parsed.role);
+          } else {
+            setUser(null);
+            setUserRole("");
+          }
+        }
+
+        if (e.key === "docita_token") {
+          setToken(e.newValue ?? null);
+        }
+      } catch {
+        // ignore malformed storage entries
+      }
+    };
+
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, [setUserRole]);
+
+  const refreshUser = async () => {
+    try {
+      const csrfToken = getCsrfToken();
+      const headers = {
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+      };
+
+      const res = await fetch(`${API_URL}/auth/validate`, {
+        method: "GET",
+        credentials: "include",
+        headers,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+        setUserRole(data.user.role);
+        localStorage.setItem("docita_user", JSON.stringify(data.user));
+        return;
+      }
+
+      // Try refreshing the access token before giving up
+      const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (refreshRes.ok) {
+        const retryRes = await fetch(`${API_URL}/auth/validate`, {
+          method: "GET",
+          credentials: "include",
+          headers,
+        });
+        if (retryRes.ok) {
+          const data = await retryRes.json();
+          setUser(data.user);
+          setUserRole(data.user.role);
+          localStorage.setItem("docita_user", JSON.stringify(data.user));
+          return;
+        }
+      }
+
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("docita_user");
+    } catch {
+      // ignore network errors
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -218,7 +343,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("docita_user", JSON.stringify(userData));
 
       if (!userData.clinicId) {
-        router.push(CLINIC_SELECTION_ROUTE);
+        switch (userData.onboardingStep) {
+          case 'JOINING_CLINIC':
+            router.push('/join-request-status');
+            break;
+          case 'CREATING_CLINIC':
+            router.push('/onboarding');
+            break;
+          case 'CHOOSE_PATH':
+          case 'NOT_STARTED':
+          default:
+            router.push('/choose-path');
+        }
         return;
       }
 
@@ -326,11 +462,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUserRole(userData.role);
       localStorage.setItem("docita_user", JSON.stringify(userData));
 
-      const postRegisterRedirect = userData.clinicId
-        ? "/dashboard"
-        : CLINIC_SELECTION_ROUTE;
+      if (!userData.clinicId) {
+        switch (userData.onboardingStep) {
+          case 'JOINING_CLINIC':
+            router.push('/join-request-status');
+            break;
+          case 'CREATING_CLINIC':
+            router.push('/onboarding');
+            break;
+          case 'CHOOSE_PATH':
+          case 'NOT_STARTED':
+          default:
+            router.push('/choose-path');
+        }
+        return;
+      }
 
-      router.push(postRegisterRedirect);
+      router.push('/dashboard');
     } catch (error) {
 
       throw error;
@@ -338,6 +486,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = useCallback(() => {
+    // Clear local state BEFORE API call to prevent re-validation race
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("docita_user");
+
     const csrfToken = getCsrfToken();
     fetch(`${API_URL}/auth/logout`, {
       method: "POST",
@@ -349,9 +502,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({}),
     }).catch(() => {});
 
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("docita_user");
     router.push("/login");
   }, [router]);
 
@@ -398,6 +548,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        refreshUser,
         isAdmin: user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR",
         isDoctor: user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR",
         login,

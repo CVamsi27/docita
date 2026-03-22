@@ -1,8 +1,10 @@
 import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
 import { DashboardHeaderUI } from "./dashboard-header-ui";
 
 export function DashboardHeaderContainer() {
   const { user } = useAuth();
+  const { clinic } = useClinic();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -19,11 +21,18 @@ export function DashboardHeaderContainer() {
     document.dispatchEvent(event);
   };
 
+  const displayName = (() => {
+    const name = user?.name ?? "";
+    if (!name || name.includes("@")) return "Doctor";
+    return name.split(" ")[0];
+  })();
+
   return (
     <DashboardHeaderUI
-      userName={user?.name ?? ""}
+      userName={displayName}
       greeting={getGreeting()}
       onSearchClick={handleSearchClick}
+      clinicCode={clinic?.referralCode}
     />
   );
 }

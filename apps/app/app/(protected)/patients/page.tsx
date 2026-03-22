@@ -28,6 +28,7 @@ import {
   Calendar,
   Pencil,
   Search,
+  UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
@@ -161,6 +162,10 @@ function PatientsContent() {
           </p>
         </div>
 
+        <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          Add Patient
+        </Button>
         <AddPatientDialog
           open={isAddDialogOpen}
           onOpenChange={handleDialogChange}
