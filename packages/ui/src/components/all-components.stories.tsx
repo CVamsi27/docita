@@ -146,7 +146,6 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  VoiceRecorder,
 } from "./index";
 
 const meta = {
@@ -566,7 +565,6 @@ export function VoiceThemeAndBrand() {
             <TooltipContent>Tooltip content</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <VoiceRecorder onTranscript={setTranscript} />
         <LiveSpeechToText onTranscript={(text) => setTranscript(text)} />
         <p className="text-sm text-muted-foreground">
           Transcript: {transcript || "(none)"}

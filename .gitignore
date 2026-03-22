@@ -27,6 +27,10 @@ yarn-error.log*
 # Testing
 coverage
 **/coverage
+test-results/
+**/test-results
+playwright-report/
+**/playwright-report
 
 # Build Outputs
 dist
@@ -80,3 +84,6 @@ apps/api/src/seed-admin.ts
 *.traineddata
 eng.traineddata
 **/*.traineddata
+
+# Generated audit reports
+lighthouse-audit*.json
