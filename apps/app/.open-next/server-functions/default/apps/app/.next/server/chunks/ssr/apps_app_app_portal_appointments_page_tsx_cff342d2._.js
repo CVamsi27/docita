@@ -1,0 +1,3 @@
+module.exports=[646566,a=>{"use strict";var b=a.i(138426),c=a.i(671844),d=a.i(53398);function e(){let{data:a,isLoading:e}=(0,c.usePatientPortalAppointments)();return(0,b.jsxs)("div",{children:[(0,b.jsx)("h1",{className:"mb-6 text-3xl font-bold",children:"My Appointments"}),e?(0,b.jsx)("div",{children:"Loading..."}):(0,b.jsx)(d.Card,{children:(0,b.jsx)(d.CardContent,{className:"p-6",children:(0,b.jsxs)("p",{className:"text-muted-foreground",children:[a?.appointments.length||0," appointments found"]})})})]})}a.s(["default",()=>e])}];
+
+//# sourceMappingURL=apps_app_app_portal_appointments_page_tsx_cff342d2._.js.map

@@ -3,7 +3,7 @@ import process from "node:process";
 import stream from "node:stream";
 import * as nextEnvVars from "./next-env.mjs";
 const cloudflareContextALS = new AsyncLocalStorage();
-Object.defineProperty(globalThis, /* @__PURE__ */ Symbol.for("__cloudflare-context__"), {
+Object.defineProperty(globalThis, Symbol.for("__cloudflare-context__"), {
   get() {
     return cloudflareContextALS.getStore();
   }
@@ -49,7 +49,7 @@ function initRuntime() {
   };
   Object.assign(globalThis, {
     Request: CustomRequest,
-    __BUILD_TIMESTAMP_MS__: 1773113749372,
+    __BUILD_TIMESTAMP_MS__: 1774205025646,
     __NEXT_BASE_PATH__: "",
     __ASSETS_RUN_WORKER_FIRST__: false,
     __TRAILING_SLASH__: false,

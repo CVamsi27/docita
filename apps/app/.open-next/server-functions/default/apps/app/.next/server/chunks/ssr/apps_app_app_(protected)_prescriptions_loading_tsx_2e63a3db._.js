@@ -1,0 +1,3 @@
+module.exports=[717127,a=>{"use strict";var b=a.i(535828),c=a.i(57729);function d(){return(0,b.jsxs)("div",{className:"space-y-6 p-4 md:p-6",children:[(0,b.jsxs)("div",{className:"flex items-start justify-between gap-4",children:[(0,b.jsxs)("div",{className:"space-y-2",children:[(0,b.jsx)(c.Skeleton,{className:"h-8 w-48"}),(0,b.jsx)(c.Skeleton,{className:"h-4 w-72"})]}),(0,b.jsx)(c.Skeleton,{className:"h-10 w-36"})]}),(0,b.jsx)(c.Skeleton,{className:"h-12 w-full"}),(0,b.jsx)("div",{className:"space-y-3",children:Array.from({length:6}).map((a,d)=>(0,b.jsx)(c.Skeleton,{className:"h-16 w-full rounded-xl"},d))})]})}a.s(["default",()=>d])}];
+
+//# sourceMappingURL=apps_app_app_%28protected%29_prescriptions_loading_tsx_2e63a3db._.js.map

@@ -1,0 +1,86 @@
+Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+
+const core = require('@sentry/core');
+
+function isReactClassComponent(target) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return typeof target === 'function' && target?.prototype?.isReactComponent;
+}
+
+/**
+ * Wraps a page component with Sentry error instrumentation.
+ */
+function wrapPageComponentWithSentry(pageComponent) {
+  if (isReactClassComponent(pageComponent)) {
+    return class SentryWrappedPageComponent extends pageComponent {
+       render(...args) {
+        return core.withIsolationScope(() => {
+          const scope = core.getCurrentScope();
+          // We extract the sentry trace data that is put in the component props by datafetcher wrappers
+          const sentryTraceData =
+            typeof this.props === 'object' &&
+            this.props !== null &&
+            '_sentryTraceData' in this.props &&
+            typeof this.props._sentryTraceData === 'string'
+              ? this.props._sentryTraceData
+              : undefined;
+
+          if (sentryTraceData) {
+            const traceparentData = core.extractTraceparentData(sentryTraceData);
+            scope.setContext('trace', {
+              span_id: traceparentData?.parentSpanId,
+              trace_id: traceparentData?.traceId,
+            });
+          }
+
+          try {
+            return super.render(...args);
+          } catch (e) {
+            core.captureException(e, {
+              mechanism: {
+                handled: false,
+                type: 'auto.function.nextjs.page_class',
+              },
+            });
+            throw e;
+          }
+        });
+      }
+    };
+  } else if (typeof pageComponent === 'function') {
+    return new Proxy(pageComponent, {
+      apply(target, thisArg, argArray) {
+        return core.withIsolationScope(() => {
+          const scope = core.getCurrentScope();
+          // We extract the sentry trace data that is put in the component props by datafetcher wrappers
+          const sentryTraceData = argArray?.[0]?._sentryTraceData;
+
+          if (sentryTraceData) {
+            const traceparentData = core.extractTraceparentData(sentryTraceData);
+            scope.setContext('trace', {
+              span_id: traceparentData?.parentSpanId,
+              trace_id: traceparentData?.traceId,
+            });
+          }
+
+          try {
+            return target.apply(thisArg, argArray);
+          } catch (e) {
+            core.captureException(e, {
+              mechanism: {
+                handled: false,
+                type: 'auto.function.nextjs.page_function',
+              },
+            });
+            throw e;
+          }
+        });
+      },
+    });
+  } else {
+    return pageComponent;
+  }
+}
+
+exports.wrapPageComponentWithSentry = wrapPageComponentWithSentry;
+//# sourceMappingURL=wrapPageComponentWithSentry.js.map
