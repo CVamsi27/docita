@@ -363,7 +363,10 @@ export class StaffNotificationService {
     });
   }
 
-  async deleteAllNotifications(userId: string, clinicId: string): Promise<void> {
+  async deleteAllNotifications(
+    userId: string,
+    clinicId: string,
+  ): Promise<void> {
     await this.prisma.staffNotification.updateMany({
       where: { userId, deletedAt: null },
       data: { deletedAt: new Date() },

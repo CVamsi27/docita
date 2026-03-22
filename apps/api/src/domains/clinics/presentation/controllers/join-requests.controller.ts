@@ -99,7 +99,6 @@ export class JoinRequestsController {
   }
 
   @Get()
-
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async listJoinRequests(
     @Request() req: RequestWithUser,
@@ -123,7 +122,6 @@ export class JoinRequestsController {
   }
 
   @Get('count')
-
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async countPendingRequests(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findByClinic(
@@ -135,7 +133,6 @@ export class JoinRequestsController {
   }
 
   @Post(':id/approve')
-
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @HttpCode(200)
   async approveJoinRequest(
@@ -180,7 +177,6 @@ export class JoinRequestsController {
   }
 
   @Post(':id/reject')
-
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @HttpCode(200)
   async rejectJoinRequest(

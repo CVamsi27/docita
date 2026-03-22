@@ -252,8 +252,8 @@ export class WhatsappController {
   @Delete('notifications')
   @ZodSerializerDto(SuccessResponseDto)
   async deleteAllNotifications(@Req() req: Request) {
-    const user = req.user as { id: string };
-    await this.whatsappService.deleteAllNotifications(user.id);
+    const user = req.user as { id: string; clinicId?: string };
+    await this.whatsappService.deleteAllNotifications(user.id, user.clinicId!);
     return { success: true, message: 'All notifications deleted' };
   }
 }

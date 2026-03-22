@@ -118,8 +118,11 @@ export class WhatsappService {
     );
   }
 
-  async deleteAllNotifications(userId: string) {
-    return this.staffNotificationService.deleteAllNotifications(userId);
+  async deleteAllNotifications(userId: string, clinicId: string) {
+    return this.staffNotificationService.deleteAllNotifications(
+      userId,
+      clinicId,
+    );
   }
 
   async approvePrescription(id: string, userId: string, clinicId: string) {

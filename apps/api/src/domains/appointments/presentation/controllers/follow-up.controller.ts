@@ -52,7 +52,11 @@ export class FollowUpController {
     @Param('id') id: string,
     @Body('bookedAppointmentId') bookedAppointmentId: string,
   ) {
-    return this.followUpService.book(id, req.user!.clinicId!, bookedAppointmentId);
+    return this.followUpService.book(
+      id,
+      req.user!.clinicId!,
+      bookedAppointmentId,
+    );
   }
 
   @Patch('follow-ups/:id/complete')
