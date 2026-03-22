@@ -22,7 +22,7 @@ export interface PricingTierCardProps {
   features: string[];
   isPopular?: boolean;
   isPrimary?: boolean;
-  badgeColor?: "slate" | "blue" | "green" | "purple" | "amber";
+  badgeColor?: "slate" | "blue" | "green" | "purple" | "violet" | "amber";
   buttonText?: string;
   buttonVariant?: "default" | "outline";
   onContactSales?: () => void;
@@ -30,11 +30,12 @@ export interface PricingTierCardProps {
 }
 
 const badgeColorMap = {
-  slate: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
-  blue: "bg-info text-info dark:text-info",
-  green: "bg-success text-success dark:text-success",
-  purple: "bg-primary text-primary dark:text-primary",
-  amber: "bg-warning text-warning dark:text-warning",
+  slate: "badge-muted",
+  blue: "badge-info",
+  green: "badge-success",
+  purple: "tier-pro",
+  violet: "bg-violet-500/20 text-violet-700 dark:text-violet-300",
+  amber: "tier-enterprise",
 };
 
 export function PricingTierCard({
@@ -48,7 +49,7 @@ export function PricingTierCard({
   isPopular,
   isPrimary,
   badgeColor = "slate",
-  buttonText = "Start 7 Day Free Trial",
+  buttonText = "Start 14-Day Free Trial",
   buttonVariant = "outline",
   onContactSales,
   isEnterprise,

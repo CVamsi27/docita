@@ -5,7 +5,7 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { PricingTierCard } from "@/components/pricing/pricing-tier-card";
 import { PricingAddon } from "@/components/pricing/pricing-addon";
 import {
-  detectCurrencyFromTimezone,
+  detectCurrencyFromIP,
   getCurrencyInfo,
 } from "@/components/pricing/pricing-utils";
 import { useTierConfig } from "@/app/hooks/use-tier-config";
@@ -21,8 +21,7 @@ export function PricingSection() {
   const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
 
   useEffect(() => {
-    const currency = detectCurrencyFromTimezone();
-    queueMicrotask(() => {
+    detectCurrencyFromIP().then((currency) => {
       setDetectedCurrency(currency);
       setIsHydrated(true);
     });
@@ -48,53 +47,56 @@ export function PricingSection() {
   };
 
   const currencyInfo = getCurrencyInfo(detectedCurrency);
+  const sym = currencyInfo.symbol;
 
-  const captureTierFeatures = [
-    "50 patients",
-    "2 GB secure storage",
-    "Basic patient records",
-    "Excel/PDF import",
-    "Manual WhatsApp share",
+  const starterFeatures = [
+    "Up to 50 patients",
+    "Calendar & appointment scheduling",
+    "Digital prescriptions with PDF",
+    "Patient profiles & visit history",
+    "Paper record scanning & archival",
+    "Excel import & CSV export",
+    "Single doctor",
   ];
 
-  const coreTierFeatures = [
-    "300 patients included",
-    "10 GB secure storage",
-    "500 appointments/mo",
-    "Calendar & scheduling",
-    "Digital prescriptions",
-    "ICD-10 medical coding",
-    "₹2/additional patient",
-  ];
-
-  const plusTierFeatures = [
-    "1,000 patients included",
-    "50 GB secure storage",
-    "2,000 appointments/mo",
-    "Everything in Core",
+  const essentialFeatures = [
+    "500 active patients included",
+    "1,000 appointments/month",
+    "Everything in Starter",
+    "Invoicing & billing",
+    "Basic analytics dashboard",
+    "ICD-10/CPT medical coding",
     "Prescription templates",
-    "2 users included",
-    "₹1.50/additional patient",
+    "Digital consent management",
+    "Doctor signature on prescriptions",
+    "3 users included",
   ];
 
-  const proTierFeatures = [
-    "5,000 patients included",
-    "200 GB secure storage",
-    "8,000 appointments/mo",
-    "Everything in Plus",
-    "Up to 5 doctors",
-    "Advanced analytics & API",
-    "₹1/additional patient",
-  ];
-
-  const enterpriseTierFeatures = [
-    "Unlimited patients",
-    "1 TB+ secure storage",
-    "Everything in Pro",
+  const professionalFeatures = [
+    "10,000 active patients included",
+    "20,000 appointments/month",
+    "Everything in Essential",
     "Unlimited doctors",
-    "Multi-branch support",
-    "Custom integrations",
-    "Dedicated support",
+    "Multi-clinic branching (up to 5)",
+    "Lab tests catalog & tracking",
+    "Inventory & pharmacy module",
+    "Token queue management",
+    "Audit logs & compliance",
+    "Advanced analytics",
+    "15 users included",
+  ];
+
+  const enterpriseFeatures = [
+    "Unlimited patients & appointments",
+    "Everything in Professional",
+    "Unlimited doctors & branches",
+    "Full EHR capabilities",
+    "API access (10k calls/day)",
+    "SSO & advanced security",
+    "Custom branding & white-label",
+    "Data warehouse export",
+    "Dedicated account manager",
+    "SLA guarantee",
   ];
 
   return (
@@ -105,11 +107,11 @@ export function PricingSection() {
             Pricing That Scales With Your Clinic
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Start lean, add capabilities as your team and patient volume grow.
+            Start free, add capabilities as your team and patient volume grow.
           </p>
           {isHydrated && !isLoading && (
             <p className="mt-2 text-sm text-muted-foreground">
-              Pricing shown in {currencyInfo.symbol} ({currencyInfo.country})
+              Pricing shown in {sym} ({currencyInfo.country})
             </p>
           )}
 
@@ -140,76 +142,59 @@ export function PricingSection() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-5 items-start">
+        <div className="grid gap-6 lg:grid-cols-4 items-start">
           <PricingTierCard
-            tier="Tier 0"
-            title="Capture"
-            description="Paper-to-digital bridge"
-            price={formatPrice("CAPTURE")}
-            pricePerMonth="/mo"
+            tier="Starter"
+            title="Docita Starter"
+            description="Free forever — run your practice digitally"
+            price={formatPrice("STARTER")}
             badgeColor="slate"
-            features={captureTierFeatures}
+            features={starterFeatures}
             buttonText="Start Free"
           />
 
           <PricingTierCard
-            tier="Tier 1"
-            title="Core"
-            description="Most clinics start here"
-            price={formatPrice("CORE")}
+            tier="Essential"
+            title="Docita Essential"
+            description="Professional tools for solo clinics"
+            price={formatPrice("ESSENTIAL")}
             pricePerMonth="/mo"
             billingNote={
               billingPeriod === "annual"
-                ? `Billed ${formatYearlyTotal("CORE")}/year`
+                ? `Billed ${formatYearlyTotal("ESSENTIAL")}/year`
                 : undefined
             }
             badgeColor="blue"
             isPopular
-            features={coreTierFeatures}
+            features={essentialFeatures}
             isPrimary
-            buttonText="Start Free"
+            buttonText="Start Free Trial"
             buttonVariant="default"
           />
 
           <PricingTierCard
-            tier="Tier 2"
-            title="Plus"
-            description="Scale & customize"
-            price={formatPrice("PLUS")}
+            tier="Professional"
+            title="Docita Professional"
+            description="Full-featured for multi-doctor clinics"
+            price={formatPrice("PROFESSIONAL")}
             pricePerMonth="/mo"
             billingNote={
               billingPeriod === "annual"
-                ? `Billed ${formatYearlyTotal("PLUS")}/year`
-                : undefined
-            }
-            badgeColor="green"
-            features={plusTierFeatures}
-            buttonText="Start Free"
-          />
-
-          <PricingTierCard
-            tier="Tier 3"
-            title="Pro"
-            description="Multi-doctor clinic"
-            price={formatPrice("PRO")}
-            pricePerMonth="/mo"
-            billingNote={
-              billingPeriod === "annual"
-                ? `Billed ${formatYearlyTotal("PRO")}/year`
+                ? `Billed ${formatYearlyTotal("PROFESSIONAL")}/year`
                 : undefined
             }
             badgeColor="purple"
-            features={proTierFeatures}
-            buttonText="Start Free"
+            features={professionalFeatures}
+            buttonText="Start Free Trial"
           />
 
           <PricingTierCard
-            tier="Tier 4"
-            title="Enterprise"
-            description="Hospital & chains"
+            tier="Enterprise"
+            title="Docita Enterprise"
+            description="Hospital-grade with full customization"
             price="Custom"
             badgeColor="amber"
-            features={enterpriseTierFeatures}
+            features={enterpriseFeatures}
             isEnterprise
             buttonText="Contact Sales"
             onContactSales={() => setShowContactSalesModal(true)}
@@ -229,11 +214,11 @@ export function PricingSection() {
               icon={<MessageSquare className="h-6 w-6" />}
               title="WhatsApp Integration"
               description="Automated patient communication"
-              price="+₹499"
-              priceNote="(from Core tier)"
+              price={`+${sym}${({ INR: "499", USD: "9", EUR: "8", GBP: "7", AUD: "15" })[detectedCurrency] ?? "9"}`}
+              priceNote="(from Essential tier)"
               features={[
                 {
-                  label: "500+ messages included",
+                  label: "500 messages included",
                   icon: <MessageSquare className="h-3 w-3" />,
                 },
                 {
@@ -249,7 +234,7 @@ export function PricingSection() {
                   icon: <MessageSquare className="h-3 w-3" />,
                 },
                 {
-                  label: "₹0.50/extra message",
+                  label: `${sym}${({ INR: "0.50", USD: "0.015", EUR: "0.013", GBP: "0.012", AUD: "0.022" })[detectedCurrency] ?? "0.015"}/extra message`,
                   icon: <MessageSquare className="h-3 w-3" />,
                 },
               ]}
@@ -261,10 +246,10 @@ export function PricingSection() {
               title="Docita Intelligence"
               description="AI-powered clinical assistant"
               price={`+${formatPrice("INTELLIGENCE")}`}
-              priceNote="(from Core tier)"
+              priceNote="(from Essential tier)"
               features={[
                 {
-                  label: "500+ AI credits included",
+                  label: "500 AI credits included",
                   icon: <Sparkles className="h-3 w-3" />,
                 },
                 {
@@ -290,7 +275,7 @@ export function PricingSection() {
         </div>
 
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p>All plans include a 7 day free trial. No credit card required.</p>
+          <p>All paid plans include a 14-day free trial. No credit card required.</p>
           <p>
             Save 10% with annual billing. Loyalty discounts up to 10% after 3
             years.

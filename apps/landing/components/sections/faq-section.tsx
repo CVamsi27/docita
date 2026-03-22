@@ -29,7 +29,7 @@ const faqs = [
   {
     question: "How does the pricing work?",
     answer:
-      "We have a transparent tiered pricing model. You can start for free and upgrade as you grow. No hidden setup fees.",
+      "We have a transparent tiered pricing model. Every paid plan starts with a 14-day free trial — no credit card required. You can upgrade or downgrade as your practice grows. No hidden setup fees.",
   },
   {
     question: "What if I need help?",

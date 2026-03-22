@@ -52,7 +52,7 @@ export function WhatsappSection() {
                   </div>
                   <div>
                     <div className="font-semibold text-sm">
-                      Dr. Smith Clinic
+                      Docita
                     </div>
                     <div className="text-[10px] opacity-80">
                       Business Account

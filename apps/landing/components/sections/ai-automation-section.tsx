@@ -86,7 +86,7 @@ export function AiAutomationSection() {
                   <div className="h-3 w-3 rounded-full bg-warning/20 border border-warning/40" />
                   <div className="h-3 w-3 rounded-full bg-success/20 border border-success/40" />
                   <span className="ml-2 text-xs text-muted-foreground font-mono">
-                    AI_Assistant.tsx
+                    AI Assistant
                   </span>
                 </div>
               </CardHeader>

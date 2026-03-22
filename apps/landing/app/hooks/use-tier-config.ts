@@ -67,78 +67,64 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 const DEFAULT_CONFIG: TierConfigData = {
   tiers: [
     {
-      id: "CAPTURE",
+      id: "STARTER",
       tier: 0,
-      name: "Docita Capture",
-      description: "Perfect for getting started with digitization",
+      name: "Docita Starter",
+      description: "Basic clinical workflow for free",
       tagline: "Free forever",
       color: "gray",
       pricing: { monthly: 0, yearly: 0, currency: CURRENCY_SYMBOLS.INR },
-      limits: { patients: 100, doctors: 1, storageGB: 1, branches: 1 },
+      limits: { patients: 50, doctors: 1, storageGB: 1, branches: 1 },
       features: [
-        "Up to 100 patients",
-        "Basic patient records",
-        "Excel/PDF import",
-        "Manual WhatsApp share",
+        "Up to 50 patients",
+        "Calendar & appointment scheduling",
+        "Digital prescriptions with PDF",
+        "Patient profiles & visit history",
+        "Paper record scanning & archival",
+        "Excel import & CSV export",
       ],
     },
     {
-      id: "CORE",
+      id: "ESSENTIAL",
       tier: 1,
-      name: "Docita Core",
-      description: "Essential features for small clinics",
-      tagline: "Solo Clinic Essentials",
+      name: "Docita Essential",
+      description: "Professional practice management for solo clinics",
+      tagline: "Solo Clinic Pro",
       color: "blue",
-      pricing: { monthly: 999, yearly: 10790, currency: CURRENCY_SYMBOLS.INR }, 
-      limits: { patients: 500, doctors: 1, storageGB: 2, branches: 1 },
+      pricing: { monthly: 999, yearly: 10789, currency: CURRENCY_SYMBOLS.INR },
+      limits: { patients: 500, doctors: 1, storageGB: 10, branches: 1 },
       features: [
-        "500 patients",
-        "Calendar & scheduling",
-        "Digital prescriptions",
-        "WhatsApp integration",
-        "ICD-10 medical coding",
-        "Basic analytics",
-      ],
-    },
-    {
-      id: "PLUS",
-      tier: 2,
-      name: "Docita Plus",
-      description: "Advanced features for growing clinics",
-      tagline: "WhatsApp Automation",
-      color: "green",
-      pricing: { monthly: 2499, yearly: 26990, currency: CURRENCY_SYMBOLS.INR }, 
-      limits: { patients: 2000, doctors: 3, storageGB: 5, branches: 1 },
-      features: [
-        "2,000 patients",
-        "Everything in Core",
+        "500 active patients",
+        "1,000 appointments/month",
+        "Invoicing & billing",
+        "Basic analytics dashboard",
+        "ICD-10/CPT medical coding",
         "Prescription templates",
-        "Custom form fields",
-        "Clinic branding",
-        "Priority support",
+        "3 users included",
       ],
     },
     {
-      id: "PRO",
-      tier: 3,
-      name: "Docita Pro",
-      description: "Full-featured solution for professional clinics",
+      id: "PROFESSIONAL",
+      tier: 2,
+      name: "Docita Professional",
+      description: "Full-featured for multi-doctor clinics",
       tagline: "Multi-Doctor Clinics",
       color: "purple",
-      pricing: { monthly: 4999, yearly: 53990, currency: CURRENCY_SYMBOLS.INR }, 
-      limits: { patients: 10000, doctors: 999, storageGB: 20, branches: 3 },
+      pricing: { monthly: 3999, yearly: 43189, currency: CURRENCY_SYMBOLS.INR },
+      limits: { patients: 10000, doctors: 999, storageGB: 100, branches: 5 },
       features: [
-        "10,000 patients",
-        "Everything in Plus",
-        "Up to 5 doctors",
-        "Advanced analytics",
-        "Revenue reports",
-        "API access",
+        "10,000 active patients",
+        "20,000 appointments/month",
+        "Everything in Essential",
+        "Unlimited doctors",
+        "Multi-clinic branching (up to 5)",
+        "Lab tests, inventory & queue",
+        "15 users included",
       ],
     },
     {
       id: "ENTERPRISE",
-      tier: 4,
+      tier: 3,
       name: "Docita Enterprise",
       description: "Hospital-grade solution with full customization",
       tagline: "Hospital-Grade System",
@@ -148,14 +134,15 @@ const DEFAULT_CONFIG: TierConfigData = {
         yearly: "custom",
         currency: CURRENCY_SYMBOLS.INR,
       },
-      limits: { patients: 999999, doctors: 999, storageGB: 100, branches: 999 },
+      limits: { patients: 999999, doctors: 999, storageGB: 500, branches: 999 },
       features: [
-        "Unlimited patients",
-        "Everything in Pro",
-        "Unlimited doctors",
-        "Multi-branch support",
-        "Custom integrations",
-        "Dedicated support",
+        "Unlimited patients & doctors",
+        "Everything in Professional",
+        "Full EHR capabilities",
+        "API access & SSO",
+        "Custom branding & white-label",
+        "Data warehouse export",
+        "Dedicated account manager",
       ],
     },
   ],
@@ -190,7 +177,7 @@ const DEFAULT_CONFIG: TierConfigData = {
     description: "AI-powered features to enhance your clinic",
     tagline: "AI-Powered Add-on",
     color: "pink",
-    pricing: { monthly: 2999, yearly: 32390, currency: CURRENCY_SYMBOLS.INR }, 
+    pricing: { monthly: 2999, yearly: 32389, currency: CURRENCY_SYMBOLS.INR },
     features: [
       "AI-assisted clinical notes",
       "Smart prescription suggestions",
@@ -204,12 +191,47 @@ const DEFAULT_CONFIG: TierConfigData = {
   },
 };
 
+// Actual per-currency pricing (matches TIER_PRICING_BY_CURRENCY in @workspace/types)
+const TIER_PRICING: Record<string, Record<string, { monthly: number | "custom"; yearly: number | "custom" }>> = {
+  INR: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 999, yearly: 10789 },
+    PROFESSIONAL: { monthly: 3999, yearly: 43189 },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+    INTELLIGENCE: { monthly: 1999, yearly: 21589 },
+  },
+  USD: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 19, yearly: 205 },
+    PROFESSIONAL: { monthly: 79, yearly: 853 },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+    INTELLIGENCE: { monthly: 29, yearly: 313 },
+  },
+  EUR: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 17, yearly: 184 },
+    PROFESSIONAL: { monthly: 69, yearly: 745 },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+    INTELLIGENCE: { monthly: 25, yearly: 270 },
+  },
+  GBP: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 15, yearly: 162 },
+    PROFESSIONAL: { monthly: 59, yearly: 637 },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+    INTELLIGENCE: { monthly: 22, yearly: 238 },
+  },
+  AUD: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 29, yearly: 313 },
+    PROFESSIONAL: { monthly: 119, yearly: 1285 },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+    INTELLIGENCE: { monthly: 45, yearly: 486 },
+  },
+};
+
+// Fallback multipliers for currencies not in TIER_PRICING
 const CURRENCY_MULTIPLIERS: Record<string, number> = {
-  INR: 1,
-  USD: 0.04,
-  GBP: 0.028,
-  EUR: 0.03,
-  AUD: 0.05,
   CAD: 0.048,
   SGD: 0.045,
   AED: 0.13,
@@ -266,36 +288,32 @@ export function useTierConfig() {
       tierId: string,
       currency: string,
     ): { monthly: number; yearly: number; isCustom: boolean } | null => {
-
-      if (tierId === "INTELLIGENCE") {
-        const pricing = config.intelligenceInfo?.pricing;
-        if (!pricing) return null;
-
-        if (pricing.monthly === "custom" || pricing.yearly === "custom") {
-          return { monthly: 0, yearly: 0, isCustom: true };
+      // Use actual per-currency pricing when available
+      const currencyTable = TIER_PRICING[currency];
+      if (currencyTable) {
+        const entry = currencyTable[tierId];
+        if (entry) {
+          if (entry.monthly === "custom" || entry.yearly === "custom") {
+            return { monthly: 0, yearly: 0, isCustom: true };
+          }
+          return { monthly: entry.monthly as number, yearly: entry.yearly as number, isCustom: false };
         }
-
-        const multiplier = CURRENCY_MULTIPLIERS[currency] || 1;
-        return {
-          monthly: Math.round(pricing.monthly * multiplier),
-          yearly: Math.round(pricing.yearly * multiplier),
-          isCustom: false,
-        };
       }
 
-      const tier = getTier(tierId);
-      if (!tier) return null;
+      // Fallback: use INR base price × currency multiplier
+      const basePricing = tierId === "INTELLIGENCE"
+        ? config.intelligenceInfo?.pricing
+        : getTier(tierId)?.pricing;
 
-      const { monthly, yearly } = tier.pricing;
-
-      if (monthly === "custom" || yearly === "custom") {
+      if (!basePricing) return null;
+      if (basePricing.monthly === "custom" || basePricing.yearly === "custom") {
         return { monthly: 0, yearly: 0, isCustom: true };
       }
 
-      const multiplier = CURRENCY_MULTIPLIERS[currency] || 1;
+      const multiplier = CURRENCY_MULTIPLIERS[currency] ?? 1;
       return {
-        monthly: Math.round(monthly * multiplier),
-        yearly: Math.round(yearly * multiplier),
+        monthly: Math.round((basePricing.monthly as number) * multiplier),
+        yearly: Math.round((basePricing.yearly as number) * multiplier),
         isCustom: false,
       };
     },

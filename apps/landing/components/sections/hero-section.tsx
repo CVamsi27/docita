@@ -2,18 +2,9 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
+import { Sparkles, ArrowRight, CalendarCheck } from "lucide-react";
 
 export function HeroSection() {
-  const [showDemoModal, setShowDemoModal] = useState(false);
-
   return (
     <section className="relative overflow-hidden px-6 py-24 sm:py-32 lg:pb-40">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.100),white)] dark:bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary.900),var(--color-background))]" />
@@ -40,42 +31,25 @@ export function HeroSection() {
               size="lg"
               className="h-12 px-8 text-lg gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
-              Start 7 Day Free Trial
+              Start 14-Day Free Trial
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm"
-            onClick={() => setShowDemoModal(true)}
-          >
-            View Demo
-          </Button>
+          <Link href="/contact">
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm gap-2"
+            >
+              <CalendarCheck className="h-5 w-5" />
+              Book a Demo
+            </Button>
+          </Link>
         </div>
         <p className="mt-4 text-sm text-muted-foreground animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-          7 day free trial • No credit card required
+          14-day free trial • No credit card required
         </p>
       </div>
-      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>Docita Demo</DialogTitle>
-          </DialogHeader>
-          <div className="grid py-4">
-            <iframe
-              width="100%"
-              height="450"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=N-7x54g3fQ1t3p3W&autoplay=1"
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

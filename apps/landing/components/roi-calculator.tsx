@@ -278,11 +278,11 @@ export function ROICalculator({
 
       <CardFooter className="flex flex-col gap-3">
         <Button className="w-full" size="lg">
-          Start Saving Today - 7 Day Free Trial
+          Start Saving Today - 14-Day Free Trial
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
         <p className="text-xs text-center text-muted-foreground">
-          No credit card required • 7 day free trial • Cancel anytime
+          No credit card required • 14-day free trial • Cancel anytime
         </p>
       </CardFooter>
     </Card>

@@ -56,7 +56,7 @@ export function SiteHeader() {
           <Link
             href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
           >
-            <Button>Start 7 Day Free Trial</Button>
+            <Button>Start 14-Day Free Trial</Button>
           </Link>
         </div>
       </div>

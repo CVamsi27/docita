@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Stethoscope } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
+
 export default function RefundPolicyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -83,6 +84,45 @@ export default function RefundPolicyPage() {
           </div>
         </div>
       </main>
+
+      <footer className="border-t px-6 py-8 bg-muted/30">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Stethoscope className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-lg font-bold">Docita</span>
+            </div>
+            <div className="flex gap-8 text-sm text-muted-foreground">
+              <Link
+                href="/privacy"
+                className="hover:text-foreground transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/terms"
+                className="hover:text-foreground transition-colors"
+              >
+                Terms of Service
+              </Link>
+              <Link href="/refund-policy" className="text-foreground font-medium">
+                Refund Policy
+              </Link>
+              <Link
+                href="/contact"
+                className="hover:text-foreground transition-colors"
+              >
+                Contact
+              </Link>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} Docita. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
