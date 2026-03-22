@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
-    "build:cloudflare": "opennextjs-cloudflare build",
+    "build:cloudflare": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db && opennextjs-cloudflare build",
     "build:analyze": "ANALYZE=true next build",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy",

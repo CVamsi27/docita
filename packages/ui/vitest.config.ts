@@ -14,6 +14,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@workspace/hooks": path.resolve(__dirname, "../hooks/src"),
+      "@workspace/utils": path.resolve(__dirname, "../utils/src"),
     },
   },
 });

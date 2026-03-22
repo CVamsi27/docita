@@ -4,6 +4,8 @@
     "baseUrl": ".",
     "paths": {
       "@workspace/ui/*": ["./src/*"],
+      "@workspace/utils": ["../utils/src/index.ts"],
+      "@workspace/utils/*": ["../utils/src/*"],
       "@/*": ["./src/*"]
     },
     "module": "esnext",
