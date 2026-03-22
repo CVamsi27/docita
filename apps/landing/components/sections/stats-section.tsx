@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, UserCog, Users, FileText } from "lucide-react";
+import { Building2, FileText, UserCog, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface PlatformStats {

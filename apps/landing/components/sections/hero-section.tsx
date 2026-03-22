@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
-import { Sparkles, ArrowRight, CalendarCheck } from "lucide-react";
+import { ArrowRight, CalendarCheck, Sparkles } from "lucide-react";
 
 export function HeroSection() {
   return (

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Plus, Eye, EyeOff, Users, Shield } from "lucide-react";
+import { Eye, EyeOff, Plus, Shield, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";

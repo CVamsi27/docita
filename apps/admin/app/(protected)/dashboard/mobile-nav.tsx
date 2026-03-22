@@ -13,14 +13,14 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
 import {
-  LayoutDashboard,
   BarChart3,
+  CreditCard,
   FileText,
+  LayoutDashboard,
   LogOut,
   Menu,
-  Users,
-  CreditCard,
   MessageSquare,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 

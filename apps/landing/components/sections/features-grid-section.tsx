@@ -1,24 +1,24 @@
 "use client";
 
 import {
-  Calendar,
-  Users,
-  Receipt,
-  MessageSquare,
-  Upload,
-  ShieldCheck,
-  FlaskConical,
-  Package,
-  Star,
-  Building2,
   Bell,
+  Building2,
+  Calendar,
+  FlaskConical,
   Keyboard,
+  MessageSquare,
+  Package,
+  Receipt,
+  ShieldCheck,
+  Star,
+  Upload,
+  Users,
 } from "lucide-react";
 import {
   Card,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 
 export function FeaturesGridSection() {

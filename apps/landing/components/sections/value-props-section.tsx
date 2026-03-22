@@ -1,11 +1,11 @@
 "use client";
 
 import {
+  Calendar,
   CheckCircle2,
   FileText,
-  Users,
-  Calendar,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 
 export function ValuePropsSection() {

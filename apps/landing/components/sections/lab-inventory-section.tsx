@@ -3,9 +3,9 @@
 import { FlaskConical, Package } from "lucide-react";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "@workspace/ui/components/card";
 
 export function LabInventorySection() {

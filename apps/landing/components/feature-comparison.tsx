@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X, Minus, HelpCircle } from "lucide-react";
+import { Check, HelpCircle, Minus, X } from "lucide-react";
 import {
   Table,
   TableBody,

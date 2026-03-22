@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
 import { ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function StickyCta() {
   const [showStickyCTA, setShowStickyCTA] = useState(false);

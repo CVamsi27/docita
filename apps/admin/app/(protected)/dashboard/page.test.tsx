@@ -1,18 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/features/dashboard", () => ({
-  DashboardPageContainer: () => (
-    <div data-testid="dashboard-page-container">Dashboard Container</div>
-  ),
+vi.mock("@/lib/auth", () => ({
+  useAuth: () => ({
+    token: null,
+    logout: vi.fn(),
+  }),
 }));
 
 import SuperAdminDashboard from "./page";
 
 describe("admin dashboard page", () => {
-  it("renders DashboardPageContainer", () => {
+  it("renders the overview page", async () => {
     render(<SuperAdminDashboard />);
 
-    expect(screen.getByTestId("dashboard-page-container")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument();
   });
 });

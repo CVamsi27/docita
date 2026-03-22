@@ -1,7 +1,7 @@
 "use client";
 
-import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const testimonials = [
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Clock, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock, Users } from "lucide-react";
 
 export function QueueSection() {
   return (

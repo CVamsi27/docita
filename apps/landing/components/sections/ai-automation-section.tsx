@@ -1,7 +1,7 @@
 "use client";
 
-import { Mic, AlertTriangle, Brain, Sparkles } from "lucide-react";
-import { Card, CardHeader, CardContent } from "@workspace/ui/components/card";
+import { AlertTriangle, Brain, Mic, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 
 export function AiAutomationSection() {
   return (

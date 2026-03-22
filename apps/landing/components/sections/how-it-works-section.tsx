@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Stethoscope, Pill, Receipt } from "lucide-react";
+import { ClipboardList, Pill, Receipt, Stethoscope } from "lucide-react";
 
 export function HowItWorksSection() {
   return (

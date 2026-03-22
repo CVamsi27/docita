@@ -3,9 +3,9 @@
 import { BarChart3, TrendingUp } from "lucide-react";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "@workspace/ui/components/card";
 
 export function AnalyticsSection() {

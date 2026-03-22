@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  MessageSquare,
   CheckCircle2,
-  Stethoscope,
   FileText,
+  MessageSquare,
+  Stethoscope,
 } from "lucide-react";
 
 export function WhatsappSection() {

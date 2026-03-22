@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -17,20 +17,20 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { healthAPI, API_URL } from "@/lib/api";
+import { API_URL, healthAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import {
   Activity,
-  Server,
-  Cpu,
-  HardDrive,
-  Clock,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
+  Clock,
+  Cpu,
+  HardDrive,
   RefreshCw,
+  Server,
   Wifi,
+  XCircle,
 } from "lucide-react";
 
 interface HealthMetric {
@@ -98,8 +98,8 @@ export default function SystemMonitoringPage() {
         setPerformanceData(perfJson);
       }
       setHealth(healthData);
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setLoading(false);
       setRefreshing(false);

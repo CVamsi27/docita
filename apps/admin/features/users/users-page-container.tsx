@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Loader2, Search, Eye, Users } from "lucide-react";
+import { Eye, Loader2, Search, Users } from "lucide-react";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
 import { ROLE_CONFIG } from "./types";
 import { getRoleBadgeColor } from "./utils";

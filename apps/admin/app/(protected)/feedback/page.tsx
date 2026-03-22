@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -28,26 +28,26 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
 import {
-  MessageSquare,
-  Star,
-  ThumbsUp,
-  ThumbsDown,
-  Lightbulb,
-  Filter,
-  Eye,
-  Trash2,
+  AlertCircle,
   CheckCircle,
   Clock,
-  AlertCircle,
+  Eye,
+  Filter,
+  Lightbulb,
   Loader2,
+  MessageSquare,
   RefreshCw,
+  Star,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
 } from "lucide-react";
 import {
-  feedbackAPI,
-  Feedback,
-  FeedbackStats,
-  FeedbackFilters,
   API_URL,
+  Feedback,
+  feedbackAPI,
+  FeedbackFilters,
+  FeedbackStats,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
@@ -114,8 +114,8 @@ export default function FeedbackPage() {
         setFeedbacks(Array.isArray(data) ? data : []);
       }
       if (statsRes.ok) setStats(await statsRes.json());
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setLoading(false);
     }
@@ -135,8 +135,8 @@ export default function FeedbackPage() {
       setFeedbacks(feedbacks.map((f) => (f.id === id ? updated : f)));
       setSelectedFeedback(updated);
       setAdminNotes("");
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setUpdatingStatus(false);
     }
@@ -148,8 +148,8 @@ export default function FeedbackPage() {
       await feedbackAPI.delete(id);
       setFeedbacks(feedbacks.filter((f) => f.id !== id));
       setSelectedFeedback(null);
-    } catch {
-
+    } catch (error) {
+      void error;
     }
   };
 

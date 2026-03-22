@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Progress } from "@workspace/ui/components/progress";
@@ -14,13 +14,13 @@ import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
   Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  HardDrive,
   Server,
   Wifi,
-  HardDrive,
-  Cpu,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
   XCircle,
 } from "lucide-react";
 
@@ -58,8 +58,8 @@ export default function PerformancePage() {
       if (res.ok) {
         setData(await res.json());
       }
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setLoading(false);
     }

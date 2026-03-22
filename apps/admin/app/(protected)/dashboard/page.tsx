@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { API_URL } from "@/lib/api";
@@ -14,16 +14,16 @@ import { useAuth } from "@/lib/auth";
 import { CreateClinicDialog } from "./create-clinic-dialog";
 import { ClinicList } from "./clinic-list";
 import {
+  BarChart3,
   Building2,
-  Users,
-  User,
+  DollarSign,
   FileText,
   Pill,
   Search,
-  TrendingUp,
   TrendingDown,
-  DollarSign,
-  BarChart3,
+  TrendingUp,
+  User,
+  Users,
 } from "lucide-react";
 
 interface StatsData {
@@ -103,7 +103,8 @@ export default function SuperAdminDashboard() {
       }
       if (statsRes.ok) setStats(await statsRes.json());
       if (billingRes.ok) setBilling(await billingRes.json());
-    } catch {
+    } catch (error) {
+      void error;
     } finally {
       setLoading(false);
     }

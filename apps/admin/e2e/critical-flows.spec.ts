@@ -53,7 +53,6 @@ test.describe("Admin App - Critical Flows", () => {
   });
 
   test(" ADMIN FLOW 1: Admin Authentication & Dashboard Access", async () => {
-
     const loginRes = await request.post(`${API_URL}/auth/login`, {
       data: {
         email: adminUser.email,
@@ -72,8 +71,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (dashboardRes.ok()) {
       toRecord(await dashboardRes.json());
-    } else {
-
     }
 
     const systemRes = await request.get(`${API_URL}/admin/system`, {
@@ -87,7 +84,6 @@ test.describe("Admin App - Critical Flows", () => {
   });
 
   test(" ADMIN FLOW 2: User Management - List, Create, Update, Delete", async () => {
-
     const usersRes = await request.get(`${API_URL}/admin/users`, {
       headers: { Authorization: `Bearer ${adminUser.accessToken}` },
     });
@@ -129,9 +125,6 @@ test.describe("Admin App - Critical Flows", () => {
         unknown
       >;
       expect(updatedUser.firstName).toBe("Updated");
-
-    } else {
-
     }
 
     const updatedUsersRes = await request.get(`${API_URL}/admin/users`, {
@@ -145,24 +138,14 @@ test.describe("Admin App - Critical Flows", () => {
     const userExists = updatedUsers.some((u) => String(u.id) === String(newUser.id));
     expect(userExists).toBeTruthy();
 
-    const deactivateRes = await request.patch(
-      `${API_URL}/admin/users/${newUser.id}`,
-      {
-        headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-        data: { status: "INACTIVE" },
-      },
-    );
-
-    if (deactivateRes.ok()) {
-
-    } else {
-
-    }
+    await request.patch(`${API_URL}/admin/users/${newUser.id}`, {
+      headers: { Authorization: `Bearer ${adminUser.accessToken}` },
+      data: { status: "INACTIVE" },
+    });
 
   });
 
   test(" ADMIN FLOW 3: Clinic Management - View, Create, Update Clinics", async () => {
-
     const clinicsRes = await request.get(`${API_URL}/admin/clinics`, {
       headers: { Authorization: `Bearer ${adminUser.accessToken}` },
     });
@@ -198,19 +181,12 @@ test.describe("Admin App - Critical Flows", () => {
     if (newClinicRes.ok()) {
       const newClinic = toRecord(await newClinicRes.json());
 
-      const updateClinicRes = await request.patch(
-        `${API_URL}/admin/clinics/${newClinic.id}`,
-        {
-          headers: { Authorization: `Bearer ${adminUser.accessToken}` },
-          data: {
-            phone: "9999888877",
-          },
+      await request.patch(`${API_URL}/admin/clinics/${newClinic.id}`, {
+        headers: { Authorization: `Bearer ${adminUser.accessToken}` },
+        data: {
+          phone: "9999888877",
         },
-      );
-
-      if (updateClinicRes.ok()) {
-
-      }
+      });
 
       const statsRes = await request.get(
         `${API_URL}/admin/clinics/${newClinic.id}/statistics`,
@@ -222,22 +198,17 @@ test.describe("Admin App - Critical Flows", () => {
       if (statsRes.ok()) {
         toRecord(await statsRes.json());
       }
-    } else {
-      
     }
 
   });
 
   test(" ADMIN FLOW 4: System Analytics & Reporting", async () => {
-
     const statsRes = await request.get(`${API_URL}/admin/statistics`, {
       headers: { Authorization: `Bearer ${adminUser.accessToken}` },
     });
 
     if (statsRes.ok()) {
       toRecord(await statsRes.json());
-    } else {
-
     }
 
     const userAnalyticsRes = await request.get(
@@ -249,7 +220,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (userAnalyticsRes.ok()) {
       toRecord(await userAnalyticsRes.json());
-
     }
 
     const appointmentAnalyticsRes = await request.get(
@@ -261,7 +231,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (appointmentAnalyticsRes.ok()) {
       toRecord(await appointmentAnalyticsRes.json());
-
     }
 
     const revenueAnalyticsRes = await request.get(
@@ -273,21 +242,15 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (revenueAnalyticsRes.ok()) {
       toRecord(await revenueAnalyticsRes.json());
-
     }
 
-    const reportRes = await request.get(`${API_URL}/admin/reports/system`, {
+    await request.get(`${API_URL}/admin/reports/system`, {
       headers: { Authorization: `Bearer ${adminUser.accessToken}` },
     });
-
-    if (reportRes.ok()) {
-
-    }
 
   });
 
   test(" ADMIN FLOW 5: System Monitoring & Health Checks", async () => {
-
     const healthRes = await request.get(`${API_URL}/health`, {
       headers: { Authorization: `Bearer ${adminUser.accessToken}` },
     });
@@ -302,7 +265,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (dbStatusRes.ok()) {
       toRecord(await dbStatusRes.json());
-
     }
 
     const cacheStatusRes = await request.get(`${API_URL}/admin/system/cache`, {
@@ -311,7 +273,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (cacheStatusRes.ok()) {
       toRecord(await cacheStatusRes.json());
-
     }
 
     const metricsRes = await request.get(`${API_URL}/admin/metrics`, {
@@ -320,7 +281,6 @@ test.describe("Admin App - Critical Flows", () => {
 
     if (metricsRes.ok()) {
       toRecord(await metricsRes.json());
-
     }
 
     const logsRes = await request.get(`${API_URL}/admin/logs?limit=10`, {
@@ -330,11 +290,9 @@ test.describe("Admin App - Critical Flows", () => {
     if (logsRes.ok()) {
       toRecord(await logsRes.json());
     }
-
   });
 
   test(" ADMIN FLOW 6: Permission & Access Control", async () => {
-
     const doctorEmail = `doctor-perm-${Date.now()}@test.com`;
     const doctorRes = await request.post(`${API_URL}/auth/register`, {
       data: {
@@ -356,7 +314,6 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect([403, 401]).toContain(adminUsersRes.status());
-    
 
     const createUserRes = await request.post(`${API_URL}/admin/users`, {
       headers: { Authorization: `Bearer ${doctorToken}` },
@@ -369,26 +326,16 @@ test.describe("Admin App - Critical Flows", () => {
     });
 
     expect([403, 401]).toContain(createUserRes.status());
-    
 
     const adminClinicsRes = await request.get(`${API_URL}/admin/clinics`, {
       headers: { Authorization: `Bearer ${doctorToken}` },
     });
 
     expect([403, 401]).toContain(adminClinicsRes.status());
-    
 
-    const doctorClinicRes = await request.get(`${API_URL}/clinics`, {
+    await request.get(`${API_URL}/clinics`, {
       headers: { Authorization: `Bearer ${doctorToken}` },
     });
-
-    if (doctorClinicRes.ok()) {
-
-    }
-
-  });
-
-  test.afterAll(async () => {
 
   });
 });

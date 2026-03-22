@@ -1,7 +1,7 @@
 import { client } from "./api-client";
 import {
-  Patient,
   Appointment,
+  Patient,
   SuperAdminBillingPaymentsQuery,
   SuperAdminBillingSubscriptionsQuery,
 } from "@workspace/types";

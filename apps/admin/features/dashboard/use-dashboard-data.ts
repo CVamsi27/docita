@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { fetchDashboardClinics, fetchDashboardStats } from "./api";
 import {
+  type DashboardClinic,
   defaultDashboardStats,
   defaultDashboardTrends,
-  type DashboardClinic,
 } from "./types";
 
 export function useDashboardData() {

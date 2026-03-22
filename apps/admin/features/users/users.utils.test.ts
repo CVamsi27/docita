@@ -49,7 +49,7 @@ describe("users utils", () => {
   });
 
   it("returns consistent badge classes", () => {
-    expect(getRoleBadgeColor("ADMIN")).toContain("purple");
-    expect(getRoleBadgeColor("DOCTOR")).toContain("green");
+    expect(getRoleBadgeColor("ADMIN")).toBe("tier-pro");
+    expect(getRoleBadgeColor("DOCTOR")).toBe("tier-plus");
   });
 });

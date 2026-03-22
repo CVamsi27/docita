@@ -3,9 +3,9 @@
 import { Button } from "@workspace/ui/components/button";
 import {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from "@workspace/ui/components/accordion";
 import { useState } from "react";
 import { ContactSalesModal } from "@/components/dialogs/contact-sales-modal";

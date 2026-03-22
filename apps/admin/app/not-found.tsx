@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileQuestion, Home, ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileQuestion, Home } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
 export default function NotFound() {

@@ -2,11 +2,11 @@
 
 import {
   Building2,
+  ChevronRight,
   Clock,
+  Quote,
   TrendingDown,
   TrendingUp,
-  ChevronRight,
-  Quote,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {

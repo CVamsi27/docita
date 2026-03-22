@@ -6,7 +6,6 @@ test.describe("Landing Page - Critical Flows", () => {
   test("LANDING FLOW 1: Home Page - Load, Navigation, CTA", async ({
     page,
   }) => {
-
     await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     const consoleErrors: string[] = [];
@@ -37,9 +36,6 @@ test.describe("Landing Page - Critical Flows", () => {
     const ctaCount = await ctaButtons.count();
     if (ctaCount > 0) {
       await expect(ctaButtons.first()).toBeVisible();
-
-    } else {
-
     }
 
     expect(consoleErrors).toEqual([]);
@@ -49,8 +45,6 @@ test.describe("Landing Page - Critical Flows", () => {
   test(" LANDING FLOW 2: Navigation - All Pages Accessible", async ({
     page,
   }) => {
-    
-
     const pages = [
       { path: "/", name: "Home" },
       { path: "/features", name: "Features" },
@@ -64,56 +58,40 @@ test.describe("Landing Page - Critical Flows", () => {
       });
 
       expect(response?.status()).toBeLessThan(400);
-      
 
       const body = await page.locator("body");
       expect(body).toBeTruthy();
-      await expect(body).toContainText(/[a-zA-Z]/); 
+      await expect(body).toContainText(/[a-zA-Z]/);
     }
-
   });
 
   test(" LANDING FLOW 3: Forms - Signup & Contact Forms Work", async ({
     page,
   }) => {
-
     await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     const signupForm = await page.locator("form, [role='form']").first();
     if (signupForm) {
-
       const emailInput = await page
         .locator(
           "input[type='email'], input[name*='email'], input[placeholder*='email']",
         )
         .first();
       if (emailInput) {
-
         await emailInput.fill("test@example.com");
         const inputValue = await emailInput.inputValue();
         expect(inputValue).toBe("test@example.com");
-
       }
-    } else {
-
     }
 
     const phoneNumber = await page.locator("a[href^='tel:']");
     const email = await page.locator("a[href^='mailto:']");
-
-    if ((await phoneNumber.count()) > 0) {
-
-    }
-
-    if ((await email.count()) > 0) {
-
-    }
+    expect(await phoneNumber.count()).toBeGreaterThanOrEqual(0);
+    expect(await email.count()).toBeGreaterThanOrEqual(0);
 
   });
 
   test(" LANDING FLOW 4: Performance - Page Load Times", async ({ page }) => {
-    
-
     const pages = ["/", "/features", "/pricing"];
 
     for (const pagePath of pages) {
@@ -126,16 +104,12 @@ test.describe("Landing Page - Critical Flows", () => {
       const loadTime = Date.now() - startTime;
 
       expect(loadTime).toBeLessThan(5000);
-
     }
-
   });
 
   test(" LANDING FLOW 5: SEO & Meta Tags - Pages Properly Configured", async ({
     page,
   }) => {
-    
-
     const pageChecks = [
       { path: "/", titleContains: "Docita" },
       { path: "/features", titleContains: "Features" },
@@ -156,16 +130,12 @@ test.describe("Landing Page - Critical Flows", () => {
 
       const ogTitle = await page.locator('meta[property="og:title"]');
       await ogTitle.count();
-
-      
     }
-
   });
 
   test(" LANDING FLOW 6: Responsive Design - Mobile Compatibility", async ({
     page,
   }) => {
-
     await page.setViewportSize({ width: 375, height: 667 });
 
     await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
@@ -194,17 +164,14 @@ test.describe("Landing Page - Critical Flows", () => {
     });
 
     const fontSizeNum = parseFloat(fontSize);
-    expect(fontSizeNum).toBeGreaterThanOrEqual(12); 
+    expect(fontSizeNum).toBeGreaterThanOrEqual(12);
 
     await page.setViewportSize({ width: 1280, height: 720 });
-
   });
 
   test(" LANDING FLOW 7: Security - No Sensitive Data Exposed", async ({
     page,
   }) => {
-    
-
     const requests: string[] = [];
 
     page.on("request", (request) => {
@@ -216,14 +183,14 @@ test.describe("Landing Page - Critical Flows", () => {
         url.includes("token=") ||
         url.includes("password=")
       ) {
-
+        throw new Error(`Sensitive data exposure detected in request: ${url}`);
       }
     });
 
     page.on("response", (response) => {
       const url = response.url();
       if (url.includes("http://") && !url.includes("localhost")) {
-
+        throw new Error(`Insecure request detected: ${url}`);
       }
     });
 
@@ -233,13 +200,11 @@ test.describe("Landing Page - Critical Flows", () => {
     expect(pageContent).not.toContain("api_key=");
     expect(pageContent).not.toContain("sk-");
     expect(pageContent).not.toContain("pk-");
-
   });
 
   test(" LANDING FLOW 8: CTA Journey - Home → Feature → Pricing → Signup", async ({
     page,
   }) => {
-
     await page.goto(`${LANDING_URL}/`, { waitUntil: "networkidle" });
 
     const featuresLink = await page
@@ -248,7 +213,6 @@ test.describe("Landing Page - Critical Flows", () => {
     if ((await featuresLink.count()) > 0) {
       await featuresLink.click();
       await page.waitForURL(`**/features`);
-
     }
 
     const pricingLink = await page
@@ -257,7 +221,6 @@ test.describe("Landing Page - Critical Flows", () => {
     if ((await pricingLink.count()) > 0) {
       await pricingLink.click();
       await page.waitForURL(`**/pricing`);
-
     }
 
     const ctaButton = await page
@@ -267,12 +230,9 @@ test.describe("Landing Page - Critical Flows", () => {
       .first();
     if ((await ctaButton.count()) > 0) {
       await ctaButton.getAttribute("href");
-
     }
-
   });
 
   test.afterAll(async () => {
-    
   });
 });

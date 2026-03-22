@@ -1,6 +1,6 @@
 "use client";
 
-import { Stethoscope, Baby, CheckCircle2, Smile } from "lucide-react";
+import { Baby, CheckCircle2, Smile, Stethoscope } from "lucide-react";
 import { Card } from "@workspace/ui/components/card";
 
 export function SpecialtiesSection() {

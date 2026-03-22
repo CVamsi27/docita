@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { Building2, Users, Stethoscope, User } from "lucide-react";
+import { Building2, Stethoscope, User, Users } from "lucide-react";
 
 interface ClinicStats {
   id: string;

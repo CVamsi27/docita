@@ -1,5 +1,5 @@
 import { test } from "@playwright/test";
-import { injectAxe, getViolations } from "axe-playwright";
+import { getViolations, injectAxe } from "axe-playwright";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -31,7 +31,6 @@ test.describe("Accessibility Audit - Admin App", () => {
       page,
     }) => {
       try {
-
         await page.goto(pageConfig.path, {
           waitUntil: "networkidle",
           timeout: 30000,
@@ -67,16 +66,13 @@ test.describe("Accessibility Audit - Admin App", () => {
             ).length,
           },
         };
-
-        
-      } catch {
-
+      } catch (error) {
+        void error;
       }
     });
   }
 
   test.afterAll(async () => {
-
     const reportDir = path.join(process.cwd(), "accessibility-reports");
     if (!fs.existsSync(reportDir)) {
       fs.mkdirSync(reportDir, { recursive: true });
@@ -108,6 +104,5 @@ test.describe("Accessibility Audit - Admin App", () => {
     };
 
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
   });
 });

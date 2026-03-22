@@ -11,7 +11,6 @@ export function initializeSentryClient() {
   }
 
   try {
-
     const adminInfo = getAdminContextFromStorage();
     if (adminInfo) {
       Sentry.setUser({
@@ -30,8 +29,8 @@ export function initializeSentryClient() {
         ),
       );
     });
-  } catch {
-
+  } catch (error) {
+    void error;
   }
 }
 
@@ -46,8 +45,8 @@ function getAdminContextFromStorage(): {
       return JSON.parse(adminStr);
     }
     return null;
-  } catch {
-
+  } catch (error) {
+    void error;
     return null;
   }
 }
@@ -57,7 +56,6 @@ export function captureException(
   context?: Record<string, unknown>,
 ) {
   if (isDev) {
-
     return;
   }
 
@@ -68,8 +66,8 @@ export function captureException(
         contexts: context ? { custom: context } : undefined,
       },
     );
-  } catch {
-
+  } catch (captureError) {
+    void captureError;
   }
 }
 
@@ -78,14 +76,13 @@ export function captureMessage(
   level: Sentry.SeverityLevel = "info",
 ) {
   if (isDev) {
-
     return;
   }
 
   try {
     Sentry.captureMessage(message, level);
-  } catch {
-
+  } catch (captureError) {
+    void captureError;
   }
 }
 
@@ -102,8 +99,8 @@ export function addBreadcrumb(
       data,
       timestamp: Date.now() / 1000,
     });
-  } catch {
-
+  } catch (captureError) {
+    void captureError;
   }
 }
 

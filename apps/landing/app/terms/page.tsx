@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
-import { Stethoscope, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Stethoscope } from "lucide-react";
 
 export default function TermsOfServicePage() {
   return (

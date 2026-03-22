@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 async function reportWebVitals(): Promise<void> {
 
@@ -49,9 +49,9 @@ async function reportWebVitals(): Promise<void> {
           JSON.stringify(vitals),
         );
       }
-    }, 5000); 
-  } catch {
-
+    }, 5000);
+  } catch (error) {
+    void error;
   }
 }
 
@@ -70,7 +70,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-
     reportWebVitals();
   }, []);
 

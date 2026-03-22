@@ -6,14 +6,14 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import {
-  LayoutDashboard,
-  BarChart3,
-  FileText,
-  LogOut,
   Activity,
-  Users,
-  MessageSquare,
+  BarChart3,
   CreditCard,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Users,
 } from "lucide-react";
 import { MobileNav } from "./dashboard/mobile-nav";
 import { useAuth } from "@/lib/auth";

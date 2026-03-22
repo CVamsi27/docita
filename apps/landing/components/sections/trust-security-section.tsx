@@ -1,19 +1,19 @@
 "use client";
 
 import {
+  Activity,
+  Clock,
+  Lock,
+  Server,
   Shield,
   ShieldCheck,
-  Lock,
-  Activity,
-  Server,
-  Clock,
   Users,
 } from "lucide-react";
 import {
   Card,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@workspace/ui/components/card";
 
 export function TrustSecuritySection() {

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   billingAPI,
   BillingMetrics,
-  SubscriptionOverview,
   PaymentRecord,
+  SubscriptionOverview,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -49,23 +49,23 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
-  CreditCard,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  AlertTriangle,
-  Clock,
-  DollarSign,
-  RefreshCw,
-  Mail,
-  CalendarPlus,
-  Building2,
   Activity,
-  ArrowUpRight,
+  AlertTriangle,
   ArrowDownRight,
+  ArrowUpRight,
+  Building2,
+  CalendarPlus,
+  Clock,
+  CreditCard,
+  DollarSign,
   Loader2,
+  Mail,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { format, formatDistanceToNow, differenceInDays } from "date-fns";
+import { differenceInDays, format, formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
   ACTIVE: "badge-success",
@@ -141,8 +141,8 @@ export default function BillingDashboard() {
 
         setPayments([]);
       }
-    } catch {
-
+    } catch (error) {
+      void error;
       setMetrics(null);
       setSubscriptions([]);
       setPayments([]);
@@ -166,8 +166,8 @@ export default function BillingDashboard() {
     try {
       await billingAPI.sendReminder(subscription.id);
 
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setSending(false);
     }
@@ -185,8 +185,8 @@ export default function BillingDashboard() {
       setExtendGraceDialog({ open: false });
       setExtendDays(3);
       fetchData();
-    } catch {
-
+    } catch (error) {
+      void error;
     } finally {
       setSending(false);
     }

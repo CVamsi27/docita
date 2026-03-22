@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, CheckCircle2, Activity } from "lucide-react";
+import { Activity, CheckCircle2, Code2 } from "lucide-react";
 
 export function MedicalCodingSection() {
   return (

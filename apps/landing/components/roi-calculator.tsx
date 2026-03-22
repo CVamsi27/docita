@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Calculator,
+  ChevronRight,
   Clock,
   DollarSign,
+  IndianRupee,
   TrendingUp,
   Users,
-  IndianRupee,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
