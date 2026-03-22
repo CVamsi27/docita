@@ -193,6 +193,19 @@ function checkPermission(
     manageInventory: permissions.canManageInventory,
     exportData: permissions.canExportData,
     createPrescription: permissions.canCreatePrescription,
+    viewPatients: permissions.canViewPatients,
+    createPatient: permissions.canCreatePatient,
+    editPatient: permissions.canEditPatient,
+    deletePatient: permissions.canDeletePatient,
+    viewAppointments: permissions.canViewAppointments,
+    createAppointment: permissions.canCreateAppointment,
+    viewInvoices: permissions.canViewInvoices,
+    createInvoice: permissions.canCreateInvoice,
+    viewPrescriptions: permissions.canViewPrescriptions,
+    manageTemplates: permissions.canManageTemplates,
+    viewPlatformAnalytics: permissions.canViewPlatformAnalytics,
+    viewSystemLogs: permissions.canViewSystemLogs,
+    manageTenants: permissions.canManageTenants,
   };
 
   return permissionMap[permission] ?? false;
@@ -200,10 +213,9 @@ function checkPermission(
 
 function getTierDisplayName(tier: Tier): string {
   const names: Record<Tier, string> = {
-    [Tier.CAPTURE]: "Capture",
-    [Tier.CORE]: "Core",
-    [Tier.PLUS]: "Plus",
-    [Tier.PRO]: "Pro",
+    [Tier.STARTER]: "Starter",
+    [Tier.ESSENTIAL]: "Essential",
+    [Tier.PROFESSIONAL]: "Professional",
     [Tier.ENTERPRISE]: "Enterprise",
     [Tier.INTELLIGENCE]: "Intelligence",
   };

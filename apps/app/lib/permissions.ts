@@ -81,6 +81,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "createAppointment",
     "viewInvoices",
   ],
+  PATIENT: [
+    "viewAppointments",
+  ],
 };
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
@@ -144,6 +147,58 @@ export function canExportData(role: UserRole): boolean {
 
 export function canCreatePrescription(role: UserRole): boolean {
   return hasPermission(role, "createPrescription");
+}
+
+export function canViewPatients(role: UserRole): boolean {
+  return hasPermission(role, "viewPatients");
+}
+
+export function canCreatePatient(role: UserRole): boolean {
+  return hasPermission(role, "createPatient");
+}
+
+export function canEditPatient(role: UserRole): boolean {
+  return hasPermission(role, "editPatient");
+}
+
+export function canDeletePatient(role: UserRole): boolean {
+  return hasPermission(role, "deletePatient");
+}
+
+export function canViewAppointments(role: UserRole): boolean {
+  return hasPermission(role, "viewAppointments");
+}
+
+export function canCreateAppointment(role: UserRole): boolean {
+  return hasPermission(role, "createAppointment");
+}
+
+export function canViewInvoices(role: UserRole): boolean {
+  return hasPermission(role, "viewInvoices");
+}
+
+export function canCreateInvoice(role: UserRole): boolean {
+  return hasPermission(role, "createInvoice");
+}
+
+export function canViewPrescriptions(role: UserRole): boolean {
+  return hasPermission(role, "viewPrescriptions");
+}
+
+export function canManageTemplates(role: UserRole): boolean {
+  return hasPermission(role, "manageTemplates");
+}
+
+export function canViewPlatformAnalytics(role: UserRole): boolean {
+  return hasPermission(role, "viewPlatformAnalytics");
+}
+
+export function canViewSystemLogs(role: UserRole): boolean {
+  return hasPermission(role, "viewSystemLogs");
+}
+
+export function canManageTenants(role: UserRole): boolean {
+  return hasPermission(role, "manageTenants");
 }
 
 export const CLINIC_ADMIN_ROLES = new Set<UserRole>(["ADMIN", "ADMIN_DOCTOR"]);

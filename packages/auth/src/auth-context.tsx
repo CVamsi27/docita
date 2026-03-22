@@ -10,12 +10,13 @@ import React, {
   useState,
   ReactNode,
 } from "react";
+import type { UserRole } from "@workspace/types";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: "SUPER_ADMIN" | "CLINIC_ADMIN" | "DOCTOR" | "STAFF" | "PATIENT";
+  role: UserRole;
   clinicId?: string;
   clinicName?: string;
   permissions: Permission[];

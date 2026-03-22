@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@workspace/types": "workspace:^",
     "react": "^19.0.0"
   },
   "devDependencies": {

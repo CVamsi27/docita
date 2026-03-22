@@ -1,10 +1,8 @@
-
-
+import type { UserRole } from "@workspace/types";
 import type { Permission } from "./auth-context";
 
-export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
+export const PERMISSIONS_BY_ROLE: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
-
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
     "EDIT_PATIENTS",
@@ -34,7 +32,7 @@ export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
     "VIEW_AUDIT_LOGS",
     "ADMIN_PANEL",
   ],
-  CLINIC_ADMIN: [
+  ADMIN: [
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
     "EDIT_PATIENTS",
@@ -55,6 +53,30 @@ export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
     "DELETE_STAFF",
     "MANAGE_BILLING",
   ],
+  ADMIN_DOCTOR: [
+    "VIEW_PATIENTS",
+    "CREATE_PATIENTS",
+    "EDIT_PATIENTS",
+    "VIEW_APPOINTMENTS",
+    "CREATE_APPOINTMENTS",
+    "EDIT_APPOINTMENTS",
+    "VIEW_CONSULTATIONS",
+    "CREATE_CONSULTATIONS",
+    "EDIT_CONSULTATIONS",
+    "VIEW_INVOICES",
+    "CREATE_INVOICES",
+    "EDIT_INVOICES",
+    "VIEW_PRESCRIPTIONS",
+    "CREATE_PRESCRIPTIONS",
+    "EDIT_PRESCRIPTIONS",
+    "VIEW_SETTINGS",
+    "EDIT_SETTINGS",
+    "VIEW_ANALYTICS",
+    "VIEW_STAFF",
+    "CREATE_STAFF",
+    "EDIT_STAFF",
+    "MANAGE_BILLING",
+  ],
   DOCTOR: [
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
@@ -72,7 +94,7 @@ export const PERMISSIONS_BY_ROLE: Record<string, Permission[]> = {
     "EDIT_PRESCRIPTIONS",
     "VIEW_ANALYTICS",
   ],
-  STAFF: [
+  RECEPTIONIST: [
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
     "EDIT_PATIENTS",
