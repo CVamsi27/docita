@@ -36,6 +36,7 @@
     "@types/react": "^19",
     "@vitejs/plugin-react": "^5.1.4",
     "axe-playwright": "^2.2.2",
+    "@workspace/eslint-config": "workspace:^",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "typescript": "^5",

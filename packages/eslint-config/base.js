@@ -42,7 +42,7 @@ export const config = [
     },
   },
   {
-    ignores: ["dist.next.next", "**/node_modules*.spec.ts", "***.test.ts", "**/*.test.tsx"],
+    ignores: ["dist/**", ".next/**", "**/node_modules/**", "**/*.spec.ts", "**/*.test.ts", "**/*.test.tsx"],
     rules: {
       "@typescript-eslint/unbound-method": "off",
     },
