@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "node ../../scripts/e2e-runner.js",
+    "test:e2e": "playwright test e2e",
     "test:e2e:api": "SKIP_SERVER=true playwright test e2e",
     "test:e2e:api:smoke": "SKIP_SERVER=true playwright test e2e/health.spec.ts e2e/analytics.spec.ts e2e/prescriptions.spec.ts e2e/invoices.spec.ts e2e/documents.spec.ts e2e/clinics.spec.ts e2e/queue.spec.ts e2e/medical-coding.spec.ts e2e/lab-tests.spec.ts e2e/inventory.spec.ts",
     "test:e2e:ui": "playwright test --ui",
@@ -25,7 +25,11 @@
     "test:e2e:report": "playwright show-report",
     "audit:accessibility": "playwright test e2e/accessibility.spec.ts",
     "test:critical-flows": "playwright test e2e/critical-flows.spec.ts",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "test:visual": "playwright test tests/visual",
+    "test:visual:ui": "playwright test tests/visual --ui",
+    "test:visual:update": "playwright test tests/visual --update-snapshots",
+    "test:visual:report": "playwright show-report"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -48,6 +52,7 @@
     "react-dom": "19.2.1",
     "react-hook-form": "^7.66.1",
     "react-phone-number-input": "^3.4.14",
+    "react-signature-canvas": "1.1.0-alpha.2",
     "recharts": "^3.4.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
@@ -66,6 +71,7 @@
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "@types/react-signature-canvas": "^1.0.7",
     "@vitejs/plugin-react": "^5.1.2",
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",

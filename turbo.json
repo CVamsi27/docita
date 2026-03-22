@@ -1,8 +1,7 @@
 {
   "$schema": "https://v2-8-12.turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "JWT_SECRET", "API_PROXY_TARGET"],
-  "globalDependencies": ["API_URL", "APP_URL", "CI"],
+  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "JWT_SECRET", "API_PROXY_TARGET", "API_URL", "APP_URL", "CI"],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "check-types", "lint"],
@@ -18,7 +17,7 @@
       "env": ["API_URL", "APP_URL", "CI"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build", "^check-types"]
     },
     "test": {
       "dependsOn": ["build"],

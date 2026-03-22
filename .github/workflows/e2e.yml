@@ -17,13 +17,13 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: docita
           POSTGRES_PASSWORD: password
           POSTGRES_DB: docita
         ports:
-          - 5432:5432
+          - 5434:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -43,9 +43,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
-          version: 10.4.1
+          version: 10.30.3
 
       - name: Use Node.js 20
         uses: actions/setup-node@v4
@@ -61,14 +61,14 @@ jobs:
 
       - name: Setup Database
         env:
-          DATABASE_URL: postgresql://docita:password@localhost:5432/docita
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita
         run: |
           pnpm db:generate
           pnpm db:push
 
       - name: Run E2E Tests
         env:
-          DATABASE_URL: postgresql://docita:password@localhost:5432/docita
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: super-secret-jwt-key-minimum-32-characters-long
           NEXT_PUBLIC_APP_URL: http://localhost:3000
