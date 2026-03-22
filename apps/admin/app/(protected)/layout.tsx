@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import {
   LayoutDashboard,
   BarChart3,
@@ -38,6 +38,11 @@ const sidebarItems = [
   {
     title: "Billing",
     href: "/billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Pricing",
+    href: "/pricing",
     icon: CreditCard,
   },
   {
@@ -79,13 +84,7 @@ export default function ProtectedLayout({
             href="/dashboard"
             className="flex items-center gap-2 font-bold text-lg"
           >
-            <Image
-              src="/icon.png"
-              alt="Docita Logo"
-              width={24}
-              height={24}
-              className="rounded-full object-cover"
-            />
+            <DocitaIcon className="h-6 w-6" />
             <span>Docita Admin</span>
           </Link>
         </div>

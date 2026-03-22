@@ -1,5 +1,11 @@
 import { getAPIClient } from "@workspace/data-access";
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 let authLogoutCallback: ((reason: string) => void) | null = null;
 
 export function setAuthLogoutCallback(callback: (reason: string) => void) {
@@ -11,6 +17,16 @@ export const client = getAPIClient({
   getToken: () => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("docita_admin_token");
+  },
+  onRequest: (config) => {
+    const mutating = ["POST", "PUT", "PATCH", "DELETE"];
+    if (mutating.includes((config.method ?? "GET").toUpperCase())) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers = { ...config.headers, "x-xsrf-token": csrfToken };
+      }
+    }
+    return config;
   },
   onError: async (error) => {
     if (error.status === 401 || error.status === 403) {

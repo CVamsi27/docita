@@ -9,6 +9,7 @@ import {
   DollarSign,
   Activity,
   Loader2,
+  BarChart3,
 } from "lucide-react";
 import {
   Table,
@@ -50,6 +51,24 @@ interface AnalyticsData {
   }>;
 }
 
+interface BillingMetrics {
+  mrr: number;
+  arr: number;
+  churnRate: number;
+  activeSubscriptions: number;
+  revenueByMonth: { month: string; revenue: number }[];
+  subscriptionsByTier: Record<string, number>;
+}
+
+const tierColors: Record<string, string> = {
+  CAPTURE: "bg-slate-400",
+  CORE: "bg-blue-500",
+  PLUS: "bg-green-500",
+  PRO: "bg-purple-500",
+  CLINIC: "bg-violet-500",
+  ENTERPRISE: "bg-amber-500",
+};
+
 export function AnalyticsDashboard() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
     "monthly",
@@ -58,33 +77,30 @@ export function AnalyticsDashboard() {
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [billing, setBilling] = useState<BillingMetrics | null>(null);
   const { token } = useAuth();
 
-  const fetchAnalytics = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     if (!token) return;
 
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append("period", period);
+      const params = new URLSearchParams({ period });
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
 
-      const res = await fetch(
-        `${API_URL}/super-admin/analytics?${params.toString()}`,
-        {
+      const [analyticsRes, billingRes] = await Promise.all([
+        fetch(`${API_URL}/super-admin/analytics?${params.toString()}`, {
           headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+        }),
+        fetch(`${API_URL}/super-admin/billing/metrics`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      if (res.ok) {
-        const analyticsData = await res.json();
-        setData(analyticsData);
-      } else {
-
-      }
+      if (analyticsRes.ok) setData(await analyticsRes.json());
+      if (billingRes.ok) setBilling(await billingRes.json());
     } catch {
-
       toast.error("Failed to load analytics data");
     } finally {
       setLoading(false);
@@ -92,24 +108,20 @@ export function AnalyticsDashboard() {
   }, [token, period, startDate, endDate]);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+    fetchData();
+  }, [fetchData]);
 
   const handleExport = async () => {
     if (!token) return;
 
     try {
-      const params = new URLSearchParams();
-      params.append("period", period);
+      const params = new URLSearchParams({ period, format: "pdf" });
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      params.append("format", "pdf");
 
       const res = await fetch(
         `${API_URL}/super-admin/analytics/export?${params.toString()}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.ok) {
@@ -125,15 +137,20 @@ export function AnalyticsDashboard() {
         toast.error("Failed to export report");
       }
     } catch {
-
       toast.error("Failed to export report");
     }
+  };
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
+    return `₹${amount.toFixed(0)}`;
   };
 
   const metrics: MetricCard[] = [
     {
       title: "Total Revenue",
-      value: data ? `$${((data.revenue || 0) / 1000).toFixed(1)}K` : "$0",
+      value: data ? `₹${((data.revenue || 0) / 1000).toFixed(1)}K` : "₹0",
       change: data?.revenueChange
         ? `${data.revenueChange > 0 ? "+" : ""}${data.revenueChange.toFixed(1)}%`
         : undefined,
@@ -175,7 +192,7 @@ export function AnalyticsDashboard() {
     },
     {
       title: "Avg Invoice Value",
-      value: data ? `$${(data.avgInvoiceValue || 0).toFixed(2)}` : "$0.00",
+      value: data ? `₹${(data.avgInvoiceValue || 0).toFixed(2)}` : "₹0.00",
       change: data?.invoiceValueChange
         ? `${data.invoiceValueChange > 0 ? "+" : ""}${data.invoiceValueChange.toFixed(1)}%`
         : undefined,
@@ -197,6 +214,14 @@ export function AnalyticsDashboard() {
     );
   }
 
+  const tierEntries = billing?.subscriptionsByTier
+    ? Object.entries(billing.subscriptionsByTier).sort((a, b) => b[1] - a[1])
+    : [];
+  const totalTierCount = tierEntries.reduce((sum, [, v]) => sum + v, 0);
+
+  const revenueByMonth = billing?.revenueByMonth || [];
+  const maxRevenue = Math.max(...revenueByMonth.map((r) => r.revenue), 1);
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -217,24 +242,83 @@ export function AnalyticsDashboard() {
         </button>
       </div>
 
-      <div className="bg-background rounded-lg border border-border p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex gap-2">
-              {(["daily", "weekly", "monthly"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                    period === p
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-accent text-accent-foreground hover:bg-accent/80"
-                  }`}
-                >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </button>
+      {billing && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-background rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground font-medium">
+                MRR
+              </span>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {formatCurrency(billing.mrr)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              ARR: {formatCurrency(billing.arr)}
+            </p>
+          </div>
+          <div className="bg-background rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground font-medium">
+                Active Subscriptions
+              </span>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {billing.activeSubscriptions}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Churn rate: {(billing.churnRate * 100).toFixed(1)}% (30d)
+            </p>
+          </div>
+          <div className="bg-background rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-muted-foreground font-medium">
+                Tier Distribution
+              </span>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="space-y-1.5">
+              {tierEntries.map(([tier, count]) => (
+                <div key={tier} className="flex items-center gap-2">
+                  <span className="w-16 text-xs text-muted-foreground truncate">
+                    {tier}
+                  </span>
+                  <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${tierColors[tier] || "bg-primary"}`}
+                      style={{
+                        width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="w-6 text-xs text-right font-medium text-foreground">
+                    {count}
+                  </span>
+                </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-background rounded-lg border border-border p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            {(["daily", "weekly", "monthly"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                  period === p
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-accent text-accent-foreground hover:bg-accent/80"
+                }`}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center gap-4">
@@ -245,19 +329,15 @@ export function AnalyticsDashboard() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground"
-                placeholder="Start date"
               />
             </div>
             <span className="text-muted-foreground">to</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground"
-                placeholder="End date"
-              />
-            </div>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground"
+            />
           </div>
         </div>
       </div>
@@ -302,49 +382,84 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {data?.revenue ? (
+        {revenueByMonth.length > 0 && (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Revenue Trend
+              MRR Trend (6 months)
             </h2>
-            <div className="h-64 bg-accent rounded-lg border border-border flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <p className="text-sm">Revenue chart implementation pending</p>
-                <p className="text-xs mt-2">
-                  Current revenue: ${((data.revenue || 0) / 1000).toFixed(1)}K
-                </p>
-              </div>
+            <div className="flex items-end gap-2 h-40">
+              {revenueByMonth.map((item) => (
+                <div
+                  key={item.month}
+                  className="flex-1 flex flex-col items-center gap-1"
+                >
+                  <div
+                    className="w-full bg-primary rounded-t-sm min-h-[4px]"
+                    style={{
+                      height: `${Math.round((item.revenue / maxRevenue) * 100)}%`,
+                    }}
+                    title={`${item.month}: ₹${item.revenue.toLocaleString()}`}
+                  />
+                  <span className="text-xs text-muted-foreground truncate w-full text-center">
+                    {item.month.split(" ")[0]}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        ) : null}
+        )}
 
-        {data?.appointments ? (
+        {tierEntries.length > 0 && (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Appointment Metrics
+              Subscription Breakdown
             </h2>
-            <div className="h-64 bg-accent rounded-lg border border-border flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <p className="text-sm">Appointment breakdown chart pending</p>
-                <p className="text-xs mt-2">
-                  Total appointments: {data.appointments}
-                </p>
-              </div>
+            <div className="space-y-3">
+              {tierEntries.map(([tier, count]) => (
+                <div key={tier} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-foreground font-medium">{tier}</span>
+                    <span className="text-muted-foreground">
+                      {count} (
+                      {totalTierCount > 0
+                        ? ((count / totalTierCount) * 100).toFixed(0)
+                        : 0}
+                      %)
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${tierColors[tier] || "bg-primary"}`}
+                      style={{
+                        width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ) : null}
+        )}
 
         {data?.newPatients ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Patient Demographics
+              Patient Growth
             </h2>
-            <div className="h-64 bg-accent rounded-lg border border-border flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <p className="text-sm">
-                  Demographics chart implementation pending
+            <div className="h-40 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-4xl font-bold text-foreground">
+                  {data.newPatients}
                 </p>
-                <p className="text-xs mt-2">New patients: {data.newPatients}</p>
+                <p className="text-sm mt-1">new patients this period</p>
+                {data.patientsChange !== undefined && (
+                  <p
+                    className={`text-sm mt-1 font-medium ${data.patientsChange >= 0 ? "text-success" : "text-destructive"}`}
+                  >
+                    {data.patientsChange >= 0 ? "↑" : "↓"}{" "}
+                    {Math.abs(data.patientsChange).toFixed(1)}% vs last period
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -353,14 +468,23 @@ export function AnalyticsDashboard() {
         {data?.appointments ? (
           <div className="bg-background rounded-lg border border-border p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Top Conditions
+              Appointment Volume
             </h2>
-            <div className="h-64 bg-accent rounded-lg border border-border flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <p className="text-sm">
-                  Conditions chart implementation pending
+            <div className="h-40 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-4xl font-bold text-foreground">
+                  {data.appointments}
                 </p>
-                <p className="text-xs mt-2">Chart data available from API</p>
+                <p className="text-sm mt-1">appointments this period</p>
+                {data.appointmentsChange !== undefined && (
+                  <p
+                    className={`text-sm mt-1 font-medium ${data.appointmentsChange >= 0 ? "text-success" : "text-destructive"}`}
+                  >
+                    {data.appointmentsChange >= 0 ? "↑" : "↓"}{" "}
+                    {Math.abs(data.appointmentsChange).toFixed(1)}% vs last
+                    period
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -376,24 +500,12 @@ export function AnalyticsDashboard() {
             <Table>
               <TableHeader className="border-b border-border">
                 <TableRow>
-                  <TableHead>
-                    Period
-                  </TableHead>
-                  <TableHead className="text-right">
-                    Revenue
-                  </TableHead>
-                  <TableHead className="text-right">
-                    Invoices
-                  </TableHead>
-                  <TableHead className="text-right">
-                    Avg Amount
-                  </TableHead>
-                  <TableHead className="text-right">
-                    Appointments
-                  </TableHead>
-                  <TableHead className="text-right">
-                    Fill Rate
-                  </TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead className="text-right">Revenue</TableHead>
+                  <TableHead className="text-right">Invoices</TableHead>
+                  <TableHead className="text-right">Avg Amount</TableHead>
+                  <TableHead className="text-right">Appointments</TableHead>
+                  <TableHead className="text-right">Fill Rate</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border">
@@ -403,13 +515,13 @@ export function AnalyticsDashboard() {
                       {row.period}
                     </TableCell>
                     <TableCell className="text-right text-foreground">
-                      ${row.revenue.toLocaleString()}
+                      ₹{row.revenue.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {row.invoices}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
-                      ${(row.avgAmount || 0).toFixed(2)}
+                      ₹{(row.avgAmount || 0).toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {row.appointments}
@@ -434,16 +546,9 @@ export function AnalyticsDashboard() {
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-8">
-            <p>No detailed metrics available</p>
+            <p>No detailed metrics available for this period</p>
           </div>
         )}
-      </div>
-
-      <div className="surface-info rounded-lg p-4 text-sm">
-        Tip: All metrics are fetched from the API based on your selected
-        period and date range. The detailed metrics table shows actual clinic
-        performance data. Charts will be implemented using the available API
-        data.
       </div>
     </div>
   );

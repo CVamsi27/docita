@@ -19,10 +19,9 @@ import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
 
 const AVAILABLE_TIERS: TierName[] = [
-  "CAPTURE",
-  "CORE",
-  "PLUS",
-  "PRO",
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
   "ENTERPRISE",
 ];
 
@@ -84,9 +83,12 @@ type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
 
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
-    FREE: "CAPTURE",
-    STARTER: "CORE",
-    PROFESSIONAL: "PRO",
+    FREE: "STARTER",
+    CAPTURE: "STARTER",
+    CORE: "ESSENTIAL",
+    PLUS: "ESSENTIAL",
+    PRO: "PROFESSIONAL",
+    CLINIC: "PROFESSIONAL",
   };
   return (legacyMapping[tier] || tier) as TierName;
 }

@@ -19,10 +19,9 @@ import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
 
 const AVAILABLE_TIERS: TierName[] = [
-  "CAPTURE",
-  "CORE",
-  "PLUS",
-  "PRO",
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
   "ENTERPRISE",
 ];
 

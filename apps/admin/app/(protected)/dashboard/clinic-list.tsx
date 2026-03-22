@@ -15,9 +15,12 @@ import { TIER_INFO, type TierName } from "@workspace/types";
 
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
-    FREE: "CAPTURE",
-    STARTER: "CORE",
-    PROFESSIONAL: "PRO",
+    FREE: "STARTER",
+    CAPTURE: "STARTER",
+    CORE: "ESSENTIAL",
+    PLUS: "ESSENTIAL",
+    PRO: "PROFESSIONAL",
+    CLINIC: "PROFESSIONAL",
   };
   return (legacyMapping[tier] || tier) as TierName;
 }
@@ -29,7 +32,6 @@ function getTierDisplay(tier: string): { name: string; className: string } {
     const tierClassMap: Record<string, string> = {
       gray: "tier-capture",
       blue: "tier-core",
-      green: "tier-plus",
       purple: "tier-pro",
       orange: "tier-enterprise",
       pink: "tier-intelligence",

@@ -22,6 +22,8 @@ import {
   Search,
   TrendingUp,
   TrendingDown,
+  DollarSign,
+  BarChart3,
 } from "lucide-react";
 
 interface StatsData {
@@ -41,6 +43,14 @@ interface StatsData {
   };
 }
 
+interface BillingMetrics {
+  mrr: number;
+  arr: number;
+  churnRate: number;
+  activeSubscriptions: number;
+  subscriptionsByTier: Record<string, number>;
+}
+
 export default function SuperAdminDashboard() {
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +62,7 @@ export default function SuperAdminDashboard() {
     invoices: 0,
     prescriptions: 0,
   });
+  const [billing, setBilling] = useState<BillingMetrics | null>(null);
   const { token, logout } = useAuth();
 
   const loadData = useCallback(async () => {
@@ -63,9 +74,10 @@ export default function SuperAdminDashboard() {
     try {
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [clinicsRes, statsRes] = await Promise.all([
+      const [clinicsRes, statsRes, billingRes] = await Promise.all([
         fetch(`${API_URL}/super-admin/clinics`, { headers }),
         fetch(`${API_URL}/super-admin/stats`, { headers }),
+        fetch(`${API_URL}/super-admin/billing/metrics`, { headers }),
       ]);
 
       if (clinicsRes.status === 401 || statsRes.status === 401) {
@@ -85,14 +97,13 @@ export default function SuperAdminDashboard() {
 
       if (clinicsRes.ok) {
         const clinicsData = await clinicsRes.json();
-
         setClinics(
           Array.isArray(clinicsData) ? clinicsData : clinicsData.items || [],
         );
       }
       if (statsRes.ok) setStats(await statsRes.json());
+      if (billingRes.ok) setBilling(await billingRes.json());
     } catch {
-
     } finally {
       setLoading(false);
     }
@@ -133,6 +144,26 @@ export default function SuperAdminDashboard() {
     );
   };
 
+  const formatCurrency = (amount: number) => {
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
+    return `₹${amount.toFixed(0)}`;
+  };
+
+  const tierColors: Record<string, string> = {
+    CAPTURE: "bg-slate-400",
+    CORE: "bg-blue-500",
+    PLUS: "bg-green-500",
+    PRO: "bg-purple-500",
+    CLINIC: "bg-violet-500",
+    ENTERPRISE: "bg-amber-500",
+  };
+
+  const tierEntries = billing?.subscriptionsByTier
+    ? Object.entries(billing.subscriptionsByTier).sort((a, b) => b[1] - a[1])
+    : [];
+  const totalTierCount = tierEntries.reduce((sum, [, count]) => sum + count, 0);
+
   return (
     <div className="space-y-8">
       {!token && (
@@ -153,6 +184,71 @@ export default function SuperAdminDashboard() {
           <CreateClinicDialog onClinicCreated={loadData} />
         </div>
       </div>
+
+      {billing && (
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">MRR</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(billing.mrr)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                ARR: {formatCurrency(billing.arr)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Subscriptions
+              </CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {billing.activeSubscriptions}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Churn: {(billing.churnRate * 100).toFixed(1)}% (30d)
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Tier Distribution
+              </CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5">
+                {tierEntries.slice(0, 4).map(([tier, count]) => (
+                  <div key={tier} className="flex items-center gap-2">
+                    <div className="w-16 text-xs text-muted-foreground truncate">
+                      {tier}
+                    </div>
+                    <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${tierColors[tier] || "bg-primary"}`}
+                        style={{
+                          width: `${totalTierCount > 0 ? (count / totalTierCount) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="w-6 text-xs text-right font-medium">
+                      {count}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>

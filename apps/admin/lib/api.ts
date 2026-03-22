@@ -280,6 +280,43 @@ export interface BillingMetrics {
   revenueByMonth: { month: string; revenue: number }[];
 }
 
+export interface TierPricingRow {
+  id: string;
+  tier: string;
+  name: string;
+  description: string;
+  tagline: string;
+  color: string;
+  displayOrder: number;
+  monthlyBasePriceCents: number;
+  includedPatients: number;
+  includedAppointments: number;
+  includedStorageGB: number;
+  includedUsers: number;
+  overagePatientCents: number;
+  overageAppointmentCents: number;
+  overageStorageCents: number;
+  overageUserCents: number;
+  overagePrescriptionCents: number;
+  overageInvoiceCents: number;
+  overageOcrPageCents: number;
+  overageApiCallCents: number;
+  isActive: boolean;
+}
+
+export interface AddOnRow {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  icon: string;
+  pricingByTier: unknown;
+  includedQuotaByTier: unknown;
+  overageRateByTier: unknown;
+  features: unknown;
+  isActive: boolean;
+}
+
 export const billingAPI = {
   getMetrics: (): Promise<BillingMetrics> =>
     client.get("/super-admin/billing/metrics"),
@@ -300,4 +337,18 @@ export const billingAPI = {
       `/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`,
       { days },
     ),
+  getPricingTiers: (): Promise<TierPricingRow[]> =>
+    client.get("/super-admin/billing/pricing/tiers"),
+  updatePricingTier: (
+    tierId: string,
+    data: Partial<TierPricingRow>,
+  ): Promise<TierPricingRow> =>
+    client.put(`/super-admin/billing/pricing/tiers/${tierId}`, data),
+  getPricingAddons: (): Promise<AddOnRow[]> =>
+    client.get("/super-admin/billing/pricing/addons"),
+  updatePricingAddon: (
+    addonId: string,
+    data: Partial<AddOnRow>,
+  ): Promise<AddOnRow> =>
+    client.put(`/super-admin/billing/pricing/addons/${addonId}`, data),
 };
