@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as XLSX from 'xlsx';
 import { unlink } from 'fs/promises';
@@ -69,6 +70,7 @@ export class ImportsService {
   constructor(
     private prisma: PrismaService,
     private ocrService: OCRService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   private toStringArray(value: unknown): string[] {
@@ -448,10 +450,17 @@ export class ImportsService {
 
   async extractFromMedicalDocumentBasic(
     filePath: string,
+    clinicId?: string,
   ): Promise<OcrExtractionResult> {
     this.logger.log(`[IMPORT] Starting OCR extraction for file: ${filePath}`);
     try {
       const ocrResult = await this.ocrService.extractTextFromImage(filePath);
+      if (clinicId) {
+        this.eventEmitter.emit('ocr.page.processed', {
+          clinicId,
+          pageCount: 1,
+        });
+      }
       this.logger.log(
         `[IMPORT] OCR extraction complete - confidence: ${ocrResult.confidence.toFixed(2)}, text length: ${ocrResult.text.length}`,
       );

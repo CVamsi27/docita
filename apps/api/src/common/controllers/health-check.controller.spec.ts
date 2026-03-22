@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { HealthCheckController } from './health-check.controller';
-import { ObservabilityService } from '../../shared/modules/services/observability.service';
+import { ObservabilityService } from '@/shared/modules/services/observability.service';
 
 describe('HealthCheckController', () => {
   let controller: HealthCheckController;

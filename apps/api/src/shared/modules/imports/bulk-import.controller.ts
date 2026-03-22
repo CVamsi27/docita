@@ -44,7 +44,7 @@ export class BulkImportController {
     if (!clinicId) {
       throw new BadRequestException('Clinic ID is required for bulk import');
     }
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const validEntityTypes: BulkImportEntityType[] = [
       'PATIENT',

@@ -114,7 +114,7 @@ export class StartupValidationService {
         );
       }
 
-      if (databaseUrl.includes(':5432@localhost')) {
+      if (databaseUrl.includes(':5434@localhost')) {
         throw new Error(
           'DATABASE_URL in production cannot use local PostgreSQL. ' +
             'Configure a production database instance.',

@@ -165,7 +165,7 @@ describe('WhatsappService', () => {
         {
           templateId: 'hello_world',
           variables: {},
-          phoneNumber: '9876543210',
+          phoneNumber: '9876543410',
           patientId: 'patient-123',
         },
       );
@@ -178,7 +178,7 @@ describe('WhatsappService', () => {
 
       const client = module.get(WhatsappClientService);
       expect(client.sendMessage).toHaveBeenCalledWith({
-        to: '9876543210',
+        to: '9876543410',
         message: 'Hello World Template Message',
       });
     });

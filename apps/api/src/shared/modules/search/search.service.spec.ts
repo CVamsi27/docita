@@ -165,7 +165,7 @@ describe('SearchService', () => {
             id: 'patient-2',
             firstName: 'Jane',
             lastName: 'Doe',
-            phoneNumber: '0987654321',
+            phoneNumber: '0987654341',
             mrn: 'MRN002',
             rank: 0.9,
           },

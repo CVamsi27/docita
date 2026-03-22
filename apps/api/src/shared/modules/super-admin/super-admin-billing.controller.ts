@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Param,
   Body,
   Query,
@@ -80,6 +81,38 @@ export class SuperAdminBillingController {
   @ApiOperation({ summary: 'Send reminder to subscription owner' })
   async sendReminder(@Param('subscriptionId') subscriptionId: string) {
     return this.billingService.sendReminder(subscriptionId);
+  }
+
+  @Get('pricing/tiers')
+  @ApiOperation({ summary: 'List all tier pricing rows' })
+  async getPricingTiers() {
+    return this.billingService.getPricingTiers();
+  }
+
+  @Put('pricing/tiers/:tierId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a tier pricing row' })
+  async updatePricingTier(
+    @Param('tierId') tierId: string,
+    @Body() dto: Record<string, unknown>,
+  ) {
+    return this.billingService.updatePricingTier(tierId, dto);
+  }
+
+  @Get('pricing/addons')
+  @ApiOperation({ summary: 'List all add-on pricing rows' })
+  async getPricingAddons() {
+    return this.billingService.getPricingAddons();
+  }
+
+  @Put('pricing/addons/:addonId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update an add-on pricing row' })
+  async updatePricingAddon(
+    @Param('addonId') addonId: string,
+    @Body() dto: Record<string, unknown>,
+  ) {
+    return this.billingService.updatePricingAddon(addonId, dto);
   }
 
   @Post('subscriptions/:subscriptionId/extend-grace')

@@ -101,7 +101,7 @@ describe('OCRService', () => {
           bloodType: 'O+',
           emergencyContact: {
             name: 'Jane Doe',
-            phoneNumber: '9876543210',
+            phoneNumber: '9876543410',
             relation: '',
           },
           dateOfBirth: '01/01/1980',
@@ -257,7 +257,7 @@ describe('OCRService', () => {
         Address: 123 Main St, Anytown
         DOB: 01/01/1980
         Visit Date: 12/12/2023
-        Emergency Contact: Jane Doe 9876543210
+        Emergency Contact: Jane Doe 9876543410
       `;
       const result = service.parseExtractedText(text);
       expect(result.firstName).toBe('John');
@@ -270,7 +270,7 @@ describe('OCRService', () => {
       expect(result.doctorName).toBe('Dr. Smith');
       expect(result.emergencyContact).toEqual({
         name: 'Jane Doe',
-        phoneNumber: '9876543210',
+        phoneNumber: '9876543410',
         relation: '',
       });
     });

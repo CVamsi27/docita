@@ -26,7 +26,7 @@ export class DatabaseBackupService {
 
     this.databasePassword = decodeURIComponent(dbUrl.password);
     this.databaseHost = dbUrl.hostname;
-    this.databasePort = dbUrl.port || '5432';
+    this.databasePort = dbUrl.port || '5434';
     this.databaseUser = decodeURIComponent(dbUrl.username);
     this.databaseName = dbUrl.pathname.replace(/^\//, '');
 

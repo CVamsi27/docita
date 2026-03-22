@@ -11,21 +11,24 @@ import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
 import { seedIcdCodes } from './seed-icd-codes';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
-  const result = await pool.query<{ exists: boolean }>(
+  // Check that the latest baseline migration has been applied. Update this
+  // name whenever a new migration is added that changes tables used by seeding.
+  const LATEST_MIGRATION = '20260316000000_fix_schema_drift_post_reset';
+
+  const result = await pool.query<{ count: string }>(
     `
-      SELECT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_schema = 'public'
-          AND table_name = 'User'
-          AND column_name = 'verificationStatus'
-      ) AS exists
+      SELECT COUNT(*)::text AS count
+      FROM _prisma_migrations
+      WHERE migration_name = $1
+        AND finished_at IS NOT NULL
     `,
+    [LATEST_MIGRATION],
   );
 
-  if (!result.rows[0]?.exists) {
+  if (result.rows[0]?.count !== '1') {
     throw new Error(
-      'Database schema drift detected: public."User"."verificationStatus" is missing. Run `pnpm db:migrate` (or `pnpm db:push` for local-only dev DB) before seeding.',
+      `Database is behind migrations: "${LATEST_MIGRATION}" has not been applied. ` +
+        'Run `pnpm db:migrate` before seeding.',
     );
   }
 }
@@ -45,7 +48,7 @@ async function main() {
       ) {
         url.searchParams.set('sslmode', 'verify-full');
         if (!url.port) {
-          url.port = '5432';
+          url.port = '5434';
         }
         connectionString = url.toString();
       }
@@ -94,7 +97,7 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error('Seeding failed:', error);
+main().catch((error: unknown) => {
+  process.stderr.write(`Seeding failed: ${String(error)}\n`);
   process.exit(1);
 });

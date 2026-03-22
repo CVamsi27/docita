@@ -18,6 +18,13 @@ export class CsrfInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
+    // CSRF protection is only needed for cookie-based auth.
+    // Bearer token requests are inherently CSRF-safe.
+    const authHeader = request.headers['authorization'] as string | undefined;
+    if (authHeader?.startsWith('Bearer ')) {
+      return next.handle();
+    }
+
     const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
     let csrfToken = existingCsrfToken;
     if (!existingCsrfToken) {

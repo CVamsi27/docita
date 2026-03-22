@@ -213,6 +213,16 @@ export class SuperAdminController {
     return this.analyticsService.getPerformanceMetrics();
   }
 
+  @Get('usage-metrics')
+  async getUsageMetrics() {
+    return this.analyticsService.getUsageMetrics();
+  }
+
+  @Get('tier-distribution')
+  async getTierDistribution() {
+    return this.analyticsService.getTierDistribution();
+  }
+
   @Get('clinics/:id/admins')
   @ZodSerializerDto(SuperAdminUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {

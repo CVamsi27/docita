@@ -24,6 +24,7 @@ import { Roles } from './roles.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
+import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { Prisma, Role } from '@workspace/db';
 import {
@@ -181,7 +182,42 @@ export class AuthController {
     }
   }
 
+  @Public()
+  @UseGuards(IpRateLimitGuard)
+  @Throttle({
+    short: {
+      ttl: 60000,
+      limit: 3,
+    },
+  })
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset link sent if account exists',
+  })
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Public()
+  @UseGuards(IpRateLimitGuard)
+  @Throttle({
+    short: {
+      ttl: 60000,
+      limit: 5,
+    },
+  })
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+    return this.authService.resetPassword(body.token, body.newPassword);
+  }
+
   @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
@@ -214,6 +250,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
@@ -232,7 +269,7 @@ export class AuthController {
     return {
       valid: true,
       user: {
-        id: req.user.userId,
+        id: req.user.id,
         email: req.user.email,
         name: req.user.name,
         role: req.user.role,

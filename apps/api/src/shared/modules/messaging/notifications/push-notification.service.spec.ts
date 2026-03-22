@@ -131,7 +131,7 @@ describe('PushNotificationService', () => {
       await service.sendPaymentFailed(
         'patient-1',
         500,
-        'INV54321',
+        'INV54341',
         'Health Clinic',
       );
 

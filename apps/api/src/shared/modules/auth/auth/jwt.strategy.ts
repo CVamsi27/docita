@@ -12,6 +12,7 @@ interface JwtPayload {
   role: Role;
   name: string;
   clinicId: string | null;
+  patientId?: string;
 }
 
 function cookieThenBearerExtractor(req: Request): string | null {
@@ -44,8 +45,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    this.logger.debug('Validating payload:', JSON.stringify(payload));
-
     const user = await this.prisma.runUnrestricted(async () => {
       return this.prisma.user.findUnique({
         where: { id: payload.sub },
@@ -60,11 +59,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       id: payload.sub,
-      userId: payload.sub,
       email: payload.email,
       role: payload.role,
-      name: payload.name,
+      name: user.name,
       clinicId: user.clinicId,
+      patientId: payload.patientId,
     };
   }
 }

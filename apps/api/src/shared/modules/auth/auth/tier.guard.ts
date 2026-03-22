@@ -125,29 +125,21 @@ export class TierGuard implements CanActivate {
   }
 
   private mapDbTierToEnum(dbTier: ClinicTier): Tier {
-    const tierMap: Record<ClinicTier, Tier> = {
-      [ClinicTier.CAPTURE]: Tier.CAPTURE,
-      [ClinicTier.CORE]: Tier.CORE,
-      [ClinicTier.PLUS]: Tier.PLUS,
-      [ClinicTier.PRO]: Tier.PRO,
+    const tierMap: Record<string, Tier> = {
+      [ClinicTier.STARTER]: Tier.STARTER,
+      [ClinicTier.ESSENTIAL]: Tier.ESSENTIAL,
+      [ClinicTier.PROFESSIONAL]: Tier.PROFESSIONAL,
       [ClinicTier.ENTERPRISE]: Tier.ENTERPRISE,
-    } as Record<string, Tier>;
-
-    const legacyMap: Record<string, Tier> = {
-      FREE: Tier.CAPTURE,
-      STARTER: Tier.CORE,
-      PROFESSIONAL: Tier.PRO,
     };
 
-    return tierMap[dbTier] ?? legacyMap[dbTier] ?? Tier.CAPTURE;
+    return tierMap[dbTier] ?? Tier.STARTER;
   }
 
   private getTierName(tier: Tier): string {
     const names: Record<Tier, string> = {
-      [Tier.CAPTURE]: 'Docita Capture',
-      [Tier.CORE]: 'Docita Core',
-      [Tier.PLUS]: 'Docita Plus',
-      [Tier.PRO]: 'Docita Pro',
+      [Tier.STARTER]: 'Docita Starter',
+      [Tier.ESSENTIAL]: 'Docita Essential',
+      [Tier.PROFESSIONAL]: 'Docita Professional',
       [Tier.ENTERPRISE]: 'Docita Enterprise',
       [Tier.INTELLIGENCE]: 'Docita Intelligence',
     };

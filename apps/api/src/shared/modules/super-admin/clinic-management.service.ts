@@ -141,7 +141,7 @@ export class ClinicManagementService {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      tier: data.tier || ClinicTier.CORE,
+      tier: data.tier || ClinicTier.ESSENTIAL,
     });
 
     const userInput = this.userFactory.create(Role.ADMIN, {

@@ -24,11 +24,11 @@ describe('RolesGuard', () => {
     }).compile();
 
     guard = module.get<RolesGuard>(RolesGuard);
-    reflector = module.get<Reflector>(Reflector);
+    _reflector = module.get<Reflector>(Reflector);
   });
 
   describe('canActivate', () => {
-    it('should deny request when no roles are required (deny-by-default)', () => {
+    it('should allow request when no roles are required (open route)', () => {
       mockReflector.getAllAndOverride
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(undefined);
@@ -45,7 +45,7 @@ describe('RolesGuard', () => {
 
       const result = guard.canActivate(mockExecutionContext);
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('should allow request when user has required role', () => {

@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { AppConfigModule } from '../config/config.module';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigModule } from '@/shared/modules/config/config.module';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { MessageTemplateService } from './templates';
 import { NotificationOrchestrator } from './notification-orchestrator.service';
 import { WhatsAppChannel, EmailChannel, SmsChannel } from './channels';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
-  imports: [AppConfigModule, NotificationsModule],
+  imports: [AppConfigModule, NotificationsModule, WhatsappModule],
   providers: [
     MessageTemplateService,
     NotificationOrchestrator,

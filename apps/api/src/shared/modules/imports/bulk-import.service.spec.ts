@@ -250,7 +250,7 @@ describe('BulkImportService', () => {
   describe('CSV Parsing', () => {
     it('should parse valid CSV with headers', async () => {
       const csvContent = Buffer.from(
-        `firstName,lastName,phoneNumber\nJohn,Doe,1234567890\nJane,Smith,0987654321`,
+        `firstName,lastName,phoneNumber\nJohn,Doe,1234567890\nJane,Smith,0987654341`,
       );
 
       const result = await service.startImport(

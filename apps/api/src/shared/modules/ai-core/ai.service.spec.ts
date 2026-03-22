@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppConfigService } from '../config/app-configuration.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { AiService } from './ai.service';
 import { AiFactory } from './factories/ai.factory';
 import { z } from 'zod';

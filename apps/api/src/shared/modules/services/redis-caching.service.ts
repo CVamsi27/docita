@@ -39,8 +39,20 @@ export class RedisCachingService implements OnModuleInit {
   }
 
   async onModuleInit(): Promise<void> {
+    if (this.configService.getCacheProvider() !== 'redis') {
+      return;
+    }
+
     try {
-      await this.client.connect();
+      await Promise.race([
+        this.client.connect(),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('Redis connection timed out')),
+            3000,
+          ),
+        ),
+      ]);
     } catch (error) {
       this.logger.warn(
         `Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'} - caching disabled`,

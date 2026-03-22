@@ -208,6 +208,9 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    return await this.importsService.extractFromMedicalDocumentBasic(file.path);
+    return await this.importsService.extractFromMedicalDocumentBasic(
+      file.path,
+      _req.user?.clinicId,
+    );
   }
 }

@@ -20,7 +20,7 @@ describe('ClinicAuthCacheService', () => {
   let prisma: jest.Mocked<PrismaService>;
 
   const mockClinicData = {
-    tier: ClinicTier.PRO,
+    tier: ClinicTier.PROFESSIONAL,
     intelligenceAddon: IntelligenceAddon.ACTIVE,
     features: { CUSTOM_FEATURE: true },
     subscriptionStatus: SubscriptionStatus.ACTIVE,
@@ -55,7 +55,7 @@ describe('ClinicAuthCacheService', () => {
     it('should fetch from database on cache miss', async () => {
       const result = await service.getClinicAuth('clinic-1');
 
-      expect(result.tier).toBe(ClinicTier.PRO);
+      expect(result.tier).toBe(ClinicTier.PROFESSIONAL);
       expect(result.subscriptionStatus).toBe(SubscriptionStatus.ACTIVE);
       expect(result.hasIntelligence).toBe(true);
       expect(prisma.clinic.findUnique).toHaveBeenCalledTimes(1);

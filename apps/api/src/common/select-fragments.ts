@@ -448,3 +448,124 @@ export const APPOINTMENT_ANALYTICS_SELECT = {
   type: true,
   createdAt: true,
 } as const;
+
+export const PRESCRIPTION_LIST_SELECT = {
+  id: true,
+  date: true,
+  instructions: true,
+  createdAt: true,
+} as const;
+
+export const PRESCRIPTION_CARD_SELECT = {
+  id: true,
+  date: true,
+  instructions: true,
+  medications: true,
+  createdAt: true,
+  patient: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phoneNumber: true,
+    },
+  },
+  doctor: {
+    select: {
+      id: true,
+      name: true,
+      specialization: true,
+    },
+  },
+} as const;
+
+export const PRESCRIPTION_DETAIL_SELECT = {
+  id: true,
+  date: true,
+  instructions: true,
+  medications: true,
+  followUpDate: true,
+  diagnosisNotes: true,
+  createdAt: true,
+  updatedAt: true,
+  patient: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phoneNumber: true,
+      email: true,
+      dateOfBirth: true,
+      gender: true,
+      allergies: true,
+    },
+  },
+  doctor: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      specialization: true,
+      registrationNumber: true,
+      signatureUrl: true,
+    },
+  },
+  appointment: {
+    select: {
+      id: true,
+      startTime: true,
+      type: true,
+    },
+  },
+} as const;
+
+export const USER_MINIMAL_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+} as const;
+
+export const USER_LIST_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  phoneNumber: true,
+  active: true,
+  createdAt: true,
+} as const;
+
+export const USER_DETAIL_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  phoneNumber: true,
+  active: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+  clinic: {
+    select: {
+      id: true,
+      name: true,
+      tier: true,
+      subscriptionStatus: true,
+    },
+  },
+} as const;
+
+export const VITAL_SIGN_SELECT = {
+  id: true,
+  systolicBP: true,
+  diastolicBP: true,
+  pulse: true,
+  temperature: true,
+  spo2: true,
+  weight: true,
+  height: true,
+  bmi: true,
+  respiratoryRate: true,
+  createdAt: true,
+} as const;

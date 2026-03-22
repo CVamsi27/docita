@@ -19,6 +19,7 @@ export class TenantContextInterceptor implements NestInterceptor {
 
     if (user) {
       const isSuperAdmin = user.role === 'SUPER_ADMIN';
+
       if (user.clinicId || isSuperAdmin) {
         const tenantContext = {
           clinicId: user.clinicId,
@@ -34,13 +35,16 @@ export class TenantContextInterceptor implements NestInterceptor {
           tenantStorage.run(tenantContext, () => lastValueFrom(next.handle())),
         );
       }
-    }
 
-    if (user && !user.clinicId) {
-      this.logger.debug(
-        `[DEBUG] User found but clinicId missing: ${JSON.stringify(user)}`,
+      // User is authenticated but has no clinic yet (onboarding flow).
+      // Wrap in a bypassed context so runUnrestricted() works correctly.
+      return from(
+        tenantStorage.run({ bypassed: true, userId: user.id }, () =>
+          lastValueFrom(next.handle()),
+        ),
       );
     }
+
     return next.handle();
   }
 }

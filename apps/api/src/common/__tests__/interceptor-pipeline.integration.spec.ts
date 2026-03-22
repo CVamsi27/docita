@@ -8,17 +8,17 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NextFunction, Response } from 'express';
 import cookieParser from 'cookie-parser';
 
-import { CsrfInterceptor } from '../interceptors/csrf.interceptor';
-import { RequestIdInterceptor } from '../interceptors/request-id.interceptor';
-import { RequestContextInterceptor } from '../interceptors/request-context.interceptor';
-import { TimeoutInterceptor } from '../interceptors/timeout.interceptor';
-import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor';
-import { CacheInterceptor } from '../interceptors/cache.interceptor';
-import { PatientDataAuditInterceptor } from '../interceptors/patient-audit.interceptor';
-import { BreakTheGlassInterceptor } from '../interceptors/emergency-access.interceptor';
-import { RequestWithUser } from '../types/common.types';
-import { AuditService } from '../../shared/modules/audit/audit/audit.service';
-import { AppConfigService } from '../../shared/modules/config/app-configuration.service';
+import { CsrfInterceptor } from '@/common/interceptors/csrf.interceptor';
+import { RequestIdInterceptor } from '@/common/interceptors/request-id.interceptor';
+import { RequestContextInterceptor } from '@/common/interceptors/request-context.interceptor';
+import { TimeoutInterceptor } from '@/common/interceptors/timeout.interceptor';
+import { TenantContextInterceptor } from '@/shared/modules/interceptors/tenant-context.interceptor';
+import { CacheInterceptor } from '@/common/interceptors/cache.interceptor';
+import { PatientDataAuditInterceptor } from '@/common/interceptors/patient-audit.interceptor';
+import { BreakTheGlassInterceptor } from '@/common/interceptors/emergency-access.interceptor';
+import { RequestWithUser } from '@/common/types/common.types';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 class PipelineController {
   getHealth() {

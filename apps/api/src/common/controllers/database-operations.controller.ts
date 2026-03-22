@@ -11,13 +11,14 @@ import { DatabaseIndexOptimizationService } from '@/shared/modules/database/data
 import { DatabasePoolingService } from '@/shared/modules/database/database-pooling.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { Role } from '@workspace/db';
 import { VerifyBackupRequestDto } from '@/common/dto/database-operations.dto';
 
 @ApiTags('Database Operations')
 @ApiBearerAuth()
 @Controller('api/v1/operations/database')
 @UseGuards(RolesGuard)
-@Roles('SUPER_ADMIN')
+@Roles(Role.SUPER_ADMIN)
 export class DatabaseOperationsController {
   private readonly logger = new Logger(DatabaseOperationsController.name);
 

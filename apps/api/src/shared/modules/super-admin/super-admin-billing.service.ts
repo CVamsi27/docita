@@ -494,11 +494,70 @@ export class SuperAdminBillingService {
   }
 
   getTierPricingInfo() {
-    const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
+    const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'CLINIC', 'ENTERPRISE'];
     return tiers.map((tier) => ({
       tier,
       ...this.getTierDetails(tier),
     }));
+  }
+
+  async getPricingTiers() {
+    return this.prisma.tierPricing.findMany({
+      orderBy: { displayOrder: 'asc' },
+    });
+  }
+
+  async updatePricingTier(tierId: string, data: Record<string, unknown>) {
+    const allowed = [
+      'monthlyBasePriceCents',
+      'includedPatients',
+      'includedAppointments',
+      'includedStorageGB',
+      'includedUsers',
+      'overagePatientCents',
+      'overageAppointmentCents',
+      'overageStorageCents',
+      'overageUserCents',
+      'overagePrescriptionCents',
+      'overageInvoiceCents',
+      'overageOcrPageCents',
+      'overageApiCallCents',
+      'name',
+      'description',
+      'tagline',
+      'isActive',
+    ];
+    const update: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in data) update[key] = data[key];
+    }
+    return this.prisma.tierPricing.update({
+      where: { id: tierId },
+      data: update,
+    });
+  }
+
+  async getPricingAddons() {
+    return this.prisma.addOn.findMany({ orderBy: { type: 'asc' } });
+  }
+
+  async updatePricingAddon(addonId: string, data: Record<string, unknown>) {
+    const allowed = [
+      'name',
+      'description',
+      'pricingByTier',
+      'includedQuotaByTier',
+      'overageRateByTier',
+      'isActive',
+    ];
+    const update: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in data) update[key] = data[key];
+    }
+    return this.prisma.addOn.update({
+      where: { id: addonId },
+      data: update,
+    });
   }
 
   private getTierDetails(tier: string): BillingTierInfo | null {
@@ -507,6 +566,7 @@ export class SuperAdminBillingService {
       CORE: { name: 'Core', price: 4999, maxDoctors: 5, aiEnabled: false },
       PLUS: { name: 'Plus', price: 9999, maxDoctors: 20, aiEnabled: false },
       PRO: { name: 'Pro', price: 24999, maxDoctors: -1, aiEnabled: true },
+      CLINIC: { name: 'Clinic', price: 49999, maxDoctors: -1, aiEnabled: true },
       ENTERPRISE: {
         name: 'Enterprise',
         price: null,

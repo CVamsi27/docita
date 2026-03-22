@@ -40,7 +40,7 @@ import { AIModule } from '@/shared/modules/ai/ai.module';
     ConfidenceScorerService,
 
     OCRFacadeService,
-    { provide: 'OCRService', useClass: OCRFacadeService },
+    { provide: 'OCRService', useExisting: OCRFacadeService },
     ImportSessionService,
   ],
   exports: [BulkImportService, ImportSessionService],

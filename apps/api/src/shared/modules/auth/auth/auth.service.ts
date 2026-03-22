@@ -360,18 +360,93 @@ export class AuthService {
       });
 
       const user = await this.prisma.user.create({
-        data: userData,
+        data: {
+          ...userData,
+          onboardingStep: 'CHOOSE_PATH',
+          onboardingStartedAt: new Date(),
+        },
         select: {
           id: true,
           email: true,
           name: true,
           role: true,
           clinicId: true,
+          onboardingStep: true,
           createdAt: true,
           updatedAt: true,
         },
       });
       return this.login(user);
+    });
+  }
+
+  async requestPasswordReset(email: string) {
+    return this.prisma.runUnrestricted(async () => {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (!user) {
+        this.logger.log('Password reset requested for non-existent email');
+        return {
+          message:
+            'If an account with that email exists, a reset link has been sent.',
+        };
+      }
+
+      const token = nanoid(64);
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetToken: token,
+          passwordResetExpiresAt: expiresAt,
+        },
+      });
+
+      this.logger.log('Password reset token generated', { userId: user.id });
+
+      return {
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      };
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    return this.prisma.runUnrestricted(async () => {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          passwordResetToken: token,
+          passwordResetExpiresAt: { gt: new Date() },
+        },
+      });
+
+      if (!user) {
+        throw new BadRequestException('Invalid or expired reset token');
+      }
+
+      this.passwordPolicy.validate(newPassword);
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          failedLoginAttempts: 0,
+          accountLockedUntil: null,
+          lastFailedLoginAt: null,
+        },
+      });
+
+      this.logger.log('Password reset completed', { userId: user.id });
+
+      return { message: 'Password has been reset successfully' };
     });
   }
 

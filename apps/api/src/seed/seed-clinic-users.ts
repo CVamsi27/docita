@@ -23,7 +23,7 @@ export async function seedClinicUsers(
       phone: '+91 80 1234 5678',
       email: 'contact@docita.work',
       active: true,
-      tier: 'PRO',
+      tier: 'PROFESSIONAL',
     },
   });
 
@@ -107,7 +107,7 @@ export async function seedClinicUsers(
       specialization: 'PEDIATRICS',
       hospitalRole: 'CONSULTANT',
       qualification: 'MBBS, DCH, MD (Pediatrics)',
-      registrationNumber: 'KMC-2018-54321',
+      registrationNumber: 'KMC-2018-54341',
       licenseNumber: 'KA-MED-2018-005678',
       phoneNumber: '+91 9876543002',
       bio: 'Pediatrician specializing in newborn care, childhood vaccinations, and developmental pediatrics. Committed to providing compassionate care for children.',
@@ -253,7 +253,7 @@ export async function seedClinicUsers(
         issuingBody: 'American Heart Association',
         issueDate: new Date('2021-05-10'),
         expiryDate: new Date('2026-05-10'),
-        credentialId: 'AHA-PALS-2021-654321',
+        credentialId: 'AHA-PALS-2021-654341',
       },
       {
         doctorId: doctor2.id,

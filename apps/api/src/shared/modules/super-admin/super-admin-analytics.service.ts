@@ -316,4 +316,88 @@ export class SuperAdminAnalyticsService {
       );
     }
   }
+
+  async getUsageMetrics() {
+    try {
+      const cacheKey = 'super-admin:usage-metrics';
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) return cached;
+
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const [
+        activeUsersToday,
+        activeUsersThisMonth,
+        appointmentsToday,
+        appointmentsThisMonth,
+        prescriptionsToday,
+        prescriptionsThisMonth,
+      ] = await Promise.all([
+        this.prisma.appointment.findMany({
+          where: { createdAt: { gte: oneDayAgo } },
+          select: { doctorId: true },
+          distinct: ['doctorId'],
+        }),
+        this.prisma.appointment.findMany({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+          select: { doctorId: true },
+          distinct: ['doctorId'],
+        }),
+        this.prisma.appointment.count({
+          where: { createdAt: { gte: oneDayAgo } },
+        }),
+        this.prisma.appointment.count({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+        }),
+        this.prisma.prescription.count({
+          where: { createdAt: { gte: oneDayAgo } },
+        }),
+        this.prisma.prescription.count({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+        }),
+      ]);
+
+      const result = {
+        dau: activeUsersToday.length,
+        mau: activeUsersThisMonth.length,
+        appointmentsToday,
+        appointmentsThisMonth,
+        prescriptionsToday,
+        prescriptionsThisMonth,
+      };
+
+      await this.cacheManager.set(cacheKey, result, 300 * 1000);
+      return result;
+    } catch (_error) {
+      throw new InternalServerErrorException('Failed to fetch usage metrics');
+    }
+  }
+
+  async getTierDistribution() {
+    try {
+      const cacheKey = 'super-admin:tier-distribution';
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) return cached;
+
+      const clinics = await this.prisma.clinic.groupBy({
+        by: ['tier'],
+        _count: { tier: true },
+        orderBy: { tier: 'asc' },
+      });
+
+      const result = clinics.map((c) => ({
+        tier: c.tier,
+        count: c._count.tier,
+      }));
+
+      await this.cacheManager.set(cacheKey, result, 300 * 1000);
+      return result;
+    } catch (_error) {
+      throw new InternalServerErrorException(
+        'Failed to fetch tier distribution',
+      );
+    }
+  }
 }

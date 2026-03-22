@@ -1,12 +1,6 @@
-import {
-  Injectable,
-  Logger,
-  Inject,
-  forwardRef,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
-import { WhatsappService } from './whatsapp.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
 import { Prisma } from '@workspace/db';
@@ -57,8 +51,7 @@ export class StaffNotificationService {
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
     private readonly templatesService: TemplatesService,
-    @Inject(forwardRef(() => WhatsappService))
-    private readonly whatsappService: WhatsappService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async isWhatsappEnabled(clinicId: string): Promise<boolean> {
@@ -199,7 +192,7 @@ export class StaffNotificationService {
     priority: NotificationPriority,
   ): Promise<void> {
     try {
-      await this.prisma.staffNotification.create({
+      const notification = await this.prisma.staffNotification.create({
         data: {
           clinicId,
           userId,
@@ -209,6 +202,15 @@ export class StaffNotificationService {
           data: JSON.stringify(data),
           priority,
           isRead: false,
+        },
+      });
+
+      this.eventEmitter.emit('notification.created', {
+        clinicId,
+        userId,
+        notification: {
+          ...notification,
+          data: parseNotificationData(notification.data),
         },
       });
     } catch (error) {
@@ -268,11 +270,16 @@ export class StaffNotificationService {
   ): Promise<
     Array<{
       id: string;
+      clinicId: string;
+      userId: string | null;
       type: StaffNotificationType;
       title: string;
       message: string;
       data: unknown;
       priority: NotificationPriority;
+      isRead: boolean;
+      readAt: Date | null;
+      deletedAt: Date | null;
       createdAt: Date;
     }>
   > {
@@ -280,16 +287,22 @@ export class StaffNotificationService {
       where: {
         userId,
         isRead: false,
+        deletedAt: null,
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
       take: limit,
       select: {
         id: true,
+        clinicId: true,
+        userId: true,
         type: true,
         title: true,
         message: true,
         data: true,
         priority: true,
+        isRead: true,
+        readAt: true,
+        deletedAt: true,
         createdAt: true,
       },
     });
@@ -300,28 +313,63 @@ export class StaffNotificationService {
     }));
   }
 
+  async markNotificationRead(
+    notificationId: string,
+    userId: string,
+  ): Promise<void> {
+    const existing = await this.prisma.staffNotification.findFirst({
+      where: { id: notificationId, userId, deletedAt: null },
+      select: { clinicId: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    await this.prisma.staffNotification.updateMany({
+      where: { id: notificationId, userId, deletedAt: null },
+      data: { isRead: true, readAt: new Date() },
+    });
+
+    this.eventEmitter.emit('notification.read', {
+      clinicId: existing.clinicId,
+      userId,
+      notificationId,
+    });
+  }
+
   async deleteNotification(
     notificationId: string,
     userId: string,
   ): Promise<void> {
-    const result = await this.prisma.staffNotification.deleteMany({
-      where: {
-        id: notificationId,
-        userId,
-      },
+    const existing = await this.prisma.staffNotification.findFirst({
+      where: { id: notificationId, userId, deletedAt: null },
+      select: { clinicId: true },
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       throw new NotFoundException('Notification not found');
     }
+
+    await this.prisma.staffNotification.updateMany({
+      where: { id: notificationId, userId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    this.eventEmitter.emit('notification.deleted', {
+      clinicId: existing.clinicId,
+      userId,
+      notificationId,
+    });
   }
 
-  async deleteAllNotifications(userId: string): Promise<void> {
-    await this.prisma.staffNotification.deleteMany({
-      where: {
-        userId,
-      },
+  async deleteAllNotifications(userId: string, clinicId: string): Promise<void> {
+    await this.prisma.staffNotification.updateMany({
+      where: { userId, deletedAt: null },
+      data: { deletedAt: new Date() },
     });
+
+    this.eventEmitter.emit('notification.bulk-deleted', { clinicId, userId });
   }
 
   async getUnreadCount(userId: string): Promise<number> {
@@ -329,6 +377,7 @@ export class StaffNotificationService {
       where: {
         userId,
         isRead: false,
+        deletedAt: null,
       },
     });
   }
