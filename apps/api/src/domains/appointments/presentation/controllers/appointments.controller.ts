@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Patch,
-  Put,
   Param,
   UseGuards,
   Request,
@@ -108,7 +107,8 @@ export class AppointmentsController {
     } = query;
 
     const effectiveStartDate = startDate ?? date;
-    const effectiveEndDate = endDate ?? date;
+    const effectiveEndDate =
+      endDate ?? (date ? `${date}T23:59:59.999Z` : undefined);
 
     const statuses = status
       ?.split(',')
@@ -137,20 +137,6 @@ export class AppointmentsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update appointment details' })
   async update(
-    @Param('id') id: string,
-    @Request() req: RequestWithUser,
-    @Body() body: UpdateAppointmentDto,
-  ) {
-    return this.appointmentService.updateAppointmentDetails(
-      id,
-      req.user!.clinicId!,
-      body as never,
-    );
-  }
-
-  @Put(':id')
-  @ApiOperation({ summary: 'Update appointment details (PUT compatibility)' })
-  async updateViaPut(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
     @Body() body: UpdateAppointmentDto,

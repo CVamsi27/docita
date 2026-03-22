@@ -223,7 +223,7 @@ describe('PatientService', () => {
       const updateDto = {
         firstName: 'John',
         lastName: 'Smith',
-        phoneNumber: '+9876543210',
+        phoneNumber: '+9876543410',
       };
 
       const updatedPatient = {
@@ -244,7 +244,7 @@ describe('PatientService', () => {
       );
 
       expect(result.lastName).toBe('Smith');
-      expect(result.phoneNumber).toBe('+9876543210');
+      expect(result.phoneNumber).toBe('+9876543410');
     });
 
     it('should update medical history', async () => {

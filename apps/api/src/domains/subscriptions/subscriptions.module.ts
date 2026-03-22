@@ -23,16 +23,17 @@ import {
   CLINIC_OPERATIONS_TOKEN,
 } from './application/ports';
 import { PrismaSubscriptionRepository } from './infrastructure/repositories';
-import { RazorpayGateway } from './infrastructure/gateways/razorpay.gateway';
+import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
 import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
+import { PaymentsModule } from '@/domains/payments/payments.module';
 
 @Module({
-  imports: [PrismaModule, BillingModule],
+  imports: [PrismaModule, BillingModule, PaymentsModule],
   controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
     SubscriptionPricingService,
@@ -56,7 +57,7 @@ import { BillingModule } from '@/domains/billing/billing.module';
     },
     {
       provide: PAYMENT_GATEWAY_TOKEN,
-      useClass: RazorpayGateway,
+      useClass: PaymentGatewayFacade,
     },
     {
       provide: CLINIC_OPERATIONS_TOKEN,

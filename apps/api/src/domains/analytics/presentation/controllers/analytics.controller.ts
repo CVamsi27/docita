@@ -99,6 +99,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(DiseaseTrendListResponseDto)
   getDiseaseTrends(
     @Request() req: RequestWithUser,
@@ -112,6 +113,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends/by-category')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(DiseaseTrendByCategoryListResponseDto)
   getDiseaseTrendsByCategory(
     @Request() req: RequestWithUser,
@@ -125,6 +127,7 @@ export class AnalyticsController {
   }
 
   @Get('disease-trends/time-series')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(DiseaseTimeSeriesListResponseDto)
   getDiseaseTimeSeries(
     @Request() req: RequestWithUser,
@@ -139,6 +142,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/by-cpt')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(RevenueByCptListResponseDto)
   getRevenueByCptCode(
     @Request() req: RequestWithUser,
@@ -152,6 +156,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/by-category')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(RevenueByCategoryListResponseDto)
   getRevenueByCategory(
     @Request() req: RequestWithUser,
@@ -165,6 +170,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue/time-series')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(RevenueTimeSeriesListResponseDto)
   getRevenueTimeSeries(
     @Request() req: RequestWithUser,
@@ -179,6 +185,7 @@ export class AnalyticsController {
   }
 
   @Get('compliance/metrics')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(CodingComplianceMetricsResponseDto)
   getCodingComplianceMetrics(
     @Request() req: RequestWithUser,
@@ -192,12 +199,14 @@ export class AnalyticsController {
   }
 
   @Get('compliance/uncoded-stats')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(UncodedVisitsStatsResponseDto)
   getUncodedVisitsStats(@Request() req: RequestWithUser) {
     return this.analyticsService.getUncodedVisitsStats(req.user!.clinicId!);
   }
 
   @Get('compliance/timeliness')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(CodingTimelinessResponseDto)
   getCodingTimeliness(
     @Request() req: RequestWithUser,
@@ -211,6 +220,7 @@ export class AnalyticsController {
   }
 
   @Get('revenue-metrics')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(RevenueMetricsListResponseDto)
   getRevenueMetrics(
     @Request() req: RequestWithUser,
@@ -225,6 +235,7 @@ export class AnalyticsController {
   }
 
   @Get('appointment-metrics')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(AppointmentMetricsResponseDto)
   getAppointmentMetrics(
     @Request() req: RequestWithUser,
@@ -239,6 +250,7 @@ export class AnalyticsController {
   }
 
   @Get('patient-demographics')
+  @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(PatientDemographicsResponseDto)
   getPatientDemographics(
     @Request() req: RequestWithUser,

@@ -148,9 +148,34 @@ export class PrescriptionPdfService extends BasePdfService {
       .fontSize(10)
       .font('Helvetica-Bold')
       .text("Doctor's Signature:", signatureX, currentY);
-    currentY += 40;
+    currentY += 15;
 
-    doc.text(data.doctor.name, signatureX, currentY);
+    if (data.doctor.signatureUrl) {
+      try {
+        const signatureBuffer = await this.fetchSignatureImage(
+          data.doctor.signatureUrl,
+        );
+        doc.image(signatureBuffer, signatureX, currentY, {
+          fit: [180, 60],
+          align: 'left',
+        });
+        currentY += 65;
+      } catch (error) {
+        currentY += 25;
+        doc
+          .font('Helvetica-Oblique')
+          .fontSize(8)
+          .text('[Digital signature]', signatureX, currentY);
+        currentY += 15;
+      }
+    } else {
+      currentY += 25;
+    }
+
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .text(data.doctor.name, signatureX, currentY);
     if (data.doctor.registrationNumber) {
       doc
         .font('Helvetica')
@@ -280,5 +305,20 @@ export class PrescriptionPdfService extends BasePdfService {
     context: PDFContext,
   ): number {
     return this.checkPageBreak(doc, currentY, needed, context);
+  }
+
+  private async fetchSignatureImage(url: string): Promise<Buffer> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch signature: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Error fetching signature from ${url}: ${errorMessage}`);
+    }
   }
 }

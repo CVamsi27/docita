@@ -9,6 +9,7 @@ import {
   Request,
   UsePipes,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -75,7 +76,7 @@ export class DoctorsController {
   }
 
   @Put(':id')
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
   @UsePipes(new ZodValidationPipe(UpdateDoctorSchema))
   async update(
@@ -83,6 +84,9 @@ export class DoctorsController {
     @Param('id') id: string,
     @Body() dto: UpdateDoctorDto,
   ) {
+    if (req.user?.role === Role.DOCTOR && req.user.id !== id) {
+      throw new ForbiddenException('Doctors can only update their own profile');
+    }
     return this.doctorsService.update(id, dto, req.user?.clinicId || undefined);
   }
 

@@ -181,9 +181,10 @@ export class OnboardingWorkflowService {
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
     const now = new Date();
-    const isCoreTrial =
-      planData.tier === ClinicTier.CORE && paymentData?.skipPayment === true;
-    const periodEnd = isCoreTrial
+    const isEssentialTrial =
+      planData.tier === ClinicTier.ESSENTIAL &&
+      paymentData?.skipPayment === true;
+    const periodEnd = isEssentialTrial
       ? new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
       : planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)

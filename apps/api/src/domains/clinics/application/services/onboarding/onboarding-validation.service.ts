@@ -46,9 +46,9 @@ export class OnboardingValidationService {
       }
     }
 
-    if (data.planSelection && data.planSelection.tier !== ClinicTier.CAPTURE) {
-      const isCoreFreeTrial =
-        data.planSelection.tier === ClinicTier.CORE &&
+    if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
+      const isEssentialFreeTrial =
+        data.planSelection.tier === ClinicTier.ESSENTIAL &&
         data.paymentDetails?.skipPayment === true;
 
       const hasProcessedPayment =
@@ -56,7 +56,7 @@ export class OnboardingValidationService {
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment && !isCoreFreeTrial) {
+      if (!hasProcessedPayment && !isEssentialFreeTrial) {
         errors.push('Payment details are required for paid plans');
       }
     }
@@ -161,10 +161,9 @@ export class OnboardingValidationService {
     validateBillingCycle(cycle);
 
     const pricing: Record<string, Record<string, number>> = {
-      CAPTURE: { MONTHLY: 0, YEARLY: 0 },
-      CORE: { MONTHLY: 79900, YEARLY: 862900 },
-      PLUS: { MONTHLY: 199900, YEARLY: 2158900 },
-      PRO: { MONTHLY: 399900, YEARLY: 4318900 },
+      STARTER: { MONTHLY: 0, YEARLY: 0 },
+      ESSENTIAL: { MONTHLY: 99900, YEARLY: 1078900 },
+      PROFESSIONAL: { MONTHLY: 399900, YEARLY: 4318900 },
       ENTERPRISE: { MONTHLY: 0, YEARLY: 0 },
     };
 
@@ -188,29 +187,23 @@ export class OnboardingValidationService {
         includedUsers: number;
       }
     > = {
-      CAPTURE: {
+      STARTER: {
         includedPatients: 50,
         includedAppointments: 100,
         includedStorageGB: 1,
         includedUsers: 1,
       },
-      CORE: {
-        includedPatients: 300,
-        includedAppointments: 500,
-        includedStorageGB: 5,
-        includedUsers: 2,
+      ESSENTIAL: {
+        includedPatients: 500,
+        includedAppointments: 1000,
+        includedStorageGB: 10,
+        includedUsers: 3,
       },
-      PLUS: {
-        includedPatients: 1000,
-        includedAppointments: 2000,
-        includedStorageGB: 20,
-        includedUsers: 2,
-      },
-      PRO: {
-        includedPatients: 5000,
-        includedAppointments: 10000,
+      PROFESSIONAL: {
+        includedPatients: 10000,
+        includedAppointments: 20000,
         includedStorageGB: 100,
-        includedUsers: 10,
+        includedUsers: 15,
       },
       ENTERPRISE: {
         includedPatients: 999999,
@@ -220,6 +213,6 @@ export class OnboardingValidationService {
       },
     };
 
-    return limits[tier] || limits.CAPTURE;
+    return limits[tier] || limits.STARTER;
   }
 }

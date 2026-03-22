@@ -7,6 +7,7 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { CLINIC_DATA_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -18,6 +19,7 @@ describe('ClinicsService', () => {
   let prismaService: PrismaService;
   let clinicFactory: ClinicFactory;
   let _settingsFactory: SettingsFactory;
+  let clinicDataRepository: Record<string, jest.Mock>;
 
   const mockClinic = {
     id: 'clinic-123',
@@ -63,7 +65,7 @@ describe('ClinicsService', () => {
     password: 'hashedPassword',
     role: Role.DOCTOR,
     clinicId: 'clinic-123',
-    phoneNumber: '9876543210',
+    phoneNumber: '9876543410',
     specialization: 'GENERAL_PRACTICE',
     qualification: 'MD',
     registrationNumber: 'REG001',
@@ -83,12 +85,31 @@ describe('ClinicsService', () => {
   };
 
   beforeEach(async () => {
+    clinicDataRepository = {
+      findByReferralCode: jest.fn().mockResolvedValue(null),
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+      softDelete: jest.fn(),
+      findDoctorClinics: jest.fn(),
+      getStats: jest.fn(),
+      findUserForJoin: jest.fn(),
+      findClinicByCodeOrEmail: jest.fn(),
+      joinClinic: jest.fn(),
+      searchActive: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClinicsService,
         ClinicDataService,
         ClinicSettingsService,
         StaffManagementService,
+        {
+          provide: CLINIC_DATA_REPOSITORY_TOKEN,
+          useValue: clinicDataRepository,
+        },
         {
           provide: PrismaService,
           useValue: {
@@ -163,9 +184,10 @@ describe('ClinicsService', () => {
     service = module.get<ClinicsService>(ClinicsService);
     prismaService = module.get<PrismaService>(PrismaService);
     clinicFactory = module.get<ClinicFactory>(ClinicFactory);
-    settingsFactory = module.get<SettingsFactory>(SettingsFactory);
+    _settingsFactory = module.get<SettingsFactory>(SettingsFactory);
 
     jest.clearAllMocks();
+    clinicDataRepository.findByReferralCode.mockResolvedValue(null);
   });
 
   it('should be defined', () => {
@@ -174,9 +196,7 @@ describe('ClinicsService', () => {
 
   describe('create', () => {
     it('should create a clinic with default tier', async () => {
-      jest
-        .spyOn(prismaService.clinic, 'create')
-        .mockResolvedValue(mockClinic as never);
+      clinicDataRepository.create.mockResolvedValue(mockClinic);
 
       const result = await service.create({
         name: 'Test Clinic',
@@ -194,13 +214,13 @@ describe('ClinicsService', () => {
         tier: undefined,
         settings: {},
       });
-      expect(prismaService.clinic.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(clinicDataRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
           name: 'Test Clinic',
           tier: 'CORE',
           active: true,
         }),
-      });
+      );
     });
   });
 
@@ -209,18 +229,12 @@ describe('ClinicsService', () => {
       const mockClinics = [
         { ...mockClinic, _count: { users: 1, patients: 5, appointments: 10 } },
       ];
-      jest
-        .spyOn(prismaService.clinic, 'findMany')
-        .mockResolvedValue(mockClinics as never);
+      clinicDataRepository.findAll.mockResolvedValue(mockClinics);
 
       const result = await service.findAll();
 
       expect(result).toEqual(mockClinics);
-      expect(prismaService.clinic.findMany).toHaveBeenCalledWith({
-        where: { active: true },
-        include: expect.any(Object),
-        orderBy: { createdAt: 'desc' },
-      });
+      expect(clinicDataRepository.findAll).toHaveBeenCalled();
     });
   });
 
@@ -229,17 +243,10 @@ describe('ClinicsService', () => {
       const clinicWithUsers = {
         ...mockClinic,
         users: [],
+        settings: null,
         _count: { patients: 5, appointments: 10 },
-        intelligenceAddon: false,
-        avgConsultationMinutes: 30,
-        lateArrivalGraceMinutes: 5,
-        queueBufferMinutes: 10,
-        defaultInvoiceCurrency: 'INR',
-        invoiceNumberFormat: 'INV-{clinic_id}-{date}-{sequence}',
-      } as never;
-      jest
-        .spyOn(prismaService.clinic, 'findUnique')
-        .mockResolvedValue(clinicWithUsers);
+      };
+      clinicDataRepository.findById.mockResolvedValue(clinicWithUsers);
 
       const result = await service.findOne('clinic-123');
 
@@ -249,7 +256,7 @@ describe('ClinicsService', () => {
     });
 
     it('should return null if clinic not found', async () => {
-      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue(null);
+      clinicDataRepository.findById.mockResolvedValue(null);
 
       const result = await service.findOne('non-existent');
 
@@ -260,46 +267,41 @@ describe('ClinicsService', () => {
   describe('update', () => {
     it('should update a clinic', async () => {
       const updatedClinic = { ...mockClinic, name: 'Updated Clinic' };
-      jest
-        .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(updatedClinic as never);
+      clinicDataRepository.update.mockResolvedValue(updatedClinic);
 
       const result = await service.update('clinic-123', {
         name: 'Updated Clinic',
       });
 
       expect(result.name).toBe('Updated Clinic');
-      expect(prismaService.clinic.update).toHaveBeenCalledWith({
-        where: { id: 'clinic-123' },
-        data: expect.objectContaining({ name: 'Updated Clinic' }),
-      });
+      expect(clinicDataRepository.update).toHaveBeenCalledWith(
+        'clinic-123',
+        expect.objectContaining({ name: 'Updated Clinic' }),
+      );
     });
   });
 
   describe('delete', () => {
     it('should soft delete a clinic by setting active to false', async () => {
       const deactivatedClinic = { ...mockClinic, active: false };
-      jest
-        .spyOn(prismaService.clinic, 'update')
-        .mockResolvedValue(deactivatedClinic as never);
+      clinicDataRepository.softDelete.mockResolvedValue(deactivatedClinic);
 
       const result = await service.delete('clinic-123');
 
       expect(result.active).toBe(false);
-      expect(prismaService.clinic.update).toHaveBeenCalledWith({
-        where: { id: 'clinic-123' },
-        data: { active: false },
-      });
+      expect(clinicDataRepository.softDelete).toHaveBeenCalledWith(
+        'clinic-123',
+      );
     });
   });
 
   describe('getClinicStats', () => {
     it('should return clinic statistics', async () => {
-      jest.spyOn(prismaService.patient, 'count').mockResolvedValue(10);
-      jest
-        .spyOn(prismaService.appointment, 'count')
-        .mockResolvedValueOnce(50)
-        .mockResolvedValueOnce(5);
+      clinicDataRepository.getStats.mockResolvedValue({
+        totalPatients: 10,
+        totalAppointments: 50,
+        todayAppointments: 5,
+      });
 
       const result = await service.getClinicStats('clinic-123');
 

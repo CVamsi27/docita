@@ -8,6 +8,16 @@ export enum AppointmentStatusEnum {
   NOSHOW = 'NOSHOW',
 }
 
+const ENUM_TO_KEBAB: Record<AppointmentStatusEnum, string> = {
+  [AppointmentStatusEnum.SCHEDULED]: 'scheduled',
+  [AppointmentStatusEnum.CONFIRMED]: 'confirmed',
+  [AppointmentStatusEnum.ARRIVED]: 'checked-in',
+  [AppointmentStatusEnum.IN_PROGRESS]: 'in-progress',
+  [AppointmentStatusEnum.COMPLETED]: 'completed',
+  [AppointmentStatusEnum.CANCELLED]: 'cancelled',
+  [AppointmentStatusEnum.NOSHOW]: 'no-show',
+};
+
 export class AppointmentStatus {
   private readonly value: AppointmentStatusEnum;
 
@@ -52,6 +62,10 @@ export class AppointmentStatus {
 
   toString(): string {
     return this.value;
+  }
+
+  toJSON(): string {
+    return ENUM_TO_KEBAB[this.value];
   }
 
   equals(other: AppointmentStatus): boolean {

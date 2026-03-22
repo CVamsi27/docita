@@ -2,7 +2,11 @@ import { Injectable, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
-import { AppointmentStatus } from '@workspace/db';
+import {
+  AppointmentStatus,
+  LabTestOrderStatus,
+  InvoiceStatus,
+} from '@workspace/db';
 
 @Injectable()
 export class DashboardService {
@@ -40,6 +44,9 @@ export class DashboardService {
 
     const clinicFilter = { clinicId };
 
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
     const [
       totalPatients,
       totalDoctors,
@@ -48,6 +55,8 @@ export class DashboardService {
       totalAppointments,
       activePrescriptions,
       recentActivity,
+      pendingReports,
+      monthlyRevenueResult,
     ] = await Promise.all([
       this.prisma.patient.count({ where: clinicFilter }),
       this.prisma.user.count({
@@ -94,6 +103,25 @@ export class DashboardService {
           },
         },
       }),
+      this.prisma.labTestOrder.count({
+        where: {
+          clinicId,
+          status: {
+            in: [LabTestOrderStatus.ORDERED, LabTestOrderStatus.PENDING],
+          },
+        },
+      }),
+      this.prisma.invoice.aggregate({
+        where: {
+          appointment: { clinicId },
+          status: InvoiceStatus.PAID,
+          updatedAt: {
+            gte: monthStart,
+            lt: monthEnd,
+          },
+        },
+        _sum: { total: true },
+      }),
     ]);
 
     const upcomingAppointments = await this.prisma.appointment.findMany({
@@ -133,8 +161,8 @@ export class DashboardService {
       activePrescriptions,
       recentActivity,
       upcomingAppointments,
-      pendingReports: 0,
-      monthlyRevenue: 0,
+      pendingReports,
+      monthlyRevenue: monthlyRevenueResult._sum.total ?? 0,
     };
 
     await this.cacheManager.set(cacheKey, result, 60 * 1000);

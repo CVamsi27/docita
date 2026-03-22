@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  NotFoundException,
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -131,6 +132,29 @@ export class OnboardingService {
     return this.uploadsService.updateSession(sessionId, file);
   }
 
+  async getSlaSignatureSessionStatus(
+    onboardingId: string,
+    sessionId: string,
+  ): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
+    const sessionData = this.dataService.getSessionData(onboardingId);
+    if (!sessionData) {
+      throw new BadRequestException('Onboarding session not found or expired');
+    }
+
+    const session = await this.prisma.uploadSession.findUnique({
+      where: { id: sessionId },
+    });
+    if (!session) {
+      throw new NotFoundException('Signature session not found');
+    }
+
+    return {
+      status: session.status,
+      uploaded: session.status === 'uploaded',
+      fileUrl: session.fileUrl,
+    };
+  }
+
   initializeOnboarding(): { onboardingId: string } {
     return this.dataService.initializeOnboarding();
   }
@@ -180,7 +204,7 @@ export class OnboardingService {
         !!completeData.paymentDetails?.razorpaySignature;
 
       if (
-        completeData.planSelection.tier !== ClinicTier.CAPTURE &&
+        completeData.planSelection.tier !== ClinicTier.STARTER &&
         !completeData.paymentDetails?.skipPayment &&
         hasRazorpayPayment
       ) {
@@ -224,7 +248,7 @@ export class OnboardingService {
           userId = adminUser.id;
 
           let subscriptionId: string;
-          if (completeData.planSelection.tier !== ClinicTier.CAPTURE) {
+          if (completeData.planSelection.tier !== ClinicTier.STARTER) {
             const subscription = await this.workflowService.createSubscription(
               tx,
               clinic.id,
@@ -236,7 +260,7 @@ export class OnboardingService {
             const subscription = await tx.subscription.create({
               data: {
                 clinicId: clinic.id,
-                plan: 'CAPTURE',
+                plan: 'STARTER',
                 billingCycle: 'MONTHLY',
                 basePriceCents: 0,
                 status: SubscriptionStatus.ACTIVE,

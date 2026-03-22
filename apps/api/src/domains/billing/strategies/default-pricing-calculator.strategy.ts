@@ -37,7 +37,7 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[currency];
 
-    const tierName = this.isTierName(params.tier) ? params.tier : 'CORE';
+    const tierName = this.isTierName(params.tier) ? params.tier : 'ESSENTIAL';
     const tierConfig = tierPricing[tierName];
     let basePriceCents = 0;
 
@@ -56,8 +56,8 @@ export class DefaultPricingCalculatorStrategy implements PricingCalculatorStrate
 
     let addOnsCents = 0;
     const addOnBreakdown: Array<{ name: string; priceCents: number }> = [];
-    const addOnTierKey = tierName === 'CAPTURE' ? 'CORE' : tierName;
-    const isAddOnEligible = !['CAPTURE'].includes(params.tier);
+    const addOnTierKey = tierName === 'STARTER' ? 'ESSENTIAL' : tierName;
+    const isAddOnEligible = !['STARTER'].includes(params.tier);
 
     if (isAddOnEligible && params.addOns?.includes('INTELLIGENCE')) {
       const intelligenceConfig = intelligencePricing[addOnTierKey];

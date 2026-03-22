@@ -17,8 +17,18 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 
+interface DiscountJsonItem {
+  type: string;
+  percentOff: number;
+  expiresAt?: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
 export class SubscriptionMapper {
-  private static toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+  private static toInputJsonValue(
+    value: DiscountJsonItem[] | Record<string, unknown>,
+  ): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 
@@ -86,23 +96,19 @@ export class SubscriptionMapper {
     };
   }
 
-  private static parseDiscounts(json: unknown): DiscountAggregate {
+  private static parseDiscounts(json: Prisma.JsonValue): DiscountAggregate {
     const aggregate = new DiscountAggregate();
 
     if (!Array.isArray(json)) {
       return aggregate;
     }
 
-    interface DiscountItem {
-      type: string;
-      percentOff: number;
-      expiresAt?: string;
-      description?: string;
-    }
-
-    json.forEach((item: unknown) => {
+    json.forEach((item) => {
       try {
-        const d = item as DiscountItem;
+        if (typeof item !== 'object' || item === null) {
+          return;
+        }
+        const d = item as unknown as DiscountJsonItem;
         const discount = new Discount({
           type: d.type as DiscountType,
           percentOff: d.percentOff,
@@ -118,7 +124,7 @@ export class SubscriptionMapper {
 
   private static serializeDiscounts(
     aggregate: DiscountAggregate,
-  ): Record<string, unknown>[] {
+  ): DiscountJsonItem[] {
     return aggregate.getActiveDiscounts().map((d) => ({
       type: d.type,
       percentOff: d.percentOff,

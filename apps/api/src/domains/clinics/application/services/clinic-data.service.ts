@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import {
-  ClinicTier,
-  ClinicType,
-  Prisma,
-  Role,
-  SubscriptionStatus,
-} from '@workspace/db';
+  Injectable,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClinicTier, ClinicType } from '@workspace/db';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  IClinicDataRepository,
+  CLINIC_DATA_REPOSITORY_TOKEN,
+  CreateClinicInput,
+  ClinicSearchResult,
+} from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
 
 interface CreateClinicData {
   name: string;
@@ -19,7 +22,7 @@ interface CreateClinicData {
   logo?: string;
   tier?: ClinicTier;
   type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
+  settings?: unknown;
 }
 
 interface UpdateClinicData {
@@ -30,7 +33,7 @@ interface UpdateClinicData {
   logo?: string;
   tier?: ClinicTier;
   type?: ClinicType;
-  settings?: Prisma.InputJsonValue;
+  settings?: unknown;
 }
 
 interface JoinClinicData {
@@ -41,7 +44,8 @@ interface JoinClinicData {
 @Injectable()
 export class ClinicDataService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(CLINIC_DATA_REPOSITORY_TOKEN)
+    private readonly repository: IClinicDataRepository,
     private clinicFactory: ClinicFactory,
     private configService: AppConfigService,
   ) {}
@@ -50,8 +54,7 @@ export class ClinicDataService {
     if (!value || typeof value !== 'object') {
       return {};
     }
-
-    return Object.fromEntries(Object.entries(value));
+    return Object.fromEntries(Object.entries(value as object));
   }
 
   private readString(
@@ -67,10 +70,7 @@ export class ClinicDataService {
     key: string,
   ): string[] | undefined {
     const value = source[key];
-    if (!Array.isArray(value)) {
-      return undefined;
-    }
-
+    if (!Array.isArray(value)) return undefined;
     const normalized = value.filter(
       (item): item is string => typeof item === 'string',
     );
@@ -85,6 +85,16 @@ export class ClinicDataService {
     return typeof value === 'number' ? value : undefined;
   }
 
+  private generateReferralCode(clinicName: string): string {
+    const prefix = clinicName
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()
+      .slice(0, 3)
+      .padEnd(3, 'X');
+    const suffix = Math.random().toString(36).toUpperCase().slice(2, 6);
+    return `${prefix}-${suffix}`;
+  }
+
   async create(data: CreateClinicData) {
     const clinicInput = this.clinicFactory.create({
       name: data.name,
@@ -95,61 +105,42 @@ export class ClinicDataService {
       settings: this.toRecord(data.settings),
     });
 
-    return this.prisma.clinic.create({
-      data: {
-        ...clinicInput,
-        logo: data.logo,
-        type: data.type,
-        subscriptionStatus: this.configService.isProduction()
-          ? undefined
-          : SubscriptionStatus.TRIALING,
-      },
-    });
+    let referralCode = this.generateReferralCode(data.name);
+    let attempts = 0;
+    while (attempts < 5) {
+      const existing = await this.repository.findByReferralCode(referralCode);
+      if (!existing) break;
+      referralCode = this.generateReferralCode(data.name);
+      attempts++;
+    }
+
+    return this.repository.create({
+      ...clinicInput,
+      logo: data.logo,
+      type: data.type,
+      referralCode,
+      subscriptionStatus: this.configService.isProduction()
+        ? undefined
+        : 'TRIALING',
+    } as unknown as CreateClinicInput);
   }
 
   async findAll() {
-    return this.prisma.clinic.findMany({
-      where: { active: true },
-      include: {
-        _count: {
-          select: {
-            users: true,
-            patients: true,
-            appointments: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.repository.findAll();
   }
 
   async findOne(id: string) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-        _count: {
-          select: {
-            patients: true,
-            appointments: true,
-          },
-        },
-      },
-    });
-
+    const clinic = await this.repository.findById(id);
     if (!clinic) return null;
 
-    const settings = this.toRecord(clinic.settings);
+    const raw = clinic as { settings?: unknown; phone?: string } & Record<
+      string,
+      unknown
+    >;
+    const settings = this.toRecord(raw.settings);
     return {
-      ...clinic,
-      phoneNumber: clinic.phone,
+      ...raw,
+      phoneNumber: raw.phone,
       description: this.readString(settings, 'description'),
       openingTime: this.readString(settings, 'openingTime'),
       closingTime: this.readString(settings, 'closingTime'),
@@ -159,53 +150,28 @@ export class ClinicDataService {
   }
 
   async update(id: string, data: UpdateClinicData) {
-    return this.prisma.clinic.update({
-      where: { id },
-      data: {
-        name: data.name,
-        address: data.address,
-        phone: data.phone,
-        email: data.email,
-        logo: data.logo,
-        tier: data.tier,
-        type: data.type,
-        settings: data.settings,
-      },
+    return this.repository.update(id, {
+      name: data.name,
+      address: data.address,
+      phone: data.phone,
+      email: data.email,
+      logo: data.logo,
+      tier: data.tier,
+      type: data.type,
+      settings: this.toRecord(data.settings),
     });
   }
 
   async delete(id: string) {
-    return this.prisma.clinic.update({
-      where: { id },
-      data: { active: false },
-    });
+    return this.repository.softDelete(id);
   }
 
   async getUserClinics(userId: string) {
-    const doctorClinics = await this.prisma.doctorClinic.findMany({
-      where: {
-        doctorId: userId,
-        active: true,
-      },
-      select: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            address: true,
-            phone: true,
-            email: true,
-            website: true,
-            tier: true,
-            logo: true,
-            active: true,
-            settings: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-    });
+    const doctorClinics = (await this.repository.findDoctorClinics(
+      userId,
+    )) as Array<{
+      clinic: { settings?: unknown; phone?: string } & Record<string, unknown>;
+    }>;
 
     return doctorClinics.map((dc) => {
       const clinic = dc.clinic;
@@ -223,32 +189,11 @@ export class ClinicDataService {
   }
 
   async getClinicStats(clinicId: string) {
-    const [patients, appointments, todayAppointments] = await Promise.all([
-      this.prisma.patient.count({ where: { clinicId } }),
-      this.prisma.appointment.count({ where: { clinicId } }),
-      this.prisma.appointment.count({
-        where: {
-          clinicId,
-          startTime: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lte: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
-        },
-      }),
-    ]);
-
-    return {
-      totalPatients: patients,
-      totalAppointments: appointments,
-      todayAppointments,
-    };
+    return this.repository.getStats(clinicId);
   }
 
   async joinClinicForUser(userId: string, data: JoinClinicData) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, role: true, clinicId: true },
-    });
+    const user = await this.repository.findUserForJoin(userId);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -265,20 +210,10 @@ export class ClinicDataService {
       throw new BadRequestException('clinicCode or clinicEmail is required');
     }
 
-    const clinic = await this.prisma.clinic.findFirst({
-      where: {
-        active: true,
-        ...(normalizedCode
-          ? { referralCode: normalizedCode }
-          : { email: normalizedEmail }),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        referralCode: true,
-      },
-    });
+    const clinic = await this.repository.findClinicByCodeOrEmail(
+      normalizedCode,
+      normalizedEmail,
+    );
 
     if (!clinic) {
       throw new NotFoundException(
@@ -286,32 +221,7 @@ export class ClinicDataService {
       );
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: user.id },
-        data: { clinicId: clinic.id },
-      });
-
-      if (user.role === Role.DOCTOR || user.role === Role.ADMIN_DOCTOR) {
-        await tx.doctorClinic.upsert({
-          where: {
-            doctorId_clinicId: {
-              doctorId: user.id,
-              clinicId: clinic.id,
-            },
-          },
-          create: {
-            doctorId: user.id,
-            clinicId: clinic.id,
-            role: user.role === Role.ADMIN_DOCTOR ? 'admin_doctor' : 'doctor',
-            active: true,
-          },
-          update: {
-            active: true,
-          },
-        });
-      }
-    });
+    await this.repository.joinClinic(userId, clinic.id, user.role);
 
     return {
       success: true,
@@ -322,5 +232,9 @@ export class ClinicDataService {
         referralCode: clinic.referralCode,
       },
     };
+  }
+
+  async searchActive(query: string): Promise<ClinicSearchResult[]> {
+    return this.repository.searchActive(query);
   }
 }

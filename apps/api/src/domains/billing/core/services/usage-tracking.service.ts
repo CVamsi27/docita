@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Prisma } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
@@ -221,7 +222,7 @@ export class UsageTrackingService {
           addOnActive: !!intelligenceAddOn,
         },
       },
-      tier: (subscription?.plan as ClinicTier) || ClinicTier.CAPTURE,
+      tier: (subscription?.plan as ClinicTier) || ClinicTier.STARTER,
     };
   }
 
@@ -377,5 +378,56 @@ export class UsageTrackingService {
       entityType: 'Appointment',
       entityId: appointmentId,
     });
+  }
+
+  async trackPrescription(clinicId: string, prescriptionId: string) {
+    await this.recordUsageEvent({
+      clinicId,
+      type: 'PRESCRIPTION',
+      quantity: 1,
+      entityType: 'Prescription',
+      entityId: prescriptionId,
+    });
+  }
+
+  async trackInvoice(clinicId: string, invoiceId: string) {
+    await this.recordUsageEvent({
+      clinicId,
+      type: 'INVOICE',
+      quantity: 1,
+      entityType: 'Invoice',
+      entityId: invoiceId,
+    });
+  }
+
+  async trackOcrPage(clinicId: string, pageCount: number, documentId?: string) {
+    await this.recordUsageEvent({
+      clinicId,
+      type: 'OCR_PAGE',
+      quantity: pageCount,
+      entityType: 'Document',
+      entityId: documentId,
+    });
+  }
+
+  async trackApiCall(clinicId: string) {
+    await this.recordUsageEvent({
+      clinicId,
+      type: 'API_CALL',
+      quantity: 1,
+      entityType: 'ApiRequest',
+    });
+  }
+
+  @OnEvent('ocr.page.processed')
+  async handleOcrPageProcessed(payload: {
+    clinicId: string;
+    pageCount: number;
+  }) {
+    await this.trackOcrPage(payload.clinicId, payload.pageCount).catch(
+      (err) => {
+        this.logger.error('Failed to track OCR page usage', err);
+      },
+    );
   }
 }

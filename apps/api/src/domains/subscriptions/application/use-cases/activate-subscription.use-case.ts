@@ -85,7 +85,7 @@ export class ActivateSubscriptionUseCase {
     );
 
     const featureUpdates: Record<string, boolean> = {};
-    if (!tier.isCapture()) {
+    if (!tier.isStarter()) {
       featureUpdates['WHATSAPP'] = true;
       featureUpdates['PAYMENT_LINKS'] = true;
       featureUpdates['WHATSAPP_REMINDERS'] = true;

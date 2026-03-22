@@ -66,6 +66,15 @@ export class PricingService {
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
+    const DB_TIER_TO_CANONICAL: Record<string, string> = {
+      CAPTURE: 'STARTER',
+      CORE: 'ESSENTIAL',
+      PRO: 'PROFESSIONAL',
+      ENTERPRISE: 'ENTERPRISE',
+    };
+
+    const LEGACY_DB_TIERS = new Set(['PLUS', 'CLINIC']);
+
     const dbTiers = await this.prisma.tierPricing.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
@@ -80,6 +89,10 @@ export class PricingService {
     });
 
     if (dbTiers.length > 0) {
+      const canonicalTiers = dbTiers.filter(
+        (t) => !LEGACY_DB_TIERS.has(t.tier as string),
+      );
+
       return {
         currency: {
           code: validCurrency,
@@ -93,8 +106,8 @@ export class PricingService {
             name: cfg.name,
           }),
         ),
-        tiers: dbTiers.map((tier) => ({
-          id: tier.tier,
+        tiers: canonicalTiers.map((tier) => ({
+          id: DB_TIER_TO_CANONICAL[tier.tier as string] ?? tier.tier,
           name: tier.name,
           description: tier.description,
           tagline: tier.tagline,
@@ -166,106 +179,90 @@ export class PricingService {
       ),
       tiers: [
         {
-          id: 'CAPTURE',
-          name: 'Capture',
-          description: 'Paper-to-digital bridge for solo practitioners',
+          id: 'STARTER',
+          name: 'Docita Starter',
+          description: 'Basic clinical workflow for free',
           tagline: 'Free forever',
           color: 'gray',
           pricing: {
-            monthly: tierPricing.CAPTURE.monthly,
-            yearly: tierPricing.CAPTURE.yearly,
+            monthly: tierPricing.STARTER.monthly,
+            yearly: tierPricing.STARTER.yearly,
             currency: currencyConfig.symbol,
           },
-          limits: TIER_LIMITS.CAPTURE,
-          overageRates: overageRates.CAPTURE,
+          limits: TIER_LIMITS.STARTER,
+          overageRates: overageRates.STARTER,
           features: [
             'Up to 50 patients',
-            'Basic patient records',
-            'Excel/PDF import',
-            'Manual data export',
-            'Community support',
+            'Calendar & appointment scheduling',
+            'Digital prescriptions with PDF',
+            'Patient profiles & visit history',
+            'Paper record scanning & archival',
+            'Excel import',
+            'Export to CSV',
+            'Single doctor',
           ],
         },
         {
-          id: 'CORE',
-          name: 'Core',
-          description: 'Full-function EHR for individual practitioners',
-          tagline: 'Solo Clinic Essentials',
+          id: 'ESSENTIAL',
+          name: 'Docita Essential',
+          description: 'Professional practice management for solo clinics',
+          tagline: 'Solo Clinic Pro',
           color: 'blue',
           pricing: {
-            monthly: tierPricing.CORE.monthly,
-            yearly: tierPricing.CORE.yearly,
+            monthly: tierPricing.ESSENTIAL.monthly,
+            yearly: tierPricing.ESSENTIAL.yearly,
             currency: currencyConfig.symbol,
           },
-          limits: TIER_LIMITS.CORE,
-          overageRates: overageRates.CORE,
+          limits: TIER_LIMITS.ESSENTIAL,
+          overageRates: overageRates.ESSENTIAL,
           features: [
-            '300 active patients included',
-            '500 appointments/month',
-            'Calendar & scheduling',
-            'Digital prescriptions',
-            'ICD-10 medical coding',
-            'Team member management (roles & permissions)',
-            '2 users included',
-            'Core WhatsApp workflow included',
-            'Basic analytics',
+            '500 active patients included',
+            '1,000 appointments/month',
+            'Everything in Starter',
+            'Invoicing & billing',
+            'Basic analytics dashboard',
+            'ICD-10/CPT medical coding',
+            'Prescription templates',
+            'Digital consent management',
+            'Doctor signature on prescriptions',
+            '3 users included',
             'Email support',
           ],
         },
         {
-          id: 'PLUS',
-          name: 'Plus',
-          description: 'Scale & customize for growing practices',
-          tagline: 'Growth Ready',
-          color: 'green',
-          pricing: {
-            monthly: tierPricing.PLUS.monthly,
-            yearly: tierPricing.PLUS.yearly,
-            currency: currencyConfig.symbol,
-          },
-          limits: TIER_LIMITS.PLUS,
-          overageRates: overageRates.PLUS,
-          features: [
-            '1,000 active patients included',
-            '2,000 appointments/month',
-            'Everything in Core',
-            'Prescription templates',
-            'Custom form fields',
-            'Clinic branding',
-            'Priority email support',
-            '2 users included',
-          ],
-        },
-        {
-          id: 'PRO',
-          name: 'Pro',
-          description: 'Multi-doctor clinics with advanced needs',
+          id: 'PROFESSIONAL',
+          name: 'Docita Professional',
+          description: 'Full-featured solution for multi-doctor clinics',
           tagline: 'Multi-Doctor Clinics',
           color: 'purple',
           pricing: {
-            monthly: tierPricing.PRO.monthly,
-            yearly: tierPricing.PRO.yearly,
+            monthly: tierPricing.PROFESSIONAL.monthly,
+            yearly: tierPricing.PROFESSIONAL.yearly,
             currency: currencyConfig.symbol,
           },
-          limits: TIER_LIMITS.PRO,
-          overageRates: overageRates.PRO,
+          limits: TIER_LIMITS.PROFESSIONAL,
+          overageRates: overageRates.PROFESSIONAL,
           features: [
-            '5,000 active patients included',
-            '8,000 appointments/month',
-            'Everything in Plus',
-            'Up to 5 doctors included',
+            '10,000 active patients included',
+            '20,000 appointments/month',
+            'Everything in Essential',
+            'Unlimited doctors',
+            'Multi-clinic branching (up to 5)',
+            'Lab tests catalog & tracking',
+            'Inventory & pharmacy module',
+            'Token queue management',
+            'Audit logs & compliance',
             'Advanced analytics',
-            'Revenue reports',
-            'API access',
-            'Phone support',
+            '15 users included',
+            'Priority support',
           ],
         },
         {
           id: 'ENTERPRISE',
-          name: 'Enterprise',
-          description: 'Hospitals & clinic chains - Contact Sales',
-          tagline: 'Hospital-Grade',
-          color: 'amber',
+          name: 'Docita Enterprise',
+          description: 'Hospital-grade solution with full customization',
+          tagline: 'Hospital-Grade System',
+          color: 'orange',
           pricing: {
             monthly: tierPricing.ENTERPRISE.monthly,
             yearly: tierPricing.ENTERPRISE.yearly,
@@ -276,12 +273,15 @@ export class PricingService {
           features: [
             'Unlimited patients',
             'Unlimited appointments',
-            'Everything in Pro',
+            'Everything in Professional',
             'Unlimited doctors & branches',
-            'Custom integrations',
+            'Full EHR capabilities',
+            'API access (10k calls/day)',
+            'SSO & advanced security',
+            'Custom branding & white-label',
+            'Data warehouse export',
             'Dedicated account manager',
-            'SLA guarantee (99.9%)',
-            'On-premise option',
+            'SLA guarantee',
           ],
         },
       ],
@@ -346,7 +346,18 @@ export class PricingService {
     const intelligencePricing =
       INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[validCurrency];
 
-    const tierKey = tier.toUpperCase() as keyof typeof TIER_PRICING;
+    const LEGACY_TIER_MAP: Record<string, string> = {
+      CAPTURE: 'STARTER',
+      CORE: 'ESSENTIAL',
+      PLUS: 'ESSENTIAL',
+      PRO: 'PROFESSIONAL',
+      CLINIC: 'PROFESSIONAL',
+    };
+
+    const rawKey = tier.toUpperCase();
+    const tierKey = (LEGACY_TIER_MAP[rawKey] ??
+      rawKey) as keyof typeof TIER_PRICING;
+
     if (!TIER_PRICING[tierKey] || tierKey === 'INTELLIGENCE') {
       return { error: 'Invalid tier' };
     }
@@ -385,7 +396,7 @@ export class PricingService {
     const addOnsBreakdown: Record<string, { base: number; overage: number }> =
       {};
 
-    if (tierKey !== 'CAPTURE') {
+    if (tierKey !== 'STARTER') {
       const waPrice = whatsappPricing[tierKey as keyof typeof whatsappPricing];
       const waOverage =
         Math.max(0, whatsappMessages - waPrice.includedQuota) *
@@ -395,7 +406,7 @@ export class PricingService {
       addOnsBreakdown.whatsapp = { base: 0, overage: waOverage };
     }
 
-    if (intelligence && tierKey !== 'CAPTURE') {
+    if (intelligence && tierKey !== 'STARTER') {
       const aiPrice =
         intelligencePricing[tierKey as keyof typeof intelligencePricing];
       const aiBase = this.readNumber(aiPrice.basePrice);

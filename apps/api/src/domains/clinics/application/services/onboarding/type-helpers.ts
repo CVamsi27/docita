@@ -19,13 +19,13 @@ export function validateSpecializationForOnboarding(
 }
 
 export function validateClinicTier(value: string | undefined): ClinicTier {
-  if (!value) return ClinicTier.CORE;
+  if (!value) return ClinicTier.ESSENTIAL;
 
   if (CLINIC_TIER_SET.has(value as ClinicTier)) {
     return value as ClinicTier;
   }
 
-  return ClinicTier.CORE;
+  return ClinicTier.ESSENTIAL;
 }
 
 export function validateBillingCycle(value: string | undefined): BillingCycle {

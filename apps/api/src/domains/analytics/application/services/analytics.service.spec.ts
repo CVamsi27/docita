@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnalyticsService } from './analytics.service';
-import { FinancialAnalyticsFactory } from '../../../../domains/analytics/factories/financial-analytics.factory';
-import { ClinicalAnalyticsFactory } from '../../../../domains/analytics/factories/clinical-analytics.factory';
-import { OperationalAnalyticsFactory } from '../../../../domains/analytics/factories/operational-analytics.factory';
-import { SnapshotAnalyticsFactory } from '../../../../domains/analytics/factories/snapshot-analytics.factory';
+import { FinancialAnalyticsFactory } from '@/domains/analytics/factories/financial-analytics.factory';
+import { ClinicalAnalyticsFactory } from '@/domains/analytics/factories/clinical-analytics.factory';
+import { OperationalAnalyticsFactory } from '@/domains/analytics/factories/operational-analytics.factory';
+import { SnapshotAnalyticsFactory } from '@/domains/analytics/factories/snapshot-analytics.factory';
 import { DEFAULT_TIMEZONE } from '@workspace/utils';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 

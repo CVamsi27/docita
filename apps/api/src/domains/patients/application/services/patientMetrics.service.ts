@@ -10,26 +10,58 @@ import {
   CreatePatientMetricValueDto,
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
-} from '../dto/patient-metrics.dto';
+} from '@/domains/patients/application/dto/patient-metrics.dto';
+
+type PrismaClientMethod<TArgs, TResult> = (args: TArgs) => Promise<TResult>;
 
 type DynamicPrisma = PrismaService & {
   metricCategory: {
-    findMany: (args: unknown) => Promise<unknown[]>;
-    findFirst: (args: unknown) => Promise<unknown>;
-    create: (args: unknown) => Promise<unknown>;
+    findMany: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>[]
+    >;
+    findFirst: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown> | null
+    >;
+    create: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>
+    >;
   };
   metricDefinition: {
-    findMany: (args: unknown) => Promise<unknown[]>;
-    findFirst: (args: unknown) => Promise<unknown>;
-    create: (args: unknown) => Promise<unknown>;
+    findMany: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>[]
+    >;
+    findFirst: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown> | null
+    >;
+    create: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>
+    >;
   };
   patientMetricSelection: {
-    findMany: (args: unknown) => Promise<unknown[]>;
-    upsert: (args: unknown) => Promise<unknown>;
+    findMany: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>[]
+    >;
+    upsert: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>
+    >;
   };
   patientMetricRecord: {
-    create: (args: unknown) => Promise<unknown>;
-    findMany: (args: unknown) => Promise<unknown[]>;
+    create: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>
+    >;
+    findMany: PrismaClientMethod<
+      Record<string, unknown>,
+      Record<string, unknown>[]
+    >;
   };
 };
 

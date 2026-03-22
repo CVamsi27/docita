@@ -3,7 +3,7 @@ import {
   Get,
   UseGuards as _UseGuards,
   Request,
-  UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardStatsResponseDto } from './dto/dashboard.dto';
@@ -19,7 +19,7 @@ export class DashboardController {
 
   private getClinicId(req: RequestWithUser): string {
     if (!req.user?.clinicId) {
-      throw new UnauthorizedException('User clinic not found');
+      throw new ForbiddenException('User clinic not found');
     }
     return req.user.clinicId;
   }

@@ -12,6 +12,7 @@ import {
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
+import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import {
   calculateAge,
   DEFAULT_TIMEZONE as _DEFAULT_TIMEZONE,
@@ -20,7 +21,11 @@ import {
   validateDosage,
 } from '@workspace/utils';
 import { Specialization, HospitalRole } from '@workspace/types';
-import { Prescription as _Prescription } from '@workspace/db';
+import {
+  Prescription as _Prescription,
+  DosageForm,
+  SigCode,
+} from '@workspace/db';
 
 @Injectable()
 export class PrescriptionsService {
@@ -31,6 +36,7 @@ export class PrescriptionsService {
     private readonly repository: IPrescriptionRepository,
     private pdfService: PrescriptionPdfService,
     private eventEmitter: EventEmitter2,
+    private usageTracking: UsageTrackingService,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
@@ -65,6 +71,22 @@ export class PrescriptionsService {
       frequency: string;
       duration: string;
       route?: string;
+      ndcCode?: string;
+      rxNormCui?: string;
+      dosageForm?: string;
+      strengthValue?: number;
+      strengthUnit?: string;
+      sigCode?: string;
+      quantity?: number;
+      refillsAllowed?: number;
+      dispenseAsWritten?: boolean;
+      startDate?: string | Date;
+      endDate?: string | Date;
+      isPRN?: boolean;
+      prnInstructions?: string;
+      prnMaxDose?: string;
+      specialInstructions?: string;
+      indication?: string;
     }>;
     doctorName?: string;
     doctorEmail?: string;
@@ -176,6 +198,22 @@ export class PrescriptionsService {
           frequency: med.frequency,
           duration: med.duration,
           route: med.route || 'PO',
+          ndcCode: med.ndcCode,
+          rxNormCui: med.rxNormCui,
+          dosageForm: med.dosageForm as DosageForm | undefined,
+          strengthValue: med.strengthValue,
+          strengthUnit: med.strengthUnit,
+          sigCode: med.sigCode as SigCode | undefined,
+          quantity: med.quantity,
+          refillsAllowed: med.refillsAllowed ?? 0,
+          dispenseAsWritten: med.dispenseAsWritten ?? false,
+          startDate: med.startDate ? new Date(med.startDate) : undefined,
+          endDate: med.endDate ? new Date(med.endDate) : undefined,
+          isPRN: med.isPRN ?? false,
+          prnInstructions: med.prnInstructions,
+          prnMaxDose: med.prnMaxDose,
+          specialInstructions: med.specialInstructions,
+          indication: med.indication,
         })),
       },
     });
@@ -185,6 +223,11 @@ export class PrescriptionsService {
         'prescription.created',
         new PrescriptionCreatedEvent(prescription.id, data.clinicId),
       );
+      this.usageTracking
+        .trackPrescription(data.clinicId, prescription.id)
+        .catch((err) =>
+          this.logger.warn('Failed to track prescription usage', err),
+        );
     }
 
     return prescription;

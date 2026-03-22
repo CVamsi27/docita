@@ -8,6 +8,7 @@ import {
   AppointmentStatus,
   AppointmentStatusEnum,
 } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import { AppointmentListItem } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 
 const PRISMA_TO_DOMAIN_STATUS: Record<
   PrismaAppointmentStatus,
@@ -59,6 +60,40 @@ export class AppointmentMapper {
       updatedAt: raw.updatedAt,
       version: raw.version,
     });
+  }
+
+  static toListItem(
+    raw: PrismaAppointment & {
+      patient?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber: string;
+      } | null;
+      doctor?: {
+        id: string;
+        name: string;
+      } | null;
+    },
+  ): AppointmentListItem {
+    const plain = AppointmentMapper.toDomain(raw).toPlain();
+    return {
+      ...plain,
+      patient: raw.patient
+        ? {
+            id: raw.patient.id,
+            firstName: raw.patient.firstName,
+            lastName: raw.patient.lastName,
+            phoneNumber: raw.patient.phoneNumber,
+          }
+        : undefined,
+      doctor: raw.doctor
+        ? {
+            id: raw.doctor.id,
+            name: raw.doctor.name,
+          }
+        : undefined,
+    };
   }
 
   static toPersistence(

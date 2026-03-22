@@ -42,7 +42,7 @@ describe('ClinicFactory', () => {
         email: data.email,
         phone: '',
         address: '',
-        tier: 'CORE',
+        tier: 'ESSENTIAL',
         active: true,
         settings: { testSetting: true },
       });

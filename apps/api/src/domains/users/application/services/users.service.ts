@@ -1,5 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@/domains/users/core/repositories/user.repository.interface';
 
 interface UpdateProfileDto {
   name?: string;
@@ -8,42 +11,32 @@ interface UpdateProfileDto {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(USER_REPOSITORY_TOKEN)
+    private repository: IUserRepository,
+  ) {}
+
+  async update(userId: string, data: { onboardingStep?: string }) {
+    if (data.onboardingStep) {
+      await this.repository.updateOnboardingStep(userId, data.onboardingStep);
+    }
+  }
 
   async updateProfile(userId: string, data: UpdateProfileDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.repository.findById(userId);
 
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
     if (data.email && data.email !== user.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      const existingUser = await this.repository.findByEmail(data.email);
 
       if (existingUser) {
         throw new BadRequestException('Email is already in use');
       }
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...(data.name && { name: data.name }),
-        ...(data.email && { email: data.email }),
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return updatedUser;
+    return this.repository.updateProfile(userId, data);
   }
 }

@@ -30,7 +30,7 @@ export class ClinicFactory {
       email: data.email,
       phone: data.phone || '',
       address: data.address || '',
-      tier: data.tier || 'CORE',
+      tier: data.tier || 'ESSENTIAL',
       active: true,
       settings: this.toInputJsonValue(finalSettings),
     };

@@ -9,9 +9,10 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
 import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
 import {
-  IPaymentProvider,
-  PAYMENT_PROVIDER_TOKEN,
-} from '@/domains/billing/infrastructure/providers/razorpay.provider';
+  IPaymentLinkProvider,
+  PAYMENT_LINK_PROVIDER_TOKEN,
+} from '@/domains/payments/core/ports/payment-link-provider.port';
+import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
 import {
   IPaymentSessionRepository,
@@ -35,8 +36,8 @@ export class PaymentsService {
     private pushNotifications: PushNotificationService,
     private paymentGateway: PaymentWebSocketGateway,
     private configService: AppConfigService,
-    @Inject(PAYMENT_PROVIDER_TOKEN)
-    private paymentProvider: IPaymentProvider,
+    @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
+    private paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 
   async createPaymentSession(dto: {
@@ -72,38 +73,29 @@ export class PaymentsService {
       return session;
     }
 
-    let paymentLink: {
-      id: string;
-      short_url: string;
-      raw: Prisma.JsonValue;
-    } | null = null;
-
     const invoice = await this.invoiceRepository.findById(dto.invoiceId);
     const patient = invoice?.patient;
     const customerName = `${patient?.firstName || ''} ${
       patient?.lastName || ''
     }`.trim();
-    const customerContact = patient?.phoneNumber || '';
+    const customerPhone = patient?.phoneNumber || '';
     const customerEmail = patient?.email || undefined;
 
+    let paymentLinkResponse;
+
     try {
-      const link = await this.paymentProvider.createPaymentLink({
-        amount: dto.amount,
-        currency: dto.currency,
+      const amount = new Money(dto.amount, dto.currency);
+
+      paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
+        amount,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,
         customer: {
           name: customerName || dto.patientId,
           email: customerEmail,
-          contact: customerContact,
+          phone: customerPhone,
         },
         callbackUrl: `${this.configService.getFrontendAppUrl()}/payment/callback`,
       });
-
-      paymentLink = {
-        id: link.id,
-        short_url: link.shortUrl,
-        raw: link.raw as Prisma.JsonValue,
-      };
     } catch (error) {
       this.logger.error('Failed to create payment link', error);
       throw new BadRequestException('Failed to create payment link');
@@ -114,16 +106,19 @@ export class PaymentsService {
       invoice: { connect: { id: dto.invoiceId } },
       patient: { connect: { id: dto.patientId } },
       provider: 'razorpay',
-      providerSessionId: paymentLink.id,
-      paymentLink: paymentLink.short_url,
-      shortUrl: paymentLink.short_url,
+      providerSessionId: paymentLinkResponse.id,
+      paymentLink: paymentLinkResponse.shortUrl || paymentLinkResponse.url,
+      shortUrl: paymentLinkResponse.shortUrl || paymentLinkResponse.url,
       amount: amountInPaise,
       currency: dto.currency,
       status: PaymentSessionStatus.CREATED,
       expiresAt,
-      meta: paymentLink
-        ? (JSON.parse(JSON.stringify(paymentLink)) as Prisma.InputJsonValue)
-        : Prisma.JsonNull,
+      meta: {
+        paymentLinkId: paymentLinkResponse.id,
+        url: paymentLinkResponse.url,
+        shortUrl: paymentLinkResponse.shortUrl,
+        status: paymentLinkResponse.status,
+      } as Prisma.InputJsonValue,
     });
 
     this.logger.log(

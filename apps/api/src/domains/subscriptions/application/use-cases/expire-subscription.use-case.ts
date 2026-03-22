@@ -32,14 +32,14 @@ export class ExpireSubscriptionUseCase {
 
     await this.clinicOps.updateTierAndFeatures(
       subscription.clinicId,
-      'CAPTURE',
+      'STARTER',
       SubscriptionStatusEnum.EXPIRED,
       {},
     );
 
     await this.clinicOps.emitUpdate(subscription.clinicId, {
       clinicId: subscription.clinicId,
-      tier: 'CAPTURE',
+      tier: 'STARTER',
       subscriptionStatus: SubscriptionStatusEnum.EXPIRED,
     });
 

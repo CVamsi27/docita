@@ -7,11 +7,14 @@ import {
   Body,
   Param,
   Request,
+  Query,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
   UsePipes,
 } from '@nestjs/common';
 import { ClinicsService } from '@/domains/clinics/application/services/clinics.service';
+import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
@@ -30,12 +33,16 @@ import {
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('clinics')
 @Roles(Role.SUPER_ADMIN)
 export class ClinicsController {
-  constructor(private readonly clinicsService: ClinicsService) {}
+  constructor(
+    private readonly clinicsService: ClinicsService,
+    private readonly joinRequestService: JoinRequestService,
+  ) {}
 
   @Post()
   @ZodSerializerDto(ClinicResponseDto)
@@ -141,9 +148,13 @@ export class ClinicsController {
 }
 
 @Controller('clinic')
+@SkipSubscriptionCheck()
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class ClinicSettingsController {
-  constructor(private readonly clinicsService: ClinicsService) {}
+  constructor(
+    private readonly clinicsService: ClinicsService,
+    private readonly joinRequestService: JoinRequestService,
+  ) {}
 
   @Get('settings')
   @ZodSerializerDto(ClinicResponseDto)
@@ -235,17 +246,45 @@ export class ClinicSettingsController {
     return this.clinicsService.updatePrescriptionDefaults(clinicId, dto);
   }
 
+  @Get('search-for-join')
+  async searchClinicsForJoin(
+    @Request() req: RequestWithUser,
+    @Query('query') query: string,
+  ) {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
+    const clinics = await this.clinicsService.searchActive(query);
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return clinics.map((clinic) => ({
+        ...clinic,
+        canJoin: true,
+        existingRequestStatus: null,
+      }));
+    }
+
+    const pendingRequests =
+      await this.joinRequestService.findUserPendingRequests(userId);
+
+    return clinics.map((clinic) => ({
+      ...clinic,
+      canJoin: !pendingRequests.some((r) => r.clinicId === clinic.id),
+      existingRequestStatus:
+        pendingRequests.find((r) => r.clinicId === clinic.id)?.status || null,
+    }));
+  }
+
   @Post('join')
   @UsePipes(new ZodValidationPipe(JoinClinicSchema))
   async joinClinic(
     @Request() req: RequestWithUser,
     @Body() dto: JoinClinicDto,
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
-    return this.clinicsService.joinClinicForUser(userId, dto);
+    throw new BadRequestException(
+      'Direct joining is no longer supported. Please submit a join request through the app.',
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { BullModule } from '@nestjs/bull';
+import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import {
   BillingCalculatorService,
   InvoiceValidatorService,
@@ -28,10 +28,7 @@ import {
 import { PricingController } from './presentation/controllers/pricing.controller';
 import { INVOICE_REPOSITORY_TOKEN } from './core/repositories/invoice.repository';
 import { PAYMENT_SESSION_REPOSITORY_TOKEN } from './core/repositories/payment-session.repository';
-import {
-  RazorpayPaymentProvider,
-  PAYMENT_PROVIDER_TOKEN,
-} from './infrastructure/providers/razorpay.provider';
+import { PaymentsModule } from '@/domains/payments/payments.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { MessagingModule } from '@/shared/modules/messaging/messaging.module';
@@ -42,6 +39,7 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
 @Module({
   imports: [
     PrismaModule,
+    PaymentsModule,
     WhatsAppModule,
     AuditModule,
     MessagingModule,
@@ -70,7 +68,6 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     RetryService,
     SchedulerService,
     PDFService,
-    RazorpayPaymentProvider,
     {
       provide: INVOICE_REPOSITORY_TOKEN,
       useClass: PrismaInvoiceRepository,
@@ -78,10 +75,6 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     {
       provide: PAYMENT_SESSION_REPOSITORY_TOKEN,
       useClass: PrismaPaymentSessionRepository,
-    },
-    {
-      provide: PAYMENT_PROVIDER_TOKEN,
-      useClass: RazorpayPaymentProvider,
     },
   ],
   exports: [

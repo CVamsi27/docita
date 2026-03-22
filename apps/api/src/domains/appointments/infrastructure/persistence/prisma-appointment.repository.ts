@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IAppointmentRepository,
+  AppointmentListItem,
   AppointmentSearchParams,
   PaginatedResult,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
@@ -32,7 +33,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
 
   async findAll(
     params: AppointmentSearchParams,
-  ): Promise<PaginatedResult<Appointment>> {
+  ): Promise<PaginatedResult<AppointmentListItem>> {
     const {
       clinicId,
       startDate,
@@ -79,6 +80,19 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
           take: limit + 1,
           cursor: cursor ? { id: cursor } : undefined,
           orderBy: { startTime: 'asc' },
+          include: {
+            patient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phoneNumber: true,
+              },
+            },
+            doctor: {
+              select: { id: true, name: true },
+            },
+          },
         }),
       ]);
 
@@ -89,7 +103,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
         : undefined;
 
       return {
-        items: resultItems.map((item) => AppointmentMapper.toDomain(item)),
+        items: resultItems.map((item) => AppointmentMapper.toListItem(item)),
         nextCursor,
         hasMore,
         count: total,
@@ -172,5 +186,36 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       where: { id },
     });
     return count > 0;
+  }
+
+  async findAppointmentsForSlots(
+    clinicId: string,
+    doctorIds: string[],
+    startOfDay: Date,
+    endOfDay: Date,
+  ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>> {
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        clinicId,
+        doctorId: { in: doctorIds },
+        startTime: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        status: {
+          notIn: [
+            PrismaAppointmentStatus.CANCELLED,
+            PrismaAppointmentStatus.NO_SHOW,
+          ],
+        },
+      },
+      select: {
+        doctorId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    return appointments;
   }
 }

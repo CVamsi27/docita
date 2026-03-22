@@ -13,10 +13,9 @@ export enum OnboardingStep {
 }
 export const onboardingStepSchema = z.nativeEnum(OnboardingStep);
 export enum ClinicTier {
-  CAPTURE = 'CAPTURE',
-  CORE = 'CORE',
-  PLUS = 'PLUS',
-  PRO = 'PRO',
+  STARTER = 'STARTER',
+  ESSENTIAL = 'ESSENTIAL',
+  PROFESSIONAL = 'PROFESSIONAL',
   ENTERPRISE = 'ENTERPRISE',
 }
 export const clinicTierSchema = z.nativeEnum(ClinicTier);

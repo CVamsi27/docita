@@ -1,44 +1,55 @@
 export enum ClinicTierEnum {
-  CAPTURE = 'CAPTURE',
-  CORE = 'CORE',
-  GROWTH = 'GROWTH',
-  SCALE = 'SCALE',
+  STARTER = 'STARTER',
+  ESSENTIAL = 'ESSENTIAL',
+  PROFESSIONAL = 'PROFESSIONAL',
   ENTERPRISE = 'ENTERPRISE',
 }
 
 const TIER_HIERARCHY: Record<ClinicTierEnum, number> = {
-  [ClinicTierEnum.CAPTURE]: 1,
-  [ClinicTierEnum.CORE]: 2,
-  [ClinicTierEnum.GROWTH]: 3,
-  [ClinicTierEnum.SCALE]: 4,
-  [ClinicTierEnum.ENTERPRISE]: 5,
+  [ClinicTierEnum.STARTER]: 1,
+  [ClinicTierEnum.ESSENTIAL]: 2,
+  [ClinicTierEnum.PROFESSIONAL]: 3,
+  [ClinicTierEnum.ENTERPRISE]: 4,
+};
+
+// Map legacy DB enum values to the canonical tier enum
+const LEGACY_TIER_MAP: Record<string, ClinicTierEnum> = {
+  CAPTURE: ClinicTierEnum.STARTER,
+  CORE: ClinicTierEnum.ESSENTIAL,
+  PLUS: ClinicTierEnum.ESSENTIAL,
+  PRO: ClinicTierEnum.PROFESSIONAL,
+  CLINIC: ClinicTierEnum.PROFESSIONAL,
+  // Old internal names
+  GROWTH: ClinicTierEnum.ESSENTIAL,
+  SCALE: ClinicTierEnum.PROFESSIONAL,
+  FREE: ClinicTierEnum.STARTER,
 };
 
 export class ClinicTier {
   constructor(readonly value: ClinicTierEnum) {}
 
   static fromString(value: string): ClinicTier {
-    const tier = Object.values(ClinicTierEnum).find((v) => v === value);
-    if (!tier) {
-      throw new Error(`Invalid clinic tier: ${value}`);
+    const canonical = Object.values(ClinicTierEnum).find((v) => v === value);
+    if (canonical) {
+      return new ClinicTier(canonical);
     }
-    return new ClinicTier(tier);
+    const legacy = LEGACY_TIER_MAP[value];
+    if (legacy) {
+      return new ClinicTier(legacy);
+    }
+    throw new Error(`Invalid clinic tier: ${value}`);
   }
 
-  isCapture(): boolean {
-    return this.value === ClinicTierEnum.CAPTURE;
+  isStarter(): boolean {
+    return this.value === ClinicTierEnum.STARTER;
   }
 
-  isCore(): boolean {
-    return this.value === ClinicTierEnum.CORE;
+  isEssential(): boolean {
+    return this.value === ClinicTierEnum.ESSENTIAL;
   }
 
-  isGrowth(): boolean {
-    return this.value === ClinicTierEnum.GROWTH;
-  }
-
-  isScale(): boolean {
-    return this.value === ClinicTierEnum.SCALE;
+  isProfessional(): boolean {
+    return this.value === ClinicTierEnum.PROFESSIONAL;
   }
 
   isEnterprise(): boolean {

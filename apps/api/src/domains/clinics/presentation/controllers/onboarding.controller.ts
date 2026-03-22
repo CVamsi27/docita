@@ -10,8 +10,10 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { OnboardingService } from '@/domains/clinics/application/services/onboarding/onboarding.service';
+import { UsersService } from '@/domains/users/application/services/users.service';
 import {
   CompleteOnboardingDto,
   OnboardingCheckoutDto,
@@ -28,23 +30,39 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { MAX_FILE_SIZE } from '@workspace/utils';
 
-@Public()
 @Controller('onboarding')
 export class OnboardingController {
-  constructor(private readonly onboardingService: OnboardingService) {}
+  constructor(
+    private readonly onboardingService: OnboardingService,
+    private readonly usersService: UsersService,
+  ) {}
 
+  @Public()
   @Post('initialize')
   @HttpCode(201)
   @ZodSerializerDto(OnboardingInitResponseDto)
-  initializeOnboarding() {
+  initializeOnboarding(@Request() req: RequestWithUser) {
+    // If an authenticated user already has a clinic or completed onboarding,
+    // they must not re-initialize an onboarding session.
+    if (
+      req.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'Onboarding not allowed for existing clinics',
+      );
+    }
+
     return this.onboardingService.initializeOnboarding();
   }
 
+  @Public()
   @Patch(':onboardingId/step/:step')
   @ZodSerializerDto(OnboardingProgressDto)
   updateStep(
@@ -60,12 +78,14 @@ export class OnboardingController {
     );
   }
 
+  @Public()
   @Get(':onboardingId/progress')
   @ZodSerializerDto(OnboardingProgressDto)
   getProgress(@Param('onboardingId') onboardingId: string) {
     return this.onboardingService.getOnboardingProgress(onboardingId);
   }
 
+  @Public()
   @Post(':onboardingId/complete')
   @HttpCode(201)
   @ZodSerializerDto(OnboardingCompletionResponseDto)
@@ -75,6 +95,16 @@ export class OnboardingController {
     completeData: CompleteOnboardingDto,
     @Request() req: RequestWithUser,
   ) {
+    // Prevent completing onboarding if request user already belongs to a clinic
+    if (
+      req.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'Onboarding cannot be completed for this account',
+      );
+    }
+
     const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.onboardingService.completeOnboarding(
       onboardingId,
@@ -83,6 +113,7 @@ export class OnboardingController {
     );
   }
 
+  @Public()
   @Post(':onboardingId/checkout')
   @HttpCode(201)
   @ZodSerializerDto(OnboardingCheckoutResponseDto)
@@ -90,15 +121,50 @@ export class OnboardingController {
     @Param('onboardingId') onboardingId: string,
     @Body(new ZodValidationPipe(onboardingCheckoutSchema))
     checkoutData: OnboardingCheckoutDto,
+    @Request() req?: RequestWithUser,
   ) {
+    if (
+      req?.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'Onboarding checkout not allowed for existing clinics',
+      );
+    }
     return this.onboardingService.createCheckout(onboardingId, checkoutData);
   }
 
+  @Public()
   @Post(':onboardingId/sla-signature-session')
-  async createSlaSignatureSession(@Param('onboardingId') onboardingId: string) {
+  async createSlaSignatureSession(
+    @Param('onboardingId') onboardingId: string,
+    @Request() req?: RequestWithUser,
+  ) {
+    if (
+      req?.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'SLA signature session not allowed for existing clinics',
+      );
+    }
+
     return this.onboardingService.createSlaSignatureSession(onboardingId);
   }
 
+  @Public()
+  @Get(':onboardingId/sla-signature-session/:sessionId/status')
+  getSlaSignatureSessionStatus(
+    @Param('onboardingId') onboardingId: string,
+    @Param('sessionId') sessionId: string,
+  ) {
+    return this.onboardingService.getSlaSignatureSessionStatus(
+      onboardingId,
+      sessionId,
+    );
+  }
+
+  @Public()
   @Post(':onboardingId/sla-signature-session/:sessionId')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -129,9 +195,19 @@ export class OnboardingController {
     @Param('onboardingId') onboardingId: string,
     @Param('sessionId') sessionId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Request() req?: RequestWithUser,
   ) {
     if (!file) {
       throw new BadRequestException('Signature file is required');
+    }
+
+    if (
+      req?.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'Signature upload not allowed for existing clinics',
+      );
     }
 
     return this.onboardingService.uploadSlaSignature(
@@ -139,5 +215,33 @@ export class OnboardingController {
       sessionId,
       file,
     );
+  }
+
+  @Post('choose-path')
+  @HttpCode(200)
+  @SkipSubscriptionCheck()
+  async choosePath(
+    @Request() req: RequestWithUser,
+    @Body() dto: { path: string },
+  ) {
+    if (
+      req.user &&
+      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+    ) {
+      throw new ForbiddenException(
+        'Choose path not allowed for existing clinics',
+      );
+    }
+    const onboardingStep =
+      dto.path === 'CREATE_CLINIC' ? 'CREATING_CLINIC' : 'JOINING_CLINIC';
+
+    await this.usersService.update(req.user!.id, {
+      onboardingStep,
+    });
+
+    return {
+      success: true,
+      nextStep: dto.path === 'CREATE_CLINIC' ? 'onboarding' : 'clinic-search',
+    };
   }
 }

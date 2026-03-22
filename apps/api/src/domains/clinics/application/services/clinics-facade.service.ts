@@ -209,4 +209,8 @@ export class ClinicsService {
   async joinClinicForUser(userId: string, data: JoinClinicData) {
     return this.clinicDataService.joinClinicForUser(userId, data);
   }
+
+  async searchActive(query: string) {
+    return this.clinicDataService.searchActive(query);
+  }
 }

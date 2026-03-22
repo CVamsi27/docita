@@ -90,7 +90,7 @@ export class ProcessWebhookUseCase {
     if (!clinicId) return;
 
     const tier = ClinicTier.fromString(
-      this.readNoteString(sub.notes, 'tier') || 'CORE',
+      this.readNoteString(sub.notes, 'tier') || 'ESSENTIAL',
     );
     const cycle = BillingCycle.fromString(
       this.readNoteString(sub.notes, 'cycle') || 'MONTHLY',

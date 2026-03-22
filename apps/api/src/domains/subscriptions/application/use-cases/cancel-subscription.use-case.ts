@@ -56,14 +56,14 @@ export class CancelSubscriptionUseCase {
     if (!cancelAtPeriodEnd) {
       await this.clinicOps.updateTierAndFeatures(
         request.clinicId,
-        'CAPTURE',
+        'STARTER',
         SubscriptionStatusEnum.CANCELLED,
         {},
       );
 
       await this.clinicOps.emitUpdate(request.clinicId, {
         clinicId: request.clinicId,
-        tier: 'CAPTURE',
+        tier: 'STARTER',
         subscriptionStatus: SubscriptionStatusEnum.CANCELLED,
       });
     }

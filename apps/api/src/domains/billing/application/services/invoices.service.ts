@@ -18,6 +18,7 @@ import {
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 
 const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
   const parsedItems = invoiceItemSchema.array().parse(items);
@@ -61,6 +62,7 @@ export class InvoicesService {
     private readonly repository: IInvoiceRepository,
     private readonly pdfService: PDFService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly usageTracking: UsageTrackingService,
   ) {}
 
   async findAll(
@@ -132,6 +134,9 @@ export class InvoicesService {
         invoiceId: invoice.id,
         clinicId: data.clinicId,
       });
+      this.usageTracking
+        .trackInvoice(data.clinicId, invoice.id)
+        .catch(() => {});
     }
 
     return invoice;

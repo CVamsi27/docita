@@ -32,10 +32,10 @@ export class SubscriptionsQueryService {
     private readonly pricingService: SubscriptionPricingService,
   ) {}
 
-  private getTierData<T extends Record<string, unknown>>(
+  private getTierData<T extends Record<string, V>, V>(
     source: T,
     key: string,
-  ): unknown {
+  ): T[keyof T] | undefined {
     return source[key as keyof T];
   }
 
@@ -48,11 +48,11 @@ export class SubscriptionsQueryService {
       return {};
     }
 
-    return Object.fromEntries(Object.entries(value));
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>));
   }
 
   getTierConfig() {
-    const tiers = ['CAPTURE', 'CORE', 'PLUS', 'PRO', 'ENTERPRISE'];
+    const tiers = ['STARTER', 'ESSENTIAL', 'PROFESSIONAL', 'ENTERPRISE'];
     const intelligenceFeatures = [
       'AI prescription assistant',
       'Diagnosis suggestions (non-clinical)',
@@ -118,6 +118,47 @@ export class SubscriptionsQueryService {
 
   async getPaymentHistory(clinicId: string, limit: number = 20) {
     return this.subscriptionRepo.findPaymentsByClinicId(clinicId, limit);
+  }
+
+  async getBillingStatus(clinicId: string) {
+    const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
+    const payments = subscription
+      ? ((await this.subscriptionRepo.findPaymentsByClinicId(
+          clinicId,
+          1,
+        )) as Array<{
+          amountCents: number;
+          currency: string;
+          createdAt: Date;
+          getStatus: () => unknown;
+        }>)
+      : [];
+    const lastPayment = payments[0];
+
+    return {
+      subscription: subscription
+        ? {
+            id: subscription.id,
+            status: subscription.getStatus().value,
+            tier: subscription.getPlan().value,
+            billingCycle: subscription.getBillingCycle().value,
+            basePriceCents: subscription.getBasePrice().paise,
+            currentPeriodStart: subscription.currentPeriodStart,
+            currentPeriodEnd: subscription.currentPeriodEnd,
+            cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
+          }
+        : null,
+      referralCredits: 0,
+      pendingReferralDiscount: 0,
+      lastPayment: lastPayment
+        ? {
+            amount: lastPayment.amountCents / 100,
+            currency: lastPayment.currency,
+            date: lastPayment.createdAt,
+            status: String(lastPayment.getStatus()),
+          }
+        : undefined,
+    };
   }
 
   async getUpcomingInvoice(clinicId: string) {

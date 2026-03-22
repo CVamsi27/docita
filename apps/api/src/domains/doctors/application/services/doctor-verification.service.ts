@@ -1,11 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { Role } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  IDoctorVerificationRepository,
+  DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
+} from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
 
 type VerificationResult = {
-  status: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'FAILED';
+  status: DoctorVerificationStatus;
   source: string;
   reference?: string;
   reason?: string;
@@ -15,40 +18,15 @@ type VerificationResult = {
 @Injectable()
 export class DoctorVerificationService {
   private readonly logger = new Logger(DoctorVerificationService.name);
-  private readonly verificationSelect = {
-    id: true,
-    name: true,
-    email: true,
-    role: true,
-    registrationNumber: true,
-    licenseNumber: true,
-    signatureUrl: true,
-    signatureUploadedAt: true,
-    verificationStatus: true,
-    verificationSource: true,
-    verificationRef: true,
-    verificationReason: true,
-    verificationData: true,
-    verificationCheckedAt: true,
-    updatedAt: true,
-  } as const;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DOCTOR_VERIFICATION_REPOSITORY_TOKEN)
+    private readonly repository: IDoctorVerificationRepository,
     private readonly configService: AppConfigService,
   ) {}
 
   async verifyAndPersistDoctorVerification(doctorId: string) {
-    const doctor = await this.prisma.user.findUnique({
-      where: { id: doctorId },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        registrationNumber: true,
-        licenseNumber: true,
-      },
-    });
+    const doctor = await this.repository.findDoctorForVerification(doctorId);
 
     if (!doctor) {
       return null;
@@ -59,30 +37,23 @@ export class DoctorVerificationService {
     }
 
     if (!doctor.registrationNumber) {
-      await this.prisma.$executeRaw`
-        UPDATE "User"
-        SET
-          "verificationStatus" = 'UNVERIFIED',
-          "verificationSource" = 'NMC',
-          "verificationReason" = 'Registration number is required',
-          "verificationCheckedAt" = NOW()
-        WHERE "id" = ${doctorId}
-      `;
-
-      return this.prisma.user.findUnique({
-        where: { id: doctorId },
-        select: this.verificationSelect,
+      await this.repository.updateVerificationStatus(doctorId, {
+        verificationStatus: DoctorVerificationStatus.UNVERIFIED,
+        verificationSource: 'NMC',
+        verificationReason: 'Registration number is required',
+        verificationRef: null,
+        verificationCheckedAt: new Date(),
       });
+
+      return this.repository.findDoctorVerificationRecord(doctorId);
     }
 
-    await this.prisma.$executeRaw`
-      UPDATE "User"
-      SET
-        "verificationStatus" = 'PENDING',
-        "verificationSource" = 'NMC',
-        "verificationReason" = NULL
-      WHERE "id" = ${doctorId}
-    `;
+    await this.repository.updateVerificationStatus(doctorId, {
+      verificationStatus: DoctorVerificationStatus.PENDING,
+      verificationSource: 'NMC',
+      verificationReason: null,
+      verificationCheckedAt: new Date(),
+    });
 
     const result = await this.verifyWithProvider({
       id: doctor.id,
@@ -91,33 +62,21 @@ export class DoctorVerificationService {
       licenseNumber: doctor.licenseNumber ?? undefined,
     });
 
-    await this.prisma.$executeRaw`
-      UPDATE "User"
-      SET
-        "verificationStatus" = ${result.status},
-        "verificationSource" = ${result.source},
-        "verificationRef" = ${result.reference ?? null},
-        "verificationReason" = ${result.reason ?? null},
-        "verificationCheckedAt" = NOW()
-      WHERE "id" = ${doctorId}
-    `;
-
-    return this.prisma.user.findUnique({
-      where: { id: doctorId },
-      select: this.verificationSelect,
+    await this.repository.updateVerificationStatus(doctorId, {
+      verificationStatus: result.status,
+      verificationSource: result.source,
+      verificationRef: result.reference ?? null,
+      verificationReason: result.reason ?? null,
+      verificationData: result.data,
+      verificationCheckedAt: new Date(),
     });
+
+    return this.repository.findDoctorVerificationRecord(doctorId);
   }
 
   @Cron('0 3 * * *')
   async reverifyDoctorsNightly() {
-    const doctors = await this.prisma.user.findMany({
-      where: {
-        role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
-        registrationNumber: { not: null },
-      },
-      select: { id: true },
-      take: 500,
-    });
+    const doctors = await this.repository.findDoctorsForReverification();
 
     for (const doctor of doctors) {
       try {
@@ -130,17 +89,58 @@ export class DoctorVerificationService {
     }
   }
 
+  private async checkLicenseExpiry(
+    doctorId: string,
+  ): Promise<{ valid: boolean; reason?: string }> {
+    const doctor = await this.repository.findDoctorLicenseExpiry(doctorId);
+
+    if (!doctor?.licenseExpiry) {
+      return { valid: true };
+    }
+
+    const now = new Date();
+    const expiryDate = new Date(doctor.licenseExpiry);
+
+    if (expiryDate < now) {
+      return {
+        valid: false,
+        reason: `Medical license expired on ${expiryDate.toLocaleDateString()}`,
+      };
+    }
+
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (daysUntilExpiry <= 30) {
+      this.logger.warn(
+        `License expiring soon for doctor ${doctorId}: ${daysUntilExpiry} days remaining`,
+      );
+    }
+
+    return { valid: true };
+  }
+
   private async verifyWithProvider(input: {
     id: string;
     name: string;
     registrationNumber: string;
     licenseNumber?: string;
   }): Promise<VerificationResult> {
+    const licenseCheck = await this.checkLicenseExpiry(input.id);
+    if (!licenseCheck.valid) {
+      return {
+        status: DoctorVerificationStatus.REJECTED,
+        source: 'LICENSE_CHECK',
+        reason: licenseCheck.reason,
+      };
+    }
+
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
     if (!apiUrl) {
       return {
-        status: 'FAILED',
+        status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
           'Government verification provider is not configured. Set DOCTOR_VERIFICATION_API_URL.',
@@ -155,11 +155,7 @@ export class DoctorVerificationService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(apiKey
-            ? {
-                Authorization: `Bearer ${apiKey}`,
-              }
-            : {}),
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
           doctorId: input.id,
@@ -174,7 +170,7 @@ export class DoctorVerificationService {
 
       if (!response.ok) {
         return {
-          status: 'FAILED',
+          status: DoctorVerificationStatus.FAILED,
           source: 'NMC',
           reason: `Verification provider error (${response.status})`,
         };
@@ -191,7 +187,7 @@ export class DoctorVerificationService {
 
       if (payload.verified) {
         return {
-          status: 'VERIFIED',
+          status: DoctorVerificationStatus.VERIFIED,
           source: payload.source || 'NMC',
           reference: payload.referenceId,
           data: payload.data,
@@ -199,7 +195,10 @@ export class DoctorVerificationService {
       }
 
       return {
-        status: payload.status === 'FAILED' ? 'FAILED' : 'REJECTED',
+        status:
+          payload.status === 'FAILED'
+            ? DoctorVerificationStatus.FAILED
+            : DoctorVerificationStatus.REJECTED,
         source: payload.source || 'NMC',
         reference: payload.referenceId,
         reason: payload.reason || 'Registration could not be verified',
@@ -207,7 +206,7 @@ export class DoctorVerificationService {
       };
     } catch (error) {
       return {
-        status: 'FAILED',
+        status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
           error instanceof Error

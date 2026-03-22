@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentSchedulingRulesService } from './appointment-scheduling-rules.service';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 
 describe('AppointmentSchedulingRulesService', () => {
@@ -308,7 +308,7 @@ describe('AppointmentSchedulingRulesService', () => {
         status: AppointmentStatus.CONFIRMED,
         patient: {
           dateOfBirth: new Date('1985-01-01'),
-          phoneNumber: '9876543210',
+          phoneNumber: '9876543410',
           email: null,
         },
         vitalSign: {

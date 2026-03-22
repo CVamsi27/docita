@@ -8,8 +8,8 @@ import {
   jest,
 } from '@jest/globals';
 import { PatientsController } from './patients.controller';
-import { PatientService as PatientsService } from '../../application/services/patient.service';
-import { RolesGuard } from '../../../../shared/modules/auth/auth/roles.guard';
+import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
+import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Role } from '@workspace/db';
 
 describe('PatientsController (Authorization)', () => {

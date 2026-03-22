@@ -22,6 +22,12 @@ describe('DashboardService', () => {
     prescription: {
       count: jest.fn(),
     },
+    labTestOrder: {
+      count: jest.fn(),
+    },
+    invoice: {
+      aggregate: jest.fn(),
+    },
   };
 
   const mockCacheManager = {
@@ -47,7 +53,7 @@ describe('DashboardService', () => {
     }).compile();
 
     service = module.get<DashboardService>(DashboardService);
-    prisma = module.get<PrismaService>(PrismaService);
+    _prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -83,6 +89,10 @@ describe('DashboardService', () => {
         .mockResolvedValueOnce(500);
 
       mockPrismaService.prescription.count.mockResolvedValue(25);
+      mockPrismaService.labTestOrder.count.mockResolvedValue(3);
+      mockPrismaService.invoice.aggregate.mockResolvedValue({
+        _sum: { total: 5000 },
+      });
 
       mockPrismaService.appointment.findMany
         .mockResolvedValueOnce([])
@@ -96,8 +106,8 @@ describe('DashboardService', () => {
         newPatientsThisMonth: 10,
         todayAppointments: 8,
         activePrescriptions: 25,
-        pendingReports: 0,
-        monthlyRevenue: 0,
+        pendingReports: 3,
+        monthlyRevenue: 5000,
         recentActivity: [],
         totalAppointments: 500,
         upcomingAppointments: [],
@@ -107,6 +117,8 @@ describe('DashboardService', () => {
       expect(mockPrismaService.user.count).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.appointment.count).toHaveBeenCalledTimes(2);
       expect(mockPrismaService.prescription.count).toHaveBeenCalledTimes(1);
+      expect(mockPrismaService.labTestOrder.count).toHaveBeenCalledTimes(1);
+      expect(mockPrismaService.invoice.aggregate).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.appointment.findMany).toHaveBeenCalledTimes(2);
     });
   });

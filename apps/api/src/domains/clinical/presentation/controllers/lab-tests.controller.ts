@@ -19,8 +19,11 @@ import {
   ListLabTestOrdersQueryDto,
   UpdateLabTestOrderDto,
 } from '@/domains/clinical/application/dto/lab-tests.dto';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { Feature } from '@workspace/types';
 
 @Controller('clinical/lab-tests')
+@RequireFeature(Feature.LAB_TESTS)
 export class LabTestsController {
   constructor(private readonly clinicalService: ClinicalService) {}
 
@@ -29,14 +32,12 @@ export class LabTestsController {
     return await this.clinicalService.getAllTests(clinicId);
   }
 
-  @Get(':id')
-  async getTestById(@Param('id') id: string): Promise<LabTest> {
-    return await this.clinicalService.getTestById(id);
-  }
-
-  @Post()
-  async createTest(@Body() data: CreateLabTestDto): Promise<LabTest> {
-    return await this.clinicalService.createTest({ ...data });
+  @Get('stats')
+  async getStats(
+    @Query() query: LabStatsQueryDto,
+  ): Promise<Record<string, number>> {
+    const { clinicId } = query;
+    return await this.clinicalService.getStats(clinicId || '');
   }
 
   @Get('orders')
@@ -66,11 +67,13 @@ export class LabTestsController {
     return await this.clinicalService.updateOrderStatus(id, status);
   }
 
-  @Get('stats')
-  async getStats(
-    @Query() query: LabStatsQueryDto,
-  ): Promise<Record<string, number>> {
-    const { clinicId } = query;
-    return await this.clinicalService.getStats(clinicId || '');
+  @Get(':id')
+  async getTestById(@Param('id') id: string): Promise<LabTest> {
+    return await this.clinicalService.getTestById(id);
+  }
+
+  @Post()
+  async createTest(@Body() data: CreateLabTestDto): Promise<LabTest> {
+    return await this.clinicalService.createTest({ ...data });
   }
 }

@@ -20,7 +20,7 @@ import {
   CreatePatientMetricValueDto,
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
-} from '../../application/dto/patient-metrics.dto';
+} from '@/domains/patients/application/dto/patient-metrics.dto';
 
 @Controller('patients/:patientId/metrics')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)

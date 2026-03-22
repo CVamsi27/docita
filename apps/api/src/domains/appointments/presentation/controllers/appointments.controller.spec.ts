@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentsController } from './appointments.controller';
-import { AppointmentService as AppointmentsService } from '../../application/services/appointment.service';
-import { JwtAuthGuard } from '../../../../shared/modules/auth/auth/jwt-auth.guard';
-import { TierGuard } from '../../../../shared/modules/auth/auth/tier.guard';
+import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
+import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 
 describe('AppointmentsController', () => {
   let controller: AppointmentsController;

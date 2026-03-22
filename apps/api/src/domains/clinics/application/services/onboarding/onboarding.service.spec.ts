@@ -264,7 +264,7 @@ describe('OnboardingService', () => {
         specialization: 'General Physician',
       },
       planSelection: {
-        tier: ClinicTier.CORE,
+        tier: ClinicTier.ESSENTIAL,
         billingCycle: BillingCycle.MONTHLY,
       },
       slaAgreement: {
