@@ -37,9 +37,18 @@ model User {
   yearsOfExperience  Int?
 
   // Account security: failed login tracking and lockout
-  failedLoginAttempts Int       @default(0) // Consecutive failed login attempts
-  lastFailedLoginAt   DateTime? // Timestamp of last failed login
-  accountLockedUntil  DateTime? // Account locked until this time
+  failedLoginAttempts Int       @default(0)
+  lastFailedLoginAt   DateTime?
+  accountLockedUntil  DateTime?
+
+  // Password reset
+  passwordResetToken     String?   @unique
+  passwordResetExpiresAt DateTime?
+
+  // Onboarding tracking
+  onboardingStep         OnboardingStep? @default(NOT_STARTED)
+  onboardingStartedAt    DateTime?
+  onboardingCompletedAt  DateTime?
 
   appointments              Appointment[]
   auditLogs                 AuditLog[]
@@ -60,13 +69,77 @@ model User {
   refreshTokens             RefreshToken[]
   clinic                    Clinic?                @relation(fields: [clinicId], references: [id])
   uploadSessions            UploadSession[]
-  
+  signatureUploadTokens     SignatureUploadToken[]
+  notificationPreferences   NotificationPreferences?
+  memberJoinRequests        MemberJoinRequest[]
+  approvedJoinRequests      MemberJoinRequest[]   @relation("ApprovedRequests")
+  medicalDocuments          MedicalDocument[]     @relation("DoctorMedicalDocuments")
+  followUps                 FollowUp[]            @relation("DoctorFollowUps")
+  staffLeaves               StaffLeave[]          @relation("StaffLeaves")
+  approvedLeaves            StaffLeave[]          @relation("ApprovedLeaves")
+
   // Patient Portal: Link to Patient record for PATIENT role users
   linkedPatient             Patient?
   recordedMetricRecords     PatientMetricRecord[]
 
   @@index([clinicId])
   @@index([specialization])
+}
+
+model NotificationPreferences {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  whatsapp Boolean @default(true)
+  inApp    Boolean @default(true)
+  email    Boolean @default(false)
+  sms      Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SignatureUploadToken {
+  id        String          @id @default(cuid())
+  doctorId  String?
+  token     String          @unique
+  expiresAt DateTime
+  used      Boolean         @default(false)
+  usedAt    DateTime?
+  createdAt DateTime        @default(now())
+  purpose   SignaturePurpose @default(DOCTOR_PRESCRIPTION)
+  clinicId  String?
+
+  doctor User?   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic Clinic? @relation("ClinicSlaSignatureTokens", fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([clinicId])
+}
+
+model MemberJoinRequest {
+  id             String            @id @default(cuid())
+  userId         String
+  clinicId       String
+  requestedRole  Role              @default(DOCTOR)
+  message        String?
+  status         JoinRequestStatus @default(PENDING)
+  approvedById   String?
+  approvedByName String?
+  responseMessage String?
+  requestedAt    DateTime          @default(now())
+  respondedAt    DateTime?
+  expiresAt      DateTime?
+
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic     Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  approvedBy User?   @relation("ApprovedRequests", fields: [approvedById], references: [id])
+
+  @@unique([userId, clinicId])
+  @@index([clinicId, status])
+  @@index([status])
 }
 
 model DoctorEducation {
@@ -236,6 +309,10 @@ model Patient {
   metricDefinitions MetricDefinition[]
   metricRecords     PatientMetricRecord[]
   metricSelections  PatientMetricSelection[]
+  medicalDocuments  MedicalDocument[]
+  followUps         FollowUp[]
+  medicationDoses   MedicationDose[]
+  labTestOrders     LabTestOrder[]
 
   @@index([mrn])
   @@index([phoneNumber])
@@ -516,6 +593,7 @@ model Appointment {
   priority                AppointmentPriority   @default(ROUTINE)
   responses               AppointmentResponse[]
   metricRecords           PatientMetricRecord[]
+  followUps               FollowUp[]
 
   @@index([clinicId])
   @@index([createdAt])
@@ -593,6 +671,7 @@ model Prescription {
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
   medications              Medication[]
+  medicationDoses          MedicationDose[]
   appointment              Appointment     @relation(fields: [appointmentId], references: [id])
   doctor                   User            @relation(fields: [doctorId], references: [id])
   patient                  Patient         @relation(fields: [patientId], references: [id])
@@ -641,11 +720,59 @@ model Medication {
   specialInstructions String? // Additional instructions
   indication          String? // Why this medication is prescribed
 
-  prescription Prescription @relation(fields: [prescriptionId], references: [id])
+  prescription    Prescription     @relation(fields: [prescriptionId], references: [id])
+  medicationDoses MedicationDose[]
 
   @@index([ndcCode])
   @@index([rxNormCui])
   @@index([name])
+}
+
+// ============================================================================
+// Medication Dose Tracking
+// ============================================================================
+
+model MedicationDose {
+  id             String                @id @default(cuid())
+  medicationId   String
+  patientId      String
+  clinicId       String
+  prescriptionId String?
+  scheduledAt    DateTime
+  takenAt        DateTime?
+  status         MedicationDoseStatus  @default(PENDING)
+  doseAmount     String?
+  route          String?
+  administeredBy String?
+  notes          String?
+  source         MedicationDoseSource  @default(SYSTEM_GENERATED)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  medication   Medication    @relation(fields: [medicationId], references: [id])
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+
+  @@index([patientId, scheduledAt])
+  @@index([medicationId])
+  @@index([prescriptionId])
+  @@index([clinicId, patientId])
+  @@index([status])
+}
+
+enum MedicationDoseStatus {
+  PENDING
+  TAKEN
+  MISSED
+  SKIPPED
+  ADMINISTERED
+}
+
+enum MedicationDoseSource {
+  PATIENT_REPORTED
+  CLINICIAN_RECORDED
+  PHARMACY_CONFIRMED
+  SYSTEM_GENERATED
 }
 
 model Invoice {
@@ -783,7 +910,7 @@ model Clinic {
   website                 String?
   logo                    String?
   active                  Boolean            @default(true)
-  tier                    ClinicTier         @default(CAPTURE)
+  tier                    ClinicTier         @default(STARTER)
   type                    ClinicType         @default(GENERAL)
   settings                Json?
   timezone                String             @default("Asia/Kolkata")
@@ -849,6 +976,14 @@ model Clinic {
   metricDefinitions     MetricDefinition[]
   metricRecords         PatientMetricRecord[]
   metricSelections      PatientMetricSelection[]
+  memberJoinRequests    MemberJoinRequest[]
+  slaSignatureUrl       String?
+  slaSignatureAcceptedAt DateTime?
+  slaSignatureUploadTokens SignatureUploadToken[] @relation("ClinicSlaSignatureTokens")
+  medicalDocuments      MedicalDocument[]
+  followUps             FollowUp[]
+  staffLeaves           StaffLeave[]
+  leavePlans            LeavePlan[]
 }
 
 model MetricCategory {
@@ -1011,6 +1146,7 @@ enum MetricRecordSource {
   OBSERVATION_FORM
   IMPORT
   SYSTEM
+  PATIENT_PORTAL
 }
 
 // ============================================================================
@@ -1171,6 +1307,7 @@ model StaffNotification {
   priority  NotificationPriority  @default(NORMAL)
   isRead    Boolean               @default(false)
   readAt    DateTime?
+  deletedAt DateTime? // Soft delete support for delete-on-close
   createdAt DateTime              @default(now())
   clinic    Clinic                @relation(fields: [clinicId], references: [id])
   user      User?                 @relation(fields: [userId], references: [id])
@@ -1180,6 +1317,7 @@ model StaffNotification {
   @@index([isRead])
   @@index([createdAt])
   @@index([type])
+  @@index([deletedAt])
 }
 
 enum WhatsappTemplateCategory {
@@ -1221,6 +1359,9 @@ enum StaffNotificationType {
   PRESCRIPTION_PENDING // Prescription needs approval
   INVOICE_PENDING // Invoice needs approval
   SYSTEM_ALERT // System notification
+  MEMBER_JOIN_REQUEST // New member join request
+  MEMBER_JOIN_APPROVED // Join request approved
+  MEMBER_JOIN_REJECTED // Join request rejected
 }
 
 enum NotificationPriority {
@@ -1572,6 +1713,7 @@ model LabTestOrder {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
   labTest       LabTest              @relation(fields: [labTestId], references: [id])
+  patient       Patient              @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
   @@index([patientId])
@@ -1632,6 +1774,22 @@ enum Role {
   SUPER_ADMIN
   ADMIN_DOCTOR
   PATIENT
+}
+
+enum OnboardingStep {
+  NOT_STARTED
+  CHOOSE_PATH
+  CREATING_CLINIC
+  JOINING_CLINIC
+  COMPLETED
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
 }
 
 enum Gender {
@@ -1843,11 +2001,15 @@ enum DayOfWeek {
 }
 
 enum ClinicTier {
-  CAPTURE
-  CORE
-  PLUS
-  PRO
+  STARTER
+  ESSENTIAL
+  PROFESSIONAL
   ENTERPRISE
+}
+
+enum SignaturePurpose {
+  DOCTOR_PRESCRIPTION
+  SLA_ACCEPTANCE
 }
 
 enum ClinicType {
@@ -2013,6 +2175,24 @@ model Consent {
   @@index([consentType])
   @@index([status])
   @@index([validUntil])
+}
+
+model ConsentTemplate {
+  id          String      @id @default(cuid())
+  clinicId    String?     // Null for system-wide templates
+  consentType ConsentType
+  version     String      // Semantic version (e.g., "1.0.0")
+  name        String
+  content     String      // Template content
+  isActive    Boolean     @default(true)
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([clinicId])
+  @@index([consentType])
+  @@index([isActive])
+  @@unique([clinicId, consentType, version])
 }
 
 // ============================================================================
@@ -2233,10 +2413,14 @@ model TierPricing {
   includedUsers        Int // Number of users (doctors/staff)
 
   // Overage rates (in paise per unit)
-  overagePatientCents     Int // Per additional active patient
-  overageAppointmentCents Int // Per additional appointment
-  overageStorageCents     Int // Per additional GB
-  overageUserCents        Int // Per additional user
+  overagePatientCents      Int // Per additional active patient
+  overageAppointmentCents  Int // Per additional appointment
+  overageStorageCents      Int // Per additional GB
+  overageUserCents         Int // Per additional user
+  overagePrescriptionCents Int @default(0) // Per additional prescription
+  overageInvoiceCents      Int @default(0) // Per additional invoice
+  overageOcrPageCents      Int @default(0) // Per additional OCR page
+  overageApiCallCents      Int @default(0) // Per additional API call (ENTERPRISE only)
 
   // Tier features (JSON array of feature keys)
   features Json @default("[]")
@@ -2420,7 +2604,7 @@ model Discount {
 model Subscription {
   id             String             @id @default(cuid())
   clinicId       String             @unique
-  plan           ClinicTier         @default(CORE)
+  plan           ClinicTier         @default(ESSENTIAL)
   billingCycle   BillingCycle       @default(MONTHLY)
   basePriceCents Int // Base tier price in paise
   currency       String             @default("INR")
@@ -2813,6 +2997,10 @@ enum UsageType {
   USERS
   WHATSAPP_MESSAGES
   AI_CREDITS
+  PRESCRIPTION
+  INVOICE
+  OCR_PAGE
+  API_CALL
 }
 
 enum DiscountType {
@@ -2951,14 +3139,26 @@ model RefreshToken {
   userId          String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   revokedAt       DateTime?
-  replacedByToken String? // ID of the token that replaced this one
-  tokenFamily     String? // Family ID for detecting token reuse attacks (same family = valid rotation chain)
+  replacedByToken String?
+  tokenFamily     String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([userId])
   @@index([token])
-  @@index([tokenFamily]) // Index for token reuse attack detection
+  @@index([tokenFamily])
+}
+
+model PatientOtp {
+  id          String    @id @default(cuid())
+  phoneNumber String
+  otpHash     String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([phoneNumber, expiresAt])
 }
 
 // --- Archival Tables (§6.3) ---
@@ -3054,4 +3254,140 @@ model AppointmentArchive {
   @@index([patientId])
   @@index([doctorId])
   @@index([startTime])
+}
+
+// ============================================================================
+// Medical Documents (certificates, discharge summaries, referral letters)
+// ============================================================================
+
+model MedicalDocument {
+  id            String                @id @default(cuid())
+  type          MedicalDocumentType
+  patientId     String
+  doctorId      String
+  clinicId      String
+  appointmentId String?
+  title         String
+  content       Json
+  validFrom     DateTime?
+  validUntil    DateTime?
+  status        MedicalDocumentStatus @default(DRAFT)
+  signedAt      DateTime?
+  pdfUrl        String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  User    @relation("DoctorMedicalDocuments", fields: [doctorId], references: [id])
+  clinic  Clinic  @relation(fields: [clinicId], references: [id])
+
+  @@index([clinicId, patientId])
+  @@index([clinicId])
+  @@index([type])
+}
+
+// ============================================================================
+// Follow-Up Scheduling
+// ============================================================================
+
+model FollowUp {
+  id                  String         @id @default(cuid())
+  appointmentId       String
+  patientId           String
+  doctorId            String
+  clinicId            String
+  scheduledDate       DateTime
+  reason              String
+  status              FollowUpStatus @default(PENDING)
+  reminderSentAt      DateTime?
+  bookedAppointmentId String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  doctor      User        @relation("DoctorFollowUps", fields: [doctorId], references: [id])
+  clinic      Clinic      @relation(fields: [clinicId], references: [id])
+
+  @@index([clinicId, status])
+  @@index([scheduledDate])
+  @@index([clinicId])
+  @@index([patientId])
+}
+
+enum MedicalDocumentType {
+  MEDICAL_CERTIFICATE
+  FITNESS_CERTIFICATE
+  DISCHARGE_SUMMARY
+  REFERRAL_LETTER
+  SICK_NOTE
+}
+
+enum MedicalDocumentStatus {
+  DRAFT
+  SIGNED
+  REVOKED
+}
+
+enum FollowUpStatus {
+  PENDING
+  REMINDER_SENT
+  BOOKED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  EARNED
+  COMP_OFF
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model StaffLeave {
+  id              String      @id @default(cuid())
+  staffId         String
+  clinicId        String
+  leaveType       LeaveType
+  startDate       DateTime
+  endDate         DateTime
+  reason          String?
+  status          LeaveStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  cancelledAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  staff           User        @relation("StaffLeaves", fields: [staffId], references: [id])
+  approver        User?       @relation("ApprovedLeaves", fields: [approvedBy], references: [id])
+  clinic          Clinic      @relation(fields: [clinicId], references: [id])
+
+  @@index([staffId])
+  @@index([clinicId])
+  @@index([status])
+}
+
+model LeavePlan {
+  id              String    @id @default(cuid())
+  clinicId        String
+  leaveType       LeaveType
+  annualQuota     Int
+  carryForward    Boolean   @default(false)
+  maxCarryForward Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  clinic          Clinic    @relation(fields: [clinicId], references: [id])
+
+  @@unique([clinicId, leaveType])
 }
