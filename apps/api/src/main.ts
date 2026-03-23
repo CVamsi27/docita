@@ -24,7 +24,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, type Request as ExpressRequest } from 'express';
 import * as redis from 'redis';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -215,6 +215,16 @@ async function logExternalDependencyStatus(
 }
 
 async function bootstrap() {
+  const rawBodySaver = (
+    req: ExpressRequest & { rawBody?: Buffer },
+    _res: unknown,
+    buf: Buffer,
+  ) => {
+    if (buf.length > 0) {
+      req.rawBody = Buffer.from(buf);
+    }
+  };
+
   interface SentryIntegration {
     name: string;
     setupOnce: () => void;
@@ -279,8 +289,8 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  app.use(json({ limit: '1mb' }));
-  app.use(urlencoded({ limit: '1mb', extended: true }));
+  app.use(json({ limit: '1mb', verify: rawBodySaver }));
+  app.use(urlencoded({ limit: '1mb', extended: true, verify: rawBodySaver }));
 
   const apiUrl = appConfigService.getApiUrl();
 

@@ -89,6 +89,8 @@ export function validateEnv(): EnvConfig {
   if (validatedEnv) return validatedEnv;
 
   const envToParse = { ...process.env };
+  envToParse.META_BUSINESS_ACCOUNT_ID ??=
+    envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
 
   if (envToParse.NODE_ENV === 'test') {
     envToParse.DATABASE_URL ??=
